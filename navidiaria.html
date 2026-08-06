@@ -18,8 +18,8 @@
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/naviturni-theme.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
-  <link rel="stylesheet" href="assets/css/navidiaria-weekly.css?v=107">
-  <link rel="stylesheet" href="assets/css/navidiaria-monthly.css?v=106">
+  <link rel="stylesheet" href="assets/css/navidiaria-weekly.css?v=110">
+  <link rel="stylesheet" href="assets/css/navidiaria-monthly.css?v=120">
   <style>
     .ccnl-result-line{grid-column:1/-1;margin:0;padding:0;font-weight:700;line-height:1.45}
     .ccnl-result-line small{display:block;font-weight:500;opacity:.72;margin-top:3px}
@@ -102,18 +102,14 @@
 
         <section id="monthlySheet" class="monthly-sheet panel" aria-label="Distinta mensile">
           <div class="monthly-sheet-toolbar">
-            <div><p class="eyebrow">DISTINTA MENSILE</p><h2 id="monthlySheetTitle">—</h2></div>
-            <div class="weekly-nav monthly-nav" aria-label="Navigazione e sincronizzazione distinta">
-              <button id="monthlySync" class="monthly-sync-button" type="button" aria-label="Sincronizza i dati della diaria">
-                <span aria-hidden="true">↻</span><b>Sincronizza</b>
-              </button>
-              <button id="monthlySave" class="monthly-save-button" type="button" aria-label="Nessuna modifica da salvare" disabled>
-                <span aria-hidden="true">✓</span><b>Salva</b>
-              </button>
-              <button id="monthlyUndo" class="diaria-undo-button" type="button" aria-label="Nessuna modifica da annullare" disabled><span aria-hidden="true">↶</span><b>Annulla</b></button>
-              <button id="monthlyPrevious" class="monthly-month-button" type="button" aria-label="Mese precedente">‹</button>
-              <button id="monthlyToday" class="monthly-today-button" type="button">Oggi</button>
-              <button id="monthlyNext" class="monthly-month-button" type="button" aria-label="Mese successivo">›</button>
+            <div>
+              <p class="eyebrow">DISTINTA MENSILE</p>
+              <div class="weekly-month-switch">
+                <button id="monthlyPrevious" class="monthly-month-button" type="button" aria-label="Mese precedente">‹</button>
+                <h2 id="monthlySheetTitle">—</h2>
+                <button id="monthlyNext" class="monthly-month-button" type="button" aria-label="Mese successivo">›</button>
+                <button id="monthlyToday" class="monthly-today-button" type="button">Oggi</button>
+              </div>
             </div>
           </div>
           <div id="monthlySheetGrid" class="monthly-sheet-grid"></div>
@@ -125,17 +121,14 @@
             <div class="weekly-title-block">
               <p class="eyebrow">SETTIMANE DEL MESE</p>
               <div class="weekly-title-row">
-                <h2 id="weeklyRange">—</h2>
+                <div class="weekly-month-switch">
+                  <button id="weeklyPrevious" type="button" aria-label="Mese precedente">‹</button>
+                  <h2 id="weeklyRange">—</h2>
+                  <button id="weeklyNext" type="button" aria-label="Mese successivo">›</button>
+                  <button id="weeklyToday" type="button">Oggi</button>
+                </div>
                 <div id="weeklyMonthSummary" class="weekly-month-totals" aria-label="Totali del mese"></div>
               </div>
-            </div>
-            <div class="weekly-nav">
-              <button id="weeklySync" class="monthly-sync-button" type="button" aria-label="Sincronizza i dati della diaria"><span aria-hidden="true">↻</span><b>Sincronizza dati</b></button>
-              <button id="weeklySave" class="monthly-save-button" type="button" aria-label="Nessuna modifica da salvare" disabled><span aria-hidden="true">✓</span><b>Salva modifiche</b></button>
-              <button id="weeklyUndo" class="diaria-undo-button" type="button" aria-label="Nessuna modifica da annullare" disabled><span aria-hidden="true">↶</span><b>Annulla ultima</b></button>
-              <button id="weeklyPrevious" type="button" aria-label="Mese precedente">‹</button>
-              <button id="weeklyToday" type="button">Oggi</button>
-              <button id="weeklyNext" type="button" aria-label="Mese successivo">›</button>
             </div>
           </div>
           <div id="weeklyDays" class="weekly-days"></div>
@@ -254,9 +247,9 @@
   <script src="assets/js/shared-data.js"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js"></script>
-  <script src="assets/js/app.js?v=101"></script>
-  <script src="assets/js/navidiaria-weekly.js?v=108"></script>
-  <script src="assets/js/navidiaria-monthly.js?v=105"></script>
+  <script src="assets/js/app.js?v=104"></script>
+  <script src="assets/js/navidiaria-weekly.js?v=113"></script>
+  <script src="assets/js/navidiaria-monthly.js?v=114"></script>
   <script>
   (() => {
     const byId = id => document.getElementById(id);

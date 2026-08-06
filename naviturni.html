@@ -517,9 +517,6 @@
     .coverage-table .coverage-cell.week-odd {
       background-color:#10222c !important;
     }
-    .coverage-table .coverage-cell.today-col {
-      background-color:rgba(45,212,191,.11) !important;
-    }
     .coverage-table .coverage-cell .coverage-count {
       color:var(--coverage-shift-color, var(--ink));
       background:var(--coverage-shift-bg, var(--bg-card));
@@ -714,7 +711,7 @@
     #tbody td[data-col],
     .date-header th[data-col] {
       touch-action:manipulation;
-      -webkit-tap-highlight-color:rgba(56,214,191,.18);
+      -webkit-tap-highlight-color:transparent;
     }
 
     .login-overlay {
@@ -804,25 +801,16 @@
       isolation:isolate;
       mix-blend-mode:normal;
     }
-    #tbody tr.logged-agent-row:not(.logged-in-selected-crew) td {
+    #tbody tr.logged-agent-row td {
       background-color:#102a35 !important;
       box-shadow:inset 0 -1px 0 rgba(111,143,153,.28);
     }
-    #tbody tr.logged-agent-row:not(.logged-in-selected-crew) td.td-name {
+    #tbody tr.logged-agent-row td.td-name {
       background-color:#132f3a !important;
       outline-color:rgba(111,143,153,.38);
     }
-    #tbody tr.logged-agent-row.logged-in-selected-crew td {
-      background-color:#123f49 !important;
-      box-shadow:inset 0 1px 0 rgba(153,246,228,.22),inset 0 -2px 0 #2dd4bf,0 0 15px rgba(45,212,191,.12);
-    }
-    #tbody tr.logged-agent-row.logged-in-selected-crew td.td-name {
-      background-color:#17515a !important;
-      outline-color:rgba(45,212,191,.88);
-    }
     #tbody td.shared-crew-day .cell-pill,
-    #tbody td.pinned-shared-crew-day .cell-pill,
-    #tbody td.selected-shared-crew-day .cell-pill {
+    #tbody td.pinned-shared-crew-day .cell-pill {
       font-weight:900 !important;
       box-shadow:0 0 0 3px rgba(251,191,36,.98),0 0 14px rgba(251,191,36,.52);
     }
@@ -840,25 +828,6 @@
       border-radius:50%;
       background:#fbbf24;
       box-shadow:0 0 0 2px rgba(251,191,36,.2),0 0 7px rgba(251,191,36,.65);
-    }
-    #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill {
-      animation:shared-crew-pulse .72s ease-in-out infinite alternate;
-    }
-    @keyframes shared-crew-pulse {
-      from {
-        transform:scale(1);
-        box-shadow:0 0 0 3px rgba(251,191,36,.92),0 0 12px rgba(251,191,36,.42);
-      }
-      to {
-        transform:scale(1.12);
-        box-shadow:0 0 0 4px rgba(253,224,71,1),0 0 22px rgba(251,191,36,.78);
-      }
-    }
-    @media (prefers-reduced-motion:reduce) {
-      #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill {
-        animation:none;
-        box-shadow:0 0 0 4px rgba(253,224,71,1),0 0 20px rgba(251,191,36,.7);
-      }
     }
     /* Prima colonna sempre ancorata e quasi completamente coprente. */
     #matrix-scroll-wrap th:first-child,
@@ -885,10 +854,6 @@
     }
     #matrix-scroll-wrap tr.logged-agent-row td:first-child {
       z-index:38;
-    }
-    #tbody tr.shared-crew-focus td.td-name {
-      filter:brightness(1.42) saturate(1.18);
-      box-shadow:inset 3px 0 0 #facc15,inset 0 0 0 1px rgba(254,240,138,.72),0 0 14px rgba(250,204,21,.45) !important;
     }
     #tbody td.departed-crew-day .cell-pill {
       box-shadow:0 0 0 2px rgba(168,85,247,.85),0 0 10px rgba(168,85,247,.28);
@@ -947,34 +912,6 @@
     body.crew-drawer-open.crew-drawer-coverage #coverage-section .coverage-wrap {
       margin-top:var(--crew-drawer-offset,0px);
     }
-    #crew-drawer-toggle {
-      position:fixed;
-      top:0;
-      left:calc(50% + 115px);
-      z-index:195;
-      width:54px;
-      height:30px;
-      padding:0;
-      border:1px solid #2dd4bf;
-      border-top:0;
-      border-radius:0 0 12px 12px;
-      background:#103b3d;
-      color:#5eead4;
-      font-size:22px;
-      font-weight:900;
-      line-height:26px;
-      cursor:pointer;
-      transform:translateX(-50%);
-      box-shadow:0 7px 18px rgba(0,0,0,.3);
-      transition:left .22s ease,background .15s,color .15s;
-    }
-    #crew-drawer-toggle:hover,
-    #crew-drawer-toggle[aria-expanded="true"] { background:#2dd4bf;color:#05221e; }
-    #crew-drawer-toggle[hidden] { display:none !important; }
-    body.menu-collapsed #crew-drawer-toggle { left:50%; }
-
-
-
     .panel-title {
       color:var(--ink);
       font-size:14px;
@@ -1106,24 +1043,6 @@
       font-size:12px;
       letter-spacing:.08em;
     }
-    /* Unico comportamento di evidenziazione: bordo giallo spesso e lampeggiante. */
-    #tbody tr.hover-common-colleague td {
-      background-color:inherit !important;
-      box-shadow:none !important;
-    }
-    #tbody tr.hover-common-colleague td.td-name,
-    #tbody tr.shared-crew-focus td.td-name {
-      position:relative;
-      z-index:12;
-      transform-origin:center;
-      outline:3px solid #facc15 !important;
-      outline-offset:-3px;
-      box-shadow:0 0 14px rgba(250,204,21,.52) !important;
-      animation:unified-highlight-pulse .72s ease-in-out infinite alternate;
-    }
-    #tbody td.hover-common-cell .cell-pill,
-    #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill,
-    #tbody td.selected-shared-crew-day .cell-pill,
     #tbody td.pinned-shared-crew-day .cell-pill {
       position:relative;
       z-index:12;
@@ -1131,8 +1050,6 @@
       box-shadow:0 0 0 3px #facc15,0 0 15px rgba(250,204,21,.58) !important;
       animation:unified-highlight-pulse .72s ease-in-out infinite alternate;
     }
-    .date-header th.hover-current-cell-date,
-    .date-header th.hover-shared-date,
     .date-header th.pinned-agent-common-date {
       transform-origin:center;
       background:inherit !important;
@@ -1157,14 +1074,7 @@
       }
     }
     @media (prefers-reduced-motion:reduce) {
-      #tbody tr.hover-common-colleague td.td-name,
-      #tbody tr.shared-crew-focus td.td-name,
-      #tbody td.hover-common-cell .cell-pill,
-      #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill,
-      #tbody td.selected-shared-crew-day .cell-pill,
       #tbody td.pinned-shared-crew-day .cell-pill,
-      .date-header th.hover-current-cell-date,
-      .date-header th.hover-shared-date,
       .date-header th.pinned-agent-common-date { animation:none !important; }
     }
     @media(max-width:800px) {
@@ -1176,8 +1086,6 @@
       }
       #day-panel.open,
       #coverage-section #day-panel.open { max-height:84vh !important; }
-      #crew-drawer-toggle,
-      body.menu-collapsed #crew-drawer-toggle { left:50%; }
       .panel-header { align-items:flex-start; gap:8px; }
       .panel-header-content { gap:8px; }
       .panel-controls-box { padding:8px; gap:8px; }
@@ -1657,7 +1565,6 @@
       <p>Attendi qualche istante mentre recuperiamo i dati aggiornati.</p>
     </div>
 
-    <button id="crew-drawer-toggle" type="button" onclick="toggleCrewDrawer()" aria-label="Mostra equipaggio" aria-expanded="false">⌄</button>
     <div id="day-panel" aria-hidden="true">
       <div class="panel-header">
         <button class="panel-close" onclick="resetCleanTable()">✕ Chiudi finestra</button>
@@ -1736,6 +1643,8 @@
     } = window.TurniShared;
     const isBaristaProfile = (profile = loggedAgentProfile) =>
       window.TurniShared.isBaristaProfile(profile);
+    const isOfficeProfile = (profile = loggedAgentProfile) =>
+      window.TurniShared.isOfficeProfile(profile);
 
     function getBaristaRecords() {
       const explicit = Array.isArray(globalData?.bariste)
@@ -1843,6 +1752,15 @@
       assignments.sort((a, b) => a.iso.localeCompare(b.iso));
 
       const assignmentByDate = new Map(assignments.map(item => [item.iso, item.shift]));
+
+      // Applica le assegnazioni reali alla riga personale della barista,
+      // in modo che ogni giorno riporti la corsa effettiva e non solo RIP.
+      settimaneInfo.forEach(week => {
+        personalRow.turni_settimanali[week.key] = (week.dateIso || []).map(iso =>
+          assignmentByDate.get(iso) || personalRow.turni_settimanali?.[week.key]?.[week.dateIso.indexOf(iso)] || "rip"
+        );
+      });
+
       const colleagues = new Map();
       Object.entries(originalResidences).forEach(([residence, agents]) => {
         if (residence === "BARISTE") return;
@@ -1903,10 +1821,12 @@
       if (changeButton) changeButton.style.display = loggedAgentProfile ? "inline-flex" : "none";
       if (diariaNavLink) {
         const role = String(loggedAgentProfile?.role || "").toLowerCase();
-        const canUseDiaria = ["92", "MOVIMENTO"].includes(String(loggedAgentProfile?.id || "")) || role === "admin" || ["superuser","super_user","super-user"].includes(role);
+        const canUseDiaria = ["92"].includes(String(loggedAgentProfile?.id || "")) || role === "admin" || ["superuser","super_user","super-user"].includes(role);
         diariaNavLink.hidden = !canUseDiaria;
       }
       if (archiveNavLink) archiveNavLink.hidden = isBaristaProfile();
+      const mobileChangeLink = document.getElementById("mobile-change-link");
+      if (mobileChangeLink) mobileChangeLink.hidden = isOfficeProfile();
       restrictBaristaInterface();
       if (welcome) {
         const agentData = Object.values(globalData?.residenze || {}).flat().find(agent => String(agent.id || "") === String(loggedAgentProfile?.id || ""));
@@ -2035,7 +1955,9 @@
     }
 
     function getLoggedAgentLocation() {
-      if (!loggedAgentProfile || String(loggedAgentProfile.id || "") === "MOVIMENTO") return null;
+      if (!loggedAgentProfile) return null;
+      // Gli agenti d'ufficio non hanno un turno: nessuna riga personale.
+      if (isOfficeProfile()) return null;
       const residence = loggedAgentProfile.residence;
       const agents = globalData?.residenze?.[residence] || [];
       const index = agents.findIndex(agent => {
@@ -2050,28 +1972,28 @@
       return location && location.residence === residence ? location.index : -1;
     }
 
+    function showDefaultResidence() {
+      selectResidence(getDefaultResidence());
+      pinnedAgentIdx = null;
+      updateLoginUserPanel();
+      return true;
+    }
+
     function applyLoggedAgentProfile() {
-      if (String(loggedAgentProfile?.id || "") === "MOVIMENTO") {
-        const residences = Object.keys(globalData?.residenze || {});
-        const defaultResidence = residences.find(name => name.trim().toLowerCase() === "desenzano") || residences[0];
-        if (!defaultResidence) return false;
-        selectResidence(defaultResidence);
-        updateLoginUserPanel();
-        return true;
-      }
       if (isBaristaProfile()) {
-        if (!applyBaristaAccessScope()) return false;
-        selectResidence("BARISTE");
-        pinnedAgentIdx = null;
-        renderTable();
-        updateLoginUserPanel();
-        return true;
+        if (applyBaristaAccessScope()) {
+          selectResidence("BARISTE");
+          pinnedAgentIdx = null;
+          updateLoginUserPanel();
+          return true;
+        }
+        return showDefaultResidence();
       }
-      if (!loggedAgentProfile || !globalData?.residenze?.[loggedAgentProfile.residence]) return false;
+      if (isOfficeProfile()) return showDefaultResidence();
+      if (!loggedAgentProfile || !globalData?.residenze?.[loggedAgentProfile.residence]) return showDefaultResidence();
       selectResidence(loggedAgentProfile.residence);
       const index = findLoggedAgentIndex();
-      if (index < 0) return false;
-      // L'agente collegato resta in cima, ma viene pinnato solo quando lo seleziona.
+      if (index < 0) return showDefaultResidence();
       pinnedAgentIdx = null;
       renderTable();
       return true;
@@ -2079,13 +2001,13 @@
 
     function repinLoggedAgent() {
       if (!loggedAgentProfile || !globalData) return;
-      if (String(loggedAgentProfile.id || "") === "MOVIMENTO") return;
       if (isBaristaProfile()) return;
+      if (isOfficeProfile()) { showDefaultResidence(); return; }
       if (currentResidence !== loggedAgentProfile.residence) {
         selectResidence(loggedAgentProfile.residence);
       }
       const index = findLoggedAgentIndex();
-      if (index < 0) return;
+      if (index < 0) { showDefaultResidence(); return; }
       pinnedAgentIdx = index;
       renderTable();
     }
@@ -2204,6 +2126,11 @@
       "grado-marinaio": { label: "Marinaio", color: "#9ca3af" },
       "grado-operaio": { label: "Operaio", color: "#14b8a6" }
       ,"grado-barista": { label: "Barista", color: "#f472b6" }
+      ,"grado-ufficio-movimento": { label: "Movimento", color: "#facc15" }
+      ,"grado-ufficio-amministrazione": { label: "Amministrazione", color: "#38bdf8" }
+      ,"grado-ufficio-personale": { label: "Personale", color: "#fb923c" }
+      ,"grado-ufficio-controllo": { label: "Controllo", color: "#34d399" }
+      ,"grado-ufficio-direzione": { label: "Direzione", color: "#f472b6" }
     };
 
     const shiftBorderColor = {
@@ -2320,9 +2247,34 @@
         "marinaio": "grado-marinaio",
         "operaio": "grado-operaio"
         ,"barista": "grado-barista"
+        ,"movimento": "grado-ufficio-movimento"
+        ,"amministrazione": "grado-ufficio-amministrazione"
+        ,"personale": "grado-ufficio-personale"
+        ,"controllo": "grado-ufficio-controllo"
+        ,"direzione": "grado-ufficio-direzione"
       };
       return map[q] || "grado-marinaio";
     }
+
+    // Ordine delle sezioni di grado: capitano e capo timoniere sono
+    // considerati pari grado (un capitano può coprire il turno di un
+    // capotimoniere e viceversa).
+    const gradeRankMap = {
+      "grado-capitano": 1,
+      "grado-capo": 1,
+      "grado-motorista": 2,
+      "grado-timoniere": 3,
+      "grado-aiuto": 4,
+      "grado-marinaio": 5,
+      "grado-operaio": 6,
+      "grado-barista": 7,
+      "grado-ufficio-movimento": 8,
+      "grado-ufficio-amministrazione": 9,
+      "grado-ufficio-personale": 10,
+      "grado-ufficio-controllo": 11,
+      "grado-ufficio-direzione": 12
+    };
+    const crewGradeRank = agent => gradeRankMap[getGradeClass(agent.id, agent.agente, agent.qualifica)] || 99;
 
     function ottieniTurnoPulito(v) {
       if (!v) return "";
@@ -2408,7 +2360,6 @@
         clsArr.push(d.weekIdx % 2 === 0 ? "week-even" : "week-odd");
         if (d.giornoSett === "Lun") clsArr.push("week-start");
         if (d.giornoSett === "Dom") clsArr.push("week-end");
-        if (isTodayDate(d.realObj)) clsArr.push("today-col");
         if (d.isBozza) clsArr.push("bozza-col");
         const currentIndex = dateCalendario.indexOf(d);
         if (d.isBozza && dateCalendario[currentIndex - 1]?.isBozza !== true) {
@@ -2424,37 +2375,6 @@
       html += `</tr>`;
       container.innerHTML = html;
       requestAnimationFrame(updateLoggedStickyOffset);
-
-      // La riga delle date si comporta come la riga dell'agente collegato:
-      // passando su una data evidenzia la sua corsa e i colleghi dello stesso equipaggio.
-      container.querySelectorAll(".date-header th[data-col]").forEach(th => {
-        const cal = dateCalendario.find(item => item.col === Number(th.dataset.col));
-        if (!cal) return;
-        th.addEventListener("pointerenter", event => {
-          if (event.pointerType === "touch") return;
-          highlightCommonColleaguesForDateHeader(cal);
-        });
-        th.addEventListener("pointerleave", event => {
-          if (event.pointerType === "touch") return;
-          clearMyCellCommonColleagues();
-        });
-      });
-    }
-
-    function highlightCommonColleaguesForDateHeader(cal) {
-      const loggedLocation = getLoggedAgentLocation();
-      const loggedAgent = loggedLocation?.agent;
-      const loggedRow = document.querySelector("#tbody tr.logged-agent-row");
-      if (!cal || !loggedAgent || !loggedRow) {
-        clearMyCellCommonColleagues();
-        return;
-      }
-      const dayIndex = (cal.col - 3) % 7;
-      const weeklyShift = (loggedAgent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-      const odsShift = loggedAgent.variazioni_ods?.[cal.iso]?.turno_nuovo;
-      const effectiveShift = odsShift || weeklyShift;
-      const sourceCell = loggedRow.querySelector(`td[data-col="${cal.col}"]`);
-      highlightCommonColleaguesForMyCell(cal, effectiveShift, sourceCell);
     }
 
     function eseguiRicercaHeader(colonnaCliccata) {
@@ -2611,17 +2531,39 @@
 
       const loggedIndex = findLoggedAgentIndex();
       const loggedLocation = getLoggedAgentLocation();
-      // L'agente collegato resta sempre in alto. Tutti gli altri mantengono
-      // rigorosamente l'ordine del prospetto PDF, salvo il collega fissato
-      // con doppio tap, che viene mostrato subito sotto la riga personale.
+      // L'agente collegato resta sempre in alto, seguito dal collega fissato
+      // con doppio tap. Tutti gli altri sono ordinati per sezioni di grado
+      // (vedi sotto), non più per ordine del prospetto.
       const orderedIndexes = [];
       if (loggedIndex >= 0) orderedIndexes.push(loggedIndex);
       if (pinnedAgentIdx !== null && pinnedAgentIdx !== loggedIndex && currentAgentsList[pinnedAgentIdx]) {
         orderedIndexes.push(pinnedAgentIdx);
       }
+      const restIndexes = [];
       currentAgentsList.forEach((agent, index) => {
-        if (index !== loggedIndex && index !== pinnedAgentIdx) orderedIndexes.push(index);
+        if (index !== loggedIndex && index !== pinnedAgentIdx) restIndexes.push(index);
       });
+      // La tabella è organizzata per sezioni di grado (capitano e capo
+      // timoniere pari grado). All'interno dello stesso grado l'ordine segue
+      // l'anzianità del prospetto; chi ha cambiato grado finisce in fondo
+      // alla propria sezione (minore anzianità), sotto i suoi pari e non
+      // sotto i gradi successivi.
+      const gradeClassOrder = { "grado-capitano": 0, "grado-capo": 1 };
+      restIndexes.sort((indexA, indexB) => {
+        const agentA = currentAgentsList[indexA];
+        const agentB = currentAgentsList[indexB];
+        const rankA = crewGradeRank(agentA);
+        const rankB = crewGradeRank(agentB);
+        if (rankA !== rankB) return rankA - rankB;
+        const classA = gradeClassOrder[getGradeClass(agentA.id, agentA.agente, agentA.qualifica)] || 0;
+        const classB = gradeClassOrder[getGradeClass(agentB.id, agentB.agente, agentB.qualifica)] || 0;
+        if (classA !== classB) return classA - classB;
+        const regradedA = agentA?.regraded ? 1 : 0;
+        const regradedB = agentB?.regraded ? 1 : 0;
+        if (regradedA !== regradedB) return regradedA - regradedB;
+        return indexA - indexB;
+      });
+      orderedIndexes.push(...restIndexes);
 
       if (loggedLocation && loggedLocation.residence !== currentResidence) {
         const loggedRow = createRowDOM(
@@ -2694,7 +2636,6 @@
         cell.classList.add("departed-crew-day");
         cell.dataset.sharedCrewPreviousTitle = cell.title || "";
         cell.dataset.sharedCrewTitle = title;
-        cell.title = cell.title ? `${cell.title} · ${title}` : title;
         const label = document.createElement("span");
         label.className = "shared-crew-change-label";
         label.textContent = `da ${original}`;
@@ -3018,7 +2959,6 @@
       const classes = [cal.weekIdx % 2 === 0 ? "week-even" : "week-odd"];
       if (cal.giornoSett === "Lun") classes.push("week-start");
       if (cal.giornoSett === "Dom") classes.push("week-end");
-      if (isTodayDate(cal.realObj)) classes.push("today-col");
       if (cal.isBozza) classes.push("bozza-col");
       if (cal.isBozza && dateCalendario[index - 1]?.isBozza !== true) classes.push("bozza-start");
       return classes.join(" ");
@@ -3076,7 +3016,7 @@
                 const rawUpper = String(rawShift).trim().toUpperCase();
                 const isTransfer = residence !== currentResidence || rawUpper.startsWith("C") || rawUpper.endsWith("C");
                 hasTransfer ||= isTransfer;
-                crew.push(isTransfer ? `${agent.agente} (trasferta da ${residence})` : agent.agente);
+                crew.push(agent.agente);
               }
             });
           });
@@ -3095,15 +3035,7 @@
             count < required ? "incomplete" : count > required ? "overstaffed" : "complete";
           const label = required == null || Number.isNaN(required) ? String(count) : `${count}/${required}`;
           const hasRequirement = required != null && !Number.isNaN(required);
-          const cellNotices = [
-            hasRequirement && count > required ? "Sovrannumero" : "",
-            hasTransfer ? "Trasferta" : "",
-            hasOdsVariation ? "Variazione ODS" : ""
-          ].filter(Boolean);
-          const title = escapeAttribute(
-            (crew.length ? crew.join(", ") : "Nessun agente assegnato") +
-            (cellNotices.length ? ` · ${cellNotices.join(" · ")}` : "")
-          );
+          const title = escapeAttribute(crew.length ? crew.join(", ") : "Nessun agente assegnato");
           const indicators =
             (hasRequirement ? `<span class="coverage-indicator ${count < required ? "incomplete" : "complete"}"></span>` : "") +
             (hasRequirement && count > required ? `<span class="coverage-indicator overstaffed"></span>` : "") +
@@ -3119,15 +3051,7 @@
     }
 
     function getTableGradeRank(tr) {
-      const gradeOrder = {
-        "grado-capitano": 1,
-        "grado-capo": 2,
-        "grado-timoniere": 3,
-        "grado-motorista": 4,
-        "grado-aiuto": 5,
-        "grado-marinaio": 6,
-        "grado-operaio": 7
-      };
+      const gradeOrder = gradeRankMap;
       const gradeClass = Object.keys(gradeOrder).find(cls => tr.classList.contains(cls));
       return gradeOrder[gradeClass] || 99;
     }
@@ -3263,7 +3187,6 @@
         tdClasses.push(cal.weekIdx % 2 === 0 ? "week-even" : "week-odd");
         if (cal.giornoSett === "Lun") tdClasses.push("week-start");
         if (cal.giornoSett === "Dom") tdClasses.push("week-end");
-        if (isTodayDate(cal.realObj)) tdClasses.push("today-col");
         if (cal.isBozza) tdClasses.push("bozza-col");
         const prevCal = dateCalendario[dateCalendario.indexOf(cal) - 1];
         if (cal.isBozza && (!prevCal || !prevCal.isBozza)) tdClasses.push("bozza-start");
@@ -3276,13 +3199,6 @@
         if (hasRefuel) tdClasses.push("has-refuel-indicator");
         td.className = tdClasses.join(" ");
         td.dataset.col = cal.col;
-        const cellNotices = [
-          crewStatus.overstaffed ? "Sovrannumero" : "",
-          crewStatus.hasTransfer ? "Trasferta" : "",
-          hasRefuel ? "Rifornimento" : "",
-          odsVariation ? `Variazione ODS${odsVariation.ods ? ` ${odsVariation.ods}` : ""}` : ""
-        ].filter(Boolean);
-        if (cellNotices.length) td.title = cellNotices.join(" · ");
 
         if (isEditMode) {
           const input = document.createElement("input");
@@ -3324,14 +3240,7 @@
               renderTable();
               return;
             }
-            if (tr.classList.contains("logged-agent-row")) {
-              highlightCommonColleaguesForMyCell(cal, turnoVal, td);
-              return;
-            }
-            // Sulle righe dei colleghi evidenzia con il bordo giallo il collega
-            // e tutte le date nelle quali lavora insieme all'agente collegato.
-            clearMyCellCommonColleagues();
-            setSharedCrewFocus(tr, true);
+            groupThisShift();
           };
           td.addEventListener("click", () => {
             if (isSyntheticClickAfterTouch()) return;
@@ -3346,85 +3255,11 @@
             event.preventDefault();
             handleMobileTap(td, singleTapCellAction, pinCellAgent);
           });
-          td.addEventListener("pointerenter", event => {
-            if (event.pointerType === "touch" || !tr.classList.contains("logged-agent-row")) return;
-            highlightCommonColleaguesForMyCell(cal, turnoVal, td);
-          });
-          td.addEventListener("pointerleave", event => {
-            if (event.pointerType === "touch" || !tr.classList.contains("logged-agent-row")) return;
-            clearMyCellCommonColleagues();
-          });
         }
         tr.appendChild(td);
       });
 
-      tr.addEventListener("pointerenter", event => {
-        if (tr.classList.contains("logged-agent-row")) return;
-        if (event.pointerType !== "touch" && tr.querySelector("td.shared-crew-day")) {
-          setSharedCrewFocus(tr, true);
-        }
-      });
-      // Su PC l'evidenziazione è solo temporanea: sparisce appena il mouse lascia la riga.
-      tr.addEventListener("pointerleave", event => {
-        if (event.pointerType === "touch" || tr.classList.contains("logged-agent-row")) return;
-        setSharedCrewFocus(tr, false);
-      });
-
       return tr;
-    }
-
-    function clearMyCellCommonColleagues() {
-      document.querySelectorAll("#tbody tr.hover-common-colleague").forEach(row => row.classList.remove("hover-common-colleague"));
-      document.querySelectorAll("#tbody td.hover-common-cell").forEach(cell => cell.classList.remove("hover-common-cell"));
-      document.querySelectorAll(".date-header th.hover-current-cell-date").forEach(th => th.classList.remove("hover-current-cell-date"));
-    }
-
-    function highlightCommonColleaguesForMyCell(cal, rawShift, sourceCell) {
-      clearMyCellCommonColleagues();
-      const shift = ottieniTurnoPulito(rawShift);
-      const shiftKey = getCrewShiftKey(shift);
-      if (!cal || !shiftKey || isGroundCrewShiftKey(shiftKey)) return;
-      const dayIndex = (cal.col - 3) % 7;
-      let found = false;
-      trElements.forEach(row => {
-        if (row.classList.contains("logged-agent-row")) return;
-        const agent = getAgentForTableRow(row);
-        if (!agent) return;
-        const agentShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-        const variation = agent.variazioni_ods?.[cal.iso] || null;
-        const movedAway = variation &&
-          isSameCrewShift(variation.turno_originale, shift) &&
-          !isSameCrewShift(variation.turno_nuovo, shift);
-        if (!movedAway && isSameCrewShift(agentShift, shift)) {
-          row.classList.add("hover-common-colleague");
-          row.querySelector(`td[data-col="${cal.col}"]`)?.classList.add("hover-common-cell");
-          found = true;
-        }
-      });
-      if (found) {
-        sourceCell?.classList.add("hover-common-cell");
-        document.querySelector(`.date-header th[data-col="${cal.col}"]`)?.classList.add("hover-current-cell-date");
-      }
-    }
-
-    function setSharedCrewFocus(row, active) {
-      if (!active) {
-        row?.classList.remove("shared-crew-focus");
-        // L'evidenziazione da hover deve essere interamente temporanea:
-        // quando il mouse lascia la riga, spegni anche tutte le date collegate.
-        document.querySelectorAll(".date-header th.hover-shared-date")
-          .forEach(th => th.classList.remove("hover-shared-date"));
-        return;
-      }
-      if (!row) return;
-      document.querySelectorAll("#tbody tr.shared-crew-focus").forEach(otherRow => {
-        if (otherRow !== row) otherRow.classList.remove("shared-crew-focus");
-      });
-      document.querySelectorAll(".date-header th.hover-shared-date").forEach(th => th.classList.remove("hover-shared-date"));
-      row.classList.add("shared-crew-focus");
-      row.querySelectorAll("td.shared-crew-day[data-col]").forEach(cell => {
-        document.querySelector(`.date-header th[data-col="${cell.dataset.col}"]`)?.classList.add("hover-shared-date");
-      });
     }
 
     function selectDay(col, label, cellShiftValue, focusAgent = null) {
@@ -3440,11 +3275,6 @@
       selectedCol = col;
       selectedShiftValue = cellShiftValue || selectedShiftValue;
       selectedCrewAgent = focusAgent;
-      document.querySelectorAll(".date-header th").forEach(t => t.classList.remove("selected-day"));
-      document.querySelectorAll("#tbody td.selected-shared-crew-day").forEach(td => td.classList.remove("selected-shared-crew-day"));
-      let targetTh = document.querySelector(`.date-header th[data-col="${col}"]`);
-      if (targetTh) targetTh.classList.add("selected-day");
-
       let calInfo = dateCalendario.find(c => c.col === col);
       let giornoInternoIdx = (col - 3) % 7;
       const cleanShift = ottieniTurnoPulito(cellShiftValue);
@@ -3486,24 +3316,7 @@
 
         let match = isSameCrewShift(hisShiftPuro, cleanShift);
         tr.classList.toggle("row-match", match);
-        if (tr.classList.contains("logged-agent-row")) {
-          tr.classList.toggle("logged-in-selected-crew", match && isCrewShift);
-        }
-
-        tr.querySelectorAll("td[data-col]").forEach(td => {
-          td.classList.toggle("col-selected", parseInt(td.dataset.col) === col);
-        });
       });
-
-      const loggedMatchingRow = trElements.find(tr =>
-        tr.classList.contains("logged-agent-row") && tr.classList.contains("row-match")
-      );
-      const hasMatchingColleague = trElements.some(tr =>
-        !tr.classList.contains("logged-agent-row") && tr.classList.contains("row-match")
-      );
-      if (loggedMatchingRow && hasMatchingColleague && isCrewShift) {
-        loggedMatchingRow.querySelector(`td[data-col="${col}"]`)?.classList.add("selected-shared-crew-day");
-      }
 
       moveSelectedCrewToTop();
       setTimeout(scrollGroupedCrewTableToTop, 60);
@@ -3594,16 +3407,7 @@
         panelGroups.appendChild(div);
 
       const list = div.querySelector("#colleague-list");
-      const gradeOrder = {
-        "grado-capitano": 1,
-        "grado-capo": 2,
-        "grado-timoniere": 3,
-        "grado-motorista": 4,
-        "grado-aiuto": 5,
-        "grado-marinaio": 6,
-        "grado-operaio": 7
-        ,"grado-barista": 8
-      };
+      const gradeOrder = gradeRankMap;
       allColleagues.sort((a, b) => {
         if (myShiftPuro === "TERRA") {
           const serviceA = ottieniTurnoPulito(a.rawShift).toUpperCase();
@@ -3665,7 +3469,6 @@
       document.getElementById("previous-day-btn").disabled = currentIndex <= 0;
       document.getElementById("next-day-btn").disabled = currentIndex < 0 || currentIndex >= dateCalendario.length - 1;
       const drawer = document.getElementById("day-panel");
-      const drawerToggle = document.getElementById("crew-drawer-toggle");
       if (isCrewShift || crewNavigationMode === "personal") {
         // Una corsa apre il suo equipaggio; in modalità personale la scheda
         // resta aperta anche nei giorni di riposo.
@@ -3674,10 +3477,6 @@
         document.body.classList.toggle("crew-drawer-main", dayPanelPlacement !== "coverage");
         document.body.classList.toggle("crew-drawer-coverage", dayPanelPlacement === "coverage");
       }
-      drawerToggle.hidden = false;
-      drawerToggle.textContent = drawer.classList.contains("open") ? "⌃" : "⌄";
-      drawerToggle.setAttribute("aria-expanded", String(drawer.classList.contains("open")));
-      drawerToggle.setAttribute("aria-label", drawer.classList.contains("open") ? "Nascondi equipaggio" : "Mostra equipaggio");
       drawer.setAttribute("aria-hidden", String(!drawer.classList.contains("open")));
       if (drawer.classList.contains("open")) {
         requestAnimationFrame(() => {
@@ -3733,76 +3532,6 @@
       const panelHeight = panel?.classList.contains("open") ? panel.getBoundingClientRect().height : 0;
       const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - panelHeight - 10);
       window.scrollTo({ top, behavior:"smooth" });
-    }
-
-    function getDefaultCrewSelection() {
-      if (!dateCalendario.length) return null;
-
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const cal = dateCalendario.find(item => isTodayDate(item.realObj)) ||
-        dateCalendario.find(item => new Date(item.realObj) >= now) ||
-        dateCalendario[0];
-      if (!cal) return null;
-
-      const loggedLocation = getLoggedAgentLocation();
-      if (loggedLocation && currentResidence !== loggedLocation.residence) {
-        selectResidence(loggedLocation.residence);
-      }
-
-      const location = getLoggedAgentLocation();
-      const agent = location?.agent || null;
-      let rawShift = "";
-      if (agent) {
-        const dayIndex = (cal.col - 3) % 7;
-        rawShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-        const odsShift = agent.variazioni_ods?.[cal.iso]?.turno_nuovo;
-        if (odsShift) rawShift = odsShift;
-      }
-
-      const cleanShift = ottieniTurnoPulito(rawShift);
-      const residenceShifts = getResidenceCrewShifts();
-      const fallbackShift = residenceShifts[0] || "";
-      return {
-        cal,
-        shift: cleanShift || fallbackShift,
-        agent
-      };
-    }
-
-    function toggleCrewDrawer() {
-      if (selectedCol === null) {
-        const initial = getDefaultCrewSelection();
-        if (!initial) return;
-        placeDayPanel("main");
-        activeShiftFilter = getCrewShiftKey(initial.shift) || null;
-        generaFiltriTurnoRiferimento();
-        selectDay(initial.cal.col, initial.cal.labelEstesa, initial.shift, initial.agent);
-      }
-      const panel = document.getElementById("day-panel");
-      const button = document.getElementById("crew-drawer-toggle");
-      const opening = !panel.classList.contains("open");
-      panel.classList.toggle("open", opening);
-      panel.setAttribute("aria-hidden", String(!opening));
-      button.textContent = opening ? "⌃" : "⌄";
-      button.setAttribute("aria-expanded", String(opening));
-      button.setAttribute("aria-label", opening ? "Nascondi equipaggio" : "Mostra equipaggio");
-      document.body.classList.toggle("crew-drawer-open", opening);
-      document.body.classList.toggle("crew-drawer-main", opening && dayPanelPlacement !== "coverage");
-      document.body.classList.toggle("crew-drawer-coverage", opening && dayPanelPlacement === "coverage");
-      if (opening) {
-        requestAnimationFrame(() => {
-          updateCrewDrawerOffset();
-          scrollCrewPanelIntoView();
-          setTimeout(() => {
-            updateCrewDrawerOffset();
-            scrollGroupedCrewTableToTop();
-          }, 110);
-        });
-      } else {
-        document.documentElement.style.setProperty("--crew-drawer-offset", "0px");
-        updateCrewDrawerOffset();
-      }
     }
 
     function updateCrewDrawerOffset() {
@@ -4026,18 +3755,9 @@
       document.getElementById("day-panel").setAttribute("aria-hidden", "true");
       document.body.classList.remove("crew-drawer-open", "crew-drawer-main", "crew-drawer-coverage");
       document.documentElement.style.setProperty("--crew-drawer-offset", "0px");
-      const drawerToggle = document.getElementById("crew-drawer-toggle");
-      drawerToggle.hidden = true;
-      drawerToggle.textContent = "⌄";
-      drawerToggle.setAttribute("aria-expanded", "false");
-      drawerToggle.setAttribute("aria-label", "Mostra equipaggio");
       document.getElementById("tbody").classList.remove("has-selection");
-      document.querySelectorAll(".date-header th").forEach(t => t.classList.remove("selected-day"));
-      document.querySelectorAll("#tbody td.selected-shared-crew-day").forEach(td => td.classList.remove("selected-shared-crew-day"));
       trElements.forEach(tr => {
         tr.classList.remove("row-match");
-        tr.classList.remove("logged-in-selected-crew");
-        tr.querySelectorAll("td").forEach(td => td.classList.remove("col-selected"));
       });
       restoreDefaultTableOrder();
       showPastColumns = false;
@@ -4066,7 +3786,7 @@
       // soltanto l'elemento <table> effettivamente visibile.
       const insideTurnTable = target.closest("#matrix-scroll-wrap table");
       const insideCoverageTable = target.closest("#coverage-matrix-wrap table");
-      const insideCrewPanel = target.closest("#day-panel, #coverage-crew-copy, #crew-drawer-toggle");
+      const insideCrewPanel = target.closest("#day-panel, #coverage-crew-copy");
       const insideOperationalControl = target.closest("button, a, input, select, textarea, label, .toolbar-container, .turni-sidebar, .login-overlay");
 
       if (insideTurnTable || insideCoverageTable || insideCrewPanel || insideOperationalControl) return;
@@ -4074,9 +3794,6 @@
 
       pinnedAgentIdx = null;
       activeShiftFilter = null;
-      clearMyCellCommonColleagues();
-      document.querySelectorAll("#tbody tr.shared-crew-focus").forEach(row => row.classList.remove("shared-crew-focus"));
-      document.querySelectorAll(".date-header th.hover-shared-date").forEach(th => th.classList.remove("hover-shared-date"));
       clearSelection();
       generaFiltriTurnoRiferimento();
       renderTable();
@@ -4278,9 +3995,17 @@
     }
 
     function getVisibleResidences() {
-      return Object.keys(globalData?.residenze || {}).filter(residence =>
-        String(residence || "").toUpperCase() !== "BARISTE" || isBaristaProfile()
-      );
+      return Object.keys(globalData?.residenze || {}).filter(residence => {
+        const key = String(residence || "").toUpperCase();
+        return (key !== "BARISTE" || isBaristaProfile()) && key !== "UFFICI";
+      });
+    }
+
+    function getDefaultResidence() {
+      const list = getVisibleResidences();
+      return list.find(res => String(res || "").toLowerCase().trim() === "desenzano") ||
+        list.find(res => String(res || "").toLowerCase().trim().includes("desenzano")) ||
+        list[0] || "";
     }
 
 
@@ -4524,8 +4249,6 @@
 
       const offset = Math.max(0, th.getBoundingClientRect().left + window.scrollX - fixedWidth - 8);
       window.scrollTo({ left:offset, top:window.scrollY, behavior:"auto" });
-      document.querySelectorAll(".date-header th").forEach(t => t.classList.remove("selected-day"));
-      th.classList.add("selected-day");
     }
 
     // I turni arrivano da Firebase; la copia locale resta disponibile offline.
@@ -4724,10 +4447,6 @@
       dayPanel.setAttribute("aria-hidden", "true");
       document.body.classList.remove("crew-drawer-open", "crew-drawer-main", "crew-drawer-coverage");
       document.documentElement.style.setProperty("--crew-drawer-offset", "0px");
-      const drawerToggle = document.getElementById("crew-drawer-toggle");
-      drawerToggle.hidden = true;
-      drawerToggle.textContent = "⌄";
-      drawerToggle.setAttribute("aria-expanded", "false");
       const menuButton = document.getElementById("turni-menu-button");
       if (menuButton) {
         menuButton.addEventListener("click", () => {
@@ -4741,6 +4460,63 @@
           if (menuButton) menuButton.setAttribute("aria-expanded", "false");
         }
       });
+      function showCrewHoverTooltip(td, e) {
+        document.querySelector(".crew-hover-tooltip")?.remove();
+        const col = parseInt(td.dataset.col, 10);
+        const cal = dateCalendario.find(item => item.col === col);
+        if (!cal) return;
+        const dayIndex = (cal.col - 3) % 7;
+        const weekKey = cal.weekKey;
+        const rowAgent = getAgentForTableRow(td.closest("tr"));
+        if (!rowAgent) return;
+        const hoveredShift = ottieniTurnoPulito((rowAgent.turni_settimanali?.[weekKey] || [])[dayIndex] || "rip");
+        if (!getShiftResidence(hoveredShift)) return;
+        const loggedAgent = getLoggedAgentLocation()?.agent;
+        const crew = [];
+        trElements.forEach(tr => {
+          const agent = getAgentForTableRow(tr);
+          if (!agent) return;
+          const rawShift = (agent.turni_settimanali?.[weekKey] || [])[dayIndex] || "rip";
+          if (!isSameCrewShift(rawShift, hoveredShift)) return;
+          crew.push(agent);
+        });
+        if (!crew.length) return;
+        const gradeRank = gradeRankMap;
+        crew.sort((a, b) => {
+          const rankA = gradeRank[getGradeClass(a.id, a.agente, a.qualifica)] || 99;
+          const rankB = gradeRank[getGradeClass(b.id, b.agente, b.qualifica)] || 99;
+          return rankA - rankB || String(a.agente).localeCompare(String(b.agente), "it");
+        });
+        const box = document.createElement("div");
+        box.className = "crew-hover-tooltip";
+        crew.forEach(agent => {
+          const name = document.createElement("div");
+          name.className = "crew-hover-name" + (loggedAgent && agent.agente === loggedAgent.agente ? " is-logged" : "");
+          name.textContent = agent.agente;
+          const gradeClass = getGradeClass(agent.id, agent.agente, agent.qualifica);
+          name.style.color = gradeClass === "grado-marinaio" ? "#ffffff" : (gradeInfo[gradeClass]?.color || "#e8f3f6");
+          box.appendChild(name);
+        });
+        document.body.appendChild(box);
+        const gap = 12;
+        const rect = box.getBoundingClientRect();
+        let left = e.clientX + gap;
+        let top = e.clientY + gap;
+        if (left + rect.width > innerWidth - 8) left = e.clientX - rect.width - gap;
+        if (top + rect.height > innerHeight - 8) top = e.clientY - rect.height - gap;
+        box.style.left = Math.max(8, left) + "px";
+        box.style.top = Math.max(8, top) + "px";
+      }
+      document.addEventListener("mouseover", e => {
+        const td = e.target.closest?.("#tbody td[data-col]");
+        if (!td || td.contains(e.relatedTarget)) return;
+        showCrewHoverTooltip(td, e);
+      }, true);
+      document.addEventListener("mouseout", e => {
+        const td = e.target.closest?.("#tbody td[data-col]");
+        if (!td || td.contains(e.relatedTarget)) return;
+        document.querySelector(".crew-hover-tooltip")?.remove();
+      }, true);
       setupSynchronizedTableScrolls();
       // Prima leggiamo NAVI_SETTIMANE, poi disegniamo i turni: evita che
       // l'indicazione BOZZA scompaia per una condizione di gara.
@@ -4756,7 +4532,7 @@
       <span class="nav-icon">▦</span>
       <span>Turni</span>
     </a>
-    <a href="cambi_turno.html" class="nav-item">
+    <a href="cambi_turno.html" class="nav-item" id="mobile-change-link">
       <span class="nav-icon">⇄</span>
       <span>Cambio</span>
     </a>
@@ -4842,9 +4618,9 @@
 }
 #tbody td.my-change-request .cell-pill::after,#tbody td.peer-change-request .cell-pill::after{content:none!important;display:none!important}
 #tbody tr.peer-change-row td.td-name .agent-name-text::after{content:none!important}
-.change-request-tooltip{position:fixed;z-index:99999;max-width:330px;padding:10px 12px;border:1px solid #f59e0b;border-radius:10px;background:#10222c;color:#fff;box-shadow:0 14px 35px rgba(0,0,0,.45);font-size:12px;line-height:1.45}
-.shared-crew-tooltip{position:fixed;z-index:99999;max-width:330px;padding:10px 12px;border:1px solid #facc15;border-radius:10px;background:#10222c;color:#fff;box-shadow:0 14px 35px rgba(0,0,0,.45);font-size:12px;line-height:1.45;pointer-events:none}
-.shared-crew-tooltip strong{display:block;margin-bottom:3px;color:#fde047}
+.crew-hover-tooltip{position:fixed;z-index:99999;min-width:150px;max-width:280px;padding:8px 12px;border:1px solid rgba(45,212,191,.45);border-radius:10px;background:#0d1f27;color:#e8f3f6;box-shadow:0 14px 35px rgba(0,0,0,.5);font-size:12px;line-height:1.55;pointer-events:none}
+.crew-hover-tooltip .crew-hover-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f3f6}
+.crew-hover-tooltip .crew-hover-name.is-logged{font-weight:800}
 </style>
 <script id="naviturni-change-request-cloud">
 (()=>{
@@ -4916,30 +4692,7 @@
    });
  }
  async function load(){const p=profile();if(!p?.id)return;try{const d=await post({action:'list_change_requests',agentId:String(p.id)});requests=Array.isArray(d.requests)?d.requests:[];if(window.NaviAdminFirebase?.getAdminUpdates)try{changeAdminUpdates=await window.NaviAdminFirebase.getAdminUpdates()}catch(error){console.warn('Conferme ODS non disponibili',error)}apply()}catch(e){console.warn('Richieste cambio non disponibili',e)}}
- function showChangeTooltip(td){document.querySelector('.change-request-tooltip')?.remove();if(!td)return;const list=JSON.parse(td.dataset.changeRequest||'[]');const box=document.createElement('div');box.className='change-request-tooltip';const heading=td.classList.contains('confirmed-change-request')?'Cambio confermato':'Richiesta di cambio';box.innerHTML=`<strong>${heading}</strong><br>`+list.map(x=>x.agentName?`<b>${x.agentName}</b> → ${x.agentTo}<br><b>${x.colleagueName}</b> → ${x.colleagueTo}`:`<b>${x.owner}</b> → ${x.to}`).join('<hr>');document.body.appendChild(box);const r=td.getBoundingClientRect();box.style.left=Math.max(8,Math.min(r.left,innerWidth-box.offsetWidth-8))+'px';box.style.top=Math.max(8,Math.min(r.bottom+6,innerHeight-box.offsetHeight-8))+'px'}
- document.addEventListener('mouseover',e=>{const td=e.target.closest?.('#tbody td.my-change-request,#tbody td.peer-change-request');if(!td||td.contains(e.relatedTarget))return;showChangeTooltip(td)},true);
- document.addEventListener('mouseout',e=>{const td=e.target.closest?.('#tbody td.my-change-request,#tbody td.peer-change-request');if(!td||td.contains(e.relatedTarget))return;document.querySelector('.change-request-tooltip')?.remove()},true);
- document.addEventListener('click',e=>{const td=e.target.closest?.('#tbody td.my-change-request,#tbody td.peer-change-request');if(!td)return;showChangeTooltip(td);e.stopPropagation()},true);
- function showSharedCrewTooltip(td){
-   document.querySelector('.shared-crew-tooltip')?.remove();
-   if(!td||td.matches('.my-change-request,.peer-change-request'))return;
-   const detail=String(td.dataset.sharedCrewTitle||'').trim();
-   if(!detail)return;
-   const box=document.createElement('div');
-   box.className='shared-crew-tooltip';
-   const heading=document.createElement('strong');
-   heading.textContent='Turno in comune';
-   const content=document.createElement('span');
-   content.textContent=detail;
-   box.append(heading,content);
-   document.body.appendChild(box);
-   const r=td.getBoundingClientRect();
-   box.style.left=Math.max(8,Math.min(r.left,innerWidth-box.offsetWidth-8))+'px';
-   box.style.top=Math.max(8,Math.min(r.bottom+6,innerHeight-box.offsetHeight-8))+'px';
- }
- document.addEventListener('mouseover',e=>{const td=e.target.closest?.('#tbody td.shared-crew-day');if(!td||td.contains(e.relatedTarget))return;showSharedCrewTooltip(td)},true);
- document.addEventListener('mouseout',e=>{const td=e.target.closest?.('#tbody td.shared-crew-day');if(!td||td.contains(e.relatedTarget))return;document.querySelector('.shared-crew-tooltip')?.remove()},true);
- document.addEventListener('click',e=>{const td=e.target.closest?.('#tbody td.shared-crew-day');if(!td||td.matches('.my-change-request,.peer-change-request'))return;showSharedCrewTooltip(td)},true);
+
  window.addEventListener('DOMContentLoaded',()=>setTimeout(load,1200));
  const obs=new MutationObserver(()=>setTimeout(apply,0));window.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('tbody');if(t)obs.observe(t,{childList:true,subtree:true})});
  window.addEventListener('focus',()=>{
@@ -4979,16 +4732,12 @@
 
   /* Le evidenziazioni appartengono alla cella, non alla bolla: nessun turno
      cambia dimensione, posizione o altezza durante hover, tap o selezione. */
-  #tbody tr:not(.logged-agent-row) td.hover-common-cell:not(.my-change-request):not(.peer-change-request),
   #tbody tr:not(.logged-agent-row) td.shared-crew-day:not(.my-change-request):not(.peer-change-request),
-  #tbody tr:not(.logged-agent-row) td.selected-shared-crew-day:not(.my-change-request):not(.peer-change-request),
   #tbody tr:not(.logged-agent-row) td.pinned-shared-crew-day:not(.my-change-request):not(.peer-change-request) {
     position:relative !important;
     box-shadow:none !important;
   }
-  #tbody td.hover-common-cell:not(.my-change-request):not(.peer-change-request)::after,
   #tbody td.shared-crew-day:not(.my-change-request):not(.peer-change-request)::after,
-  #tbody td.selected-shared-crew-day:not(.my-change-request):not(.peer-change-request)::after,
   #tbody td.pinned-shared-crew-day:not(.my-change-request):not(.peer-change-request)::after {
     content:"";
     position:absolute;
@@ -5001,11 +4750,8 @@
     box-shadow:0 0 5px rgba(250,204,21,.75);
     pointer-events:none;
   }
-  #tbody td.hover-common-cell .cell-pill,
   #tbody td.shared-crew-day .cell-pill,
-  #tbody td.selected-shared-crew-day .cell-pill,
-  #tbody td.pinned-shared-crew-day .cell-pill,
-  #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill {
+  #tbody td.pinned-shared-crew-day .cell-pill {
     position:relative !important;
     transform:none !important;
     animation:none !important;

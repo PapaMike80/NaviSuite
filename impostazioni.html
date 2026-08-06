@@ -89,7 +89,7 @@
     const profileNameElement=document.getElementById("profile-name");
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
-    const isAdmin=['91','92','MOVIMENTO'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
     const weeksSection=document.getElementById('gestione-settimane');
     const weeksList=document.getElementById('weeks-list');
     const weeksStatus=document.getElementById('weeks-status');
