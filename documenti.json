@@ -1,0 +1,134 @@
+{
+  "aggiornato": "2026-07-31",
+  "documenti": [
+    {
+      "id": "bozza-2026-07-27",
+      "tipo": "bozza",
+      "titolo": "Bozza dal 27 luglio al 9 agosto 2026",
+      "file": "turni/BOZZA_TURNO_DAL_27-07_AL_09-08-2026.pdf",
+      "inizio": "2026-07-27",
+      "fine": "2026-08-09",
+      "descrizione": "Documento provvisorio · validità 27 luglio – 9 agosto 2026",
+      "tags": ["turno", "bozza", "agosto"]
+    },
+    {
+      "id": "turno-2026-06-22",
+      "tipo": "turno",
+      "titolo": "Turno dal 22 giugno al 26 luglio 2026",
+      "file": "turni/TURNO_DAL_22-06_AL_26-07-2026.pdf",
+      "inizio": "2026-06-22",
+      "fine": "2026-07-26",
+      "descrizione": "Turno pubblicato · validità 22 giugno – 26 luglio 2026",
+      "tags": ["turno", "pubblicato", "luglio"]
+    },
+    {
+      "id": "ods-16-2026",
+      "tipo": "ods",
+      "numero": 16,
+      "titolo": "Ordine di servizio n. 16 — Estate",
+      "file": "ods/O.d.S. n. 16-2026 ESTATE.pdf",
+      "data": "2026-05-14",
+      "descrizione": "Data di emissione: 14 maggio 2026",
+      "tags": ["estate"]
+    },
+    {
+      "id": "ods-18-2026",
+      "tipo": "ods",
+      "numero": 18,
+      "titolo": "Ordine di servizio n. 18",
+      "file": "ods/O.d.S. n. 18-2026.pdf",
+      "data": "2026-05-28",
+      "descrizione": "Data di emissione: 28 maggio 2026"
+    },
+    {
+      "id": "ods-19-2026",
+      "tipo": "ods",
+      "numero": 19,
+      "titolo": "Ordine di servizio n. 19",
+      "file": "ods/O.d.S. n. 19-2026.pdf",
+      "data": "2026-06-05",
+      "descrizione": "Data di emissione: 5 giugno 2026"
+    },
+    {
+      "id": "ods-20-2026",
+      "tipo": "ods",
+      "numero": 20,
+      "titolo": "Ordine di servizio n. 20",
+      "file": "ods/O.d.S. n. 20-2026.pdf",
+      "data": "2026-06-12",
+      "descrizione": "Data di emissione: 12 giugno 2026"
+    },
+    {
+      "id": "ods-21-2026",
+      "tipo": "ods",
+      "numero": 21,
+      "titolo": "Ordine di servizio n. 21",
+      "file": "ods/O.d.S. n. 21-2026.pdf",
+      "data": "2026-06-18",
+      "descrizione": "Data di emissione: 18 giugno 2026"
+    },
+    {
+      "id": "ods-22-2026",
+      "tipo": "ods",
+      "numero": 22,
+      "titolo": "Ordine di servizio n. 22",
+      "file": "ods/O.d.S. n. 22-2026.pdf",
+      "data": "2026-06-25",
+      "descrizione": "Data di emissione: 25 giugno 2026"
+    },
+    {
+      "id": "ods-23-2026",
+      "tipo": "ods",
+      "numero": 23,
+      "titolo": "Ordine di servizio n. 23",
+      "file": "ods/O.d.S. n. 23-2026.pdf",
+      "data": "2026-06-26",
+      "descrizione": "Data di emissione: 26 giugno 2026"
+    },
+    {
+      "id": "ods-24-2026",
+      "tipo": "ods",
+      "numero": 24,
+      "titolo": "Ordine di servizio n. 24",
+      "file": "ods/O.d.S. n. 24-2026.pdf",
+      "data": "2026-06-30",
+      "descrizione": "Data di emissione: 30 giugno 2026"
+    },
+    {
+      "id": "ods-25-2026",
+      "tipo": "ods",
+      "numero": 25,
+      "titolo": "Ordine di servizio n. 25",
+      "file": "ods/O.d.S. n. 25-2026 firmato.pdf",
+      "data": "2026-07-02",
+      "descrizione": "Data di emissione: 2 luglio 2026"
+    },
+    {
+      "id": "ods-26-2026",
+      "tipo": "ods",
+      "numero": 26,
+      "titolo": "Ordine di servizio n. 26",
+      "file": "ods/O.d.S. n. 26-2026.pdf",
+      "data": "2026-07-09",
+      "descrizione": "Data di emissione: 9 luglio 2026"
+    },
+    {
+      "id": "ods-29-2026",
+      "tipo": "ods",
+      "numero": 29,
+      "titolo": "Ordine di servizio n. 29",
+      "file": "ods/O.d.S. n. 29-2026.pdf",
+      "data": "2026-07-30",
+      "descrizione": "Variazioni turni, turni nave e rifornimenti dal 31 luglio 2026"
+    },
+    {
+      "id": "turni-bariste-2026-08-03",
+      "tipo": "turno",
+      "titolo": "Turni bariste dal 3 al 9 agosto 2026",
+      "file": "turni/Turni Navi 03-08 al 09-08-2026.pdf",
+      "inizio": "2026-08-03",
+      "fine": "2026-08-09",
+      "descrizione": "Assegnazioni bariste P1, P2, D2 e D3"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+:root{
+  --navi-font-ui:"DM Sans",sans-serif;
+  --navi-font-display:Manrope,sans-serif;
+  --navi-font-sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  --navi-dark-sidebar:#071923;
+  --navi-dark-sidebar-2:#0d2934;
+  --navi-dark-bg:#0b1c26;
+  --navi-dark-surface:#102733;
+  --navi-dark-card:#143140;
+  --navi-dark-line:#1f4250;
+  --navi-dark-line-strong:#234452;
+  --navi-dark-ink:#eaf2f4;
+  --navi-dark-muted:#9fb8c2;
+  --navi-dark-accent:#2dd4bf;
+  --navi-dark-accent-strong:#38d6bf;
+  --navi-dark-accent-dim:#0e3a3a;
+  --navi-dark-gradient:
+    radial-gradient(1200px 600px at 10% -10%,#123544 0%,transparent 60%),
+    radial-gradient(900px 500px at 110% 10%,#0e2a36 0%,transparent 55%),
+    var(--navi-dark-bg);
+
+  --navi-light-paper:#f4f8f7;
+  --navi-light-paper-alt:#f4f7f8;
+  --navi-light-ink:#102631;
+  --navi-light-ink-alt:#173042;
+  --navi-light-muted:#667a82;
+  --navi-light-muted-alt:#70808c;
+  --navi-light-line:#dbe7e5;
+  --navi-light-line-alt:#dfe7eb;
+
+  --navi-radius:10px;
+  --navi-radius-lg:16px;
+
+  --navy:var(--navi-dark-sidebar);
+  --navy-2:var(--navi-dark-sidebar-2);
+  --bg:var(--navi-dark-bg);
+  --bg-panel:var(--navi-dark-surface);
+  --bg-card:var(--navi-dark-card);
+  --line:var(--navi-dark-line);
+  --ink:var(--navi-dark-ink);
+  --ink-dim:var(--navi-dark-muted);
+  --accent:var(--navi-dark-accent);
+  --accent-dim:var(--navi-dark-accent-dim);
+  --mint:var(--navi-dark-accent);
+  --paper:var(--navi-light-paper);
+  --panel:var(--navi-light-paper);
+  --radius:var(--navi-radius);
+
+  --bad:#ef4444;
+  --bad-bg:#3a1414;
+  --good:#22c55e;
+  --good-bg:#10301d;
+  --warn:#f59e0b;
+
+  --d1:#3b6bcc;
+  --d1-bg:#1a2a4a;
+  --d2:#2d9e6b;
+  --d2-bg:#142a22;
+  --d3:#e07b3a;
+  --d3-bg:#2a1a0e;
+  --d4:#c45cba;
+  --d4-bg:#2a122a;
+  --dt:#e6d44a;
+  --dt-bg:#282200;
+  --bis:#5ec4d4;
+  --bis-bg:#102a2e;
+  --pond:#f08080;
+  --pond-bg:#2a1212;
+  --rip:#6b7280;
+  --rip-bg:#1a1c22;
+  --cong:#a78bfa;
+  --cong-bg:#1e1530;
+  --agb:#60a5fa;
+  --agb-bg:#102040;
+  --fp:#94a3b8;
+  --fp-bg:#1a1e28;
+  --other:#94a3b8;
+  --other-bg:#1e2230;
+
+  --navi-shadow-card:0 14px 34px rgba(0,0,0,.28);
+  --navi-shadow-pop:0 22px 54px rgba(0,0,0,.42);
+  --navi-ring:0 0 0 4px rgba(45,212,191,.18);
+}
+
+html{scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+button,input,select,textarea{font:inherit}
+[hidden]{display:none!important}
+
+/* Messa a fuoco visibile e selezione coerente con il tema */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--navi-dark-accent,var(--accent));
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+::selection{
+  background:rgba(45,212,191,.32);
+  color:inherit;
+}
+
+/* Scrollbar discreta */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(120,180,190,.45) transparent;
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:rgba(120,180,190,.35);
+  border:3px solid transparent;
+  border-radius:999px;
+  background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover{background-color:rgba(45,212,191,.55)}
+
+@media (prefers-reduced-motion: reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}

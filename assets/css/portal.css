@@ -1,0 +1,399 @@
+@import url("navi-shared.css");
+
+:root{
+  --muted:var(--navi-light-muted);
+  font-family:var(--navi-font-ui);
+  color:var(--navi-light-ink);
+}
+
+/* Sfondo generale */
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(1100px 620px at 12% -12%,rgba(45,212,191,.14),transparent 60%),
+    radial-gradient(900px 560px at 108% 8%,rgba(56,130,246,.12),transparent 55%),
+    linear-gradient(150deg,#05131c 0%,#0a2532 48%,#0d3241 100%);
+}
+
+/* ===== Struttura generale ===== */
+.portal-shell{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:minmax(340px,46%) 1fr;
+}
+
+/* ===== Colonna introduttiva ===== */
+.portal-intro{
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:52px clamp(34px,6vw,92px);
+  color:#eef9f7;
+  isolation:isolate;
+}
+
+/* Bagliore decorativo in alto a destra */
+.portal-intro::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background:
+    radial-gradient(520px 380px at 88% 8%,rgba(45,212,191,.22),transparent 65%),
+    radial-gradient(420px 340px at 8% 96%,rgba(45,212,191,.10),transparent 60%);
+}
+
+/* Rete diagonale sottile */
+.portal-intro::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background-image:
+    linear-gradient(rgba(126,243,226,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(126,243,226,.045) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.8),transparent 78%);
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.8),transparent 78%);
+}
+
+/* Logo/brand */
+.portal-brand{
+  position:relative;
+  z-index:1;
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  color:#fff;
+  text-decoration:none;
+  font:800 21px var(--navi-font-display);
+  letter-spacing:-.01em;
+}
+.portal-brand span{
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  background:linear-gradient(135deg,#34d3bd,#1fa390);
+  color:#06221f;
+  font-size:21px;
+  box-shadow:0 8px 22px rgba(45,212,191,.35);
+}
+
+/* Etichette sezione */
+.eyebrow{
+  margin:0 0 14px;
+  color:#159d8d;
+  font-size:11.5px;
+  font-weight:800;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.portal-intro .eyebrow{
+  color:var(--mint);
+}
+
+/* Titolo */
+h1{
+  font:700 clamp(36px,4.6vw,66px)/1.07 var(--navi-font-display);
+  margin:0;
+  letter-spacing:-.045em;
+}
+h1 em{
+  color:var(--mint);
+  font-style:normal;
+}
+
+/* Copia introduttiva */
+.intro-copy{
+  max-width:510px;
+  margin:24px 0 0;
+  color:#a9c0c7;
+  font-size:17px;
+  line-height:1.65;
+}
+
+/* Nota in basso */
+.local-note{
+  position:relative;
+  z-index:1;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin:0;
+  color:#91aeb5;
+  font-size:13px;
+}
+.local-note i{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--mint);
+  box-shadow:0 0 0 5px rgba(45,212,191,.14);
+}
+
+/* ===== Pannello destro (vetro) ===== */
+.portal-panel{
+  position:relative;
+  display:grid;
+  place-items:center;
+  padding:44px 40px;
+}
+.portal-panel::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:
+    radial-gradient(760px 520px at 50% 0%,rgba(45,212,191,.06),transparent 65%),
+    rgba(255,255,255,.02);
+  pointer-events:none;
+}
+
+/* Card in vetro */
+.access-card,
+.choice-card{
+  position:relative;
+  z-index:1;
+  width:min(760px,100%);
+  padding:38px 40px 40px;
+  border:1px solid rgba(148,212,205,.18);
+  border-radius:22px;
+  background:
+    linear-gradient(165deg,rgba(21,52,66,.88),rgba(9,27,37,.92));
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  animation:portal-rise .5s cubic-bezier(.22,.8,.28,1) both;
+}
+
+@keyframes portal-rise{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.access-card{max-width:460px}
+
+/* Titoli card */
+.access-card h2,
+.choice-card h2{
+  margin:0 0 10px;
+  color:var(--navi-dark-ink);
+  font:800 clamp(27px,3vw,38px) var(--navi-font-display);
+  letter-spacing:-.035em;
+}
+
+.access-card>p:not(.eyebrow),
+.choice-card>p:not(.eyebrow){
+  margin:0 0 28px;
+  color:var(--navi-dark-muted);
+  line-height:1.55;
+}
+
+/* ===== Form ===== */
+.access-card label{
+  display:block;
+  margin:16px 0;
+  color:#bfd4d8;
+  font-size:13px;
+  font-weight:700;
+}
+.access-card input{
+  width:100%;
+  margin-top:8px;
+  padding:14px 16px;
+  border:1px solid rgba(148,212,205,.24);
+  border-radius:12px;
+  background:rgba(6,22,31,.7);
+  color:#eef9f7;
+  font-size:15px;
+  outline:none;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.access-card input::placeholder{color:#5f7c86}
+.access-card input:focus{
+  border-color:var(--mint);
+  box-shadow:0 0 0 4px rgba(45,212,191,.16);
+}
+
+/* Messaggio di stato form */
+.form-message{
+  min-height:20px;
+  margin:0 0 12px;
+  color:var(--bad);
+  font-size:13px;
+  font-weight:600;
+}
+
+/* Bottone primario */
+.access-card button[type="submit"]{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  margin-top:6px;
+  padding:14px 18px;
+  border:0;
+  border-radius:12px;
+  background:linear-gradient(135deg,#34d3bd,#1fa390);
+  color:#06221f;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+  box-shadow:0 12px 28px rgba(45,212,191,.28);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+}
+.access-card button[type="submit"]:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.06);
+  box-shadow:0 16px 34px rgba(45,212,191,.36);
+}
+.access-card button[type="submit"]:active{transform:translateY(0)}
+.access-card button[type="submit"]:disabled{opacity:.55;cursor:not-allowed}
+
+/* Bottone secondario (annulla) */
+.secondary-form-button{
+  width:100%;
+  margin-top:10px;
+  padding:12px 18px;
+  border:1px solid rgba(148,212,205,.22);
+  border-radius:12px;
+  background:transparent;
+  color:var(--navi-dark-muted);
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:border-color .15s ease,color .15s ease;
+}
+.secondary-form-button:hover{
+  border-color:var(--mint);
+  color:var(--navi-dark-ink);
+}
+
+/* Esci dal portale */
+.text-button{
+  margin-top:26px;
+  padding:10px 16px;
+  border:1px solid rgba(148,212,205,.22);
+  border-radius:999px;
+  background:transparent;
+  color:var(--navi-dark-muted);
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:border-color .15s ease,color .15s ease;
+}
+.text-button:hover{
+  border-color:var(--mint);
+  color:var(--navi-dark-ink);
+}
+
+/* ===== Griglia app (portale) ===== */
+.choice-card{width:min(980px,100%)}
+.app-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.app-card{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:20px 18px;
+  border:1px solid rgba(148,212,205,.16);
+  border-radius:16px;
+  background:rgba(14,40,52,.55);
+  color:var(--navi-dark-ink);
+  text-decoration:none;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.app-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(148,212,205,.5);
+  background:rgba(18,48,62,.8);
+}
+.app-card .app-icon{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  font-size:19px;
+  font-weight:700;
+  background:rgba(45,212,191,.14);
+  color:#34d3bd;
+  transition:transform .18s ease;
+}
+.app-card:hover .app-icon{transform:scale(1.08)}
+.app-card small{
+  font-size:9.5px;
+  font-weight:900;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#6d8a93;
+}
+.app-card strong{
+  font:800 18px var(--navi-font-display);
+  letter-spacing:-.01em;
+}
+.app-card p{
+  margin:0;
+  color:var(--navi-dark-muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.app-card b{
+  margin-top:auto;
+  color:#34d3bd;
+  font-size:12.5px;
+  font-weight:800;
+  transition:letter-spacing .18s ease;
+}
+.app-card:hover b{letter-spacing:.02em}
+
+/* Colori per singola app */
+.app-card.turni{--app:45,212,191}
+.app-card.trova{--app:167,139,250}
+.app-card.diaria{--app:251,146,60}
+.app-card.docs{--app:245,158,11}
+.app-card.orario{--app:56,189,248}
+.app-card.orari-tabella{--app:34,211,238}
+.app-card.settings{--app:148,163,184}
+.app-card.updates{--app:74,222,128}
+.app-card.agents{--app:251,113,133}
+
+.app-card .app-icon{
+  background:rgba(var(--app),.16);
+  color:rgb(var(--app));
+}
+.app-card small{color:rgba(var(--app),.85)}
+.app-card b{color:rgb(var(--app))}
+.app-card:hover{border-color:rgba(var(--app),.55);box-shadow:0 16px 34px rgba(var(--app),.14)}
+
+/* ===== Responsive ===== */
+@media (max-width:900px){
+  .app-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media (max-width:760px){
+  .portal-shell{grid-template-columns:1fr}
+  .portal-intro{
+    min-height:auto;
+    padding:28px 25px 34px;
+  }
+  .portal-intro>div{margin:38px 0 30px}
+  .local-note{display:none}
+  .portal-panel{padding:26px 16px 42px}
+  .access-card,
+  .choice-card{padding:28px 22px}
+  .app-grid{grid-template-columns:1fr}
+  .app-card{min-height:auto;padding:18px}
+  .choice-card{padding:10px 0}
+}

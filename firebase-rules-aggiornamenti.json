@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "meta": {
+      ".read": true,
+      ".write": false
+    },
+    "public": {
+      ".read": true,
+      ".write": false
+    },
+    "private": {
+      "changeRequests": {
+        ".read": "auth != null",
+        "$requestId": {
+          ".write": "auth != null && ((!data.exists() && newData.child('ownerUid').val() === auth.uid) || (data.exists() && data.child('ownerUid').val() === auth.uid))"
+        }
+      },
+      "adminUpdates": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      },
+      "$other": {
+        ".read": false,
+        ".write": false
+      }
+    },
+    "config": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

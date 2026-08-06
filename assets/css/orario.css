@@ -1,0 +1,1699 @@
+:root {
+  color-scheme: light dark;
+  background-color: transparent !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --main-surface-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+  --red: light-dark(rgb(186 38 35), rgb(250 66 62));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 10px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+html,
+body.orario-page {
+  touch-action: manipulation;
+}
+
+:root[data-visualize-standalone] {
+  background-color: var(--background) !important;
+}
+
+/* Generic mobile code-block hosts provide light/dark mode but no series palette.
+   AppBlock hosts set all six variables themselves. */
+:root:not([data-app-block-surface]) {
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(#f3883b, #f59a56);
+  --viz-series-3: light-dark(#5dc977, #74d58b);
+  --viz-series-4: light-dark(#eb77b1, #f08fc0);
+  --viz-series-5: light-dark(#9b79ec, #aa91ef);
+  --viz-series-6: light-dark(#3ab9b1, #5acbc2);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+:root:not([data-app-block-surface]) > body {
+  padding: 12px;
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive > .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align="right"]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align="center"]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget > :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The bundled tooltip runtime owns [data-tooltip]. AppBlock's CSS-only
+   pseudo-tooltip can widen dense grids even while hidden. */
+main [data-tooltip]::after {
+  content: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--interactive-label-primary-default, var(--primary-foreground));
+  background: var(--interactive-bg-primary-default, var(--foreground));
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(
+    in srgb,
+    var(--interactive-label-primary-default, var(--primary-foreground)) 50%,
+    transparent
+  );
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type="file"] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type="file"]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type="file"]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed="true"],
+    [aria-selected="true"],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+  #orario-garda-viz {
+    --background: #0b1c26;
+    --foreground: #eaf2f4;
+    --card: #102733;
+    --card-foreground: #eaf2f4;
+    --muted: #143140;
+    --muted-foreground: #9fb8c2;
+    --border: #1f4250;
+    --accent: #2dd4bf;
+    --accent-foreground: #06201c;
+    color: var(--foreground);
+    width: 100%;
+    min-height: 100vh;
+    padding: 1rem;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #123544 0%, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #0e2a36 0%, transparent 55%),
+      var(--background);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+  }
+  #orario-garda-viz * { box-sizing: border-box; }
+  #orario-garda-viz .og-summary {
+    margin: 0.75rem 0 0.5rem;
+    font-weight: 500;
+  }
+  #orario-garda-viz .og-summary,
+  #orario-garda-viz .og-selection-tools {
+    display: none;
+  }
+  #orario-garda-viz #og-shadow-time {
+    width: 90px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #2dd4bf;
+    margin-right: 0.2rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #143140 0%, #2dd4bf 50%, #143140 100%);
+    border-radius: 9px;
+  }
+  
+  #orario-garda-viz #og-shadow-time::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(45, 212, 191, 0.5);
+  }
+  
+  #orario-garda-viz #og-shadow-time::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2dd4bf;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 4px rgba(45, 212, 191, 0.5);
+  }
+  
+  #orario-garda-viz #og-shadow-time::-moz-range-track {
+    background: transparent;
+    border: none;
+  }
+  
+  #orario-garda-viz #og-shadow-time-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    height: 1.6rem;
+    min-width: 70px;
+    padding: 0 0.3rem;
+    text-align: center;
+    color: #2dd4bf;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #orario-garda-viz #og-shadow-time-display:hover {
+    color: #3ae4cf;
+  }
+  
+  #orario-garda-viz .og-residences {
+    position: absolute;
+    z-index: 7;
+    top: 0.45rem;
+    left: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    width: 3.25rem;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  #orario-garda-viz .og-zoom-controls {
+    position: absolute;
+    z-index: 9;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: max-content;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid var(--line, #1f4250);
+    border-radius: 999px;
+    background: rgba(16, 39, 51, 0.94);
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+  }
+  #orario-garda-viz .og-residence {
+    display: block;
+    padding: 0.12rem 0.16rem 0.18rem;
+    border: 2px solid var(--residence-color);
+    border-radius: 1.65rem;
+    background: rgba(7, 23, 32, 0.96);
+    min-width: 0;
+  }
+  #orario-garda-viz .og-residence-shifts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.13rem;
+    margin-top: 0.08rem;
+  }
+  #orario-garda-viz .og-shift-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  #orario-garda-viz .og-residence-name,
+  #orario-garda-viz .og-shift-button {
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+  #orario-garda-viz .og-residence-name {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 1.12rem;
+    padding: 0 0.2rem;
+    border: 0;
+    color: var(--residence-color);
+    background: transparent;
+    font-weight: 800;
+    font-size: 0.72rem;
+    letter-spacing: 0.045em;
+    text-align: center;
+  }
+  #orario-garda-viz .og-residence-name[aria-pressed="true"] {
+    background: transparent;
+    color: var(--residence-color);
+    box-shadow: none;
+  }
+  #orario-garda-viz .og-shift-button {
+    width: 100%;
+    min-width: 0;
+    height: 1.45rem;
+    padding: 0 0.08rem;
+    border: 1px solid var(--shift-color);
+    color: var(--shift-color);
+    background: color-mix(in oklab, var(--shift-color) 9%, var(--background));
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  #orario-garda-viz .og-shift-button[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--shift-color) 70%, var(--background));
+    color: var(--foreground);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--shift-color) 55%, transparent);
+  }
+  #orario-garda-viz .og-shift-button.is-route-muted {
+    opacity: 0.14;
+  }
+  #orario-garda-viz .og-shift-button.is-route-active {
+    opacity: 1;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--shift-color) 45%, transparent),
+      0 0 10px color-mix(in oklab, var(--shift-color) 35%, transparent);
+  }
+  #orario-garda-viz .og-shift-expand {
+    position: absolute;
+    right: -0.08rem;
+    top: -0.08rem;
+    z-index: 2;
+    width: 0.82rem;
+    height: 0.82rem;
+    padding: 0;
+    border: 1px solid var(--shift-color);
+    border-radius: 999px;
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--shift-color) 58%, var(--background));
+    font-size: 0.56rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  #orario-garda-viz .og-shift-expand[aria-expanded="true"] {
+    transform: rotate(90deg);
+  }
+  #orario-garda-viz .og-race-list {
+    position: absolute;
+    z-index: 12;
+    left: calc(100% + 0.45rem);
+    top: -0.2rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(2.7rem, 1fr));
+    gap: 0.22rem;
+    min-width: 9rem;
+    max-width: 12rem;
+    padding: 0.38rem;
+    border: 2px solid var(--shift-color);
+    border-radius: 0.75rem;
+    background: rgba(7, 23, 32, 0.98);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  }
+  #orario-garda-viz .og-race-list[hidden] {
+    display: none;
+  }
+  #orario-garda-viz .og-race-button {
+    position: relative;
+    min-width: 0;
+    height: 1.55rem;
+    padding: 0 0.22rem;
+    border: 1px solid color-mix(in oklab, var(--shift-color) 72%, var(--border));
+    border-radius: 999px;
+    color: var(--shift-color);
+    background: color-mix(in oklab, var(--shift-color) 8%, var(--background));
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+  #orario-garda-viz .og-race-button.is-selected {
+    border-width: 2px;
+    color: var(--foreground);
+    background: color-mix(in oklab, var(--shift-color) 72%, var(--background));
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--shift-color) 30%, transparent);
+  }
+  #orario-garda-viz .og-race-check {
+    display: none;
+    margin-left: 0.12rem;
+  }
+  #orario-garda-viz .og-race-button.is-selected .og-race-check {
+    display: inline;
+  }
+  #orario-garda-viz .og-menu-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding: 0.18rem;
+    border: 1px solid var(--border);
+    border-radius: 1.4rem;
+    background: rgba(7, 23, 32, 0.96);
+  }
+  #orario-garda-viz .og-menu-action {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 1.65rem;
+    padding: 0 0.1rem;
+    border-radius: 999px;
+    font-size: 0.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  #orario-garda-viz .og-menu-master {
+    border: 1px solid #ef4444;
+    color: var(--foreground);
+    background: color-mix(in oklab, #ef4444 72%, var(--background));
+  }
+  #orario-garda-viz .og-chart-wrap {
+    position: relative;
+    width: 100%;
+    height: min(76vh, 760px);
+    min-height: 720px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(7, 23, 32, 0.86);
+    scrollbar-color: var(--accent) #071720;
+    scrollbar-width: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+  #orario-garda-viz .og-chart-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Toggle visibilità turni */
+  #orario-garda-viz.og-turns-hidden .og-residences {
+    display: none !important;
+  }
+
+  @media (max-height: 820px) {
+    #orario-garda-viz .og-chart-wrap {
+      height: 72vh;
+      min-height: 520px;
+    }
+  }
+  #orario-garda-viz .og-zoom-controls {
+    position: absolute;
+    z-index: 9;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: max-content;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid var(--line, #1f4250);
+    border-radius: 999px;
+    background: rgba(16, 39, 51, 0.94);
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+  }
+  #orario-garda-viz .og-zoom-out,
+  #orario-garda-viz .og-zoom-in {
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    padding: 0;
+    border: 1px solid var(--line, #1f4250);
+    border-radius: 50%;
+    background: #143140;
+    color: var(--accent);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-mobile-menu-toggle {
+    min-width: 3.5rem;
+    height: 1.6rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--accent) 18%, var(--background));
+    color: var(--accent);
+    font-size: 0.62rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-mobile-menu-toggle[aria-expanded="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 18%, var(--background));
+  }
+  #orario-garda-viz .og-mobile-menu-toggle.is-active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 18%, var(--background));
+  }
+  #orario-garda-viz .og-mobile-menu-toggle[aria-expanded="false"] {
+    border-color: var(--border);
+    color: var(--muted-foreground);
+    background: var(--muted);
+  }
+  #orario-garda-viz .og-mobile-menu-toggle:not(.is-active) {
+    border-color: var(--border);
+    color: var(--muted-foreground);
+    background: var(--muted);
+  }
+  #orario-garda-viz .og-zoom-value {
+    min-width: 3rem;
+    padding: 0.2rem 0.3rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted-foreground);
+    text-align: center;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-coincidence-toggle {
+    min-width: 3.5rem;
+    height: 1.8rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--accent) 18%, var(--background));
+    color: var(--accent);
+    font-size: 0.62rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-coincidence-toggle[aria-pressed="false"] {
+    border-color: var(--border);
+    color: var(--muted-foreground);
+    background: var(--muted);
+  }
+
+  #orario-garda-viz .og-table-link {
+    min-width: 3.5rem;
+    height: 1.6rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: #9fb8c2;
+    font-size: 0.62rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  #orario-garda-viz .og-table-link:hover {
+    color: #2dd4bf;
+    border-color: #2dd4bf;
+  }
+
+  #orario-garda-viz .og-chart {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    min-height: 720px;
+    color: var(--foreground);
+    transform-origin: top left;
+  }
+  #orario-garda-viz .og-chart-stage {
+    position: relative;
+    min-width: 100%;
+    min-height: 720px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  #orario-garda-viz .og-chart-stage.is-panning {
+    cursor: grabbing;
+  }
+  #orario-garda-viz .og-zoom-controls.is-dragging,
+  #orario-garda-viz .og-selected-course-pills.is-dragging,
+  #orario-garda-viz .og-residences.is-dragging {
+    cursor: grabbing;
+  }
+  #orario-garda-viz .og-stop-axis {
+    position: absolute;
+    z-index: 4;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #071720 82%, rgba(7, 23, 32, 0.92) 94%, transparent);
+    box-shadow: 2px 0 0 rgba(31, 66, 80, 0.75);
+  }
+  #orario-garda-viz .og-time-axis {
+    position: absolute;
+    z-index: 6;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2rem;
+    border-bottom: 1px solid rgba(31, 66, 80, 0.9);
+    background: linear-gradient(180deg, #071720 72%, rgba(7, 23, 32, 0.88) 88%, transparent);
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-time-axis span {
+    position: absolute;
+    top: 0.55rem;
+    color: var(--foreground);
+    font-size: 0.68rem;
+    font-weight: 700;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  #orario-garda-viz .og-current-time-label {
+    position: absolute;
+    top: 0.55rem;
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 900;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  }
+  #orario-garda-viz .og-stop-axis .og-axis-label {
+    position: absolute;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.12rem;
+    width: calc(100% - 1rem);
+    padding: 0 0 0 3.7rem;
+    border: 0;
+    background: transparent;
+    color: var(--foreground);
+    font-family: inherit;
+    line-height: 1;
+    text-align: right;
+    white-space: nowrap;
+    transform: translateY(calc(-50% + var(--selection-offset, 0px)));
+  }
+  #orario-garda-viz .og-stop-axis .og-stop-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #orario-garda-viz .og-stop-axis .og-stop-time {
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--time-color, var(--route-color));
+    font-size: 0.82em;
+    font-weight: 800;
+    line-height: 1;
+  }
+  #orario-garda-viz .og-stop-axis .og-axis-label.is-route-stop {
+    color: var(--route-color);
+    font-weight: 700;
+  }
+  #orario-garda-viz .og-stop-axis .og-axis-label.is-shared-stop .og-stop-name {
+    padding: 0.18rem 0.42rem;
+    border: 1px solid var(--route-color);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--route-color) 18%, #071720);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--route-color) 24%, transparent);
+  }
+  #orario-garda-viz .og-stop-axis .og-axis-label.is-route-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-grid {
+    stroke: var(--border);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  #orario-garda-viz .og-hour {
+    stroke: var(--muted-foreground);
+  }
+  #orario-garda-viz .og-route {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+    transition: opacity 140ms ease, stroke-width 140ms ease;
+  }
+  #orario-garda-viz .og-current-time-line {
+    fill: none;
+    pointer-events: stroke;
+    cursor: col-resize;
+    opacity: 0.8;
+    transition: opacity 100ms ease;
+  }
+  #orario-garda-viz .og-current-time-line:hover {
+    opacity: 1;
+    stroke-width: 4 !important;
+  }
+  #orario-garda-viz .og-route-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-route[data-direction="S"] {
+    stroke-dasharray: 7 3;
+  }
+  #orario-garda-viz .og-series-0 { stroke: var(--viz-series-1); }
+  #orario-garda-viz .og-series-1 { stroke: var(--green); }
+  #orario-garda-viz .og-series-2 { stroke: var(--viz-series-3); }
+  #orario-garda-viz .og-series-3 { stroke: var(--viz-series-4); }
+  #orario-garda-viz .og-series-4 { stroke: var(--viz-series-5); }
+  #orario-garda-viz .og-series-5 { stroke: var(--viz-series-6); }
+  #orario-garda-viz .og-series-6 { stroke: color-mix(in oklab, var(--viz-series-1) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-7 { stroke: color-mix(in oklab, var(--viz-series-2) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-8 { stroke: color-mix(in oklab, var(--viz-series-3) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-9 { stroke: color-mix(in oklab, var(--viz-series-4) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-10 { stroke: color-mix(in oklab, var(--viz-series-5) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-11 { stroke: color-mix(in oklab, var(--viz-series-6) 65%, var(--foreground)); }
+  #orario-garda-viz .og-series-12 { stroke: color-mix(in oklab, var(--viz-series-1) 72%, var(--background)); }
+  #orario-garda-viz .og-series-13 { stroke: color-mix(in oklab, var(--viz-series-3) 72%, var(--background)); }
+  #orario-garda-viz .og-series-14 { stroke: color-mix(in oklab, var(--viz-series-5) 72%, var(--background)); }
+  #orario-garda-viz .og-route:hover,
+  #orario-garda-viz .og-route.is-active {
+    stroke-width: 5;
+  }
+  #orario-garda-viz .og-route.is-muted {
+    opacity: 0.24;
+  }
+  #orario-garda-viz .og-stop-dot.is-muted {
+    opacity: 0.24;
+  }
+  #orario-garda-viz .og-coincidence-line {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-coincidence-continuation {
+    fill: none;
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+  #orario-garda-viz .og-coincidence-continuation-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 20;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    pointer-events: stroke;
+  }
+  #orario-garda-viz .og-coincidence-dot {
+    fill: var(--background);
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-coincidence-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 18;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    pointer-events: stroke;
+  }
+  #orario-garda-viz .og-coincidence-ring {
+    fill: var(--background);
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-coincidence-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  #orario-garda-viz .og-course-label.is-muted {
+    opacity: 0.24;
+  }
+  #orario-garda-viz .og-stop-dot {
+    fill: var(--background);
+    stroke-width: 1.8;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-axis-label,
+  #orario-garda-viz .og-course-label {
+    fill: var(--foreground);
+    font-size: 11px;
+  }
+  #orario-garda-viz .og-axis-label[data-stop] {
+    cursor: pointer;
+  }
+  #orario-garda-viz .og-axis-label[data-stop]:hover,
+  #orario-garda-viz .og-axis-label.is-stop-filter {
+    fill: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  #orario-garda-viz .og-axis-label.is-stop-active {
+    font-weight: 500;
+    fill: var(--foreground);
+  }
+  #orario-garda-viz .og-course-label {
+    font-weight: 500;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  #orario-garda-viz .og-tooltip {
+    position: absolute;
+    pointer-events: none;
+    max-width: 270px;
+  }
+  #orario-garda-viz .og-detail {
+    min-height: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  #orario-garda-viz .og-course-card {
+    position: fixed;
+    inset: 1rem 1rem auto auto;
+    margin: 0;
+    width: min(40rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    background:
+      linear-gradient(145deg, rgba(18, 43, 55, 0.98), rgba(7, 23, 32, 0.99)) !important;
+    color: var(--foreground) !important;
+    opacity: 1;
+    border: 1px solid color-mix(in oklab, var(--course-color) 75%, var(--border));
+    box-shadow: 0 20px 60px color-mix(in oklab, var(--course-color) 28%, transparent);
+  }
+  #orario-garda-viz .og-course-card::backdrop {
+    background-color: rgba(2, 10, 15, 0.78);
+  }
+  @media (max-width: 720px) {
+    #orario-garda-viz .og-course-card {
+      inset: 0.75rem;
+      width: auto;
+      max-height: calc(100vh - 1.5rem);
+    }
+  }
+  #orario-garda-viz .og-course-close {
+    background-color: var(--course-color) !important;
+    color: var(--background) !important;
+  }
+  #orario-garda-viz .og-course-heading,
+  #orario-garda-viz .og-course-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #orario-garda-viz .og-course-heading {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--course-color) 55%, var(--border));
+  }
+  #orario-garda-viz .og-course-kicker {
+    color: var(--muted-foreground);
+    font-size: calc(var(--font-size-base) * 0.75);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+  #orario-garda-viz .og-course-title {
+    margin: 0.2rem 0 0;
+  }
+  #orario-garda-viz .og-course-code {
+    color: var(--course-color);
+    font-size: calc(var(--font-size-base) * 3.2);
+    font-weight: 500;
+  }
+  #orario-garda-viz .og-course-actions {
+    margin: 0.75rem 0;
+  }
+  #orario-garda-viz .og-course-prev,
+  #orario-garda-viz .og-course-next {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 999px;
+    border: 2px solid var(--course-color);
+    color: var(--course-color);
+    background: transparent;
+    font-size: calc(var(--font-size-base) * 1.35);
+  }
+  #orario-garda-viz .og-course-summary {
+    padding: 0.65rem 0.8rem;
+    border: 1px solid color-mix(in oklab, var(--course-color) 55%, var(--border));
+    border-radius: 0.55rem;
+    background: color-mix(in oklab, var(--course-color) 12%, transparent);
+  }
+  #orario-garda-viz .og-mini-chart {
+    display: block;
+    width: 92px;
+    flex: 0 0 92px;
+    align-self: flex-start;
+    margin-top: 54px;
+  }
+  #orario-garda-viz .og-course-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  #orario-garda-viz .og-course-stops {
+    width: 100%;
+    margin: 0;
+  }
+  #orario-garda-viz .og-course-stops th,
+  #orario-garda-viz .og-course-stops td {
+    height: 54px;
+    padding-block: 0;
+    vertical-align: middle;
+    font-size: calc(var(--font-size-base) * 1.2);
+  }
+  #orario-garda-viz .og-course-stops th {
+    color: var(--course-color);
+    border-bottom-color: color-mix(in oklab, var(--course-color) 70%, var(--border));
+  }
+  #orario-garda-viz .og-course-stops tbody tr {
+    background: rgba(7, 25, 35, 0.84);
+  }
+  #orario-garda-viz .og-course-stops tbody tr:nth-child(even) {
+    background: rgba(16, 39, 51, 0.82);
+  }
+  #orario-garda-viz .og-page-matrix {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(7, 23, 32, 0.86);
+  }
+  #orario-garda-viz .og-page-matrix .table-responsive,
+  #orario-garda-viz .og-matrix,
+  #orario-garda-viz .og-matrix td {
+    background-color: #0d222d;
+    color: var(--foreground);
+  }
+  #orario-garda-viz .og-course-stops td:last-child {
+    font-size: calc(var(--font-size-base) * 1.35);
+    font-weight: 500;
+  }
+  #orario-garda-viz .og-mini-line {
+    fill: none;
+    stroke: var(--course-color, var(--viz-series-1));
+    stroke-width: 4;
+    vector-effect: non-scaling-stroke;
+  }
+  #orario-garda-viz .og-mini-dot {
+    fill: var(--background);
+    stroke: var(--course-color, var(--viz-series-1));
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+  }
+  #orario-garda-viz .og-mini-leg-time {
+    fill: var(--muted-foreground);
+    font-size: calc(var(--font-size-base) * 0.8);
+    font-weight: 500;
+  }
+  #orario-garda-viz .og-matrix th {
+    white-space: nowrap;
+  }
+  #orario-garda-viz .og-matrix td {
+    text-align: center;
+    white-space: nowrap;
+  }
+  #orario-garda-viz .og-matrix td:first-child {
+    text-align: left;
+  }
+  #orario-garda-viz .og-matrix thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: color-mix(in oklab, var(--viz-series-1) 18%, var(--background));
+  }
+  #orario-garda-viz .og-matrix tbody td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: color-mix(in oklab, var(--viz-series-2) 18%, var(--background));
+  }
+  #orario-garda-viz .og-matrix thead th:first-child {
+    left: 0;
+    z-index: 4;
+    background: color-mix(in oklab, var(--viz-series-1) 45%, var(--viz-series-2));
+    color: var(--foreground);
+  }
+  #orario-garda-viz .og-matrix .is-highlighted {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+  @media (max-width: 520px) {
+    #orario-garda-viz .og-chart {
+      min-height: 760px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #orario-garda-viz .og-route {
+      transition: none;
+    }
+  }

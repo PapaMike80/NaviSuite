@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NaviDiaria">
+  <meta name="theme-color" content="#002b5e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <link rel="apple-touch-startup-image" href="assets/images/splash_ios.png">
+  <title>NaviSuite Documenti</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Usa esattamente la grafica della vecchia pagina turni.html -->
+  <link rel="stylesheet" href="assets/css/turni.css?v=20260716-4">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+
+  <style>
+    /* Piccole integrazioni, senza cambiare la grafica originale */
+    .archive-status {
+      margin-top: auto;
+      padding: 16px 13px 0;
+      border-top: 1px solid rgba(124, 173, 189, .20);
+      color: #7cadbd;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .archive-status strong {
+      font-size: 12px;
+      color: #9bc8d5;
+    }
+
+    .archive-status span {
+      font-size: 11px;
+    }
+
+    .archive-status .version {
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(124, 173, 189, .15);
+      color: #19e3c1;
+      font-weight: 700;
+    }
+
+    .document {
+      cursor: pointer;
+    }
+
+    .document:focus-visible {
+      outline: 2px solid #19e3c1;
+      outline-offset: 3px;
+    }
+
+    .document-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .document-action {
+      min-width: 82px;
+      padding: 8px 10px;
+      border: 1px solid #2d6570;
+      border-radius: 8px;
+      background: #12313b;
+      color: #dffcff;
+      font: 800 11px DM Sans, sans-serif;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .document-action:hover {
+      border-color: #38d6bf;
+      background: #17434a;
+    }
+
+    .document-action.download {
+      color: #86efac;
+    }
+
+    .document-viewer[hidden] {
+      display: none;
+    }
+
+    .document-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+      min-height: 0;
+      padding: 14px;
+      background: rgba(2, 13, 18, .94);
+      backdrop-filter: blur(8px);
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #28515d;
+      border-bottom: 0;
+      border-radius: 12px 12px 0 0;
+      background: #0c2530;
+    }
+
+    .viewer-toolbar strong {
+      min-width: 0;
+      margin-right: auto;
+      overflow: hidden;
+      color: #edfafa;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .viewer-toolbar .document-action {
+      flex: 0 0 auto;
+    }
+
+    .document-pages {
+      min-width: 0;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
+      border: 1px solid #28515d;
+      border-radius: 0 0 12px 12px;
+      background: #5d6367;
+      scroll-behavior: smooth;
+    }
+
+    .document-page {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin: 0 auto 12px;
+    }
+
+    .document-page:last-child { margin-bottom: 0; }
+
+    .document-page canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      background: white;
+      box-shadow: 0 3px 16px rgba(0, 0, 0, .35);
+    }
+
+    .document-loading,
+    .document-error {
+      display: grid;
+      min-height: 45vh;
+      place-items: center;
+      padding: 24px;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    #documentFrame {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border: 1px solid #28515d;
+      border-radius: 0 0 12px 12px;
+      background: white;
+    }
+
+    body.document-viewer-open {
+      overflow: hidden;
+    }
+
+    body.document-viewer-open .mobile-liquid-nav { display: none !important; }
+
+    .archive-notice {
+      margin: 0 0 22px;
+      padding: 13px 16px;
+      border: 1px solid #90641f;
+      background: #2c2415;
+      color: #ffd48a;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .archive-empty {
+      display: none;
+      padding: 45px 20px;
+      text-align: center;
+      color: #82aebb;
+    }
+
+    .archive-empty strong,
+    .archive-empty span {
+      display: block;
+    }
+
+    .archive-empty strong {
+      margin-bottom: 7px;
+      color: white;
+      font-family: Manrope, sans-serif;
+      font-size: 19px;
+    }
+
+    @media (max-width: 720px) {
+      .archive-status {
+        margin-top: 20px;
+      }
+
+      .document {
+        grid-template-columns: auto 1fr;
+      }
+
+      .document-actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+      }
+
+      .document-action {
+        flex: 1;
+      }
+
+      .document-viewer {
+        padding:
+          env(safe-area-inset-top, 0px)
+          0
+          env(safe-area-inset-bottom, 0px);
+      }
+
+      .viewer-toolbar {
+        min-height: 58px;
+        padding: 8px 10px;
+        border-radius: 0;
+      }
+
+      .viewer-toolbar strong { font-size: 14px; }
+
+      .viewer-toolbar .document-action {
+        min-width: 0;
+        padding: 8px 9px;
+        font-size: 11px;
+      }
+
+      .document-pages {
+        padding: 6px 0 18px;
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 0;
+      }
+
+      .document-page { margin-bottom: 7px; }
+
+      #documentFrame {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+
+<body class="turni-page">
+  <aside class="turni-sidebar app-sidebar" id="archive-sidebar">
+  
+    <a class="turni-sidebar-brand" href="index.html">
+      <span>N</span> Documenti
+    </a>
+
+    <nav>
+      <a href="naviturni.html"><span>▦</span> NaviTurni</a>
+      <a href="navidiaria.html"><span>≈</span> NaviDiaria</a>
+      <a class="active" href="documenti.html"><span>▤</span> Documenti</a>
+
+      <button id="refreshButton" type="button">
+        <span>↻</span> Aggiorna
+      </button>
+
+      <span class="turni-menu-label">DOCUMENTI</span>
+      <a href="#turni-docs"><span>▦</span> Turni e bozze</a>
+      <a href="#ods-docs"><span>≡</span> ODS 2026</a>
+    </nav>
+
+    <div class="archive-status">
+      <strong id="sourceLabel">Archivio GitHub</strong>
+      <span id="lastUpdate">Caricamento…</span>
+      <span class="version">Versione v1.02</span>
+    </div>
+  </aside>
+
+  <header class="archive-header">
+    <div class="header-copy">
+      <p>DOCUMENTI OPERATIVI</p>
+      <h1>Turni, bozze e<br><em>ordini di servizio.</em></h1>
+      <span>Tutti i PDF delle cartelle GitHub raccolti e ordinati automaticamente.</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="notice" class="archive-notice" hidden></div>
+
+    <section id="turni-docs" class="section-heading">
+      <div>
+        <p>PIANIFICAZIONE</p>
+        <h2>Turni e bozze</h2>
+      </div>
+      <span id="turniCount" class="count">0 documenti</span>
+    </section>
+
+    <div id="turniGrid" class="document-grid"></div>
+
+    <section id="ods-docs" class="section-heading ods-heading">
+      <div>
+        <p>ORDINI DI SERVIZIO</p>
+        <h2>Archivio ODS 2026</h2>
+      </div>
+      <span id="odsCount" class="count">0 documenti</span>
+    </section>
+
+    <div id="odsGrid" class="document-grid"></div>
+
+    <div id="emptyState" class="archive-empty">
+      <strong>Nessun documento trovato</strong>
+      <span>Controlla che nelle cartelle turni e ods siano presenti file PDF.</span>
+    </div>
+  </main>
+
+  <section id="documentViewer" class="document-viewer" hidden aria-label="Visualizzatore documento">
+    <div class="viewer-toolbar">
+      <strong id="viewerTitle">Documento</strong>
+      <button id="viewerDownload" class="document-action download" type="button">↓ Scarica</button>
+      <button id="viewerClose" class="document-action" type="button">✕ Chiudi</button>
+    </div>
+    <div id="documentPages" class="document-pages" tabindex="0" aria-label="Pagine del documento"></div>
+    <iframe id="documentFrame" title="Documento PDF di riserva"></iframe>
+  </section>
+
+  <script src="assets/js/shared-menu.js"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=33"></script>
+  <script src="vendor/pdfjs/pdf.min.js"></script>
+  <script src="assets/js/documenti.js?v=1.07"></script>
+
+  <!-- Navigazione Mobile Liquid Glass -->
+  <nav class="mobile-liquid-nav" aria-label="Navigazione principale mobile">
+    <a href="naviturni.html" class="nav-item">
+      <span class="nav-icon">▦</span>
+      <span>Turni</span>
+    </a>
+    <a href="cambi_turno.html" class="nav-item">
+      <span class="nav-icon">⇄</span>
+      <span>Cambio</span>
+    </a>
+    <a href="documenti.html" class="nav-item active">
+      <span class="nav-icon">▤</span>
+      <span>Doc</span>
+    </a>
+  </nav>
+</body>
+</html>

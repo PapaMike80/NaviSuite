@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NaviSuite Quiz</title>
+  <style>
+    :root{--bg:#07111f;--panel:#101d2d;--panel2:#16263a;--text:#edf4ff;--muted:#9fb0c7;--blue:#54a7ff;--ok:#31d07f;--bad:#ff6474;--amber:#ffc85c;--line:#2a3b52}
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at top right,#173253 0,#07111f 38rem);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    button,input{font:inherit}.wrap{width:min(920px,calc(100% - 28px));margin:auto}
+    header{padding:38px 0 24px}.eyebrow{color:var(--blue);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.78rem}
+    h1{font-size:clamp(1.8rem,5vw,3rem);line-height:1.08;margin:.25rem 0 .7rem}.intro{color:var(--muted);max-width:68ch;margin:0}
+    .dashboard{position:sticky;top:0;z-index:10;background:rgba(7,17,31,.91);backdrop-filter:blur(12px);border-block:1px solid var(--line)}
+    .dash-inner{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;padding:13px 0}
+    .score strong{font-size:1.45rem}.score span,.progress-label{display:block;color:var(--muted);font-size:.78rem}
+    .bar{height:9px;background:#24354a;border-radius:99px;overflow:hidden}.bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--blue),#7ad7ff);transition:.25s}
+    .reset{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 13px;cursor:pointer}
+    main{padding:24px 0 80px}.card{background:linear-gradient(145deg,rgba(22,38,58,.98),rgba(13,27,43,.98));border:1px solid var(--line);border-radius:18px;padding:22px;margin:0 0 17px;box-shadow:0 14px 35px rgba(0,0,0,.16)}
+    .qhead{display:flex;gap:12px;align-items:flex-start}.num{flex:0 0 34px;height:34px;display:grid;place-items:center;background:#203751;color:#bcdcff;border-radius:10px;font-weight:800}
+    h2{font-size:1.04rem;line-height:1.45;margin:3px 0 17px}.answers{display:grid;gap:10px}
+    .answer{display:flex;gap:11px;align-items:flex-start;border:1px solid #354960;background:#0c1929;border-radius:12px;padding:12px 14px;cursor:pointer;transition:.15s}
+    .answer:hover{border-color:#5a7a9e;transform:translateY(-1px)}.answer input{margin-top:4px;accent-color:var(--blue)}
+    .answer.correct{border-color:var(--ok);background:rgba(49,208,127,.11)}.answer.wrong{border-color:var(--bad);background:rgba(255,100,116,.1)}
+    .feedback{display:none;margin-top:14px;border-left:4px solid var(--line);padding:11px 13px;background:#0b1725;border-radius:0 10px 10px 0}
+    .feedback.show{display:block}.feedback.ok{border-color:var(--ok)}.feedback.bad{border-color:var(--bad)}
+    .verdict{font-weight:900}.feedback.ok .verdict{color:var(--ok)}.feedback.bad .verdict{color:var(--bad)}
+    .explain{margin:.35rem 0;color:#d7e3f3}.ref{color:var(--muted);font-size:.88rem}.ref a{color:#8bc5ff}
+    .sourcebox{margin-top:12px;border:1px solid #34506c;border-radius:11px;background:#101f31;overflow:hidden}
+    .sourcebox summary{cursor:pointer;padding:11px 13px;color:#9fd0ff;font-weight:800;list-style:none}
+    .sourcebox summary::-webkit-details-marker{display:none}.sourcebox summary:before{content:"＋";margin-right:8px}.sourcebox[open] summary:before{content:"−"}
+    .sourcebody{border-top:1px solid #34506c;padding:12px 14px}.sourcebody p{margin:.25rem 0 .7rem}.sourcebody .where{color:var(--amber);font-weight:800;font-size:.9rem}
+    .sourcebody .passage{padding:10px 12px;background:#091624;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;color:#dce9f8}
+    .sourcebody a{display:inline-block;color:#a6d5ff;font-weight:750;margin-top:3px}
+    .finish{display:none;text-align:center;background:linear-gradient(135deg,#183552,#10243a);border:1px solid #41658b;border-radius:18px;padding:28px;margin-top:25px}
+    .finish.show{display:block}.finish h2{font-size:1.7rem;margin:0 0 7px}.finish p{color:var(--muted)}
+    .primary{border:0;background:linear-gradient(135deg,#2687df,#50afff);color:#fff;border-radius:10px;padding:10px 15px;font-weight:900;cursor:pointer;margin:4px}
+    .summary-page{display:none}.summary-page.show{display:block}.summary-head{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:18px}
+    .summary-hero{border:1px solid var(--line);background:linear-gradient(145deg,#142b43,#102034);border-radius:18px;padding:22px;margin-bottom:16px}
+    .summary-hero.pass{border-color:var(--ok)}.summary-hero.fail{border-color:var(--bad)}.summary-hero h2{font-size:1.8rem;margin:0 0 6px}
+    .recommend{background:rgba(255,200,92,.09);border:1px solid #715c29;border-radius:15px;padding:18px;margin-bottom:18px}.recommend h3{color:var(--amber);margin:0 0 8px}.recommend ul{margin:.4rem 0 0;padding-left:1.25rem}
+    .summary-list{display:grid;gap:10px}.summary-row{display:grid;grid-template-columns:42px 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px}
+    .summary-row.good{border-left:5px solid var(--ok)}.summary-row.bad{border-left:5px solid var(--bad)}.summary-row .num{margin-top:2px}
+    .summary-row h3{font-size:1rem;margin:0 0 7px}.answer-line{font-size:.9rem;color:var(--muted)}.answer-line strong{color:var(--text)}.review-link{color:#9fd0ff}
+    .legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.88rem;margin-top:14px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+    .test-picker{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:22px 0 4px}
+    .test-btn{border:1px solid var(--line);background:#0d1b2c;color:var(--muted);padding:11px 8px;border-radius:11px;cursor:pointer;font-weight:800}
+    .test-btn:hover{border-color:#5d7fa5;color:var(--text)}.test-btn.active{background:#1b4e78;border-color:var(--blue);color:#fff}
+    .test-btn.done{border-color:#2c8c5b}.done-badge{display:block;color:var(--ok);font-size:.72rem;margin-top:4px}
+    .overall-actions{display:flex;justify-content:flex-end;margin-top:10px}.overall-btn{background:#182c43;border:1px solid #47729d;color:#cde7ff;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}
+    .admin-btn{display:none;background:#5a3d07;border:1px solid var(--amber);color:#fff2c7;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}.admin-btn.show{display:inline-block}
+    .correction-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(1,8,17,.84);backdrop-filter:blur(8px)}.correction-modal.show{display:flex}
+    .correction-dialog{width:min(900px,100%);max-height:min(90vh,900px);display:flex;flex-direction:column;background:#0c1b2c;border:1px solid #4b6888;border-radius:18px;box-shadow:0 28px 80px rgba(0,0,0,.5);overflow:hidden}
+    .correction-head,.correction-actions{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:16px 18px;background:#12263b;border-bottom:1px solid var(--line)}.correction-head h2{margin:0;font-size:1.25rem}.correction-actions{border-top:1px solid var(--line);border-bottom:0;justify-content:flex-end}.correction-list{overflow:auto;padding:14px;display:grid;gap:12px}
+    .correction-row{background:#091725;border:1px solid var(--line);border-radius:13px;padding:14px}.correction-row h3{margin:0 0 9px;font-size:.95rem}.correction-options{display:grid;gap:7px}.correction-option{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid #30465f;border-radius:9px;background:#0e2033;cursor:pointer}.correction-option:has(input:checked){border-color:var(--amber);background:rgba(255,200,92,.1)}.correction-status{min-height:1.3rem;color:var(--muted);margin-right:auto;font-size:.88rem}.correction-status.ok{color:var(--ok)}.correction-status.bad{color:var(--bad)}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0}.stat{background:#0b1929;border:1px solid var(--line);border-radius:12px;padding:14px}.stat strong{display:block;font-size:1.5rem}.stat span{color:var(--muted);font-size:.78rem}
+    .test-history{display:grid;gap:9px;margin:16px 0}.history-row{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px}.history-row strong.pass{color:var(--ok)}.history-row strong.fail{color:var(--bad)}
+    .official-tag{display:inline-block;background:rgba(255,200,92,.14);border:1px solid #80692f;color:var(--amber);border-radius:99px;padding:3px 9px;font-size:.74rem;font-weight:900;margin-left:7px}
+    .generated-tag{display:inline-block;background:rgba(84,167,255,.13);border:1px solid #35638d;color:#9fd0ff;border-radius:99px;padding:3px 9px;font-size:.74rem;font-weight:900;margin-left:7px}
+    @media(max-width:700px){.test-picker{grid-template-columns:1fr 1fr}.test-btn:first-child{grid-column:1/-1}}
+    @media(max-width:600px){header{padding-top:25px}.dash-inner{grid-template-columns:auto 1fr;gap:10px}.reset{grid-column:1/-1;width:100%}.card{padding:17px}.answer{padding:11px}.qhead{gap:9px}.stats-grid{grid-template-columns:1fr 1fr}}
+    @media print{body{background:#fff;color:#111}.dashboard,.reset{display:none}.card{break-inside:avoid;background:#fff;border-color:#aaa;box-shadow:none}.answer{background:#fff;border-color:#bbb}.feedback{display:block!important;background:#f7f7f7}.ref,.intro{color:#333}}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NaviDiaria">
+  <meta name="theme-color" content="#002b5e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <link rel="apple-touch-startup-image" href="assets/images/splash_ios.png">
+    <div class="eyebrow">Navigazione Laghi · Prova scritta 15/2025</div>
+    <h1>Simulatore quiz</h1>
+    <p class="intro">Due prove ufficiali e otto simulazioni originali da 30 domande: 300 quesiti complessivi. Al termine trovi il riepilogo completo e i consigli di ripasso sugli errori.</p>
+    <div class="legend"><span><i class="dot" style="background:var(--ok)"></i>corretta</span><span><i class="dot" style="background:var(--bad)"></i>sbagliata</span><span>Soglia indicativa: 18/30</span></div>
+    <nav class="test-picker" id="testPicker" aria-label="Seleziona la prova"></nav>
+    <div class="overall-actions"><button type="button" class="admin-btn" id="correctAnswersBtn">Correggi risposte</button><button type="button" class="overall-btn" id="overallBtn">Riepilogo generale</button></div>
+  </header>
+  <div class="dashboard">
+    <div class="wrap dash-inner">
+      <div class="score"><strong id="points">0</strong> / 30<span>risposte corrette</span></div>
+      <div><span class="progress-label" id="progressText">0 di 30 completate</span><div class="bar"><i id="progressBar"></i></div></div>
+      <button class="reset" id="reset" type="button">Ricomincia</button>
+    </div>
+  </div>
+  <main class="wrap">
+    <section id="quizPage">
+      <div id="quiz"></div>
+      <section class="finish" id="finish"><h2 id="resultTitle"></h2><p id="resultText"></p><button class="primary" id="summaryBtn" type="button">Apri riepilogo e ripasso</button><button class="reset" onclick="window.scrollTo({top:0,behavior:'smooth'})">Torna in alto</button></section>
+    </section>
+    <section class="summary-page" id="summaryPage">
+      <div class="summary-head"><div><div class="eyebrow">Riepilogo risposte</div><h2 id="summaryName">Risultato</h2></div><button class="reset" id="backToQuiz" type="button">← Torna alla prova</button></div>
+      <div id="summaryContent"></div>
+    </section>
+  </main>
+  <div class="correction-modal" id="correctionModal" aria-hidden="true">
+    <section class="correction-dialog" role="dialog" aria-modal="true" aria-labelledby="correctionTitle">
+      <div class="correction-head"><div><div class="eyebrow">Amministrazione quiz</div><h2 id="correctionTitle">Correggi risposte</h2></div><button type="button" class="reset" id="closeCorrections">Chiudi</button></div>
+      <div class="correction-list" id="correctionList"></div>
+      <div class="correction-actions"><span class="correction-status" id="correctionStatus"></span><button type="button" class="primary" id="saveCorrections">Salva su Firebase</button></div>
+    </section>
+  </div>
+<script src="assets/js/admin-firebase-rest.js"></script>
+<script>
+const sources={
+  rd148:["R.D. 8 gennaio 1931, n. 148, Allegato A","https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="],
+  dpr631:["D.P.R. 28 giugno 1949, n. 631 - Regolamento per la navigazione interna","https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"],
+  ccnl:["CCNL Autoferrotranvieri 23 luglio 1976","https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"],
+  dl81:["D.Lgs. 9 aprile 2008, n. 81","https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="],
+  dm86:["D.M. 5 febbraio 1986 - Gazzetta Ufficiale, tabella equipaggi","https://www.gazzettaufficiale.it/eli/id/1986/03/25/1503Q002/sg"],
+  rdl2328:["R.D.L. 19 ottobre 1923, n. 2328, art. 20","https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto.legge:1923-10-19;2328="],
+  opgr:["OPGR n. 58600/1997 - Disciplina della navigazione nelle acque interne lombarde","https://www.regione.lombardia.it/"],
+  l614:["Legge 18 luglio 1957, n. 614","https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1957-07-18;614="],
+  agid:["AgID - Posta elettronica certificata","https://www.agid.gov.it/it/piattaforme/posta-elettronica-certificata"],
+  office:["Microsoft - formati di file di Office","https://support.microsoft.com/it-it/office/formati-di-file-supportati-in-excel-0943ff2c-6014-4e8d-aaea-b83d51d46247"],
+  grammar:["British Council - prepositions of time","https://learnenglish.britishcouncil.org/grammar/a1-a2-grammar/prepositions-time-at-in-on"],
+  azienda:["Navigazione Laghi - documentazione e regolamenti aziendali","https://www.navigazionelaghi.it/"],
+  grafico:["Orario grafico - quesito della prova ufficiale","https://www.navigazionelaghi.it/"],
+  garda:["Lago di Garda - quesito della prova ufficiale","https://www.navigazionelaghi.it/"],
+  gdpr:["Regolamento (UE) 2016/679 - EUR-Lex","https://eur-lex.europa.eu/eli/reg/2016/679/oj?locale=it"]
+};
+const officialQ=[
+["Come è computato il servizio di prova per i nuovi assunti nei servizi di navigazione?",["Non superiore a un anno di effettivo servizio","Non superiore a due anni di effettivo servizio","Non superiore a sei mesi di effettivo servizio"],0,"Per tramvie e servizi di navigazione il periodo complessivo di prova non può superare un anno di effettivo servizio. Il limite di sei mesi riguarda specifiche categorie previste dalla disciplina successiva, ma non è la risposta formulata dalla domanda.","rd148","Allegato A, Titolo III, art. 13"],
+["Quale sanzione ha funzione di richiamo?",["La sospensione","La censura","Il trasloco punitivo"],1,"La censura è un rimprovero scritto ed è la sanzione con funzione di richiamo.","rd148","Allegato A, art. 37"],
+["Quale sanzione ha funzione di pena accessoria?",["Il trasloco punitivo","La proroga dell’aumento di stipendio","La multa"],0,"Il trasloco punitivo è previsto come pena accessoria; multa e proroga sono punizioni disciplinari autonome.","rd148","Allegato A, disciplina delle punizioni"],
+["Quali elementi determinano la gerarchia tra agenti?",["Grado, anzianità del grado, età, anzianità del grado precedente, anzianità lavorativa","Grado, anzianità del grado, anzianità del grado precedente, anzianità di servizio, maggiore età","Grado, anzianità del grado, anzianità del grado precedente, titolo di studio, maggiore età"],1,"L'ordine è: grado, anzianità nel grado, anzianità nel grado precedente, anzianità di servizio e infine maggiore età.","rd148","Allegato A, art. 9"],
+["Quando assumono valore le dimissioni volontarie?",["Immediatamente, senza preavviso","Solo dopo essere state accettate dall’azienda","Dopo tre mesi di preavviso"],1,"Le dimissioni devono essere scritte e non hanno valore finché l'azienda non le accetta.","rd148","Allegato A, art. 30"],
+["Quale documento abilita alla professione a bordo?",["Libretto di navigazione","Patente nautica oltre 6 miglia e libretto di navigazione","Patente nautica oltre 6 miglia"],0,"Per il personale navigante della navigazione interna il documento professionale è il libretto di navigazione; la patente nautica da diporto non lo sostituisce.","dpr631","Titolo IV, personale navigante"],
+["Quanti anni di navigazione occorrono per conseguire il titolo di Capitano?",["Almeno 1 anno in servizio di coperta","Almeno 2 anni in servizio di coperta","Almeno 6 mesi in servizio di coperta"],1,"Tra i requisiti è previsto aver effettuato almeno due anni di navigazione in servizio di coperta.","dpr631","Disposizioni sui titoli professionali"],
+["Quando vanno eseguite le manovre periodiche di sicurezza sulle navi di linea per trasporto persone?",["All'entrata o ripresa dopo oltre 2 mesi d'inattività e almeno ogni 6 mesi","All'entrata o ripresa dopo oltre 2 mesi d'inattività e almeno ogni anno","All'entrata o ripresa dopo oltre 2 mesi d'inattività e almeno ogni 2 anni"],0,"La cadenza minima è semestrale, oltre che all'entrata in servizio o alla ripresa dopo inattività superiore a due mesi.","dpr631","Art. 123"],
+["Quando non compete alcuna indennità di trasferta?",["Distanza inferiore a 3 km con mezzi disponibili","Distanza inferiore a 10 km con mezzi disponibili","Distanza inferiore a 5 km con mezzi disponibili"],2,"Non compete quando la località della missione dista meno di 5 km dalla residenza e vi sono mezzi di trasporto per gli spostamenti.","ccnl","Disciplina trasferte"],
+["Quando viene corrisposta l'indennità di pernottazione?",["Assenza, partenza o rientro tra 22 e 5 con diritto alla diaria","Assenza, partenza o rientro tra 21 e 6 senza diritto alla diaria","Assenza, partenza o rientro tra 21 e 6 con diritto alla diaria intera o parziale"],2,"La fascia prevista è 21:00-06:00 e deve essere maturato il diritto alla diaria intera o parziale.","ccnl","Disciplina trasferte e pernottazione"],
+["Quando spetta la diaria “parziale” al personale della navigazione interna?",["Quando l’assenza supera 8 ore","Quando supera 8 ore ma non 10","Quando supera 5 ore ma non 8"],0,"Per la navigazione interna la quota prevista dal contratto spetta quando l'assenza dalla residenza supera le 8 ore.","ccnl","Disciplina trasferte - navigazione interna"],
+["Da chi viene designato/eletto l'RLS?",["Dall'ASL","Dai lavoratori","Dal medico competente"],1,"Il rappresentante dei lavoratori per la sicurezza è eletto o designato dai lavoratori secondo le modalità previste dalla legge e dalla contrattazione.","dl81","Artt. 47-48"],
+["Chi è il «lavoratore» ai sensi del D.Lgs. 81/2008?",["Chi svolge attività nell'organizzazione di un datore pubblico o privato, anche senza retribuzione e per apprendere, esclusi gli addetti domestici e familiari","Solo chi è retribuito nel lavoro privato","Solo chi lavora per un datore privato nei servizi sanitari"],0,"È la definizione ampia dell'art. 2: conta l'inserimento nell'organizzazione, non il tipo di contratto o la retribuzione.","dl81","Art. 2, comma 1, lett. a"],
+["Quali navi a motore per trasporto persone può condurre un Capo Timoniere?",["Oltre 10 e fino a 25 t.s.l.","Oltre 10 e fino a 50 t.s.l.","Oltre 25 e fino a 300 t.s.l."],2,"Nella tabella ufficiale il Capo Timoniere è previsto per le classi superiori a 25 e non superiori a 50 t.s.l. e superiori a 50 e non superiori a 300 t.s.l.: complessivamente oltre 25 e fino a 300 t.s.l.","dm86","Tabella ufficiale equipaggi, navi a motore per trasporto persone"],
+["Quali tipi di nave/destinazioni sono considerati per determinare l'equipaggio?",["Piroscafi e navi a motore merci/passeggeri; aliscafi e mezzi veloci","Navi a motore, traghetti e aliscafi","Piroscafi e navi a motore merci/passeggeri; rimorchiatori e spintori; navi a vela o remi anche con motore fino a 20 CV"],2,"È l'elenco di categorie riportato nelle tabelle del D.M.; le altre risposte omettono o introducono categorie non corrispondenti.","dm86","Tabelle sulla composizione degli equipaggi"],
+["Chi sovrintende all'attività lavorativa e controlla l'esecuzione delle direttive?",["Il funzionario ASL","Il preposto","Il medico competente"],1,"Questa è la definizione normativa di preposto.","dl81","Art. 2, comma 1, lett. e"],
+["Qual è la durata minima del riposo giornaliero continuato?",["10 ore in residenza e 8 ore fuori residenza","8 ore in residenza e 10 ore fuori","8 ore in residenza e 5 ore fuori con almeno 1 ora di sosta"],0,"L'art. 20 stabilisce 10 ore se il riposo è goduto in residenza e 8 ore se fuori residenza.","rdl2328","Art. 20"],
+["Il limite minimo di 50 m dalla costa vale anche per il trasporto pubblico di linea?",["Sì, sempre","Sì, ma solo per i mezzi veloci","No, il servizio pubblico di linea è escluso"],2,"La disposizione sulla distanza minima dalla costa non si applica alle unità adibite al servizio pubblico di linea.","opgr","Disposizioni sulla distanza dalla costa"],
+["A quali mezzi devono dare precedenza le unità in navigazione?",["Solo pronto soccorso e linea","Solo pronto soccorso","Pronto soccorso, linea, pesca professionale e vela senza motore"],2,"La disciplina regionale riconosce la precedenza a tutte e quattro le categorie indicate.","opgr","Regole di precedenza"],
+["In caso di più mancanze contemporanee quale sanzione si applica?",["Si sommano le sanzioni","Quella prevista per la mancanza più grave","Quella meno grave più le pene accessorie"],1,"Si applica la sanzione prevista per la mancanza più grave, tenendo conto delle circostanze del caso.","rd148","Allegato A, procedimento disciplinare"],
+["In quale anno fu istituita la Gestione Governativa dei laghi Maggiore, Garda e Como?",["1975","1948","1957"],2,"La Gestione Governativa fu istituita con la legge n. 614 del 18 luglio 1957.","l614","Titolo e art. 1"],
+["Da chi è nominato il Gestore Governativo?",["Dal Ministro del Turismo","Dal Ministro delle Infrastrutture e dei Trasporti","Dal Presidente della Regione Lombardia"],1,"La legge attribuisce la nomina al Ministro competente in materia di trasporti, oggi Ministro delle Infrastrutture e dei Trasporti.","l614","Art. 1, comma 1"],
+["Quale programma Office si usa per le tabelle di calcolo?",["Word","Excel","PowerPoint"],1,"Excel è il foglio di calcolo della suite Microsoft Office.","office","Documentazione Microsoft Office"],
+["Che cosa significa P.E.C.?",["Procedura Elettronica Certificata","Protocollo Elettronico Certificato","Posta Elettronica Certificata"],2,"PEC significa Posta Elettronica Certificata.","agid","Definizione AgID"],
+["Completa: “We are late! The movie starts _____ 8.30”.",["on","at","in"],1,"Con un orario preciso si usa la preposizione “at”: at 8.30.","grammar","Prepositions of time: at, in, on"],
+["Completa: “He ______ drive because he is too young”.",["can’t","can","cant"],0,"Serve la forma negativa di can: “can't”. “Cant” senza apostrofo non è la contrazione corretta.","grammar","Modal verb can - negative form"],
+["Completa: “The days were short ______ it was December”.",["why","because","also"],1,"“Because” introduce la causa: i giorni erano corti perché era dicembre.","grammar","Conjunction because"],
+["Completa: “Did you read ______ magazine I gave you?”.",["an","a","the"],2,"Si usa “the” perché si parla della rivista specifica che è stata data all'interlocutore.","grammar","Definite article the"],
+["Che cosa si intende per D.P.I.?",["Attrezzatura indossata o tenuta dal lavoratore per proteggerlo da uno o più rischi","Apparecchi per rilevare gli incendi","Attrezzature dei servizi di soccorso e salvataggio"],0,"È la definizione di dispositivo di protezione individuale. Le attrezzature di soccorso e salvataggio sono escluse dalla nozione di DPI.","dl81","Art. 74"],
+["A quale formato Office si riferisce il suffisso .pptx?",["File Excel","Presentazione PowerPoint","File Word"],1,".pptx è il formato standard delle presentazioni PowerPoint moderne.","office","Formati di file di Microsoft Office"]
+];
+const officialEvidence=[
+ {where:"Allegato A, Titolo III, art. 13",passage:"Il periodo di prova è computato anche se svolto prima dell'entrata in vigore del regolamento. Per tramvie e servizi di navigazione il limite complessivo è un anno di servizio effettivo.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"Allegato A, artt. 37 e 40",passage:"L'art. 37 elenca la censura tra le punizioni. L'art. 40 precisa che ha carattere di richiamo preliminare e si applica alle mancanze lievi.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"Allegato A, art. 37",passage:"Dopo l'elenco delle punizioni principali, la norma consente al Consiglio di disciplina di aggiungere il trasloco punitivo come punizione accessoria in caso di incompatibilità locale.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"Allegato A, art. 19",passage:"La gerarchia segue, nell'ordine: grado, anzianità nel grado, anzianità nel grado precedente, anzianità di servizio e maggiore età.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"Allegato A, art. 30",passage:"Le dimissioni volontarie devono essere scritte e restano prive di effetto finché non vengono accettate dall'azienda; nel frattempo l'agente deve continuare il servizio.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"D.P.R. 631/1949, art. 42 - Libretto di navigazione",passage:"Il regolamento definisce il libretto di navigazione come l'unico documento abilitante alla professione della navigazione interna e anche come documento personale d'identità.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ {where:"D.P.R. 631/1949, art. 49, n. 6",passage:"Fra i requisiti per il titolo di capitano è richiesta l'effettuazione di due anni di navigazione in servizio di coperta.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ {where:"D.P.R. 631/1949, art. 123 - Manovre periodiche di sicurezza",passage:"Le esercitazioni si svolgono all'entrata in servizio, alla ripresa dopo inattività superiore a due mesi e, per le navi da trasporto persone, almeno ogni sei mesi; l'esito va annotato sul giornale di bordo.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ {where:"CCNL 23 luglio 1976, disciplina delle trasferte · sezione Navigazione interna",passage:"L'indennità non spetta quando la località della missione dista meno di cinque chilometri dalla residenza e sono disponibili mezzi di trasporto per gli spostamenti.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ {where:"CCNL 23 luglio 1976, indennità di pernottazione",passage:"Il pernottamento è riconosciuto se assenza, partenza o rientro ricadono fra le ore 21 e le 6 e l'agente ha diritto alla diaria intera o parziale.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ {where:"CCNL 23 luglio 1976, diaria del personale della navigazione interna",passage:"Per le linee di navigazione interna la previsione richiamata dalla prova collega la diaria parziale a un'assenza dalla residenza superiore alle otto ore.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ {where:"D.Lgs. 81/2008, art. 47, commi 2-4",passage:"Il rappresentante dei lavoratori per la sicurezza è eletto o designato dai lavoratori. La modalità cambia in base alla dimensione dell'azienda e alla presenza delle rappresentanze sindacali.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"D.Lgs. 81/2008, art. 2, comma 1, lett. a",passage:"È lavoratore chi svolge attività nell'organizzazione di un datore pubblico o privato, indipendentemente dal contratto e anche senza retribuzione; sono esclusi gli addetti domestici e familiari.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"D.M. 5 febbraio 1986, tabella ufficiale · G.U. 25 marzo 1986, pagina 6",passage:"Per le navi a motore da trasporto persone, il Capo Timoniere compare nelle classi oltre 25-fino a 50 e oltre 50-fino a 300 t.s.l.",url:"https://www.gazzettaufficiale.it/eli/id/1986/03/25/1503Q002/sg"},
+ {where:"D.M. 5 febbraio 1986, tabella ufficiale · G.U. 25 marzo 1986, pagina 6",passage:"La tabella comprende piroscafi, navi a motore, rimorchiatori e spintori, nonché navi a vela o remi anche con motore non superiore a 20 CV.",url:"https://www.gazzettaufficiale.it/eli/id/1986/03/25/1503Q002/sg"},
+ {where:"D.Lgs. 81/2008, art. 2, comma 1, lett. e",passage:"Il preposto sovrintende al lavoro, assicura l'attuazione delle direttive ricevute, ne controlla la corretta esecuzione ed esercita un potere funzionale d'iniziativa.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"R.D.L. 19 ottobre 1923, n. 2328, disposizioni annesse, art. 20 · pagina 3",passage:"Il riposo giornaliero continuato minimo è di dieci ore quando goduto in residenza e di otto ore quando goduto fuori residenza.",url:"https://www.dottrinalavoro.it/wp-content/uploads/2015/02/rdl-1923-2328.pdf#page=4"},
+ {where:"OPGR 3 luglio 1997, n. 58600, Titolo II - norme di comportamento",passage:"La regola dei cinquanta metri dalla costa contiene un'eccezione per le unità adibite al servizio pubblico di linea, che devono comunque mantenere una navigazione prudente.",url:"https://www.regione.lombardia.it/content/dam/rl/canali-tematici-servizi/09-infrastrutture-trasporti-e-mobilit%C3%A0/05-navigazione-laghi-fiumi-e-navigli/01-red-navigazione-laghi1/allegati/opgr_58600-1997.pdf"},
+ {where:"OPGR 3 luglio 1997, n. 58600, Titolo II - precedenze",passage:"La priorità è riconosciuta alle unità di pronto soccorso, a quelle in servizio di linea, alla pesca professionale e alle unità a vela prive di motore.",url:"https://www.regione.lombardia.it/content/dam/rl/canali-tematici-servizi/09-infrastrutture-trasporti-e-mobilit%C3%A0/05-navigazione-laghi-fiumi-e-navigli/01-red-navigazione-laghi1/allegati/opgr_58600-1997.pdf"},
+ {where:"Allegato A al R.D. 148/1931, art. 48",passage:"Quando più mancanze sono giudicate nello stesso momento, si applica la sanzione disciplinare prevista per la mancanza più grave.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"Legge 18 luglio 1957, n. 614",passage:"La legge del 1957 organizza in gestione governativa i servizi di navigazione dei laghi Maggiore, Garda e Como: da qui deriva l'anno corretto.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1957-07-18;614="},
+ {where:"Legge 18 luglio 1957, n. 614, art. 1, comma 1",passage:"L'esercizio è affidato a un apposito gestore nominato dal Ministro dei trasporti; nell'assetto ministeriale attuale la competenza corrisponde al Ministero delle Infrastrutture e dei Trasporti.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1957-07-18;614="},
+ {where:"Documentazione Microsoft - Excel",passage:"Microsoft presenta Excel come applicazione per fogli di calcolo, adatta a organizzare dati, usare formule e creare tabelle e grafici.",url:"https://support.microsoft.com/it-it/excel"},
+ {where:"D.P.R. 11 febbraio 2005, n. 68, art. 1",passage:"La normativa definisce la PEC come sistema di posta elettronica nel quale viene fornita documentazione elettronica attestante invio e consegna dei documenti informatici.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.del.presidente.della.repubblica:2005-02-11;68="},
+ {where:"British Council, Prepositions of time: at, in, on",passage:"La regola grammaticale usa “at” davanti a un'ora precisa. Perciò la forma corretta è “at 8.30”.",url:"https://learnenglish.britishcouncil.org/grammar/a1-a2-grammar/prepositions-time-at-in-on"},
+ {where:"British Council, modal verb can",passage:"La forma negativa contratta del verbo modale “can” è “can't”, con apostrofo; indica che il soggetto non può compiere l'azione.",url:"https://learnenglish.britishcouncil.org/grammar/a1-a2-grammar/ability-can-could"},
+ {where:"British Council, conjunctions: because",passage:"“Because” introduce la ragione o causa della frase principale: i giorni erano corti perché era dicembre.",url:"https://learnenglish.britishcouncil.org/grammar/english-grammar-reference/conjunctions"},
+ {where:"British Council, definite article: the",passage:"Si usa “the” quando nome e oggetto sono identificati in modo specifico dal contesto: qui è la rivista che il parlante ha consegnato.",url:"https://learnenglish.britishcouncil.org/grammar/a1-a2-grammar/articles-a-an-the"},
+ {where:"D.Lgs. 81/2008, art. 74, comma 1",passage:"È DPI l'attrezzatura destinata a essere indossata o tenuta dal lavoratore per proteggerlo contro uno o più rischi per salute o sicurezza.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"Microsoft - Formati Open XML di Office",passage:"L'estensione .pptx identifica una presentazione PowerPoint nel formato Open XML; .xlsx è associato a Excel e .docx a Word.",url:"https://support.microsoft.com/it-it/office/formati-di-file-supportati-in-powerpoint-252c6fa0-a4bc-41be-ac82-b77c9773f9dc"}
+];
+const officialQ130=[
+["In un orario grafico di un servizio di trasporto come viene rappresentata la velocità del mezzo?",["La pendenza rappresenta la velocità massima e una traccia più orizzontale indica maggiore velocità","La velocità è indicata soltanto nell'intestazione","La pendenza rappresenta la velocità media e, in scala appropriata, più la traccia tende alla verticale più il mezzo è veloce","La lunghezza della traccia rappresenta la velocità minima"],2,"Nel diagramma spazio-tempo la velocità media è data dal rapporto tra spazio e tempo: con il tempo sull'asse orizzontale, una traccia più vicina alla verticale indica una velocità maggiore.","grafico","Quesito 1 della prova ufficiale CE Movimento par. 130"],
+["In base al R.D.L. n. 2328/1923, qual è la durata del «periodo lavorativo» del personale navigante?",["Non oltre 14 ore; se supera 16 ore i due riposi devono essere di almeno 10 ore","Non oltre 16 ore","Non oltre 15 ore; se supera 14 ore ciascuno dei due riposi continuati deve essere di almeno 10 ore","Non oltre 16 ore; se supera 16 ore i due riposi devono essere di almeno 10 ore"],2,"Per il personale navigante l'art. 19 fissa un massimo di 15 ore; oltre 14 ore, entrambi i riposi continuati che comprendono il lavoro devono durare almeno 10 ore.","rdl2328","Art. 19"],
+["In base alla Legge n. 614/1957, quale ente vigila sull'operato del Gestore Governativo?",["Il Ministero dei Trasporti, Ispettorato generale della motorizzazione civile e dei trasporti in concessione","Il Governatore della Regione Lombardia","La Presidenza del Consiglio","Il Ministero dell'Economia"],0,"L'art. 3 sottopone l'amministrazione del gestore alla vigilanza del Ministero dei trasporti, secondo la denominazione organizzativa dell'epoca.","l614","Art. 3"],
+["Qual è la portata massima di passeggeri della Motonave Pelèr indicata nella prova?",["300","320","400","350"],3,"La scheda della flotta di Navigazione Laghi indica 350 posti totali per la Motonave Pelèr.","azienda","Scheda ufficiale della Motonave Pelèr"],
+["Qual è l'altro nome con il quale viene chiamato il lago di Garda?",["Benaco","Sebino","Verbano","Lario"],0,"Il nome storico e alternativo del lago di Garda è Benaco.","garda","Quesito 5 della prova ufficiale CE Movimento par. 130"],
+["Quale tra i venti elencati soffia da Sud-Ovest sul lago di Garda?",["Vinessa","Visentina","Ander","Pelèr"],2,"Nella terminologia locale richiamata dalla prova, l'Ander è il vento proveniente da Sud-Ovest.","garda","Quesito 6 della prova ufficiale CE Movimento par. 130"],
+["Secondo il Regolamento di Esercizio - edizione 2004, quali prove sono previste per l'addestramento del personale?",["Incendio, falla o via d'acqua, abbandono nave","Recupero uomo in mare, incendio, falla o via d'acqua","Recupero uomo in mare, sbandamento e manovra dei mezzi di esaurimento","Recupero uomo in mare, incendio a bordo, falla o via d'acqua, abbandono nave, avaria grave al timone e sbandamento"],3,"La risposta completa comprende tutte le esercitazioni elencate dal Regolamento di Esercizio.","azienda","Regolamento di Esercizio 2004 - addestramento del personale"],
+["Nei viaggi in comitiva scolastica, a chi viene riconosciuta la gratuità secondo la prova ufficiale?",["A un insegnante ogni 10 studenti","A un partecipante ogni 15 paganti","A un partecipante ogni 25 paganti","A tutti gli insegnanti"],0,"La condizione tariffaria riportata nella prova riconosce la gratuità a un insegnante ogni dieci studenti.","azienda","Condizioni tariffarie richiamate dal quesito 8"],
+["Quali condizioni tariffarie per il trasporto dei cani sono indicate come corrette nella prova?",["Tariffe ridotte n. 1.50 o 3.50; gratuità per cani di piccola taglia entro 50 cm, cani-guida e cani delle forze dell'ordine o di soccorso in servizio","Tutti i cani viaggiano gratuitamente con guinzaglio e museruola","Tariffe n. 1.30 o 3.30 e gratuità solo per cani-guida","Tariffe n. 1.20 o 3.20 e gratuità solo per cani-guida"],0,"È la formulazione completa riportata nella prova ufficiale; le condizioni commerciali vanno comunque ricontrollate sulle tariffe vigenti.","azienda","Condizioni tariffarie richiamate dal quesito 9"],
+["Secondo il Regolamento di Esercizio 2004, come vanno utilizzati telefoni aziendali e cellulari personali?",["I telefoni aziendali solo per servizio; i cellulari personali al minimo indispensabile, soprattutto in presenza di pubblico","Sono ammessi solo telefoni aziendali e i personali sono sempre vietati","Ogni telefono è vietato salvo emergenza","Tutti i telefoni sono liberamente utilizzabili"],0,"Il Regolamento limita i telefoni aziendali alle esigenze di servizio e richiede un uso minimo dei cellulari personali.","azienda","Regolamento di Esercizio 2004 - telefoni"],
+["In che modo è reso pubblico il Regolamento di Esercizio di Navigazione Laghi?",["Sul sito web aziendale","Sui social aziendali","A bordo delle navi","In tutte le biglietterie"],2,"La risposta indicata dalla prova è la pubblicazione del Regolamento a bordo delle navi.","azienda","Regolamento di Esercizio 2004 - pubblicità a bordo"],
+["Come è regolata la gerarchia a bordo secondo il Regolamento di Esercizio 2004?",["Comandante, Timoniere, Marinaio, Motorista","Comandante, Addetto operativo di gestione, Marinaio, Motorista","Comandante, Timoniere, Motorista o Macchinista, Marinaio","Comandante, Motorista o Macchinista, Timoniere, Marinaio"],2,"L'ordine riportato dalla prova è: Comandante, Timoniere, Motorista o Macchinista, Marinaio.","azienda","Regolamento di Esercizio 2004 - gerarchia a bordo"],
+["Secondo il Regolamento di Esercizio 2004, è consentito lo sbarco o imbarco con due navi affiancate?",["Sì, eccezionalmente con passerella metallica a due sponde, vigilata da un componente di ciascun equipaggio, se stato del lago e traffico lo consentono","No, mai","Sì, soltanto in caso d'incendio","Sì, soltanto negli scali capolinea"],0,"Il Regolamento ammette eccezionalmente l'operazione alle condizioni di sicurezza descritte.","azienda","Regolamento di Esercizio 2004 - navi affiancate"],
+["Ai sensi del D.Lgs. 81/2008, chi sovrintende all'attività lavorativa e garantisce l'attuazione delle direttive ricevute?",["Il dirigente della sicurezza","L'RLS","Il preposto","L'RSPP"],2,"È la definizione di preposto contenuta nell'art. 2, comma 1, lettera e).","dl81","Art. 2, comma 1, lett. e"],
+["Ai sensi del D.Lgs. 81/2008, che cosa si intende per D.P.I.?",["Attrezzatura destinata a essere indossata o tenuta dal lavoratore per proteggerlo contro uno o più rischi","Apparecchi portatili per individuare rischi","Attrezzature fisse per segnalare fattori nocivi","Attrezzature dei servizi di soccorso e salvataggio"],0,"L'art. 74 definisce il dispositivo di protezione individuale come attrezzatura indossata o tenuta dal lavoratore per proteggerlo dai rischi.","dl81","Art. 74, comma 1"],
+["A chi spetta inviare i lavoratori alla visita medica entro le scadenze del programma di sorveglianza sanitaria?",["Al medico competente","Al preposto","All'RLS","Al datore di lavoro"],3,"L'art. 18 pone questo obbligo in capo al datore di lavoro e ai dirigenti secondo le attribuzioni conferite.","dl81","Art. 18, comma 1, lett. g"],
+["Secondo il CCNL 23/07/1976, quando spetta la diaria ridotta al personale navigante in caso di assenza non continuativa?",["Oltre 8 ore: 24%; oltre 8 ma non 10 ore: 13%","Oltre 14 ore: 24%; oltre 10 ma non 14 ore: 13%","Oltre 10 ore: 24%; da 6 a 10 ore: 9%","Oltre 6 ore: 24%; oltre 10 ore: 24%"],2,"La disciplina richiamata dalla prova prevede il 24% oltre dieci ore e il 9% per un periodo non inferiore a sei e non superiore a dieci ore.","ccnl","CCNL 23 luglio 1976 - diaria ridotta, personale navigante"],
+["Secondo il CCNL 23/07/1976, come si liquidano le trasferte?",["Per periodi di 24 ore dalla partenza; le assenze nello stesso periodo si cumulano e non spetta più di una diaria e una pernottazione","Per periodi di 12 ore","Per periodi di 10 ore non cumulabili","Per periodi di 24 ore con più diarie e una sola pernottazione"],0,"Le trasferte sono liquidate per periodi di 24 ore; le assenze ripetute si cumulano e per ogni periodo non può essere corrisposta più di una diaria e una pernottazione.","ccnl","CCNL 23 luglio 1976 - liquidazione delle trasferte"],
+["Quale requisito anagrafico è necessario per conseguire il titolo di Motorista di motonavi?",["Diploma di istruzione secondaria superiore","Aver compiuto 24 anni","Aver compiuto 25 anni","Aver compiuto 21 anni"],3,"L'art. 55 richiama i requisiti generali dell'art. 49, tra cui il compimento dei ventuno anni.","dpr631","Art. 55, in relazione all'art. 49"],
+["Secondo il D.M. 05/02/1986, qual è la composizione minima per una nave di 250 t.s.l. adibita al trasporto di persone?",["Capitano, Timoniere, Motorista, Marinaio","Capitano, Timoniere, Motorista e due Marinai","Capo Timoniere, Motorista, Marinaio","Capitano, Motorista, Marinaio"],2,"Nella classe oltre 50 e fino a 300 t.s.l. la tabella ufficiale prevede una forza minima di tre persone: Capo Timoniere, Motorista di motonave e Marinaio.","dm86","D.M. 5 febbraio 1986, tabella navi a motore per trasporto persone, oltre 50 e fino a 300 t.s.l."],
+["Entro quale periodo il Comandante deve inviare il rapporto di corsa?",["Immediatamente al termine del servizio","Entro una settimana","Entro le 24 ore successive all'espletamento del servizio","Mediante raccomandata A/R"],2,"La prova ufficiale indica che il rapporto deve pervenire entro le ventiquattro ore successive al servizio.","azienda","Regolamento di Esercizio 2004 - rapporto di corsa"],
+["Ai sensi del GDPR, che cosa si intende per «dato personale»?",["Solo dati ricavati da campioni biologici","Un insieme strutturato di dati accessibili secondo criteri","Solo dati relativi all'attività lavorativa","Qualsiasi informazione riguardante una persona fisica identificata o identificabile"],3,"È la definizione dell'art. 4, punto 1, del Regolamento (UE) 2016/679.","gdpr","Regolamento (UE) 2016/679, art. 4, punto 1"],
+["Secondo la prova ufficiale, dove è presente il DPO aziendale di Navigazione Laghi?",["Presso la sede del titolare del trattamento, Gestione Governativa Navigazione Laghi a Milano","Presso ogni Direzione di Esercizio","Nell'area Risorse Umane","Coincide con il Gestore Governativo"],0,"La risposta indicata dalla prova colloca il DPO presso la sede del titolare del trattamento a Milano.","gdpr","Informativa privacy aziendale richiamata dal quesito 23"],
+["Chi è il titolare del trattamento presso Navigazione Laghi?",["Il personale cui si riferiscono i dati","La Direzione di Esercizio di ciascun lago","Il responsabile Risorse Umane","La Gestione Governativa Navigazione Laghi, nella persona del Gestore Governativo quale legale rappresentante"],3,"È la risposta riportata dalla prova ufficiale per il titolare del trattamento.","gdpr","Informativa privacy aziendale richiamata dal quesito 24"],
+["Che cosa significa P.E.C.?",["Protocollo Elettronico Certificato","Posta Elettronica Certificata","Pratica Estesa al Certificatore","Procedura Elettronica Certificata"],1,"PEC è l'acronimo di Posta Elettronica Certificata.","agid","D.P.R. 11 febbraio 2005, n. 68, art. 1"],
+["Quale provvedimento può essere inflitto all'agente sorpreso in stato di ubriachezza in funzioni non interessanti la sicurezza dell'esercizio?",["Trasloco punitivo","Retrocessione","Sospensione","Destituzione"],2,"L'ipotesi è compresa tra le mancanze punibili con la sospensione.","rd148","Allegato A, art. 42, n. 12"],
+["Quale tra le seguenti è una punizione accessoria ai sensi del R.D. 148/1931?",["Proroga del termine per l'aumento dello stipendio","Multa pari a quattro ore di paga","Trasloco punitivo","Censura"],2,"L'art. 37 prevede il trasloco punitivo come possibile punizione accessoria nei casi indicati.","rd148","Allegato A, art. 37"],
+["Come viene regolata la gerarchia tra agenti dal R.D. 148/1931?",["Grado, anzianità nel grado, anzianità nel grado precedente, anzianità di servizio, età","Anzianità di servizio, grado, anzianità nel grado, età","Comandante, Motorista, Timoniere, Marinaio","Grado, anzianità di servizio, età"],0,"L'art. 19 stabilisce l'ordine completo riportato nella risposta A.","rd148","Allegato A, art. 19"],
+["Come viene trattato un agente che incorre in più mancanze giudicate contemporaneamente?",["Si sommano le pene delle due mancanze più gravi","Si aggiunge sempre una pena pecuniaria","Si applica la sanzione prevista per la mancanza più grave","Si applica la differenza tra le punizioni"],2,"L'art. 48 dispone l'applicazione della sanzione prevista per la mancanza più grave.","rd148","Allegato A, art. 48"],
+["Gli agenti possono esercitare altri uffici, impieghi, commerci, professioni o mestieri?",["Sì, purché non concorrenziali","Solo se concorrenziali","Solo con esplicita autorizzazione scritta del direttore dell'azienda","Mai"],2,"L'art. 5 richiede l'esplicita autorizzazione scritta del direttore dell'azienda.","rd148","Allegato A, art. 5"]
+];
+const officialEvidence130=[
+ {where:"Prova ufficiale CE Movimento par. 130, quesito 1",passage:"La risposta corretta collega la pendenza della traccia alla velocità media e indica che la traccia più verticale rappresenta il mezzo più veloce.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"R.D.L. 19 ottobre 1923, n. 2328, art. 19",passage:"Per il personale navigante il periodo lavorativo non deve superare 15 ore; se supera 14 ore, i due riposi continuati devono essere di almeno 10 ore.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto.legge:1923-10-19;2328="},
+ {where:"Legge 18 luglio 1957, n. 614, art. 3",passage:"L'amministrazione del gestore è sottoposta alla vigilanza del Ministero dei trasporti, secondo l'articolazione amministrativa indicata dalla legge.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1957-07-18;614="},
+ {where:"Navigazione Laghi - scheda Motonave Pelèr",passage:"La scheda tecnica della flotta riporta 350 posti totali.",url:"https://www.navigazionelaghi.it/flotta/motonave-peler/"},
+ {where:"Prova ufficiale CE Movimento par. 130, quesito 5",passage:"Il lago di Garda è chiamato anche Benaco.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Prova ufficiale CE Movimento par. 130, quesito 6",passage:"Tra le alternative proposte, il vento da Sud-Ovest è l'Ander.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento di Esercizio 2004 - addestramento",passage:"La risposta completa comprende recupero uomo in mare, incendio, falla o via d'acqua, abbandono nave, avaria grave al timone e sbandamento.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Prova ufficiale CE Movimento par. 130, quesito 8",passage:"La prova riconosce la gratuità a un insegnante ogni dieci studenti.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Prova ufficiale CE Movimento par. 130, quesito 9",passage:"La risposta della prova riporta le tariffe 1.50 e 3.50 e i casi di gratuità elencati; verificare sempre le condizioni tariffarie vigenti.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento di Esercizio 2004 - telefoni",passage:"I telefoni aziendali sono riservati al servizio e l'uso dei cellulari personali deve essere ridotto al minimo indispensabile.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento di Esercizio 2004 - pubblicità",passage:"La prova indica che il Regolamento è pubblicato a bordo delle navi.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento di Esercizio 2004 - gerarchia",passage:"L'ordine è Comandante, Timoniere, Motorista o Macchinista, Marinaio.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento di Esercizio 2004 - navi affiancate",passage:"L'operazione è ammessa eccezionalmente con passerella a due sponde, vigilanza di entrambi gli equipaggi e condizioni favorevoli.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"D.Lgs. 9 aprile 2008, n. 81, art. 2, comma 1, lett. e",passage:"Il preposto sovrintende all'attività lavorativa, garantisce l'attuazione delle direttive e ne controlla la corretta esecuzione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"D.Lgs. 9 aprile 2008, n. 81, art. 74, comma 1",passage:"Il DPI è l'attrezzatura destinata a essere indossata o tenuta dal lavoratore per proteggerlo da uno o più rischi.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"D.Lgs. 9 aprile 2008, n. 81, art. 18, comma 1, lett. g",passage:"Il datore di lavoro e i dirigenti inviano i lavoratori alla visita medica entro le scadenze del programma di sorveglianza sanitaria.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ {where:"CCNL 23 luglio 1976 - diaria ridotta",passage:"Per il personale navigante la prova richiama il 24% oltre 10 ore e il 9% per assenze da 6 a 10 ore.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ {where:"CCNL 23 luglio 1976 - liquidazione trasferte",passage:"Le trasferte sono liquidate in periodi di 24 ore; le assenze si cumulano e non spettano più di una diaria e una pernottazione nello stesso periodo.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ {where:"D.P.R. 28 giugno 1949, n. 631, art. 55, in relazione all'art. 49",passage:"Il titolo di Motorista di motonavi richiede i requisiti generali dell'art. 49, compreso il compimento dei ventuno anni.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ {where:"D.M. 5 febbraio 1986, tabella navi a motore per trasporto persone, oltre 50 e fino a 300 t.s.l.",passage:"Per 250 t.s.l. la forza minima è di tre persone: un Capo Timoniere, un Motorista di motonave e un Marinaio.",url:"https://www.gazzettaufficiale.it/eli/id/1986/03/25/1503Q002/sg"},
+ {where:"Regolamento di Esercizio 2004 - rapporto di corsa",passage:"Il rapporto di corsa deve pervenire entro le 24 ore successive all'espletamento del servizio.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2022/10/CE_Mov_130_NLG_scritto.pdf"},
+ {where:"Regolamento (UE) 2016/679, art. 4, punto 1",passage:"Dato personale è qualsiasi informazione riguardante una persona fisica identificata o identificabile.",url:"https://eur-lex.europa.eu/eli/reg/2016/679/oj?locale=it"},
+ {where:"Informativa privacy aziendale - DPO",passage:"La prova colloca il DPO presso la sede del titolare del trattamento, Gestione Governativa Navigazione Laghi a Milano.",url:"https://www.navigazionelaghi.it/privacy-policy/"},
+ {where:"Informativa privacy aziendale - titolare del trattamento",passage:"La prova identifica il titolare nella Gestione Governativa Navigazione Laghi, rappresentata dal Gestore Governativo.",url:"https://www.navigazionelaghi.it/privacy-policy/"},
+ {where:"D.P.R. 11 febbraio 2005, n. 68, art. 1",passage:"PEC significa Posta Elettronica Certificata.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.del.presidente.della.repubblica:2005-02-11;68="},
+ {where:"R.D. 8 gennaio 1931, n. 148, Allegato A, art. 42, n. 12",passage:"Lo stato di ubriachezza in funzioni non interessanti la sicurezza dell'esercizio è compreso tra le mancanze punibili con la sospensione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"R.D. 8 gennaio 1931, n. 148, Allegato A, art. 37",passage:"Il trasloco punitivo può essere disposto come punizione accessoria nei casi previsti.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"R.D. 8 gennaio 1931, n. 148, Allegato A, art. 19",passage:"La gerarchia è determinata da grado, anzianità nel grado, anzianità nel grado precedente, anzianità di servizio e maggiore età.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"R.D. 8 gennaio 1931, n. 148, Allegato A, art. 48",passage:"Per più mancanze giudicate contemporaneamente si applica la sanzione prevista per quella più grave.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ {where:"R.D. 8 gennaio 1931, n. 148, Allegato A, art. 5",passage:"Altri uffici, impieghi, commerci, professioni o mestieri richiedono l'esplicita autorizzazione scritta del direttore.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="}
+];
+const refs={
+ rd9:{where:"R.D. 148/1931, Allegato A, art. 9",passage:"Le assunzioni del personale di ruolo sono disposte, di regola, per il servizio di prova; la nomina del personale in prova compete al direttore.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd13:{where:"R.D. 148/1931, Allegato A, art. 13",passage:"Il periodo complessivo di prova non può superare due anni per le ferrovie e un anno per tramvie e servizi di navigazione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd14:{where:"R.D. 148/1931, Allegato A, art. 14",passage:"L'agente in prova può essere esonerato con deliberazione motivata quando non raggiunge l'idoneità richiesta o commette mancanze rilevanti.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd19:{where:"R.D. 148/1931, Allegato A, art. 19",passage:"La gerarchia deriva dal grado e, in caso di parità, dalle anzianità successive fino alla maggiore età.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd20:{where:"R.D. 148/1931, Allegato A, art. 20",passage:"Gli agenti devono fissare o trasferire la residenza nelle località stabilite dall'azienda dove hanno sede servizi o uffici.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd30:{where:"R.D. 148/1931, Allegato A, art. 30",passage:"Le dimissioni devono essere scritte, acquistano valore con l'accettazione aziendale e fino ad allora permane l'obbligo di servizio.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd37:{where:"R.D. 148/1931, Allegato A, art. 37",passage:"Le punizioni principali sono censura, multa, sospensione, proroga dell'aumento, retrocessione e destituzione; il trasloco può essere accessorio.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd40:{where:"R.D. 148/1931, Allegato A, art. 40",passage:"La censura ha carattere di richiamo preliminare e riguarda mancanze lievi o inadempienze prive d'intento offensivo.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd41:{where:"R.D. 148/1931, Allegato A, art. 41",passage:"La multa consiste in una ritenuta sulla retribuzione e non può superare l'importo di una giornata di mercede.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd42:{where:"R.D. 148/1931, Allegato A, art. 42",passage:"La sospensione priva l'agente della retribuzione per i giorni stabiliti dal provvedimento disciplinare.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ rd48:{where:"R.D. 148/1931, Allegato A, art. 48",passage:"Più mancanze giudicate insieme comportano la sanzione prevista per la più grave; il concerto fra più agenti aggrava la punizione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1931-01-08;148="},
+ nav42:{where:"D.P.R. 631/1949, art. 42",passage:"Il libretto di navigazione è l'unico documento abilitante alla professione della navigazione interna ed è documento d'identità personale.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ nav49:{where:"D.P.R. 631/1949, art. 49",passage:"Il titolo di capitano richiede, tra l'altro, 21 anni, idoneità, studi dell'ordine medio, due anni in coperta ed esame.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ nav50:{where:"D.P.R. 631/1949, art. 50",passage:"Per il titolo di capo timoniere servono due anni in coperta, dei quali uno in qualità di timoniere, oltre all'esame.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ nav123:{where:"D.P.R. 631/1949, art. 123",passage:"Le manovre di sicurezza comprendono esercitazioni sui mezzi di salvataggio, incendio ed esaurimento; i risultati vanno nel giornale di bordo.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:presidente.repubblica:decreto:1949-06-28;631"},
+ dm:{where:"D.M. 5 febbraio 1986, tabella e annotazioni · G.U. 25 marzo 1986, pagine 6-7",passage:"La tabella ufficiale determina forza minima e qualifiche per tipo, uso, stazza e potenza; le annotazioni disciplinano integrazioni, riduzioni e qualifica di autorizzato.",url:"https://www.gazzettaufficiale.it/eli/id/1986/03/25/1503Q002/sg"},
+ dl2:{where:"D.Lgs. 81/2008, art. 2",passage:"L'articolo raccoglie le definizioni fondamentali: lavoratore, datore, dirigente, preposto, RSPP, medico competente e prevenzione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl17:{where:"D.Lgs. 81/2008, art. 17",passage:"Il datore di lavoro non può delegare la valutazione di tutti i rischi con elaborazione del DVR né la designazione del RSPP.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl18:{where:"D.Lgs. 81/2008, art. 18",passage:"Datore e dirigenti devono attuare gli obblighi organizzativi, nominare le figure previste, fornire DPI e adottare misure d'emergenza.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl19:{where:"D.Lgs. 81/2008, art. 19",passage:"Il preposto vigila sui lavoratori, interviene sui comportamenti non conformi e segnala le condizioni di pericolo.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl20:{where:"D.Lgs. 81/2008, art. 20",passage:"Ogni lavoratore deve prendersi cura della propria sicurezza e di quella delle altre persone presenti sul luogo di lavoro.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl28:{where:"D.Lgs. 81/2008, art. 28",passage:"La valutazione deve riguardare tutti i rischi; il DVR indica misure, programma di miglioramento, procedure e ruoli responsabili.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl37:{where:"D.Lgs. 81/2008, art. 37",passage:"Il datore assicura a ciascun lavoratore formazione sufficiente e adeguata in materia di salute e sicurezza.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl41:{where:"D.Lgs. 81/2008, art. 41",passage:"La sorveglianza sanitaria è effettuata dal medico competente nei casi previsti e comprende le visite indicate dalla norma.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl47:{where:"D.Lgs. 81/2008, art. 47",passage:"L'RLS è eletto o designato dai lavoratori; numero e modalità dipendono dalle dimensioni aziendali e dalla contrattazione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl50:{where:"D.Lgs. 81/2008, art. 50",passage:"L'RLS accede ai luoghi di lavoro, è consultato sulla valutazione dei rischi e riceve informazioni e documentazione.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ dl74:{where:"D.Lgs. 81/2008, art. 74",passage:"Il DPI è destinato a essere indossato o tenuto dal lavoratore per proteggerlo da uno o più rischi.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2008-04-09;81="},
+ rdl:{where:"R.D.L. 2328/1923, disposizioni annesse, artt. 17-20",passage:"Per il personale navigante sono disciplinati computo del lavoro, limite del periodo lavorativo e riposi minimi in e fuori residenza.",url:"https://www.dottrinalavoro.it/wp-content/uploads/2015/02/rdl-1923-2328.pdf#page=4"},
+ ccnl:{where:"CCNL 23 luglio 1976, disciplina trasferte - navigazione interna",passage:"La disciplina regola distanza minima, durata dell'assenza, diaria intera o parziale e indennità di pernottazione.",url:"https://www.navigazionelaghi.it/wp-content/uploads/2023/02/CCNL_AUTOFERROTRANVIERI_0.pdf"},
+ opgr:{where:"OPGR Lombardia 3 luglio 1997, n. 58600",passage:"L'ordinanza disciplina distanze dalla costa, velocità, precedenze, impiego delle unità e regole di sicurezza nelle acque interne lombarde.",url:"https://www.regione.lombardia.it/content/dam/rl/canali-tematici-servizi/09-infrastrutture-trasporti-e-mobilit%C3%A0/05-navigazione-laghi-fiumi-e-navigli/01-red-navigazione-laghi1/allegati/opgr_58600-1997.pdf"},
+ l614:{where:"Legge 18 luglio 1957, n. 614, art. 1",passage:"La legge affida a gestione governativa i servizi sui laghi Maggiore, Garda e Como mediante un gestore nominato dal Ministro dei trasporti.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1957-07-18;614="},
+ pec:{where:"D.P.R. 11 febbraio 2005, n. 68",passage:"La PEC documenta elettronicamente invio e consegna dei messaggi e dei documenti informatici.",url:"https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.del.presidente.della.repubblica:2005-02-11;68="},
+ office:{where:"Documentazione Microsoft Office",passage:"Word gestisce documenti di testo, Excel fogli di calcolo e PowerPoint presentazioni; le estensioni standard sono .docx, .xlsx e .pptx.",url:"https://support.microsoft.com/it-it/office"},
+ eng:{where:"British Council - English grammar",passage:"La grammatica di base disciplina articoli, preposizioni, tempi verbali, pronomi, comparativi, modali e congiunzioni.",url:"https://learnenglish.britishcouncil.org/grammar/a1-a2-grammar"}
+};
+const N=(text,answers,correct,explain,source,ref)=>({q:[text,answers,correct,explain,source,refs[ref].where],ev:refs[ref]});
+function preciseUrl(url,where){
+  if(!url||!url.includes("normattiva.it"))return url;
+  const match=(where||"").match(/\bartt?\.?\s*(\d+)/i);
+  if(!match)return url;
+  const clean=url.replace(/~art\d+!vig=$/i,"").replace(/=$/,"");
+  return `${clean}~art${match[1]}!vig=`;
+}
+const generatedTests=[
+[
+N("Secondo il R.D. 148/1931, chi nomina normalmente il personale in prova?",["Il direttore dell'azienda","Il Consiglio di disciplina","L'RLS"],0,"La nomina del personale in prova compete al direttore, che può delegarla a funzionari designati.","rd148","rd9"),
+N("Qual è il limite complessivo del servizio di prova nelle ferrovie?",["Sei mesi","Un anno","Due anni"],2,"Per le ferrovie il limite complessivo è due anni; per tramvie e navigazione è un anno.","rd148","rd13"),
+N("L'esonero di un agente in prova per mancata idoneità deve essere:",["Verbale e anonimo","Disposto con deliberazione motivata","Deciso dai colleghi"],1,"L'art. 14 richiede una deliberazione motivata del direttore.","rd148","rd14"),
+N("A parità di grado, quale criterio viene considerato per primo?",["La maggiore età","L'anzianità nel grado","Il titolo di studio"],1,"Il primo criterio dopo il grado è l'anzianità nel grado.","rd148","rd19"),
+N("La censura è:",["Una riprensione scritta","Una trattenuta di due giornate","Un licenziamento"],0,"La censura è il richiamo disciplinare scritto.","rd148","rd37"),
+N("La multa disciplinare può arrivare, di regola, fino a:",["Una giornata di mercede","Un mese di stipendio","Tre giornate"],0,"Il limite indicato dall'art. 37 è una giornata di mercede.","rd148","rd41"),
+N("Quale punizione priva l'agente della paga per un determinato periodo?",["Censura","Sospensione","Trasloco ordinario"],1,"La sospensione produce la perdita della retribuzione per i giorni applicati.","rd148","rd42"),
+N("Il trasloco punitivo è normalmente:",["Una ricompensa","Una punizione accessoria","Una forma di ferie"],1,"Può essere aggiunto come punizione accessoria nei casi previsti.","rd148","rd37"),
+N("Prima dell'accettazione delle dimissioni, l'agente:",["Può cessare subito","Deve continuare il servizio","È automaticamente sospeso"],1,"L'obbligo di prestare regolare servizio permane fino all'accettazione.","rd148","rd30"),
+N("Il libretto di navigazione interna vale anche come:",["Documento d'identità personale","Patente automobilistica","Certificato di proprietà della nave"],0,"Il regolamento gli attribuisce anche valore di documento personale d'identità.","dpr631","nav42"),
+N("Età minima indicata per conseguire il titolo di capitano:",["18 anni","21 anni","25 anni"],1,"L'art. 49 richiede il compimento dei ventuno anni.","dpr631","nav49"),
+N("Per il titolo di capitano, la navigazione richiesta è svolta in servizio di:",["Coperta","Cucina","Ufficio"],0,"Sono richiesti due anni di navigazione in servizio di coperta.","dpr631","nav49"),
+N("Per il capo timoniere, uno dei due anni in coperta deve essere svolto come:",["Marinaio","Timoniere","Motorista"],1,"Almeno un anno deve essere effettuato in qualità di timoniere.","dpr631","nav50"),
+N("Le manovre di sicurezza devono essere annotate:",["Sul giornale di bordo","Solo sul cedolino","Sul certificato medico"],0,"Il regolamento impone di annotarne svolgimento e risultati nel giornale di bordo.","dpr631","nav123"),
+N("Sulle navi di trasporto persone, le esercitazioni di sicurezza si ripetono almeno:",["Ogni mese","Ogni sei mesi","Ogni tre anni"],1,"La cadenza minima prevista è semestrale.","dpr631","nav123"),
+N("Chi è il soggetto che sovrintende al lavoro e controlla le direttive?",["Preposto","RLS","Medico competente"],0,"È la funzione attribuita al preposto.","dl81","dl2"),
+N("Quale obbligo non può essere delegato dal datore di lavoro?",["Valutazione dei rischi e DVR","Acquisto della cancelleria","Gestione delle ferie"],0,"La valutazione dei rischi con il DVR è un obbligo indelegabile.","dl81","dl17"),
+N("La designazione del RSPP è:",["Delegabile sempre","Indelegabile","Compito dell'RLS"],1,"Anche la designazione del RSPP rientra negli obblighi indelegabili.","dl81","dl17"),
+N("Il lavoratore deve prendersi cura:",["Solo dei beni aziendali","Della propria sicurezza e di quella altrui","Solo della propria retribuzione"],1,"L'art. 20 estende il dovere alla sicurezza propria e delle altre persone presenti.","dl81","dl20"),
+N("Il DVR deve considerare:",["Solo i rischi più costosi","Tutti i rischi per salute e sicurezza","Solo gli incendi"],1,"La valutazione riguarda tutti i rischi presenti nell'attività.","dl81","dl28"),
+N("La formazione di sicurezza deve essere:",["Sufficiente e adeguata","Solo facoltativa","Riservata ai dirigenti"],0,"Ogni lavoratore deve ricevere formazione sufficiente e adeguata.","dl81","dl37"),
+N("La sorveglianza sanitaria è svolta da:",["RLS","Medico competente","Addetto antincendio"],1,"Le visite e gli accertamenti sanitari competono al medico competente.","dl81","dl41"),
+N("L'RLS è scelto principalmente da:",["Lavoratori","ASL","Fornitori"],0,"È eletto o designato dai lavoratori.","dl81","dl47"),
+N("Il DPI protegge il lavoratore contro:",["Uno o più rischi","Soltanto il freddo","Le sanzioni disciplinari"],0,"La definizione normativa riguarda la protezione da uno o più rischi.","dl81","dl74"),
+N("Il riposo minimo fuori residenza del personale navigante è:",["5 ore","8 ore","12 ore"],1,"L'art. 20 del R.D.L. 2328 prevede otto ore fuori residenza.","rdl2328","rdl"),
+N("Il riposo minimo in residenza è:",["10 ore","6 ore","14 ore"],0,"Il minimo ordinario in residenza è dieci ore.","rdl2328","rdl"),
+N("PEC significa:",["Posta Elettronica Certificata","Protocollo Esterno Comune","Procedura Esecutiva Centrale"],0,"È l'acronimo di Posta Elettronica Certificata.","agid","pec"),
+N("Quale estensione appartiene normalmente a Excel?",[".xlsx",".pptx",".mp3"],0,".xlsx è il formato standard di una cartella di lavoro Excel.","office","office"),
+N("Completa: “The ship arrives ___ noon”.",["in","at","on"],1,"Con un momento preciso come noon si usa “at”.","grammar","eng"),
+N("Completa: “She ___ working today”.",["is","are","am"],0,"Con il soggetto she, il presente di be è is.","grammar","eng")
+],
+[
+N("Quale organo può deliberare il trasloco punitivo come pena accessoria?",["Consiglio di disciplina","Medico competente","Comune"],0,"L'art. 37 attribuisce la deliberazione al Consiglio di disciplina.","rd148","rd37"),
+N("La censura si applica principalmente a:",["Mancanze lievi","Ogni reato penale","Assenze per ferie"],0,"Ha funzione di preliminare richiamo per mancanze lievi.","rd148","rd40"),
+N("A parità di anzianità nel grado precedente prevale:",["Anzianità di servizio","Titolo di studio","Residenza più vicina"],0,"Il criterio successivo è l'anzianità di servizio.","rd148","rd19"),
+N("A parità anche di anzianità di servizio prevale:",["La minore età","La maggiore età","Il sorteggio"],1,"L'ultimo criterio gerarchico indicato è la maggiore età.","rd148","rd19"),
+N("Le dimissioni volontarie devono essere presentate:",["Per iscritto","Solo oralmente","Dal sindacato"],0,"L'art. 30 richiede la forma scritta.","rd148","rd30"),
+N("Più mancanze giudicate contemporaneamente comportano:",["Somma automatica di tutte le pene","Pena della mancanza più grave","Nessuna pena"],1,"Si applica la sanzione prevista per la mancanza più grave.","rd148","rd48"),
+N("Se più agenti commettono una mancanza previo concerto, la punizione:",["È diminuita","È aumentata di un grado","È annullata"],1,"L'art. 48 prevede l'aumento di un grado.","rd148","rd48"),
+N("Il personale navigante interno è iscritto:",["In matricole","Nel PRA","Nel registro scolastico"],0,"Il sistema professionale della navigazione interna si fonda sull'iscrizione in matricola.","dpr631","nav42"),
+N("Il titolo di capitano richiede un esame?",["Sì","No","Solo dopo i 40 anni"],0,"Il superamento dell'esame è uno dei requisiti dell'art. 49.","dpr631","nav49"),
+N("Il capo timoniere deve essere fisicamente idoneo?",["Sì","No","Solo sulle navi merci"],0,"L'idoneità fisica rientra nei requisiti richiamati dall'art. 50.","dpr631","nav50"),
+N("Dopo inattività superiore a due mesi, le manovre di sicurezza:",["Vanno eseguite alla ripresa","Sono vietate","Si rinviano di un anno"],0,"La ripresa dopo oltre due mesi attiva l'obbligo di esercitazione.","dpr631","nav123"),
+N("Quale esercitazione rientra nelle manovre periodiche?",["Manovra dei mezzi di esaurimento","Compilazione delle buste paga","Pulizia degli uffici"],0,"L'art. 123 include la manovra dei mezzi di esaurimento.","dpr631","nav123"),
+N("Sulle navi di linea, chi deve possedere la qualifica di autorizzato secondo le annotazioni del D.M. 1986?",["Le qualifiche di comando, macchina e timone indicate","Ogni passeggero","Solo il cuoco"],0,"L'annotazione (a) elenca capitano, capo timoniere, macchinisti, motoristi, conduttori e timonieri.","dm86","dm"),
+N("Se l'apparato motopropulsore è manovrabile solo dal locale macchine, l'equipaggio viene:",["Ridotto","Aumentato secondo l'annotazione prevista","Soppresso"],1,"L'annotazione (c) prevede un componente aggiuntivo.","dm86","dm"),
+N("Il D.M. 5 febbraio 1986 determina soprattutto:",["Forza minima e composizione equipaggi","Tariffe passeggeri","Orari dei porti"],0,"Il decreto approva la tabella degli equipaggi minimi.","dm86","dm"),
+N("Il datore di lavoro è il soggetto che:",["Ha responsabilità dell'organizzazione e poteri decisionali e di spesa","Rappresenta sempre i lavoratori","Esegue soltanto visite mediche"],0,"Questi elementi caratterizzano la definizione normativa.","dl81","dl2"),
+N("Il dirigente attua le direttive del datore:",["Organizzando l'attività e vigilando","Senza alcun potere","Solo fuori orario"],0,"Il dirigente organizza e vigila in ragione dei poteri conferiti.","dl81","dl2"),
+N("Il RSPP coordina:",["Il servizio di prevenzione e protezione","La mensa","Il consiglio di disciplina"],0,"RSPP significa responsabile del servizio di prevenzione e protezione.","dl81","dl2"),
+N("Il preposto, davanti a un comportamento non sicuro, deve:",["Intervenire e impartire indicazioni","Ignorarlo","Attendere sempre l'ASL"],0,"L'art. 19 impone vigilanza e intervento.","dl81","dl19"),
+N("Il DVR deve contenere anche:",["Programma delle misure di miglioramento","Elenco dei clienti","Bilancio aziendale"],0,"La norma richiede il programma di miglioramento dei livelli di sicurezza.","dl81","dl28"),
+N("La formazione va aggiornata:",["In relazione all'evoluzione dei rischi e all'insorgenza di nuovi rischi","Mai","Solo ogni 25 anni"],0,"La formazione accompagna i cambiamenti rilevanti per la sicurezza.","dl81","dl37"),
+N("Il medico competente esprime:",["Giudizi di idoneità alla mansione specifica","Sanzioni disciplinari","Titoli di navigazione"],0,"La sorveglianza sanitaria conduce ai giudizi previsti sulla mansione.","dl81","dl41"),
+N("L'RLS deve essere consultato sulla:",["Valutazione dei rischi","Scelta del logo aziendale","Vendita dei biglietti"],0,"La consultazione preventiva dell'RLS riguarda la valutazione dei rischi.","dl81","dl50"),
+N("Un indumento ordinario non specificamente protettivo è automaticamente DPI?",["Sì sempre","No","Solo se blu"],1,"Per essere DPI deve avere la destinazione protettiva prevista dall'art. 74.","dl81","dl74"),
+N("La durata massima del periodo lavorativo considerato dal R.D.L. 2328 è, di regola:",["15 ore","24 ore","6 ore"],0,"Per il personale contemplato l'art. 19 fissa il limite di quindici ore.","rdl2328","rdl"),
+N("Nel computo del periodo lavorativo, le prestazioni a computo ridotto valgono:",["Per intero","Zero","Solo un decimo"],0,"L'art. 17 le computa per intero ai fini del periodo lavorativo.","rdl2328","rdl"),
+N("Quale programma è più adatto a una presentazione?",["PowerPoint","Excel","Blocco note di sistema soltanto"],0,"PowerPoint è l'applicazione Office per presentazioni.","office","office"),
+N("Quale estensione identifica normalmente Word?",[".docx",".xlsx",".pptx"],0,".docx è il formato moderno di Word.","office","office"),
+N("Completa: “They ___ on board yesterday”.",["was","were","is"],1,"Il passato di be con they è were.","grammar","eng"),
+N("Completa: “There are ___ passengers today than yesterday”.",["more","much","most"],0,"Il comparativo di many è more.","grammar","eng")
+],
+[
+N("L'agente può rifiutare senza motivo la residenza assegnata dall'azienda?",["Sì sempre","No","Solo nei festivi"],1,"La disciplina impone di tenere o trasferire la residenza nelle località di servizio stabilite.","rd148","rd20"),
+N("L'uguaglianza di stipendio comporta automaticamente uguaglianza di grado?",["Sì","No","Solo per i nuovi assunti"],1,"L'art. 19 esclude che la sola parità retributiva equivalga a parità di grado.","rd148","rd19"),
+N("Quale tra queste è una punizione principale?",["Destituzione","Trasferimento richiesto dall'agente","Ferie"],0,"La destituzione è elencata tra le punizioni principali.","rd148","rd37"),
+N("La proroga dell'aumento di stipendio è:",["Una punizione disciplinare","Un premio","Un riposo"],0,"È una delle sei punizioni principali previste.","rd148","rd37"),
+N("La retrocessione è collocata nell'elenco delle punizioni prima della:",["Destituzione","Censura","Multa"],0,"Nell'art. 37 retrocessione e destituzione sono rispettivamente quinta e sesta.","rd148","rd37"),
+N("Chi resta obbligato al servizio finché le dimissioni non sono accolte?",["L'agente dimissionario","Il passeggero","Il medico esterno"],0,"È espressamente previsto dall'art. 30.","rd148","rd30"),
+N("Il libretto di navigazione interna è conforme a un modello approvato dal:",["Ministro competente per i trasporti","Sindaco","Datore privato"],0,"Il modello è approvato dall'autorità ministeriale competente.","dpr631","nav42"),
+N("Gli studi richiesti per il capitano, nella formulazione dell'art. 49, sono:",["Dell'ordine medio","Solo elementari inferiori","Nessuno"],0,"La norma include il compimento degli studi dell'ordine medio.","dpr631","nav49"),
+N("Il titolo di capo timoniere richiede due anni di navigazione:",["In coperta","In macchina soltanto","Come passeggero"],0,"La navigazione richiesta è in servizio di coperta.","dpr631","nav50"),
+N("Nelle manovre di sicurezza rientra il segnale:",["D'incendio","Di fine turno amministrativo","Di apertura biglietteria"],0,"L'art. 123 prevede segnale d'incendio e manovra dei relativi apparecchi.","dpr631","nav123"),
+N("La forza minima dell'equipaggio dipende anche da:",["Stazza e potenza","Colore dello scafo","Prezzo del biglietto"],0,"La tabella incrocia destinazione, stazza, potenza e caratteristiche tecniche.","dm86","dm"),
+N("Rimorchiatori e spintori sono contemplati dal D.M. 1986?",["Sì","No","Solo se a vela"],0,"Hanno righe specifiche nella tabella equipaggi.","dm86","dm"),
+N("Le navi a vela o remi con motore fino a 20 CV sono considerate?",["Sì","No","Solo in mare"],0,"La tabella comprende espressamente questa categoria.","dm86","dm"),
+N("Per nave a motore con comandi centralizzati si considera la possibilità di:",["Comando e controllo da una postazione","Navigare senza equipaggio in ogni caso","Usare solo remi"],0,"La nota generale collega la definizione alla centralizzazione dei comandi e controlli.","dm86","dm"),
+N("Chi esercita la sorveglianza sanitaria collabora anche alla valutazione dei rischi?",["Medico competente","Cliente","Passeggero"],0,"La collaborazione rientra nei compiti del medico competente.","dl81","dl41"),
+N("La prevenzione è definita come complesso di:",["Disposizioni e misure necessarie per evitare o diminuire i rischi","Sole sanzioni","Soli premi"],0,"La definizione riguarda tutte le misure necessarie rispetto a lavoro, esperienza e tecnica.","dl81","dl2"),
+N("Il preposto può esercitare un potere di iniziativa?",["Sì, funzionale al ruolo","No, mai","Solo su autorizzazione dei passeggeri"],0,"La definizione normativa gli riconosce un funzionale potere d'iniziativa.","dl81","dl2"),
+N("Chi deve segnalare immediatamente deficienze di mezzi e DPI?",["Il lavoratore","Solo il cliente","Nessuno"],0,"L'art. 20 impone al lavoratore di segnalare le condizioni pericolose.","dl81","dl20"),
+N("Il lavoratore può rimuovere senza autorizzazione dispositivi di sicurezza?",["Sì","No","Solo di notte"],1,"La rimozione o modifica non autorizzata è vietata.","dl81","dl20"),
+N("Il DVR deve indicare i ruoli che attuano le misure?",["Sì","No","Solo se l'azienda è pubblica"],0,"Devono essere individuati ruoli dotati di competenze e poteri adeguati.","dl81","dl28"),
+N("L'RLS può accedere ai luoghi di lavoro?",["Sì","No","Solo una volta"],0,"È una delle attribuzioni dell'art. 50.","dl81","dl50"),
+N("L'RLS riceve copia del DVR su richiesta?",["Sì, per l'espletamento della funzione","Mai","Solo dopo il pensionamento"],0,"La documentazione è resa disponibile secondo le modalità di legge.","dl81","dl50"),
+N("La visita medica preventiva serve a valutare:",["Idoneità alla mansione specifica","Anzianità di servizio","Capacità di usare Excel"],0,"È finalizzata a verificare l'assenza di controindicazioni alla mansione.","dl81","dl41"),
+N("L'indennità di trasferta non compete sotto quale distanza, con mezzi disponibili?",["5 km","20 km","50 km"],0,"La soglia contrattuale richiamata è cinque chilometri.","ccnl","ccnl"),
+N("La fascia dell'indennità di pernottazione è:",["21-6","8-12","14-18"],0,"La disciplina indica il periodo tra le 21 e le 6.","ccnl","ccnl"),
+N("Per la navigazione interna la diaria richiamata scatta oltre:",["8 ore di assenza","2 ore","24 ore soltanto"],0,"La prova e il testo contrattuale richiamano l'assenza superiore alle otto ore.","ccnl","ccnl"),
+N("Il servizio pubblico di linea è escluso dal limite dei 50 m dalla costa?",["Sì, fermo l'obbligo di prudenza","No mai","Solo d'inverno"],0,"L'ordinanza prevede l'eccezione per il servizio di linea.","opgr","opgr"),
+N("Quale unità gode di precedenza secondo l'OPGR?",["Pronto soccorso","Pedalò in ogni caso","Unità ancorata senza segnali"],0,"Le unità di pronto soccorso rientrano tra quelle prioritarie.","opgr","opgr"),
+N("Completa: “I have worked here ___ 2024”.",["for","since","at"],1,"Since introduce il momento iniziale.","grammar","eng"),
+N("Completa: “You ___ wear a lifejacket when required”.",["must","might not to","are"],0,"Must esprime un obbligo.","grammar","eng")
+],
+[
+N("La gestione governativa dei tre laghi è stata istituita nel:",["1957","1977","1931"],0,"La legge istitutiva è la n. 614 del 18 luglio 1957.","l614","l614"),
+N("Quali laghi sono nominati dalla legge 614/1957?",["Maggiore, Garda e Como","Garda, Iseo e Trasimeno","Como, Bolsena e Bracciano"],0,"La legge riguarda i servizi sui laghi Maggiore, Garda e Como.","l614","l614"),
+N("Il gestore governativo è nominato dal:",["Ministro competente per i trasporti","Sindaco di Desenzano","Presidente di ogni provincia"],0,"L'art. 1 attribuisce la nomina al Ministro dei trasporti.","l614","l614"),
+N("La gestione opera sotto la vigilanza dell'amministrazione:",["Statale competente per i trasporti","Scolastica","Sanitaria locale soltanto"],0,"Il modello è una gestione governativa del servizio di navigazione.","l614","l614"),
+N("Quale unità ha precedenza oltre al pronto soccorso?",["Servizio di linea","Qualsiasi motoscafo privato","Qualsiasi pedalò"],0,"L'OPGR include le unità in servizio di linea.","opgr","opgr"),
+N("La pesca professionale rientra tra le unità prioritarie?",["Sì","No","Solo senza pescatori"],0,"È una delle categorie indicate dalla disciplina regionale.","opgr","opgr"),
+N("Una barca a vela senza motore gode della precedenza prevista?",["Sì","No","Solo se lunga oltre 100 m"],0,"Le unità a vela senza motore sono comprese nell'elenco.","opgr","opgr"),
+N("Piccoli natanti a remi o pedali possono impegnare le rotte di linea?",["No","Sempre","Solo nelle ore di punta"],0,"L'ordinanza vieta il loro impiego sulle rotte delle unità di linea.","opgr","opgr"),
+N("Le regole regionali richiedono comunque una condotta:",["Prudente e conforme alla sicurezza","Basata solo sulla velocità massima","Priva di precedenze"],0,"Le eccezioni non eliminano il dovere generale di navigazione attenta.","opgr","opgr"),
+N("La diaria e il pernottamento sono la stessa indennità?",["No","Sì sempre","Solo nei festivi"],0,"Il contratto le disciplina come voci distinte con requisiti propri.","ccnl","ccnl"),
+N("Per il pernottamento basta trovarsi fuori residenza tra 21 e 6 senza diritto a diaria?",["No","Sì","Solo il sabato"],0,"È richiesto anche il diritto alla diaria intera o parziale.","ccnl","ccnl"),
+N("Una missione a meno di 5 km senza mezzi disponibili è automaticamente esclusa?",["No, manca una delle condizioni cumulative","Sì sempre","Solo per i capitani"],0,"Distanza e disponibilità dei mezzi sono condizioni da leggere insieme.","ccnl","ccnl"),
+N("Il lavoro effettivo richiede applicazione:",["Assidua e continuativa","Soltanto occasionale","Esclusivamente notturna"],0,"Il R.D.L. distingue il lavoro effettivo per il carattere assiduo e continuo.","rdl2328","rdl"),
+N("Il lavoro non effettivo comprende attività di:",["Semplice attesa o custodia","Comando continuo in manovra","Emergenza permanente"],0,"La definizione comprende occupazioni discontinue di attesa o custodia.","rdl2328","rdl"),
+N("La giornata media normale di lavoro effettivo non può eccedere:",["8 ore","15 ore","24 ore"],0,"Le disposizioni generali fissano otto ore medie normali.","rdl2328","rdl"),
+N("Il periodo lavorativo e il lavoro effettivo sono concetti identici?",["No","Sì sempre","Solo in ufficio"],0,"Il periodo lavorativo comprende anche prestazioni computate diversamente dal lavoro effettivo.","rdl2328","rdl"),
+N("Se il riposo fuori residenza è eccezionalmente ridotto, deve essere:",["Compensato secondo le condizioni previste","Ignorato","Convertito in multa"],0,"La norma prevede compensazioni e un successivo riposo in residenza adeguato.","rdl2328","rdl"),
+N("La qualifica di autorizzato riguarda, sulle unità previste, anche il timoniere?",["Sì","No","Solo il barista"],0,"L'annotazione (a) include espressamente il timoniere.","dm86","dm"),
+N("La tabella del D.M. distingue navi per trasporto:",["Persone e merci","Solo animali","Solo posta"],0,"Le principali categorie sono articolate per persone o merci.","dm86","dm"),
+N("Un piroscafo per trasporto persone è presente nella tabella?",["Sì","No","Solo se senza equipaggio"],0,"I piroscafi per persone costituiscono una categoria specifica.","dm86","dm"),
+N("Il datore deve fornire ai lavoratori DPI adeguati?",["Sì","No","Solo su richiesta dell'RLS"],0,"La fornitura dei DPI necessari rientra negli obblighi organizzativi.","dl81","dl18"),
+N("I lavoratori devono utilizzare correttamente i DPI?",["Sì","No","Solo fuori servizio"],0,"L'art. 20 impone l'uso corretto delle attrezzature e dei dispositivi.","dl81","dl20"),
+N("La formazione può avvenire soltanto dopo un infortunio?",["No","Sì","Solo per i dirigenti"],0,"È una misura preventiva da assicurare fin dall'inserimento e nei cambiamenti previsti.","dl81","dl37"),
+N("Il giudizio del medico competente riguarda una mansione:",["Specifica","Scelta a caso","Esclusivamente amministrativa"],0,"La legge parla di idoneità alla mansione specifica.","dl81","dl41"),
+N("L'RLS può formulare osservazioni durante visite delle autorità?",["Sì","No","Solo per iscritto dopo un anno"],0,"È una delle attribuzioni riconosciute al rappresentante.","dl81","dl50"),
+N("In una PEC, la ricevuta di avvenuta consegna attesta:",["La consegna del messaggio alla casella destinataria","La lettura certa da parte della persona","Il pagamento di una fattura"],0,"La ricevuta certifica la consegna al sistema del destinatario, non necessariamente la lettura personale.","agid","pec"),
+N("Quale applicazione usa formule e celle?",["Excel","PowerPoint","Paint"],0,"Excel è il foglio di calcolo della suite.","office","office"),
+N("Quale applicazione usa diapositive?",["PowerPoint","Word","Calcolatrice"],0,"PowerPoint organizza i contenuti in slide.","office","office"),
+N("Completa: “The captain is responsible ___ the vessel”.",["for","at","on"],0,"L'espressione corretta è responsible for.","grammar","eng"),
+N("Completa: “If it rains, we ___ inside”.",["will stay","stayed yesterday","staying"],0,"Nel primo periodo ipotetico: if + presente, will + forma base.","grammar","eng")
+],
+[
+N("Secondo la tabella ufficiale, la forza minima di una motonave passeggeri oltre 25 e fino a 50 t.s.l. è:",["2 persone","3 persone","4 persone"],0,"La riga corrispondente indica una forza minima complessiva di due persone.","dm86","dm"),
+N("Per una motonave passeggeri oltre 50 e fino a 300 t.s.l. la forza minima è:",["2","3","5"],1,"La tabella ufficiale indica tre componenti.","dm86","dm"),
+N("Per una motonave passeggeri superiore a 300 t.s.l. la forza minima è:",["4","3","6"],0,"Nella classe superiore a 300 t.s.l. la forza minima complessiva è quattro.","dm86","dm"),
+N("Chi è previsto al comando di una motonave passeggeri superiore a 300 t.s.l.?",["Capitano","Capo barca","Barcaiolo abilitato"],0,"La colonna del Capitano è valorizzata per la classe oltre 300 t.s.l.","dm86","dm"),
+N("La forza minima di un piroscafo passeggeri non superiore a 200 t.s.l. è:",["5","3","7"],0,"La prima riga dei piroscafi per persone indica cinque componenti.","dm86","dm"),
+N("Un piroscafo passeggeri superiore a 200 t.s.l. richiede almeno:",["6 persone","4 persone","2 persone"],0,"La tabella indica sei componenti.","dm86","dm"),
+N("Con forni alimentati a carbone l'equipaggio del piroscafo viene:",["Aumentato di un fuochista abilitato","Ridotto di un marinaio","Lasciato sempre invariato"],0,"L'annotazione (b) prescrive un fuochista abilitato aggiuntivo.","dm86","dm"),
+N("Se il motopropulsore può essere manovrato solo dal locale macchine si aggiunge:",["Un marinaio o allievo marinaio","Un secondo capitano","Un addetto amministrativo"],0,"È quanto dispone l'annotazione (c).","dm86","dm"),
+N("Su nave con comandi centralizzati in cabina di pilotaggio, il motorista può essere sostituito nelle funzioni dal:",["Capitano","RLS","Barista"],0,"L'annotazione (d) attribuisce al capitano le mansioni del motorista.","dm86","dm"),
+N("Per rimorchiatori fino a 150 CV, la forza minima è:",["2","4","6"],0,"La prima classe dei rimorchiatori e spintori indica due componenti.","dm86","dm"),
+N("Per rimorchiatori oltre 1.000 CV, la forza minima è:",["4","2","3"],0,"La classe superiore a 1.000 CV richiede quattro componenti.","dm86","dm"),
+N("Per navi a vela o remi oltre 50 t.s.l. adibite a merci, la forza minima è:",["2","1","5"],0,"L'ultima riga della tabella indica due persone.","dm86","dm"),
+N("La censura è comunicata in forma:",["Scritta","Solo gestuale","Telefonica anonima"],0,"La censura è una riprensione scritta.","rd148","rd37"),
+N("Il trasloco punitivo priva l'agente delle indennità regolamentari, salvo:",["Rimborso delle spese vive","Premio annuale","Ferie future"],0,"L'art. 37 salva il rimborso delle spese vive.","rd148","rd37"),
+N("L'accettazione delle dimissioni è normalmente deliberata entro:",["Un mese","Un giorno","Un anno"],0,"L'art. 30 indica un mese dalla presentazione, salvo il caso disciplinare previsto.","rd148","rd30"),
+N("Per il titolo di capitano è richiesta idoneità:",["Fisica alle funzioni","Soltanto linguistica","Esclusivamente informatica"],0,"L'art. 49 richiede idoneità fisica all'esercizio delle funzioni.","dpr631","nav49"),
+N("La manovra degli apparecchi antincendio rientra:",["Nelle esercitazioni periodiche","Nella contabilità","Nelle ferie"],0,"È espressamente compresa dall'art. 123.","dpr631","nav123"),
+N("Quale documento registra i risultati delle esercitazioni?",["Giornale di bordo","Foglio presenze ufficio","PEC personale"],0,"Le manovre e i risultati devono essere annotati sul giornale di bordo.","dpr631","nav123"),
+N("Il DVR è elaborato a seguito della:",["Valutazione di tutti i rischi","Scelta dell'RLS","Visita dei passeggeri"],0,"Il documento formalizza la valutazione complessiva dei rischi.","dl81","dl28"),
+N("Il preposto deve segnalare al datore o dirigente:",["Deficienze di mezzi e condizioni di pericolo","Solo ritardi dei bus","Preferenze personali"],0,"La segnalazione dei pericoli rientra negli obblighi del preposto.","dl81","dl19"),
+N("La formazione deve essere comprensibile anche rispetto alle conoscenze:",["Linguistiche dei lavoratori","Sportive","Musicali"],0,"L'effettiva comprensione è parte dell'adeguatezza formativa.","dl81","dl37"),
+N("L'RLS può fare proposte sulla prevenzione?",["Sì","No","Solo il medico può"],0,"L'art. 50 gli riconosce la facoltà di formulare proposte.","dl81","dl50"),
+N("I DPI devono essere usati conformemente a:",["Informazione, formazione e addestramento ricevuti","Preferenze estetiche","Decisioni dei clienti"],0,"L'uso corretto segue le istruzioni e l'addestramento.","dl81","dl20"),
+N("La fascia 21-6 del CCNL riguarda:",["Indennità di pernottazione","Multa","Periodo di prova"],0,"È la fascia temporale prevista per il pernottamento.","ccnl","ccnl"),
+N("Il riposo di 10 ore previsto dal R.D.L. 2328 riguarda normalmente:",["La residenza","Solo il viaggio","Il lavoro effettivo"],0,"Dieci ore è il minimo in residenza.","rdl2328","rdl"),
+N("Il servizio di linea deve dare precedenza al pronto soccorso?",["Sì","No","Solo in porto"],0,"Il pronto soccorso è al vertice delle priorità indicate.","opgr","opgr"),
+N("La PEC certifica anche il momento di invio?",["Sì, mediante ricevute del sistema","No, mai","Solo con firma autografa"],0,"Il sistema produce documentazione elettronica dell'invio e della consegna.","agid","pec"),
+N("In Excel, una formula inizia normalmente con:",["=","#","@"],0,"Il segno uguale introduce le formule.","office","office"),
+N("Completa: “The crew ___ ready now”.",["is","are been","were yesterday"],0,"Crew, inteso come gruppo singolare, può reggere is nell'inglese standard del quiz.","grammar","eng"),
+N("Completa: “We arrived ___ Monday”.",["on","at","in"],0,"Con i giorni della settimana si usa on.","grammar","eng")
+],
+[
+N("Nella tabella del D.M. 1986, le motonavi passeggeri fino a 10 t.s.l. hanno forza minima:",["1","2","3"],0,"La tabella indica una persona, fatte salve alternative e condizioni delle annotazioni.","dm86","dm"),
+N("Le motonavi passeggeri oltre 10 e fino a 25 t.s.l. hanno forza minima:",["2","1","4"],0,"La forza minima complessiva indicata è due.","dm86","dm"),
+N("Nella classe passeggeri oltre 25 e fino a 300 t.s.l. il titolo di comando previsto è:",["Capo timoniere","Solo capo barca","Barcaiolo"],0,"Il Capo Timoniere figura nelle classi 25-50 e 50-300.","dm86","dm"),
+N("Il capitano compare per le motonavi passeggeri:",["Superiori a 300 t.s.l.","Solo fino a 10 t.s.l.","Da 10 a 25 t.s.l."],0,"La tabella riserva il Capitano alla classe oltre 300 t.s.l.","dm86","dm"),
+N("Un rimorchiatore oltre 150 e fino a 500 CV richiede almeno:",["3 persone","2 persone","5 persone"],0,"La forza minima della classe è tre.","dm86","dm"),
+N("Un rimorchiatore oltre 500 e fino a 1.000 CV richiede almeno:",["3 persone","4 persone","1 persona"],0,"Anche questa classe indica tre componenti.","dm86","dm"),
+N("I rimorchiatori naviganti da soli seguono la composizione prevista per:",["Navi a motore da trasporto merci","Piroscafi passeggeri","Navi a vela"],0,"Lo stabilisce l'annotazione (i).","dm86","dm"),
+N("Sulle navi oltre 170 t.s.l. di linea prive di governo meccanico si aggiunge:",["Un marinaio o allievo marinaio","Un secondo medico","Un cassiere soltanto"],0,"È la regola dell'annotazione (e), salvo riduzione autorizzata nelle condizioni previste.","dm86","dm"),
+N("Con pilotaggio sistemato e attrezzato per una sola persona, le funzioni di macchina possono essere assolte dal:",["Pilota-motorista","RLS","Fuochista non abilitato"],0,"L'annotazione (f) contempla il pilota-motorista.","dm86","dm"),
+N("Se la nave opera entro 10 km da un approdo con pronto intervento, l'annotazione (f) consente:",["Una specifica sostituzione del motorista","Di eliminare sempre tutto l'equipaggio","Di ignorare la tabella"],0,"La sostituzione è ammessa alle condizioni tecniche e organizzative indicate.","dm86","dm"),
+N("Le mansioni di coperta includono anche:",["Ormeggio e imbarco/sbarco","Solo contabilità","Solo cucina"],0,"La nota generale comprende ormeggio, ancoraggio, imbarco e sbarco.","dm86","dm"),
+N("Le mansioni di coperta possono comprendere biglietteria a bordo?",["Sì","No mai","Solo a terra"],0,"La nota generale include anche quelle di biglietteria a bordo.","dm86","dm"),
+N("La sospensione disciplinare può estendersi ordinariamente fino a:",["15 giorni, con disciplina più severa in recidiva","Un anno sempre","Un'ora"],0,"L'art. 37 indica fino a 15 giorni e fino a 20 in caso di recidiva nei termini previsti.","rd148","rd42"),
+N("La multa è devoluta al:",["Fondo di riserva della Cassa soccorso","Sindaco","Passeggero"],0,"La destinazione è indicata dall'art. 37.","rd148","rd41"),
+N("La gerarchia è determinata anzitutto dal:",["Grado","Titolo di studio","Comune di nascita"],0,"Il grado è il criterio principale.","rd148","rd19"),
+N("Il libretto di navigazione vale come passaporto nei casi previsti?",["Sì","No","Solo per merci"],0,"Il regolamento gli attribuisce tale valore nei casi di legge o convenzione.","dpr631","nav42"),
+N("Tra i requisiti del capitano figura l'assenza di determinate condanne?",["Sì","No","Solo sanzioni stradali"],0,"L'art. 49 elenca specifiche cause ostative salvo riabilitazione.","dpr631","nav49"),
+N("Le esercitazioni periodiche riguardano anche i mezzi di salvataggio?",["Sì","No","Solo il registro reclami"],0,"Le manovre comprendono l'impiego dei mezzi di salvataggio.","dpr631","nav123"),
+N("Chi deve interrompere l'attività in caso di pericolo grave e immediato secondo i propri poteri?",["Il preposto, dando indicazioni","Il passeggero","Il fornitore"],0,"L'art. 19 impone l'intervento del preposto.","dl81","dl19"),
+N("Il datore deve nominare il medico competente quando:",["La sorveglianza sanitaria è prevista","Sempre per ogni attività priva di rischi","Lo chiede un cliente"],0,"La nomina è collegata ai casi di sorveglianza sanitaria.","dl81","dl18"),
+N("Il DVR deve avere data certa o attestata?",["Sì","No","Solo se cartaceo"],0,"La disciplina richiede certezza della data secondo le modalità previste.","dl81","dl28"),
+N("La visita periodica controlla:",["Lo stato di salute e il giudizio d'idoneità","Le ferie","La patente dell'auto privata"],0,"Fa parte della sorveglianza sanitaria sulla mansione.","dl81","dl41"),
+N("L'RLS deve disporre del tempo necessario senza perdita di retribuzione?",["Sì","No","Solo fuori orario"],0,"La legge tutela l'esercizio della funzione rappresentativa.","dl81","dl50"),
+N("La distanza di 5 km nel CCNL va letta insieme alla presenza di:",["Mezzi di trasporto","Un medico","Un'imbarcazione privata"],0,"L'esclusione richiede entrambe le condizioni.","ccnl","ccnl"),
+N("Fuori residenza, il riposo ordinario minimo è inferiore di quante ore rispetto alla residenza?",["2 ore","5 ore","8 ore"],0,"Dieci ore in residenza e otto fuori: differenza due.","rdl2328","rdl"),
+N("Le unità a vela senza motore sono tra quelle cui dare precedenza?",["Sì","No","Solo con motore acceso"],0,"Sono espressamente ricomprese.","opgr","opgr"),
+N("La legge 614/1957 riguarda una gestione:",["Governativa","Comunale di pesca","Privata alberghiera"],0,"È la legge sulla gestione governativa dei servizi dei tre laghi.","l614","l614"),
+N("In Word, la funzione principale è:",["Elaborare documenti di testo","Calcolare rotte automaticamente","Gestire solo fotografie"],0,"Word è un elaboratore di testi.","office","office"),
+N("Completa: “He has ___ the report”.",["written","wrote yesterday","write"],0,"Dopo has serve il participio passato written.","grammar","eng"),
+N("Completa: “This vessel is ___ than that one”.",["larger","large","largest of two"],0,"Il comparativo di large è larger.","grammar","eng")
+],
+[
+N("Quale forza minima indica la tabella per piroscafi merci fino a 300 t.s.l. e fino a 100 CV?",["3","4","5"],0,"La riga corrispondente indica tre componenti.","dm86","dm"),
+N("Piroscafi merci fino a 300 t.s.l. con potenza oltre 100 CV richiedono:",["4 persone","2 persone","6 persone"],0,"La forza minima sale a quattro.","dm86","dm"),
+N("Piroscafi merci superiori a 300 t.s.l. richiedono:",["5 persone","3 persone","7 persone"],0,"La forza minima complessiva è cinque.","dm86","dm"),
+N("Navi a vela/remi fino a 10 t.s.l. per persone hanno forza minima:",["1","2","3"],0,"La tabella indica una persona.","dm86","dm"),
+N("Navi a vela/remi fino a 50 t.s.l. per merci hanno forza minima:",["1","3","4"],0,"Rientrano nella riga con forza minima uno.","dm86","dm"),
+N("Il motore ammesso nella categoria vela/remi della tabella non supera:",["20 CV","100 CV","500 CV"],0,"La categoria comprende anche motore non superiore a 20 CV.","dm86","dm"),
+N("L'annotazione (a) richiede la qualifica di autorizzato sui servizi pubblici di linea anche al:",["Capitano","Passeggero","Addetto esterno alle pulizie"],0,"Il capitano è il primo titolo elencato.","dm86","dm"),
+N("La qualifica di autorizzato è richiesta anche al motorista di motonave?",["Sì","No","Solo a terra"],0,"È espressamente incluso nell'annotazione (a).","dm86","dm"),
+N("Il fuochista abilitato è tra le qualifiche soggette ad autorizzato nei servizi indicati?",["Sì","No","Solo sulle barche a remi"],0,"L'annotazione (a) include il fuochista abilitato.","dm86","dm"),
+N("Un sistema di pilotaggio centralizzato deve assicurare:",["Governo e controllo degli elementi necessari alla sicurezza","Solo musica in cabina","Vendita automatica dei biglietti"],0,"La nota generale richiede controllo degli elementi di funzionamento essenziali.","dm86","dm"),
+N("La cabina di pilotaggio deve consentire visibilità:",["Adeguata","Nessuna","Solo verso poppa"],0,"La posizione deve assicurare visibilità adeguata.","dm86","dm"),
+N("La manutenzione e conservazione delle dotazioni di coperta rientra nelle:",["Mansioni di coperta","Mansioni del passeggero","Funzioni del medico"],0,"È indicata nella nota generale.","dm86","dm"),
+N("La nomina stabile del personale può essere delegata dal direttore?",["No","Sì sempre","Solo all'RLS"],0,"L'art. 9 consente delega per la nomina in prova, non per quella stabile.","rd148","rd9"),
+N("Un agente in prova può essere esonerato per scarso rendimento?",["Sì, con deliberazione motivata nei casi previsti","No mai","Solo dai colleghi"],0,"L'art. 14 contempla rendimento insufficiente e mancata idoneità.","rd148","rd14"),
+N("A pari data di nomina prevale l'anzianità:",["Nel grado precedente","Anagrafica soltanto","Scolastica"],0,"È il criterio successivo previsto dall'art. 19.","rd148","rd19"),
+N("Il titolo di capo timoniere richiede un esame?",["Sì","No","Solo per merci"],0,"L'esame favorevole è requisito del titolo.","dpr631","nav50"),
+N("Le manovre di sicurezza vanno effettuate all'entrata in servizio?",["Sì","No","Solo dopo un incidente"],0,"L'art. 123 lo prevede espressamente.","dpr631","nav123"),
+N("Il giornale di bordo riporta anche i risultati delle manovre?",["Sì","No","Solo la data di partenza"],0,"Devono essere annotati esercitazioni e risultati.","dpr631","nav123"),
+N("Il datore può delegare la designazione del RSPP?",["No","Sì a chiunque","Solo al cliente"],0,"È uno dei due obblighi espressamente indelegabili.","dl81","dl17"),
+N("Il lavoratore deve partecipare ai programmi di formazione?",["Sì","No","Solo se dirigente"],0,"La partecipazione è un obbligo del lavoratore.","dl81","dl20"),
+N("Il preposto deve verificare l'accesso alle zone a rischio grave?",["Sì","No","Solo il medico"],0,"Deve controllare che vi accedano soltanto lavoratori istruiti adeguatamente.","dl81","dl19"),
+N("La sorveglianza sanitaria può comprendere visita alla cessazione del rapporto nei casi previsti?",["Sì","No","Mai"],0,"L'art. 41 contempla tale visita nei casi stabiliti.","dl81","dl41"),
+N("L'RLS può ricorrere alle autorità se ritiene inadeguate le misure?",["Sì","No","Solo il datore"],0,"È una delle attribuzioni finali dell'art. 50.","dl81","dl50"),
+N("Un'attrezzatura di soccorso e salvataggio è sempre DPI ai sensi dell'art. 74?",["No, rientra tra le esclusioni previste","Sì sempre","Solo se rossa"],0,"La definizione contiene specifiche esclusioni.","dl81","dl74"),
+N("L'indennità di pernottazione richiede diritto alla diaria?",["Sì, intera o parziale","No","Solo una multa"],0,"È una condizione indicata dal CCNL.","ccnl","ccnl"),
+N("Il periodo lavorativo massimo ordinario è calcolato in ogni periodo di:",["24 ore","7 giorni soltanto","Un mese"],0,"L'art. 19 usa una finestra di ventiquattro ore.","rdl2328","rdl"),
+N("La navigazione di linea è una categoria prioritaria?",["Sì","No","Solo sul mare"],0,"È compresa nell'elenco delle precedenze.","opgr","opgr"),
+N("Quale estensione è una presentazione?",[".pptx",".xlsx",".docx"],0,".pptx identifica PowerPoint.","office","office"),
+N("Completa: “There ___ two lifebuoys on deck”.",["are","is","am"],0,"Con il plurale si usa are.","grammar","eng"),
+N("Completa: “I didn't ___ the message”.",["receive","received","receiving"],0,"Dopo did not si usa la forma base.","grammar","eng")
+],
+[
+N("Per motonavi merci fino a 25 t.s.l., la forza minima indicata è:",["1","2","4"],0,"La tabella indica una persona, con le alternative delle annotazioni.","dm86","dm"),
+N("Per motonavi merci oltre 25 e fino a 50 t.s.l. la forza minima è:",["2","3","1"],0,"La riga corrispondente indica due componenti.","dm86","dm"),
+N("Per motonavi merci oltre 50 e fino a 200 t.s.l. la forza minima è:",["2","4","5"],0,"La tabella mantiene una forza minima di due.","dm86","dm"),
+N("Per motonavi merci oltre 200 e fino a 400 t.s.l. la forza minima è:",["3","2","5"],0,"La classe indica tre componenti.","dm86","dm"),
+N("Per motonavi merci oltre 400 e fino a 700 t.s.l. la forza minima è:",["3","4","6"],0,"La tabella indica tre persone.","dm86","dm"),
+N("Per motonavi merci superiori a 700 t.s.l. la forza minima è:",["4","3","2"],0,"La classe più alta indica quattro componenti.","dm86","dm"),
+N("Su motonave merci oltre 700 t.s.l. con comandi centralizzati, particolari sistemazioni possono consentire:",["Riduzione a tre con abolizione del marinaio","Riduzione a zero","Aumento obbligatorio a dieci"],0,"L'annotazione (h) ammette la riduzione specifica.","dm86","dm"),
+N("Se un conduttore di motoscafo sostituisce il pilota-motorista senza titolo di motorista, chi può comparire al posto del marinaio?",["Motorista di motoscafo","Secondo capitano","RLS"],0,"È la sostituzione prevista dall'annotazione (g).","dm86","dm"),
+N("La qualifica di autorizzato è richiesta anche al conduttore di motoscafo nei servizi indicati?",["Sì","No","Solo se passeggero"],0,"Il conduttore di motoscafo è incluso nell'annotazione (a).","dm86","dm"),
+N("L'equipaggio minimo può essere letto senza considerare le annotazioni?",["No","Sì sempre","Solo per i piroscafi"],0,"Lettere e note integrano necessariamente i numeri della tabella.","dm86","dm"),
+N("La forza minima è espressa come numero complessivo di:",["Persone di equipaggio","Passeggeri","Mezzi di salvataggio"],0,"La seconda colonna indica il numero complessivo minimo dell'equipaggio.","dm86","dm"),
+N("Il D.M. 1986 sostituisce la precedente tabella allegata al decreto del:",["28 luglio 1979","18 luglio 1957","9 aprile 2008"],0,"L'articolo unico dichiara la sostituzione della tabella del 1979.","dm86","dm"),
+N("La multa disciplinare è una ritenuta su:",["Stipendio o paga","Ferie soltanto","Libretto di navigazione"],0,"È la definizione dell'art. 37.","rd148","rd41"),
+N("La destituzione è la punizione elencata di grado più elevato?",["Sì","No","È un premio"],0,"Chiude l'elenco delle punizioni principali.","rd148","rd37"),
+N("La censura può riguardare inadempienze agli ordini superiori senza intento offensivo?",["Sì","No","Solo con danno grave"],0,"È uno dei casi dell'art. 40.","rd148","rd40"),
+N("Il titolo di capitano richiede almeno due anni di servizio:",["Di coperta","Di biglietteria","Di cucina"],0,"Il requisito professionale è la navigazione in coperta.","dpr631","nav49"),
+N("Il capo timoniere deve aver svolto almeno un anno come:",["Timoniere","Fuochista","Impiegato"],0,"Uno dei due anni richiesti deve essere in qualità di timoniere.","dpr631","nav50"),
+N("La periodicità semestrale delle manovre vale per navi destinate al trasporto di:",["Persone","Solo merci","Solo rimorchio"],0,"L'art. 123 specifica le navi da trasporto persone.","dpr631","nav123"),
+N("La valutazione dei rischi deve considerare anche gruppi esposti a rischi particolari?",["Sì","No","Solo i dirigenti"],0,"L'art. 28 include i gruppi di lavoratori esposti a rischi particolari.","dl81","dl28"),
+N("Il lavoratore può compiere manovre non di competenza che compromettono la sicurezza?",["No","Sì","Solo senza testimoni"],0,"L'art. 20 lo vieta.","dl81","dl20"),
+N("Il preposto deve frequentare appositi corsi di formazione?",["Sì","No","Solo su base volontaria"],0,"La formazione specifica del preposto è prevista dalla disciplina.","dl81","dl37"),
+N("Il medico competente istituisce e aggiorna la cartella sanitaria nei casi previsti?",["Sì","No","Lo fa il passeggero"],0,"È un compito collegato alla sorveglianza sanitaria.","dl81","dl41"),
+N("L'RLS è tenuto al rispetto del segreto su informazioni riservate?",["Sì","No","Solo fuori azienda"],0,"Le attribuzioni si accompagnano agli obblighi di riservatezza previsti.","dl81","dl50"),
+N("La diaria per navigazione interna richiamata dal quiz matura oltre:",["8 ore","5 ore","2 ore"],0,"La soglia richiamata è otto ore di assenza.","ccnl","ccnl"),
+N("Se la località è a 4 km ma non esistono mezzi di trasporto, l'esclusione automatica della trasferta opera?",["No","Sì","Solo di notte"],0,"Devono concorrere distanza inferiore a 5 km e mezzi disponibili.","ccnl","ccnl"),
+N("Un riposo fuori residenza può essere ordinariamente di 8 ore?",["Sì","No","Minimo 12"],0,"Otto ore è il minimo ordinario previsto.","rdl2328","rdl"),
+N("La legge 614 affida l'esercizio a un apposito:",["Gestore","RLS","Consiglio comunale unico"],0,"Il servizio è esercitato mediante un gestore governativo.","l614","l614"),
+N("Una ricevuta PEC equivale necessariamente alla lettura umana del messaggio?",["No","Sì","Solo nei festivi"],0,"Certifica gli eventi del sistema, non la lettura personale.","agid","pec"),
+N("Completa: “The passengers have ___ already”.",["boarded","board","boarding yesterday"],0,"Dopo have serve il participio passato.","grammar","eng"),
+N("Completa: “You mustn't ___ this door”.",["open","opened","opening"],0,"Dopo mustn't si usa la forma base.","grammar","eng")
+]
+];
+const tests=[
+ {name:"Prova ufficiale 15/2025",official:true,q:officialQ,evidence:officialEvidence},
+ ...generatedTests.map((items,i)=>({name:`Simulazione ${i+1}`,official:false,q:items.map(x=>x.q),evidence:items.map(x=>x.ev)})),
+ {name:"Prova ufficiale CE Movimento par. 130 - Busta B",official:true,q:officialQ130,evidence:officialEvidence130}
+];
+let activeTest=0;
+let q=tests[0].q;
+let evidence=tests[0].evidence;
+let state=Array(q.length).fill(null);
+const quiz=document.querySelector("#quiz");
+let quizCorrections={};
+const correctionKey=(testIndex,questionIndex)=>`${testIndex}_${questionIndex}`;
+const correctIndex=(questionIndex,testIndex=activeTest)=>{
+  const value=quizCorrections[correctionKey(testIndex,questionIndex)];
+  return Number.isInteger(Number(value)) ? Number(value) : tests[testIndex].q[questionIndex][2];
+};
+function readQuizProfile(){
+  try{return JSON.parse(localStorage.getItem("naviturni_logged_agent")||localStorage.getItem("navidiaria.activeAgent")||"null")}catch(_){return null}
+}
+function isQuizAdmin(profile){return ["91","92","MOVIMENTO"].includes(String(profile?.id||""))||String(profile?.role||"").toLowerCase()==="admin"}
+const topicInfo={
+ rd148:["R.D. 148/1931","Ripassa gerarchia, periodo di prova, dimissioni e sistema disciplinare."],
+ dpr631:["Regolamento navigazione interna","Ripassa libretto, titoli professionali e manovre periodiche di sicurezza."],
+ dm86:["Composizione degli equipaggi - D.M. 05/02/1986","Ripassa con attenzione la tabella ufficiale per tipo, destinazione, stazza/potenza e tutte le annotazioni (a-i)."],
+ dl81:["D.Lgs. 81/2008","Ripassa figure della sicurezza, obblighi indelegabili, DVR, formazione, sorveglianza sanitaria, RLS e DPI."],
+ rdl2328:["Orari e riposi - R.D.L. 2328/1923","Ripassa lavoro effettivo, periodo lavorativo e riposi in/fuori residenza."],
+ ccnl:["CCNL 23 luglio 1976","Ripassa trasferte, soglia chilometrica, diaria e pernottazione."],
+ opgr:["OPGR Lombardia n. 58600/1997","Ripassa distanze dalla costa, precedenze e norme di comportamento."],
+ l614:["Legge 614/1957","Ripassa istituzione, laghi interessati e nomina del gestore governativo."],
+ agid:["PEC","Ripassa significato, ricevute e valore della posta elettronica certificata."],
+ office:["Informatica - Microsoft Office","Ripassa funzioni ed estensioni di Word, Excel e PowerPoint."],
+ grammar:["Lingua inglese","Ripassa gli argomenti grammaticali delle domande sbagliate."]
+ ,azienda:["Regolamento e disposizioni aziendali","Ripassa Regolamento di Esercizio 2004, flotta, tariffe e rapporto di corsa."]
+ ,grafico:["Orari grafici","Ripassa diagrammi spazio-tempo, pendenza delle tracce e relazione tra spazio, tempo e velocità."]
+ ,garda:["Lago di Garda","Ripassa nomi storici, geografia e venti locali del Garda."]
+ ,gdpr:["Privacy e GDPR","Ripassa dato personale, titolare del trattamento, DPO e informativa privacy aziendale."]
+};
+const STORAGE_KEY="navigazione_quiz_progress_v1";
+let progressHistory={};
+let completionRecorded=false;
+try{progressHistory=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")||{}}catch(e){progressHistory={}}
+function persistHistory(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(progressHistory))}catch(e){}}
+function recordCompletion(points){
+  const errorsBySource={};
+  q.forEach((x,i)=>{if(state[i]!==correctIndex(i))errorsBySource[x[4]]=(errorsBySource[x[4]]||0)+1});
+  const old=progressHistory[activeTest]||{};
+  progressHistory[activeTest]={
+    score:points,
+    passed:points>=18,
+    completedAt:new Date().toISOString(),
+    attempts:(old.attempts||0)+(completionRecorded?0:1),
+    answers:[...state],
+    errorsBySource
+  };
+  completionRecorded=true;persistHistory();renderPicker();
+}
+function setView(summary=false){
+  document.querySelector("#quizPage").style.display=summary?"none":"block";
+  document.querySelector("#summaryPage").classList.toggle("show",summary);
+}
+function renderPicker(){
+  document.querySelector("#testPicker").innerHTML=tests.map((t,i)=>{const done=progressHistory[i];return `<button type="button" class="test-btn ${i===activeTest?"active":""} ${done?"done":""}" data-test="${i}">${t.name}${t.official?' <span class="official-tag">UFFICIALE</span>':' <span class="generated-tag">NUOVA</span>'}${done?`<span class="done-badge">✓ Fatta · ${done.score}/30${done.attempts>1?` · ${done.attempts} tentativi`:""}</span>`:""}</button>`}).join("");
+  document.querySelectorAll(".test-btn").forEach(b=>b.addEventListener("click",()=>selectTest(+b.dataset.test)));
+}
+function selectTest(index){
+  activeTest=index;
+  q=tests[index].q;
+  evidence=tests[index].evidence;
+  state=Array(q.length).fill(null);
+  completionRecorded=false;
+  setView(false);
+  renderPicker();render();update();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function showOverallSummary(){
+  const entries=Object.entries(progressHistory).filter(([i,r])=>tests[+i]&&r&&Number.isFinite(r.score));
+  document.querySelector("#summaryName").textContent="Riepilogo generale";
+  if(!entries.length){
+    document.querySelector("#summaryContent").innerHTML=`<div class="summary-hero"><h2>Nessuna prova completata</h2><p>Completa tutte le 30 domande di una prova: verrà marcata come fatta e comparirà qui.</p></div>`;
+    setView(true);window.scrollTo({top:0,behavior:"smooth"});return;
+  }
+  const scores=entries.map(([,r])=>r.score),completed=entries.length,passed=entries.filter(([,r])=>r.passed).length;
+  const avg=(scores.reduce((a,b)=>a+b,0)/completed).toFixed(1),best=Math.max(...scores);
+  const aggregate={};
+  entries.forEach(([,r])=>Object.entries(r.errorsBySource||{}).forEach(([k,n])=>aggregate[k]=(aggregate[k]||0)+n));
+  const totalErrors=Object.values(aggregate).reduce((a,b)=>a+b,0);
+  const reviews=Object.entries(aggregate).sort((a,b)=>b[1]-a[1]).map(([key,count])=>`<li><strong>${topicInfo[key]?.[0]||key}</strong> - ${count} ${count===1?"errore":"errori"} complessivi: ${topicInfo[key]?.[1]||"Rivedi le fonti indicate."}</li>`).join("");
+  const historyRows=entries.sort((a,b)=>+a[0]-+b[0]).map(([i,r])=>`<div class="history-row"><div><strong>${tests[+i].name}</strong><div class="answer-line">${r.attempts||1} ${(r.attempts||1)===1?"tentativo":"tentativi"} · ${new Date(r.completedAt).toLocaleDateString("it-IT")}</div></div><strong class="${r.passed?"pass":"fail"}">${r.score}/30 ${r.passed?"✓":"✗"}</strong></div>`).join("");
+  const advice=totalErrors?`<div class="recommend"><h3>Programma generale di ripasso</h3><p>Le materie sono ordinate dal maggior numero di errori:</p><ul>${reviews}</ul></div>`:`<div class="recommend" style="border-color:var(--ok);background:rgba(49,208,127,.08)"><h3 style="color:var(--ok)">Nessun ripasso necessario</h3><p>Non risultano errori nelle prove completate.</p></div>`;
+  document.querySelector("#summaryContent").innerHTML=`<div class="summary-hero ${passed===completed?"pass":""}"><h2>${completed} ${completed===1?"prova completata":"prove completate"} su ${tests.length}</h2><div class="stats-grid"><div class="stat"><strong>${avg}/30</strong><span>media</span></div><div class="stat"><strong>${best}/30</strong><span>migliore</span></div><div class="stat"><strong>${passed}/${completed}</strong><span>superate</span></div><div class="stat"><strong>${totalErrors}</strong><span>errori totali</span></div></div></div>${advice}<h2>Storico delle prove</h2><div class="test-history">${historyRows}</div>`;
+  setView(true);window.scrollTo({top:0,behavior:"smooth"});
+}
+function showSummary(){
+  if(state.some(v=>v===null))return;
+  const points=state.reduce((n,v,i)=>n+(v===correctIndex(i)),0);
+  const errors=q.map((x,i)=>state[i]===correctIndex(i)?null:i).filter(v=>v!==null);
+  const groups={};
+  errors.forEach(i=>{const key=q[i][4];groups[key]=(groups[key]||0)+1});
+  const advice=errors.length
+    ? `<div class="recommend"><h3>Ripasso consigliato</h3><p>Hai commesso ${errors.length} ${errors.length===1?"errore":"errori"}. Prima della prossima prova ti consiglio di ripassare:</p><ul>${Object.entries(groups).sort((a,b)=>b[1]-a[1]).map(([key,count])=>`<li><strong>${topicInfo[key]?.[0]||key}</strong> (${count} ${count===1?"errore":"errori"}): ${topicInfo[key]?.[1]||"Rivedi il riferimento indicato."}</li>`).join("")}</ul></div>`
+    : `<div class="recommend" style="border-color:var(--ok);background:rgba(49,208,127,.08)"><h3 style="color:var(--ok)">Nessun errore</h3><p>Ottimo risultato: puoi passare a un'altra simulazione.</p></div>`;
+  const rows=q.map((x,i)=>{
+    const answerIndex=correctIndex(i),good=state[i]===answerIndex,ev=evidence[i],chosen=x[1][state[i]],correct=x[1][answerIndex];
+    return `<article class="summary-row ${good?"good":"bad"}"><span class="num">${i+1}</span><div><h3>${good?"✓":"✗"} ${x[0]}</h3><div class="answer-line">Hai risposto: <strong>${"ABC"[state[i]]}) ${chosen}</strong></div>${good?"":`<div class="answer-line">Risposta corretta: <strong>${"ABC"[answerIndex]}) ${correct}</strong></div>`}<p class="explain">${x[3]}</p><a class="review-link" href="${preciseUrl(ev.url,ev.where)}" target="_blank" rel="noopener">Ripassa: ${ev.where} ↗</a></div></article>`;
+  }).join("");
+  document.querySelector("#summaryName").textContent=tests[activeTest].name;
+  document.querySelector("#summaryContent").innerHTML=`<div class="summary-hero ${points>=18?"pass":"fail"}"><h2>${points>=18?"Prova superata":"Prova non superata"}: ${points}/30</h2><p>${points>=18?"Hai raggiunto la soglia minima di 18/30.":"Non hai raggiunto la soglia minima di 18/30."}</p></div>${advice}<div class="summary-list">${rows}</div>`;
+  setView(true);window.scrollTo({top:0,behavior:"smooth"});
+}
+function render(){
+  quiz.innerHTML=q.map((x,i)=>`<article class="card" id="q${i+1}"><div class="qhead"><span class="num">${i+1}</span><h2>${x[0]}</h2></div><div class="answers">${x[1].map((a,j)=>`<label class="answer" data-i="${i}" data-j="${j}"><input type="radio" name="q${i}" value="${j}"><span><b>${"ABC"[j]})</b> ${a}</span></label>`).join("")}</div><div class="feedback" id="f${i}"></div></article>`).join("");
+  document.querySelectorAll(".answer").forEach(el=>el.addEventListener("click",answer));
+}
+function answer(e){
+  const label=e.currentTarget,i=+label.dataset.i,j=+label.dataset.j,x=q[i],correct=correctIndex(i);
+  state[i]=j;
+  const card=label.closest(".card");
+  card.querySelectorAll(".answer").forEach((a,k)=>{a.classList.toggle("correct",k===correct);a.classList.toggle("wrong",k===j&&j!==correct)});
+  const ok=j===correct, f=card.querySelector(".feedback"),src=sources[x[4]];
+  f.className=`feedback show ${ok?"ok":"bad"}`;
+  const ev=evidence[i];
+  const directUrl=preciseUrl(ev.url,ev.where);
+  f.innerHTML=`<div class="verdict">${ok?"✓ Risposta corretta":"✗ Risposta sbagliata. Corretta: "+["A","B","C"][correct]}</div><p class="explain">${x[3]}</p><div class="ref"><b>Riferimento:</b> ${x[5]} · <a href="${directUrl}" target="_blank" rel="noopener">${src[0]}</a></div><details class="sourcebox"><summary>Passaggio del documento e link preciso</summary><div class="sourcebody"><div class="where">${ev.where}</div><p class="passage">${ev.passage}</p><a href="${directUrl}" target="_blank" rel="noopener">Apri il documento nel punto indicato ↗</a></div></details>`;
+  update();
+}
+function update(){
+  const done=state.filter(v=>v!==null).length;
+  const points=state.reduce((n,v,i)=>n+(v===correctIndex(i)),0);
+  document.querySelector("#points").textContent=points;
+  document.querySelector("#progressText").textContent=`${done} di ${q.length} completate`;
+  document.querySelector("#progressBar").style.width=`${done/q.length*100}%`;
+  const finish=document.querySelector("#finish");
+  finish.classList.toggle("show",done===q.length);
+  if(done===q.length){
+    recordCompletion(points);
+    const passed=points>=18;
+    document.querySelector("#resultTitle").textContent=passed?`Prova superata: ${points}/30`:`Da ripassare: ${points}/30`;
+    document.querySelector("#resultText").textContent=passed?"Hai raggiunto la soglia indicativa di 18 risposte corrette. Rivedi comunque gli errori e i riferimenti.":"La soglia indicativa è 18/30. Rivedi le schede rosse e riprova.";
+  }
+}
+document.querySelector("#reset").addEventListener("click",()=>{state=Array(q.length).fill(null);completionRecorded=false;setView(false);render();update();window.scrollTo({top:0,behavior:"smooth"})});
+document.querySelector("#summaryBtn").addEventListener("click",showSummary);
+document.querySelector("#overallBtn").addEventListener("click",showOverallSummary);
+document.querySelector("#backToQuiz").addEventListener("click",()=>{setView(false);window.scrollTo({top:0,behavior:"smooth"})});
+const correctionModal=document.querySelector("#correctionModal");
+const correctionList=document.querySelector("#correctionList");
+const correctionStatus=document.querySelector("#correctionStatus");
+function openCorrections(){
+  correctionList.innerHTML=q.map((x,i)=>`<article class="correction-row"><h3>${i+1}. ${x[0]}</h3><div class="correction-options">${x[1].map((answer,j)=>`<label class="correction-option"><input type="radio" name="correct-${i}" value="${j}" ${j===correctIndex(i)?"checked":""}><span><b>${"ABC"[j]})</b> ${answer}</span></label>`).join("")}</div></article>`).join("");
+  document.querySelector("#correctionTitle").textContent=`Correggi risposte · ${tests[activeTest].name}`;
+  correctionStatus.textContent="";
+  correctionModal.classList.add("show");
+  correctionModal.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+}
+function closeCorrections(){correctionModal.classList.remove("show");correctionModal.setAttribute("aria-hidden","true");document.body.style.overflow=""}
+async function saveCorrections(){
+  const button=document.querySelector("#saveCorrections");button.disabled=true;correctionStatus.className="correction-status";correctionStatus.textContent="Salvataggio…";
+  q.forEach((x,i)=>{const selected=correctionList.querySelector(`input[name="correct-${i}"]:checked`);if(!selected)return;const value=Number(selected.value),key=correctionKey(activeTest,i);if(value===x[2])delete quizCorrections[key];else quizCorrections[key]=value});
+  try{
+    if(!window.NaviAdminFirebase?.saveQuizCorrections)throw new Error("Firebase non disponibile");
+    const profile=readQuizProfile();
+    const saved=await window.NaviAdminFirebase.saveQuizCorrections(quizCorrections,profile?.name||profile?.agente||profile?.id||"");
+    quizCorrections=saved.answers||{};correctionStatus.className="correction-status ok";correctionStatus.textContent="Risposte corrette e salvate su Firebase.";state=Array(q.length).fill(null);completionRecorded=false;render();update();
+  }catch(error){correctionStatus.className="correction-status bad";correctionStatus.textContent=`Errore: ${error.message||error}`}
+  finally{button.disabled=false}
+}
+document.querySelector("#correctAnswersBtn").addEventListener("click",openCorrections);
+document.querySelector("#closeCorrections").addEventListener("click",closeCorrections);
+document.querySelector("#saveCorrections").addEventListener("click",saveCorrections);
+correctionModal.addEventListener("click",event=>{if(event.target===correctionModal)closeCorrections()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&correctionModal.classList.contains("show"))closeCorrections()});
+async function initializeQuizCorrections(){
+  const profile=readQuizProfile();
+  document.querySelector("#correctAnswersBtn").classList.toggle("show",isQuizAdmin(profile));
+  try{const saved=await window.NaviAdminFirebase?.getQuizCorrections?.();quizCorrections=saved?.answers||{}}catch(error){console.warn("Correzioni quiz non disponibili",error)}
+  renderPicker();render();update();
+}
+initializeQuizCorrections();
+</script>
+</body>
+</html>

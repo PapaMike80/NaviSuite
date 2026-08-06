@@ -1,0 +1,30 @@
+NAVISUITE - ATTIVAZIONE PAGINA AGGIORNAMENTI
+
+1. Aprire Firebase Console > Realtime Database > Regole.
+2. Sostituire le regole con il contenuto di:
+   firebase-rules-aggiornamenti.json
+3. Premere "Pubblica".
+4. Copiare sul sito i nuovi file dello ZIP.
+5. Accedere a NaviSuite come PEDRONI M. e aprire:
+   aggiornamenti.html
+6. Premere:
+   - "Importa ODS 29/2026"
+   - "Importa turni bariste"
+
+Al primo salvataggio Firebase associa l'archivio aggiornamenti all'UID
+anonimo del browser amministratore. Usare quindi lo stesso browser e non
+cancellare i dati del sito. Gli altri utenti possono leggere gli
+aggiornamenti, ma non modificarli.
+
+VARIAZIONE MANUALE
+
+Selezionare agente, data e nuovo turno. Il turno attuale viene mostrato
+automaticamente. La variazione viene salvata con fonte "MANUALE" e ha
+priorità sugli ODS. Può essere annullata dalla tabella dello storico.
+
+BACKUP
+
+NaviSuite-aggiornato-ODS29.json contiene già:
+- le 8 registrazioni ODS 29/2026;
+- i 31 turni bariste dal 3 al 9 agosto;
+- i 144 turni nave ODS 29/2026 già presenti nel database di partenza.

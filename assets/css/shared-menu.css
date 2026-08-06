@@ -1,0 +1,458 @@
+.menu-button,
+.turni-menu-button,
+#turni-menu-button {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
+.app-sidebar{transition:transform .22s ease,box-shadow .22s ease}.sidebar-collapse-button{position:absolute;top:50%;right:-17px;z-index:5;display:grid;place-items:center;width:34px;height:48px;padding:0;border:1px solid #28505a;border-left:0;border-radius:0 10px 10px 0;background:#102b3f;color:#dff8f4;font-size:22px;line-height:1;cursor:pointer;box-shadow:8px 0 18px rgba(0,0,0,.16)}.sidebar-collapse-button:hover{background:#164153;color:#2dd4bf}.sidebar-reopen-button{position:fixed;top:50%;left:0;z-index:230;display:none;place-items:center;width:34px;height:52px;border:1px solid #28505a;border-left:0;border-radius:0 10px 10px 0;background:#102b3f;color:#dff8f4;font-size:22px;cursor:pointer;transform:translateY(-50%);box-shadow:8px 0 18px rgba(0,0,0,.18)}body.menu-collapsed .app-sidebar{transform:translateX(-105%)!important}body.menu-collapsed .sidebar-reopen-button{display:grid}.app-sidebar nav{gap:6px!important}.app-sidebar nav a,.app-sidebar nav button{min-height:43px!important;margin:0!important;border:1px solid transparent!important;border-radius:9px!important;background:transparent!important;color:#9fb8c2!important;font-family:"DM Sans",sans-serif!important;font-size:13px!important;font-weight:700!important;text-decoration:none!important}.app-sidebar nav a:hover,.app-sidebar nav button:hover,.app-sidebar nav a.active{border-color:#28505a!important;background:#102d37!important;color:#fff!important}.app-sidebar nav a span,.app-sidebar nav button span{color:#2dd4bf!important}.app-sidebar .sidebar-menu-label,.app-sidebar .turni-menu-label{margin:16px 12px 3px!important;color:#66818d!important;font-size:9px!important;font-weight:900!important;letter-spacing:.16em!important}
+@media(min-width:801px){body.diaria-page.menu-collapsed .app-shell{grid-template-columns:0 1fr}body.turni-page.menu-collapsed{padding-left:0!important}body.agenti-page.menu-collapsed>main,body.aggiornamenti-page.menu-collapsed>main{margin-left:0!important}}
+@media(max-width:800px){.menu-button,.turni-menu-button{display:none!important}.sidebar-collapse-button{display:grid}.sidebar-reopen-button{top:72px;transform:none}body:not(.menu-collapsed) .app-sidebar{transform:translateX(0)!important}.app-sidebar.open,body.turni-menu-open .app-sidebar{transform:translateX(0)!important}}
+.app-sidebar{background:#071923!important;border-right:1px solid #173542!important}
+.app-sidebar{width:230px!important;padding:28px 20px!important;box-sizing:border-box!important}.app-sidebar>.brand,.app-sidebar>.turni-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;margin:0!important;color:#fff!important;font:800 20px Manrope!important}.app-sidebar>.brand span,.app-sidebar>.turni-sidebar-brand span{width:35px!important;height:35px!important;border-radius:11px!important;background:#27a9b6!important;color:#fff!important;font-size:20px!important}.app-sidebar nav{display:grid!important;gap:6px!important;width:100%!important;margin:46px 0 0!important;padding:0!important}.app-sidebar nav a,.app-sidebar nav button{display:flex!important;align-items:center!important;gap:13px!important;width:100%!important;min-height:43px!important;padding:11px 13px!important;box-sizing:border-box!important;line-height:19px!important}.app-sidebar nav a span,.app-sidebar nav button span{flex:0 0 20px!important;width:20px!important;text-align:center!important}.app-sidebar .sidebar-menu-label,.app-sidebar .turni-menu-label{display:block!important;margin:16px 13px 3px!important}.app-sidebar .sidebar-user-actions,.app-sidebar .login-user-panel{display:none!important;grid-template-columns:1fr 1fr!important;gap:7px!important;width:100%!important;margin:auto 0 0!important;padding:12px 0 0!important;border-top:1px solid #173542!important}.app-sidebar .login-user-panel.visible,.app-sidebar .sidebar-user-actions{display:grid!important}.app-sidebar .sidebar-agent-name,.app-sidebar .login-user-name{grid-column:1/-1!important;width:100%!important;min-height:31px!important;margin:0!important;padding:6px 2px!important;border:0!important;background:transparent!important;color:#fff!important;font:700 12px "DM Sans"!important;text-align:left!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.app-sidebar .sidebar-action,.app-sidebar .login-user-panel button:not(.login-user-name){min-height:36px!important;margin:0!important;padding:8px!important;border:1px solid #315460!important;border-radius:8px!important;background:#0d2c37!important;color:#dbeef1!important;font:700 11px "DM Sans"!important}.app-sidebar .sidebar-exit,.app-sidebar #login-exit-button{color:#fda4af!important}.topbar,.page-header{height:98px!important;min-height:98px!important;padding:0 42px!important;box-sizing:border-box!important;background:#fff!important;border-bottom:1px solid #dfe7eb!important}.topbar h1,.page-header .doc-title{margin:1px 0!important;color:#173042!important;font:800 25px Manrope!important}.topbar .eyebrow,.page-header .turni-header-label{margin:0!important;color:#78909d!important;font-size:11px!important;font-weight:800!important;letter-spacing:.14em!important}.topbar-context,.turni-header-context{margin:2px 0 0!important;color:#70808c!important;font-size:12px!important}
+@media(max-width:800px){.topbar,.page-header{height:82px!important;min-height:82px!important;padding:0 18px!important}.topbar h1,.page-header .doc-title{font-size:20px!important}}
+.diaria-page:not(.menu-collapsed) .app-sidebar,.turni-page:not(.menu-collapsed) .app-sidebar{transform:translateX(0)!important}.topbar,.page-header{height:auto!important;padding-top:14px!important;padding-bottom:14px!important;background:#091c25!important;border-bottom-color:#234452!important}.topbar h1,.page-header .doc-title{color:#edf6f7!important;white-space:normal!important}.topbar .eyebrow,.page-header .turni-header-label{color:#38d6bf!important}.topbar-context,.turni-header-context{color:#9bb4bc!important}
+.app-sidebar{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}.app-sidebar>.brand span:not(.brand-mark){width:auto!important;height:auto!important;border-radius:0!important;background:transparent!important;color:#fff!important;font-size:20px!important}.app-sidebar>.brand .brand-mark,.app-sidebar>.turni-sidebar-brand span{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;border-radius:11px!important;background:#27a9b6!important;color:#fff!important}.app-sidebar nav a,.app-sidebar nav button{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}.sidebar-collapse-button{position:fixed!important;top:50%!important;left:230px!important;right:auto!important;z-index:240!important;display:grid!important;place-items:center!important;transform:translateY(-50%)!important;transition:left .22s ease!important}body.menu-collapsed .sidebar-collapse-button{left:0!important}.sidebar-reopen-button{display:none!important}.app-sidebar .sidebar-agent-name,.app-sidebar .login-user-name{display:flex!important;align-items:center!important;gap:6px!important;min-height:36px!important;padding:8px!important;border:1px solid #315460!important;border-radius:8px!important;background:#0d2c37!important}.app-sidebar .sidebar-agent-name:before{content:'👤';color:#dbeef1;font-size:11px}
+@media(max-width:800px){.sidebar-collapse-button{top:72px!important;transform:none!important}}
+.sidebar-collapse-button[hidden]{display:none!important}
+@media(max-width:800px){
+	.sidebar-collapse-button,
+	.sidebar-reopen-button{
+		display:none!important;
+		visibility:hidden!important;
+		pointer-events:none!important;
+	}
+}
+.app-sidebar .sidebar-agent-name,.app-sidebar .login-user-name,.app-sidebar .sidebar-action,.app-sidebar .login-user-panel button{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+.app-sidebar{position:fixed!important;inset:0 auto 0 0!important;z-index:200!important;display:flex!important;flex-direction:column!important;height:100vh!important;color:#eaf5f5!important}body.turni-page{padding-left:230px}@media(max-width:800px){body.turni-page{padding-left:0}}
+.shared-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;margin:0!important;color:#fff!important;font:800 20px Manrope!important;text-decoration:none!important}.shared-brand-mark{display:grid!important;place-items:center!important;flex:0 0 35px!important;width:35px!important;height:35px!important;border-radius:11px!important;background:#27a9b6!important;color:#fff!important;font-size:20px!important}.shared-sidebar-brand strong{font:800 20px Manrope!important}
+.app-sidebar{visibility:hidden}.app-sidebar.menu-ready{visibility:visible}
+.app-sidebar [hidden]{display:none!important}
+.sidebar-footer-update{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:39px;border:1px solid #28505a;border-radius:8px;background:#102d37;color:#dff8f4;font:800 11px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}.sidebar-footer-update span{color:#2dd4bf;font-size:15px}.sidebar-footer-update:hover{border-color:#2dd4bf;background:#123b45}.sidebar-footer-update:disabled{opacity:.55}.sidebar-data-status{grid-column:1/-1;display:block;margin:-1px 2px 3px;color:#86efac;font:800 9px Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.08em;text-align:center;text-transform:uppercase}
+.ods-variation-status{margin:10px 1px 2px;padding:10px 11px;border:1px solid rgba(45,212,191,.28);border-radius:9px;background:rgba(45,212,191,.08);color:#9fe9df;font:700 10px/1.45 "DM Sans",sans-serif}.ods-variation-status[hidden]{display:none!important}
+.diaria-page .app-shell{display:block!important;padding-left:230px;transition:padding-left .22s ease}.diaria-page.menu-collapsed .app-shell{padding-left:0}.diaria-page .app-shell>main{min-width:0}@media(max-width:800px){.diaria-page .app-shell{padding-left:0}.diaria-page .app-shell>main{grid-column:auto}}
+
+/* Nascondi il menu di default su PC */
+body.turni-page .mobile-liquid-nav { display: none; }
+
+/* Menu mobile in basso, fisso e responsive */
+@media (max-width: 800px) {
+	body.turni-page .app-shell main,
+	body.turni-page > main { padding-bottom: 90px; }
+
+	body.turni-page .mobile-liquid-nav {
+		display: flex; position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+		width: 94%; height: 68px; z-index: 99999;
+		justify-content: space-evenly; align-items: center;
+		border-radius: 40px;
+		background: rgba(7, 23, 32, 0.75);
+		backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+		border-top: 1px solid rgba(126, 243, 226, 0.2);
+		border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+		box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.06), inset 0 -2px 5px rgba(0, 0, 0, 0.6);
+		transition: transform .28s cubic-bezier(.22,.8,.28,1), opacity .2s ease;
+		will-change: transform, opacity;
+	}
+
+	body.turni-page.mobile-nav-hidden .mobile-liquid-nav {
+		transform: translateX(-50%) translateY(calc(100% + 40px));
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	body.turni-page .mobile-liquid-nav .nav-item {
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+		text-decoration: none; color: var(--ink-dim, #9fb8c2); font-family: 'DM Sans', sans-serif;
+		font-size: 9px; font-weight: 600; flex: 1 1 0; min-width: 0; max-width: 62px; height: 58px; border-radius: 50%;
+		transition: all 0.25s ease;
+	}
+
+	body.turni-page .mobile-liquid-nav .nav-item .nav-icon {
+		font-size: 20px;
+		line-height: 1;
+	}
+
+	body.turni-page .mobile-liquid-nav .nav-item.active {
+		color: var(--accent, #2dd4bf); background: rgba(45, 212, 191, 0.1);
+		box-shadow: inset 0 2px 5px rgba(45, 212, 191, 0.15);
+	}
+
+	/* Adattamento automatico al tema chiaro del telefono */
+	@media (prefers-color-scheme: light) {
+		body.turni-page .mobile-liquid-nav {
+			background: rgba(245, 247, 250, 0.8);
+			border-top: 1px solid rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+			box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -2px 5px rgba(0, 0, 0, 0.05);
+		}
+		body.turni-page .mobile-liquid-nav .nav-item { color: #4b5563; }
+		body.turni-page .mobile-liquid-nav .nav-item.active {
+			color: #0d9488; background: rgba(13, 148, 136, 0.1);
+			box-shadow: inset 0 2px 5px rgba(13, 148, 136, 0.15);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		body.turni-page .mobile-liquid-nav { transition-duration: .01ms; }
+	}
+}
+
+/* Reset per il button nella nav */
+body.turni-page button.nav-item {
+	background: transparent;
+	border: none;
+	padding: 0;
+	font-family: inherit;
+	cursor: pointer;
+}
+
+/* Stili per il Modale Liquid Glass */
+body.turni-page .liquid-modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	background: rgba(3, 10, 16, 0.6);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+}
+body.turni-page .liquid-modal-overlay.open {
+	opacity: 1;
+	pointer-events: auto;
+}
+body.turni-page .liquid-modal-overlay[hidden] { display: none !important; }
+
+body.turni-page .liquid-modal-content {
+	position: relative;
+	width: 100%;
+	max-height: 85vh;
+	overflow-y: auto;
+	background: rgba(11, 28, 38, 0.95);
+	border-top: 1px solid rgba(126, 243, 226, 0.15);
+	border-radius: 24px 24px 0 0;
+	padding: 16px 24px 40px;
+	box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+	transform: translateY(100%);
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.turni-page .liquid-modal-overlay.open .liquid-modal-content {
+	transform: translateY(0);
+}
+
+body.turni-page .liquid-modal-header {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 12px;
+}
+body.turni-page .liquid-modal-header button {
+	background: transparent;
+	border: none;
+	color: var(--ink-dim, #9fb8c2);
+	font-size: 20px;
+	font-weight: bold;
+	cursor: pointer;
+	padding: 4px;
+}
+
+/* Tipografia e griglia pulsanti */
+body.turni-page .filter-section { margin-bottom: 28px; }
+body.turni-page .filter-section-title {
+	display: block;
+	color: var(--ink-dim, #9fb8c2);
+	font-size: 13px;
+	font-weight: 800;
+	text-transform: uppercase;
+	text-align: center;
+	margin-bottom: 16px;
+	letter-spacing: 0.2em;
+}
+body.turni-page .modal-buttons-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+/* Stile Bottoni (Outline & Glow) */
+body.turni-page .modal-buttons-grid button {
+	width: 100%;
+	height: 44px;
+	background: transparent;
+	border: 2px solid var(--btn-color, #9fb8c2);
+	border-radius: 999px;
+	color: var(--btn-color, #9fb8c2);
+	font-size: 13px;
+	font-weight: 800;
+	font-family: inherit;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+/* Colori specifici (ereditati o mappati per coerenza) */
+body.turni-page .modal-buttons-grid button[data-res="RIVA"] { --btn-color: #a78bfa; }
+body.turni-page .modal-buttons-grid button[data-res="MADERNO"] { --btn-color: #fb923c; }
+body.turni-page .modal-buttons-grid button[data-res="DESENZANO"] { --btn-color: #2dd4bf; }
+body.turni-page .modal-buttons-grid button[data-res="PESCHIERA"] { --btn-color: #4ade80; }
+body.turni-page .modal-buttons-grid button[data-res="TUTTE"] { --btn-color: #f8fafc; }
+
+/* Stato Attivo con Neon Glow */
+body.turni-page .modal-buttons-grid button.active {
+	background: var(--btn-color, #2dd4bf);
+	color: #06201c;
+	box-shadow: 0 0 16px color-mix(in srgb, var(--btn-color) 60%, transparent);
+	border-color: var(--btn-color);
+}
+
+/* Aggiorna la griglia delle residenze nella barra laterale */
+body.turni-page .turni-sidebar .coverage-residence-buttons {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 6px;
+}
+
+/* Aggiorna la griglia delle residenze nel modale mobile */
+body.turni-page #modal-residence-buttons.modal-buttons-grid {
+	grid-template-columns: repeat(3, 1fr);
+}
+
+/* Menu mobile completo: filtri compatti e azioni del menu laterale. */
+@media (max-width:800px) {
+	body.turni-page .liquid-modal-content {
+		box-sizing:border-box;
+		max-height:calc(88dvh - env(safe-area-inset-top, 0px));
+		padding:12px 14px calc(22px + env(safe-area-inset-bottom, 0px));
+	}
+
+	body.turni-page .liquid-modal-header {
+		align-items:center;
+		justify-content:space-between;
+		min-height:32px;
+		margin-bottom:8px;
+	}
+
+	body.turni-page .liquid-modal-header strong {
+		color:#e8f7f7;
+		font:800 15px Manrope, sans-serif;
+	}
+
+	body.turni-page .filter-section {
+		margin-bottom:16px!important;
+	}
+
+	body.turni-page .filter-section-title,
+	body.trova-turno-page .filter-section > span:first-child {
+		margin-bottom:9px!important;
+		font-size:10px!important;
+		letter-spacing:.14em!important;
+	}
+
+	body.turni-page #modal-residence-buttons.modal-buttons-grid,
+	body.turni-page #modal-shift-buttons.modal-buttons-grid {
+		grid-template-columns:repeat(3,minmax(0,1fr));
+		gap:7px;
+	}
+
+	body.turni-page #modal-residence-buttons.modal-buttons-grid button,
+	body.turni-page #modal-shift-buttons.modal-buttons-grid button {
+		height:34px!important;
+		min-height:34px!important;
+		padding:4px 6px!important;
+		border-width:1px!important;
+		font-size:10px!important;
+		letter-spacing:.02em!important;
+	}
+
+	body.turni-page .mobile-complete-menu {
+		margin:12px 0 0!important;
+		padding-top:14px;
+		border-top:1px solid rgba(126,243,226,.14);
+	}
+
+	body.turni-page .mobile-menu-actions {
+		display:grid;
+		grid-template-columns:repeat(2,minmax(0,1fr));
+		gap:8px;
+	}
+
+	body.turni-page .mobile-menu-actions a,
+	body.turni-page .mobile-menu-actions button {
+		display:flex!important;
+		align-items:center;
+		justify-content:flex-start;
+		gap:9px;
+		box-sizing:border-box;
+		width:100%;
+		min-width:0;
+		min-height:42px!important;
+		height:auto!important;
+		margin:0;
+		padding:8px 11px!important;
+		border:1px solid #28505a!important;
+		border-radius:11px!important;
+		background:#0d2c37!important;
+		color:#d8eef1!important;
+		font:750 11px/1.15 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+		letter-spacing:0!important;
+		text-align:left;
+		text-decoration:none;
+		text-transform:none!important;
+	}
+
+	body.turni-page .mobile-menu-actions a span,
+	body.turni-page .mobile-menu-actions button span {
+		flex:0 0 20px;
+		color:#2dd4bf;
+		font-size:17px;
+		text-align:center;
+	}
+
+	body.turni-page .mobile-menu-actions b { font:inherit; }
+	body.turni-page .mobile-menu-actions .admin-mobile-action { border-color:#287d70!important; }
+	body.turni-page .mobile-menu-actions .mobile-menu-logout {
+		border-color:#7f3341!important;
+		color:#fda4af!important;
+	}
+	body.turni-page .mobile-menu-actions .mobile-menu-logout span { color:#fb7185; }
+}
+
+/* ================================================================
+   RESTYLE SIDEBAR: fondo sfumato, voci raffinato e pannello utente
+   ================================================================ */
+.app-sidebar{
+	background:
+		radial-gradient(420px 300px at 0% 0%,rgba(45,212,191,.10),transparent 60%),
+		linear-gradient(180deg,#0a2632 0%,#071923 60%)!important;
+}
+
+/* Marchio */
+.app-sidebar>.brand span,
+.app-sidebar>.turni-sidebar-brand span,
+.shared-brand-mark{
+	background:linear-gradient(135deg,#34d3bd,#1fa390)!important;
+	box-shadow:0 6px 16px rgba(45,212,191,.3)!important;
+}
+.shared-sidebar-brand strong{color:#fff!important}
+
+/* Voci di navigazione */
+.app-sidebar nav a,
+.app-sidebar nav button.nav-link{
+	position:relative;
+	border-radius:11px!important;
+	transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease!important;
+}
+.app-sidebar nav a:hover,
+.app-sidebar nav button.nav-link:hover{
+	transform:translateX(3px);
+	background:#12303b!important;
+	color:#fff!important;
+}
+.app-sidebar nav a.active,
+.app-sidebar nav button.nav-link.active{
+	border-color:#2dd4bf!important;
+	background:linear-gradient(90deg,rgba(45,212,191,.2),rgba(45,212,191,.08))!important;
+	box-shadow:inset 3px 0 0 #2dd4bf;
+	color:#eafffb!important;
+}
+.app-sidebar nav a.active span,
+.app-sidebar nav button.nav-link.active span{
+	color:#34d3bd!important;
+}
+
+/* Etichette di sezione */
+.app-sidebar .sidebar-menu-label,
+.app-sidebar .turni-menu-label{
+	color:#5d7c88!important;
+	letter-spacing:.18em!important;
+}
+
+/* Pannello utente */
+.app-sidebar .sidebar-agent-name,
+.app-sidebar .login-user-name{
+	border-color:#285660!important;
+	background:linear-gradient(180deg,#0e2d38,#0b242e)!important;
+	color:#fff!important;
+	box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.app-sidebar .sidebar-action,
+.app-sidebar .login-user-panel button:not(.login-user-name){
+	border-color:#28505a!important;
+	background:#0f2c37!important;
+	color:#bfd4d8!important;
+	transition:border-color .15s ease,background .15s ease,color .15s ease!important;
+}
+.app-sidebar .sidebar-action:hover,
+.app-sidebar .login-user-panel button:not(.login-user-name):hover{
+	border-color:#2dd4bf!important;
+	background:#123b45!important;
+	color:#fff!important;
+}
+.app-sidebar .sidebar-action.sidebar-exit,
+.app-sidebar .login-user-panel .sidebar-exit{
+	border-color:#5d3038!important;
+	color:#f8a5ad!important;
+}
+.app-sidebar .sidebar-action.sidebar-exit:hover,
+.app-sidebar .login-user-panel .sidebar-exit:hover{
+	border-color:#fb7185!important;
+	background:#2a1318!important;
+	color:#ffd5d9!important;
+}
+
+/* Pulsante aggiorna */
+.app-sidebar .sidebar-footer-update{
+	border-color:rgba(45,212,191,.45)!important;
+	background:linear-gradient(90deg,rgba(45,212,191,.18),rgba(45,212,191,.08))!important;
+	color:#dff8f4!important;
+	transition:border-color .15s ease,background .15s ease,transform .15s ease!important;
+}
+.app-sidebar .sidebar-footer-update:hover{
+	border-color:#2dd4bf!important;
+	background:rgba(45,212,191,.26)!important;
+	transform:translateY(-1px);
+}
+
+/* Stato dati e versione */
+.app-sidebar .sidebar-data-status{
+	color:#6ee7b7!important;
+	letter-spacing:.1em!important;
+}
+.app-sidebar .shared-app-version{
+	color:#3dccc0!important;
+}
+.app-sidebar .ods-variation-status{
+	border-color:rgba(45,212,191,.3)!important;
+	background:rgba(45,212,191,.1)!important;
+	color:#9fe9df!important;
+}
+
+/* Pulsante collassa/espandi */
+.sidebar-collapse-button{
+	border-color:#2a5a63!important;
+	background:linear-gradient(180deg,#123244,#0c2530)!important;
+	color:#cfeff0!important;
+	box-shadow:8px 0 18px rgba(0,0,0,.22)!important;
+	transition:left .22s ease,background .18s ease,color .18s ease!important;
+}
+.sidebar-collapse-button:hover{
+	background:#164153!important;
+	color:#2dd4bf!important;
+}
+
+/* Pagine amministrative (agenti / aggiornamenti): sidebar sempre nascosta su
+   mobile e contenuto a tutta larghezza, indipendentemente dallo stato del menu. */
+@media(max-width:800px){
+	body.agenti-page .app-sidebar,
+	body.aggiornamenti-page .app-sidebar{
+		transform:translateX(-105%)!important;
+	}
+	body.agenti-page>main,
+	body.aggiornamenti-page>main{
+		margin-left:0!important;
+	}
+}

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NaviSuite Agenti</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--red:#fb7185}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}main{margin-left:230px;padding:30px;max-width:1500px}.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}.hero h1{margin:7px 0 5px;font-size:30px}.hero p{margin:0;color:var(--muted)}.status{margin:20px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#0b222c;color:#b9d2d8}.status.ok{border-color:#1d8f7f;color:#99f6e4}.status.bad{border-color:#9f3044;color:#fecdd3}.section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px}.section h2{margin:0;font-size:18px}.section p{margin:4px 0 0;color:var(--muted);font-size:12px}.count{padding:4px 9px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px;font-weight:900}.agent-list{display:grid;gap:9px}.agent-row{display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(145px,.9fr) minmax(120px,.7fr) minmax(140px,.8fr) auto;gap:10px;align-items:center;padding:12px;border:1px solid #28515d;border-radius:11px;background:#071b24}.agent-row.latest{border-color:var(--accent);background:linear-gradient(100deg,rgba(45,212,191,.13),#071b24)}.agent-name strong{display:block;font-size:14px}.agent-name small{display:block;margin-top:4px;color:#86aab3}.access{color:#bfe2e6;font-size:12px}.access strong{display:block;color:#fff}.agent-row label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.agent-row select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}.save-agent{min-height:38px;padding:8px 12px;border:1px solid var(--accent);border-radius:8px;background:rgba(45,212,191,.15);color:#99f6e4;font-weight:900;cursor:pointer}.save-agent:disabled{opacity:.5}.empty{padding:20px;color:#86aab3;text-align:center}.mobile-nav{display:none}
+    @media(max-width:850px){body{padding-bottom:100px}main{margin:0;padding:18px 12px}.hero h1{font-size:25px}.section{padding:13px}.agent-row{grid-template-columns:1fr 1fr}.agent-name,.access{grid-column:1/-1}.save-agent{grid-column:1/-1;width:100%}.mobile-nav{position:fixed;left:50%;bottom:14px;z-index:50;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:70px;transform:translateX(-50%);border:1px solid rgba(126,243,226,.18);border-radius:38px;background:rgba(7,23,32,.92);box-shadow:0 16px 34px #0009;backdrop-filter:blur(14px)}.mobile-nav a{display:flex;flex:1 1 0;min-width:0;max-width:65px;flex-direction:column;align-items:center;gap:4px;padding:8px;color:#9fb8c2;text-decoration:none;font-size:9px;font-weight:800}.mobile-nav a span{font-size:20px}.mobile-nav a.active{color:var(--accent)}}
+    .agent-row{border-color:color-mix(in srgb,var(--grade-color,#9ca3af) 60%,#28515d);border-left:5px solid var(--grade-color,#9ca3af);background:linear-gradient(100deg,color-mix(in srgb,var(--grade-color,#9ca3af) 13%,#071b24),#071b24 42%)}.agent-row.latest{border-color:var(--grade-color,#2dd4bf);box-shadow:0 0 0 1px color-mix(in srgb,var(--grade-color,#2dd4bf) 45%,transparent)}.agent-name strong{color:var(--grade-color,#edfafa)}.grade-badge{display:inline-flex;margin-top:6px;padding:3px 7px;border:1px solid var(--grade-color);border-radius:999px;background:color-mix(in srgb,var(--grade-color) 14%,transparent);color:var(--grade-color);font-size:9px;font-weight:900;text-transform:uppercase}.agent-actions{display:grid;gap:6px;min-width:122px}.agent-actions button{min-height:34px;padding:7px 9px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer}.reset-pin{border:1px solid #f59e0b;background:#3a2910;color:#fcd34d}.delete-registration{border:1px solid #e11d48;background:#3b1721;color:#fecdd3}.online-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 9px #22c55e}.online-time{color:#86efac!important}.agent-row select[data-grade]{border-color:var(--grade-color,#315b66)}
+    @media(max-width:850px){.agent-actions{grid-column:1/-1;grid-template-columns:repeat(3,1fr);width:100%}.agent-actions .save-agent{grid-column:auto}.agent-actions button{min-height:42px}}
+  </style>
+</head>
+<body class="agenti-page">
+  <aside class="app-sidebar" id="admin-sidebar"></aside>
+  <main>
+    <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Gestione agenti</h1><p>Anagrafica completa, registrazioni e ultimo accesso.</p></header>
+    <div id="status" class="status">Caricamento dati da Firebase…</div>
+    <section class="section"><div class="section-head"><div><h2>Connessi adesso</h2><p>Utenti attivi su NaviSuite negli ultimi due minuti.</p></div><span id="online-count" class="count">0</span></div><div id="latest-user" class="agent-list"><div class="empty">Caricamento…</div></div></section>
+    <section class="section"><div class="section-head"><div><h2>Agenti registrati</h2><p>Ordinati dall’accesso più recente; chi non ha ancora uno storico compare in fondo.</p></div><span id="registered-count" class="count">0</span></div><div id="registered-users" class="agent-list"></div></section>
+    <section class="section"><div class="section-head"><div><h2>Altri agenti</h2><p>Presenti nell’anagrafica turni ma non ancora registrati.</p></div><span id="other-count" class="count">0</span></div><div id="other-users" class="agent-list"></div></section>
+  </main>
+  <nav class="mobile-nav" aria-label="Navigazione mobile"><a href="naviturni.html"><span>▦</span>Turni</a><a href="cambi_turno.html"><span>⇄</span>Cambi</a><a href="navidiaria.html"><span>≈</span>Diaria</a><a href="aggiornamenti.html"><span>↻</span>Aggiorna</a><a class="active" href="agenti.html"><span>♙</span>Agenti</a></nav>
+  <script src="assets/js/admin-firebase-rest.js?v=33"></script>
+  <script src="assets/js/shared-menu.js"></script>
+  <script src="assets/js/shared-data.js"></script>
+  <script>
+  (()=>{
+    const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');
+    const isAdmin=['91','92','MOVIMENTO'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    if(!profile||!isAdmin){location.replace('index.html');return;}
+    const $=id=>document.getElementById(id),esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const time=value=>{
+      const raw=String(value||'').trim();
+      if(!raw)return 0;
+      if(/^\d{4}-\d{2}-\d{2}(?:T|\s|$)/.test(raw))return Date.parse(raw)||0;
+      const it=raw.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})(?:\s+(?:alle\s*)?(\d{1,2})[:.](\d{2})(?::(\d{2}))?)?$/i);
+      if(it)return new Date(Number(it[3].length===2?`20${it[3]}`:it[3]),Number(it[2])-1,Number(it[1]),Number(it[4]||0),Number(it[5]||0),Number(it[6]||0)).getTime();
+      return Date.parse(raw)||0;
+    };
+    const fmt=value=>{const timestamp=time(value);return timestamp?new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'medium'}).format(new Date(timestamp)):'Mai';};
+    const roleOptions=['','agente','superuser','admin','barista'];
+    const roleLabels={'':'Agente standard',agente:'Agente standard',superuser:'Super user · prova NaviDiaria',admin:'Amministratore',barista:'Barista'};
+    const gradeDefaults=['marinaio','motorista','comandante','capitano','ufficio','barista'];
+    let directory=[],registry=[],profiles={},presence=[];
+    const overrideFor=id=>profiles[String(id)]||Object.values(profiles).find(item=>String(item?.id)===String(id))||{};
+    const gradeColor=value=>({capitano:'#facc15',comandante:'#facc15','capo timoniere':'#fb923c',capotimoniere:'#fb923c',timoniere:'#22c55e','aiuto motorista':'#3b82f6',aiutomotorista:'#3b82f6',motorista:'#a855f7',marinaio:'#9ca3af',operaio:'#14b8a6',ufficio:'#22d3ee',barista:'#ec4899'}[String(value||'').toLowerCase()]||'#9ca3af');
+    function card(agent,user,online=false){
+      const override=overrideFor(agent.id),role=override.role??agent.role??'',grade=override.qualifica||agent.qualifica||'marinaio';
+      const roles=[...new Set([...roleOptions,role].filter((v,i,a)=>a.indexOf(v)===i))],grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),grade].filter(Boolean))];
+      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${user?`<button class="reset-pin" type="button">Reset PIN</button><button class="delete-registration" type="button">Elimina</button>`:''}</div>`;
+      return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(grade)}</span></div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>Grado<select data-grade>${grades.map(item=>`<option value="${esc(item)}"${item===grade?' selected':''}>${esc(item)}</option>`).join('')}</select></label>${actions}</article>`;
+    }
+    function render(){
+      const registeredIds=new Set(registry.map(item=>String(item.id))),byId=new Map(directory.map(item=>[String(item.id),item]));
+      registry.forEach(user=>{if(!byId.has(String(user.id)))byId.set(String(user.id),{id:String(user.id),name:user.name||user.id,residence:user.residence||'',qualifica:user.qualifica||'',role:user.role||''})});
+      const registered=registry.map(user=>({user,agent:byId.get(String(user.id))})).sort((a,b)=>{
+        const accessA=time(a.user.lastAccess),accessB=time(b.user.lastAccess);
+        if(accessA!==accessB)return accessB-accessA;
+        if(Boolean(accessA)!==Boolean(accessB))return accessA?-1:1;
+        return String(a.agent?.name||a.user.name||'').localeCompare(String(b.agent?.name||b.user.name||''),'it');
+      });
+      const others=[...byId.values()].filter(agent=>!registeredIds.has(String(agent.id))).sort((a,b)=>a.name.localeCompare(b.name,'it'));
+      const online=presence.map(item=>{const agent=byId.get(String(item.id))||{id:item.id,name:item.name||item.id,residence:'',qualifica:'marinaio',role:''};const user=registry.find(entry=>String(entry.id)===String(item.id))||{id:item.id,name:item.name};return {agent,user:{...user,onlineAt:item.lastSeen}};});
+      $('latest-user').innerHTML=online.length?online.map(item=>card(item.agent,item.user,true)).join(''):'<div class="empty">Nessun utente connesso in questo momento.</div>';
+      $('registered-users').innerHTML=registered.length?registered.map(item=>card(item.agent,item.user)).join(''):'<div class="empty">Nessun agente registrato.</div>';
+      $('other-users').innerHTML=others.length?others.map(agent=>card(agent,null)).join(''):'<div class="empty">Tutti gli agenti risultano registrati.</div>';
+      $('online-count').textContent=online.length;$('registered-count').textContent=registered.length;$('other-count').textContent=others.length;
+    }
+    document.addEventListener('change',event=>{const select=event.target.closest('[data-grade]');if(!select)return;const row=select.closest('.agent-row');row.style.setProperty('--grade-color',gradeColor(select.value));row.querySelector('.grade-badge').textContent=select.value;});
+    document.addEventListener('click',async event=>{
+      const button=event.target.closest('.save-agent,.reset-pin,.delete-registration');if(!button)return;const row=button.closest('[data-agent-id]'),targetAgentId=row.dataset.agentId,user=registry.find(item=>String(item.id)===String(targetAgentId));button.disabled=true;
+      try{
+        if(button.classList.contains('save-agent')){const saved=await NaviAdminFirebase.saveAgentProfile(targetAgentId,{role:row.querySelector('[data-role]').value,qualifica:row.querySelector('[data-grade]').value});profiles[String(saved.id)]=saved;NaviSharedData.clear();$('status').textContent='Ruolo e grado salvati su Firebase.';}
+        else{
+          if(button.classList.contains('reset-pin')){if(!confirm(`Resettare il PIN di ${user?.name||targetAgentId}?`))return;await NaviAdminFirebase.resetUserAuth(targetAgentId);localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);$('status').textContent=`PIN di ${user?.name||targetAgentId} resettato.`;}
+          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e potrà registrarsi nuovamente.`))return;await Promise.all([NaviAdminFirebase.resetUserAuth(targetAgentId),NaviAdminFirebase.deleteRegisteredUser(targetAgentId)]);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione di ${user?.name||targetAgentId} eliminata.`;}
+        }
+        $('status').className='status ok';
+      }catch(error){$('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}finally{button.disabled=false;}
+    });
+    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};presence=await NaviAdminFirebase.listUserPresence();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+GUIDA SEMPLICE A NAVISUITE
+==========================
+
+Questa guida spiega come entrare nel sito e usare le funzioni principali.
+Non è necessario installare programmi.
+
+
+1. COME APRIRE IL SITO
+----------------------
+
+1. Apri il collegamento ricevuto dall’ufficio.
+2. Attendi la comparsa della pagina NaviSuite.
+3. Se usi spesso il sito, salvalo tra i Preferiti del browser.
+
+Importante: usa possibilmente sempre lo stesso browser e lo stesso dispositivo.
+Per esempio, se hai iniziato con Chrome sul telefono, continua a usare Chrome.
+
+
+2. COME ENTRARE
+---------------
+
+1. Tocca o fai clic nel campo con il nome dell’agente.
+2. Scrivi le prime lettere del tuo cognome.
+3. Seleziona il tuo nome dall’elenco proposto.
+4. Inserisci il tuo PIN.
+5. Premi il pulsante per entrare.
+
+Al primo accesso:
+
+- il PIN iniziale è 1957;
+- il sito chiederà di scegliere un PIN personale;
+- scegli un PIN che ricordi facilmente, ma che gli altri non possano indovinare;
+- non comunicare il PIN ad altri colleghi.
+
+Se avevi già impostato un PIN in passato, prova prima quello abituale.
+Il sito cercherà di trasferirlo automaticamente nel nuovo archivio Firebase.
+
+
+3. LA PAGINA INIZIALE
+---------------------
+
+Dopo l’accesso compaiono le funzioni disponibili per il tuo profilo.
+Non tutti vedono gli stessi pulsanti: alcune funzioni sono riservate agli
+amministratori o all’Ufficio Movimento.
+
+Le funzioni principali sono:
+
+- NaviTurni: consulta i turni e gli equipaggi;
+- Trova turno: cerca un possibile cambio con un collega;
+- NaviDiaria: compila e consulta la diaria personale;
+- Documenti: apre turni, bozze e ordini di servizio;
+- Orario: consulta corse, orari e coincidenze;
+- Impostazioni: gestisce preferenze e PIN.
+
+
+4. CONSULTARE I TURNI
+---------------------
+
+1. Dalla pagina iniziale premi “NaviTurni”.
+2. Il tuo nominativo viene riconosciuto automaticamente.
+3. Scegli la residenza, se necessario.
+4. Scorri la tabella verso destra o sinistra per cambiare giorno.
+5. Tocca una casella per vedere i dettagli del turno e dell’equipaggio.
+
+Il proprio turno è evidenziato. I colori e le sigle aiutano a distinguere
+turni, riposi, assenze e variazioni.
+
+Per aggiornare i dati premi “Aggiorna”. Se manca la connessione, il sito può
+mostrare l’ultima copia salvata sul dispositivo.
+
+
+5. CERCARE UN CAMBIO TURNO
+--------------------------
+
+1. Apri “Trova turno”.
+2. Seleziona il giorno e il turno che vuoi cambiare.
+3. Consulta i colleghi compatibili proposti dal sito.
+4. Seleziona il collega e controlla attentamente le date e i turni.
+5. Invia la richiesta.
+
+L’invio della richiesta non significa che il cambio sia già approvato.
+Attendi sempre la conferma prevista dall’ufficio.
+
+Puoi consultare le richieste già inviate e, quando consentito, eliminarle.
+
+
+6. USARE NAVIDIARIA
+-------------------
+
+1. Apri “NaviDiaria”.
+2. Scegli il giorno da compilare.
+3. Controlla il turno importato automaticamente.
+4. Inserisci o correggi le informazioni richieste.
+5. Premi “Salva”.
+
+Quando il salvataggio è riuscito compare l’indicazione Firebase o “Salvato”.
+Se manca la rete, le modifiche possono restare sul dispositivo: non cancellare
+i dati del browser e riprova il salvataggio quando torna la connessione.
+
+
+7. APRIRE I DOCUMENTI
+---------------------
+
+1. Apri “Documenti”.
+2. Scegli la sezione Turni oppure ODS.
+3. Tocca il documento desiderato.
+4. Il PDF si apre in una nuova scheda.
+
+La scritta “Bozza” indica un documento non ancora definitivo.
+Controlla sempre titolo, numero e periodo di validità.
+
+
+8. CONSULTARE GLI ORARI
+-----------------------
+
+Apri “Orario” per vedere il grafico delle corse e delle coincidenze.
+Usa “Orari tabella” se preferisci una visualizzazione in forma di elenco.
+
+Queste funzioni possono essere visibili soltanto ai profili autorizzati.
+
+
+9. CAMBIARE IL PIN
+------------------
+
+1. Apri “Impostazioni” oppure il comando “Cambia PIN”.
+2. Inserisci il PIN attuale.
+3. Inserisci due volte il nuovo PIN.
+4. Premi “Salva”.
+
+Se dimentichi il PIN, chiedi a un amministratore di eseguire il reset.
+Dopo il reset entrerai con il PIN iniziale 1957 e ne sceglierai uno nuovo.
+
+
+10. USCIRE DAL SITO
+-------------------
+
+Quando hai terminato, premi “Esci”, soprattutto se usi un telefono, tablet o
+computer condiviso. Chiudere soltanto la pagina potrebbe lasciare aperta la
+sessione.
+
+
+11. SE QUALCOSA NON FUNZIONA
+----------------------------
+
+Prima prova questi passaggi, nell’ordine:
+
+1. Controlla che il telefono o il computer sia collegato a Internet.
+2. Premi “Aggiorna” nella pagina.
+3. Chiudi il sito e riaprilo.
+4. Ricarica completamente la pagina:
+   - su Windows premi Ctrl+F5;
+   - su telefono chiudi la scheda e riapri il collegamento.
+5. Verifica di aver selezionato il nominativo corretto.
+6. Controlla di non aver confuso il PIN con quello di un altro servizio.
+
+Non cancellare la cronologia o i dati del browser senza aver prima chiesto
+assistenza: potrebbero contenere turni, preferenze o il vecchio PIN necessario
+per la migrazione.
+
+Quando chiedi assistenza comunica:
+
+- il tuo nominativo;
+- la pagina che stavi usando;
+- cosa hai premuto;
+- il messaggio di errore comparso;
+- se possibile, una fotografia o schermata dell’errore.
+
+Non inviare mai una fotografia in cui sia visibile il PIN.
+
+
+12. REGOLE IMPORTANTI
+---------------------
+
+- Non condividere il PIN.
+- Esci sempre dai dispositivi condivisi.
+- Controlla che turni e documenti siano aggiornati.
+- Una richiesta di cambio non equivale a un’approvazione.
+- In caso di dubbio, contatta l’Ufficio Movimento.
+

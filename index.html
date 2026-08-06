@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NaviDiaria">
+  <meta name="theme-color" content="#002b5e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Accesso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/portal.css">
+</head>
+<body>
+  <main class="portal-shell">
+    <section class="portal-intro" aria-labelledby="portalTitle">
+      <a class="portal-brand" href="index.html"><span>N</span> Navi</a>
+      <div>
+        <p class="eyebrow">UN SOLO ACCESSO</p>
+        <h1 id="portalTitle">Il tuo spazio di lavoro,<br><em>tutto in un porto.</em></h1>
+        <p class="intro-copy">Accedi una volta e scegli se consultare i turni oppure aggiornare la tua diaria.</p>
+      </div>
+      <p class="local-note"><i></i> Il PIN resta salvato soltanto su questo dispositivo.</p>
+    </section>
+
+    <section class="portal-panel">
+      <form id="loginForm" class="access-card">
+        <p class="eyebrow">ACCESSO PERSONALE</p>
+        <h2>Bentornato a bordo</h2>
+        <p>Inserisci il cognome e il tuo PIN personale.</p>
+        <label>Cognome
+          <input id="agentSearch" type="text" list="agentSuggestions" autocomplete="off" placeholder="Inizia a digitare il cognome…" required>
+          <datalist id="agentSuggestions"></datalist>
+        </label>
+        <label>PIN personale
+          <input id="agentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="current-password" placeholder="Da 4 a 8 cifre" required>
+        </label>
+        <p id="loginMessage" class="form-message" aria-live="polite"></p>
+        <button id="loginSubmit" type="submit">Accedi <span>→</span></button>
+      </form>
+
+      <form id="firstPinForm" class="access-card" hidden>
+        <p class="eyebrow">PRIMO ACCESSO</p>
+        <h2>Scegli il tuo PIN</h2>
+        <p>Il PIN iniziale è valido una sola volta. Imposta ora un PIN personale da 4 a 8 cifre.</p>
+        <label>Nuovo PIN
+          <input id="firstNewPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Da 4 a 8 cifre" required>
+        </label>
+        <label>Conferma nuovo PIN
+          <input id="firstConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Ripeti il nuovo PIN" required>
+        </label>
+        <p id="firstPinMessage" class="form-message" aria-live="polite"></p>
+        <button id="firstPinSubmit" type="submit">Salva e accedi <span>→</span></button>
+      </form>
+
+      <div id="appChoice" class="choice-card" hidden>
+        <p class="eyebrow">BENTORNATO</p>
+        <h2 id="welcomeUser">Dove vuoi andare?</h2>
+        <p>Scegli l’area da aprire. Potrai passare da una all’altra senza accedere di nuovo.</p>
+        <div class="app-grid">
+          <a class="app-card turni" href="naviturni.html" data-navi-tab="NaviTurniTab"><span class="app-icon">▦</span><small>PIANIFICAZIONE</small><strong>NaviTurni</strong><p>Consulta turni, equipaggi e coperture.</p><b>Apri NaviTurni →</b></a>
+          <a class="app-card trova" href="cambi_turno.html" data-navi-tab="NaviTrovaTurnoTab"><span class="app-icon">⇄</span><small>CAMBI TURNO</small><strong>Trova turno</strong><p>Cerca e confronta i cambi disponibili.</p><b>Apri Trova turno →</b></a>
+          <a class="app-card diaria" href="navidiaria.html" data-navi-tab="NaviDiariaTab"><span class="app-icon">≈</span><small>REGISTRO PERSONALE</small><strong>NaviDiaria</strong><p>Gestisci ore, competenze e diaria.</p><b>Apri NaviDiaria →</b></a>
+          <a class="app-card docs" href="documenti.html" data-navi-tab="NaviOdsTab"><span class="app-icon">▤</span><small>ARCHIVIO PDF</small><strong>NaviOds</strong><p>Consulta turni, bozze e ordini di servizio.</p><b>Apri l’archivio →</b></a>
+          <a class="app-card orario" href="Orario.html" data-navi-tab="NaviOrarioTab" hidden><span class="app-icon">◴</span><small>GRAFICO SERVIZIO</small><strong>Orario</strong><p>Apri il diagramma interattivo di corse e coincidenze.</p><b>Apri Orario →</b></a>
+          <a class="app-card orari-tabella" href="orari-tabella.html" data-navi-tab="NaviOrarioTab" hidden><span class="app-icon">▥</span><small>TABELLE ORARI</small><strong>Orari tabella</strong><p>Consulta e modifica gli orari in due tabelle, nord e sud.</p><b>Apri le tabelle →</b></a>
+          <a class="app-card settings" href="impostazioni.html" data-navi-tab="NaviImpostazioniTab"><span class="app-icon">⚙</span><small>PREFERENZE</small><strong>Impostazioni</strong><p>Gestisci preferenze, settimane e profilo.</p><b>Apri Impostazioni →</b></a>
+          <a class="app-card updates" href="aggiornamenti.html" data-navi-tab="NaviAggiornamentiTab" hidden><span class="app-icon">↻</span><small>AMMINISTRAZIONE</small><strong>Aggiornamenti</strong><p>Importa ODS, turni, bozze e variazioni.</p><b>Apri Aggiornamenti →</b></a>
+          <a class="app-card agents" href="agenti.html" data-navi-tab="NaviAgentiTab" hidden><span class="app-icon">♙</span><small>AMMINISTRAZIONE</small><strong>Agenti</strong><p>Gestisci accessi, ruoli e gradi del personale.</p><b>Apri Gestione agenti →</b></a>
+        </div>
+        <button id="logoutButton" class="text-button" type="button">Esci e cambia utente</button>
+      </div>
+    </section>
+  </main>
+  <script src="assets/js/admin-firebase-rest.js?v=33"></script>
+  <script src="assets/js/shared-data.js"></script>
+  <script src="assets/js/firebase-auth.js"></script>
+  <script src="assets/js/portal.js?v=97"></script>
+</body>
+</html>
