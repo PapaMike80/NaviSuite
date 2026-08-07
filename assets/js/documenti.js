@@ -33,6 +33,21 @@ const elements = {
 let viewerRenderToken = 0;
 const documentContentCache = new Map();
 
+function isAdminUser() {
+  try {
+    const agent = JSON.parse(
+      localStorage.getItem('navidiaria.activeAgent') ||
+      localStorage.getItem('naviturni_logged_agent') ||
+      'null'
+    );
+    if (!agent) return false;
+    return ['91', '92'].includes(String(agent.id || '')) ||
+      String(agent.role || '').toLowerCase() === 'admin';
+  } catch {
+    return false;
+  }
+}
+
 function setText(id, text) {
   const element = document.getElementById(id);
   if (element) element.textContent = text;
@@ -349,10 +364,12 @@ function odsCard(documentItem) {
 }
 
 function documentActions(documentItem) {
+  const showDelete = isAdminUser() && documentItem.source === 'firebase';
   return `
     <div class="document-actions">
       <button class="document-action" type="button" data-open-document="${escapeHtml(documentItem.id)}">Apri</button>
       <button class="document-action download" type="button" data-download-document="${escapeHtml(documentItem.id)}">↓ Scarica</button>
+      ${showDelete ? `<button class="document-action delete" type="button" data-delete-document="${escapeHtml(documentItem.id)}">✕ Elimina</button>` : ''}
     </div>
   `;
 }
@@ -489,6 +506,18 @@ async function downloadDocument(documentId) {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
 }
 
+async function deleteDocument(documentId) {
+  const documentItem = state.documents.find(item => String(item.id) === String(documentId));
+  if (!documentItem) return;
+  if (!confirm(`Eliminare "${documentItem.titolo || documentItem.filename}"?`)) return;
+  const provider = window.NaviAdminFirebase;
+  if (!provider?.deleteAdminDocument) throw new Error('Eliminazione non disponibile');
+  await provider.deleteAdminDocument(documentItem.id);
+  documentContentCache.delete(String(documentItem.id));
+  state.documents = state.documents.filter(item => String(item.id) !== String(documentId));
+  renderDocuments();
+}
+
 function closeDocument() {
   if (!elements.viewer) return;
   viewerRenderToken += 1;
@@ -562,6 +591,19 @@ function renderDocuments() {
       event.stopPropagation();
       downloadDocument(button.dataset.downloadDocument).catch(error => {
       if(elements.notice){elements.notice.hidden=false;elements.notice.textContent=`Non riesco a scaricare il documento: ${error.message}`}
+      });
+    });
+  });
+  document.querySelectorAll('[data-delete-document]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      button.disabled = true;
+      const originalLabel = button.textContent;
+      button.textContent = 'Eliminazione…';
+      deleteDocument(button.dataset.deleteDocument).catch(error => {
+        if (elements.notice) { elements.notice.hidden = false; elements.notice.textContent = `Non riesco a eliminare il documento: ${error.message}`; }
+        button.disabled = false;
+        button.textContent = originalLabel;
       });
     });
   });
