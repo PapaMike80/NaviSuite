@@ -44,6 +44,15 @@
     return store(await window.NaviAdminFirebase.saveDraftPeriod(normalize(value)));
   }
 
-  window.NaviDraftPeriod = {get:() => ({...current}), contains, refresh, save, defaults:{...DEFAULT_PERIOD}};
+  async function reset() {
+    if (!window.NaviAdminFirebase?.resetDraftPeriod) throw new Error('Firebase non disponibile');
+    await window.NaviAdminFirebase.resetDraftPeriod();
+    localStorage.removeItem(CACHE_KEY);
+    current = {...DEFAULT_PERIOD};
+    window.dispatchEvent(new CustomEvent('navisuite-draft-period-updated', {detail:{...current}}));
+    return true;
+  }
+
+  window.NaviDraftPeriod = {get:() => ({...current}), contains, refresh, save, reset, defaults:{...DEFAULT_PERIOD}};
   window.addEventListener('DOMContentLoaded', () => setTimeout(refresh, 150));
 })();

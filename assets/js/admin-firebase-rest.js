@@ -210,6 +210,11 @@
     return item;
   }
 
+  async function resetDraftPeriod() {
+    await databaseRequest("private/adminUpdates/draftPeriod", { method:"DELETE" });
+    return true;
+  }
+
   async function getAdminDocuments() {
     const result = await databaseRequest("private/adminUpdates/documentsMeta");
     return Object.entries(result.data || {}).map(([id, value]) => ({ ...(value || {}), id:String(value?.id || id) }));
@@ -464,6 +469,7 @@
     saveAdminUpdates,
     getDraftPeriod,
     saveDraftPeriod,
+    resetDraftPeriod,
     getAdminDocuments,
     getAdminDocumentFile,
     saveAdminDocument,

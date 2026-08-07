@@ -806,9 +806,26 @@
       setStatus(repairedLegacyTurn?'✓ Turno 22 giugno–26 luglio riparato per nome agente e salvato su Firebase.':'Connesso a Firebase. Puoi importare i documenti o registrare una variazione.','ok');
     }
     $('agent').addEventListener('change',updateCurrent);$('date').addEventListener('change',updateCurrent);
-    $('new-ods-file').addEventListener('change',event=>{
-      const inferred=inferOdsNumber(event.target.files?.[0]?.name);
+    $('new-ods-file').addEventListener('change',async event=>{
+      const file=event.target.files?.[0];
+      const inferred=inferOdsNumber(file?.name);
       if(inferred)$('new-ods-number').value=inferred;
+      if(!file)return;
+      try{
+        await parseImport('ods');
+        const rows=collectPending('ods');
+        if(!rows.length){setStatus('Nessuna riga ODS valida nel file caricato.','bad');return}
+        state.odsVariations=merge(state.odsVariations,rows,variationKey);
+        const touchesRequest=request=>rows.some(variation=>odsVariationMatchesRequest(variation,request));
+        state.dismissedOdsApprovals=(state.dismissedOdsApprovals||[]).filter(item=>{
+          const request=changeRequests.find(entry=>String(entry.id)===String(item.requestId));
+          return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
+        });
+        await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;
+        $('import-result').hidden=true;
+        $('new-ods-file').value='';
+        setStatus(`✓ ODS importato e salvato: ${rows.length} variazioni.`,'ok');
+      }catch(error){setStatus(`Errore ODS: ${error.message}`,'bad')}
     });
     $('new-turn-file').addEventListener('change',event=>{
       const file=event.target.files?.[0];
