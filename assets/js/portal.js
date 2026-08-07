@@ -1,7 +1,6 @@
 const DIRECTORY_URL = '';
 const DIARIA_SESSION = 'navidiaria.activeAgent';
 const TURNI_SESSION = 'naviturni_logged_agent';
-const MOVEMENT_AGENT = { id:'MOVIMENTO', name:'Ufficio Movimento', qualifica:'ufficio', residence:'UFFICIO MOVIMENTO', role:'admin' };
 let agents = [];
 let pendingFirstLogin = null;
 let presenceTimer = null;
@@ -15,7 +14,7 @@ function startPresence(agent) {
 }
 
 const $ = id => document.getElementById(id);
-const isAdminAgent = agent => ['91', '92', 'MOVIMENTO'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
+const isAdminAgent = agent => ['91', '92'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
 const isDiariaTester = agent => isAdminAgent(agent) || ['superuser','super_user','super-user'].includes(String(agent?.role || '').toLowerCase());
 const isBaristaAgent = agent => String(agent?.role || '').toLowerCase() === 'barista' || String(agent?.qualifica || '').toLowerCase() === 'barista';
 let agentProfiles = {};
@@ -95,11 +94,9 @@ async function loadAgents() {
   }
   agents = NaviSharedData.directory() || [];
   await loadAgentProfiles();
-  agents = agents.map(applyAgentProfile);
-  const ordered = agents
-    .filter(agent => String(agent.id) !== MOVEMENT_AGENT.id)
+  agents = agents
+    .map(applyAgentProfile)
     .sort((a, b) => Number(isBaristaAgent(a)) - Number(isBaristaAgent(b)) || a.name.localeCompare(b.name, 'it'));
-  agents = [MOVEMENT_AGENT, ...ordered];
   renderSuggestions();
 }
 

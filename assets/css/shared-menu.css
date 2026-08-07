@@ -46,11 +46,11 @@ body.turni-page .mobile-liquid-nav { display: none; }
 		width: 94%; height: 68px; z-index: 99999;
 		justify-content: space-evenly; align-items: center;
 		border-radius: 40px;
-		background: rgba(7, 23, 32, 0.75);
-		backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-		border-top: 1px solid rgba(126, 243, 226, 0.2);
-		border-bottom: 1px solid rgba(0, 0, 0, 0.8);
-		box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.06), inset 0 -2px 5px rgba(0, 0, 0, 0.6);
+		background: rgba(18, 34, 45, 0.42);
+		backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+		border-top: 1px solid rgba(255, 255, 255, 0.2);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 		transition: transform .28s cubic-bezier(.22,.8,.28,1), opacity .2s ease;
 		will-change: transform, opacity;
 	}
@@ -81,9 +81,10 @@ body.turni-page .mobile-liquid-nav { display: none; }
 	/* Adattamento automatico al tema chiaro del telefono */
 	@media (prefers-color-scheme: light) {
 		body.turni-page .mobile-liquid-nav {
-			background: rgba(245, 247, 250, 0.8);
-			border-top: 1px solid rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-			box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -2px 5px rgba(0, 0, 0, 0.05);
+			background: rgba(248, 250, 252, 0.5);
+			backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+			border-top: 1px solid rgba(255, 255, 255, 0.7); border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+			box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 		}
 		body.turni-page .mobile-liquid-nav .nav-item { color: #4b5563; }
 		body.turni-page .mobile-liquid-nav .nav-item.active {
@@ -114,9 +115,9 @@ body.turni-page .liquid-modal-overlay {
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
-	background: rgba(3, 10, 16, 0.6);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
+	background: rgba(3, 10, 16, 0.35);
+	backdrop-filter: blur(16px) saturate(140%);
+	-webkit-backdrop-filter: blur(16px) saturate(140%);
 	opacity: 0;
 	pointer-events: none;
 	transition: opacity 0.3s ease;
@@ -132,11 +133,13 @@ body.turni-page .liquid-modal-content {
 	width: 100%;
 	max-height: 85vh;
 	overflow-y: auto;
-	background: rgba(11, 28, 38, 0.95);
-	border-top: 1px solid rgba(126, 243, 226, 0.15);
+	background: rgba(16, 34, 45, 0.55);
+	backdrop-filter: blur(40px) saturate(180%);
+	-webkit-backdrop-filter: blur(40px) saturate(180%);
+	border-top: 1px solid rgba(255, 255, 255, 0.18);
 	border-radius: 24px 24px 0 0;
 	padding: 16px 24px 40px;
-	box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+	box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 	transform: translateY(100%);
 	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -293,9 +296,12 @@ body.turni-page #modal-residence-buttons.modal-buttons-grid {
 		height:auto!important;
 		margin:0;
 		padding:8px 11px!important;
-		border:1px solid #28505a!important;
-		border-radius:11px!important;
-		background:#0d2c37!important;
+		border:1px solid rgba(255,255,255,.16)!important;
+		border-radius:13px!important;
+		background:rgba(255,255,255,.07)!important;
+		backdrop-filter:blur(10px);
+		-webkit-backdrop-filter:blur(10px);
+		box-shadow:inset 0 1px 0 rgba(255,255,255,.09);
 		color:#d8eef1!important;
 		font:750 11px/1.15 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
 		letter-spacing:0!important;
@@ -313,9 +319,10 @@ body.turni-page #modal-residence-buttons.modal-buttons-grid {
 	}
 
 	body.turni-page .mobile-menu-actions b { font:inherit; }
-	body.turni-page .mobile-menu-actions .admin-mobile-action { border-color:#287d70!important; }
+	body.turni-page .mobile-menu-actions .admin-mobile-action { border-color:rgba(45,212,191,.5)!important; }
 	body.turni-page .mobile-menu-actions .mobile-menu-logout {
-		border-color:#7f3341!important;
+		border-color:rgba(251,113,133,.5)!important;
+		background:rgba(251,113,133,.1)!important;
 		color:#fda4af!important;
 	}
 	body.turni-page .mobile-menu-actions .mobile-menu-logout span { color:#fb7185; }

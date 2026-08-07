@@ -107,6 +107,24 @@
       if (override.role !== undefined) agent.role = override.role;
     });
 
+    Object.values(profileOverrides).forEach(override => {
+      if (!override || !String(override?.residence || "").trim()) return;
+      const id = String(override.id || "").trim();
+      const name = String(override.name || "").trim();
+      if (!id || !name) return;
+      const uid = stableAgentUid(name);
+      if (byId.has(uid)) return;
+      const qualifica = String(override.qualifica || "").trim().toLowerCase();
+      byId.set(uid, {
+        id,
+        agent_uid: uid,
+        name,
+        qualifica,
+        residence: String(override.residence).trim(),
+        role: String(override.role || "").trim().toLowerCase()
+      });
+    });
+
     return [...byId.values()].sort((a, b) => {
       const baristaA = String(a.role || a.qualifica || '').toLowerCase() === 'barista' ? 1 : 0;
       const baristaB = String(b.role || b.qualifica || '').toLowerCase() === 'barista' ? 1 : 0;
@@ -117,6 +135,7 @@
   function save(data) {
     normalizeScheduleAgents(data);
     normalizeScheduleShifts(data);
+    injectProfileAgents(data);
     localStorage.setItem(DATA_KEY, JSON.stringify(data));
     localStorage.setItem(TIME_KEY, String(Date.now()));
     localStorage.setItem(DIRECTORY_KEY, JSON.stringify(directoryFrom(data)));
@@ -145,6 +164,75 @@
         if (Array.isArray(week)) week.forEach((shift,index) => { week[index] = normalizedImportedShift(shift); });
       });
     }));
+    return data;
+  }
+
+  const UFFICI_RESIDENCE = "Uffici";
+  const UFFICI_OFFICES = ["movimento", "amministrazione", "personale", "controllo", "direzione"];
+
+  // Residenza fittizia "Uffici": gli agenti vengono creati dalla pagina di
+  // gestione agenti e salvati tra i profili amministrativi; qui vengono
+  // iniettati come residenza vera e propria così che NaviTurni, il login e
+  // l'anagrafica li trattino come tutti gli altri.
+  function injectUfficiResidence(data) {
+    if (!data || typeof data !== "object") return data;
+    const profiles = Object.values(data.agentProfileOverrides || {})
+      .filter(item => item && String(item.id || "").trim() &&
+        String(item.residence || "").trim().toLowerCase() === "uffici");
+    if (!profiles.length) {
+      if (data.residenze) delete data.residenze[UFFICI_RESIDENCE];
+      return data;
+    }
+    const rows = profiles.map(item => {
+      const qualifica = String(item.qualifica || "").trim().toLowerCase();
+      return {
+        agente: String(item.name || item.id || "").trim(),
+        id: String(item.id).trim(),
+        qualifica: UFFICI_OFFICES.includes(qualifica) ? qualifica : String(item.qualifica || "").trim().toLowerCase(),
+        role: String(item.role || "").trim().toLowerCase(),
+        turni: {},
+        turni_settimanali: {}
+      };
+    }).filter(item => item.agente)
+      .sort((a, b) => a.agente.localeCompare(b.agente, "it"));
+    data.residenze = data.residenze || {};
+    data.residenze[UFFICI_RESIDENCE] = rows;
+    return data;
+  }
+
+  // Iniezione estesa: oltre alla residenza "Uffici", gli agenti creati dalla
+  // pagina di gestione vengono aggiunti alla propria residenza se non sono
+  // già presenti nel turno ufficiale (confronto per id o nominativo).
+  function injectProfileAgents(data) {
+    if (!data || typeof data !== "object") return data;
+    injectUfficiResidence(data);
+    const extras = Object.values(data.agentProfileOverrides || {})
+      .filter(item => item && String(item.id || "").trim() &&
+        String(item.residence || "").trim() &&
+        String(item.residence || "").trim().toLowerCase() !== "uffici");
+    if (!extras.length) return data;
+    data.residenze = data.residenze || {};
+    extras.forEach(item => {
+      const residence = String(item.residence).trim();
+      const name = String(item.name || item.id || "").trim();
+      const id = String(item.id).trim();
+      const qualifica = String(item.qualifica || "").trim().toLowerCase();
+      if (!name || !residence) return;
+      const list = data.residenze[residence] = data.residenze[residence] || [];
+      const exists = list.some(agent =>
+        String(agent.id || "") === id ||
+        String(agent.agente || "").trim().toLocaleUpperCase("it") === name.toLocaleUpperCase("it")
+      );
+      if (exists) return;
+      list.push({
+        agente: name,
+        id,
+        qualifica,
+        role: String(item.role || "").trim().toLowerCase(),
+        turni: {},
+        turni_settimanali: {}
+      });
+    });
     return data;
   }
 
@@ -207,7 +295,11 @@
       Object.values(data.residenze || {}).forEach(list => (list || []).forEach(agent => {
         const override = profileOverrides[String(agent.id)] || Object.values(profileOverrides).find(item => String(item?.id) === String(agent.id));
         if (!override) return;
-        if (override.qualifica) agent.qualifica = override.qualifica;
+        if (override.qualifica) {
+          if (!agent.schedule_qualifica) agent.schedule_qualifica = String(agent.qualifica || '').trim().toLowerCase();
+          agent.qualifica = override.qualifica;
+          agent.regraded = String(override.qualifica).trim().toLowerCase() !== agent.schedule_qualifica;
+        }
         if (override.role !== undefined) agent.role = override.role;
       }));
       const ods = [...(updates.odsVariations || []), ...(updates.manualVariations || [])];
@@ -225,6 +317,11 @@
         data.bariste || [],
         updates.baristas || [],
         item => `${item?.data || ''}|${item?.corsa || ''}|${String(item?.barista || item?.agente || item?.nome || '').trim().toLocaleUpperCase('it')}`
+      );
+      data.turni_navi = replaceByKey(
+        data.turni_navi || [],
+        updates.turniNavi || [],
+        item => `${item?.data || ''}|${item?.corsa || ''}|${String(item?.nave || '').trim().toLocaleUpperCase('it')}`
       );
       data.dismissedOdsApprovals = Array.isArray(updates.dismissedOdsApprovals) ? updates.dismissedOdsApprovals : [];
     } catch (error) {
@@ -303,6 +400,7 @@
     clear,
     isFresh:() => !!cached(),
     source:() => lastSource,
-    provider:() => lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale'
+    provider:() => lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale',
+    seniorityRank:name => pdfSeniorityRank({ agente: name })
   };
 })();

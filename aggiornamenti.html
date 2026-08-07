@@ -71,6 +71,12 @@
             <input id="new-bariste-file" type="file" accept=".pdf,.json,.csv,application/pdf">
             <div class="actions"><button id="parse-new-bariste">Leggi e prepara turni</button><button id="save-new-bariste" class="primary" disabled>Salva righe confermate</button></div>
           </section>
+          <section class="import-box">
+            <h3>Nuovi turni nave</h3>
+            <p>Carica il prospetto PDF oppure un JSON/CSV con data, corsa, nave, rifornimento mattina e ormeggio serale.</p>
+            <input id="new-nave-file" type="file" accept=".pdf,.json,.csv,application/pdf">
+            <div class="actions"><button id="parse-new-nave">Leggi e prepara turni nave</button><button id="save-new-nave" class="primary" disabled>Salva righe confermate</button></div>
+          </section>
           <section class="import-box full-upload">
             <h3>Importa nuove settimane</h3>
             <p>Legge il turno o la bozza dell’Ufficio Movimento, aggiorna Firebase e conserva un’unica importazione eliminabile. Ogni settimana ha sempre 7 giornate; le celle vuote diventano RIP.</p>
@@ -143,15 +149,16 @@
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script>
   (() => {
-    const state={odsVariations:[],manualVariations:[],baristas:[],approvedChangeRequests:[],dismissedOdsApprovals:[],scheduleImports:[]};
+    const state={odsVariations:[],manualVariations:[],baristas:[],approvedChangeRequests:[],dismissedOdsApprovals:[],scheduleImports:[],turniNavi:[]};
     let schedule=null;
-    let pendingOds=[],pendingBaristas=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
+    let pendingOds=[],pendingBaristas=[],pendingNavi=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
     const $=id=>document.getElementById(id);
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const profile=()=>window.TurniShared?.readLoggedAgentProfile?.()||JSON.parse(localStorage.getItem('naviturni_logged_agent')||'null');
     const isAdmin=p=>['91','92'].includes(String(p?.id||''))||String(p?.role||'').toLowerCase()==='admin';
     const variationKey=v=>`${v.data}|${v.id_agente||v.agente}|${v.tipo||''}|${v.ods||''}`;
     const baristaKey=v=>`${v.data}|${v.corsa}|${v.id||v.barista}`;
+    const turnoNaveKey=v=>`${v.data}|${v.corsa}|${v.nave||''}`;
     const merge=(base,extra,key)=>{const m=new Map((base||[]).map(v=>[key(v),v]));(extra||[]).forEach(v=>m.set(key(v),v));return [...m.values()]};
     const setStatus=(text,kind='')=>{$('status').textContent=text;$('status').className=`status ${kind}`.trim()};
     const inferOdsNumber=fileName=>{
@@ -416,6 +423,7 @@
       const approvedRows=allManualRows.filter(v=>String(v.requestId||''));
       const otherRows=allManualRows.filter(v=>!String(v.requestId||''));
       const baristaRows=state.baristas.map((v,i)=>({...v,_kind:'BARISTA',_index:i})).filter(v=>v.attiva!==false);
+      const naveRows=state.turniNavi.map((v,i)=>({...v,_kind:'NAVE',_index:i})).filter(v=>v.attiva!==false);
       let html='';
       grouped.forEach(([ods,rows],groupIndex)=>{
         rows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.agente).localeCompare(String(b.agente),'it'));
@@ -448,6 +456,14 @@
         html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra turni bariste">▸</button><strong>TURNI BARISTE</strong><span class="ods-group-count">${baristaRows.length} assegnazioni · ${names} bariste</span></div></td><td colspan="3">${esc(period)}</td><td><button class="danger" data-delete-baristas>Elimina</button></td></tr>`;
         html+=baristaRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.corsa).localeCompare(String(b.corsa))||String(a.barista).localeCompare(String(b.barista),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.barista)}</td><td>Corsa <strong>${esc(v.corsa)}</strong></td><td>${esc(v.note||'')}</td><td>—</td></tr>`).join('');
       }
+      if(naveRows.length){
+        const dates=naveRows.map(v=>v.data).filter(Boolean).sort();
+        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
+        const ships=new Set(naveRows.map(v=>String(v.nave||'').trim()).filter(Boolean)).size;
+        const groupId='nave-group';
+        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra turni nave">▸</button><strong>TURNI NAVE</strong><span class="ods-group-count">${naveRows.length} assegnazioni · ${ships} navi</span></div></td><td colspan="3">${esc(period)}</td><td><button class="danger" data-delete-nave>Elimina</button></td></tr>`;
+        html+=naveRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.corsa).localeCompare(String(b.corsa))||String(a.nave).localeCompare(String(b.nave),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.nave)}</td><td>Corsa <strong>${esc(v.corsa)}</strong>${/^(sì|si|true|1)$/i.test(String(v.rifornimento_mattina||''))?' · ⛽':''}</td><td>${esc(v.ormeggio_serale||'')}</td><td>—</td></tr>`).join('');
+      }
       $('history').innerHTML=html||'<tr><td class="empty" colspan="6">Nessun aggiornamento registrato.</td></tr>';
       $('history').querySelectorAll('[data-toggle-ods]').forEach(button=>button.addEventListener('click',()=>{
         const expanded=button.getAttribute('aria-expanded')==='true';
@@ -457,7 +473,7 @@
         $('history').querySelectorAll(`[data-ods-group="${button.dataset.toggleOds}"]`).forEach(row=>row.hidden=expanded);
       }));
       $('history').querySelectorAll('[data-toggle-row]').forEach(row=>row.addEventListener('click',event=>{
-        if(event.target.closest('[data-toggle-ods],[data-delete-ods],[data-delete-baristas]'))return;
+        if(event.target.closest('[data-toggle-ods],[data-delete-ods],[data-delete-baristas],[data-delete-nave]'))return;
         row.querySelector('[data-toggle-ods]')?.click();
       }));
       $('history').querySelectorAll('[data-delete-ods]').forEach(button=>button.addEventListener('click',async()=>{
@@ -472,6 +488,12 @@
         if(!confirm(`Eliminare tutte le ${baristaRows.length} assegnazioni delle bariste?`))return;
         const now=new Date().toISOString();
         state.baristas=state.baristas.map(v=>({...v,attiva:false,eliminata_il:now}));
+        await save();renderHistory();
+      });
+      $('history').querySelector('[data-delete-nave]')?.addEventListener('click',async()=>{
+        if(!confirm(`Eliminare tutte le ${naveRows.length} assegnazioni dei turni nave?`))return;
+        const now=new Date().toISOString();
+        state.turniNavi=state.turniNavi.map(v=>({...v,attiva:false,eliminata_il:now}));
         await save();renderHistory();
       });
       $('history').querySelectorAll('[data-delete-kind]').forEach(button=>button.addEventListener('click',async()=>{
@@ -537,18 +559,24 @@
     }
     function rowsFromDelimited(text,kind){
       const trimmed=text.trim();
+      const fromJson=row=>{
+        if(kind==='ods')return {data:isoDate(row.data||row.date),agente:row.agente||row.agent||'',id_agente:String(row.id_agente||row.agentId||''),turno_originale:String(row.turno_originale||row.oldShift||'').toUpperCase(),turno_nuovo:String(row.turno_nuovo||row.newShift||row.turno||'').toUpperCase(),note:row.note||''};
+        if(kind==='nave')return {data:isoDate(row.data||row.date),corsa:String(row.corsa||row.shift||row.turno||'').toUpperCase(),nave:String(row.nave||row.ship||row.motonave||'').trim(),rifornimento_mattina:String(row.rifornimento_mattina??row.rifornimento??'').trim(),ormeggio_serale:String(row.ormeggio_serale??row.ormeggio??'').trim()};
+        return {data:isoDate(row.data||row.date),corsa:String(row.corsa||row.shift||'').toUpperCase(),barista:row.barista||row.name||''};
+      };
       if(trimmed.startsWith('[')||trimmed.startsWith('{')){
-        const parsed=JSON.parse(trimmed),rows=Array.isArray(parsed)?parsed:(parsed.records||parsed.variations||[]);
-        return rows.map(row=>kind==='ods'?{
-          data:isoDate(row.data||row.date),agente:row.agente||row.agent||'',id_agente:String(row.id_agente||row.agentId||''),turno_originale:String(row.turno_originale||row.oldShift||'').toUpperCase(),turno_nuovo:String(row.turno_nuovo||row.newShift||row.turno||'').toUpperCase(),note:row.note||''
-        }:{data:isoDate(row.data||row.date),corsa:String(row.corsa||row.shift||'').toUpperCase(),barista:row.barista||row.name||''});
+        const parsed=JSON.parse(trimmed),rows=Array.isArray(parsed)?parsed:(parsed.records||parsed.variations||parsed.turni||[]);
+        return rows.map(fromJson);
       }
       const rows=trimmed.split(/\r?\n/).filter(Boolean).map(line=>line.split(/[;,]/).map(v=>v.trim()));
       const header=rows.shift().map(normalize);
       const get=(row,...names)=>{const index=header.findIndex(h=>names.includes(h));return index>=0?row[index]:''};
-      return rows.map(row=>kind==='ods'?{
-        data:isoDate(get(row,'DATA','DATE')),agente:get(row,'AGENTE','AGENT'),id_agente:get(row,'IDAGENTE','AGENTID'),turno_originale:get(row,'TURNOORIGINALE','OLDSHIFT'),turno_nuovo:String(get(row,'TURNONUOVO','NEWSHIFT','TURNO')).toUpperCase(),note:get(row,'NOTE','NOTA')
-      }:{data:isoDate(get(row,'DATA','DATE')),corsa:String(get(row,'CORSA','TURNO','SHIFT')).toUpperCase(),barista:get(row,'BARISTA','NOME','NAME')});
+      const fromCsv=row=>{
+        if(kind==='ods')return {data:isoDate(get(row,'DATA','DATE')),agente:get(row,'AGENTE','AGENT'),id_agente:get(row,'IDAGENTE','AGENTID'),turno_originale:get(row,'TURNOORIGINALE','OLDSHIFT'),turno_nuovo:String(get(row,'TURNONUOVO','NEWSHIFT','TURNO')).toUpperCase(),note:get(row,'NOTE','NOTA')};
+        if(kind==='nave')return {data:isoDate(get(row,'DATA','DATE')),corsa:String(get(row,'CORSA','TURNO','SHIFT')).toUpperCase(),nave:get(row,'NAVE','SHIP','MOTONAVE'),rifornimento_mattina:get(row,'RIFORNIMENTOMATTINA','RIFORNIMENTO'),ormeggio_serale:get(row,'ORMEGGIOSERALE','ORMEGGIO')};
+        return {data:isoDate(get(row,'DATA','DATE')),corsa:String(get(row,'CORSA','TURNO','SHIFT')).toUpperCase(),barista:get(row,'BARISTA','NOME','NAME')};
+      };
+      return rows.map(fromCsv);
     }
     function parseOdsPdf(pages,ods){
       const lines=linesFromItems(pages);
@@ -588,6 +616,27 @@
         });
       });
       return [...new Map(records.map(v=>[baristaKey(v),v])).values()].sort((a,b)=>a.data.localeCompare(b.data)||a.corsa.localeCompare(b.corsa));
+    }
+    function parseTurnoNavePdf(pages){
+      const lines=linesFromItems(pages);
+      const corsaRe=/\b(SR\d{1,2}|D\d{1,2}|P\d{1,2}|T\d{1,2}|M\d{1,2}|R\d{1,2}|BIS|TERRA|CAR|CAP)\b/i;
+      const skipWords=new Set(['NAVE','CORSA','DATA','MOTONAVE','LINEA','TURNO','TURNI','RIFORNIMENTO','ORMEGGIO','MATTINA','SERALE','TOTALE','TOT','ORE','NOTE','BRESCIA','GARDA']);
+      let currentDate='';
+      const records=[];
+      for(const line of lines){
+        const foundDate=italianDate(line)||isoDate(line);
+        if(foundDate&&foundDate!==currentDate){currentDate=foundDate}
+        if(!currentDate)continue;
+        const corsaMatch=line.match(corsaRe);
+        if(!corsaMatch)continue;
+        const corsa=corsaMatch[1].toUpperCase();
+        const refuel=/\bRIFORNIMENTO\b|⛽/i.test(line);
+        const mooringMatch=line.match(/\bORMEGGIO\s+(?:SERALE)?\s*[:\-]?\s*([A-ZÀ-Ü0-9 .,'’-]{2,})/i);
+        const words=line.toUpperCase().split(/\s+/).filter(w=>w.length>2&&!skipWords.has(w)&&!corsaRe.test(w)&&!/^\d+$/.test(w)&&!/\bRIFORNIMENTO\b|\bORMEGGIO\b/.test(w));
+        const nave=(words.join(' ').replace(/\s+/g,' ').trim())||'';
+        records.push({data:currentDate,corsa,nave,rifornimento_mattina:refuel?'sì':'',ormeggio_serale:(mooringMatch?.[1]||'').trim()});
+      }
+      return [...new Map(records.map(v=>[turnoNaveKey(v),v])).values()].sort((a,b)=>a.data.localeCompare(b.data)||a.corsa.localeCompare(b.corsa));
     }
     function normalizeImportedShift(value){
       const raw=String(value??'').trim().toUpperCase().replace(/[‐‑–—]/g,'-');
@@ -690,9 +739,13 @@
       setStatus(`${pendingTurnImport.rows.length} agenti riconosciuti. Controlla tutte le celle prima di salvare.`,'ok');
     }
     function renderPending(kind){
-      const rows=kind==='ods'?pendingOds:pendingBaristas,result=$('import-result');
+      const rows=kind==='ods'?pendingOds:kind==='nave'?pendingNavi:pendingBaristas,result=$('import-result');
       result.hidden=false;
       if(!rows.length){result.innerHTML='<div class="empty">Nessuna riga riconosciuta. Puoi usare un CSV o JSON, oppure controllare che il PDF abbia testo selezionabile.</div>';return}
+      if(kind==='nave'){
+        result.innerHTML=`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Nave</th><th>Rif. mattina</th><th>Ormeggio serale</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-nave="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="nave" value="${esc(v.nave)}"></td><td><input data-field="rifornimento_mattina" value="${esc(v.rifornimento_mattina)}"></td><td><input data-field="ormeggio_serale" value="${esc(v.ormeggio_serale)}"></td></tr>`).join('')}</tbody></table>`;
+        return;
+      }
       const options=agents().filter(a=>String(a.residence).toUpperCase()!=='BARISTE').sort((a,b)=>String(a.agente).localeCompare(String(b.agente),'it')).map(a=>`<option value="${esc(a.id)}">${esc(a.agente)}</option>`).join('');
       result.innerHTML=kind==='ods'
         ?`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Agente</th><th>Prima</th><th>Dopo</th><th>Nota</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-ods="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><select data-field="id_agente"><option value="">— scegli —</option>${options}</select></td><td><input data-field="turno_originale" value="${esc(v.turno_originale)}"></td><td><input data-field="turno_nuovo" value="${esc(v.turno_nuovo)}"></td><td><input data-field="note" value="${esc(v.note)}"></td></tr>`).join('')}</tbody></table>`
@@ -700,25 +753,27 @@
       if(kind==='ods')result.querySelectorAll('[data-pending-ods]').forEach((tr,i)=>{tr.querySelector('[data-field=id_agente]').value=String(rows[i].id_agente||resolveAgent(rows[i].agente)?.id||'')});
     }
     function collectPending(kind){
-      const selector=kind==='ods'?'[data-pending-ods]':'[data-pending-barista]';
+      const selector=kind==='ods'?'[data-pending-ods]':kind==='nave'?'[data-pending-nave]':'[data-pending-barista]';
       return [...$('import-result').querySelectorAll(selector)].filter(tr=>tr.querySelector('[data-field=use]').checked).map(tr=>{
         const value=field=>tr.querySelector(`[data-field=${field}]`)?.value.trim()||'';
+        if(kind==='nave')return {attiva:true,data:value('data'),corsa:value('corsa').toUpperCase(),nave:value('nave'),rifornimento_mattina:value('rifornimento_mattina'),ormeggio_serale:value('ormeggio_serale'),inserita_il:new Date().toISOString()};
         if(kind==='barista')return {data:value('data'),corsa:value('corsa').toUpperCase(),barista:value('barista')};
         const agent=agents().find(a=>String(a.id)===value('id_agente'));
         return {attiva:true,data:value('data'),id_agente:value('id_agente'),agente:agent?.agente||'',turno_originale:value('turno_originale').toUpperCase(),turno_nuovo:value('turno_nuovo').toUpperCase(),ods:$('new-ods-number').value.trim()||'importato',tipo:'ODS',note:value('note'),inserita_il:new Date().toISOString()};
-      }).filter(v=>v.data&&(kind==='barista'?v.corsa&&v.barista:v.id_agente&&v.turno_nuovo));
+      }).filter(v=>v.data&&(kind==='nave'?v.corsa&&v.nave:kind==='barista'?v.corsa&&v.barista:v.id_agente&&v.turno_nuovo));
     }
     async function parseImport(kind){
-      const input=$(kind==='ods'?'new-ods-file':'new-bariste-file'),file=input.files?.[0];
+      const input=$(kind==='ods'?'new-ods-file':kind==='nave'?'new-nave-file':'new-bariste-file'),file=input.files?.[0];
       if(!file)throw new Error('Seleziona prima un file');
       if(kind==='ods'&&!$('new-ods-number').value.trim())$('new-ods-number').value=inferOdsNumber(file.name);
       setStatus(`Lettura di ${file.name}…`);
       let records;
       if(/\.pdf$/i.test(file.name)){
         const pages=await loadPdfItems(file);
-        records=kind==='ods'?parseOdsPdf(pages,$('new-ods-number').value.trim()):parseBaristaPdf(pages);
+        records=kind==='ods'?parseOdsPdf(pages,$('new-ods-number').value.trim()):kind==='nave'?parseTurnoNavePdf(pages):parseBaristaPdf(pages);
       }else records=rowsFromDelimited(await file.text(),kind);
       if(kind==='ods'){pendingOds=records;$('save-new-ods').disabled=!records.length}
+      else if(kind==='nave'){pendingNavi=records;$('save-new-nave').disabled=!records.length}
       else{pendingBaristas=records;$('save-new-bariste').disabled=!records.length}
       renderPending(kind);
       setStatus(`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`,records.length?'ok':'bad');
@@ -735,6 +790,7 @@
       state.approvedChangeRequests=saved.approvedChangeRequests||[];
       state.dismissedOdsApprovals=saved.dismissedOdsApprovals||[];
       state.scheduleImports=saved.scheduleImports||[];
+      state.turniNavi=saved.turniNavi||[];
       const repairedLegacyTurn=repairLegacyScheduleImports();
       if(repairedLegacyTurn){await firebase.saveAdminUpdates(state);window.NaviSharedData?.clear?.()}
       changeRequests=await firebase.listChangeRequests();
@@ -767,6 +823,7 @@
     });
     $('parse-new-ods').addEventListener('click',()=>parseImport('ods').catch(error=>setStatus(`Errore importazione ODS: ${error.message}`,'bad')));
     $('parse-new-bariste').addEventListener('click',()=>parseImport('barista').catch(error=>setStatus(`Errore importazione turni: ${error.message}`,'bad')));
+    $('parse-new-nave').addEventListener('click',()=>parseImport('nave').catch(error=>setStatus(`Errore importazione turni nave: ${error.message}`,'bad')));
     $('parse-new-turn').addEventListener('click',()=>parseTurnImport().catch(error=>setStatus(`Errore lettura turno: ${error.message}`,'bad')));
     $('download-turn-sheet').addEventListener('click',exportScheduleCsv);
     $('parse-turn-sheet').addEventListener('click',async()=>{
@@ -793,6 +850,10 @@
     $('save-new-bariste').addEventListener('click',async()=>{
       const rows=collectPending('barista');if(!rows.length)return setStatus('Nessun turno barista valido da salvare.','bad');
       state.baristas=merge(state.baristas,rows,baristaKey);await save();$('save-new-bariste').disabled=true;
+    });
+    $('save-new-nave').addEventListener('click',async()=>{
+      const rows=collectPending('nave');if(!rows.length)return setStatus('Nessun turno nave valido da salvare.','bad');
+      state.turniNavi=merge(state.turniNavi,rows,turnoNaveKey);await save();renderHistory();$('save-new-nave').disabled=true;
     });
     $('save-new-turn').addEventListener('click',async()=>{
       const file=$('new-turn-file').files?.[0];if(!file)return;

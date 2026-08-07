@@ -487,7 +487,8 @@
     .week-start { border-left: 2px solid rgba(45, 212, 191, 0.55) !important; }
     .week-end { border-right: 2px solid rgba(255, 255, 255, 0.12) !important; }
 
-    .today-col {
+    /* La pagina "Cambi turno" conserva l'indicatore della colonna di oggi. */
+    body.trova-turno-page .today-col {
       box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent);
       background-color: rgba(45, 212, 191, 0.11) !important;
     }
@@ -574,10 +575,6 @@
       color: var(--accent);
     }
 
-    .date-header th.selected-day {
-      background: var(--accent) !important;
-      color: #06201c !important;
-    }
     .date-header th.hover-shared-date {
       filter:brightness(1.22) saturate(1.18);
       box-shadow:inset 0 0 0 2px #fef08a,0 0 16px rgba(250,204,21,.72),0 2px 0 var(--line) !important;
@@ -614,13 +611,9 @@
       background: rgba(var(--grade-rgb), 0.14) !important;
     }
 
-    td.today-col, th.today-col {
+    body.trova-turno-page td.today-col,
+    body.trova-turno-page th.today-col {
       box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent) !important;
-    }
-
-    td.col-selected {
-      outline: 2px solid rgba(45, 212, 191, 0.65);
-      outline-offset: -2px;
     }
 
     td.td-num {
@@ -766,10 +759,6 @@
 
     td.dom {
       background: rgba(239, 68, 68, 0.04);
-    }
-
-    td.col-selected {
-      background: rgba(45, 212, 191, 0.08) !important;
     }
 
     .cell-pill {

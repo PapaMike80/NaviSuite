@@ -140,7 +140,7 @@
   }
 
   async function getAdminUpdates() {
-    const [owner, updated, ods, manual, baristas, approvals, dismissedOds, scheduleImports] = await Promise.all([
+    const [owner, updated, ods, manual, baristas, approvals, dismissedOds, scheduleImports, turniNavi] = await Promise.all([
       databaseRequest("private/adminUpdates/ownerUid"),
       databaseRequest("private/adminUpdates/updatedAt"),
       databaseRequest("private/adminUpdates/odsVariations"),
@@ -148,7 +148,8 @@
       databaseRequest("private/adminUpdates/baristas"),
       databaseRequest("private/adminUpdates/approvedChangeRequests"),
       databaseRequest("private/adminUpdates/dismissedOdsApprovals"),
-      databaseRequest("private/adminUpdates/scheduleImports")
+      databaseRequest("private/adminUpdates/scheduleImports"),
+      databaseRequest("private/adminUpdates/turniNavi")
     ]);
     const asArray = input => Array.isArray(input) ? input.filter(Boolean) : Object.values(input || {});
     return {
@@ -161,6 +162,7 @@
       approvedChangeRequests:asArray(approvals.data),
       dismissedOdsApprovals:asArray(dismissedOds.data)
       ,scheduleImports:asArray(scheduleImports.data)
+      ,turniNavi:asArray(turniNavi.data)
       ,agentProfiles:(await databaseRequest("private/adminUpdates/agentProfiles")).data || {}
     };
   }
@@ -176,6 +178,7 @@
       approvedChangeRequests:Array.isArray(payload.approvedChangeRequests) ? payload.approvedChangeRequests : [],
       dismissedOdsApprovals:Array.isArray(payload.dismissedOdsApprovals) ? payload.dismissedOdsApprovals : []
       ,scheduleImports:Array.isArray(payload.scheduleImports) ? payload.scheduleImports : []
+      ,turniNavi:Array.isArray(payload.turniNavi) ? payload.turniNavi : []
     };
     await databaseRequest("private/adminUpdates", {
       method:"PATCH",
@@ -352,12 +355,21 @@
     if (!id) throw new Error("Agente non valido");
     const item = {
       id,
-      role:String(values.role || "").trim().toLowerCase(),
-      qualifica:String(values.qualifica || "").trim().toLowerCase(),
-      updatedAt:new Date().toISOString()
+      name: String(values.name || values.agente || "").trim(),
+      residence: String(values.residence || "").trim(),
+      role: String(values.role || "").trim().toLowerCase(),
+      qualifica: String(values.qualifica || "").trim().toLowerCase(),
+      updatedAt: new Date().toISOString()
     };
     await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PUT", body:JSON.stringify(item) });
     return item;
+  }
+
+  async function deleteAgentProfile(agentId) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"DELETE" });
+    return { id };
   }
 
   async function touchUserPresence(profile = {}) {
@@ -467,6 +479,7 @@
     getAgentAdminData,
     importLegacyUsers,
     saveAgentProfile,
+    deleteAgentProfile,
     touchUserPresence,
     listUserPresence,
     getQuizCorrections,

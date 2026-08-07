@@ -86,6 +86,12 @@ window.TurniShared = (() => {
       String(profile?.qualifica || "").toLowerCase() === "barista";
   }
 
+  function isOfficeProfile(profile) {
+    if (String(profile?.residence || "").toLowerCase() === "uffici") return true;
+    return ["movimento","amministrazione","personale","controllo","direzione"]
+      .includes(String(profile?.qualifica || "").toLowerCase());
+  }
+
   function getBaristaProfileId(record, name) {
     if (record?.id) return String(record.id);
     return `BARISTA_${String(name || "")
@@ -105,6 +111,7 @@ window.TurniShared = (() => {
     isSyntheticClickAfterTouch,
     readLoggedAgentProfile,
     isBaristaProfile,
+    isOfficeProfile,
     getBaristaProfileId
   });
 })();
