@@ -165,7 +165,7 @@ $('loginForm').addEventListener('submit', async event => {
   try {
     const digest = await hashPin(pin);
     const auth = await NaviFirebaseAuth.request('auth', { agentId:agent.id, pinHash:digest });
-    if (auth.mustChangePin || pin === '1957') {
+    if (auth.mustChangePin) {
       pendingFirstLogin = { agent, pinHash:digest };
       $('loginForm').hidden = true;
       $('firstPinForm').hidden = false;
@@ -197,10 +197,6 @@ $('firstPinForm').addEventListener('submit', async event => {
   const button = $('firstPinSubmit');
   if (nextPin !== confirmation) {
     $('firstPinMessage').textContent = 'I PIN non coincidono.';
-    return;
-  }
-  if (nextPin === '1957') {
-    $('firstPinMessage').textContent = 'Scegli un PIN diverso da quello iniziale 1957.';
     return;
   }
   button.disabled = true;
