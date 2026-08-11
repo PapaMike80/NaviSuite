@@ -24,7 +24,7 @@
     <section class="section collapsed"><div class="section-head"><div><h2>Connessi adesso</h2><p>Utenti attivi su NaviSuite negli ultimi due minuti.</p></div><span id="online-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="latest-user" class="agent-list"><div class="empty">Caricamento…</div></div></div></section>
     <section class="section collapsed"><div class="section-head"><div><h2>Agenti registrati</h2><p>Ordinati dall’accesso più recente; chi non ha ancora uno storico compare in fondo.</p></div><span id="registered-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="registered-users" class="agent-list"></div></div></section>
     <section class="section collapsed"><div class="section-head"><div><h2>Altri agenti</h2><p>Presenti nell’anagrafica turni ma non ancora registrati, in ordine di grado e anzianità.</p></div><span id="other-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="other-users" class="agent-list"></div></div></section>
-    <section class="section collapsed"><div class="section-head"><div><h2>PIN primo accesso</h2><p>Genera PIN casuali di quattro cifre per gli agenti non registrati. Copiali e comunicali singolarmente: non vengono salvati in chiaro.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="initial-pin-panel"><p>Il PIN iniziale obbliga ogni agente a sceglierne uno personale al primo accesso.</p><button id="generate-all-pins" class="save-agent generate-pin" type="button">Genera PIN per gli agenti non registrati</button><div id="initial-pin-output" class="initial-pin-output" aria-live="polite"></div></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>PIN primo accesso</h2><p>Genera una sola volta i PIN iniziali di quattro cifre. Restano visibili accanto agli agenti non registrati fino al loro primo accesso.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="initial-pin-panel"><p>Il PIN iniziale obbliga ogni agente a sceglierne uno personale al primo accesso.</p><button id="generate-all-pins" class="save-agent generate-pin" type="button">Genera PIN mancanti</button><div id="initial-pin-output" class="initial-pin-output" aria-live="polite"></div></div></div></section>
     <section class="section collapsed"><div class="section-head"><div><h2>Nuovo agente</h2><p>Crea un agente nella residenza scelta (o nella residenza Uffici) e genera un PIN iniziale casuale di 4 cifre.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="new-agent-form"><label>Cognome e nome<input id="new-agent-name" type="text" placeholder="Es. ROSSI M."></label><label>ID agente<input id="new-agent-id" type="text" inputmode="numeric" placeholder="Vuoto = automatico"></label><label>Residenza<select id="new-agent-residence"></select></label><label>Ruolo<select id="new-agent-role"><option value="">Agente standard</option><option value="admin">Amministratore</option></select></label><label id="office-field">Ufficio<select id="new-agent-office"><option value="movimento">Movimento</option><option value="amministrazione">Amministrazione</option><option value="personale">Personale</option><option value="controllo">Controllo</option><option value="direzione">Direzione</option></select></label><label id="grade-field" class="hidden">Grado<select id="new-agent-grade"></select></label><button id="save-new-agent" class="save-agent" type="button">Crea agente</button></div></div></section>
   </main>
   <nav class="mobile-nav" aria-label="Navigazione mobile"><a href="naviturni.html"><span>▦</span>Turni</a><a href="cambi_turno.html"><span>⇄</span>Cambi</a><a href="navidiaria.html"><span>≈</span>Diaria</a><a href="aggiornamenti.html"><span>↻</span>Aggiorna</a><a class="active" href="agenti.html"><span>♙</span>Agenti</a></nav>
@@ -64,12 +64,12 @@
     async function generateInitialPin(agentId){
       if(!window.crypto?.subtle||!window.crypto?.getRandomValues)throw new Error('Il browser non supporta la generazione sicura del PIN.');
       const pin=randomInitialPin();
-      await NaviAdminFirebase.saveUserAuth(agentId,await pinHash(pin),{mustChangePin:true});
+      await NaviAdminFirebase.saveUserAuth(agentId,await pinHash(pin),{mustChangePin:true,initialPin:pin});
       return pin;
     }
     const rankOf=agent=>gradeRank[String(agent.qualifica||'marinaio').trim().toLowerCase()]||99;
     const seniorityOf=name=>NaviSharedData.seniorityRank?NaviSharedData.seniorityRank(name):Number.POSITIVE_INFINITY;
-    let directory=[],registry=[],profiles={},presence=[];
+    let directory=[],registry=[],profiles={},presence=[],initialPins={};
     const overrideFor=id=>profiles[String(id)]||Object.values(profiles).find(item=>String(item?.id)===String(id))||{};
     const gradeColor=value=>{
       const office={movimento:'#facc15',amministrazione:'#38bdf8',personale:'#fb923c',controllo:'#34d399',direzione:'#f472b6'}[String(value||'').toLowerCase()];
@@ -78,10 +78,20 @@
     };
     function card(agent,user,online=false){
       const override=overrideFor(agent.id),role=override.role??agent.role??'',grade=override.qualifica||agent.qualifica||'marinaio';
+      const initialPin=!user?String(initialPins[String(agent.id)]||''):'';
       const isUffici=String(override.residence||agent.residence||'').trim().toLowerCase()==='uffici';
       const roles=[...new Set([...roleOptions,role].filter((v,i,a)=>a.indexOf(v)===i))],grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),String(grade||'').toLowerCase()].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));
-      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button><button class="generate-pin" type="button">${user?'Rigenera PIN iniziale':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
-      return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span></div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}</article>`;
+      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button><button class="generate-pin" type="button">${initialPin?'Rigenera PIN':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
+      return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}</article>`;
+    }
+    async function refreshInitialPins(){
+      const registeredIds=new Set(registry.map(item=>String(item.id)));
+      const rows=await Promise.all(directory.filter(agent=>!registeredIds.has(String(agent.id))).map(async agent=>{
+        const auth=await NaviAdminFirebase.getUserAuth(agent.id).catch(()=>null);
+        const pin=auth?.mustChangePin&&/^\d{4}$/.test(String(auth.initialPin||''))?String(auth.initialPin):'';
+        return [String(agent.id),pin];
+      }));
+      initialPins=Object.fromEntries(rows.filter(([,pin])=>pin));
     }
     function render(){
       const registeredIds=new Set(registry.map(item=>String(item.id))),byId=new Map(directory.map(item=>[String(item.id),item]));
@@ -127,7 +137,9 @@
           const agentLabel=user?.name||row.dataset.agentName||targetAgentId;
           if(!confirm(`Generare un nuovo PIN iniziale per ${agentLabel}? L’eventuale PIN personale precedente non funzionerà più.`))return;
           const pin=await generateInitialPin(targetAgentId);
+          initialPins[String(targetAgentId)]=pin;
           localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);
+          render();
           $('status').textContent=`Nuovo PIN iniziale per ${agentLabel}: ${pin}. Comunicalo all’agente: al primo accesso dovrà modificarlo.`;
         }
         else if(button.classList.contains('delete-agent')){
@@ -145,7 +157,7 @@
           $('status').textContent=`Agente ${agentLabel} eliminato.`;}
         else{
           if(button.classList.contains('reset-pin')){if(!confirm(`Resettare il PIN di ${user?.name||targetAgentId}?`))return;const pin=await generateInitialPin(targetAgentId);localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);$('status').textContent=`Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
-          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e riceverà un nuovo PIN iniziale.`))return;const pin=await generateInitialPin(targetAgentId);await NaviAdminFirebase.deleteRegisteredUser(targetAgentId);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione eliminata. Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
+          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e riceverà un nuovo PIN iniziale.`))return;const pin=await generateInitialPin(targetAgentId);await NaviAdminFirebase.deleteRegisteredUser(targetAgentId);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));initialPins[String(targetAgentId)]=pin;localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione eliminata. Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
         }
         $('status').className='status ok';
       }catch(error){        $('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}finally{button.disabled=false;}
@@ -153,16 +165,16 @@
     document.getElementById('generate-all-pins').addEventListener('click',async()=>{
       const button=$('generate-all-pins'),output=$('initial-pin-output');
       const registeredIds=new Set(registry.map(item=>String(item.id)));
-      const pending=directory.filter(agent=>!registeredIds.has(String(agent.id)));
+      const pending=directory.filter(agent=>!registeredIds.has(String(agent.id))&&!initialPins[String(agent.id)]);
       if(!pending.length){output.textContent='Tutti gli agenti risultano già registrati.';return;}
-      if(!confirm(`Generare un PIN iniziale per ${pending.length} agenti non registrati? I PIN già eventualmente creati verranno sostituiti.`))return;
+      if(!confirm(`Generare un PIN iniziale per ${pending.length} agenti che ne sono ancora privi?`))return;
       button.disabled=true;output.textContent='Generazione PIN…';
       try{
-        const rows=[];
-        for(const agent of pending)rows.push(`${agent.name}: ${await generateInitialPin(agent.id)}`);
-        output.textContent=rows.join('\n');
+        for(const agent of pending)initialPins[String(agent.id)]=await generateInitialPin(agent.id);
+        render();
+        output.textContent=`Generati ${pending.length} PIN: sono ora visibili accanto ai rispettivi agenti.`;
         $('status').className='status ok';
-        $('status').textContent=`Generati ${rows.length} PIN iniziali. Copiali e comunicali singolarmente: non saranno più mostrati dopo il ricaricamento.`;
+        $('status').textContent=`Generati ${pending.length} PIN iniziali. Restano visibili nella pagina Agenti fino al primo accesso o alla rigenerazione.`;
       }catch(error){output.textContent='Errore: '+(error.message||'generazione non riuscita.');}
       finally{button.disabled=false;}
     });
@@ -182,6 +194,7 @@
       try{
         const saved=await NaviAdminFirebase.saveAgentProfile(id,{name,residence,qualifica,role});
         const initialPin=await generateInitialPin(id);
+        initialPins[String(id)]=initialPin;
         profiles[String(saved.id)]=saved;
         NaviSharedData.clear();
         await NaviSharedData.load('',{force:true}).catch(()=>{});
@@ -195,7 +208,7 @@
       }catch(error){$('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}
       finally{button.disabled=false;}
     });
-    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};presence=await NaviAdminFirebase.listUserPresence();const residenceSelect=$('new-agent-residence');const residenceOptions=[...new Set(['Uffici',...directory.map(item=>String(item.residence||'').trim()),...Object.values(profiles).map(item=>String(item.residence||'').trim())].filter(Boolean))];residenceSelect.innerHTML=residenceOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const gradeOptions=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),...Object.values(profiles).map(item=>String(item.qualifica||'').toLowerCase())].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));$('new-agent-grade').innerHTML=gradeOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const syncNewAgentFields=()=>{const isUffici=String(residenceSelect.value||'').toLowerCase()==='uffici';$('office-field').classList.toggle('hidden',!isUffici);$('grade-field').classList.toggle('hidden',isUffici);};residenceSelect.addEventListener('change',syncNewAgentFields);syncNewAgentFields();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
+    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};await refreshInitialPins();presence=await NaviAdminFirebase.listUserPresence();const residenceSelect=$('new-agent-residence');const residenceOptions=[...new Set(['Uffici',...directory.map(item=>String(item.residence||'').trim()),...Object.values(profiles).map(item=>String(item.residence||'').trim())].filter(Boolean))];residenceSelect.innerHTML=residenceOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const gradeOptions=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),...Object.values(profiles).map(item=>String(item.qualifica||'').toLowerCase())].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));$('new-agent-grade').innerHTML=gradeOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const syncNewAgentFields=()=>{const isUffici=String(residenceSelect.value||'').toLowerCase()==='uffici';$('office-field').classList.toggle('hidden',!isUffici);$('grade-field').classList.toggle('hidden',isUffici);};residenceSelect.addEventListener('change',syncNewAgentFields);syncNewAgentFields();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
   })();
   </script>
 </body>
