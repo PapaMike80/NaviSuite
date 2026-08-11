@@ -11,7 +11,7 @@
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}main{margin-left:230px;padding:30px;max-width:1500px}.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}.hero h1{margin:7px 0 5px;font-size:30px}.hero p{margin:0;color:var(--muted)}.status{margin:20px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#0b222c;color:#b9d2d8}.status.ok{border-color:#1d8f7f;color:#99f6e4}.status.bad{border-color:#9f3044;color:#fecdd3}.section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px;cursor:pointer;user-select:none}.section-head>div{flex:1;min-width:0}.chevron{color:var(--muted);font-size:12px;transition:transform .2s}.section.collapsed .chevron{transform:rotate(-90deg)}.section.collapsed .section-body{display:none}.hidden{display:none!important}.section h2{margin:0;font-size:18px}.section p{margin:4px 0 0;color:var(--muted);font-size:12px}.count{padding:4px 9px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px;font-weight:900}.agent-list{display:grid;gap:9px}.agent-row{display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(145px,.9fr) minmax(120px,.7fr) minmax(140px,.8fr) auto;gap:10px;align-items:center;padding:12px;border:1px solid #28515d;border-radius:11px;background:#071b24}.agent-row.latest{border-color:var(--accent);background:linear-gradient(100deg,rgba(45,212,191,.13),#071b24)}.agent-name strong{display:block;font-size:14px}.agent-name small{display:block;margin-top:4px;color:#86aab3}.access{color:#bfe2e6;font-size:12px}.access strong{display:block;color:#fff}.agent-row label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.agent-row select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}.save-agent{min-height:38px;padding:8px 12px;border:1px solid var(--accent);border-radius:8px;background:rgba(45,212,191,.15);color:#99f6e4;font-weight:900;cursor:pointer}.save-agent:disabled{opacity:.5}.empty{padding:20px;color:#86aab3;text-align:center}.mobile-nav{display:none}
     @media(max-width:850px){body{padding-bottom:100px}main{margin:0;padding:18px 12px}.hero h1{font-size:25px}.section{padding:13px}.agent-row{grid-template-columns:1fr 1fr}.agent-name,.access{grid-column:1/-1}.save-agent{grid-column:1/-1;width:100%}.mobile-nav{position:fixed;left:50%;bottom:14px;z-index:50;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:70px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.24);border-radius:38px;background:rgba(18,34,45,.42);box-shadow:0 24px 48px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%)}.mobile-nav a{display:flex;flex:1 1 0;min-width:0;max-width:65px;flex-direction:column;align-items:center;gap:4px;padding:8px;color:#9fb8c2;text-decoration:none;font-size:9px;font-weight:800}.mobile-nav a span{font-size:20px}.mobile-nav a.active{color:var(--accent)}}
     .agent-row{border-color:color-mix(in srgb,var(--grade-color,#9ca3af) 60%,#28515d);border-left:5px solid var(--grade-color,#9ca3af);background:linear-gradient(100deg,color-mix(in srgb,var(--grade-color,#9ca3af) 13%,#071b24),#071b24 42%)}.agent-row.latest{border-color:var(--grade-color,#2dd4bf);box-shadow:0 0 0 1px color-mix(in srgb,var(--grade-color,#2dd4bf) 45%,transparent)}.agent-name strong{color:var(--grade-color,#edfafa)}.grade-badge{display:inline-flex;margin-top:6px;padding:3px 7px;border:1px solid var(--grade-color);border-radius:999px;background:color-mix(in srgb,var(--grade-color) 14%,transparent);color:var(--grade-color);font-size:9px;font-weight:900;text-transform:uppercase}.agent-actions{display:grid;gap:6px;min-width:122px}.agent-actions button{min-height:34px;padding:7px 9px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer}.reset-pin{border:1px solid #f59e0b;background:#3a2910;color:#fcd34d}.delete-registration{border:1px solid #e11d48;background:#3b1721;color:#fecdd3}.delete-agent{border:1px solid #dc2626;background:#3b0f14;color:#fecaca}.online-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 9px #22c55e}.online-time{color:#86efac!important}    .agent-row select[data-grade]{border-color:var(--grade-color,#315b66)}
-    .new-agent-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}.new-agent-form label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.new-agent-form input,.new-agent-form select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
+    .initial-pin-panel{margin:12px 0 4px;padding:13px;border:1px solid rgba(245,158,11,.48);border-radius:11px;background:rgba(58,41,16,.45)}.initial-pin-panel p{margin:0 0 10px;color:#fcd34d}.initial-pin-output{margin-top:10px;white-space:pre-wrap;font:800 13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fef3c7}.generate-pin{border:1px solid #f59e0b;background:#3a2910;color:#fcd34d}.new-agent-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}.new-agent-form label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.new-agent-form input,.new-agent-form select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
     @media(max-width:850px){.new-agent-form{grid-template-columns:1fr 1fr}.new-agent-form label{grid-column:1/-1}.new-agent-form .save-agent{grid-column:1/-1;width:100%}}
     @media(max-width:850px){.agent-actions{grid-column:1/-1;grid-template-columns:repeat(3,1fr);width:100%}.agent-actions .save-agent{grid-column:auto}.agent-actions button{min-height:42px}}
   </style>
@@ -24,10 +24,11 @@
     <section class="section collapsed"><div class="section-head"><div><h2>Connessi adesso</h2><p>Utenti attivi su NaviSuite negli ultimi due minuti.</p></div><span id="online-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="latest-user" class="agent-list"><div class="empty">Caricamento…</div></div></div></section>
     <section class="section collapsed"><div class="section-head"><div><h2>Agenti registrati</h2><p>Ordinati dall’accesso più recente; chi non ha ancora uno storico compare in fondo.</p></div><span id="registered-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="registered-users" class="agent-list"></div></div></section>
     <section class="section collapsed"><div class="section-head"><div><h2>Altri agenti</h2><p>Presenti nell’anagrafica turni ma non ancora registrati, in ordine di grado e anzianità.</p></div><span id="other-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="other-users" class="agent-list"></div></div></section>
-    <section class="section collapsed"><div class="section-head"><div><h2>Nuovo agente</h2><p>Crea un agente nella residenza scelta (o nella residenza Uffici) e salvalo in anagrafica. Il PIN iniziale è 1957.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="new-agent-form"><label>Cognome e nome<input id="new-agent-name" type="text" placeholder="Es. ROSSI M."></label><label>ID agente<input id="new-agent-id" type="text" inputmode="numeric" placeholder="Vuoto = automatico"></label><label>Residenza<select id="new-agent-residence"></select></label><label>Ruolo<select id="new-agent-role"><option value="">Agente standard</option><option value="admin">Amministratore</option></select></label><label id="office-field">Ufficio<select id="new-agent-office"><option value="movimento">Movimento</option><option value="amministrazione">Amministrazione</option><option value="personale">Personale</option><option value="controllo">Controllo</option><option value="direzione">Direzione</option></select></label><label id="grade-field" class="hidden">Grado<select id="new-agent-grade"></select></label><button id="save-new-agent" class="save-agent" type="button">Crea agente</button></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>PIN primo accesso</h2><p>Genera PIN casuali di quattro cifre per gli agenti non registrati. Copiali e comunicali singolarmente: non vengono salvati in chiaro.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="initial-pin-panel"><p>Il PIN iniziale obbliga ogni agente a sceglierne uno personale al primo accesso.</p><button id="generate-all-pins" class="save-agent generate-pin" type="button">Genera PIN per gli agenti non registrati</button><div id="initial-pin-output" class="initial-pin-output" aria-live="polite"></div></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>Nuovo agente</h2><p>Crea un agente nella residenza scelta (o nella residenza Uffici) e genera un PIN iniziale casuale di 4 cifre.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="new-agent-form"><label>Cognome e nome<input id="new-agent-name" type="text" placeholder="Es. ROSSI M."></label><label>ID agente<input id="new-agent-id" type="text" inputmode="numeric" placeholder="Vuoto = automatico"></label><label>Residenza<select id="new-agent-residence"></select></label><label>Ruolo<select id="new-agent-role"><option value="">Agente standard</option><option value="admin">Amministratore</option></select></label><label id="office-field">Ufficio<select id="new-agent-office"><option value="movimento">Movimento</option><option value="amministrazione">Amministrazione</option><option value="personale">Personale</option><option value="controllo">Controllo</option><option value="direzione">Direzione</option></select></label><label id="grade-field" class="hidden">Grado<select id="new-agent-grade"></select></label><button id="save-new-agent" class="save-agent" type="button">Crea agente</button></div></div></section>
   </main>
   <nav class="mobile-nav" aria-label="Navigazione mobile"><a href="naviturni.html"><span>▦</span>Turni</a><a href="cambi_turno.html"><span>⇄</span>Cambi</a><a href="navidiaria.html"><span>≈</span>Diaria</a><a href="aggiornamenti.html"><span>↻</span>Aggiorna</a><a class="active" href="agenti.html"><span>♙</span>Agenti</a></nav>
-  <script src="assets/js/admin-firebase-rest.js?v=33"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=36"></script>
   <script src="assets/js/shared-menu.js"></script>
   <script src="assets/js/shared-data.js"></script>
   <script>
@@ -51,6 +52,21 @@
     const officeOptions=['movimento','amministrazione','personale','controllo','direzione'];
     const officeLabel=value=>{const v=String(value||'').trim().toLowerCase();return v?v.charAt(0).toLocaleUpperCase('it')+v.slice(1):v;};
     const gradeRank={capitano:1,comandante:1,'capo timoniere':1,capotimoniere:1,motorista:2,timoniere:3,'aiuto motorista':4,aiutomotorista:4,marinaio:5,operaio:6,ufficio:7,barista:8,movimento:9,amministrazione:10,personale:11,controllo:12,direzione:13};
+    async function pinHash(pin){
+      const bytes=new TextEncoder().encode('NaviDiaria:'+pin);
+      const digest=await crypto.subtle.digest('SHA-256',bytes);
+      return [...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+    }
+    function randomInitialPin(){
+      const bytes=new Uint32Array(1);crypto.getRandomValues(bytes);
+      return String(1000+(bytes[0]%9000));
+    }
+    async function generateInitialPin(agentId){
+      if(!window.crypto?.subtle||!window.crypto?.getRandomValues)throw new Error('Il browser non supporta la generazione sicura del PIN.');
+      const pin=randomInitialPin();
+      await NaviAdminFirebase.saveUserAuth(agentId,await pinHash(pin),{mustChangePin:true});
+      return pin;
+    }
     const rankOf=agent=>gradeRank[String(agent.qualifica||'marinaio').trim().toLowerCase()]||99;
     const seniorityOf=name=>NaviSharedData.seniorityRank?NaviSharedData.seniorityRank(name):Number.POSITIVE_INFINITY;
     let directory=[],registry=[],profiles={},presence=[];
@@ -64,7 +80,7 @@
       const override=overrideFor(agent.id),role=override.role??agent.role??'',grade=override.qualifica||agent.qualifica||'marinaio';
       const isUffici=String(override.residence||agent.residence||'').trim().toLowerCase()==='uffici';
       const roles=[...new Set([...roleOptions,role].filter((v,i,a)=>a.indexOf(v)===i))],grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),String(grade||'').toLowerCase()].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));
-      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${user?`<button class="reset-pin" type="button">Reset PIN</button>`:''}${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
+      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button><button class="generate-pin" type="button">${user?'Rigenera PIN iniziale':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
       return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span></div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}</article>`;
     }
     function render(){
@@ -97,7 +113,7 @@
       if(section)section.classList.toggle('collapsed');
     });
     document.addEventListener('click',async event=>{
-      const button=event.target.closest('.save-agent,.reset-pin,.delete-registration,.delete-agent');if(!button)return;const row=button.closest('[data-agent-id]'),targetAgentId=row.dataset.agentId,user=registry.find(item=>String(item.id)===String(targetAgentId));button.disabled=true;
+      const button=event.target.closest('.save-agent,.generate-pin,.delete-registration,.delete-agent');if(!button)return;const row=button.closest('[data-agent-id]'),targetAgentId=row.dataset.agentId,user=registry.find(item=>String(item.id)===String(targetAgentId));button.disabled=true;
       try{
         if(button.classList.contains('save-agent')){
           const isUfficiRow=String(row.dataset.residence||'').trim().toLowerCase()==='uffici';
@@ -107,6 +123,13 @@
             ...(isUfficiRow?{residence:'Uffici',name:String(row.dataset.agentName||'')}:{})
           });
           profiles[String(saved.id)]=saved;NaviSharedData.clear();$('status').textContent='Ruolo e grado salvati su Firebase.';}
+        else if(button.classList.contains('generate-pin')){
+          const agentLabel=user?.name||row.dataset.agentName||targetAgentId;
+          if(!confirm(`Generare un nuovo PIN iniziale per ${agentLabel}? L’eventuale PIN personale precedente non funzionerà più.`))return;
+          const pin=await generateInitialPin(targetAgentId);
+          localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);
+          $('status').textContent=`Nuovo PIN iniziale per ${agentLabel}: ${pin}. Comunicalo all’agente: al primo accesso dovrà modificarlo.`;
+        }
         else if(button.classList.contains('delete-agent')){
           const agentLabel=user?.name||row.dataset.agentName||targetAgentId;
           if(!confirm(`Eliminare definitivamente l'agente ${agentLabel}? Verranno rimossi profilo, PIN e registrazione.`))return;
@@ -121,12 +144,29 @@
           render();
           $('status').textContent=`Agente ${agentLabel} eliminato.`;}
         else{
-          if(button.classList.contains('reset-pin')){if(!confirm(`Resettare il PIN di ${user?.name||targetAgentId}?`))return;await NaviAdminFirebase.resetUserAuth(targetAgentId);localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);$('status').textContent=`PIN di ${user?.name||targetAgentId} resettato.`;}
-          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e potrà registrarsi nuovamente.`))return;await Promise.all([NaviAdminFirebase.resetUserAuth(targetAgentId),NaviAdminFirebase.deleteRegisteredUser(targetAgentId)]);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione di ${user?.name||targetAgentId} eliminata.`;}
+          if(button.classList.contains('reset-pin')){if(!confirm(`Resettare il PIN di ${user?.name||targetAgentId}?`))return;const pin=await generateInitialPin(targetAgentId);localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);$('status').textContent=`Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
+          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e riceverà un nuovo PIN iniziale.`))return;const pin=await generateInitialPin(targetAgentId);await NaviAdminFirebase.deleteRegisteredUser(targetAgentId);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione eliminata. Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
         }
         $('status').className='status ok';
       }catch(error){        $('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}finally{button.disabled=false;}
     });
+    document.getElementById('generate-all-pins').addEventListener('click',async()=>{
+      const button=$('generate-all-pins'),output=$('initial-pin-output');
+      const registeredIds=new Set(registry.map(item=>String(item.id)));
+      const pending=directory.filter(agent=>!registeredIds.has(String(agent.id)));
+      if(!pending.length){output.textContent='Tutti gli agenti risultano già registrati.';return;}
+      if(!confirm(`Generare un PIN iniziale per ${pending.length} agenti non registrati? I PIN già eventualmente creati verranno sostituiti.`))return;
+      button.disabled=true;output.textContent='Generazione PIN…';
+      try{
+        const rows=[];
+        for(const agent of pending)rows.push(`${agent.name}: ${await generateInitialPin(agent.id)}`);
+        output.textContent=rows.join('\n');
+        $('status').className='status ok';
+        $('status').textContent=`Generati ${rows.length} PIN iniziali. Copiali e comunicali singolarmente: non saranno più mostrati dopo il ricaricamento.`;
+      }catch(error){output.textContent='Errore: '+(error.message||'generazione non riuscita.');}
+      finally{button.disabled=false;}
+    });
+
     document.getElementById('save-new-agent').addEventListener('click',async()=>{
       const name=$('new-agent-name').value.trim().toLocaleUpperCase('it');
       const residence=$('new-agent-residence').value;
@@ -141,6 +181,7 @@
       const button=$('save-new-agent');button.disabled=true;
       try{
         const saved=await NaviAdminFirebase.saveAgentProfile(id,{name,residence,qualifica,role});
+        const initialPin=await generateInitialPin(id);
         profiles[String(saved.id)]=saved;
         NaviSharedData.clear();
         await NaviSharedData.load('',{force:true}).catch(()=>{});
@@ -149,8 +190,8 @@
         $('new-agent-name').value='';$('new-agent-id').value='';
         $('status').className='status ok';
         $('status').textContent=isUffici
-          ? `Agente ${name} creato in residenza Uffici · ${officeLabel(qualifica)}. PIN iniziale: 1957.`
-          : `Agente ${name} creato in residenza ${residence} · grado ${qualifica}. PIN iniziale: 1957.`;
+          ? `Agente ${name} creato in residenza Uffici · ${officeLabel(qualifica)}. PIN iniziale: ${initialPin}.`
+          : `Agente ${name} creato in residenza ${residence} · grado ${qualifica}. PIN iniziale: ${initialPin}.`;
       }catch(error){$('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}
       finally{button.disabled=false;}
     });
