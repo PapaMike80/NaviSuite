@@ -26,9 +26,19 @@ const formatName = name => String(name || '').trim().split(/\s+/).map(part => pa
 document.addEventListener('click', event => {
   const link = event.target.closest('a[data-navi-tab]');
   if (!link) return;
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const mobile = window.innerWidth <= 800;
+  if (standalone || mobile) {
+    // Nelle PWA e sui telefoni apriamo nella stessa finestra: window.open può
+    // essere bloccato e, dopo preventDefault, lascerebbe la scheda ferma.
+    event.preventDefault();
+    window.location.assign(link.href);
+    return;
+  }
   event.preventDefault();
   const target = window.open(link.href, link.dataset.naviTab);
   if (target) target.focus();
+  else window.location.assign(link.href);
 });
 
 async function hashPin(pin) {
