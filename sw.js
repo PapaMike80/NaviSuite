@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v120-public-announcements';
+const CACHE_VERSION = 'navisuite-v121-home-announcement';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -92,7 +92,7 @@ self.addEventListener('activate', event => {
     const openClients = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
     await Promise.all(openClients.map(client => {
       const url = new URL(client.url);
-      if (!/\/(naviturni|cambi_turno|navidiaria|impostazioni)\.html$/.test(url.pathname)) return Promise.resolve();
+      if (!/(?:\/|\/(?:index|naviturni|cambi_turno|navidiaria|impostazioni)\.html)$/.test(url.pathname)) return Promise.resolve();
       url.searchParams.set('pwa-update', CACHE_VERSION);
       return client.navigate(url.toString()).catch(() => null);
     }));
