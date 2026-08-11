@@ -309,10 +309,10 @@
     return result.data || null;
   }
 
-  async function saveUserAuth(agentId, pinHash) {
+  async function saveUserAuth(agentId, pinHash, options = {}) {
     const id = String(agentId || "").trim();
     if (!id || !/^[a-f0-9]{64}$/i.test(String(pinHash || ""))) throw new Error("Credenziali non valide");
-    const item = { id, pinHash:String(pinHash).toLowerCase(), updatedAt:new Date().toISOString() };
+    const item = { id, pinHash:String(pinHash).toLowerCase(), mustChangePin:Boolean(options.mustChangePin), updatedAt:new Date().toISOString() };
     await databaseRequest(`private/adminUpdates/userAuth/${safeUserKey(id)}`, { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
