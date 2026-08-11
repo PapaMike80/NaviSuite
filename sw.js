@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v118-pin-migration';
+const CACHE_VERSION = 'navisuite-v119-pwa-announcements';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -57,6 +57,7 @@ const STATIC_ASSETS = [
   'assets/js/navidiaria-weekly.js',
   'assets/js/navidiaria-monthly.js',
   'assets/js/shared-menu.js',
+  'assets/js/announcements.js',
   'assets/js/documenti.js',
   'assets/js/orari-tabella.js',
   'assets/js/orario-main.js',
@@ -84,6 +85,17 @@ self.addEventListener('activate', event => {
         .map(cacheName => caches.delete(cacheName))
     );
     await self.clients.claim();
+
+    // Le PWA possono restare sospese in memoria per giorni. Al cambio di
+    // versione ricarichiamo una sola volta le pagine operative già aperte,
+    // così ricevono subito nuovi script e popup senza reinstallare l’app.
+    const openClients = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
+    await Promise.all(openClients.map(client => {
+      const url = new URL(client.url);
+      if (!/\/(naviturni|cambi_turno|navidiaria|impostazioni)\.html$/.test(url.pathname)) return Promise.resolve();
+      url.searchParams.set('pwa-update', CACHE_VERSION);
+      return client.navigate(url.toString()).catch(() => null);
+    }));
   })());
 });
 
