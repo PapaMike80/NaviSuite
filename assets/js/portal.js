@@ -55,11 +55,25 @@ function hasSecureCrypto() {
 }
 
 function renderSuggestions() {
-  const query = $('agentSearch').value.trim().toLocaleLowerCase('it');
-  $('agentSuggestions').innerHTML = agents
+  const input = $('agentSearch');
+  const suggestions = $('agentSuggestions');
+  const query = input.value.trim().toLocaleLowerCase('it');
+  const exact = query && agents.some(agent => agent.name.toLocaleLowerCase('it') === query);
+
+  // Nessun elenco prima che l'utente inizi a scrivere. Quando viene scelto
+  // un agente esatto stacchiamo anche il datalist, così il menu si richiude.
+  if (!query || exact) {
+    suggestions.innerHTML = '';
+    input.removeAttribute('list');
+    return;
+  }
+
+  suggestions.innerHTML = agents
     .filter(agent => agent.name.toLocaleLowerCase('it').includes(query))
     .map(agent => `<option value="${agent.name.replace(/"/g, '&quot;')}">${agent.residence}</option>`)
     .join('');
+  if (suggestions.children.length) input.setAttribute('list', 'agentSuggestions');
+  else input.removeAttribute('list');
 }
 
 function selectedAgent() {
@@ -76,6 +90,7 @@ function showChoice(agent) {
   $('firstPinForm').hidden = true;
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
+  document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
   const diaria = document.querySelector('.app-card.diaria');
   const docs = document.querySelector('.app-card.docs');
   const trova = document.querySelector('.app-card.trova');
