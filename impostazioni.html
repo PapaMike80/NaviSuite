@@ -59,7 +59,7 @@
       <div class="status" id="weeks-status" aria-live="polite"></div>
     </section>
     <section class="section admin-section" id="gestione-avvisi" hidden>
-      <div class="section-head"><div><h2>Guide popup</h2><p>Prepara, controlla in anteprima e pubblica una guida diversa per ciascuna pagina.</p></div><span class="badge">Test · Solo admin</span></div>
+      <div class="section-head"><div><h2>Guide popup</h2><p>Prepara, controlla in anteprima e pubblica una guida diversa per ciascuna pagina.</p></div><span class="badge">Pubblicazione · Tutti gli utenti</span></div>
       <div id="announcement-grid"></div>
       <div class="status" id="announcement-status" aria-live="polite"></div>
     </section>
@@ -86,7 +86,7 @@
   </nav>
   <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.40"></script>
+  <script src="assets/js/shared-menu.js?v=1.40.1"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -228,6 +228,6 @@
     loadWeeks();
     loadDraftPeriod();
   </script>
-  <script src="assets/js/announcements.js?v=2"></script>
+  <script src="assets/js/announcements.js?v=3"></script>
 </body>
 </html>
