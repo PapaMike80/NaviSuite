@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v119-pwa-announcements';
+const CACHE_VERSION = 'navisuite-v120-public-announcements';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
