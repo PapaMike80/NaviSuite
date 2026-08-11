@@ -32,7 +32,7 @@
   }
   function show(item,preview){
     if(!item?.title&&!item?.message)return;
-    installStyle();document.querySelector('.navi-news-overlay')?.remove();
+    installStyle();document.querySelectorAll('.navi-news-overlay').forEach(node=>node.remove());
     const overlay=document.createElement('div');overlay.className='navi-news-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     const card=document.createElement('div');card.className='navi-news-card';
     const kicker=document.createElement('span');kicker.className='navi-news-kicker';kicker.textContent=preview?'ANTEPRIMA GUIDA':'GUIDA ALLA PAGINA';
@@ -47,13 +47,22 @@
     disclaimer.append(emphasis,' ogni responsabilità per errori od omissioni.');
     footer.append(version,disclaimer);
     const close=document.createElement('button');close.type='button';close.className='navi-news-close';close.textContent=preview?'Chiudi anteprima':'Ho capito';
-    const dismiss=()=>{if(!preview&&item.id&&pageKey)localStorage.setItem('navisuite.announcement.'+pageKey+'.'+item.id,'seen');overlay.remove()};
+    const dismiss=()=>{
+      try{
+        if(!preview&&item.id&&pageKey)localStorage.setItem('navisuite.announcement.'+pageKey+'.'+item.id,'seen');
+      }catch(error){
+        console.warn('Memorizzazione chiusura popup non disponibile',error);
+      }finally{
+        document.querySelectorAll('.navi-news-overlay').forEach(node=>node.remove());
+      }
+    };
     close.addEventListener('click',dismiss);overlay.addEventListener('click',e=>{if(e.target===overlay)dismiss()});
     actions.appendChild(close);card.append(kicker,title,message,actions,footer);overlay.appendChild(card);document.body.appendChild(overlay);close.focus();
   }
   window.NaviAnnouncements={preview:item=>show(item,true)};
 
   let announcementCheckRunning=false;
+  let pendingAnnouncementId='';
   async function loadPublished(){
     if(announcementCheckRunning||!labels[pageKey]||!window.NaviAdminFirebase?.getAnnouncements)return;
     announcementCheckRunning=true;
@@ -63,7 +72,15 @@
       const item=all?.[pageKey]?.published;
       if(!item?.id)return;
       const key='navisuite.announcement.'+pageKey+'.'+item.id;
-      if(localStorage.getItem(key)!=='seen'&&!document.querySelector('.navi-news-overlay'))setTimeout(()=>show(item,false),150);
+      let alreadySeen=false;
+      try{alreadySeen=localStorage.getItem(key)==='seen'}catch{}
+      if(!alreadySeen&&!document.querySelector('.navi-news-overlay')&&pendingAnnouncementId!==String(item.id)){
+        pendingAnnouncementId=String(item.id);
+        setTimeout(()=>{
+          if(!document.querySelector('.navi-news-overlay'))show(item,false);
+          pendingAnnouncementId='';
+        },150);
+      }
     }catch(error){console.warn('Guide NaviSuite non disponibili',error)}
     finally{announcementCheckRunning=false}
   }
