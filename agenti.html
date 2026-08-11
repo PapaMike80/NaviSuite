@@ -93,6 +93,12 @@
       }));
       initialPins=Object.fromEntries(rows.filter(([,pin])=>pin));
     }
+    async function generateMissingInitialPins(){
+      const registeredIds=new Set(registry.map(item=>String(item.id)));
+      const missing=directory.filter(agent=>!registeredIds.has(String(agent.id))&&!initialPins[String(agent.id)]);
+      for(const agent of missing)initialPins[String(agent.id)]=await generateInitialPin(agent.id);
+      return missing.length;
+    }
     function render(){
       const registeredIds=new Set(registry.map(item=>String(item.id))),byId=new Map(directory.map(item=>[String(item.id),item]));
       registry.forEach(user=>{if(!byId.has(String(user.id)))byId.set(String(user.id),{id:String(user.id),name:user.name||user.id,residence:user.residence||'',qualifica:user.qualifica||'',role:user.role||''})});
@@ -164,17 +170,13 @@
     });
     document.getElementById('generate-all-pins').addEventListener('click',async()=>{
       const button=$('generate-all-pins'),output=$('initial-pin-output');
-      const registeredIds=new Set(registry.map(item=>String(item.id)));
-      const pending=directory.filter(agent=>!registeredIds.has(String(agent.id))&&!initialPins[String(agent.id)]);
-      if(!pending.length){output.textContent='Tutti gli agenti risultano già registrati.';return;}
-      if(!confirm(`Generare un PIN iniziale per ${pending.length} agenti che ne sono ancora privi?`))return;
-      button.disabled=true;output.textContent='Generazione PIN…';
+      button.disabled=true;output.textContent='Verifica PIN iniziali…';
       try{
-        for(const agent of pending)initialPins[String(agent.id)]=await generateInitialPin(agent.id);
+        const created=await generateMissingInitialPins();
         render();
-        output.textContent=`Generati ${pending.length} PIN: sono ora visibili accanto ai rispettivi agenti.`;
+        output.textContent=created?`Generati ${created} PIN: sono ora visibili accanto ai rispettivi agenti.`:'Nessun PIN mancante.';
         $('status').className='status ok';
-        $('status').textContent=`Generati ${pending.length} PIN iniziali. Restano visibili nella pagina Agenti fino al primo accesso o alla rigenerazione.`;
+        $('status').textContent=created?`Generati ${created} PIN iniziali mancanti.`:'Tutti gli agenti non registrati hanno già un PIN iniziale.';
       }catch(error){output.textContent='Errore: '+(error.message||'generazione non riuscita.');}
       finally{button.disabled=false;}
     });
@@ -208,7 +210,7 @@
       }catch(error){$('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}
       finally{button.disabled=false;}
     });
-    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};await refreshInitialPins();presence=await NaviAdminFirebase.listUserPresence();const residenceSelect=$('new-agent-residence');const residenceOptions=[...new Set(['Uffici',...directory.map(item=>String(item.residence||'').trim()),...Object.values(profiles).map(item=>String(item.residence||'').trim())].filter(Boolean))];residenceSelect.innerHTML=residenceOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const gradeOptions=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),...Object.values(profiles).map(item=>String(item.qualifica||'').toLowerCase())].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));$('new-agent-grade').innerHTML=gradeOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const syncNewAgentFields=()=>{const isUffici=String(residenceSelect.value||'').toLowerCase()==='uffici';$('office-field').classList.toggle('hidden',!isUffici);$('grade-field').classList.toggle('hidden',isUffici);};residenceSelect.addEventListener('change',syncNewAgentFields);syncNewAgentFields();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
+    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};await refreshInitialPins();const generatedInitialPins=await generateMissingInitialPins();presence=await NaviAdminFirebase.listUserPresence();const residenceSelect=$('new-agent-residence');const residenceOptions=[...new Set(['Uffici',...directory.map(item=>String(item.residence||'').trim()),...Object.values(profiles).map(item=>String(item.residence||'').trim())].filter(Boolean))];residenceSelect.innerHTML=residenceOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const gradeOptions=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),...Object.values(profiles).map(item=>String(item.qualifica||'').toLowerCase())].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));$('new-agent-grade').innerHTML=gradeOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const syncNewAgentFields=()=>{const isUffici=String(residenceSelect.value||'').toLowerCase()==='uffici';$('office-field').classList.toggle('hidden',!isUffici);$('grade-field').classList.toggle('hidden',isUffici);};residenceSelect.addEventListener('change',syncNewAgentFields);syncNewAgentFields();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.${generatedInitialPins?` Generati ${generatedInitialPins} PIN iniziali.`:''}`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
   })();
   </script>
 </body>
