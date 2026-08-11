@@ -64,6 +64,9 @@
   let announcementCheckRunning=false;
   let pendingAnnouncementId='';
   async function loadPublished(){
+    // Nella Home il popup deve apparire soltanto quando il login è terminato
+    // e la scelta delle applicazioni è realmente visibile.
+    if(pageKey==='home'&&document.getElementById('appChoice')?.hidden!==false)return;
     if(announcementCheckRunning||!labels[pageKey]||!window.NaviAdminFirebase?.getAnnouncements)return;
     announcementCheckRunning=true;
     try{
@@ -95,6 +98,7 @@
     grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show(draft,true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'all'};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString()}}if(action==='disable')data[key].published=null;status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per tutti gli utenti.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
   }
   setupAdmin();loadPublished();
+  document.addEventListener('navisuite-login-complete',loadPublished);
   // Una PWA spesso viene ripresa dalla memoria senza un nuovo caricamento.
   // Ricontrolliamo quindi la pubblicazione quando torna visibile o attiva.
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadPublished()});
