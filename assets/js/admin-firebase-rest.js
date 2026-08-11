@@ -187,6 +187,20 @@
     return { ...item, currentUid:auth.uid };
   }
 
+  async function getAnnouncements() {
+    const result = await databaseRequest("private/adminUpdates/announcements");
+    return result.data && typeof result.data === "object" ? result.data : {};
+  }
+
+  async function saveAnnouncements(announcements = {}) {
+    await ensureAuth();
+    await databaseRequest("private/adminUpdates/announcements", {
+      method:"PUT",
+      body:JSON.stringify(announcements && typeof announcements === "object" ? announcements : {})
+    });
+    return announcements;
+  }
+
   async function getDraftPeriod() {
     const result = await databaseRequest("private/adminUpdates/draftPeriod");
     const value = result.data || {};
@@ -467,6 +481,8 @@
     deleteChangeRequest,
     getAdminUpdates,
     saveAdminUpdates,
+    getAnnouncements,
+    saveAnnouncements,
     getDraftPeriod,
     saveDraftPeriod,
     resetDraftPeriod,
