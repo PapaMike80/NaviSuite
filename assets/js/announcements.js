@@ -42,9 +42,19 @@
   }
   window.NaviAnnouncements={preview:item=>show(item,true)};
 
+  let announcementCheckRunning=false;
   async function loadPublished(){
-    if(!isAdmin||!labels[pageKey]||!window.NaviAdminFirebase?.getAnnouncements)return;
-    try{await NaviAdminFirebase.ready;const all=await NaviAdminFirebase.getAnnouncements();const item=all?.[pageKey]?.published;if(!item?.id)return;const key='navisuite.announcement.'+pageKey+'.'+item.id;if(localStorage.getItem(key)!=='seen')setTimeout(()=>show(item,false),450)}catch(error){console.warn('Guide NaviSuite non disponibili',error)}
+    if(announcementCheckRunning||!isAdmin||!labels[pageKey]||!window.NaviAdminFirebase?.getAnnouncements)return;
+    announcementCheckRunning=true;
+    try{
+      await NaviAdminFirebase.ready;
+      const all=await NaviAdminFirebase.getAnnouncements();
+      const item=all?.[pageKey]?.published;
+      if(!item?.id)return;
+      const key='navisuite.announcement.'+pageKey+'.'+item.id;
+      if(localStorage.getItem(key)!=='seen'&&!document.querySelector('.navi-news-overlay'))setTimeout(()=>show(item,false),150);
+    }catch(error){console.warn('Guide NaviSuite non disponibili',error)}
+    finally{announcementCheckRunning=false}
   }
   function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   async function setupAdmin(){
@@ -57,4 +67,9 @@
     grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show(draft,true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'admin'};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString()}}if(action==='disable')data[key].published=null;status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per gli admin.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
   }
   setupAdmin();loadPublished();
+  // Una PWA spesso viene ripresa dalla memoria senza un nuovo caricamento.
+  // Ricontrolliamo quindi la pubblicazione quando torna visibile o attiva.
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadPublished()});
+  window.addEventListener('focus',loadPublished);
+  window.addEventListener('pageshow',loadPublished);
 })();
