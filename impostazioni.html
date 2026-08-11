@@ -58,6 +58,11 @@
       <div class="weeks-list" id="weeks-list"><div class="weeks-loading">Caricamento settimane…</div></div>
       <div class="status" id="weeks-status" aria-live="polite"></div>
     </section>
+    <section class="section admin-section" id="gestione-avvisi" hidden>
+      <div class="section-head"><div><h2>Guide popup</h2><p>Prepara, controlla in anteprima e pubblica una guida diversa per ciascuna pagina.</p></div><span class="badge">Test · Solo admin</span></div>
+      <div id="announcement-grid"></div>
+      <div class="status" id="announcement-status" aria-live="polite"></div>
+    </section>
     <section class="section" id="altre-preferenze">
       <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
@@ -79,9 +84,9 @@
     <a href="documenti.html" class="nav-item"><span class="nav-icon">▤</span><span>Doc</span></a>
     <a href="impostazioni.html" class="nav-item active" aria-current="page"><span class="nav-icon">⚙</span><span>Impost.</span></a>
   </nav>
-  <script src="assets/js/admin-firebase-rest.js?v=34"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js"></script>
+  <script src="assets/js/shared-menu.js?v=1.40"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -223,5 +228,6 @@
     loadWeeks();
     loadDraftPeriod();
   </script>
+  <script src="assets/js/announcements.js?v=1"></script>
 </body>
 </html>
