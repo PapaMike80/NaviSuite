@@ -69,18 +69,23 @@ function renderSuggestions() {
   }
 
   suggestions.innerHTML = agents
-    .filter(agent => agent.name.toLocaleLowerCase('it').includes(query))
+    .filter(agent => startsWithInitial(agent, query))
     .map(agent => `<option value="${agent.name.replace(/"/g, '&quot;')}">${agent.residence}</option>`)
     .join('');
   if (suggestions.children.length) input.setAttribute('list', 'agentSuggestions');
   else input.removeAttribute('list');
 }
 
+function startsWithInitial(agent, query) {
+  const terms = String(agent?.name || '').toLocaleLowerCase('it').split(/[\s.'’-]+/).filter(Boolean);
+  return terms.some(term => term.startsWith(query));
+}
+
 function selectedAgent() {
   const query = $('agentSearch').value.trim().toLocaleLowerCase('it');
   const exact = agents.find(agent => agent.name.toLocaleLowerCase('it') === query);
   if (exact) return exact;
-  const matches = agents.filter(agent => agent.name.toLocaleLowerCase('it').includes(query));
+  const matches = agents.filter(agent => startsWithInitial(agent, query));
   return matches.length === 1 ? matches[0] : null;
 }
 
