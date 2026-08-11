@@ -1,5 +1,6 @@
 (function(){
   const APP_VERSION='v1.40';
+  window.NAVISUITE_VERSION=APP_VERSION;
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
