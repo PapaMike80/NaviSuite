@@ -2,9 +2,14 @@
   const profile=(()=>{try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{return null}})();
   const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
   const body=document.body;
-  const pageKey=body.classList.contains('impostazioni-page')?'settings':body.classList.contains('trova-turno-page')?'cambi':body.classList.contains('diaria-page')?'diaria':body.classList.contains('turni-page')?'turni':'';
-  const labels={turni:'NaviTurni',cambi:'NaviCambi',diaria:'NaviDiaria'};
+  const isHomePage=location.pathname.endsWith('/')||location.pathname.endsWith('/index.html');
+  const pageKey=body.classList.contains('impostazioni-page')?'settings':body.classList.contains('trova-turno-page')?'cambi':body.classList.contains('diaria-page')?'diaria':body.classList.contains('turni-page')?'turni':isHomePage?'home':'';
+  const labels={home:'Home NaviSuite',turni:'NaviTurni',cambi:'NaviCambi',diaria:'NaviDiaria'};
   const defaults={
+    home:{
+      title:'A cosa serve NaviSuite',
+      message:'NaviSuite riunisce in un unico spazio gli strumenti utili per il lavoro.\n\nPuoi consultare turni ed equipaggi, proporre cambi turno, registrare diaria e competenze, aprire documenti e consultare gli orari.\n\nDalla Home scegli semplicemente la sezione che vuoi utilizzare.'
+    },
     turni:{
       title:'Come usare NaviTurni',
       message:'NaviTurni mostra i turni di tutti gli agenti ordinati per residenza e anzianità.\n\n• La tua riga resta sempre visibile durante lo scorrimento.\n• Tocca un turno per vedere equipaggio, nave e dettagli del servizio.\n• Le celle evidenziate indicano i colleghi che lavorano con te.\n• Le frecce rosse segnalano un cambio richiesto; diventano verdi quando viene approvato.\n• Dal menu puoi filtrare residenze e corse, mostrare il passato e aggiornare i dati.\n• La dicitura BOZZA identifica le settimane non ancora definitive.'
