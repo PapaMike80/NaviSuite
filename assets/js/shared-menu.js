@@ -17,7 +17,8 @@
   const isDiariaTester=agent=>isAdminAgent(agent)||['superuser','super_user','super-user'].includes(String(agent?.role||'').toLowerCase());
   const isBaristaAgent=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
   const isBaristaSession=isBaristaAgent(sessionAgent);
-  const isLightThemeTester=String(sessionAgent?.id||'')==='91';
+  // Marco può avere l'ID storico 91 oppure l'ID stabile usato dai dati turni.
+  const isLightThemeTester=['91','AG_PEDRONI_M'].includes(String(sessionAgent?.id||'').toUpperCase());
   const themeKey='navisuite.theme.'+String(sessionAgent?.id||'');
   const currentTheme=()=>isLightThemeTester&&localStorage.getItem(themeKey)==='light'?'light':'dark';
   function applyTheme(){
