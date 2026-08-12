@@ -22,6 +22,7 @@
     .status{min-height:22px;margin-top:13px;color:#63dfca;font-size:13px;font-weight:700}.future{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.future div{padding:16px;border:1px dashed #36545d;border-radius:10px;background:#0d232c;color:var(--muted);font-size:13px}.future strong{display:block;margin-bottom:4px;color:#c5d7da}
     .admin-section[hidden]{display:none}.table-wrap{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:12px 14px;border-bottom:1px solid #203e48;text-align:left;font-size:13px}th{background:#0b2029;color:#9db7be;font-size:11px;letter-spacing:.06em;text-transform:uppercase}tbody tr:hover{background:#14323d}tr:last-child td{border-bottom:0}.user-name{font-weight:800}.user-meta{display:block;margin-top:3px;color:var(--muted);font-size:11px}.pin-badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#123f3d;color:#6ce9d5;font-size:11px;font-weight:800}.reset-btn,.delete-user-btn{padding:7px 10px;border:1px solid #80424a;border-radius:8px;background:#351e24;color:#ff9ba4;font-size:11px;font-weight:800;cursor:pointer}.reset-btn:hover{background:#b83b45;color:#fff}.delete-user-btn{margin-left:6px;border-color:#b83b45;background:#6b2029;color:#fff}.delete-user-btn:hover{background:#dc3545}.empty-row{padding:25px!important;text-align:center;color:var(--muted)}
     .weeks-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap}.weeks-legend{display:flex;gap:8px;flex-wrap:wrap}.weeks-legend span{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:11px;font-weight:800}.weeks-legend i{width:9px;height:9px;border-radius:3px}.weeks-legend .official{background:#22c55e}.weeks-legend .draft{background:#f59e0b}.weeks-legend .hidden{background:#64748b}.weeks-list{display:grid;gap:10px;margin-top:16px}.week-row{display:grid;grid-template-columns:minmax(190px,1fr) auto;gap:14px;align-items:center;padding:14px;border:1px solid #294b56;border-radius:11px;background:#0b2029}.week-label strong{display:block;font-size:14px}.week-label span{display:block;margin-top:4px;color:var(--muted);font-size:11px}.week-state{display:flex;gap:6px}.week-state button{padding:7px 9px;border:1px solid #31535e;border-radius:8px;background:#102833;color:#9fb8c2;font-size:10px;font-weight:900;cursor:pointer}.week-state button.active[data-state="ufficiale"]{border-color:#22c55e;background:#143622;color:#86efac}.week-state button.active[data-state="bozza"]{border-color:#f59e0b;background:#3a2910;color:#fcd34d}.week-state button.active[data-state="nascosta"]{border-color:#64748b;background:#202a36;color:#cbd5e1}.month-title{margin:20px 0 2px;color:#6ce9d5;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.weeks-loading{padding:20px;text-align:center;color:var(--muted)}
+    .settings-foldable>.section-head{position:relative;cursor:pointer;user-select:none}.settings-foldable>.section-head:focus{outline:2px solid #2dd4bf;outline-offset:4px;border-radius:8px}.settings-foldable .settings-chevron{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;border:1px solid #31535e;border-radius:50%;color:var(--accent);font-size:16px;transition:transform .2s}.settings-foldable[data-collapsed="true"] .settings-chevron{transform:rotate(-90deg)}.settings-foldable[data-collapsed="true"]>:not(.section-head){display:none!important}.settings-foldable>.section-head p{padding-right:42px}
     .calendar-url{display:grid;gap:8px;margin-top:18px}.calendar-url input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #31535e;border-radius:9px;background:#071b23;color:#9fded6;font:600 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}.calendar-help{margin:12px 0 0;padding:12px 14px;border:1px solid #294b56;border-radius:9px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5}.calendar-help strong{color:#d8e8ea}.calendar-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.calendar-actions[hidden],.calendar-url[hidden]{display:none!important}.calendar-login{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-top:16px;padding:14px;border:1px solid #31535e;border-radius:10px;background:#0b2029}.calendar-login[hidden]{display:none!important}
     @media(max-width:800px){.grid,.future,.calendar-login{grid-template-columns:1fr}.week-row{grid-template-columns:1fr}.week-state{display:grid;grid-template-columns:repeat(3,1fr)}.week-state button{padding:8px 4px}body.impostazioni-page .mobile-liquid-nav .nav-item{width:64px}body.impostazioni-page .mobile-liquid-nav .nav-item span:last-child{width:auto;font-size:9px;white-space:nowrap}}
   </style>
@@ -86,7 +87,7 @@
   </nav>
   <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.40.1"></script>
+  <script src="assets/js/shared-menu.js?v=1.41"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -225,9 +226,22 @@
         await loadRegisteredUsers();
       }catch(error){usersStatus.textContent=error.message||'Reset PIN non riuscito.';button.disabled=false;}
     });
+    function installSettingsAccordion(){
+      document.querySelectorAll('main > .section').forEach(section=>{
+        const head=section.querySelector(':scope > .section-head');
+        if(!head||section.dataset.accordionReady)return;
+        section.dataset.accordionReady='true';section.classList.add('settings-foldable');section.dataset.collapsed='true';
+        head.tabIndex=0;head.setAttribute('role','button');head.setAttribute('aria-expanded','false');
+        const chevron=document.createElement('span');chevron.className='settings-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';head.appendChild(chevron);
+        const toggle=()=>{const collapsed=section.dataset.collapsed==='true';section.dataset.collapsed=String(!collapsed);head.setAttribute('aria-expanded',String(collapsed));};
+        head.addEventListener('click',event=>{if(event.target.closest('button,a,input,select,textarea'))return;toggle();});
+        head.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}});
+      });
+    }
+    installSettingsAccordion();
     loadWeeks();
     loadDraftPeriod();
   </script>
-  <script src="assets/js/announcements.js?v=6"></script>
+  <script src="assets/js/announcements.js?v=7"></script>
 </body>
 </html>
