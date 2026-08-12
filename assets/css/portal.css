@@ -413,3 +413,13 @@ h1 em{
   .app-card{min-height:auto;padding:18px}
   .choice-card{padding:10px 0}
 }
+
+/* Tema chiaro: nessuna superficie scura nel portale. */
+html.navisuite-light .portal-panel::before{background:radial-gradient(760px 520px at 50% 0%,rgba(45,212,191,.12),transparent 65%),rgba(255,255,255,.32)}
+html.navisuite-light .access-card,
+html.navisuite-light .choice-card{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important}
+html.navisuite-light .app-card{background:#f9fcfc!important;border-color:#c9e0e3!important;color:#17323a!important;box-shadow:0 5px 14px rgba(27,62,70,.06)!important}
+html.navisuite-light .app-card:hover{background:#fff!important;box-shadow:0 12px 25px rgba(var(--app),.16)!important}
+html.navisuite-light .app-card p{color:#547078!important}
+html.navisuite-light .text-button,
+html.navisuite-light .secondary-form-button{background:#fff!important;color:#31545c!important;border-color:#b8d5da!important}
