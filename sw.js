@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v129-copy-initial-pins';
+const CACHE_VERSION = 'navisuite-v130-feedback-tickets';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -30,6 +30,7 @@ const STATIC_ASSETS = [
   'agenti.html',
   'documenti.html',
   'impostazioni.html',
+  'segnalazioni.html',
   'Orario.html',
   'orari-tabella.html',
   'assets/css/portal.css',
@@ -92,7 +93,7 @@ self.addEventListener('activate', event => {
     const openClients = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
     await Promise.all(openClients.map(client => {
       const url = new URL(client.url);
-      if (!/(?:\/|\/(?:index|naviturni|cambi_turno|navidiaria|impostazioni)\.html)$/.test(url.pathname)) return Promise.resolve();
+      if (!/(?:\/|\/(?:index|naviturni|cambi_turno|navidiaria|impostazioni|segnalazioni)\.html)$/.test(url.pathname)) return Promise.resolve();
       url.searchParams.set('pwa-update', CACHE_VERSION);
       return client.navigate(url.toString()).catch(() => null);
     }));
