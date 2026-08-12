@@ -1417,6 +1417,59 @@
   </style>
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <style>
+    /* Anche nel tema scuro i filtri sono bolle colorate, non tasti tutti uguali. */
+    .turni-sidebar #top-residence-buttons [data-res="TUTTE"] { --filter-bubble:#2dd4bf; }
+    .turni-sidebar #top-residence-buttons [data-res="DESENZANO"] { --filter-bubble:#24b7f2; }
+    .turni-sidebar #top-residence-buttons [data-res="MADERNO"] { --filter-bubble:#f59e0b; }
+    .turni-sidebar #top-residence-buttons [data-res="PESCHIERA"] { --filter-bubble:#52c879; }
+    .turni-sidebar #top-residence-buttons [data-res="RIVA"] { --filter-bubble:#a78bfa; }
+    .turni-sidebar .shift-filter-btn,
+    .turni-sidebar #top-residence-buttons .coverage-residence-btn {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 16%,#071923) !important;
+      border-color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 76%,#28505a) !important;
+      color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 86%,#eaf5f5) !important;
+      border-radius:999px !important;
+    }
+    .turni-sidebar .shift-filter-btn.active,
+    .turni-sidebar #top-residence-buttons .coverage-residence-btn.active {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 48%,#071923) !important;
+      border-color:var(--filter-bubble,var(--btn-color,#2dd4bf)) !important;
+      color:#fff !important;
+      box-shadow:0 3px 12px color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 34%,transparent) !important;
+    }
+    /* Filtri della barra laterale: versione chiara, senza riquadro scuro. */
+    html.navisuite-light .turni-sidebar .shifts-filter-block {
+      background:#fff !important;
+      border-color:#c4dde1 !important;
+    }
+    html.navisuite-light .turni-sidebar .filter-label {
+      color:#547078 !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 16%,#fff) !important;
+      border-color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 62%,#a8cdd1) !important;
+      color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 78%,#17323a) !important;
+      border-radius:999px !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn:hover,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn:hover {
+      background:#effaf8 !important;
+      border-color:#33bcae !important;
+      color:#087b6e !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn.active,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn.active {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 34%,#fff) !important;
+      border-color:var(--filter-bubble,var(--btn-color,#2dd4bf)) !important;
+      color:#17323a !important;
+      box-shadow:0 3px 10px color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 24%,transparent) !important;
+    }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="TUTTE"] { --filter-bubble:#2dd4bf; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="DESENZANO"] { --filter-bubble:#24b7f2; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="MADERNO"] { --filter-bubble:#f59e0b; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="PESCHIERA"] { --filter-bubble:#52c879; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="RIVA"] { --filter-bubble:#a78bfa; }
     @media (max-width:800px) {
       body.turni-page .sidebar-collapse-button,
       body.turni-page .sidebar-reopen-button {
@@ -2899,11 +2952,17 @@
     function getShipDayInfo(calInfo, shift) {
       const cleanShift = ottieniTurnoPulito(shift).toUpperCase();
       if (!calInfo?.iso || !cleanShift || !Array.isArray(globalData?.turni_navi)) return null;
-      return globalData.turni_navi.find(item => {
+      const isUsableShip = item => {
+        const ship = String(item?.nave || '').trim();
+        // Una riga di personale importata per errore non è un dato nave.
+        return ship && !/\b(?:RIP|D[1-4]|BIS2?|P[1-3]|M1|R[1-4]|T[12]|CAR1|CAP1|SR1)\b/i.test(ship);
+      };
+      const candidates = globalData.turni_navi.filter(item => {
         const active = item.attiva !== false && !/^(no|false|0)$/i.test(String(item.attiva || ""));
         return active && String(item.data || "").slice(0, 10) === calInfo.iso &&
-          String(item.corsa || "").trim().toUpperCase() === cleanShift;
-      }) || null;
+          String(item.corsa || "").trim().toUpperCase() === cleanShift && isUsableShip(item);
+      });
+      return candidates.sort((a, b) => String(b.inserita_il || b.updatedAt || '').localeCompare(String(a.inserita_il || a.updatedAt || '')))[0] || null;
     }
 
     function renderShipDayInfo(calInfo, shift) {
