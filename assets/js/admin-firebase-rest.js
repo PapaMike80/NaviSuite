@@ -451,6 +451,67 @@
     return item;
   }
 
+  function safeFeedbackText(value, limit = 1500) {
+    return String(value || "").trim().replace(/\s+/g, " ").slice(0, limit);
+  }
+
+  function normalizeFeedbackTicket(id, value) {
+    return { ...(value || {}), id:String(value?.id || id) };
+  }
+
+  async function listFeedbackTickets(agentId = "") {
+    const result = await databaseRequest("private/feedbackTickets");
+    const target = String(agentId || "").trim();
+    return Object.entries(result.data || {})
+      .map(([id, value]) => normalizeFeedbackTicket(id, value))
+      .filter(item => !target || String(item.authorId || "") === target)
+      .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  }
+
+  async function saveFeedbackTicket(payload = {}) {
+    const auth = await ensureAuth();
+    const title = safeFeedbackText(payload.title, 100);
+    const description = safeFeedbackText(payload.description, 1500);
+    if (!title) throw new Error("Inserisci un titolo per la segnalazione");
+    if (!description) throw new Error("Descrivi brevemente il problema o l’idea");
+    const id = `TKT_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const now = new Date().toISOString();
+    const item = {
+      id,
+      authorId:safeFeedbackText(payload.authorId, 80),
+      authorName:safeFeedbackText(payload.authorName, 100),
+      category:["bug", "miglioria", "altro"].includes(String(payload.category)) ? String(payload.category) : "altro",
+      area:safeFeedbackText(payload.area, 60) || "Generale",
+      title,
+      description,
+      status:"nuovo",
+      createdAt:now,
+      updatedAt:now,
+      ownerUid:auth.uid
+    };
+    if (!item.authorId) throw new Error("Utente non riconosciuto: accedi di nuovo.");
+    await databaseRequest(`private/feedbackTickets/${id}`, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
+  async function updateFeedbackTicket(ticketId, values = {}) {
+    const id = String(ticketId || "").trim();
+    if (!id) throw new Error("Segnalazione non valida");
+    const status = String(values.status || "").toLowerCase();
+    const patch = { updatedAt:new Date().toISOString() };
+    if (["nuovo", "verifica", "risolto"].includes(status)) patch.status = status;
+    if (typeof values.adminNote !== "undefined") patch.adminNote = safeFeedbackText(values.adminNote, 800);
+    await databaseRequest(`private/feedbackTickets/${encodeURIComponent(id)}`, { method:"PATCH", body:JSON.stringify(patch) });
+    return { id, ...patch };
+  }
+
+  async function deleteFeedbackTicket(ticketId) {
+    const id = String(ticketId || "").trim();
+    if (!id) throw new Error("Segnalazione non valida");
+    await databaseRequest(`private/feedbackTickets/${encodeURIComponent(id)}`, { method:"DELETE" });
+    return true;
+  }
+
   async function loadDiaria(agentId) {
     const id = String(agentId || "").trim();
     if (!id) throw new Error("Agente non valido");
@@ -513,6 +574,10 @@
     listUserPresence,
     getQuizCorrections,
     saveQuizCorrections,
+    listFeedbackTickets,
+    saveFeedbackTicket,
+    updateFeedbackTicket,
+    deleteFeedbackTicket,
     loadDiaria,
     saveDiaria,
     provider:"Firebase REST"
