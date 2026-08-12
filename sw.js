@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v140-static-personal-theme-control';
+const CACHE_VERSION = 'navisuite-v141-full-light-turni-table';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
