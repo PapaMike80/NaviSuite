@@ -460,7 +460,7 @@
   }
 
   async function listFeedbackTickets(agentId = "") {
-    const result = await databaseRequest("private/feedbackTickets");
+    const result = await databaseRequest("private/adminUpdates/feedbackTickets");
     const target = String(agentId || "").trim();
     return Object.entries(result.data || {})
       .map(([id, value]) => normalizeFeedbackTicket(id, value))
@@ -490,7 +490,7 @@
       ownerUid:auth.uid
     };
     if (!item.authorId) throw new Error("Utente non riconosciuto: accedi di nuovo.");
-    await databaseRequest(`private/feedbackTickets/${id}`, { method:"PUT", body:JSON.stringify(item) });
+    await databaseRequest(`private/adminUpdates/feedbackTickets/${id}`, { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
 
@@ -501,14 +501,14 @@
     const patch = { updatedAt:new Date().toISOString() };
     if (["nuovo", "verifica", "risolto"].includes(status)) patch.status = status;
     if (typeof values.adminNote !== "undefined") patch.adminNote = safeFeedbackText(values.adminNote, 800);
-    await databaseRequest(`private/feedbackTickets/${encodeURIComponent(id)}`, { method:"PATCH", body:JSON.stringify(patch) });
+    await databaseRequest(`private/adminUpdates/feedbackTickets/${encodeURIComponent(id)}`, { method:"PATCH", body:JSON.stringify(patch) });
     return { id, ...patch };
   }
 
   async function deleteFeedbackTicket(ticketId) {
     const id = String(ticketId || "").trim();
     if (!id) throw new Error("Segnalazione non valida");
-    await databaseRequest(`private/feedbackTickets/${encodeURIComponent(id)}`, { method:"DELETE" });
+    await databaseRequest(`private/adminUpdates/feedbackTickets/${encodeURIComponent(id)}`, { method:"DELETE" });
     return true;
   }
 
