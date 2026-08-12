@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NaviSuite Segnalazioni</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--blue:#38bdf8;--red:#fb7185;--yellow:#fbbf24}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}main{margin-left:230px;padding:30px;max-width:1250px}.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}.hero h1{margin:7px 0 5px;font-size:30px}.hero p{margin:0;color:var(--muted)}.panel{margin-top:20px;padding:19px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}.panel h2{margin:0;font-size:18px}.panel>p{margin:5px 0 15px;color:var(--muted);font-size:13px}.ticket-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ticket-form label{display:grid;gap:6px;color:#a9c4ca;font-size:11px;font-weight:800}.ticket-form label.full{grid-column:1/-1}.ticket-form input,.ticket-form select,.ticket-form textarea,.ticket-card textarea{width:100%;padding:11px;border:1px solid #315b66;border-radius:9px;background:#071b24;color:#fff;font:14px inherit}.ticket-form textarea{min-height:108px;resize:vertical}.ticket-form button,.ticket-card button{min-height:40px;padding:9px 13px;border:1px solid var(--accent);border-radius:9px;background:rgba(45,212,191,.15);color:#99f6e4;font-weight:900;cursor:pointer}.ticket-form button:disabled,.ticket-card button:disabled{opacity:.55}.status{margin-top:12px;color:#b9d2d8;font-size:13px}.status.ok{color:#99f6e4}.status.bad{color:#fecdd3}.list-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.list-head button{border:1px solid #315b66;border-radius:8px;background:#102d37;color:#d4e8eb;padding:8px 11px;font-weight:800;cursor:pointer}.ticket-list{display:grid;gap:11px;margin-top:15px}.ticket-card{padding:14px;border:1px solid #28515d;border-left:5px solid var(--ticket-color,#38bdf8);border-radius:11px;background:#071b24}.ticket-card.is-risolto{opacity:.78}.ticket-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.ticket-title{margin:0;font-size:15px}.ticket-meta{margin:5px 0 0;color:#9eb9c1;font-size:11px}.ticket-description{margin:12px 0;color:#e3f4f6;white-space:pre-wrap;font-size:13px;line-height:1.45}.ticket-tags{display:flex;flex-wrap:wrap;gap:6px}.tag{padding:3px 7px;border-radius:999px;background:#133946;color:#bce9ed;font-size:10px;font-weight:900}.tag.bug{background:#461c29;color:#fecdd3}.tag.miglioria{background:#263a1c;color:#d9f99d}.tag.risolto{background:#153e35;color:#99f6e4}.admin-tools{display:grid;grid-template-columns:130px 1fr auto auto;gap:8px;margin-top:12px}.admin-tools select{padding:8px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff}.admin-tools textarea{min-height:40px;height:40px;resize:vertical;font-size:12px}.admin-tools .delete{border-color:#e11d48;background:#3b1721;color:#fecdd3}.empty{padding:22px;border:1px dashed #315b66;border-radius:10px;color:#9eb9c1;text-align:center}.admin-only{display:none}@media(max-width:850px){main{margin:0;padding:18px 12px 95px}.hero h1{font-size:25px}.panel{padding:14px}.ticket-form{grid-template-columns:1fr}.ticket-form label.full{grid-column:auto}.admin-tools{grid-template-columns:1fr 1fr}.admin-tools textarea{grid-column:1/-1}.admin-tools button{min-height:42px}.ticket-top{display:block}.ticket-tags{margin-top:10px}}
+  </style>
+</head>
+<body class="tickets-page">
+  <aside class="app-sidebar" id="tickets-sidebar"></aside>
+  <main>
+    <header class="hero"><div class="eyebrow">ASCOLTO NAVISUITE</div><h1>Segnalazioni e idee</h1><p>Racconta un problema o proponi un miglioramento: arriva direttamente agli amministratori.</p></header>
+    <section class="panel">
+      <h2>Nuova segnalazione</h2><p>Più dettagli inserisci, più sarà facile sistemarla.</p>
+      <form id="ticket-form" class="ticket-form">
+        <label>Tipo<select id="ticket-category"><option value="bug">Problema / bug</option><option value="miglioria">Idea di miglioramento</option><option value="altro">Altro</option></select></label>
+        <label>Pagina coinvolta<select id="ticket-area"><option>Generale</option><option>NaviTurni</option><option>Trova turno</option><option>NaviDiaria</option><option>Documenti</option><option>Impostazioni</option><option>Login</option></select></label>
+        <label class="full">Titolo<input id="ticket-title" maxlength="100" placeholder="Es. La tabella torna a oggi dopo una modifica" required></label>
+        <label class="full">Descrizione<textarea id="ticket-description" maxlength="1500" placeholder="Cosa stavi facendo, cosa è successo e cosa ti aspettavi…" required></textarea></label>
+        <button id="ticket-submit" type="submit">Invia segnalazione</button>
+      </form>
+      <p id="ticket-status" class="status" aria-live="polite"></p>
+    </section>
+    <section class="panel">
+      <div class="list-head"><div><h2 id="list-title">Le tue segnalazioni</h2><p id="list-copy">Qui trovi l’avanzamento delle segnalazioni inviate.</p></div><button id="reload-tickets" type="button">Aggiorna</button></div>
+      <div id="ticket-list" class="ticket-list"><div class="empty">Caricamento…</div></div>
+    </section>
+  </main>
+  <script src="assets/js/admin-firebase-rest.js?v=38"></script>
+  <script src="assets/js/shared-menu.js?v=2"></script>
+  <script>
+  (()=>{
+    const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');
+    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    if(!profile){location.replace('index.html');return;}
+    const $=id=>document.getElementById(id);
+    const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const format=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('it-IT',{dateStyle:'medium',timeStyle:'short'}).format(date);};
+    const labels={nuovo:'Nuovo',verifica:'In verifica',risolto:'Risolto'};
+    const colors={nuovo:'#38bdf8',verifica:'#fbbf24',risolto:'#2dd4bf'};
+    let tickets=[];
+    if(isAdmin){$('list-title').textContent='Tutte le segnalazioni';$('list-copy').textContent='Puoi aggiornare stato e nota di risposta per ogni collega.';}
+    function render(){
+      const list=$('ticket-list');
+      if(!tickets.length){list.innerHTML='<div class="empty">Nessuna segnalazione da mostrare.</div>';return;}
+      list.innerHTML=tickets.map(ticket=>{
+        const category=String(ticket.category||'altro'),status=String(ticket.status||'nuovo');
+        const admin=isAdmin?'<div class="admin-tools"><select data-ticket-status><option value="nuovo">Nuovo</option><option value="verifica">In verifica</option><option value="risolto">Risolto</option></select><textarea data-ticket-note maxlength="800" placeholder="Nota per il collega"></textarea><button type="button" data-save-ticket>Salva</button><button type="button" class="delete" data-delete-ticket>Elimina</button></div>':'';
+        return '<article class="ticket-card '+(status==='risolto'?'is-risolto':'')+'" style="--ticket-color:'+colors[status]+'" data-ticket-id="'+esc(ticket.id)+'"><div class="ticket-top"><div><h3 class="ticket-title">'+esc(ticket.title)+'</h3><p class="ticket-meta">'+esc(format(ticket.createdAt))+(isAdmin?' · '+esc(ticket.authorName||ticket.authorId):'')+'</p></div><div class="ticket-tags"><span class="tag '+esc(category)+'">'+esc(category==='bug'?'Bug':category==='miglioria'?'Miglioria':'Altro')+'</span><span class="tag '+esc(status)+'">'+esc(labels[status]||'Nuovo')+'</span><span class="tag">'+esc(ticket.area||'Generale')+'</span></div></div><p class="ticket-description">'+esc(ticket.description)+'</p>'+(ticket.adminNote?'<p class="ticket-description"><strong>Risposta:</strong> '+esc(ticket.adminNote)+'</p>':'')+admin+'</article>';
+      }).join('');
+      if(isAdmin)tickets.forEach(ticket=>{const row=list.querySelector('[data-ticket-id="'+CSS.escape(ticket.id)+'"]');row.querySelector('[data-ticket-status]').value=ticket.status||'nuovo';row.querySelector('[data-ticket-note]').value=ticket.adminNote||'';});
+    }
+    async function load(){
+      $('ticket-list').innerHTML='<div class="empty">Caricamento segnalazioni…</div>';
+      try{await NaviAdminFirebase.ready;tickets=await NaviAdminFirebase.listFeedbackTickets(isAdmin?'':profile.id);render();}
+      catch(error){$('ticket-list').innerHTML='<div class="empty">Errore: '+esc(error.message||'impossibile caricare')+'</div>';}
+    }
+    $('ticket-form').addEventListener('submit',async event=>{
+      event.preventDefault();const button=$('ticket-submit');button.disabled=true;$('ticket-status').className='status';$('ticket-status').textContent='Invio in corso…';
+      try{await NaviAdminFirebase.saveFeedbackTicket({authorId:profile.id,authorName:profile.name||profile.cognome||profile.agente||profile.id,category:$('ticket-category').value,area:$('ticket-area').value,title:$('ticket-title').value,description:$('ticket-description').value});event.target.reset();$('ticket-status').className='status ok';$('ticket-status').textContent='Segnalazione inviata. Grazie!';await load();}
+      catch(error){$('ticket-status').className='status bad';$('ticket-status').textContent=error.message||'Invio non riuscito.';}
+      finally{button.disabled=false;}
+    });
+    $('reload-tickets').addEventListener('click',load);
+    $('ticket-list').addEventListener('click',async event=>{
+      const row=event.target.closest('[data-ticket-id]');if(!isAdmin||!row)return;const id=row.dataset.ticketId;
+      if(event.target.closest('[data-delete-ticket]')){if(!confirm('Eliminare questa segnalazione?'))return;await NaviAdminFirebase.deleteFeedbackTicket(id);await load();return;}
+      if(event.target.closest('[data-save-ticket]')){const button=event.target.closest('[data-save-ticket]');button.disabled=true;try{await NaviAdminFirebase.updateFeedbackTicket(id,{status:row.querySelector('[data-ticket-status]').value,adminNote:row.querySelector('[data-ticket-note]').value});await load();}catch(error){alert(error.message||'Salvataggio non riuscito.');}finally{button.disabled=false;}}
+    });
+    load();
+  })();
+  </script>
+</body>
+</html>
