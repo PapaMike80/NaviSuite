@@ -17,6 +17,21 @@
   const isDiariaTester=agent=>isAdminAgent(agent)||['superuser','super_user','super-user'].includes(String(agent?.role||'').toLowerCase());
   const isBaristaAgent=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
   const isBaristaSession=isBaristaAgent(sessionAgent);
+  const isLightThemeTester=String(sessionAgent?.id||'')==='91';
+  const themeKey='navisuite.theme.'+String(sessionAgent?.id||'');
+  const currentTheme=()=>isLightThemeTester&&localStorage.getItem(themeKey)==='light'?'light':'dark';
+  function applyTheme(){
+    const light=currentTheme()==='light';
+    document.documentElement.classList.toggle('navisuite-light',light);
+    document.body.classList.toggle('navisuite-light',light);
+  }
+  function installLightTheme(){
+    if(document.getElementById('navisuite-light-theme-style'))return;
+    const style=document.createElement('style');style.id='navisuite-light-theme-style';
+    style.textContent='html.navisuite-light{color-scheme:light}html.navisuite-light body{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .app-sidebar{background:#ffffff!important;border-color:#c8dde1!important;color:#18333b!important}html.navisuite-light .app-sidebar a,html.navisuite-light .app-sidebar button,html.navisuite-light .shared-sidebar-brand{color:#23434b!important}html.navisuite-light .app-sidebar .nav-link.active,html.navisuite-light .app-sidebar .nav-link:hover{background:#d7f5ef!important;color:#075e55!important}html.navisuite-light main,html.navisuite-light header{color:#17323a!important}html.navisuite-light .section,html.navisuite-light .panel,html.navisuite-light .card,html.navisuite-light .settings-card,html.navisuite-light .ticket-card,html.navisuite-light .announcement-card{background:#ffffff!important;border-color:#bcd5da!important;color:#17323a!important}html.navisuite-light p,html.navisuite-light .muted,html.navisuite-light .intro,html.navisuite-light .hero p{color:#547078!important}html.navisuite-light input,html.navisuite-light select,html.navisuite-light textarea{background:#f8fcfc!important;border-color:#a9c9cf!important;color:#17323a!important}html.navisuite-light table,html.navisuite-light th,html.navisuite-light td{color:#17323a!important}html.navisuite-light th{background:#e9f3f4!important}html.navisuite-light .mobile-liquid-nav{background:rgba(255,255,255,.86)!important;border-color:#bdd5da!important}html.navisuite-light .mobile-liquid-nav .nav-item,html.navisuite-light .mobile-liquid-nav .nav-icon{color:#31545c!important}html.navisuite-light .mobile-liquid-nav .nav-item.active{color:#047b6c!important}';
+    document.head.appendChild(style);
+  }
+  installLightTheme();applyTheme();
   const isPinChangePage=page==='diaria'&&new URLSearchParams(location.search).has('pin');
   if(!sessionAgent){
     document.documentElement.style.display='none';
@@ -115,6 +130,17 @@
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
   sidebar.innerHTML=`<a class="shared-sidebar-brand" href="${brandHref}"><span class="shared-brand-mark">N</span><strong>${brandTitle}</strong></a><nav>${common}${specific}</nav>${user}${status}${version}`;
   if(!isDiariaTester(sessionAgent))sidebar.querySelectorAll('a[href="navidiaria.html"],#diariaNavLink').forEach(link=>link.hidden=true);
+
+  function installThemeSettings(){
+    if(page!=='settings'||!isLightThemeTester||document.getElementById('theme-test-setting'))return;
+    const main=document.querySelector('main');if(!main)return;
+    const section=document.createElement('section');section.id='theme-test-setting';section.className='section';
+    section.innerHTML='<div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è visibile e applicata solo al tuo profilo di prova.</p></div></div><div class="field" style="max-width:300px"><label for="navisuite-theme-select">Aspetto</label><select id="navisuite-theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>';
+    const target=main.querySelector('.section');if(target)main.insertBefore(section,target);else main.appendChild(section);
+    const select=section.querySelector('select');select.value=currentTheme();
+    select.addEventListener('change',()=>{localStorage.setItem(themeKey,select.value);applyTheme();});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installThemeSettings,{once:true});else installThemeSettings();
 
   const settingsAgent=sidebar.querySelector('#settingsSidebarAgent');
   if(settingsAgent) settingsAgent.textContent=String(sessionAgent?.name||sessionAgent?.cognome||'AGENTE').toLocaleUpperCase('it');
