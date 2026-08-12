@@ -27,6 +27,9 @@
       message:'NaviDiaria raccoglie ore lavorate e competenze per confrontarle con la busta paga.\n\n• Tocca il servizio per scegliere turno, riposo, malattia o servizio di terra.\n• Inserisci straordinari e banca ore direttamente nella giornata.\n• Registra ticket, secondo ticket, diaria, pernotto, festività e indennità.\n• I totali settimanali e mensili vengono calcolati automaticamente.\n• Le settimane a cavallo del mese seguono le regole di conteggio previste.\n• Le modifiche vengono salvate su Firebase e restano disponibili ai successivi accessi.'
     }
   };
+  // Primo avviso generale distribuito con la versione: resta attivo finché
+  // l’amministratore non lo sostituisce o lo disattiva da Impostazioni.
+  const generalRelease={...defaults.general,id:'v1.41-segnalazioni',publishedAt:'2026-08-12T08:45:00.000Z',scope:'general'};
 
   function installStyle(){
     if(document.getElementById('navisuite-announcements-style'))return;
@@ -79,7 +82,7 @@
       await NaviAdminFirebase.ready;
       const all=await NaviAdminFirebase.getAnnouncements();
       const candidates=[
-        {...(all?.general?.published||{}),scope:'general'},
+        all?.general?.published?{...all.general.published,scope:'general'}:(all?.general?.disabled?null:generalRelease),
         pageKey?{...(all?.[pageKey]?.published||{}),scope:pageKey}:null
       ].filter(item=>item?.id);
       for(const item of candidates){
@@ -104,7 +107,7 @@
     let data={};try{await NaviAdminFirebase.ready;data=await NaviAdminFirebase.getAnnouncements()}catch(error){status.textContent='Impossibile caricare le guide: '+error.message;return}
     const render=()=>{grid.innerHTML=Object.entries(labels).map(([key,label])=>{const entry=data[key]||{},draft=entry.draft||defaults[key],live=entry.published;const stamp=live?'Pubblicata il '+new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'short'}).format(new Date(live.publishedAt||Date.now())):'Non pubblicata';return '<article class="announcement-card" data-key="'+key+'"><h3>'+label+'</h3><label>Titolo</label><input data-title value="'+escapeHtml(draft.title)+'"><label>Spiegazione</label><textarea data-message>'+escapeHtml(draft.message)+'</textarea><div class="announcement-actions"><button type="button" data-action="save">Salva bozza</button><button type="button" data-action="preview">Anteprima</button><button type="button" class="publish" data-action="publish">Pubblica ora</button><button type="button" class="disable" data-action="disable">Disattiva</button></div><div class="announcement-state '+(live?'live':'')+'">'+stamp+' · visibile a tutti</div></article>'}).join('')};
     render();
-    grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show({...draft,scope:key},true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'all'};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString(),scope:key}}if(action==='disable')data[key].published=null;status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per tutti gli utenti.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
+    grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show({...draft,scope:key},true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'all',disabled:false};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString(),scope:key}}if(action==='disable'){data[key].published=null;if(key==='general')data[key].disabled=true;}status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per tutti gli utenti.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
   }
   setupAdmin();loadPublished();
   document.addEventListener('navisuite-login-complete',loadPublished);
