@@ -18,7 +18,7 @@
     .actions{display:flex;gap:8px;flex-wrap:wrap}.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}.field{display:grid;gap:5px}.field.full{grid-column:1/-1}.field label{color:#9db8c0;font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.field input,.field select,.field textarea{width:100%;border:1px solid #315b66;border-radius:9px;background:#071b24;color:#fff;padding:10px;font:700 13px inherit}.field textarea{min-height:70px;resize:vertical}
     .current{padding:10px;border-radius:9px;background:#071b24;border:1px solid #315b66;color:#fde047;font-weight:900}.table-wrap{overflow:auto;border:1px solid #244956;border-radius:11px}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:10px;border-bottom:1px solid #244956;text-align:left;font-size:12px}th{background:#143744;color:#bfe2e6;font-size:10px;text-transform:uppercase;letter-spacing:.06em}td strong{color:#fff}.empty{padding:20px;color:#829fa8;text-align:center}
     .owner{font-family:"DM Mono",monospace;font-size:10px;word-break:break-all;color:#80d9cc}.preview{max-height:230px;overflow:auto;margin:12px 0;border:1px solid #244956;border-radius:10px;padding:8px;background:#071b24;font-size:11px}.preview div{padding:5px;border-bottom:1px solid rgba(80,120,130,.18)}.preview div:last-child{border:0}
-    .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.import-box{padding:14px;border:1px solid #28515d;border-radius:12px;background:#0a2029}.import-box h3{margin:0 0 5px}.import-box input[type=file]{width:100%;margin:8px 0;padding:10px;border:1px dashed #397583;border-radius:9px;background:#071b24;color:#b9d8dc}.pending-table select,.pending-table input{min-width:110px;border:1px solid #315b66;border-radius:6px;background:#071b24;color:#fff;padding:6px;font-size:11px}
+    .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.import-box{padding:14px;border:1px solid #28515d;border-radius:12px;background:#0a2029}.import-box h3{margin:0 0 5px}.import-box input[type=file]{width:100%;margin:8px 0;padding:10px;border:1px dashed #397583;border-radius:9px;background:#071b24;color:#b9d8dc}.pending-table select,.pending-table input{min-width:110px;border:1px solid #315b66;border-radius:6px;background:#071b24;color:#fff;padding:6px;font-size:11px}.import-box.foldable{padding:0;overflow:hidden}.import-box.foldable>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px;cursor:pointer;list-style:none}.import-box.foldable>summary::-webkit-details-marker{display:none}.import-box.foldable>summary::after{content:'⌄';color:var(--accent);font-size:18px}.import-box.foldable[open]>summary::after{transform:rotate(180deg)}.import-box.foldable>.import-inner{padding:0 14px 14px}
     .import-box.full-upload{grid-column:1/-1}.document-upload-fields{display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;margin:10px 0}.uploaded-documents{display:grid;gap:7px;margin-top:12px}.uploaded-document{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid #244956;border-radius:9px;background:#071b24}.uploaded-document small{display:block;margin-top:3px;color:#86aab3}
     .ods-group-row td{background:#163b45;border-top:2px solid #2d6974;color:#d9ffff}.ods-group-row[data-toggle-row]{cursor:pointer}.ods-group-title{display:flex;align-items:center;gap:9px;font-size:13px}.ods-group-toggle{display:inline-grid;place-items:center;width:25px;height:25px;padding:0;border-color:#3a7580;background:#0b2933;color:#99f6e4;font-size:14px}.ods-group-count{padding:3px 7px;border-radius:999px;background:#0b2933;color:#99f6e4;font-size:10px}.ods-child td:first-child{padding-left:25px;color:#72cfc2}.ods-child[hidden]{display:none}
     .change-approval-list{display:grid;gap:9px}.change-approval{display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,2fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid #28515d;border-radius:11px;background:#071b24}.change-approval small{display:block;margin-top:4px;color:#86aab3}.change-lines{display:grid;gap:4px;color:#d9ffff;font-size:12px}.change-approval-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.approved-badge{display:inline-flex;padding:7px 9px;border:1px solid #168b70;border-radius:8px;color:#86efac;background:#0b352d;font-size:11px;font-weight:900}
@@ -41,6 +41,8 @@
       .admin-mobile-nav a span{font-size:20px;line-height:1}.admin-mobile-nav a.active{color:var(--accent);background:rgba(45,212,191,.12)}
     }
     @media(max-width:420px){main{padding-inline:9px}.card{padding:12px}.hero h1{font-size:23px}.admin-mobile-nav{width:calc(100% - 16px)}}
+    .card.foldable{padding:0;overflow:hidden}.card.foldable>.card-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px;cursor:pointer}.card.foldable>.card-heading>div{min-width:0}.card.foldable>.card-heading h2{margin:0 0 6px}.card.foldable>.card-heading p{margin:0}.card-fold-toggle{flex:0 0 auto;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;padding:0;background:var(--card);color:var(--accent);font-size:18px}.card.foldable>.card-body{padding:0 18px 18px}.card.foldable[data-collapsed="true"]>.card-body{display:none}
+    html.navisuite-light body.aggiornamenti-page{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .hero p,html.navisuite-light .card p,html.navisuite-light .owner,html.navisuite-light .empty{color:#547078!important}html.navisuite-light .status{background:#fff!important;border-color:#9fc8ce!important;color:#17323a!important}html.navisuite-light .card,html.navisuite-light .import-box,html.navisuite-light .change-approval{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important;box-shadow:0 7px 20px rgba(22,56,66,.08)!important}html.navisuite-light .card h2,html.navisuite-light .import-box h3,html.navisuite-light .change-lines,html.navisuite-light td strong{color:#17323a!important}html.navisuite-light .field label{color:#547078!important}html.navisuite-light .field input,html.navisuite-light .field select,html.navisuite-light .field textarea,html.navisuite-light .current,html.navisuite-light .preview,html.navisuite-light .uploaded-document,html.navisuite-light .pending-table select,html.navisuite-light .pending-table input{background:#f8fcfc!important;border-color:#b8d5da!important;color:#17323a!important}html.navisuite-light .import-box input[type=file]{background:#f8fcfc!important;border-color:#9fc8ce!important;color:#31545c!important}html.navisuite-light button,html.navisuite-light .button{background:#fff!important;border-color:#a9cbd1!important;color:#31545c!important}html.navisuite-light button.primary{background:#d9f4ef!important;border-color:#3bb9aa!important;color:#075b52!important}html.navisuite-light th{background:#e9f5f5!important;color:#17323a!important}html.navisuite-light td,html.navisuite-light th,html.navisuite-light .table-wrap{border-color:#c4dde1!important}html.navisuite-light .ods-group-row td{background:#e5f5f2!important;color:#17323a!important}html.navisuite-light .approved-badge{background:#e2f6ea!important;color:#16734e!important}.card-fold-toggle{transition:transform .18s ease}.card.foldable[data-collapsed="false"] .card-fold-toggle{transform:rotate(180deg)}
   </style>
 </head>
 <body class="aggiornamenti-page">
@@ -54,31 +56,24 @@
     <div id="status" class="status">Connessione a Firebase…</div>
 
     <section class="grid">
-      <article class="card full">
-        <h2>Carica altri documenti</h2>
-        <p>I PDF vengono letti nel browser e trasformati in un’anteprima modificabile prima del salvataggio. Sono accettati anche JSON e CSV.</p>
+      <article class="card full foldable" data-collapsed="false">
+        <div class="card-heading"><div><h2>Carica altri documenti</h2><p>I PDF vengono letti nel browser e trasformati in un’anteprima modificabile prima del salvataggio. Sono accettati anche JSON e CSV.</p></div><button class="card-fold-toggle" type="button" aria-label="Apri o chiudi sezione">⌄</button></div><div class="card-body">
         <div class="import-grid">
-          <section class="import-box">
-            <h3>Nuovo ODS</h3>
+          <details class="import-box foldable">
+            <summary><h3>Nuovo ODS</h3></summary><div class="import-inner">
             <p>Carica il PDF dell’Ordine di Servizio oppure un file JSON/CSV con data, agente e nuovo turno.</p>
             <div class="field"><label for="new-ods-number">Numero ODS</label><input id="new-ods-number" placeholder="es. 30/2026"></div>
             <input id="new-ods-file" type="file" accept=".pdf,.json,.csv,application/pdf">
             <div class="actions"><button id="parse-new-ods">Leggi e prepara ODS</button><button id="save-new-ods" class="primary" disabled>Salva righe confermate</button></div>
-          </section>
-          <section class="import-box">
-            <h3>Nuovi turni bariste</h3>
+          </div></details>
+          <details class="import-box full-upload foldable">
+            <summary><h3>Nuovi turni bariste</h3></summary><div class="import-inner">
             <p>Carica il prospetto PDF oppure un JSON/CSV con data, corsa e barista.</p>
             <input id="new-bariste-file" type="file" accept=".pdf,.json,.csv,application/pdf">
             <div class="actions"><button id="parse-new-bariste">Leggi e prepara turni</button><button id="save-new-bariste" class="primary" disabled>Salva righe confermate</button></div>
-          </section>
-          <section class="import-box">
-            <h3>Nuovi turni nave</h3>
-            <p>Carica il prospetto PDF oppure un JSON/CSV con data, corsa, nave, rifornimento mattina e ormeggio serale.</p>
-            <input id="new-nave-file" type="file" accept=".pdf,.json,.csv,application/pdf">
-            <div class="actions"><button id="parse-new-nave">Leggi e prepara turni nave</button><button id="save-new-nave" class="primary" disabled>Salva righe confermate</button></div>
-          </section>
-          <section class="import-box full-upload">
-            <h3>Importa nuove settimane</h3>
+          </div></details>
+          <details class="import-box full-upload foldable">
+            <summary><h3>Importa nuove settimane</h3></summary><div class="import-inner">
             <p>Legge il turno o la bozza dell’Ufficio Movimento, aggiorna Firebase e conserva un’unica importazione eliminabile. Ogni settimana ha sempre 7 giornate; le celle vuote diventano RIP.</p>
             <input id="new-turn-file" type="file" accept=".pdf,application/pdf">
             <div class="document-upload-fields">
@@ -90,27 +85,27 @@
             <div class="actions"><button id="parse-new-turn" disabled>Leggi e controlla PDF</button><button id="save-new-turn" class="primary" disabled>Salva settimane e documento</button></div>
             <div id="turn-import-preview" class="preview" hidden></div>
             <div id="uploaded-documents" class="uploaded-documents"></div>
-          </section>
-          <section class="import-box full-upload">
-            <h3>Foglio Google dei turni</h3>
+          </div></details>
+          <details class="import-box full-upload foldable">
+            <summary><h3>Foglio Google dei turni</h3></summary><div class="import-inner">
             <p>Usa un identificativo stabile per agente. Scarica il CSV attuale, importalo in Google Fogli e incolla qui il collegamento del foglio pubblicato come CSV.</p>
             <div class="field"><label for="turn-sheet-url">Collegamento Foglio Google</label><input id="turn-sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=0"></div>
             <div class="actions"><button id="download-turn-sheet" type="button">Scarica CSV attuale</button><button id="parse-turn-sheet" type="button">Leggi e confronta</button><button id="save-turn-sheet" class="primary" type="button" disabled>Applica a Firebase</button></div>
             <div id="turn-sheet-preview" class="preview" hidden></div>
-          </section>
+          </div></details>
         </div>
         <div id="import-result" class="preview" hidden></div>
+        </div>
       </article>
 
-      <article class="card full">
-        <h2>Cambi richiesti</h2>
-        <p>Approva una richiesta per registrare automaticamente le variazioni di entrambi gli agenti. Le frecce corrispondenti diventeranno verdi.</p>
+      <article class="card full foldable" data-collapsed="true">
+        <div class="card-heading"><div><h2>Cambi richiesti</h2><p>Approva una richiesta per registrare automaticamente le variazioni di entrambi gli agenti.</p></div><button class="card-fold-toggle" type="button" aria-label="Apri o chiudi sezione">⌄</button></div><div class="card-body">
         <div id="change-approvals" class="change-approval-list"><div class="empty">Caricamento richieste…</div></div>
+        </div>
       </article>
 
-      <article class="card full">
-        <h2>Nuova variazione manuale</h2>
-        <p>La variazione manuale ha priorità sugli ODS e può essere eliminata dallo storico.</p>
+      <article class="card full foldable" data-collapsed="true">
+        <div class="card-heading"><div><h2>Nuova variazione manuale</h2><p>La variazione manuale ha priorità sugli ODS e può essere eliminata dallo storico.</p></div><button class="card-fold-toggle" type="button" aria-label="Apri o chiudi sezione">⌄</button></div><div class="card-body">
         <form id="manual-form" class="form-grid">
           <div class="field"><label for="agent">Agente</label><select id="agent" required></select></div>
           <div class="field"><label for="date">Data</label><input id="date" type="date" required></div>
@@ -119,16 +114,17 @@
           <div class="field full"><label for="note">Motivo o nota</label><textarea id="note" placeholder="Correzione manuale del turno"></textarea></div>
           <div class="actions field full"><button class="primary" type="submit">Registra variazione manuale</button></div>
         </form>
+        </div>
       </article>
 
-      <article class="card full">
-        <h2>Storico aggiornamenti</h2>
-        <p id="owner-info" class="owner"></p>
+      <article class="card full foldable" data-collapsed="true">
+        <div class="card-heading"><div><h2>Storico aggiornamenti</h2><p id="owner-info" class="owner"></p></div><button class="card-fold-toggle" type="button" aria-label="Apri o chiudi sezione">⌄</button></div><div class="card-body">
         <div class="table-wrap">
           <table>
             <thead><tr><th>Fonte</th><th>Data</th><th>Agente</th><th>Variazione</th><th>Note</th><th>Azioni</th></tr></thead>
             <tbody id="history"></tbody>
           </table>
+        </div>
         </div>
       </article>
     </section>
@@ -149,9 +145,10 @@
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script>
   (() => {
+    document.querySelectorAll('.card.foldable').forEach(card=>{const toggle=card.querySelector('.card-fold-toggle'),heading=card.querySelector('.card-heading');const change=()=>card.dataset.collapsed=card.dataset.collapsed==='true'?'false':'true';toggle.addEventListener('click',change);heading.addEventListener('click',event=>{if(!event.target.closest('button,input,select,textarea,a'))change()})});
     const state={odsVariations:[],manualVariations:[],baristas:[],approvedChangeRequests:[],dismissedOdsApprovals:[],scheduleImports:[],turniNavi:[]};
     let schedule=null;
-    let pendingOds=[],pendingBaristas=[],pendingNavi=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
+    let pendingOds=[],pendingOdsNavi=[],pendingBaristas=[],pendingNavi=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
     const $=id=>document.getElementById(id);
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const profile=()=>window.TurniShared?.readLoggedAgentProfile?.()||JSON.parse(localStorage.getItem('naviturni_logged_agent')||'null');
@@ -584,6 +581,9 @@
       const records=[];
       for(const line of lines){
         if(/VARIAZIONI\s+TURNI/i.test(line)){inVariations=true;continue}
+        // L'allegato "Turno navi" non contiene variazioni del personale: non
+        // deve mai finire nell'anteprima delle variazioni.
+        if(inVariations&&/\bTURNO\s+NAVI\b|ALLEGATO\s+ALL[’']?ODS/i.test(line)){inVariations=false;continue}
         if(!inVariations)continue;
         const foundDate=italianDate(line);if(foundDate){currentDate=foundDate;continue}
         const m=line.match(/^([A-ZÀ-Ü][A-ZÀ-Ü .,'’-]{2,}):\s*(.+)$/i);
@@ -594,10 +594,58 @@
         if(!shift)continue;
         m[1].split(/\s*,\s*|\s+E\s+/i).forEach(name=>{
           const agent=resolveAgent(name.trim());
-          records.push({data:currentDate,agente:agent?.agente||name.trim(),id_agente:String(agent?.id||''),turno_originale:agent?baseShift(agent,currentDate):'',turno_nuovo:shift.toUpperCase(),ods:`ODS ${ods||'da definire'}`,tipo:'ODS',note:content});
+          // Un nominativo non riconosciuto deve essere corretto dall'admin, non
+          // trasformato in una riga senza agente (come accadeva con D1/M1/R1).
+          if(!agent)return;
+          records.push({data:currentDate,agente:agent.agente,id_agente:String(agent.id),turno_originale:baseShift(agent,currentDate),turno_nuovo:shift.toUpperCase(),ods:`ODS ${ods||'da definire'}`,tipo:'ODS',note:content});
         });
       }
       return records;
+    }
+    function odsDateRange(items){
+      const header=items.map(item=>item.text).join(' ').replace(/\s+/g,' ').toUpperCase();
+      const months={GENNAIO:1,FEBBRAIO:2,MARZO:3,APRILE:4,MAGGIO:5,GIUGNO:6,LUGLIO:7,AGOSTO:8,SETTEMBRE:9,OTTOBRE:10,NOVEMBRE:11,DICEMBRE:12};
+      const match=header.match(/\bDAL\s+(\d{1,2})\s+AL\s+(\d{1,2})\s+(GENNAIO|FEBBRAIO|MARZO|APRILE|MAGGIO|GIUGNO|LUGLIO|AGOSTO|SETTEMBRE|OTTOBRE|NOVEMBRE|DICEMBRE)\s+(20\d{2})/);
+      if(!match)return [];
+      const month=String(months[match[3]]).padStart(2,'0'),year=match[4];
+      return datesBetween(`${year}-${month}-${match[1].padStart(2,'0')}`,`${year}-${month}-${match[2].padStart(2,'0')}`);
+    }
+    function parseOdsNaviPdf(pages,ods){
+      const courseRe=/^(D[1-4]|BIS2?|T[12]|M1|R[1-4]|CAR1|P[1-3]|CAP1|SR1)$/i;
+      const shipRe=/\b(AGONE|TONALE|BALDO|S\.?\s*MARCO|CATULLO|S\.?\s*VIGILIO|MINCIO|MANTOVA|TRENTO|BRENNERO|S\.?\s*MARTINO|PELER|PARINI|BRESCIA|ANDROMEDA|ANDER|VIRGILIO|GOETHE|RIVIERE|VERGA)\b/i;
+      const mooringRe=/\b(PONT\.?|PONTILE|PONTE|PORT\.?|PORTO|ORMEGGIO|MOLO|RIVA|BOA|LUNGOLAGO|DESENZANO|SIRMIONE|MADERNO|GARGNANO|MALCESINE|LIMONE)\b/i;
+      const records=[];
+      pages.forEach(items=>{
+        if(!/\bTURNO\s+NAVI\b/i.test(items.map(item=>item.text).join(' ')))return;
+        const dates=odsDateRange(items),centers=pageDayCenters(items,dates.length);
+        if(!dates.length||centers.length!==dates.length)return;
+        const spacing=centers.length>1?centers.slice(1).reduce((sum,x,index)=>sum+x-centers[index],0)/(centers.length-1):70;
+        const weekday=/^(?:LUN(?:EDI)?|MAR(?:TEDI)?|MER(?:COLEDI)?|GIO(?:VEDI)?|VEN(?:ERDI)?|SAB(?:ATO)?|DOM(?:ENICA)?)(?:\s+\d{1,2})?$/i;
+        const headerY=Math.max(...items.filter(item=>weekday.test(item.text.replace(/[.'’]/g,'').trim())).map(item=>item.y),-Infinity);
+        const courseItems=items.filter(item=>courseRe.test(item.text.trim())&&item.x<centers[0]-spacing*.35&&item.y<headerY-6).sort((a,b)=>b.y-a.y);
+        courseItems.forEach((course,rowIndex)=>{
+          const above=rowIndex?courseItems[rowIndex-1].y:course.y+26;
+          const below=rowIndex<courseItems.length-1?courseItems[rowIndex+1].y:course.y-26;
+          const high=(above+course.y)/2+3,low=(below+course.y)/2-3;
+          centers.forEach((center,column)=>{
+            const cell=items.filter(item=>{
+              const itemCenter=item.x+(item.width||0)/2;
+              return Math.abs(itemCenter-center)<spacing*.46&&item.y<=high&&item.y>=low;
+            });
+            if(!cell.length)return;
+            const lines=groupedPdfLines(cell).map(line=>line.items.map(item=>item.text).join(' ').replace(/\s+/g,' ').trim());
+            const text=lines.join(' ');
+            const ship=text.match(shipRe)?.[1]?.replace(/\s+/g,' ').replace(/^S\s+/i,'S. ')||'';
+            const mooringLine=lines.find(line=>mooringRe.test(line)&&!shipRe.test(line))||'';
+            const refuel=/\bRIFORNIMENTO\b/i.test(text)?'Sì':'';
+            // Salviamo solo celle realmente descritte nell'allegato; le celle
+            // vuote non devono cancellare turni nave già registrati.
+            if(!ship&&!mooringLine&&!refuel)return;
+            records.push({attiva:true,data:dates[column],corsa:course.text.toUpperCase(),nave:ship,rifornimento_mattina:refuel,ormeggio_serale:mooringLine.replace(/^(?:ORMEGGIO\s*(?:SERALE)?\s*[:\-]?\s*)/i,'').trim(),ods:`ODS ${ods||'da definire'}`,inserita_il:new Date().toISOString()});
+          });
+        });
+      });
+      return [...new Map(records.map(row=>[`${row.data}|${row.corsa}`,row])).values()].sort((a,b)=>a.data.localeCompare(b.data)||a.corsa.localeCompare(b.corsa));
     }
     function parseBaristaPdf(pages){
       const excluded=new Set(['LINEA','MOTONAVE','BRESCIA','GARDA','TOTALE','TOT','ORE','AGOSTO','SETTEMBRE','LUNEDI','MARTEDI','MERCOLEDI','GIOVEDI','VENERDI','SABATO','DOMENICA']);
@@ -656,8 +704,8 @@
       return lines.sort((a,b)=>b.y-a.y).map(line=>({...line,items:line.items.sort((a,b)=>a.x-b.x)}));
     }
     function pageDayCenters(items,expected){
-      const weekdays=/^(?:LUN|MAR|MER|GIO|VEN|SAB|DOM)(?:ED[IÌ])?(?:\s+\d{1,2})?$/i;
-      const candidates=items.filter(item=>weekdays.test(item.text.replace(/\./g,'').trim()));
+      const weekdays=/^(?:LUN(?:EDI)?|MAR(?:TEDI)?|MER(?:COLEDI)?|GIO(?:VEDI)?|VEN(?:ERDI)?|SAB(?:ATO)?|DOM(?:ENICA)?)(?:\s+\d{1,2})?$/i;
+      const candidates=items.filter(item=>weekdays.test(item.text.replace(/[.'’]/g,'').trim()));
       const clusters=[];
       candidates.forEach(item=>{let group=clusters.find(row=>Math.abs(row.y-item.y)<3);if(!group){group={y:item.y,items:[]};clusters.push(group)}group.items.push(item)});
       const best=clusters.sort((a,b)=>Math.min(expected,b.items.length)-Math.min(expected,a.items.length))[0];
@@ -741,14 +789,14 @@
     function renderPending(kind){
       const rows=kind==='ods'?pendingOds:kind==='nave'?pendingNavi:pendingBaristas,result=$('import-result');
       result.hidden=false;
-      if(!rows.length){result.innerHTML='<div class="empty">Nessuna riga riconosciuta. Puoi usare un CSV o JSON, oppure controllare che il PDF abbia testo selezionabile.</div>';return}
+      if(!rows.length&&!(kind==='ods'&&pendingOdsNavi.length)){result.innerHTML='<div class="empty">Nessuna riga riconosciuta. Puoi usare un CSV o JSON, oppure controllare che il PDF abbia testo selezionabile.</div>';return}
       if(kind==='nave'){
         result.innerHTML=`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Nave</th><th>Rif. mattina</th><th>Ormeggio serale</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-nave="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="nave" value="${esc(v.nave)}"></td><td><input data-field="rifornimento_mattina" value="${esc(v.rifornimento_mattina)}"></td><td><input data-field="ormeggio_serale" value="${esc(v.ormeggio_serale)}"></td></tr>`).join('')}</tbody></table>`;
         return;
       }
       const options=agents().filter(a=>String(a.residence).toUpperCase()!=='BARISTE').sort((a,b)=>String(a.agente).localeCompare(String(b.agente),'it')).map(a=>`<option value="${esc(a.id)}">${esc(a.agente)}</option>`).join('');
       result.innerHTML=kind==='ods'
-        ?`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Agente</th><th>Prima</th><th>Dopo</th><th>Nota</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-ods="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><select data-field="id_agente"><option value="">— scegli —</option>${options}</select></td><td><input data-field="turno_originale" value="${esc(v.turno_originale)}"></td><td><input data-field="turno_nuovo" value="${esc(v.turno_nuovo)}"></td><td><input data-field="note" value="${esc(v.note)}"></td></tr>`).join('')}</tbody></table>`
+        ?`${rows.length?`<h3>Variazioni del personale (${rows.length})</h3><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Agente</th><th>Prima</th><th>Dopo</th><th>Nota</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-ods="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><select data-field="id_agente"><option value="">— scegli —</option>${options}</select></td><td><input data-field="turno_originale" value="${esc(v.turno_originale)}"></td><td><input data-field="turno_nuovo" value="${esc(v.turno_nuovo)}"></td><td><input data-field="note" value="${esc(v.note)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessuna variazione del personale riconosciuta.</div>'}${pendingOdsNavi.length?`<h3>Turni nave, rifornimenti e ormeggi (${pendingOdsNavi.length})</h3><p>Controlla l’anteprima: ogni riga sarà salvata nella NaviDiaria con il nome nave, il rifornimento e l’ormeggio serale.</p><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Nave</th><th>Rifornimento</th><th>Ormeggio serale</th></tr></thead><tbody>${pendingOdsNavi.map((v,i)=>`<tr data-pending-ods-nave="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="nave" value="${esc(v.nave)}"></td><td><input data-field="rifornimento_mattina" value="${esc(v.rifornimento_mattina)}"></td><td><input data-field="ormeggio_serale" value="${esc(v.ormeggio_serale)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessun turno nave riconosciuto nell’allegato ODS.</div>'}`
         :`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Barista</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-barista="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="barista" value="${esc(v.barista)}"></td></tr>`).join('')}</tbody></table>`;
       if(kind==='ods')result.querySelectorAll('[data-pending-ods]').forEach((tr,i)=>{tr.querySelector('[data-field=id_agente]').value=String(rows[i].id_agente||resolveAgent(rows[i].agente)?.id||'')});
     }
@@ -762,21 +810,33 @@
         return {attiva:true,data:value('data'),id_agente:value('id_agente'),agente:agent?.agente||'',turno_originale:value('turno_originale').toUpperCase(),turno_nuovo:value('turno_nuovo').toUpperCase(),ods:$('new-ods-number').value.trim()||'importato',tipo:'ODS',note:value('note'),inserita_il:new Date().toISOString()};
       }).filter(v=>v.data&&(kind==='nave'?v.corsa&&v.nave:kind==='barista'?v.corsa&&v.barista:v.id_agente&&v.turno_nuovo));
     }
+    function collectOdsNavi(){
+      return [...$('import-result').querySelectorAll('[data-pending-ods-nave]')].filter(tr=>tr.querySelector('[data-field=use]').checked).map(tr=>{
+        const value=field=>tr.querySelector(`[data-field=${field}]`)?.value.trim()||'';
+        return {attiva:true,data:value('data'),corsa:value('corsa').toUpperCase(),nave:value('nave'),rifornimento_mattina:value('rifornimento_mattina'),ormeggio_serale:value('ormeggio_serale'),ods:$('new-ods-number').value.trim()||'importato',inserita_il:new Date().toISOString()};
+      }).filter(row=>row.data&&row.corsa&&(row.nave||row.rifornimento_mattina||row.ormeggio_serale));
+    }
     async function parseImport(kind){
       const input=$(kind==='ods'?'new-ods-file':kind==='nave'?'new-nave-file':'new-bariste-file'),file=input.files?.[0];
       if(!file)throw new Error('Seleziona prima un file');
       if(kind==='ods'&&!$('new-ods-number').value.trim())$('new-ods-number').value=inferOdsNumber(file.name);
       setStatus(`Lettura di ${file.name}…`);
-      let records;
+      let records,pages=null;
       if(/\.pdf$/i.test(file.name)){
-        const pages=await loadPdfItems(file);
+        pages=await loadPdfItems(file);
         records=kind==='ods'?parseOdsPdf(pages,$('new-ods-number').value.trim()):kind==='nave'?parseTurnoNavePdf(pages):parseBaristaPdf(pages);
       }else records=rowsFromDelimited(await file.text(),kind);
-      if(kind==='ods'){pendingOds=records;$('save-new-ods').disabled=!records.length}
+      if(kind==='ods'){
+        pendingOds=records;
+        pendingOdsNavi=/\.pdf$/i.test(file.name)?parseOdsNaviPdf(pages,$('new-ods-number').value.trim()):[];
+        $('save-new-ods').disabled=!(pendingOds.length||pendingOdsNavi.length);
+      }
       else if(kind==='nave'){pendingNavi=records;$('save-new-nave').disabled=!records.length}
       else{pendingBaristas=records;$('save-new-bariste').disabled=!records.length}
       renderPending(kind);
-      setStatus(`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`,records.length?'ok':'bad');
+      const total=kind==='ods'?pendingOds.length+pendingOdsNavi.length:records.length;
+      const message=kind==='ods'?`${pendingOds.length} variazioni e ${pendingOdsNavi.length} turni nave riconosciuti. Controlla entrambe le anteprime prima di salvare.`:`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`;
+      setStatus(message,total?'ok':'bad');
     }
     async function init(){
       if(!isAdmin(profile())){document.body.innerHTML='<main><div class="status bad">Accesso riservato agli amministratori NaviSuite.</div></main>';return}
@@ -813,18 +873,6 @@
       if(!file)return;
       try{
         await parseImport('ods');
-        const rows=collectPending('ods');
-        if(!rows.length){setStatus('Nessuna riga ODS valida nel file caricato.','bad');return}
-        state.odsVariations=merge(state.odsVariations,rows,variationKey);
-        const touchesRequest=request=>rows.some(variation=>odsVariationMatchesRequest(variation,request));
-        state.dismissedOdsApprovals=(state.dismissedOdsApprovals||[]).filter(item=>{
-          const request=changeRequests.find(entry=>String(entry.id)===String(item.requestId));
-          return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
-        });
-        await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;
-        $('import-result').hidden=true;
-        $('new-ods-file').value='';
-        setStatus(`✓ ODS importato e salvato: ${rows.length} variazioni.`,'ok');
       }catch(error){setStatus(`Errore ODS: ${error.message}`,'bad')}
     });
     $('new-turn-file').addEventListener('change',event=>{
@@ -840,7 +888,6 @@
     });
     $('parse-new-ods').addEventListener('click',()=>parseImport('ods').catch(error=>setStatus(`Errore importazione ODS: ${error.message}`,'bad')));
     $('parse-new-bariste').addEventListener('click',()=>parseImport('barista').catch(error=>setStatus(`Errore importazione turni: ${error.message}`,'bad')));
-    $('parse-new-nave').addEventListener('click',()=>parseImport('nave').catch(error=>setStatus(`Errore importazione turni nave: ${error.message}`,'bad')));
     $('parse-new-turn').addEventListener('click',()=>parseTurnImport().catch(error=>setStatus(`Errore lettura turno: ${error.message}`,'bad')));
     $('download-turn-sheet').addEventListener('click',exportScheduleCsv);
     $('parse-turn-sheet').addEventListener('click',async()=>{
@@ -855,22 +902,20 @@
       try{await save();schedule=await window.NaviSharedData.load('',{force:true});$('save-turn-sheet').disabled=true;setStatus('✓ Foglio Google applicato a Firebase. I turni sono stati aggiornati.','ok')}catch(error){state.scheduleImports=previous;setStatus(`Errore applicazione Foglio Google: ${error.message}`,'bad')}
     });
     $('save-new-ods').addEventListener('click',async()=>{
-      const rows=collectPending('ods');if(!rows.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
-      state.odsVariations=merge(state.odsVariations,rows,variationKey);
+      const rows=collectPending('ods'),navi=collectOdsNavi();if(!rows.length&&!navi.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
+      if(rows.length)state.odsVariations=merge(state.odsVariations,rows,variationKey);
+      if(navi.length)state.turniNavi=merge(state.turniNavi,navi,turnoNaveKey);
       const touchesRequest=request=>rows.some(variation=>odsVariationMatchesRequest(variation,request));
       state.dismissedOdsApprovals=(state.dismissedOdsApprovals||[]).filter(item=>{
         const request=changeRequests.find(entry=>String(entry.id)===String(item.requestId));
         return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
       });
-      await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;
+      await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;pendingOdsNavi=[];
+      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave.`, 'ok');
     });
     $('save-new-bariste').addEventListener('click',async()=>{
       const rows=collectPending('barista');if(!rows.length)return setStatus('Nessun turno barista valido da salvare.','bad');
       state.baristas=merge(state.baristas,rows,baristaKey);await save();$('save-new-bariste').disabled=true;
-    });
-    $('save-new-nave').addEventListener('click',async()=>{
-      const rows=collectPending('nave');if(!rows.length)return setStatus('Nessun turno nave valido da salvare.','bad');
-      state.turniNavi=merge(state.turniNavi,rows,turnoNaveKey);await save();renderHistory();$('save-new-nave').disabled=true;
     });
     $('save-new-turn').addEventListener('click',async()=>{
       const file=$('new-turn-file').files?.[0];if(!file)return;
