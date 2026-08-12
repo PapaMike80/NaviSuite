@@ -15,6 +15,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/portal.css">
+  <style>
+    /* Home: nel tema chiaro le aree cliccabili restano leggere, senza riquadri scuri. */
+    html.navisuite-light .app-card,
+    body.navisuite-light .app-card,
+    html[data-theme="light"] .app-card{
+      background:#fff !important;
+      border-color:#c9e0e3 !important;
+      color:#17323a !important;
+      box-shadow:0 5px 14px rgba(27,62,70,.06) !important;
+    }
+    html.navisuite-light .app-card strong,
+    body.navisuite-light .app-card strong,
+    html[data-theme="light"] .app-card strong{color:#17323a !important}
+    html.navisuite-light .app-card p,
+    body.navisuite-light .app-card p,
+    html[data-theme="light"] .app-card p{color:#547078 !important}
+    html.navisuite-light .app-card:hover,
+    body.navisuite-light .app-card:hover,
+    html[data-theme="light"] .app-card:hover{background:#fff !important}
+  </style>
 </head>
 <body>
   <main class="portal-shell">
