@@ -4,8 +4,12 @@
   const body=document.body;
   const isHomePage=location.pathname.endsWith('/')||location.pathname.endsWith('/index.html');
   const pageKey=body.classList.contains('impostazioni-page')?'settings':body.classList.contains('trova-turno-page')?'cambi':body.classList.contains('diaria-page')?'diaria':body.classList.contains('turni-page')?'turni':isHomePage?'home':'';
-  const labels={home:'Home NaviSuite',turni:'NaviTurni',cambi:'NaviCambi',diaria:'NaviDiaria'};
+  const labels={general:'Aggiornamento generale',home:'Home NaviSuite',turni:'NaviTurni',cambi:'NaviCambi',diaria:'NaviDiaria'};
   const defaults={
+    general:{
+      title:'Novità di NaviSuite',
+      message:'È disponibile una nuova funzione per aiutarci a migliorare NaviSuite.\n\n• Segnalazioni e idee: dalla Home o dal Menu puoi inviare un bug, un suggerimento o una richiesta di miglioramento.\n• Puoi scegliere la pagina coinvolta e descrivere con calma cosa è successo.\n• Riceverai lo stato della segnalazione: Nuovo, In verifica o Risolto.\n\nSono stati inoltre sistemati il menu mobile della pagina Segnalazioni e alcuni aggiornamenti della PWA.'
+    },
     home:{
       title:'A cosa serve NaviSuite',
       message:'NaviSuite riunisce in un unico spazio gli strumenti utili per il lavoro.\n\nPuoi consultare turni ed equipaggi, proporre cambi turno, registrare diaria e competenze, aprire documenti e consultare gli orari.\n\nDalla Home scegli semplicemente la sezione che vuoi utilizzare.'
@@ -35,7 +39,7 @@
     installStyle();document.querySelectorAll('.navi-news-overlay').forEach(node=>node.remove());
     const overlay=document.createElement('div');overlay.className='navi-news-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
     const card=document.createElement('div');card.className='navi-news-card';
-    const kicker=document.createElement('span');kicker.className='navi-news-kicker';kicker.textContent=preview?'ANTEPRIMA GUIDA':'GUIDA ALLA PAGINA';
+    const kicker=document.createElement('span');kicker.className='navi-news-kicker';kicker.textContent=preview?'ANTEPRIMA':item.scope==='general'?'AGGIORNAMENTO NAVISUITE':'GUIDA ALLA PAGINA';
     const title=document.createElement('h2');title.textContent=item.title||'Guida';
     const message=document.createElement('div');message.className='navi-news-message';message.textContent=item.message||'';
     const actions=document.createElement('div');actions.className='navi-news-actions';
@@ -49,7 +53,8 @@
     const close=document.createElement('button');close.type='button';close.className='navi-news-close';close.textContent=preview?'Chiudi anteprima':'Ho capito';
     const dismiss=()=>{
       try{
-        if(!preview&&item.id&&pageKey)localStorage.setItem('navisuite.announcement.'+pageKey+'.'+item.id,'seen');
+        const scope=item.scope||pageKey;
+        if(!preview&&item.id&&scope)localStorage.setItem('navisuite.announcement.'+scope+'.'+item.id,'seen');
       }catch(error){
         console.warn('Memorizzazione chiusura popup non disponibile',error);
       }finally{
@@ -64,25 +69,29 @@
   let announcementCheckRunning=false;
   let pendingAnnouncementId='';
   async function loadPublished(){
-    // Nella Home il popup deve apparire soltanto quando il login è terminato
-    // e la scelta delle applicazioni è realmente visibile.
+    // Prima dell'accesso nessun avviso viene mostrato. Nella Home aspettiamo
+    // inoltre che sia comparsa la scelta delle applicazioni.
+    if(!profile)return;
     if(pageKey==='home'&&document.getElementById('appChoice')?.hidden!==false)return;
-    if(announcementCheckRunning||!labels[pageKey]||!window.NaviAdminFirebase?.getAnnouncements)return;
+    if(announcementCheckRunning||!window.NaviAdminFirebase?.getAnnouncements)return;
     announcementCheckRunning=true;
     try{
       await NaviAdminFirebase.ready;
       const all=await NaviAdminFirebase.getAnnouncements();
-      const item=all?.[pageKey]?.published;
-      if(!item?.id)return;
-      const key='navisuite.announcement.'+pageKey+'.'+item.id;
-      let alreadySeen=false;
-      try{alreadySeen=localStorage.getItem(key)==='seen'}catch{}
-      if(!alreadySeen&&!document.querySelector('.navi-news-overlay')&&pendingAnnouncementId!==String(item.id)){
+      const candidates=[
+        {...(all?.general?.published||{}),scope:'general'},
+        pageKey?{...(all?.[pageKey]?.published||{}),scope:pageKey}:null
+      ].filter(item=>item?.id);
+      for(const item of candidates){
+        const key='navisuite.announcement.'+item.scope+'.'+item.id;
+        let alreadySeen=false;try{alreadySeen=localStorage.getItem(key)==='seen'}catch{}
+        if(alreadySeen||document.querySelector('.navi-news-overlay')||pendingAnnouncementId===String(item.id))continue;
         pendingAnnouncementId=String(item.id);
         setTimeout(()=>{
           if(!document.querySelector('.navi-news-overlay'))show(item,false);
           pendingAnnouncementId='';
         },150);
+        break; // Un solo popup per apertura: il generale ha sempre precedenza.
       }
     }catch(error){console.warn('Guide NaviSuite non disponibili',error)}
     finally{announcementCheckRunning=false}
@@ -95,7 +104,7 @@
     let data={};try{await NaviAdminFirebase.ready;data=await NaviAdminFirebase.getAnnouncements()}catch(error){status.textContent='Impossibile caricare le guide: '+error.message;return}
     const render=()=>{grid.innerHTML=Object.entries(labels).map(([key,label])=>{const entry=data[key]||{},draft=entry.draft||defaults[key],live=entry.published;const stamp=live?'Pubblicata il '+new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'short'}).format(new Date(live.publishedAt||Date.now())):'Non pubblicata';return '<article class="announcement-card" data-key="'+key+'"><h3>'+label+'</h3><label>Titolo</label><input data-title value="'+escapeHtml(draft.title)+'"><label>Spiegazione</label><textarea data-message>'+escapeHtml(draft.message)+'</textarea><div class="announcement-actions"><button type="button" data-action="save">Salva bozza</button><button type="button" data-action="preview">Anteprima</button><button type="button" class="publish" data-action="publish">Pubblica ora</button><button type="button" class="disable" data-action="disable">Disattiva</button></div><div class="announcement-state '+(live?'live':'')+'">'+stamp+' · visibile a tutti</div></article>'}).join('')};
     render();
-    grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show(draft,true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'all'};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString()}}if(action==='disable')data[key].published=null;status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per tutti gli utenti.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
+    grid.addEventListener('click',async event=>{const button=event.target.closest('button[data-action]'),card=button?.closest('[data-key]');if(!button||!card)return;const key=card.dataset.key,action=button.dataset.action,draft={title:card.querySelector('[data-title]').value.trim(),message:card.querySelector('[data-message]').value.trim()};if(action==='preview'){show({...draft,scope:key},true);return}button.disabled=true;try{data[key]={...(data[key]||{}),draft,audience:'all'};if(action==='publish'){if(!draft.title&&!draft.message)throw new Error('Inserisci un titolo o un messaggio');data[key].published={...draft,id:String(Date.now()),publishedAt:new Date().toISOString(),scope:key}}if(action==='disable')data[key].published=null;status.textContent='Salvataggio…';await NaviAdminFirebase.saveAnnouncements(data);status.textContent=action==='publish'?labels[key]+' pubblicata per tutti gli utenti.':action==='disable'?labels[key]+' disattivata.':'Bozza salvata.';render()}catch(error){status.textContent='Errore: '+error.message}finally{button.disabled=false}});
   }
   setupAdmin();loadPublished();
   document.addEventListener('navisuite-login-complete',loadPublished);
