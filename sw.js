@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v146-light-home-orario-sidebar';
+const CACHE_VERSION = 'navisuite-v147-light-diaria-and-popups';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
