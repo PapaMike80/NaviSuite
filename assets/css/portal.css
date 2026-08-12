@@ -15,6 +15,22 @@ body{
     linear-gradient(150deg,#05131c 0%,#0a2532 48%,#0d3241 100%);
 }
 
+/* Anteprima tema chiaro personale di Marco anche nella pagina di accesso. */
+html.navisuite-light body{
+  background:linear-gradient(145deg,#eef8f8 0%,#e5f3f2 100%);
+}
+html.navisuite-light .portal-intro{color:#17323a}
+html.navisuite-light .portal-intro::before{background:radial-gradient(520px 380px at 88% 8%,rgba(45,212,191,.16),transparent 65%)}
+html.navisuite-light .portal-intro::after{background-image:linear-gradient(rgba(35,79,87,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(35,79,87,.06) 1px,transparent 1px)}
+html.navisuite-light .portal-brand{color:#17323a}
+html.navisuite-light .portal-intro .eyebrow,html.navisuite-light h1 em{color:#087b6e}
+html.navisuite-light .intro-copy,html.navisuite-light .local-note{color:#547078}
+html.navisuite-light .access-card,html.navisuite-light .choice-card{background:#fff;border-color:#bdd8dc;box-shadow:0 20px 45px rgba(31,73,81,.12),inset 0 1px 0 #fff}
+html.navisuite-light .access-card h2,html.navisuite-light .choice-card h2{color:#17323a}
+html.navisuite-light .access-card>p:not(.eyebrow),html.navisuite-light .choice-card>p:not(.eyebrow),html.navisuite-light .access-card label{color:#547078}
+html.navisuite-light .access-card input{background:#f8fcfc;border-color:#b7d4d8;color:#17323a}
+html.navisuite-light .access-card input::placeholder{color:#78939a}
+
 /* ===== Struttura generale ===== */
 .portal-shell{
   min-height:100vh;
