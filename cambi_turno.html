@@ -2679,11 +2679,17 @@
     function getShipDayInfo(calInfo, shift) {
       const cleanShift = ottieniTurnoPulito(shift).toUpperCase();
       if (!calInfo?.iso || !cleanShift || !Array.isArray(globalData?.turni_navi)) return null;
-      return globalData.turni_navi.find(item => {
+      const isUsableShip = item => {
+        const ship = String(item?.nave || '').trim();
+        // Ignora vecchie righe importate impropriamente dal turno personale.
+        return ship && !/\b(?:RIP|D[1-4]|BIS2?|P[1-3]|M1|R[1-4]|T[12]|CAR1|CAP1|SR1)\b/i.test(ship);
+      };
+      const candidates = globalData.turni_navi.filter(item => {
         const active = item.attiva !== false && !/^(no|false|0)$/i.test(String(item.attiva || ""));
         return active && String(item.data || "").slice(0, 10) === calInfo.iso &&
-          String(item.corsa || "").trim().toUpperCase() === cleanShift;
-      }) || null;
+          String(item.corsa || "").trim().toUpperCase() === cleanShift && isUsableShip(item);
+      });
+      return candidates.sort((a, b) => String(b.inserita_il || b.updatedAt || '').localeCompare(String(a.inserita_il || a.updatedAt || '')))[0] || null;
     }
 
     function renderShipDayInfo(calInfo, shift) {
