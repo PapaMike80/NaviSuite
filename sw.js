@@ -7,7 +7,7 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v132-ticket-mobile-style';
+const CACHE_VERSION = 'navisuite-v133-general-announcement';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
