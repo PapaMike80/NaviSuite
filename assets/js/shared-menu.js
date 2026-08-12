@@ -1,6 +1,14 @@
 (function(){
   const APP_VERSION='v1.41';
   window.NAVISUITE_VERSION=APP_VERSION;
+  // Applica subito il tema anche alla Home, che non ha un menu laterale.
+  // In questo modo non compare una schermata scura prima del reindirizzamento.
+  let initialThemeAgent=null;try{initialThemeAgent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{}
+  const initialLightTester=['91','AG_PEDRONI_M'].includes(String(initialThemeAgent?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(initialThemeAgent?.name||initialThemeAgent?.agente||initialThemeAgent?.cognome||''));
+  const initialLightTheme=initialLightTester&&localStorage.getItem('navisuite.theme.'+String(initialThemeAgent?.id||''))==='light';
+  document.documentElement.classList.toggle('navisuite-light',initialLightTheme);
+  document.body.classList.toggle('navisuite-light',initialLightTheme);
+  if(initialLightTheme)document.documentElement.dataset.theme='light';
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
@@ -27,6 +35,7 @@
     const light=currentTheme()==='light';
     document.documentElement.classList.toggle('navisuite-light',light);
     document.body.classList.toggle('navisuite-light',light);
+    if(light)document.documentElement.dataset.theme='light';else delete document.documentElement.dataset.theme;
   }
   function installLightTheme(){
     if(document.getElementById('navisuite-light-theme-style'))return;
@@ -36,7 +45,7 @@
     // Superfici visibili mentre la tabella di NaviTurni sta ancora caricando.
     // Restano chiare anche prima che arrivino i dati del periodo.
     const loadingStyle=document.createElement('style');loadingStyle.id='navisuite-light-loading-style';
-    loadingStyle.textContent='html.navisuite-light #welcome-notice{background:#fff!important;border-color:#83c9c2!important;color:#17323a!important;box-shadow:0 6px 20px rgba(22,56,66,.1)!important}html.navisuite-light #welcome-notice h3{color:#087b6e!important}html.navisuite-light #welcome-notice p{color:#547078!important}html.navisuite-light #welcome-notice .loading-spinner{border-color:#c9e1e2!important;border-top-color:#22bda9!important}html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th,html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th[data-month],html.navisuite-light #matrix-scroll-wrap .month-header th[data-month]{background:#e7f5f4!important;color:#17323a!important;box-shadow:none!important}html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th[data-month] .month-visible-label,html.navisuite-light #matrix-scroll-wrap .month-header th[data-month] .month-visible-label{background:transparent!important;color:#17323a!important}';
+    loadingStyle.textContent='html.navisuite-light #welcome-notice{background:#fff!important;border-color:#83c9c2!important;color:#17323a!important;box-shadow:0 6px 20px rgba(22,56,66,.1)!important}html.navisuite-light #welcome-notice h3{color:#087b6e!important}html.navisuite-light #welcome-notice p{color:#547078!important}html.navisuite-light #welcome-notice .loading-spinner{border-color:#c9e1e2!important;border-top-color:#22bda9!important}html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th,html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th[data-month],html.navisuite-light #matrix-scroll-wrap .month-header th[data-month]{background:#e7f5f4!important;color:#17323a!important;box-shadow:none!important}html.navisuite-light #matrix-scroll-wrap #thead-container .month-header th[data-month] .month-visible-label,html.navisuite-light #matrix-scroll-wrap .month-header th[data-month] .month-visible-label{background:transparent!important;color:#17323a!important}html.navisuite-light .app-sidebar .sidebar-agent-name,html.navisuite-light .app-sidebar .login-user-name{background:#f3f9fa!important;border-color:#b9d7dc!important;color:#17323a!important;box-shadow:none!important}html.navisuite-light .app-sidebar .sidebar-agent-name:before{color:#417078!important}html.navisuite-light .app-sidebar .sidebar-action,html.navisuite-light .app-sidebar .login-user-panel button:not(.login-user-name){background:#fff!important;border-color:#b9d7dc!important;color:#31545c!important}html.navisuite-light .app-sidebar .sidebar-action.sidebar-exit,html.navisuite-light .app-sidebar .login-user-panel .sidebar-exit{background:#fff5f6!important;border-color:#efb7c0!important;color:#b53c4c!important}html.navisuite-light .app-sidebar .sidebar-footer-update{background:#e7f7f4!important;border-color:#83c9c2!important;color:#087b6e!important}html.navisuite-light .app-sidebar .sidebar-data-status{color:#17856f!important}html.navisuite-light body.orario-page,html.navisuite-light .orario-page{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .orario-page .og-page-chart,html.navisuite-light .orario-page .og-chart-wrap,html.navisuite-light .orario-page .card,html.navisuite-light .orario-page dialog{background:#fff!important;color:#17323a!important;border-color:#b9d5da!important}html.navisuite-light .orario-page .btn,html.navisuite-light .orario-page button{background:#fff!important;color:#17323a!important;border-color:#a9cbd1!important}';
     document.head.appendChild(loadingStyle);
   }
   installLightTheme();applyTheme();
