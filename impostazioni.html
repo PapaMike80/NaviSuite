@@ -64,6 +64,10 @@
       <div id="announcement-grid"></div>
       <div class="status" id="announcement-status" aria-live="polite"></div>
     </section>
+    <section class="section" id="theme-test-setting" hidden>
+      <div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è disponibile solo per il tuo profilo di prova.</p></div><span class="badge">Solo Pedro</span></div>
+      <div class="field" style="max-width:320px"><label for="navisuite-theme-select">Aspetto</label><select id="navisuite-theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>
+    </section>
     <section class="section" id="altre-preferenze">
       <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
@@ -87,7 +91,7 @@
   </nav>
   <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.43"></script>
+  <script src="assets/js/shared-menu.js?v=1.44"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -97,6 +101,19 @@
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
     const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    const isPedroThemeTest=['91','AG_PEDRONI_M'].includes(String(profile?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(profile?.name||profile?.agente||profile?.cognome||''));
+    const themeTestSection=document.getElementById('theme-test-setting');
+    const themeSelect=document.getElementById('navisuite-theme-select');
+    if(isPedroThemeTest&&themeTestSection&&themeSelect){
+      themeTestSection.hidden=false;
+      const themeKey='navisuite.theme.'+String(profile?.id||'PEDRONI');
+      themeSelect.value=localStorage.getItem(themeKey)==='light'?'light':'dark';
+      themeSelect.addEventListener('change',()=>{
+        localStorage.setItem(themeKey,themeSelect.value);
+        document.documentElement.classList.toggle('navisuite-light',themeSelect.value==='light');
+        document.body.classList.toggle('navisuite-light',themeSelect.value==='light');
+      });
+    }
     const weeksSection=document.getElementById('gestione-settimane');
     const weeksList=document.getElementById('weeks-list');
     const weeksStatus=document.getElementById('weeks-status');
