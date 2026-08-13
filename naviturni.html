@@ -1682,6 +1682,8 @@
     let isEditMode = false;
     let loggedAgentProfile = null;
     let baristaAccessApplied = false;
+    let myShiftPopupShownForPage = false;
+    let myShiftPopupTimer = null;
     const AGENT_LOGIN_STORAGE_KEY = "naviturni_logged_agent";
     const BARISTA_PRIVATE_SHIFT = "__PRIVATE__";
     const {
@@ -2495,6 +2497,35 @@
       generaFiltriTurnoRiferimento();
       selectDay(cal.col, cal.labelEstesa, effectiveShift, agent);
       return true;
+    }
+
+    // Preferenza personale: se non è mai stata modificata, la scheda viene
+    // mostrata per impostazione predefinita a ogni nuova apertura della pagina.
+    function isMyShiftPopupEnabled() {
+      const profile = loggedAgentProfile || readLoggedAgentProfile();
+      const identity = String(profile?.id || profile?.name || profile?.cognome || "").trim();
+      return Boolean(identity) && localStorage.getItem(`navisuite.my-shift-popup.${identity}`) !== "false";
+    }
+
+    function openMyShiftPopupOnLoad() {
+      if (myShiftPopupShownForPage || !isMyShiftPopupEnabled() || !loggedAgentProfile || isOfficeProfile()) return;
+      const today = dateCalendario.find(cal => isTodayDate(cal.realObj));
+      const calendarDay = today || dateCalendario.find(cal => cal.realObj >= new Date()) || dateCalendario[0];
+      if (!calendarDay || (!getLoggedAgentLocation() && !isBaristaProfile())) return;
+
+      // Il pannello esistente è la "Scheda equipaggi": aprirlo in modalità
+      // personale garantisce che mostri la corsa effettiva dell'utente,
+      // incluse eventuali variazioni ODS, oppure il riposo.
+      myShiftPopupShownForPage = true;
+      placeDayPanel("main");
+      crewNavigationMode = "personal";
+      selectDayForLoggedAgent(calendarDay);
+    }
+
+    function scheduleMyShiftPopup() {
+      if (myShiftPopupShownForPage || !isMyShiftPopupEnabled()) return;
+      clearTimeout(myShiftPopupTimer);
+      myShiftPopupTimer = setTimeout(openMyShiftPopupOnLoad, 160);
     }
 
     function generaFiltriTurnoRiferimento() {
@@ -4238,7 +4269,10 @@
       populateLoginSurnameOptions();
       loggedAgentProfile = readLoggedAgentProfile();
       updateLoginUserPanel();
-      if (loggedAgentProfile && applyLoggedAgentProfile()) return;
+      if (loggedAgentProfile && applyLoggedAgentProfile()) {
+        scheduleMyShiftPopup();
+        return;
+      }
       if (loggedAgentProfile) {
         // La copia locale può essere precedente all'aggiunta dell'agente (in
         // particolare per le bariste). Conserva la sessione: il caricamento
