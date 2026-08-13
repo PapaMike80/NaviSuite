@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 22964)
+Total output lines: 956
+
 <!doctype html>
 <html lang="it">
 <head>
@@ -355,130 +358,7 @@
       const previousApprovals=[...(state.approvedChangeRequests||[])];
       const previousDismissed=[...(state.dismissedOdsApprovals||[])];
       state.manualVariations=state.manualVariations.filter(item=>String(item.requestId||'')!==String(requestId));
-      state.approvedChangeRequests=state.approvedChangeRequests.filter(item=>String(item.requestId)!==String(requestId));
-      state.dismissedOdsApprovals=state.dismissedOdsApprovals.filter(item=>String(item.requestId)!==String(requestId));
-      state.dismissedOdsApprovals.push({requestId:String(requestId),dismissedAt:new Date().toISOString(),reason:'approval_deleted'});
-      try{
-        await save();
-        renderChangeApprovals();renderHistory();updateCurrent();
-        setStatus('✓ Approvazione eliminata. La richiesta è tornata in attesa.','ok');
-      }catch(error){
-        state.manualVariations=previousManual;
-        state.approvedChangeRequests=previousApprovals;
-        state.dismissedOdsApprovals=previousDismissed;
-        renderChangeApprovals();
-        setStatus(`Errore eliminazione approvazione: ${error.message}`,'bad');
-      }
-    }
-    async function deleteOdsApproval(requestId){
-      const request=changeRequests.find(item=>String(item.id)===String(requestId));
-      if(!request)return;
-      const matching=state.odsVariations.filter(item=>item.attiva!==false&&odsVariationMatchesRequest(item,request));
-      if(!matching.length)return setStatus('Nessuna variazione ODS collegata a questa richiesta.','bad');
-      if(!confirm(`Eliminare la conferma ODS del cambio tra ${request.agentName} e ${request.colleagueName}?\n\nVerranno eliminate ${matching.length} variazioni collegate. Le altre righe dell’ODS resteranno nello storico.`))return;
-      const previousDismissed=[...(state.dismissedOdsApprovals||[])];
-      const previousOds=[...state.odsVariations];
-      const now=new Date().toISOString();
-      state.odsVariations=state.odsVariations.map(item=>item.attiva!==false&&odsVariationMatchesRequest(item,request)?{...item,attiva:false,eliminata_il:now,eliminata_per_richiesta:String(requestId)}:item);
-      state.dismissedOdsApprovals=previousDismissed.filter(item=>String(item.requestId)!==String(requestId));
-      state.dismissedOdsApprovals.push({requestId:String(requestId),dismissedAt:new Date().toISOString()});
-      try{
-        await save();
-        renderHistory();renderChangeApprovals();updateCurrent();
-        setStatus(`✓ Conferma ODS e ${matching.length} variazioni collegate eliminate.`,'ok');
-      }catch(error){
-        state.odsVariations=previousOds;
-        state.dismissedOdsApprovals=previousDismissed;
-        renderHistory();
-        renderChangeApprovals();
-        setStatus(`Errore eliminazione conferma ODS: ${error.message}`,'bad');
-      }
-    }
-    async function restoreOdsApproval(requestId){
-      const previous=[...(state.dismissedOdsApprovals||[])];
-      state.dismissedOdsApprovals=previous.filter(item=>String(item.requestId)!==String(requestId));
-      try{
-        await save();
-        renderChangeApprovals();
-        setStatus('✓ Conferma ODS riattivata.','ok');
-      }catch(error){
-        state.dismissedOdsApprovals=previous;
-        renderChangeApprovals();
-        setStatus(`Errore riattivazione ODS: ${error.message}`,'bad');
-      }
-    }
-    function renderHistory(){
-      const odsRows=state.odsVariations.map((v,i)=>({...v,_kind:'ODS',_index:i})).filter(v=>v.attiva!==false);
-      const groups=new Map();
-      odsRows.forEach(v=>{const key=String(v.ods||'SENZA NUMERO');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(v)});
-      const grouped=[...groups.entries()].sort((a,b)=>{
-        const latest=rows=>rows.reduce((max,v)=>String(v.data)>max?String(v.data):max,'');
-        return latest(b[1]).localeCompare(latest(a[1]));
-      });
-      const allManualRows=state.manualVariations.map((v,i)=>({...v,_kind:'MANUALE',_index:i}))
-        .filter(v=>v.attiva!==false).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
-      const approvedRows=allManualRows.filter(v=>String(v.requestId||''));
-      const otherRows=allManualRows.filter(v=>!String(v.requestId||''));
-      const baristaRows=state.baristas.map((v,i)=>({...v,_kind:'BARISTA',_index:i})).filter(v=>v.attiva!==false);
-      const naveRows=state.turniNavi.map((v,i)=>({...v,_kind:'NAVE',_index:i})).filter(v=>v.attiva!==false);
-      let html='';
-      grouped.forEach(([ods,rows],groupIndex)=>{
-        rows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.agente).localeCompare(String(b.agente),'it'));
-        const dates=rows.map(v=>v.data).filter(Boolean).sort();
-        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
-        const groupId=`ods-group-${groupIndex}`;
-        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra variazioni">▸</button><strong>ODS ${esc(odsLabel(ods))}</strong><span class="ods-group-count">${rows.length} variazioni</span></div></td><td colspan="3">${esc(period)}</td><td><button class="danger" data-delete-ods="${esc(ods)}">Elimina ODS</button></td></tr>`;
-        html+=rows.map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.agente)}</td><td>${esc(v.turno_originale)} → <strong>${esc(v.turno_nuovo)}</strong></td><td>${esc(v.note||'')}</td><td><button class="danger" data-delete-kind="ODS" data-delete-index="${v._index}">Elimina</button></td></tr>`).join('');
-      });
-      if(approvedRows.length){
-        const dates=approvedRows.map(v=>v.data).filter(Boolean).sort();
-        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
-        const requests=new Set(approvedRows.map(v=>String(v.requestId)).filter(Boolean)).size;
-        const groupId='cambi-approvati-group';
-        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra cambi approvati">▸</button><strong>CAMBI APPROVATI</strong><span class="ods-group-count">${requests} ${requests===1?'cambio':'cambi'} · ${approvedRows.length} variazioni</span></div></td><td colspan="3">${esc(period)}</td><td>—</td></tr>`;
-        html+=approvedRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.requestId).localeCompare(String(b.requestId))||String(a.agente).localeCompare(String(b.agente),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.agente)}</td><td>${esc(v.turno_originale)} → <strong>${esc(v.turno_nuovo)}</strong></td><td>${esc(v.note||'')}</td><td><span class="owner">Gestisci sopra</span></td></tr>`).join('');
-      }
-      if(otherRows.length){
-        const dates=otherRows.map(v=>v.data).filter(Boolean).sort();
-        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
-        const groupId='manuali-group';
-        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra variazioni manuali">▸</button><strong>VARIAZIONI MANUALI</strong><span class="ods-group-count">${otherRows.length} variazioni</span></div></td><td colspan="3">${esc(period)}</td><td>—</td></tr>`;
-        html+=otherRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.agente).localeCompare(String(b.agente),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.agente)}</td><td>${esc(v.turno_originale)} → <strong>${esc(v.turno_nuovo)}</strong></td><td>${esc(v.note||'')}</td><td><button class="danger" data-delete-kind="MANUALE" data-delete-index="${v._index}">Elimina</button></td></tr>`).join('');
-      }
-      if(baristaRows.length){
-        const dates=baristaRows.map(v=>v.data).filter(Boolean).sort();
-        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
-        const names=new Set(baristaRows.map(v=>String(v.barista||'').trim()).filter(Boolean)).size;
-        const groupId='bariste-group';
-        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra turni bariste">▸</button><strong>TURNI BARISTE</strong><span class="ods-group-count">${baristaRows.length} assegnazioni · ${names} bariste</span></div></td><td colspan="3">${esc(period)}</td><td><button class="danger" data-delete-baristas>Elimina</button></td></tr>`;
-        html+=baristaRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.corsa).localeCompare(String(b.corsa))||String(a.barista).localeCompare(String(b.barista),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.barista)}</td><td>Corsa <strong>${esc(v.corsa)}</strong></td><td>${esc(v.note||'')}</td><td>—</td></tr>`).join('');
-      }
-      if(naveRows.length){
-        const dates=naveRows.map(v=>v.data).filter(Boolean).sort();
-        const period=dates.length?(dates[0]===dates.at(-1)?dates[0]:`${dates[0]} → ${dates.at(-1)}`):'';
-        const ships=new Set(naveRows.map(v=>String(v.nave||'').trim()).filter(Boolean)).size;
-        const groupId='nave-group';
-        html+=`<tr class="ods-group-row" data-toggle-row="${groupId}"><td colspan="2"><div class="ods-group-title"><button class="ods-group-toggle" data-toggle-ods="${groupId}" type="button" aria-expanded="false" aria-label="Mostra turni nave">▸</button><strong>TURNI NAVE</strong><span class="ods-group-count">${naveRows.length} assegnazioni · ${ships} navi</span></div></td><td colspan="3">${esc(period)}</td><td><button class="danger" data-delete-nave>Elimina</button></td></tr>`;
-        html+=naveRows.sort((a,b)=>String(a.data).localeCompare(String(b.data))||String(a.corsa).localeCompare(String(b.corsa))||String(a.nave).localeCompare(String(b.nave),'it')).map(v=>`<tr class="ods-child" data-ods-group="${groupId}" hidden><td>↳</td><td>${esc(v.data)}</td><td>${esc(v.nave)}</td><td>Corsa <strong>${esc(v.corsa)}</strong>${/^(sì|si|true|1)$/i.test(String(v.rifornimento_mattina||''))?' · ⛽':''}</td><td>${esc(v.ormeggio_serale||'')}</td><td>—</td></tr>`).join('');
-      }
-      $('history').innerHTML=html||'<tr><td class="empty" colspan="6">Nessun aggiornamento registrato.</td></tr>';
-      $('history').querySelectorAll('[data-toggle-ods]').forEach(button=>button.addEventListener('click',()=>{
-        const expanded=button.getAttribute('aria-expanded')==='true';
-        button.setAttribute('aria-expanded',String(!expanded));
-        button.textContent=expanded?'▸':'▾';
-        button.setAttribute('aria-label',expanded?'Mostra variazioni':'Nascondi variazioni');
-        $('history').querySelectorAll(`[data-ods-group="${button.dataset.toggleOds}"]`).forEach(row=>row.hidden=expanded);
-      }));
-      $('history').querySelectorAll('[data-toggle-row]').forEach(row=>row.addEventListener('click',event=>{
-        if(event.target.closest('[data-toggle-ods],[data-delete-ods],[data-delete-baristas],[data-delete-nave]'))return;
-        row.querySelector('[data-toggle-ods]')?.click();
-      }));
-      $('history').querySelectorAll('[data-delete-ods]').forEach(button=>button.addEventListener('click',async()=>{
-        const ods=button.dataset.deleteOds;
-        const count=state.odsVariations.filter(v=>v.attiva!==false&&String(v.ods||'SENZA NUMERO')===ods).length;
-        if(!confirm(`Eliminare tutte le ${count} variazioni dell’ODS ${odsLabel(ods)}?`))return;
-        const now=new Date().toISOString();
-        state.odsVariations=state.odsVariations.map(v=>String(v.ods||'SENZA NUMERO')===ods?{...v,attiva:false,eliminata_il:now}:v);
+      state.approvedChangeRequests=state.approvedChangeRequests.filter(item=>String(item.re…2964 tokens truncated…'SENZA NUMERO')===ods?{...v,attiva:false,eliminata_il:now}:v);
         await save();renderHistory();renderChangeApprovals();updateCurrent();
       }));
       $('history').querySelector('[data-delete-baristas]')?.addEventListener('click',async()=>{
@@ -951,6 +831,6 @@
   })();
   </script>
 
-  <script src="assets/js/announcements.js?v=8"></script>
+  <script src="assets/js/announcements.js?v=9"></script>
 </body>
 </html>
