@@ -68,6 +68,13 @@
       <div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è disponibile solo per il tuo profilo di prova.</p></div><span class="badge">Solo Pedro</span></div>
       <div class="field" style="max-width:320px"><label for="navisuite-theme-select">Aspetto</label><select id="navisuite-theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>
     </section>
+    <section class="section" id="turni-preferenze">
+      <div class="section-head"><div><h2>Preferenze NaviTurni</h2><p>Queste scelte sono personali e sono disponibili per tutti gli agenti.</p></div><span class="badge">Personali</span></div>
+      <label class="switch-row" for="my-shift-popup-enabled">
+        <span class="switch-copy"><strong>Apri “Il mio turno” all’avvio</strong><span>Mostra la tua corsa attuale e la Scheda equipaggi ogni volta che apri NaviTurni.</span></span>
+        <span class="switch"><input id="my-shift-popup-enabled" type="checkbox"><i></i></span>
+      </label>
+    </section>
     <section class="section" id="altre-preferenze">
       <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
@@ -100,6 +107,14 @@
     const profileNameElement=document.getElementById("profile-name");
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
+    const myShiftPopupKey=`navisuite.my-shift-popup.${String(profile?.id||profile?.name||profileName).trim()}`;
+    const myShiftPopupToggle=document.getElementById('my-shift-popup-enabled');
+    if(myShiftPopupToggle){
+      myShiftPopupToggle.checked=localStorage.getItem(myShiftPopupKey)!=='false';
+      myShiftPopupToggle.addEventListener('change',()=>{
+        localStorage.setItem(myShiftPopupKey,myShiftPopupToggle.checked?'true':'false');
+      });
+    }
     const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
     const isPedroThemeTest=['91','AG_PEDRONI_M'].includes(String(profile?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(profile?.name||profile?.agente||profile?.cognome||''));
     const themeTestSection=document.getElementById('theme-test-setting');
