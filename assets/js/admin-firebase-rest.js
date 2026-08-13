@@ -521,21 +521,69 @@
       agentId:id,
       entries:Array.isArray(value.entries) ? value.entries.filter(Boolean) : [],
       updatedAt:String(value.updatedAt || ""),
-      updatedBy:String(value.updatedBy || "")
+      updatedBy:String(value.updatedBy || ""),
+      version:Number(value.version || 1),
+      entryCount:Number(value.entryCount || (Array.isArray(value.entries) ? value.entries.filter(Boolean).length : 0)),
+      checksum:String(value.checksum || "")
     };
+  }
+
+  function diariaChecksum(entries) {
+    const source = JSON.stringify(entries || []);
+    let hash = 2166136261;
+    for (let index = 0; index < source.length; index += 1) { hash ^= source.charCodeAt(index); hash = Math.imul(hash, 16777619); }
+    return `d${(hash >>> 0).toString(36)}`;
+  }
+
+  function mergeDiariaEntries(existingEntries, incomingEntries) {
+    const byDay = new Map();
+    (existingEntries || []).forEach(entry => byDay.set(entry.date || entry.id, entry));
+    (incomingEntries || []).forEach(entry => byDay.set(entry.date || entry.id, entry));
+    return [...byDay.values()].sort((a,b) => String(a.date || "").localeCompare(String(b.date || "")));
+  }
+
+  async function keepDiariaBackup(id, current, reason) {
+    const oldEntries = Array.isArray(current?.entries) ? current.entries.filter(Boolean) : [];
+    if (!oldEntries.length) return;
+    const savedAt = new Date().toISOString();
+    const backupKey = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const backupPath = `private/adminUpdates/diariaBackups/${safeUserKey(id)}/${backupKey}`;
+    await databaseRequest(backupPath, { method:"PUT", body:JSON.stringify({
+      agentId:id, entries:oldEntries, entryCount:oldEntries.length, checksum:diariaChecksum(oldEntries),
+      savedAt, sourceUpdatedAt:String(current.updatedAt || ""), sourceVersion:Number(current.version || 1), reason
+    }) });
+    const backups = (await databaseRequest(`private/adminUpdates/diariaBackups/${safeUserKey(id)}`)).data || {};
+    const oldKeys = Object.entries(backups).sort((a,b) => String(a[1]?.savedAt || "").localeCompare(String(b[1]?.savedAt || ""))).slice(0, -35).map(([key]) => key);
+    await Promise.all(oldKeys.map(key => databaseRequest(`private/adminUpdates/diariaBackups/${safeUserKey(id)}/${key}`, { method:"DELETE" })));
   }
 
   async function saveDiaria(agentId, entries = []) {
     const auth = await ensureAuth();
     const id = String(agentId || "").trim();
     if (!id) throw new Error("Agente non valido");
+    let normalizedEntries = Array.isArray(entries) ? entries.filter(Boolean) : [];
+    const path = `private/adminUpdates/diaria/${safeUserKey(id)}`;
+    const current = (await databaseRequest(path)).data || {};
+    const currentEntries = Array.isArray(current.entries) ? current.entries.filter(Boolean) : [];
+    if (currentEntries.length && normalizedEntries.length < currentEntries.length) {
+      normalizedEntries = mergeDiariaEntries(currentEntries, normalizedEntries);
+    }
+    const incomingChecksum = diariaChecksum(normalizedEntries);
+    const currentChecksum = String(current.checksum || diariaChecksum(currentEntries));
+    if (currentEntries.length && !normalizedEntries.length) {
+      throw new Error("Protezione attiva: non posso sostituire una diaria esistente con un archivio vuoto.");
+    }
+    if (currentEntries.length && currentChecksum !== incomingChecksum) await keepDiariaBackup(id, current, "prima del nuovo salvataggio");
     const item = {
       agentId:id,
-      entries:Array.isArray(entries) ? entries.filter(Boolean) : [],
+      entries:normalizedEntries,
+      entryCount:normalizedEntries.length,
+      checksum:incomingChecksum,
+      version:Number(current.version || 0) + 1,
       updatedAt:new Date().toISOString(),
       updatedBy:auth.uid
     };
-    await databaseRequest(`private/adminUpdates/diaria/${safeUserKey(id)}`, {
+    await databaseRequest(path, {
       method:"PUT",
       body:JSON.stringify(item)
     });
