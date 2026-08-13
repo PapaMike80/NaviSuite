@@ -9,7 +9,7 @@
 
 // Cambio obbligatorio dopo il ripristino dello script popup: invalida anche
 // le copie memorizzate dalla PWA e da Safari.
-const CACHE_VERSION = 'navisuite-v153-diaria-backup';
+const CACHE_VERSION = 'navisuite-v154-turni-crew-panel';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -60,6 +60,7 @@ const STATIC_ASSETS = [
   'assets/js/navidiaria-weekly.js',
   'assets/js/navidiaria-monthly.js',
   'assets/js/shared-menu.js',
+  'assets/js/turni-shared.js',
   'assets/js/announcements-recovered.js',
   'assets/js/documenti.js',
   'assets/js/orari-tabella.js',
