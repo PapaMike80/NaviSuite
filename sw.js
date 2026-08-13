@@ -7,7 +7,9 @@
  * - provare sempre prima la rete e usare la cache solo come fallback.
  */
 
-const CACHE_VERSION = 'navisuite-v150-light-weekly-diaria';
+// Cambio obbligatorio dopo il ripristino dello script popup: invalida anche
+// le copie memorizzate dalla PWA e da Safari.
+const CACHE_VERSION = 'navisuite-v151-personal-popup-recovery';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
