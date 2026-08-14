@@ -589,8 +589,13 @@
         const m=line.match(/^([A-ZÀ-Ü][A-ZÀ-Ü .,'’-]{2,}):\s*(.+)$/i);
         if(!m||!currentDate)continue;
         const content=m[2],service=content.match(/\bservizio\s+([A-Z0-9.=/-]+)/i);
-        const tokens=content.toUpperCase().match(/\b(?:RIP|[A-Z]{1,5}\d{0,2}|={3})\b/g)||[];
-        let shift=(service?.[1]||tokens.find(t=>!['DALLE','ALLE','SONO','PRONTI','MUOVERE','CON','COME','PER','IL','LA','DI','IN','A'].includes(t))||'').replace(/^={3}$/,'RIP');
+        // "===" indica riposo negli ODS. Non può stare dentro \b…\b,
+        // perché il simbolo = non è un carattere di parola.
+        const explicitCode=content.match(/\b(?:L\.?\s*D\.?|F\.?\s*P\.?|AGB\d?)(?![A-Z0-9])/i)?.[0]||'';
+        const tokens=content.toUpperCase().match(/={3}|\b(?:RIP|[A-Z]{1,5}\d{0,2})\b/g)||[];
+        let shift=(service?.[1]||explicitCode||tokens.find(t=>!['DALLE','ALLE','SONO','PRONTI','MUOVERE','CON','COME','PER','IL','LA','DI','IN','A'].includes(t))||'').replace(/^={3}$/,'RIP');
+        if(/^L\.?\s*D\.?$/i.test(shift))shift='L.D.';
+        if(/^F\.?\s*P\.?$/i.test(shift))shift='F.P.';
         if(!shift)continue;
         m[1].split(/\s*,\s*|\s+E\s+/i).forEach(name=>{
           const agent=resolveAgent(name.trim());
