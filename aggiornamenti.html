@@ -138,7 +138,7 @@
     <a href="agenti.html"><span>♙</span>Agenti</a>
   </nav>
   <script src="assets/js/turni-shared.js"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=35"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=36"></script>
   <script src="assets/js/shared-menu.js"></script>
   <script src="assets/js/shared-data.js?v=3"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
@@ -928,4 +928,29 @@
         const batch=collectTurnImport();if(!batch?.rows?.length)throw new Error('Nessun agente selezionato da salvare');
         const id=`DOC_${Date.now()}_${normalize(file.name).slice(0,32)}`;
         const metadata={id,tipo:$('new-turn-type').value,titolo:$('new-turn-title').value.trim()||file.name,inizio,fine,filename:file.name,size:file.size,mimeType:file.type||'application/pdf'};
-        await window.NaviAdminFirebase.saveAdminDocument(metadata,await f
+        await window.NaviAdminFirebase.saveAdminDocument(metadata,await fileAsDataUrl(file));
+        batch.id=`TURN_${Date.now()}_${normalize(file.name).slice(0,24)}`;batch.documentId=id;batch.titolo=metadata.titolo;batch.importedAt=new Date().toISOString();
+        state.scheduleImports.push(batch);
+        await save();
+        adminDocuments=await window.NaviAdminFirebase.getAdminDocuments();
+        renderUploadedDocuments();
+        $('new-turn-file').value='';pendingTurnImport=null;$('turn-import-preview').hidden=true;$('parse-new-turn').disabled=true;
+        setStatus(`✓ ${batch.rows.length} agenti aggiornati per ${batch.dates.length} giorni. Il PDF di prova può essere eliminato dalla riga qui sopra.`,'ok');
+      }catch(error){
+        setStatus(`Errore caricamento documento: ${error.message}`,'bad');
+        $('save-new-turn').disabled=false;
+      }
+    });
+    $('manual-form').addEventListener('submit',async event=>{
+      event.preventDefault();const agent=selectedAgent(),date=$('date').value;if(!agent||!date)return;
+      const record={attiva:true,data:date,id_agente:String(agent.id),agente:String(agent.agente),turno_originale:latestShift(agent,date),turno_nuovo:String($('new-shift').value||'RIP').trim().toUpperCase(),ods:'MANUALE',tipo:'MANUALE',note:String($('note').value||'Correzione manuale').trim(),inserita_il:new Date().toISOString()};
+      state.manualVariations=state.manualVariations.filter(v=>!(v.data===date&&String(v.id_agente)===String(agent.id)));state.manualVariations.push(record);
+      await save();renderHistory();updateCurrent();$('new-shift').value='';$('note').value='';
+    });
+    window.addEventListener('DOMContentLoaded',()=>init().catch(error=>setStatus(`Errore: ${error.message}. Se il modulo è caricato, aggiorna le regole Firebase incluse nello ZIP.`,'bad')));
+  })();
+  </script>
+
+  <script src="assets/js/announcements-recovered.js?v=1"></script>
+</body>
+</html>
