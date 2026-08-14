@@ -13,8 +13,21 @@
     return value;
   }
 
+  async function authRequest(url, options) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      return await fetch(url, { ...options, signal:controller.signal });
+    } catch (error) {
+      if (error?.name === "AbortError") throw new Error("Autenticazione Firebase non risponde");
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   async function signUp() {
-    const response = await fetch(
+    const response = await authRequest(
       `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(API_KEY)}`,
       {
         method:"POST",
@@ -33,7 +46,8 @@
   }
 
   async function refreshAuth(auth) {
-    const response = await fetch(
+    try {
+    const response = await authRequest(
       `https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(API_KEY)}`,
       {
         method:"POST",
@@ -45,13 +59,18 @@
       }
     );
     const data = await response.json();
-    if (!response.ok) return signUp();
+    if (!response.ok) { localStorage.removeItem(AUTH_KEY); return signUp(); }
     return saveAuth({
       uid:data.user_id,
       idToken:data.id_token,
       refreshToken:data.refresh_token,
       expiresAt:Date.now() + Number(data.expires_in || 3600) * 1000
     });
+    } catch (error) {
+      // Un token locale vecchio non deve poter bloccare l'intera applicazione.
+      localStorage.removeItem(AUTH_KEY);
+      return signUp();
+    }
   }
 
   async function ensureAuth() {
