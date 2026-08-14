@@ -9,7 +9,7 @@
 
 // Cambio obbligatorio dopo il ripristino dello script popup: invalida anche
 // le copie memorizzate dalla PWA e da Safari.
-const CACHE_VERSION = 'navisuite-v154-turni-crew-panel';
+const CACHE_VERSION = 'navisuite-v155-stable-script-cache';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -153,6 +153,11 @@ async function buildCacheKey(request) {
     url.searchParams.delete('cacheBust');
     url.searchParams.delete('cache-bust');
     url.searchParams.delete('_');
+    // Le pagine aggiungono ?v=… e ?pwa-update=… solo per forzare il refresh.
+    // La cache invece deve riconoscere lo stesso file già verificato,
+    // altrimenti una PWA con segnale debole resta in attesa dello script.
+    url.searchParams.delete('v');
+    url.searchParams.delete('pwa-update');
 
     return new Request(url.toString(), { method: 'GET' });
   }
