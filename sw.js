@@ -9,7 +9,7 @@
 
 // Cambio obbligatorio dopo il ripristino dello script popup: invalida anche
 // le copie memorizzate dalla PWA e da Safari.
-const CACHE_VERSION = 'navisuite-v158-ods-riposo';
+const CACHE_VERSION = 'navisuite-v159-ods-solferino';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
