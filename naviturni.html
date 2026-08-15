@@ -1657,7 +1657,7 @@
   <script src="assets/js/turni-shared.js"></script>
   <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-data.js?v=115"></script>
+  <script src="assets/js/shared-data.js?v=116"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.40.1"></script>
   <script type="module" src="assets/js/firebase-data.js?v=2"></script>
@@ -4426,9 +4426,9 @@
       }
 
       try {
-        // Il dataset principale ha la precedenza. Lo stato delle settimane è
-        // secondario e non deve mai bloccare la comparsa dei turni.
-        const datiJson = await NaviSharedData.load(FIREBASE_DATA_SOURCE, { force });
+        // Prima arriva il calendario base: è ciò che serve per aprire Turni.
+        // Variazioni, ODS e profili vengono applicati subito dopo in background.
+        const datiJson = await NaviSharedData.loadBase(FIREBASE_DATA_SOURCE, { force });
         const networkSignature = JSON.stringify(datiJson);
         const dataChanged = networkSignature !== lastLoadedDataSignature;
         saveTurniCache(networkSignature).catch(error =>
@@ -4443,7 +4443,19 @@
 
         const menuStatus = document.getElementById("turniMenuStatus");
         if (menuStatus) menuStatus.textContent = NaviSharedData.source() === "local" ? "Locale" : "Aggiornato";
-        document.getElementById("upload-status").textContent = "✅ Dati aggiornati — " + new Date().toLocaleTimeString("it-IT");
+        document.getElementById("upload-status").textContent = "⚡ Turni pronti — sincronizzazione degli aggiornamenti…";
+
+        NaviSharedData.load(FIREBASE_DATA_SOURCE).then(updatedData => {
+          const updatedSignature = JSON.stringify(updatedData);
+          if (updatedSignature !== lastLoadedDataSignature) {
+            lastLoadedDataSignature = updatedSignature;
+            processJSONData(updatedData);
+            saveTurniCache(updatedSignature).catch(() => {});
+          }
+          const menuStatus = document.getElementById("turniMenuStatus");
+          if (menuStatus) menuStatus.textContent = "Aggiornato";
+          document.getElementById("upload-status").textContent = "✅ Dati aggiornati — " + new Date().toLocaleTimeString("it-IT");
+        }).catch(error => console.warn("Aggiornamenti secondari non disponibili", error));
 
         // Aggiorna in coda le sole intestazioni se lo stato delle settimane
         // è realmente cambiato.
@@ -4732,4 +4744,106 @@
  }
  function addCell(row,cal,cls,items,confirmed=false){const td=row?.querySelector(`td[data-col="${cal.col}"]`);if(!td)return;if(td.hasAttribute('title')&&!td.dataset.changeRequestPreviousTitle)td.dataset.changeRequestPreviousTitle=td.getAttribute('title')||'';td.removeAttribute('title');td.classList.add(cls);td.classList.toggle('confirmed-change-request',confirmed);td.dataset.changeRequest=JSON.stringify(items)}
  function apply(){
-   document.querySelectorAll('#tbody td.my-change-request,#tbody td.peer-change-request').forEach(td=>{td.classList.remove('my-change-request','peer-change-request','confirmed-change-request');delete
+   document.querySelectorAll('#tbody td.my-change-request,#tbody td.peer-change-request').forEach(td=>{td.classList.remove('my-change-request','peer-change-request','confirmed-change-request');delete td.dataset.changeRequest;if('changeRequestPreviousTitle'in td.dataset){if(td.dataset.changeRequestPreviousTitle)td.setAttribute('title',td.dataset.changeRequestPreviousTitle);else td.removeAttribute('title');delete td.dataset.changeRequestPreviousTitle}});
+   document.querySelectorAll('#tbody tr.peer-change-row').forEach(r=>r.classList.remove('peer-change-row'));
+   const p=profile();if(!p)return;
+   requests.forEach(req=>{
+     const agentRow=findAgentRow(req.agentId,req.agentName);
+     const colleagueRow=findAgentRow(req.colleagueId,req.colleagueName);
+     const loggedIsAgent=String(p.id||'')===String(req.agentId||'');
+     const peerRow=loggedIsAgent?colleagueRow:agentRow;
+     const odsConfirmed=odsRequestMatches(req);
+     if(peerRow)peerRow.classList.add('peer-change-row');
+     (req.changes||[]).forEach(ch=>{
+       const cal=(window.dateCalendario||dateCalendario||[]).find(c=>c.iso===ch.date);if(!cal)return;
+       const detail={agentName:req.agentName||p.name||'Tu',agentTo:ch.to,colleagueName:req.colleagueName||'Collega',colleagueTo:ch.from};
+       addCell(agentRow,cal,loggedIsAgent?'my-change-request':'peer-change-request',[detail],variationMatches(agentRow,ch.date,ch.from,ch.to,req.id,odsConfirmed));
+       addCell(colleagueRow,cal,loggedIsAgent?'peer-change-request':'my-change-request',[detail],variationMatches(colleagueRow,ch.date,ch.to,ch.from,req.id,odsConfirmed));
+     });
+   });
+ }
+ async function load(){const p=profile();if(!p?.id)return;try{const d=await post({action:'list_change_requests',agentId:String(p.id)});requests=Array.isArray(d.requests)?d.requests:[];if(window.NaviAdminFirebase?.getAdminUpdates)try{changeAdminUpdates=await window.NaviAdminFirebase.getAdminUpdates()}catch(error){console.warn('Conferme ODS non disponibili',error)}apply()}catch(e){console.warn('Richieste cambio non disponibili',e)}}
+
+ window.addEventListener('DOMContentLoaded',()=>setTimeout(load,1200));
+ const obs=new MutationObserver(()=>setTimeout(apply,0));window.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('tbody');if(t)obs.observe(t,{childList:true,subtree:true})});
+ window.addEventListener('focus',()=>{
+   const now=Date.now();
+   if(now-lastFocusRefresh<60000)return;
+   lastFocusRefresh=now;
+   load();
+   if(typeof caricaStatoSettimane==='function'){
+     const before=JSON.stringify([...(weekStatusMap||new Map())]);
+     caricaStatoSettimane().then(()=>{
+       // globalData è già nel formato interno: non deve essere trasformato una seconda volta,
+       // altrimenti i turni vengono sostituiti da RIP. Aggiorniamo soltanto intestazioni e tabella.
+       const changed=before!==JSON.stringify([...(weekStatusMap||new Map())]);
+       if(globalData&&changed){
+         if(typeof buildTableHeader==='function') buildTableHeader();
+         if(typeof renderTable==='function') renderTable();
+         if(typeof scrollToToday==='function') setTimeout(scrollToToday,30);
+       }
+     }).catch(()=>{});
+   }
+ });
+})();
+</script>
+
+<style id="navisuite-stable-cell-highlights">
+  /* Durante la selezione non rendere trasparente tutta la riga: i nomi degli
+     agenti devono restare sempre leggibili. Si attenuano solo i turni. */
+  #tbody.has-selection tr:not(.pinned-row) {
+    opacity:1 !important;
+  }
+  #tbody.has-selection tr:not(.pinned-row):not(.row-match) td[data-col] {
+    opacity:.25;
+  }
+  #tbody.has-selection tr td.td-name {
+    opacity:1 !important;
+  }
+
+  /* Le evidenziazioni appartengono alla cella, non alla bolla: nessun turno
+     cambia dimensione, posizione o altezza durante hover, tap o selezione. */
+  #tbody tr:not(.logged-agent-row) td.shared-crew-day:not(.my-change-request):not(.peer-change-request),
+  #tbody tr:not(.logged-agent-row) td.pinned-shared-crew-day:not(.my-change-request):not(.peer-change-request) {
+    position:relative !important;
+    box-shadow:none !important;
+  }
+  #tbody td.shared-crew-day:not(.my-change-request):not(.peer-change-request)::after,
+  #tbody td.pinned-shared-crew-day:not(.my-change-request):not(.peer-change-request)::after {
+    content:"";
+    position:absolute;
+    top:2px;
+    right:2px;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:#fde047;
+    box-shadow:0 0 5px rgba(250,204,21,.75);
+    pointer-events:none;
+  }
+  #tbody td.shared-crew-day .cell-pill,
+  #tbody td.pinned-shared-crew-day .cell-pill {
+    position:relative !important;
+    transform:none !important;
+    animation:none !important;
+    filter:none !important;
+    box-shadow:0 0 0 2px #facc15,0 0 8px rgba(250,204,21,.42) !important;
+  }
+</style>
+<style id="naviturni-safe-area-table-mask">
+  @media (max-width:950px) {
+    /* Nasconde le righe che scorrono dietro la barra di sistema dell'iPhone. */
+    body.turni-page::before {
+      content:"";
+      position:fixed;
+      inset:0 0 auto 0;
+      z-index:51;
+      height:env(safe-area-inset-top,0px);
+      background:#071923;
+      pointer-events:none;
+    }
+  }
+</style>
+  <script src="assets/js/announcements-recovered.js?v=1"></script>
+</body>
+</html>
