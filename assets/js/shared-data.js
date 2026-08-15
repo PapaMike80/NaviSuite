@@ -355,19 +355,23 @@
   }
 
   async function load(_url, { force = false } = {}) {
+    const base = await loadBase(_url, { force });
+    return mergeAdminUpdates(base).then(data => {
+      lastSource = 'firebase';
+      return save(data);
+    });
+  }
+
+  async function loadBase(_url, { force = false } = {}) {
     if (!force) {
       const data = cached();
       if (data) {
-        // Il calendario base può restare in cache, ma ODS, variazioni manuali
-        // e importazioni cambiano indipendentemente su Firebase. Rileggerli è
-        // molto più leggero che riscaricare ogni volta l'intero calendario.
-        lastSource = 'local+firebase';
-        return mergeAdminUpdates(data).then(save);
+        lastSource = 'local';
+        return data;
       }
     }
     if (pending) return pending;
     pending = fetchJson(FIREBASE_SCHEDULE_URL, 8000)
-      .then(mergeAdminUpdates)
       .then(data => {
         lastSource = 'firebase';
         return save(data);
@@ -396,6 +400,7 @@
 
   window.NaviSharedData = {
     load,
+    loadBase,
     directory,
     clear,
     isFresh:() => !!cached(),
