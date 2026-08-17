@@ -1604,7 +1604,7 @@
   <script src="assets/js/turni-shared.js"></script>
   <script src="assets/js/admin-firebase-rest.js?v=35"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-data.js?v=115"></script>
+  <script src="assets/js/shared-data.js?v=117"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.40.1"></script>
   <script type="module" src="assets/js/firebase-data.js?v=2"></script>
@@ -1864,8 +1864,8 @@
     const turniMappaResidenze = {
       "desenzano": ["D1", "D2", "D3", "D4", "BIS", "TERRA"],
       "maderno": ["T1", "T2", "M1", "TERRA"],
-      "riva": ["R1", "R2", "R3", "R4", "CAR"],
-      "peschiera": ["P1", "P2", "P3", "CAP", "SR1"]
+      "riva": ["R1", "R2", "R3", "R4", "CAR", "TERRA"],
+      "peschiera": ["P1", "P2", "P3", "CAP", "SR1", "TERRA"]
     };
 
     const serviziTerraPerResidenza = {
@@ -3986,6 +3986,7 @@
     function normalizeOdsShift(value) {
       const shift = String(value || "").trim();
       if (!shift || /^={3,}$/.test(shift) || /^(rip|rip\.|riposo)$/i.test(shift)) return "rip";
+      if (/^lav\.?$/i.test(shift)) return "TERRA";
       return shift.toUpperCase();
     }
 
@@ -4086,7 +4087,7 @@
 
           settimaneInfo.forEach(sett => {
             turni_settimanali[sett.key] = sett.dateIso.map(iso =>
-              (ag.turni && ag.turni[iso]) ? ag.turni[iso] : "rip"
+              (ag.turni && ag.turni[iso]) ? normalizeOdsShift(ag.turni[iso]) : "rip"
             );
           });
 
