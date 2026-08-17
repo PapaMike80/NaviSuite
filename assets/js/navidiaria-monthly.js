@@ -38,6 +38,7 @@ try{(()=>{
     case 'ticket':return worked.filter(e=>shiftFor(e.shift).meal&&!ticketValue(e)).length||'';
     case 'second-ticket':return worked.filter(e=>e.secondMeal).length||'';
     case 'embark':return worked.filter(e=>e.embark).length||'';
+    case 'cashHandling':return worked.filter(e=>e.cashHandling).length||'';
     case 'hydrofoil':return worked.filter(e=>String(e.shift).toUpperCase()==='SR1').length||'';
     default:return '';
   }}
