@@ -15,6 +15,7 @@ const DEFAULT_SHIFTS=[
   {code:'AgM',hours:hm(9,45),allowance:false,allowanceRate:24,meal:false},{code:'AgT',hours:hm(11,10),allowance:false,allowanceRate:24,meal:false},
   {code:'PonM',hours:hm(10,25),allowance:false,allowanceRate:24,meal:false},  {code:'LD',hours:hm(8),allowance:false,allowanceRate:24,meal:false},
   {code:'F.P.',hours:hm(8),allowance:false,allowanceRate:24,meal:false},
+  {code:'TERRA',hours:hm(8),allowance:false,allowanceRate:24,meal:true},
   {code:'Malattia',hours:0,allowance:false,allowanceRate:24,meal:false},{code:'Riposo',hours:0,allowance:false,allowanceRate:24,meal:false}
 ];
 const SESSION_KEY='navidiaria.activeAgent';
@@ -28,7 +29,7 @@ let SHIFTS=localStorage.getItem('navidiaria.competenceVersion')===COMPETENCE_VER
 if(!SHIFTS){SHIFTS=DEFAULT_SHIFTS.map(s=>({...s}));localStorage.setItem(SHIFTS_STORAGE,JSON.stringify(SHIFTS));localStorage.setItem('navidiaria.competenceVersion',COMPETENCE_VERSION)}
 DEFAULT_SHIFTS.forEach(defaultShift=>{if(!SHIFTS.some(s=>s.code===defaultShift.code))SHIFTS.push({...defaultShift})});
 SHIFTS.forEach(s=>{if(Number(s.allowanceRate)===25)s.allowanceRate=24;if(![0,9,12,24].includes(Number(s.allowanceRate)))s.allowanceRate=24});
-const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','MALATTIA','RIPOSO']);
+const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','TERRA','MALATTIA','RIPOSO']);
 SHIFTS.forEach(s=>{if(s.embark===undefined)s.embark=!GROUND_SHIFTS.has(String(s.code).toUpperCase())});
 SHIFTS.forEach(s=>{const code=String(s.code).toUpperCase();if(GROUND_SHIFTS.has(code)&&!['RIPOSO','MALATTIA'].includes(code))s.meal=true});
 const TURNS_URL='';
@@ -80,6 +81,7 @@ function formatAgentName(name){return String(name||'').trim().split(/\s+/).map(p
 function updateWelcome(){if(!activeAgent)return;const name=formatAgentName(activeAgent.name);$('welcomeName').textContent='NaviSuite Diaria';$('sidebarAgentName').textContent=name.toLocaleUpperCase('it')}
 function scheduleAssignment(raw){
   const cleaned=String(raw||'').trim().replace(/\*/g,'').replace(/--/g,'');
+  if(/^lav\.?$/i.test(cleaned))return {shift:'TERRA',travel:false};
   if(/^rip\.?$/i.test(cleaned)||cleaned==='----'||!cleaned)return {shift:'Riposo',travel:false};
   if(/^mal/i.test(cleaned))return {shift:'Malattia',travel:false};
   const canonical=value=>SHIFTS.find(item=>item.code.toUpperCase()===String(value).toUpperCase())?.code||null;
