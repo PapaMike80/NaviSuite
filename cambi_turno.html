@@ -4004,7 +4004,7 @@
       const agents = Object.values(data.residenze || {}).flat();
 
       variations.forEach(variation => {
-        if (!variation || variation.attiva === false || !variation.data || !variation.agente) return;
+        if (!variation || variation.attiva === false || !variation.data || (!variation.agente && !variation.id_agente)) return;
 
         const variationId = String(variation.id_agente || "").trim();
         const variationName = normalizeOdsAgentName(variation.agente);
