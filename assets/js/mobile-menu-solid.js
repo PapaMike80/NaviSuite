@@ -1,59 +1,181 @@
+/* NaviSuite: unico menu mobile comune. */
 (() => {
-  const start = () => {
-    if (!document.getElementById('navisuite-mobile-solid-style')) {
-      const style = document.createElement('style');
-      style.id = 'navisuite-mobile-solid-style';
-      style.textContent = '.mobile-liquid-nav[hidden],.admin-mobile-nav[hidden],.hiba-mobile-nav[hidden],.hiba-updates-mobile-nav[hidden],.navisuite-mobile-nav[hidden]{display:none!important}#navisuite-mobile-solid,#navisuite-mobile-solid-panel{display:none}@media(max-width:850px){body{padding-bottom:102px!important}#navisuite-mobile-solid{position:fixed!important;left:50vw!important;bottom:14px!important;z-index:99999!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:center!important;width:calc(100vw - 24px)!important;max-width:620px!important;height:68px!important;margin:0!important;transform:translateX(-50%)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:36px!important;background:rgba(18,34,45,.94)!important;box-shadow:0 18px 40px rgba(0,0,0,.45)!important;backdrop-filter:blur(24px) saturate(180%)!important;overflow:hidden!important}#navisuite-mobile-solid a,#navisuite-mobile-solid button{display:flex!important;min-width:0!important;width:100%!important;height:68px!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;gap:3px!important;margin:0!important;padding:5px 1px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#b9d2d8!important;text-decoration:none!important;font:800 9px/1 Inter,Arial,sans-serif!important;white-space:nowrap!important}#navisuite-mobile-solid span{font-size:20px!important;line-height:20px!important}#navisuite-mobile-solid a.active{background:rgba(45,212,191,.18)!important;color:#99f6e4!important}#navisuite-mobile-solid a.active span{color:#2dd4bf!important}#navisuite-mobile-solid-panel{position:fixed!important;inset:0!important;z-index:100000!important;background:rgba(1,15,21,.62)!important}#navisuite-mobile-solid-panel[hidden]{display:none!important}#navisuite-mobile-solid-panel section{position:absolute!important;left:12px!important;right:12px!important;bottom:94px!important;padding:12px!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:23px!important;background:#0d2732!important;box-shadow:0 18px 45px rgba(0,0,0,.42)!important}#navisuite-mobile-solid-panel header{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:4px 5px 10px!important;color:#e9ffff!important;font:800 15px Inter,Arial,sans-serif!important}#navisuite-mobile-solid-panel header button{width:32px!important;height:32px!important;border:1px solid rgba(151,212,221,.35)!important;border-radius:50%!important;background:transparent!important;color:#9de8e0!important;font-size:16px!important}#navisuite-mobile-solid-panel .links{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}#navisuite-mobile-solid-panel .links a,#navisuite-mobile-solid-panel .links button{display:flex!important;align-items:center!important;gap:9px!important;min-height:45px!important;padding:10px 12px!important;border:1px solid rgba(114,170,181,.35)!important;border-radius:13px!important;background:#071b24!important;color:#e7fbfb!important;text-decoration:none!important;font:800 12px Inter,Arial,sans-serif!important;text-align:left!important}#navisuite-mobile-solid-panel .links span{font-size:18px!important;color:#34d6c0!important}}';
-      document.head.appendChild(style);
+  'use strict';
+
+  const OLD_MENUS = '.mobile-liquid-nav,.admin-mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
+  const barId = 'navisuite-mobile-menu';
+  const panelId = 'navisuite-mobile-menu-panel';
+
+  const currentProfile = () => {
+    try {
+      return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
+    } catch (_) {
+      return null;
     }
-    let profile = null;
-    try { profile = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) {}
-    if (!profile) return;
-    document.querySelectorAll('.mobile-liquid-nav,.admin-mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav').forEach(node => node.hidden = true);
-    document.getElementById('navisuite-mobile-solid')?.remove();
-    document.getElementById('navisuite-mobile-solid-panel')?.remove();
+  };
 
+  const isAdmin = profile => ['91', '92'].includes(String(profile?.id || '')) || String(profile?.role || '').toLowerCase() === 'admin';
+  const isHiba = profile => String(profile?.id || '').toUpperCase() === 'BARISTA_HIBA' ||
+    (String(profile?.role || '').toLowerCase() === 'barista' && String(profile?.name || profile?.agente || profile?.cognome || '').trim().toUpperCase() === 'HIBA');
+
+  const addStyle = () => {
+    if (document.getElementById('navisuite-mobile-menu-style')) return;
+    const style = document.createElement('style');
+    style.id = 'navisuite-mobile-menu-style';
+    style.textContent = `
+      ${OLD_MENUS}[hidden] { display:none !important; pointer-events:none !important; }
+      #${barId}, #${panelId} { display:none; }
+      @media (max-width:850px) {
+        html, body { min-height:100%; }
+        body { padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
+        #${barId} {
+          position:fixed !important;
+          left:0 !important;
+          right:0 !important;
+          bottom:0 !important;
+          z-index:2147483000 !important;
+          display:grid !important;
+          grid-template-columns:repeat(5, minmax(0, 1fr)) !important;
+          width:auto !important;
+          max-width:none !important;
+          height:calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+          box-sizing:border-box !important;
+          padding:0 2px env(safe-area-inset-bottom, 0px) !important;
+          margin:0 !important;
+          transform:none !important;
+          overflow:visible !important;
+          background:#102733 !important;
+          border-top:1px solid rgba(145,210,216,.35) !important;
+          box-shadow:0 -5px 22px rgba(0,0,0,.34) !important;
+          isolation:isolate !important;
+          touch-action:manipulation !important;
+        }
+        #${barId} a, #${barId} button {
+          display:flex !important;
+          min-width:0 !important;
+          min-height:64px !important;
+          width:auto !important;
+          height:70px !important;
+          box-sizing:border-box !important;
+          align-items:center !important;
+          justify-content:center !important;
+          flex-direction:column !important;
+          gap:3px !important;
+          padding:6px 1px !important;
+          margin:0 !important;
+          border:0 !important;
+          border-radius:0 !important;
+          background:transparent !important;
+          color:#bed0d5 !important;
+          text-decoration:none !important;
+          font:800 10px/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+          white-space:nowrap !important;
+          appearance:none !important;
+          -webkit-appearance:none !important;
+          cursor:pointer !important;
+          touch-action:manipulation !important;
+        }
+        #${barId} .ns-icon { font-size:23px !important; line-height:22px !important; }
+        #${barId} a.active { color:#8ff4e4 !important; background:rgba(45,212,191,.17) !important; }
+        #${barId} a.active .ns-icon { color:#2dd4bf !important; }
+        #${barId} button:active, #${barId} a:active { background:rgba(45,212,191,.24) !important; }
+        #${panelId} {
+          position:fixed !important;
+          inset:0 !important;
+          z-index:2147483001 !important;
+          display:block !important;
+          box-sizing:border-box !important;
+          background:rgba(1,15,21,.66) !important;
+          touch-action:manipulation !important;
+        }
+        #${panelId}[hidden] { display:none !important; }
+        #${panelId} .ns-menu-sheet {
+          position:absolute !important;
+          left:12px !important;
+          right:12px !important;
+          bottom:calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+          box-sizing:border-box !important;
+          padding:14px !important;
+          border:1px solid rgba(151,212,221,.35) !important;
+          border-radius:20px !important;
+          background:#0d2732 !important;
+          box-shadow:0 18px 45px rgba(0,0,0,.48) !important;
+        }
+        #${panelId} header { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important; margin-bottom:10px !important; color:#e9ffff !important; font:800 16px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; }
+        #${panelId} .ns-close { width:36px !important; height:36px !important; padding:0 !important; border:1px solid rgba(151,212,221,.45) !important; border-radius:50% !important; background:transparent !important; color:#9de8e0 !important; font-size:19px !important; }
+        #${panelId} .ns-links { display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)) !important; gap:8px !important; }
+        #${panelId} .ns-links a, #${panelId} .ns-links button { display:flex !important; min-width:0 !important; min-height:48px !important; align-items:center !important; gap:9px !important; padding:10px 12px !important; border:1px solid rgba(114,170,181,.35) !important; border-radius:13px !important; background:#071b24 !important; color:#e7fbfb !important; text-decoration:none !important; font:800 13px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; text-align:left !important; appearance:none !important; -webkit-appearance:none !important; }
+        #${panelId} .ns-links span { color:#34d6c0 !important; font-size:18px !important; }
+        #${panelId} .ns-links .ns-logout { color:#ffd3d9 !important; }
+        #${panelId} .ns-links .ns-logout span { color:#fb8291 !important; }
+      }
+    `;
+    document.head.appendChild(style);
+  };
+
+  const disableOldMenus = () => {
+    document.querySelectorAll(OLD_MENUS).forEach(node => {
+      node.hidden = true;
+      node.setAttribute('aria-hidden', 'true');
+      node.style.setProperty('display', 'none', 'important');
+      node.style.pointerEvents = 'none';
+    });
+  };
+
+  const install = () => {
+    addStyle();
+    disableOldMenus();
+    document.getElementById(barId)?.remove();
+    document.getElementById(panelId)?.remove();
+
+    const profile = currentProfile();
     const path = location.pathname.toLowerCase();
-    const active = name => path.endsWith(name);
-    const nav = document.createElement('nav');
-    nav.id = 'navisuite-mobile-solid';
-    nav.setAttribute('aria-label', 'Navigazione principale');
-    nav.innerHTML =
-      '<a class="' + (!active('cambi_turno.html') && !active('navidiaria.html') && !active('documenti.html') ? 'active' : '') + '" href="naviturni.html"><span>▦</span><b>Turni</b></a>' +
-      '<a class="' + (active('cambi_turno.html') ? 'active' : '') + '" href="cambi_turno.html"><span>⇄</span><b>Cambio</b></a>' +
-      '<a class="' + (active('navidiaria.html') ? 'active' : '') + '" href="navidiaria.html"><span>≈</span><b>Diaria</b></a>' +
-      '<a class="' + (active('documenti.html') ? 'active' : '') + '" href="documenti.html"><span>▤</span><b>Documenti</b></a>' +
-      '<button type="button" data-open-menu><span>☰</span><b>Menu</b></button>';
-    document.body.appendChild(nav);
+    const active = file => path.endsWith(file);
+    const bar = document.createElement('nav');
+    bar.id = barId;
+    bar.setAttribute('aria-label', 'Navigazione principale');
+    bar.innerHTML = [
+      ['naviturni.html', '▦', 'Turni', !active('cambi_turno.html') && !active('navidiaria.html') && !active('documenti.html')],
+      ['cambi_turno.html', '⇄', 'Cambio', active('cambi_turno.html')],
+      ['navidiaria.html', '≈', 'Diaria', active('navidiaria.html')],
+      ['documenti.html', '▤', 'Documenti', active('documenti.html')]
+    ].map(([href, icon, label, selected]) => `<a href="${href}" class="${selected ? 'active' : ''}"><span class="ns-icon">${icon}</span><b>${label}</b></a>`).join('') + '<button type="button" data-ns-menu aria-expanded="false" aria-controls="' + panelId + '"><span class="ns-icon">☰</span><b>Menu</b></button>';
+    document.body.appendChild(bar);
 
-    const isAdmin = ['91','92'].includes(String(profile.id || '')) || String(profile.role || '').toLowerCase() === 'admin';
-    const isHiba = String(profile.id || '').toUpperCase() === 'BARISTA_HIBA' || (String(profile.role || '').toLowerCase() === 'barista' && String(profile.name || profile.agente || '').trim().toUpperCase() === 'HIBA');
-    const entries = [];
-    if (isAdmin) entries.push(['impostazioni.html','⚙','Impostazioni']);
-    if (isAdmin || isHiba) entries.push(['aggiornamenti.html','↻','Aggiornamenti']);
-    if (isAdmin) entries.push(['agenti.html','♙','Agenti'],['Orario.html','◴','Orario']);
-    entries.push(['segnalazioni.html','✉','Segnalazioni']);
+    const links = [];
+    if (isAdmin(profile)) links.push(['impostazioni.html', '⚙', 'Impostazioni']);
+    if (isAdmin(profile) || isHiba(profile)) links.push(['aggiornamenti.html', '↻', 'Aggiornamenti']);
+    if (isAdmin(profile)) links.push(['agenti.html', '♙', 'Agenti'], ['Orario.html', '◴', 'Orario']);
+    links.push(['segnalazioni.html', '✉', 'Segnalazioni']);
 
     const panel = document.createElement('div');
-    panel.id = 'navisuite-mobile-solid-panel';
+    panel.id = panelId;
     panel.hidden = true;
-    panel.innerHTML = '<section><header><strong>Menu NaviSuite</strong><button type="button" data-close-menu aria-label="Chiudi">✕</button></header><div class="links">' +
-      entries.map(([href,icon,label]) => '<a href="' + href + '"><span>' + icon + '</span>' + label + '</a>').join('') +
-      '<button type="button" data-logout><span>⇥</span>Esci</button></div></section>';
+    panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><header><strong>Menu NaviSuite</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
+      links.map(([href, icon, label]) => `<a href="${href}"><span>${icon}</span>${label}</a>`).join('') +
+      '<button type="button" class="ns-logout" data-ns-logout><span>⇥</span>Esci</button></div></section>';
     document.body.appendChild(panel);
 
-    const open = () => { panel.hidden = false; };
-    const close = () => { panel.hidden = true; };
-    nav.querySelector('[data-open-menu]').addEventListener('click', open);
-    panel.querySelector('[data-close-menu]').addEventListener('click', close);
+    const menuButton = bar.querySelector('[data-ns-menu]');
+    const close = () => { panel.hidden = true; menuButton.setAttribute('aria-expanded', 'false'); };
+    const open = event => { event?.preventDefault(); event?.stopPropagation(); panel.hidden = false; menuButton.setAttribute('aria-expanded', 'true'); };
+    ['pointerdown', 'click'].forEach(type => menuButton.addEventListener(type, event => {
+      if (type === 'click' && !panel.hidden) return;
+      open(event);
+    }));
+    ['pointerdown', 'click'].forEach(type => bar.addEventListener(type, event => event.stopPropagation()));
+    panel.querySelector('[data-ns-close]').addEventListener('click', close);
+    panel.addEventListener('pointerdown', event => { if (event.target === panel) close(); });
     panel.addEventListener('click', event => { if (event.target === panel) close(); });
-    panel.querySelector('[data-logout]').addEventListener('click', () => {
-      if (typeof window.logoutAgent === 'function') { window.logoutAgent(); return; }
+    panel.querySelector('[data-ns-logout]').addEventListener('click', () => {
+      if (typeof window.logoutAgent === 'function') return window.logoutAgent();
       localStorage.removeItem('navidiaria.activeAgent');
       localStorage.removeItem('naviturni_logged_agent');
       location.href = 'index.html';
     });
   };
-  if (document.readyState === 'complete') start();
-  else window.addEventListener('load', start, { once:true });
+
+  // Non attendere window.load: NaviTurni può continuare a caricare dati per molto tempo.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true });
+  else install();
 })();
