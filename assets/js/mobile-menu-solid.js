@@ -110,6 +110,9 @@
         #${panelId} .ns-links { display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)) !important; gap:8px !important; }
         #${panelId} .ns-links a, #${panelId} .ns-links button { display:flex !important; min-width:0 !important; min-height:48px !important; align-items:center !important; gap:9px !important; padding:10px 12px !important; border:1px solid rgba(114,170,181,.35) !important; border-radius:13px !important; background:#071b24 !important; color:#e7fbfb !important; text-decoration:none !important; font:800 13px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; text-align:left !important; appearance:none !important; -webkit-appearance:none !important; }
         #${panelId} .ns-links span { color:#34d6c0 !important; font-size:18px !important; }
+        #${panelId} .ns-links .ns-residence-choice { border-color:var(--ns-residence-color, #34d6c0) !important; background:var(--ns-residence-bg, #071b24) !important; color:var(--ns-residence-color, #e7fbfb) !important; }
+        #${panelId} .ns-links .ns-residence-choice span { color:var(--ns-residence-color, #34d6c0) !important; }
+        #${panelId} .ns-links .ns-residence-choice.active { box-shadow:inset 0 0 0 2px var(--ns-residence-color, #34d6c0) !important; }
         #${panelId} .ns-links .ns-logout { color:#ffd3d9 !important; }
         #${panelId} .ns-links .ns-logout span { color:#fb8291 !important; }
       }
@@ -188,7 +191,10 @@
       const choices = sourceButtons.map((button, index) => {
         const label = button.textContent.trim() || `Residenza ${index + 1}`;
         const activeClass = button.classList.contains('active') ? ' active' : '';
-        return `<button type="button" class="ns-residence-choice${activeClass}" data-ns-residence-index="${index}"><span>⌖</span>${label}</button>`;
+        const computed = getComputedStyle(button);
+        const color = computed.getPropertyValue('--bubble-color').trim() || computed.borderColor || '#34d6c0';
+        const background = computed.getPropertyValue('--bubble-bg').trim() || 'rgba(45,212,191,.12)';
+        return `<button type="button" class="ns-residence-choice${activeClass}" data-ns-residence-index="${index}" style="--ns-residence-color:${color};--ns-residence-bg:${background}"><span>⌖</span>${label}</button>`;
       }).join('');
       panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Cambia residenza"><header><strong>Residenza</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
         (choices || '<div class="ns-residence-loading">Le residenze stanno caricando…</div>') +
