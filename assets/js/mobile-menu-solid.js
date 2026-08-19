@@ -182,9 +182,22 @@
     const hideBar = () => {
       if (window.innerWidth <= 850 && panel.hidden) bar.classList.add('ns-hidden');
     };
-    const open = event => { event?.preventDefault(); event?.stopPropagation(); showBar(); panel.hidden = false; menuButton.setAttribute('aria-expanded', 'true'); };
+    const open = event => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      showBar();
+      // Il pulsante ☰ deve aprire sempre il menu principale, anche se prima
+      // era stato aperto il selettore Residenza nello stesso overlay.
+      if (panel.dataset.view !== 'main') {
+        panel.innerHTML = mainPanelHtml();
+        panel.dataset.view = 'main';
+        bindMenuActions();
+      }
+      panel.hidden = false;
+      menuButton.setAttribute('aria-expanded', 'true');
+    };
     ['pointerdown', 'click'].forEach(type => menuButton.addEventListener(type, event => {
-      if (type === 'click' && !panel.hidden) return;
+      if (type === 'click' && !panel.hidden && panel.dataset.view === 'main') return;
       open(event);
     }));
     const residenceButton = bar.querySelector('[data-ns-residence]');
@@ -193,6 +206,7 @@
       event?.stopPropagation();
       showBar();
       panel.hidden = false;
+      panel.dataset.view = 'residence';
       const sourceButtons = [...document.querySelectorAll('#top-residence-buttons button')];
       const choices = sourceButtons.map((button, index) => ({ button, index }))
         .filter(({ button }) => button.textContent.trim().toUpperCase() !== 'TUTTE')
