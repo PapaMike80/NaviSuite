@@ -23,9 +23,7 @@
     .ods-group-row td{background:#163b45;border-top:2px solid #2d6974;color:#d9ffff}.ods-group-row[data-toggle-row]{cursor:pointer}.ods-group-title{display:flex;align-items:center;gap:9px;font-size:13px}.ods-group-toggle{display:inline-grid;place-items:center;width:25px;height:25px;padding:0;border-color:#3a7580;background:#0b2933;color:#99f6e4;font-size:14px}.ods-group-count{padding:3px 7px;border-radius:999px;background:#0b2933;color:#99f6e4;font-size:10px}.ods-child td:first-child{padding-left:25px;color:#72cfc2}.ods-child[hidden]{display:none}
     .change-approval-list{display:grid;gap:9px}.change-approval{display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,2fr) auto;gap:14px;align-items:center;padding:12px;border:1px solid #28515d;border-radius:11px;background:#071b24}.change-approval small{display:block;margin-top:4px;color:#86aab3}.change-lines{display:grid;gap:4px;color:#d9ffff;font-size:12px}.change-approval-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.approved-badge{display:inline-flex;padding:7px 9px;border:1px solid #168b70;border-radius:8px;color:#86efac;background:#0b352d;font-size:11px;font-weight:900}
     .admin-mobile-nav{display:none}
-    .hiba-updates-mobile-nav{display:none}
     @media(max-width:850px){
-      .hiba-updates-mobile-nav{position:fixed;left:50%;bottom:14px;z-index:2100;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:68px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.28);border-radius:36px;background:rgba(18,34,45,.74);box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.13);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}.hiba-updates-mobile-nav a{display:flex;flex:1 1 0;min-width:0;max-width:112px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0;padding:7px 3px;border:0;border-radius:28px;color:#a9c4ca;text-decoration:none;font:800 10px/1 Inter,Arial,sans-serif}.hiba-updates-mobile-nav a span{font-size:20px;line-height:20px;color:#b9d2d8}.hiba-updates-mobile-nav a.active{background:rgba(45,212,191,.14);color:#99f6e4}.hiba-updates-mobile-nav a.active span{color:#2dd4bf}
       body{padding-bottom:104px;overflow-x:hidden;background:var(--bg)}
       main{width:100%;max-width:none;margin:0;padding:18px 12px 28px}
       .hero{padding:4px 2px}.hero h1{margin-top:5px;font-size:25px;line-height:1.12}.hero p{font-size:13px;line-height:1.45}
@@ -139,14 +137,9 @@
     <a class="active" href="aggiornamenti.html"><span>↻</span>Aggiorna</a>
     <a href="agenti.html"><span>♙</span>Agenti</a>
   </nav>
-  <nav id="hiba-updates-mobile-nav" class="hiba-updates-mobile-nav" aria-label="Navigazione Hiba" hidden>
-    <a href="naviturni.html"><span>▦</span><b>Turni</b></a>
-    <a class="active" href="aggiornamenti.html"><span>↻</span><b>Aggiornamenti</b></a>
-    <a href="segnalazioni.html"><span>✉</span><b>Segnalazioni</b></a>
-  </nav>
   <script src="assets/js/turni-shared.js"></script>
   <script src="assets/js/admin-firebase-rest.js?v=36"></script>
-  <script src="assets/js/shared-menu.js?v=1.42"></script>
+  <script src="assets/js/shared-menu.js?v=1.43"></script>
   <script src="assets/js/shared-data.js?v=3"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
@@ -874,7 +867,6 @@
         document.body.classList.add('barista-upload-only');
         document.querySelector('.app-sidebar')?.setAttribute('hidden','');
         document.querySelector('.admin-mobile-nav')?.setAttribute('hidden','');
-        $('hiba-updates-mobile-nav').hidden=false;
         document.querySelectorAll('.card').forEach(card=>{if(!card.querySelector('#new-bariste-file'))card.hidden=true;});
         document.querySelectorAll('.import-box').forEach(box=>{if(!box.querySelector('#new-bariste-file'))box.hidden=true;});
         document.querySelector('.eyebrow').textContent='NAVISUITE BARISTE';
