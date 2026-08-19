@@ -5,6 +5,12 @@
   const OLD_MENUS = '.mobile-liquid-nav,.admin-mobile-nav,.mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
   const barId = 'navisuite-mobile-menu';
   const panelId = 'navisuite-mobile-menu-panel';
+  const residencePalette = {
+    DESENZANO: ['#38bdf8', 'rgba(14, 116, 144, .38)'],
+    MADERNO: ['#f59e0b', 'rgba(101, 66, 4, .42)'],
+    PESCHIERA: ['#4ade80', 'rgba(20, 83, 45, .42)'],
+    RIVA: ['#a78bfa', 'rgba(55, 48, 116, .48)']
+  };
 
   const currentProfile = () => {
     try {
@@ -188,22 +194,17 @@
       showBar();
       panel.hidden = false;
       const sourceButtons = [...document.querySelectorAll('#top-residence-buttons button')];
-      const choices = sourceButtons.map((button, index) => {
+      const choices = sourceButtons.map((button, index) => ({ button, index }))
+        .filter(({ button }) => button.textContent.trim().toUpperCase() !== 'TUTTE')
+        .map(({ button, index }) => {
         const label = button.textContent.trim() || `Residenza ${index + 1}`;
         const activeClass = button.classList.contains('active') ? ' active' : '';
-        const computed = getComputedStyle(button);
-        const color = computed.getPropertyValue('--bubble-color').trim() || computed.borderColor || '#34d6c0';
-        const background = computed.getPropertyValue('--bubble-bg').trim() || 'rgba(45,212,191,.12)';
+        const [color, background] = residencePalette[label.toUpperCase()] || ['#34d6c0', 'rgba(45,212,191,.12)'];
         return `<button type="button" class="ns-residence-choice${activeClass}" data-ns-residence-index="${index}" style="--ns-residence-color:${color};--ns-residence-bg:${background}"><span>⌖</span>${label}</button>`;
       }).join('');
       panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Cambia residenza"><header><strong>Residenza</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
-        (choices || '<div class="ns-residence-loading">Le residenze stanno caricando…</div>') +
-        '<button type="button" data-ns-back><span>‹</span>Menu</button></div></section>';
+        (choices || '<div class="ns-residence-loading">Le residenze stanno caricando…</div>') + '</div></section>';
       bindCloseButton();
-      panel.querySelector('[data-ns-back]')?.addEventListener('click', () => {
-        panel.innerHTML = mainPanelHtml();
-        bindMenuActions();
-      });
       panel.querySelectorAll('[data-ns-residence-index]').forEach(choice => choice.addEventListener('click', () => {
         sourceButtons[Number(choice.dataset.nsResidenceIndex)]?.click();
         close();
