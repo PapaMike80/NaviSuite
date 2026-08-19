@@ -51,6 +51,7 @@
           isolation:isolate !important;
           touch-action:manipulation !important;
         }
+        #${barId}.ns-turni-menu { grid-template-columns:repeat(6, minmax(0, 1fr)) !important; }
         #${barId}.ns-hidden { transform:translateY(110%) !important; }
         #${barId} a, #${barId} button {
           display:flex !important;
@@ -78,6 +79,7 @@
           touch-action:manipulation !important;
         }
         #${barId} .ns-icon { font-size:var(--ns-icon-size, 23px) !important; line-height:var(--ns-icon-line, 22px) !important; }
+        #${barId}.ns-turni-menu a, #${barId}.ns-turni-menu button { font-size:var(--ns-turni-label-size, 8px) !important; }
         #${barId} a.active { color:#8ff4e4 !important; background:rgba(45,212,191,.17) !important; }
         #${barId} a.active .ns-icon { color:#2dd4bf !important; }
         #${barId} button:active, #${barId} a:active { background:rgba(45,212,191,.24) !important; }
@@ -133,15 +135,19 @@
     const profile = currentProfile();
     const path = location.pathname.toLowerCase();
     const active = file => path.endsWith(file);
+    const isTurnsPage = active('naviturni.html');
     const bar = document.createElement('nav');
     bar.id = barId;
+    if (isTurnsPage) bar.classList.add('ns-turni-menu');
     bar.setAttribute('aria-label', 'Navigazione principale');
     bar.innerHTML = [
       ['naviturni.html', '▦', 'Turni', !active('cambi_turno.html') && !active('navidiaria.html') && !active('documenti.html')],
       ['cambi_turno.html', '⇄', 'Cambio', active('cambi_turno.html')],
       ['navidiaria.html', '≈', 'Diaria', active('navidiaria.html')],
       ['documenti.html', '▤', 'Documenti', active('documenti.html')]
-    ].map(([href, icon, label, selected]) => `<a href="${href}" class="${selected ? 'active' : ''}"><span class="ns-icon">${icon}</span><b>${label}</b></a>`).join('') + '<button type="button" data-ns-menu aria-expanded="false" aria-controls="' + panelId + '"><span class="ns-icon">☰</span><b>Menu</b></button>';
+    ].map(([href, icon, label, selected]) => `<a href="${href}" class="${selected ? 'active' : ''}"><span class="ns-icon">${icon}</span><b>${label}</b></a>`).join('') +
+      (isTurnsPage ? '<button type="button" data-ns-residence aria-label="Cambia residenza"><span class="ns-icon">⌖</span><b>Residenza</b></button>' : '') +
+      '<button type="button" data-ns-menu aria-expanded="false" aria-controls="' + panelId + '"><span class="ns-icon">☰</span><b>Menu</b></button>';
     document.body.appendChild(bar);
 
     const links = [];
@@ -153,13 +159,16 @@
     const panel = document.createElement('div');
     panel.id = panelId;
     panel.hidden = true;
-    panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><header><strong>Menu NaviSuite</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
+    const pastEntry = isTurnsPage ? '<button type="button" data-ns-past><span>◷</span><b>Mostra passato</b></button>' : '';
+    const mainPanelHtml = () => '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><header><strong>Menu NaviSuite</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
       links.map(([href, icon, label]) => `<a href="${href}"><span>${icon}</span>${label}</a>`).join('') +
-      '<button type="button" class="ns-logout" data-ns-logout><span>⇥</span>Esci</button></div></section>';
+      pastEntry + '<button type="button" class="ns-logout" data-ns-logout><span>⇥</span>Esci</button></div></section>';
+    panel.innerHTML = mainPanelHtml();
     document.body.appendChild(panel);
 
     const menuButton = bar.querySelector('[data-ns-menu]');
     const close = () => { panel.hidden = true; menuButton.setAttribute('aria-expanded', 'false'); };
+    const bindCloseButton = () => panel.querySelector('[data-ns-close]')?.addEventListener('click', close);
     const showBar = () => bar.classList.remove('ns-hidden');
     const hideBar = () => {
       if (window.innerWidth <= 850 && panel.hidden) bar.classList.add('ns-hidden');
@@ -169,16 +178,52 @@
       if (type === 'click' && !panel.hidden) return;
       open(event);
     }));
+    const residenceButton = bar.querySelector('[data-ns-residence]');
+    const showResidencePicker = event => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      showBar();
+      panel.hidden = false;
+      const sourceButtons = [...document.querySelectorAll('#top-residence-buttons button')];
+      const choices = sourceButtons.map((button, index) => {
+        const label = button.textContent.trim() || `Residenza ${index + 1}`;
+        const activeClass = button.classList.contains('active') ? ' active' : '';
+        return `<button type="button" class="ns-residence-choice${activeClass}" data-ns-residence-index="${index}"><span>⌖</span>${label}</button>`;
+      }).join('');
+      panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Cambia residenza"><header><strong>Residenza</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
+        (choices || '<div class="ns-residence-loading">Le residenze stanno caricando…</div>') +
+        '<button type="button" data-ns-back><span>‹</span>Menu</button></div></section>';
+      bindCloseButton();
+      panel.querySelector('[data-ns-back]')?.addEventListener('click', () => {
+        panel.innerHTML = mainPanelHtml();
+        bindMenuActions();
+      });
+      panel.querySelectorAll('[data-ns-residence-index]').forEach(choice => choice.addEventListener('click', () => {
+        sourceButtons[Number(choice.dataset.nsResidenceIndex)]?.click();
+        close();
+      }));
+    };
+    residenceButton?.addEventListener('pointerdown', showResidencePicker);
+    residenceButton?.addEventListener('click', event => event.preventDefault());
     ['pointerdown', 'click'].forEach(type => bar.addEventListener(type, event => event.stopPropagation()));
-    panel.querySelector('[data-ns-close]').addEventListener('click', close);
     panel.addEventListener('pointerdown', event => { if (event.target === panel) close(); });
     panel.addEventListener('click', event => { if (event.target === panel) close(); });
-    panel.querySelector('[data-ns-logout]').addEventListener('click', () => {
-      if (typeof window.logoutAgent === 'function') return window.logoutAgent();
-      localStorage.removeItem('navidiaria.activeAgent');
-      localStorage.removeItem('naviturni_logged_agent');
-      location.href = 'index.html';
-    });
+    const bindMenuActions = () => {
+      bindCloseButton();
+      panel.querySelector('[data-ns-past]')?.addEventListener('click', () => {
+        if (typeof window.togglePastColumns === 'function') window.togglePastColumns();
+        const source = document.getElementById('togglePastBtn');
+        const label = panel.querySelector('[data-ns-past] b');
+        if (label) label.textContent = source?.textContent.replace(/^[^A-Za-zÀ-ÿ]+/, '').trim() || 'Mostra passato';
+      });
+      panel.querySelector('[data-ns-logout]')?.addEventListener('click', () => {
+        if (typeof window.logoutAgent === 'function') return window.logoutAgent();
+        localStorage.removeItem('navidiaria.activeAgent');
+        localStorage.removeItem('naviturni_logged_agent');
+        location.href = 'index.html';
+      });
+    };
+    bindMenuActions();
 
     // Mantiene la dimensione fisica della barra costante anche con lo zoom di Safari.
     const syncVisualViewport = () => {
@@ -192,6 +237,7 @@
       bar.style.setProperty('--ns-bar-height', `${70 / scale}px`);
       bar.style.setProperty('--ns-item-height', `${64 / scale}px`);
       bar.style.setProperty('--ns-label-size', `${10 / scale}px`);
+      bar.style.setProperty('--ns-turni-label-size', `${8 / scale}px`);
       bar.style.setProperty('--ns-icon-size', `${23 / scale}px`);
       bar.style.setProperty('--ns-icon-line', `${22 / scale}px`);
     };
