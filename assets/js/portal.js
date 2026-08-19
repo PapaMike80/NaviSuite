@@ -17,6 +17,7 @@ const $ = id => document.getElementById(id);
 const isAdminAgent = agent => ['91', '92'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
 const isDiariaTester = agent => isAdminAgent(agent) || ['superuser','super_user','super-user'].includes(String(agent?.role || '').toLowerCase());
 const isBaristaAgent = agent => String(agent?.role || '').toLowerCase() === 'barista' || String(agent?.qualifica || '').toLowerCase() === 'barista';
+const isHibaBarista = agent => String(agent?.id || '').toUpperCase() === 'BARISTA_HIBA' || (isBaristaAgent(agent) && String(agent?.name || agent?.agente || '').trim().toUpperCase() === 'HIBA');
 let agentProfiles = {};
 const profileFor = id => agentProfiles[String(id)] || Object.values(agentProfiles).find(item => String(item?.id) === String(id)) || {};
 const applyAgentProfile = agent => ({...agent,...profileFor(agent?.id),id:agent?.id,name:agent?.name,residence:agent?.residence});
@@ -111,7 +112,7 @@ function showChoice(agent) {
   if (orario) orario.hidden = isBaristaAgent(agent);
   if (orariTabella) orariTabella.hidden = isBaristaAgent(agent);
   if (settings) settings.hidden = isBaristaAgent(agent);
-  if (updates) updates.hidden = !isAdminAgent(agent);
+  if (updates) updates.hidden = !(isAdminAgent(agent) || isHibaBarista(agent));
   if (agentAdmin) agentAdmin.hidden = !isAdminAgent(agent);
 }
 
