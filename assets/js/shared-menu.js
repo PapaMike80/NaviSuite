@@ -25,6 +25,7 @@
   const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
   const isDiariaTester=agent=>isAdminAgent(agent)||['superuser','super_user','super-user'].includes(String(agent?.role||'').toLowerCase());
   const isBaristaAgent=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
+  const isHibaBarista=agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||(isBaristaAgent(agent)&&String(agent?.name||agent?.agente||agent?.cognome||'').trim().toUpperCase()==='HIBA');
   const isBaristaSession=isBaristaAgent(sessionAgent);
   // Il test è riservato a Marco: riconosciamo sia gli ID storici sia il cognome
   // con cui può comparire nelle diverse versioni dell'anagrafica.
@@ -62,7 +63,7 @@
     return;
   }
   if(page==='diaria'&&!isPinChangePage&&!isDiariaTester(sessionAgent)){location.replace('index.html');return}
-  if((page==='agenti'||page==='aggiornamenti')&&!isAdminAgent(sessionAgent)){location.replace('index.html');return}
+  if((page==='agenti'||page==='aggiornamenti')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
   // Registra su Firebase l'accesso alle pagine interne senza conservare il PIN.
   window.NaviAdminFirebase?.recordUserAccess?.(sessionAgent).catch(() => {});
   if(window.NaviAdminFirebase?.touchUserPresence){
@@ -83,7 +84,7 @@
     }));
   }catch{}
   // Orario è ora accessibile a TUTTI gli utenti (rimosso controllo admin)
-  if(isBaristaSession&&page!=='turni'&&page!=='tickets'&&!isPinChangePage){location.replace('naviturni.html');return}
+  if(isBaristaSession&&page!=='turni'&&page!=='tickets'&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))&&!isPinChangePage){location.replace('naviturni.html');return}
   const item=(href,icon,label,active=false,id='')=>`<a ${id?`id="${id}" `:''}class="nav-link${active?' active':''}" href="${href}"${['competencyNav','adminNav','archiveAdminNav'].includes(id)?' hidden':''}><span>${icon}</span>${label}</a>`;
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
   const adminOrarioLink=item('Orario.html','◴','Orario',false,'orarioNavLink');
