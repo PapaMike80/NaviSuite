@@ -12,7 +12,7 @@
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
-      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js').then(registration=>{
+      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=168').then(registration=>{
         if(registration&&typeof registration.update==='function')registration.update().catch(()=>{});
         return registration;
       }).catch(()=>null);
