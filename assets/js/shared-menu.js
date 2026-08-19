@@ -669,5 +669,5 @@
     });
   }
 
-  installMobileNavAutoHide();
+  // L'autohide è ora gestito dal solo menu mobile comune.
 })();
