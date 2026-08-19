@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION='v1.41';
+  const APP_VERSION='v1.42';
   window.NAVISUITE_VERSION=APP_VERSION;
   // Applica subito il tema anche alla Home, che non ha un menu laterale.
   // In questo modo non compare una schermata scura prima del reindirizzamento.
@@ -62,7 +62,7 @@
     location.replace('index.html');
     return;
   }
-  if(page==='diaria'&&!isPinChangePage&&!isDiariaTester(sessionAgent)){location.replace('index.html');return}
+  // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
   if((page==='agenti'||page==='aggiornamenti')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
   // Registra su Firebase l'accesso alle pagine interne senza conservare il PIN.
   window.NaviAdminFirebase?.recordUserAccess?.(sessionAgent).catch(() => {});
@@ -84,7 +84,7 @@
     }));
   }catch{}
   // Orario è ora accessibile a TUTTI gli utenti (rimosso controllo admin)
-  if(isBaristaSession&&page!=='turni'&&page!=='tickets'&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))&&!isPinChangePage){location.replace('naviturni.html');return}
+  if(isBaristaSession&&page==='aggiornamenti'&&!isHibaBarista(sessionAgent)){location.replace('naviturni.html');return}
   const item=(href,icon,label,active=false,id='')=>`<a ${id?`id="${id}" `:''}class="nav-link${active?' active':''}" href="${href}"${['competencyNav','adminNav','archiveAdminNav'].includes(id)?' hidden':''}><span>${icon}</span>${label}</a>`;
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
   const adminOrarioLink=item('Orario.html','◴','Orario',false,'orarioNavLink');
@@ -429,6 +429,58 @@
   window.refreshOdsVariationStatus=refreshOdsVariationStatus;
   window.addEventListener('DOMContentLoaded',refreshOdsVariationStatus);
 
+  function installUniversalMobileMenu(){
+    document.querySelectorAll('.mobile-liquid-nav,.admin-mobile-nav,.hiba-updates-mobile-nav,.hiba-mobile-nav').forEach(node=>node.hidden=true);
+    document.getElementById('navisuite-mobile-nav')?.remove();
+    document.getElementById('navisuite-mobile-menu')?.remove();
+
+    const nav=document.createElement('nav');
+    nav.id='navisuite-mobile-nav';
+    nav.className='navisuite-mobile-nav';
+    nav.setAttribute('aria-label','Navigazione principale');
+    const primary=[
+      ['naviturni.html','▦','Turni','turni'],
+      ['cambi_turno.html','⇄','Cambio','trova'],
+      ['navidiaria.html','≈','Diaria','diaria'],
+      ['documenti.html','▤','Documenti','archive']
+    ];
+    nav.innerHTML=primary.map(([href,icon,label,key])=>`<a href="${href}" class="${page===key?'active':''}"><span>${icon}</span><b>${label}</b></a>`).join('')+'<button type="button" data-open-mobile-menu aria-label="Apri menu"><span>☰</span><b>Menu</b></button>';
+    document.body.appendChild(nav);
+
+    const overlay=document.createElement('div');
+    overlay.id='navisuite-mobile-menu';
+    overlay.className='navisuite-mobile-menu';
+    overlay.hidden=true;
+    const isAdmin=isAdminAgent(sessionAgent),canUpdate=isAdmin||isHibaBarista(sessionAgent);
+    const links=[];
+    if(isAdmin)links.push(['impostazioni.html','⚙','Impostazioni']);
+    if(canUpdate)links.push(['aggiornamenti.html','↻','Aggiornamenti']);
+    if(isAdmin)links.push(['agenti.html','♙','Agenti']);
+    if(isAdmin)links.push(['Orario.html','◴','Orario']);
+    links.push(['segnalazioni.html','✉','Segnalazioni']);
+    overlay.innerHTML=`<section><header><strong>Menu NaviSuite</strong><button type="button" data-close-mobile-menu aria-label="Chiudi">✕</button></header><div class="navisuite-mobile-menu-links">${links.map(([href,icon,label])=>`<a href="${href}"><span>${icon}</span>${label}</a>`).join('')}<button type="button" data-mobile-logout><span>⇥</span>Esci</button></div></section>`;
+    document.body.appendChild(overlay);
+
+    const open=()=>{overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('open'));};
+    const close=()=>{overlay.classList.remove('open');setTimeout(()=>{if(!overlay.classList.contains('open'))overlay.hidden=true;},160);};
+    nav.querySelector('[data-open-mobile-menu]')?.addEventListener('click',open);
+    overlay.querySelector('[data-close-mobile-menu]')?.addEventListener('click',close);
+    overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
+    overlay.querySelector('[data-mobile-logout]')?.addEventListener('click',()=>{
+      if(typeof window.logoutAgent==='function'){window.logoutAgent();return;}
+      localStorage.removeItem('navidiaria.activeAgent');
+      localStorage.removeItem('naviturni_logged_agent');
+      location.href='index.html';
+    });
+
+    if(!document.getElementById('navisuite-mobile-menu-style')){
+      const style=document.createElement('style');
+      style.id='navisuite-mobile-menu-style';
+      style.textContent='.navisuite-mobile-nav,.navisuite-mobile-menu{display:none}@media(max-width:850px){body{padding-bottom:102px!important}.navisuite-mobile-nav{position:fixed;left:50%;bottom:14px;z-index:2200;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:68px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.28);border-radius:36px;background:rgba(18,34,45,.78);box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.13);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}.navisuite-mobile-nav a,.navisuite-mobile-nav button{display:flex;flex:1 1 0;min-width:0;max-width:72px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0;padding:7px 2px;border:0;border-radius:28px;background:transparent;color:#a9c4ca;text-decoration:none;font:800 9px/1 Inter,Arial,sans-serif}.navisuite-mobile-nav span{font-size:20px;line-height:20px;color:#b9d2d8}.navisuite-mobile-nav a.active{background:rgba(45,212,191,.14);color:#99f6e4}.navisuite-mobile-nav a.active span{color:#2dd4bf}.navisuite-mobile-menu{position:fixed;inset:0;z-index:2300;background:rgba(1,15,21,.58);opacity:0;transition:opacity .16s ease}.navisuite-mobile-menu.open{opacity:1}.navisuite-mobile-menu section{position:absolute;left:12px;right:12px;bottom:94px;padding:12px;border:1px solid rgba(255,255,255,.18);border-radius:23px;background:rgba(13,39,50,.96);box-shadow:0 18px 45px rgba(0,0,0,.42);backdrop-filter:blur(22px)}.navisuite-mobile-menu header{display:flex;align-items:center;justify-content:space-between;padding:4px 5px 10px;color:#e9ffff;font:800 15px Inter,Arial,sans-serif}.navisuite-mobile-menu header button{width:32px;height:32px;border:1px solid rgba(151,212,221,.35);border-radius:50%;background:transparent;color:#9de8e0;font-size:16px}.navisuite-mobile-menu-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.navisuite-mobile-menu-links a,.navisuite-mobile-menu-links button{display:flex;align-items:center;gap:9px;min-height:45px;padding:10px 12px;border:1px solid rgba(114,170,181,.35);border-radius:13px;background:rgba(5,26,35,.68);color:#e7fbfb;text-decoration:none;font:800 12px Inter,Arial,sans-serif;text-align:left}.navisuite-mobile-menu-links span{font-size:18px;color:#34d6c0}.navisuite-mobile-menu-links [data-mobile-logout]{color:#ffd3d9}.navisuite-mobile-menu-links [data-mobile-logout] span{color:#fb8291}}';
+      document.head.appendChild(style);
+    }
+  }
+
   function installHibaMobileNav(){
     if(!isHibaBarista(sessionAgent))return;
     document.querySelectorAll('.mobile-liquid-nav,.admin-mobile-nav').forEach(node=>node.hidden=true);
@@ -564,9 +616,8 @@
     });
   }
 
-  const installHibaAwareMobileMenu=()=>{installHibaMobileNav();installCompleteMobileMenu();};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installHibaAwareMobileMenu,{once:true});
-  else installHibaAwareMobileMenu();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installUniversalMobileMenu,{once:true});
+  else installUniversalMobileMenu();
 
   function installMobileNavAutoHide(){
     const nav=document.querySelector('.mobile-liquid-nav');
