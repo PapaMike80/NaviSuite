@@ -186,6 +186,20 @@
     };
   }
 
+  async function getBaristaUpdates() {
+    const result = await databaseRequest("private/adminUpdates/baristas");
+    return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
+  }
+
+  async function saveBaristaUpdates(baristas = []) {
+    const rows = Array.isArray(baristas) ? baristas : [];
+    await databaseRequest("private/adminUpdates/baristas", {
+      method:"PUT",
+      body:JSON.stringify(rows)
+    });
+    return { baristas:rows, updatedAt:new Date().toISOString() };
+  }
+
   async function saveAdminUpdates(payload = {}) {
     const auth = await ensureAuth();
     const item = {
@@ -616,6 +630,8 @@
     deleteChangeRequest,
     getAdminUpdates,
     saveAdminUpdates,
+    getBaristaUpdates,
+    saveBaristaUpdates,
     getAnnouncements,
     saveAnnouncements,
     getDraftPeriod,
