@@ -153,6 +153,8 @@
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const profile=()=>window.TurniShared?.readLoggedAgentProfile?.()||JSON.parse(localStorage.getItem('naviturni_logged_agent')||'null');
     const isAdmin=p=>['91','92'].includes(String(p?.id||''))||String(p?.role||'').toLowerCase()==='admin';
+    const isHiba=p=>String(p?.id||'').toUpperCase()==='BARISTA_HIBA'||(String(p?.role||'').toLowerCase()==='barista'&&normalize(String(p?.name||p?.agente||p?.cognome||''))==='HIBA');
+    const canManageBariste=p=>isAdmin(p)||isHiba(p);
     const variationKey=v=>`${v.data}|${v.id_agente||v.agente}|${v.tipo||''}|${v.ods||''}`;
     const baristaKey=v=>`${v.data}|${v.corsa}|${v.id||v.barista}`;
     const turnoNaveKey=v=>`${v.data}|${v.corsa}|${v.nave||''}`;
@@ -521,10 +523,12 @@
     async function save(){
       setStatus('Salvataggio su Firebase…');
       try{
-        const result=await window.NaviAdminFirebase.saveAdminUpdates(state);
+        const result=isAdmin(profile())
+          ?await window.NaviAdminFirebase.saveAdminUpdates(state)
+          :await window.NaviAdminFirebase.saveBaristaUpdates(state.baristas);
         window.NaviSharedData?.clear?.();
-        $('owner-info').textContent=`UID amministratore: ${result.ownerUid} · aggiornato ${new Date(result.updatedAt).toLocaleString('it-IT')}`;
-        setStatus('✓ Aggiornamenti salvati su Firebase. La tabella li applicherà al prossimo aggiornamento.','ok');
+        if(isAdmin(profile()))$('owner-info').textContent=`UID amministratore: ${result.ownerUid} · aggiornato ${new Date(result.updatedAt).toLocaleString('it-IT')}`;
+        setStatus(isAdmin(profile())?'✓ Aggiornamenti salvati su Firebase. La tabella li applicherà al prossimo aggiornamento.':'✓ Turni bariste salvati su Firebase.','ok');
         return result;
       }catch(error){
         setStatus(`Errore salvataggio: ${error.message}`,'bad');
@@ -854,9 +858,24 @@
       setStatus(message,total?'ok':'bad');
     }
     async function init(){
-      if(!isAdmin(profile())){document.body.innerHTML='<main><div class="status bad">Accesso riservato agli amministratori NaviSuite.</div></main>';return}
+      const currentProfile=profile();
+      if(!canManageBariste(currentProfile)){document.body.innerHTML='<main><div class="status bad">Accesso riservato agli amministratori NaviSuite e a Hiba per i turni bariste.</div></main>';return}
       const firebase=await waitForFirebase();
       await firebase.ready;
+      const baristaUploadOnly=!isAdmin(currentProfile);
+      if(baristaUploadOnly){
+        document.body.classList.add('barista-upload-only');
+        document.querySelector('.app-sidebar')?.setAttribute('hidden','');
+        document.querySelector('.admin-mobile-nav')?.setAttribute('hidden','');
+        document.querySelectorAll('.card').forEach(card=>{if(!card.querySelector('#new-bariste-file'))card.hidden=true;});
+        document.querySelectorAll('.import-box').forEach(box=>{if(!box.querySelector('#new-bariste-file'))box.hidden=true;});
+        document.querySelector('.eyebrow').textContent='NAVISUITE BARISTE';
+        document.querySelector('.hero h1').textContent='Carica turni bariste';
+        document.querySelector('.hero p').textContent='Carica il prospetto, verifica l’anteprima e salva i turni delle bariste.';
+        state.baristas=await firebase.getBaristaUpdates();
+        setStatus('Connessa a Firebase. Puoi importare i turni bariste.','ok');
+        return;
+      }
       schedule=await window.NaviSharedData.load('',{force:true});
       const saved=await firebase.getAdminUpdates();
       state.odsVariations=saved.odsVariations||[];
