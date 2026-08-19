@@ -23,7 +23,7 @@
     const style = document.createElement('style');
     style.id = 'navisuite-mobile-menu-style';
     style.textContent = `
-      ${OLD_MENUS}[hidden] { display:none !important; pointer-events:none !important; }
+      ${OLD_MENUS}, ${OLD_MENUS}[hidden] { display:none !important; visibility:hidden !important; pointer-events:none !important; }
       #${barId}, #${panelId} { display:none; }
       @media (max-width:850px) {
         html, body { min-height:100%; }
@@ -38,11 +38,12 @@
           grid-template-columns:repeat(5, minmax(0, 1fr)) !important;
           width:auto !important;
           max-width:none !important;
-          height:calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+          height:var(--ns-bar-height, calc(70px + env(safe-area-inset-bottom, 0px))) !important;
           box-sizing:border-box !important;
           padding:0 2px env(safe-area-inset-bottom, 0px) !important;
           margin:0 !important;
-          transform:none !important;
+          transform:translateY(0) !important;
+          transition:transform .2s ease !important;
           overflow:visible !important;
           background:#102733 !important;
           border-top:1px solid rgba(145,210,216,.35) !important;
@@ -50,12 +51,13 @@
           isolation:isolate !important;
           touch-action:manipulation !important;
         }
+        #${barId}.ns-hidden { transform:translateY(110%) !important; }
         #${barId} a, #${barId} button {
           display:flex !important;
           min-width:0 !important;
-          min-height:64px !important;
+          min-height:var(--ns-item-height, 64px) !important;
           width:auto !important;
-          height:70px !important;
+          height:var(--ns-item-height, 70px) !important;
           box-sizing:border-box !important;
           align-items:center !important;
           justify-content:center !important;
@@ -68,14 +70,14 @@
           background:transparent !important;
           color:#bed0d5 !important;
           text-decoration:none !important;
-          font:800 10px/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+          font:800 var(--ns-label-size, 10px)/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
           white-space:nowrap !important;
           appearance:none !important;
           -webkit-appearance:none !important;
           cursor:pointer !important;
           touch-action:manipulation !important;
         }
-        #${barId} .ns-icon { font-size:23px !important; line-height:22px !important; }
+        #${barId} .ns-icon { font-size:var(--ns-icon-size, 23px) !important; line-height:var(--ns-icon-line, 22px) !important; }
         #${barId} a.active { color:#8ff4e4 !important; background:rgba(45,212,191,.17) !important; }
         #${barId} a.active .ns-icon { color:#2dd4bf !important; }
         #${barId} button:active, #${barId} a:active { background:rgba(45,212,191,.24) !important; }
@@ -158,7 +160,11 @@
 
     const menuButton = bar.querySelector('[data-ns-menu]');
     const close = () => { panel.hidden = true; menuButton.setAttribute('aria-expanded', 'false'); };
-    const open = event => { event?.preventDefault(); event?.stopPropagation(); panel.hidden = false; menuButton.setAttribute('aria-expanded', 'true'); };
+    const showBar = () => bar.classList.remove('ns-hidden');
+    const hideBar = () => {
+      if (window.innerWidth <= 850 && panel.hidden) bar.classList.add('ns-hidden');
+    };
+    const open = event => { event?.preventDefault(); event?.stopPropagation(); showBar(); panel.hidden = false; menuButton.setAttribute('aria-expanded', 'true'); };
     ['pointerdown', 'click'].forEach(type => menuButton.addEventListener(type, event => {
       if (type === 'click' && !panel.hidden) return;
       open(event);
@@ -173,6 +179,41 @@
       localStorage.removeItem('naviturni_logged_agent');
       location.href = 'index.html';
     });
+
+    // Mantiene la dimensione fisica della barra costante anche con lo zoom di Safari.
+    const syncVisualViewport = () => {
+      const viewport = window.visualViewport;
+      const scale = Math.max(1, Number(viewport?.scale || 1));
+      const width = Number(viewport?.width || window.innerWidth);
+      const left = Number(viewport?.offsetLeft || 0);
+      bar.style.setProperty('width', `${width}px`, 'important');
+      bar.style.setProperty('left', `${left}px`, 'important');
+      bar.style.setProperty('right', 'auto', 'important');
+      bar.style.setProperty('--ns-bar-height', `${70 / scale}px`);
+      bar.style.setProperty('--ns-item-height', `${64 / scale}px`);
+      bar.style.setProperty('--ns-label-size', `${10 / scale}px`);
+      bar.style.setProperty('--ns-icon-size', `${23 / scale}px`);
+      bar.style.setProperty('--ns-icon-line', `${22 / scale}px`);
+    };
+    syncVisualViewport();
+    window.visualViewport?.addEventListener('resize', syncVisualViewport, { passive:true });
+    window.visualViewport?.addEventListener('scroll', syncVisualViewport, { passive:true });
+    window.addEventListener('resize', () => { syncVisualViewport(); showBar(); }, { passive:true });
+
+    // Scorrendo verso il basso la barra esce dallo schermo; verso l'alto ricompare.
+    const positions = new WeakMap();
+    const onScroll = event => {
+      const source = event.target === document || event.target === window ? document.scrollingElement : event.target;
+      if (!source || typeof source.scrollTop !== 'number') return;
+      const current = Math.max(0, source.scrollTop);
+      const previous = positions.has(source) ? positions.get(source) : current;
+      positions.set(source, current);
+      const delta = current - previous;
+      if (current < 18 || delta < -4) showBar();
+      else if (delta > 10) hideBar();
+    };
+    document.addEventListener('scroll', onScroll, { capture:true, passive:true });
+    window.addEventListener('scroll', onScroll, { passive:true });
   };
 
   // Non attendere window.load: NaviTurni può continuare a caricare dati per molto tempo.
