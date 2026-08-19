@@ -616,8 +616,8 @@
     });
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installUniversalMobileMenu,{once:true});
-  else installUniversalMobileMenu();
+  // Il menu mobile è gestito esclusivamente da mobile-menu-solid.js.
+  // Lasciamo qui il codice storico soltanto per non alterare il menu desktop.
 
   function installMobileNavAutoHide(){
     const nav=document.querySelector('.mobile-liquid-nav');
