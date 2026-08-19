@@ -2,7 +2,7 @@
 (() => {
   'use strict';
 
-  const OLD_MENUS = '.mobile-liquid-nav,.admin-mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
+  const OLD_MENUS = '.mobile-liquid-nav,.admin-mobile-nav,.mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
   const barId = 'navisuite-mobile-menu';
   const panelId = 'navisuite-mobile-menu-panel';
 
