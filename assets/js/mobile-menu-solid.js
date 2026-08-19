@@ -150,7 +150,7 @@
       '<button type="button" data-ns-menu aria-expanded="false" aria-controls="' + panelId + '"><span class="ns-icon">☰</span><b>Menu</b></button>';
     document.body.appendChild(bar);
 
-    const links = [];
+    const links = [['index.html', '⌂', 'Home']];
     if (isAdmin(profile)) links.push(['impostazioni.html', '⚙', 'Impostazioni']);
     if (isAdmin(profile) || isHiba(profile)) links.push(['aggiornamenti.html', '↻', 'Aggiornamenti']);
     if (isAdmin(profile)) links.push(['agenti.html', '♙', 'Agenti'], ['Orario.html', '◴', 'Orario']);
