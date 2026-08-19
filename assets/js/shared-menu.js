@@ -429,7 +429,29 @@
   window.refreshOdsVariationStatus=refreshOdsVariationStatus;
   window.addEventListener('DOMContentLoaded',refreshOdsVariationStatus);
 
+  function installHibaMobileNav(){
+    if(!isHibaBarista(sessionAgent))return;
+    document.querySelectorAll('.mobile-liquid-nav,.admin-mobile-nav').forEach(node=>node.hidden=true);
+    document.getElementById('hiba-mobile-nav')?.remove();
+    const nav=document.createElement('nav');
+    nav.id='hiba-mobile-nav';
+    nav.className='hiba-mobile-nav';
+    nav.setAttribute('aria-label','Navigazione Hiba');
+    nav.innerHTML=[
+      ['naviturni.html','▦','Turni','turni'],
+      ['aggiornamenti.html','↻','Aggiornamenti','aggiornamenti'],
+      ['segnalazioni.html','✉','Segnalazioni','tickets']
+    ].map(([href,icon,label,key])=>`<a href="${href}" class="${page===key?'active':''}"><span>${icon}</span><b>${label}</b></a>`).join('');
+    document.body.appendChild(nav);
+    if(document.getElementById('hiba-mobile-nav-style'))return;
+    const style=document.createElement('style');
+    style.id='hiba-mobile-nav-style';
+    style.textContent='.hiba-mobile-nav{display:none}@media(max-width:850px){body{padding-bottom:102px!important}.hiba-mobile-nav{position:fixed;left:50%;bottom:14px;z-index:2000;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:68px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.28);border-radius:36px;background:rgba(18,34,45,.74);box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.13);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}.hiba-mobile-nav a{display:flex;flex:1 1 0;min-width:0;max-width:112px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0;padding:7px 3px;border:0;border-radius:28px;color:#a9c4ca;text-decoration:none;font:800 10px/1 Inter,Arial,sans-serif}.hiba-mobile-nav a span{font-size:20px;line-height:20px;color:#b9d2d8}.hiba-mobile-nav a.active{background:rgba(45,212,191,.14);color:#99f6e4}.hiba-mobile-nav a.active span{color:#2dd4bf}.hiba-mobile-nav a:active{transform:scale(.96)}}';
+    document.head.appendChild(style);
+  }
+
   function installCompleteMobileMenu(){
+    if(isHibaBarista(sessionAgent))return;
     let nav=document.querySelector('.mobile-liquid-nav');
     if(!nav&&document.body.classList.contains('turni-page')){
       nav=document.createElement('nav');
@@ -542,8 +564,9 @@
     });
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installCompleteMobileMenu,{once:true});
-  else installCompleteMobileMenu();
+  const installHibaAwareMobileMenu=()=>{installHibaMobileNav();installCompleteMobileMenu();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installHibaAwareMobileMenu,{once:true});
+  else installHibaAwareMobileMenu();
 
   function installMobileNavAutoHide(){
     const nav=document.querySelector('.mobile-liquid-nav');
