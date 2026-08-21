@@ -38,7 +38,11 @@
     .summary{margin-top:6px;margin-bottom:4px;gap:6px}
     .summary span{padding:4px 8px;font-size:9px}
     .status{min-height:14px;margin-bottom:3px;font-size:9px}
-    .matrix-wrap{height:calc(100vh - 112px);border-top-color:#315663;scrollbar-color:#527785 #0a1b24}
+    .matrix-wrap{display:block;height:calc(100vh - 112px);border-top-color:#315663;scrollbar-color:#527785 #0a1b24}
+    /* La testata resta scura anche con gli stili condivisi di NaviTurni. */
+    #matrix-scroll-wrap .matrix thead th{background:#15333d!important;color:var(--ink)!important;border-color:#294b56!important}
+    #matrix-scroll-wrap .matrix .month-cell{color:#38d6bf!important}
+    #matrix-scroll-wrap .matrix .date-header th{background:#15333d!important}
     .matrix th,.matrix td{width:40px;min-width:40px;padding:2px;border-color:#294a57}
     .matrix .month-header th{height:24px}
     .matrix .date-header th{top:24px;height:66px;position:sticky}
@@ -186,5 +190,6 @@
     loadCrewConfig();const user=profile();if(!user)location.replace("index.html");else if(!allowed(user))document.getElementById("denied").classList.add("open");else{document.getElementById("app").hidden=false;load().then(()=>{setTimeout(scrollToToday,30);setInterval(refreshSharedNaviState,12000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshSharedNaviState()})})}
   </script>
   <script src="assets/js/shared-menu.js?v=38"></script>
+  <script src="assets/js/mobile-menu-solid.js?v=2"></script>
 </body>
 </html>
