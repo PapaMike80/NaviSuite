@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION='v1.42';
+  const APP_VERSION='v1.43';
   window.NAVISUITE_VERSION=APP_VERSION;
   // Applica subito il tema anche alla Home, che non ha un menu laterale.
   // In questo modo non compare una schermata scura prima del reindirizzamento.
@@ -23,6 +23,7 @@
   if(page==='archive')document.body.classList.add('archive-page');
   let sessionAgent=null;try{sessionAgent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{}
   const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
+  const isNaviPage=location.pathname.toLowerCase().endsWith('/gestione_navi.html');
   const isDiariaTester=agent=>isAdminAgent(agent)||['superuser','super_user','super-user'].includes(String(agent?.role||'').toLowerCase());
   const isBaristaAgent=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
   const isHibaBarista=agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||(isBaristaAgent(agent)&&String(agent?.name||agent?.agente||agent?.cognome||'').trim().toUpperCase()==='HIBA');
@@ -145,6 +146,9 @@
     common+=item('aggiornamenti.html','↻','Aggiornamenti');
     common+=item('agenti.html','♙','Agenti');
   }
+
+  // Gestione navi resta, per ora, un collegamento riservato agli amministratori.
+  if(isAdminAgent(sessionAgent))common+=item('gestione_navi.html','▤','Navi',isNaviPage,'naviAdminNav');
 
   common=item('index.html','⌂','Home')+common+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');
 
@@ -569,6 +573,7 @@
       links.push('<a href="segnalazioni.html"><span>✉</span>Segnalazioni</a>');
     }
     if(isAdminAgent(sessionAgent)){
+      links.push('<a href="gestione_navi.html" class="admin-mobile-action"><span>▤</span>Navi</a>');
       links.push('<a href="aggiornamenti.html" class="admin-mobile-action"><span>↻</span>Aggiornamenti</a>');
       links.push('<a href="agenti.html" class="admin-mobile-action"><span>♙</span>Agenti</a>');
     }
@@ -670,4 +675,20 @@
   }
 
   // L'autohide è ora gestito dal solo menu mobile comune.
+})();
+
+
+/* Feedback immediato: la voce selezionata resta visibile durante la navigazione. */
+(() => {
+  const style=document.createElement('style');
+  style.textContent='@keyframes ns-navigation-pulse{0%,100%{opacity:1;filter:none}50%{opacity:.52;filter:brightness(1.35)}}.ns-navigation-pending{pointer-events:none!important;animation:ns-navigation-pulse .72s ease-in-out infinite!important;outline:2px solid rgba(90,245,221,.8)!important;outline-offset:-2px!important;background:rgba(45,212,191,.24)!important;color:#d9fffb!important}';
+  document.head.appendChild(style);
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a[href]');
+    if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target==='_blank'||link.hasAttribute('download'))return;
+    const href=link.getAttribute('href')||'';
+    if(!href||href[0]==='#'||/^javascript:/i.test(href))return;
+    link.classList.add('ns-navigation-pending');
+    link.setAttribute('aria-busy','true');
+  },true);
 })();
