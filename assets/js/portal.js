@@ -15,6 +15,7 @@ function startPresence(agent) {
 
 const $ = id => document.getElementById(id);
 const isAdminAgent = agent => ['91', '92'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
+const isMovementAgent = agent => isAdminAgent(agent) || String(agent?.qualifica || agent?.office || '').toLowerCase().includes('movimento');
 const isDiariaTester = agent => isAdminAgent(agent) || ['superuser','super_user','super-user'].includes(String(agent?.role || '').toLowerCase());
 const isBaristaAgent = agent => String(agent?.role || '').toLowerCase() === 'barista' || String(agent?.qualifica || '').toLowerCase() === 'barista';
 const isHibaBarista = agent => String(agent?.id || '').toUpperCase() === 'BARISTA_HIBA' || (isBaristaAgent(agent) && String(agent?.name || agent?.agente || '').trim().toUpperCase() === 'HIBA');
@@ -105,6 +106,7 @@ function showChoice(agent) {
   const settings = document.querySelector('.app-card.settings');
   const updates = document.querySelector('.app-card.updates');
   const agentAdmin = document.querySelector('.app-card.agents');
+  const shipManagement = document.querySelector('[data-navi-tab="NaviGestioneNaviTab"]');
   if (diaria) diaria.hidden = !isDiariaTester(agent);
   if (docs) docs.hidden = isBaristaAgent(agent);
   if (trova) trova.hidden = isBaristaAgent(agent);
@@ -114,6 +116,7 @@ function showChoice(agent) {
   if (settings) settings.hidden = isBaristaAgent(agent);
   if (updates) updates.hidden = !(isAdminAgent(agent) || isHibaBarista(agent));
   if (agentAdmin) agentAdmin.hidden = !isAdminAgent(agent);
+  if (shipManagement) shipManagement.hidden = !isAdminAgent(agent);
 }
 
 async function loadAgents() {
