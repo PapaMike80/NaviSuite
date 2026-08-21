@@ -1,289 +1,78 @@
-/* NaviSuite: unico menu mobile comune. */
+/* NaviSuite - menu mobile unico, pensato per iPhone. */
 (() => {
   'use strict';
+  const BAR='navisuite-mobile-menu', SHEET='navisuite-mobile-menu-sheet';
+  const OLD='.mobile-liquid-nav,.admin-mobile-nav,.mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
+  const icon={home:'⌂',turni:'▦',swap:'⇄',diaria:'◫',docs:'▤',menu:'☰',navi:'⛴',settings:'⚙',updates:'↻',agents:'♙',clock:'◷',pin:'⌁',logout:'⇥',residence:'⌖',notice:'✉',close:'×',next:'›'};
+  const glyph=n=>'<span class="ns-icon" aria-hidden="true">'+icon[n]+'</span>';
+  const account=()=>{try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch(_){return null}};
+  const isAdmin=p=>['91','92'].includes(String(p?.id||''))||String(p?.role||'').toLowerCase()==='admin';
+  const isHiba=p=>String(p?.id||'').toUpperCase()==='BARISTA_HIBA'||(String(p?.role||'').toLowerCase()==='barista'&&String(p?.name||p?.agente||p?.cognome||'').trim().toUpperCase()==='HIBA');
 
-  const OLD_MENUS = '.mobile-liquid-nav,.admin-mobile-nav,.mobile-nav,.hiba-mobile-nav,.hiba-updates-mobile-nav,.navisuite-mobile-nav';
-  const barId = 'navisuite-mobile-menu';
-  const panelId = 'navisuite-mobile-menu-panel';
-  const residencePalette = {
-    DESENZANO: ['#38bdf8', 'rgba(14, 116, 144, .38)'],
-    MADERNO: ['#f59e0b', 'rgba(101, 66, 4, .42)'],
-    PESCHIERA: ['#4ade80', 'rgba(20, 83, 45, .42)'],
-    RIVA: ['#a78bfa', 'rgba(55, 48, 116, .48)']
-  };
+  function css(){
+    if(document.getElementById('navisuite-mobile-menu-style'))return;
+    const s=document.createElement('style');s.id='navisuite-mobile-menu-style';
+    s.textContent=OLD+','+OLD+'[hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important}#'+BAR+',#'+SHEET+'{display:none}@media(max-width:850px){body{padding-bottom:calc(98px + env(safe-area-inset-bottom,0px))!important}#'+BAR+'{position:fixed;z-index:2147483000;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));height:72px;padding:5px;border:1px solid rgba(170,218,222,.26);border-radius:25px;background:rgba(10,35,46,.95);box-shadow:0 18px 38px rgba(2,17,23,.38),inset 0 1px rgba(255,255,255,.10);backdrop-filter:blur(18px);box-sizing:border-box;transition:transform .22s ease;touch-action:manipulation}#'+BAR+'.is-hidden{transform:translateY(calc(100% + 25px))}#'+BAR+' a,#'+BAR+' button{display:flex;min-width:0;align-items:center;justify-content:center;flex-direction:column;gap:3px;padding:4px 1px;border:0;border-radius:19px;background:transparent;color:#b7cbd0;text-decoration:none;font:800 9px/1.1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;cursor:pointer;-webkit-appearance:none;appearance:none}#'+BAR+' .ns-icon{font:400 24px/22px -apple-system,BlinkMacSystemFont,Segoe UI Symbol,sans-serif}#'+BAR+' a.active{background:linear-gradient(145deg,rgba(45,212,191,.28),rgba(45,212,191,.08));color:#a7fff2;box-shadow:inset 0 0 0 1px rgba(85,237,216,.18)}#'+BAR+' a:active,#'+BAR+' button:active{transform:scale(.95);background-color:rgba(45,212,191,.16)}#'+SHEET+'{position:fixed;inset:0;z-index:2147483001;display:grid;align-items:end;background:rgba(1,14,20,.55);opacity:0;transition:opacity .2s ease}#'+SHEET+'[hidden]{display:none!important}#'+SHEET+'.is-open{opacity:1}#'+SHEET+' .ns-sheet{max-height:min(76dvh,620px);overflow:auto;padding:10px 14px calc(16px + env(safe-area-inset-bottom,0px));border:1px solid rgba(167,211,217,.25);border-bottom:0;border-radius:27px 27px 0 0;background:#102d39;color:#edf9fb;box-shadow:0 -14px 36px rgba(0,0,0,.31);transform:translateY(22px);transition:transform .2s ease}#'+SHEET+'.is-open .ns-sheet{transform:translateY(0)}#'+SHEET+' .ns-grabber{width:38px;height:4px;margin:0 auto 12px;border-radius:999px;background:rgba(211,239,241,.32)}#'+SHEET+' header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}#'+SHEET+' h2{margin:0;color:#f1ffff;font:800 19px/1.1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}#'+SHEET+' .ns-close{width:38px;height:38px;border:1px solid rgba(174,219,224,.3);border-radius:50%;background:rgba(255,255,255,.06);color:#d8f3f3;font-size:24px}#'+SHEET+' .ns-caption{display:block;margin:16px 2px 7px;color:#93b7bd;font:800 10px/1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;letter-spacing:.1em;text-transform:uppercase}#'+SHEET+' .ns-list{overflow:hidden;border:1px solid rgba(160,207,212,.19);border-radius:17px;background:rgba(3,22,30,.34)}#'+SHEET+' .ns-action{display:grid;grid-template-columns:28px 1fr 18px;align-items:center;gap:9px;width:100%;min-height:51px;padding:9px 12px;border:0;border-bottom:1px solid rgba(160,207,212,.14);background:transparent;color:#effbfc;text-align:left;text-decoration:none;font:750 14px/1.15 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;box-sizing:border-box}#'+SHEET+' .ns-action:last-child{border-bottom:0}#'+SHEET+' .ns-action .ns-icon{font-size:20px;color:#64e1d0}#'+SHEET+' .ns-arrow{color:#82a8ae;font-size:22px;text-align:right}#'+SHEET+' .ns-action:active{background:rgba(45,212,191,.14)}#'+SHEET+' .is-danger{color:#ffdce1!important}#'+SHEET+' .is-danger .ns-icon{color:#ff99a8!important}#'+SHEET+' .ns-residences{display:grid;grid-template-columns:1fr 1fr;gap:8px}#'+SHEET+' .ns-residence{display:flex;align-items:center;gap:8px;min-height:46px;padding:9px 10px;border:1px solid var(--c);border-radius:14px;background:var(--b);color:var(--c);font-weight:800}#'+SHEET+' .ns-residence.active{box-shadow:inset 0 0 0 2px var(--c)}html.navisuite-light #'+BAR+'{background:rgba(255,255,255,.96);border-color:#c3dfe2;box-shadow:0 12px 30px rgba(22,58,66,.18)}html.navisuite-light #'+BAR+' a,html.navisuite-light #'+BAR+' button{color:#49656b}html.navisuite-light #'+BAR+' a.active{color:#087b6e;background:#daf7f1}html.navisuite-light #'+SHEET+'{background:rgba(20,51,59,.28)}html.navisuite-light #'+SHEET+' .ns-sheet{background:#f8ffff;color:#17323a;border-color:#b6d8dc}html.navisuite-light #'+SHEET+' h2{color:#17323a}html.navisuite-light #'+SHEET+' .ns-list{background:#fff;border-color:#c5e0e3}html.navisuite-light #'+SHEET+' .ns-action{color:#17323a;border-color:#d8eaec}html.navisuite-light #'+SHEET+' .ns-caption{color:#58767c}}';
+    document.head.appendChild(s);
+  }
 
-  const currentProfile = () => {
-    try {
-      return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
-    } catch (_) {
-      return null;
-    }
-  };
+  function install(){
+    css();document.querySelectorAll(OLD).forEach(el=>{el.hidden=true;el.style.setProperty('display','none','important')});document.getElementById(BAR)?.remove();document.getElementById(SHEET)?.remove();
+    const person=account(),path=location.pathname.toLowerCase(),turns=path.endsWith('naviturni.html'),active=f=>path.endsWith(f);
+    const navItem=(href,name,label,on)=>'<a href="'+href+'" class="'+(on?'active':'')+'">'+glyph(name)+'<b>'+label+'</b></a>';
+    const bar=document.createElement('nav');bar.id=BAR;bar.setAttribute('aria-label','Navigazione principale');
+    bar.innerHTML=navItem('naviturni.html','turni','Turni',turns)+navItem('cambi_turno.html','swap','Cambio',active('cambi_turno.html'))+navItem('navidiaria.html','diaria','Diaria',active('navidiaria.html'))+navItem('documenti.html','docs','Documenti',active('documenti.html'))+'<button type="button" data-menu aria-expanded="false">'+glyph('menu')+'<b>Menu</b></button>';document.body.appendChild(bar);
+    const overlay=document.createElement('div');overlay.id=SHEET;overlay.hidden=true;document.body.appendChild(overlay);const trigger=bar.querySelector('[data-menu]');
+    const close=()=>{overlay.classList.remove('is-open');trigger.setAttribute('aria-expanded','false');setTimeout(()=>{if(!overlay.classList.contains('is-open'))overlay.hidden=true},200)};
+    const action=(href,name,label,danger)=>href?'<a class="ns-action '+(danger?'is-danger':'')+'" href="'+href+'">'+glyph(name)+'<span>'+label+'</span><i class="ns-arrow">'+icon.next+'</i></a>':'<button type="button" class="ns-action '+(danger?'is-danger':'')+'" data-action="'+name+'">'+glyph(name)+'<span>'+label+'</span><i class="ns-arrow">'+icon.next+'</i></button>';
+    const bind=()=>{overlay.querySelector('[data-close]')?.addEventListener('click',close);overlay.querySelector('[data-action="residence"]')?.addEventListener('click',residences);overlay.querySelector('[data-action="clock"]')?.addEventListener('click',()=>{window.togglePastColumns?.();render()});overlay.querySelector('[data-action="updates"]')?.addEventListener('click',()=>{close();if(typeof window.ricaricaDati==='function')window.ricaricaDati();else if(typeof window.loadDocuments==='function')window.loadDocuments();else location.reload()});overlay.querySelector('[data-action="logout"]')?.addEventListener('click',()=>{if(typeof window.logoutAgent==='function')return window.logoutAgent();localStorage.removeItem('navidiaria.activeAgent');localStorage.removeItem('naviturni_logged_agent');location.href='index.html'})};
+    const render=()=>{const page=[];if(turns)page.push(action(null,'residence','Cambia residenza'),action(null,'clock',document.getElementById('togglePastBtn')?.textContent.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato'));page.push(action(null,'updates','Aggiorna dati'));const app=[action('index.html','home','Home'),action('segnalazioni.html','notice','Segnalazioni')];if(isAdmin(person))app.push(action('gestione_navi.html','navi','Navi'),action('impostazioni.html','settings','Impostazioni'));if(isAdmin(person)||isHiba(person))app.push(action('aggiornamenti.html','updates','Aggiornamenti'));if(isAdmin(person))app.push(action('agenti.html','agents','Agenti'),action('Orario.html','clock','Orario'));overlay.innerHTML='<section class="ns-sheet" role="dialog" aria-modal="true"><div class="ns-grabber"></div><header><h2>Menu</h2><button type="button" class="ns-close" data-close aria-label="Chiudi">'+icon.close+'</button></header><span class="ns-caption">Questa pagina</span><div class="ns-list">'+page.join('')+'</div><span class="ns-caption">NaviSuite</span><div class="ns-list">'+app.join('')+'</div><span class="ns-caption">Account</span><div class="ns-list">'+action('navidiaria.html?pin=1','pin','Cambia PIN')+action(null,'logout','Esci',true)+'</div></section>';bind()};
+    const residences=()=>{const source=[...document.querySelectorAll('#top-residence-buttons button')],palette={DESENZANO:['#0497c9','#e2f6fd'],MADERNO:['#c77700','#fff1d9'],PESCHIERA:['#20834b','#e2f7e9'],RIVA:['#6952bd','#eeeaff']};const cards=source.map((b,i)=>({b,i})).filter(x=>x.b.textContent.trim().toUpperCase()!=='TUTTE').map(x=>{const label=x.b.textContent.trim(),p=palette[label.toUpperCase()]||['#32d5c0','rgba(45,212,191,.14)'];return '<button class="ns-residence '+(x.b.classList.contains('active')?'active':'')+'" data-residence="'+x.i+'" style="--c:'+p[0]+';--b:'+p[1]+'">'+glyph('residence')+'<span>'+label+'</span></button>'}).join('');overlay.innerHTML='<section class="ns-sheet" role="dialog" aria-modal="true"><div class="ns-grabber"></div><header><h2>Residenza</h2><button type="button" class="ns-close" data-close aria-label="Chiudi">'+icon.close+'</button></header><span class="ns-caption">Mostra i turni di</span><div class="ns-residences">'+cards+'</div></section>';overlay.querySelector('[data-close]')?.addEventListener('click',close);overlay.querySelectorAll('[data-residence]').forEach(el=>el.addEventListener('click',()=>{source[Number(el.dataset.residence)]?.click();close()}))};
+    trigger.addEventListener('click',()=>{if(!overlay.hidden)return close();render();overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('is-open'));trigger.setAttribute('aria-expanded','true');bar.classList.remove('is-hidden')});overlay.addEventListener('click',e=>{if(e.target===overlay)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
+    let last=0;const scroll=()=>{const now=Math.max(0,document.scrollingElement?.scrollTop||0);if(now<20||now<last-5)bar.classList.remove('is-hidden');else if(now>last+12&&overlay.hidden)bar.classList.add('is-hidden');last=now};window.addEventListener('scroll',scroll,{passive:true});document.addEventListener('scroll',scroll,{passive:true,capture:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
 
-  const isAdmin = profile => ['91', '92'].includes(String(profile?.id || '')) || String(profile?.role || '').toLowerCase() === 'admin';
-  const isHiba = profile => String(profile?.id || '').toUpperCase() === 'BARISTA_HIBA' ||
-    (String(profile?.role || '').toLowerCase() === 'barista' && String(profile?.name || profile?.agente || profile?.cognome || '').trim().toUpperCase() === 'HIBA');
-
-  const addStyle = () => {
-    if (document.getElementById('navisuite-mobile-menu-style')) return;
-    const style = document.createElement('style');
-    style.id = 'navisuite-mobile-menu-style';
-    style.textContent = `
-      ${OLD_MENUS}, ${OLD_MENUS}[hidden] { display:none !important; visibility:hidden !important; pointer-events:none !important; }
-      #${barId}, #${panelId} { display:none; }
-      @media (max-width:850px) {
-        html, body { min-height:100%; }
-        body { padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-        #${barId} {
-          position:fixed !important;
-          left:0 !important;
-          right:0 !important;
-          bottom:0 !important;
-          z-index:2147483000 !important;
-          display:grid !important;
-          grid-template-columns:repeat(5, minmax(0, 1fr)) !important;
-          width:auto !important;
-          max-width:none !important;
-          height:var(--ns-bar-height, calc(70px + env(safe-area-inset-bottom, 0px))) !important;
-          box-sizing:border-box !important;
-          padding:0 2px env(safe-area-inset-bottom, 0px) !important;
-          margin:0 !important;
-          transform:translateY(0) !important;
-          transition:transform .2s ease !important;
-          overflow:visible !important;
-          background:#102733 !important;
-          border-top:1px solid rgba(145,210,216,.35) !important;
-          box-shadow:0 -5px 22px rgba(0,0,0,.34) !important;
-          isolation:isolate !important;
-          touch-action:manipulation !important;
-        }
-        #${barId}.ns-turni-menu { grid-template-columns:repeat(6, minmax(0, 1fr)) !important; }
-        #${barId}.ns-hidden { transform:translateY(110%) !important; }
-        #${barId} a, #${barId} button {
-          display:flex !important;
-          min-width:0 !important;
-          min-height:var(--ns-item-height, 64px) !important;
-          width:auto !important;
-          height:var(--ns-item-height, 70px) !important;
-          box-sizing:border-box !important;
-          align-items:center !important;
-          justify-content:center !important;
-          flex-direction:column !important;
-          gap:3px !important;
-          padding:6px 1px !important;
-          margin:0 !important;
-          border:0 !important;
-          border-radius:0 !important;
-          background:transparent !important;
-          color:#bed0d5 !important;
-          text-decoration:none !important;
-          font:800 var(--ns-label-size, 10px)/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
-          white-space:nowrap !important;
-          appearance:none !important;
-          -webkit-appearance:none !important;
-          cursor:pointer !important;
-          touch-action:manipulation !important;
-        }
-        #${barId} .ns-icon { font-size:var(--ns-icon-size, 23px) !important; line-height:var(--ns-icon-line, 22px) !important; }
-        #${barId}.ns-turni-menu a, #${barId}.ns-turni-menu button { font-size:var(--ns-turni-label-size, 8px) !important; }
-        #${barId} a.active { color:#8ff4e4 !important; background:rgba(45,212,191,.17) !important; }
-        #${barId} a.active .ns-icon { color:#2dd4bf !important; }
-        #${barId} button:active, #${barId} a:active { background:rgba(45,212,191,.24) !important; }
-        #${panelId} {
-          position:fixed !important;
-          inset:0 !important;
-          z-index:2147483001 !important;
-          display:block !important;
-          box-sizing:border-box !important;
-          background:rgba(1,15,21,.66) !important;
-          touch-action:manipulation !important;
-        }
-        #${panelId}[hidden] { display:none !important; }
-        #${panelId} .ns-menu-sheet {
-          position:absolute !important;
-          left:12px !important;
-          right:12px !important;
-          bottom:calc(82px + env(safe-area-inset-bottom, 0px)) !important;
-          box-sizing:border-box !important;
-          padding:14px !important;
-          border:1px solid rgba(151,212,221,.35) !important;
-          border-radius:20px !important;
-          background:#0d2732 !important;
-          box-shadow:0 18px 45px rgba(0,0,0,.48) !important;
-        }
-        #${panelId} header { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important; margin-bottom:10px !important; color:#e9ffff !important; font:800 16px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; }
-        #${panelId} .ns-close { width:36px !important; height:36px !important; padding:0 !important; border:1px solid rgba(151,212,221,.45) !important; border-radius:50% !important; background:transparent !important; color:#9de8e0 !important; font-size:19px !important; }
-        #${panelId} .ns-links { display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)) !important; gap:8px !important; }
-        #${panelId} .ns-links a, #${panelId} .ns-links button { display:flex !important; min-width:0 !important; min-height:48px !important; align-items:center !important; gap:9px !important; padding:10px 12px !important; border:1px solid rgba(114,170,181,.35) !important; border-radius:13px !important; background:#071b24 !important; color:#e7fbfb !important; text-decoration:none !important; font:800 13px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; text-align:left !important; appearance:none !important; -webkit-appearance:none !important; }
-        #${panelId} .ns-links span { color:#34d6c0 !important; font-size:18px !important; }
-        #${panelId} .ns-links .ns-residence-choice { border-color:var(--ns-residence-color, #34d6c0) !important; background:var(--ns-residence-bg, #071b24) !important; color:var(--ns-residence-color, #e7fbfb) !important; }
-        #${panelId} .ns-links .ns-residence-choice span { color:var(--ns-residence-color, #34d6c0) !important; }
-        #${panelId} .ns-links .ns-residence-choice.active { box-shadow:inset 0 0 0 2px var(--ns-residence-color, #34d6c0) !important; }
-        #${panelId} .ns-links .ns-logout { color:#ffd3d9 !important; }
-        #${panelId} .ns-links .ns-logout span { color:#fb8291 !important; }
-      }
-    `;
-    document.head.appendChild(style);
-  };
-
-  const disableOldMenus = () => {
-    document.querySelectorAll(OLD_MENUS).forEach(node => {
-      node.hidden = true;
-      node.setAttribute('aria-hidden', 'true');
-      node.style.setProperty('display', 'none', 'important');
-      node.style.pointerEvents = 'none';
-    });
-  };
-
+/* Durante il pinch zoom Safari mantiene la pagina scalata, ma questa barra resta
+   disegnata con le sue misure fisiche normali nella viewport effettivamente visibile. */
+(() => {
   const install = () => {
-    addStyle();
-    disableOldMenus();
-    document.getElementById(barId)?.remove();
-    document.getElementById(panelId)?.remove();
-
-    const profile = currentProfile();
-    const path = location.pathname.toLowerCase();
-    const active = file => path.endsWith(file);
-    const isTurnsPage = active('naviturni.html');
-    const bar = document.createElement('nav');
-    bar.id = barId;
-    if (isTurnsPage) bar.classList.add('ns-turni-menu');
-    bar.setAttribute('aria-label', 'Navigazione principale');
-    bar.innerHTML = [
-      ['naviturni.html', '▦', 'Turni', !active('cambi_turno.html') && !active('navidiaria.html') && !active('documenti.html')],
-      ['cambi_turno.html', '⇄', 'Cambio', active('cambi_turno.html')],
-      ['navidiaria.html', '≈', 'Diaria', active('navidiaria.html')],
-      ['documenti.html', '▤', 'Documenti', active('documenti.html')]
-    ].map(([href, icon, label, selected]) => `<a href="${href}" class="${selected ? 'active' : ''}"><span class="ns-icon">${icon}</span><b>${label}</b></a>`).join('') +
-      (isTurnsPage ? '<button type="button" data-ns-residence aria-label="Cambia residenza"><span class="ns-icon">⌖</span><b>Residenza</b></button>' : '') +
-      '<button type="button" data-ns-menu aria-expanded="false" aria-controls="' + panelId + '"><span class="ns-icon">☰</span><b>Menu</b></button>';
-    document.body.appendChild(bar);
-
-    const links = [['index.html', '⌂', 'Home']];
-    if (isAdmin(profile)) links.push(['impostazioni.html', '⚙', 'Impostazioni']);
-    if (isAdmin(profile) || isHiba(profile)) links.push(['aggiornamenti.html', '↻', 'Aggiornamenti']);
-    if (isAdmin(profile)) links.push(['agenti.html', '♙', 'Agenti'], ['Orario.html', '◴', 'Orario']);
-    links.push(['segnalazioni.html', '✉', 'Segnalazioni']);
-
-    const panel = document.createElement('div');
-    panel.id = panelId;
-    panel.hidden = true;
-    const pastEntry = isTurnsPage ? '<button type="button" data-ns-past><span>◷</span><b>Mostra passato</b></button>' : '';
-    const mainPanelHtml = () => '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><header><strong>Menu NaviSuite</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
-      links.map(([href, icon, label]) => `<a href="${href}"><span>${icon}</span>${label}</a>`).join('') +
-      pastEntry + '<button type="button" class="ns-logout" data-ns-logout><span>⇥</span>Esci</button></div></section>';
-    panel.innerHTML = mainPanelHtml();
-    document.body.appendChild(panel);
-
-    const menuButton = bar.querySelector('[data-ns-menu]');
-    const close = () => { panel.hidden = true; menuButton.setAttribute('aria-expanded', 'false'); };
-    const bindCloseButton = () => panel.querySelector('[data-ns-close]')?.addEventListener('click', close);
-    const showBar = () => bar.classList.remove('ns-hidden');
-    const hideBar = () => {
-      if (window.innerWidth <= 850 && panel.hidden) bar.classList.add('ns-hidden');
+    const bar = document.getElementById('navisuite-mobile-menu');
+    const vv = window.visualViewport;
+    if (!bar || !vv) return;
+    const style = document.createElement('style');
+    style.textContent = '#navisuite-mobile-menu{--ns-zoom:1;transform:scale(var(--ns-zoom))!important;transform-origin:bottom left!important}#navisuite-mobile-menu.is-hidden{transform:scale(var(--ns-zoom)) translateY(calc(100% + 25px))!important}';
+    document.head.appendChild(style);
+    const clear = () => ['left','right','top','bottom','width','height','zoom','--ns-zoom'].forEach(p => bar.style.removeProperty(p));
+    const sync = () => {
+      if (innerWidth > 850 || vv.scale <= 1.01) return clear();
+      const scale = vv.scale;
+      /* Nessuna coordinata manuale: position:fixed resta ancorato al bordo basso
+         della viewport Safari. Correggiamo soltanto l'ingrandimento del pinch. */
+      ['left','right','top','bottom','width','height','zoom'].forEach(p => bar.style.removeProperty(p));
+      bar.style.removeProperty('zoom');
+      bar.style.setProperty('--ns-zoom', String(1 / scale));
     };
-    const open = event => {
-      event?.preventDefault();
-      event?.stopPropagation();
-      showBar();
-      // Il pulsante ☰ deve aprire sempre il menu principale, anche se prima
-      // era stato aperto il selettore Residenza nello stesso overlay.
-      if (panel.dataset.view !== 'main') {
-        panel.innerHTML = mainPanelHtml();
-        panel.dataset.view = 'main';
-        bindMenuActions();
-      }
-      panel.hidden = false;
-      menuButton.setAttribute('aria-expanded', 'true');
-    };
-    ['pointerdown', 'click'].forEach(type => menuButton.addEventListener(type, event => {
-      if (type === 'click' && !panel.hidden && panel.dataset.view === 'main') return;
-      open(event);
-    }));
-    const residenceButton = bar.querySelector('[data-ns-residence]');
-    const showResidencePicker = event => {
-      event?.preventDefault();
-      event?.stopPropagation();
-      showBar();
-      panel.hidden = false;
-      panel.dataset.view = 'residence';
-      const sourceButtons = [...document.querySelectorAll('#top-residence-buttons button')];
-      const choices = sourceButtons.map((button, index) => ({ button, index }))
-        .filter(({ button }) => button.textContent.trim().toUpperCase() !== 'TUTTE')
-        .map(({ button, index }) => {
-        const label = button.textContent.trim() || `Residenza ${index + 1}`;
-        const activeClass = button.classList.contains('active') ? ' active' : '';
-        const [color, background] = residencePalette[label.toUpperCase()] || ['#34d6c0', 'rgba(45,212,191,.12)'];
-        return `<button type="button" class="ns-residence-choice${activeClass}" data-ns-residence-index="${index}" style="--ns-residence-color:${color};--ns-residence-bg:${background}"><span>⌖</span>${label}</button>`;
-      }).join('');
-      panel.innerHTML = '<section class="ns-menu-sheet" role="dialog" aria-modal="true" aria-label="Cambia residenza"><header><strong>Residenza</strong><button type="button" class="ns-close" data-ns-close aria-label="Chiudi menu">✕</button></header><div class="ns-links">' +
-        (choices || '<div class="ns-residence-loading">Le residenze stanno caricando…</div>') + '</div></section>';
-      bindCloseButton();
-      panel.querySelectorAll('[data-ns-residence-index]').forEach(choice => choice.addEventListener('click', () => {
-        sourceButtons[Number(choice.dataset.nsResidenceIndex)]?.click();
-        close();
-      }));
-    };
-    residenceButton?.addEventListener('pointerdown', showResidencePicker);
-    residenceButton?.addEventListener('click', event => event.preventDefault());
-    ['pointerdown', 'click'].forEach(type => bar.addEventListener(type, event => event.stopPropagation()));
-    panel.addEventListener('pointerdown', event => { if (event.target === panel) close(); });
-    panel.addEventListener('click', event => { if (event.target === panel) close(); });
-    const bindMenuActions = () => {
-      bindCloseButton();
-      panel.querySelector('[data-ns-past]')?.addEventListener('click', () => {
-        if (typeof window.togglePastColumns === 'function') window.togglePastColumns();
-        const source = document.getElementById('togglePastBtn');
-        const label = panel.querySelector('[data-ns-past] b');
-        if (label) label.textContent = source?.textContent.replace(/^[^A-Za-zÀ-ÿ]+/, '').trim() || 'Mostra passato';
-      });
-      panel.querySelector('[data-ns-logout]')?.addEventListener('click', () => {
-        if (typeof window.logoutAgent === 'function') return window.logoutAgent();
-        localStorage.removeItem('navidiaria.activeAgent');
-        localStorage.removeItem('naviturni_logged_agent');
-        location.href = 'index.html';
-      });
-    };
-    bindMenuActions();
-
-    // Mantiene la dimensione fisica della barra costante anche con lo zoom di Safari.
-    const syncVisualViewport = () => {
-      const viewport = window.visualViewport;
-      const scale = Math.max(1, Number(viewport?.scale || 1));
-      const width = Number(viewport?.width || window.innerWidth);
-      const left = Number(viewport?.offsetLeft || 0);
-      bar.style.setProperty('width', `${width}px`, 'important');
-      bar.style.setProperty('left', `${left}px`, 'important');
-      bar.style.setProperty('right', 'auto', 'important');
-      bar.style.setProperty('--ns-bar-height', `${70 / scale}px`);
-      bar.style.setProperty('--ns-item-height', `${64 / scale}px`);
-      bar.style.setProperty('--ns-label-size', `${10 / scale}px`);
-      bar.style.setProperty('--ns-turni-label-size', `${8 / scale}px`);
-      bar.style.setProperty('--ns-icon-size', `${23 / scale}px`);
-      bar.style.setProperty('--ns-icon-line', `${22 / scale}px`);
-    };
-    syncVisualViewport();
-    window.visualViewport?.addEventListener('resize', syncVisualViewport, { passive:true });
-    window.visualViewport?.addEventListener('scroll', syncVisualViewport, { passive:true });
-    window.addEventListener('resize', () => { syncVisualViewport(); showBar(); }, { passive:true });
-
-    // Scorrendo verso il basso la barra esce dallo schermo; verso l'alto ricompare.
-    const positions = new WeakMap();
-    const onScroll = event => {
-      const source = event.target === document || event.target === window ? document.scrollingElement : event.target;
-      if (!source || typeof source.scrollTop !== 'number') return;
-      const current = Math.max(0, source.scrollTop);
-      const previous = positions.has(source) ? positions.get(source) : current;
-      positions.set(source, current);
-      const delta = current - previous;
-      if (current < 18 || delta < -4) showBar();
-      else if (delta > 10) hideBar();
-    };
-    document.addEventListener('scroll', onScroll, { capture:true, passive:true });
-    window.addEventListener('scroll', onScroll, { passive:true });
+    vv.addEventListener('resize', sync, {passive:true});
+    vv.addEventListener('scroll', sync, {passive:true});
+    sync();
   };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once:true}); else install();
+})();
 
-  // Non attendere window.load: NaviTurni può continuare a caricare dati per molto tempo.
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once:true });
-  else install();
+
+/* Feedback immediato: la voce selezionata resta visibile durante la navigazione. */
+(() => {
+  const style=document.createElement('style');
+  style.textContent='@keyframes ns-navigation-pulse{0%,100%{opacity:1;filter:none}50%{opacity:.52;filter:brightness(1.35)}}.ns-navigation-pending{pointer-events:none!important;animation:ns-navigation-pulse .72s ease-in-out infinite!important;outline:2px solid rgba(90,245,221,.8)!important;outline-offset:-2px!important;background:rgba(45,212,191,.24)!important;color:#d9fffb!important}';
+  document.head.appendChild(style);
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a[href]');
+    if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target==='_blank'||link.hasAttribute('download'))return;
+    const href=link.getAttribute('href')||'';
+    if(!href||href[0]==='#'||/^javascript:/i.test(href))return;
+    link.classList.add('ns-navigation-pending');
+    link.setAttribute('aria-busy','true');
+  },true);
 })();
