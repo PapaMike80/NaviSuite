@@ -220,6 +220,45 @@
     return { ...item, currentUid:auth.uid };
   }
 
+  async function getShipConfigurations() {
+    let direct = {};
+    try {
+      const result = await databaseRequest("private/adminUpdates/shipConfigurations");
+      direct = result.data && typeof result.data === "object" ? result.data : {};
+    } catch (error) {}
+    const directConfiguration = direct.configurations || (Object.keys(direct).length ? direct : null);
+    if (directConfiguration && Object.keys(directConfiguration).length) {
+      return { configurations:directConfiguration, updatedAt:String(direct.updatedAt || "") };
+    }
+    const result = await databaseRequest("private/adminUpdates");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return { configurations:value.gestioneNaviConfig || {}, updatedAt:String(value.updatedAt || "") };
+  }
+
+  async function saveShipConfigurations(configurations = {}) {
+    const auth = await ensureAuth();
+    const item = {
+      configurations:configurations && typeof configurations === "object" ? configurations : {},
+      updatedAt:new Date().toISOString(),
+      updatedBy:auth.uid
+    };
+    try {
+      await databaseRequest("private/adminUpdates/shipConfigurations", {
+        method:"PUT",
+        body:JSON.stringify(item)
+      });
+    } catch (error) {
+      // Compatibilità con le regole Firebase già in uso da NaviBeta: il nodo
+      // principale adminUpdates è autorizzato per gli amministratori, mentre
+      // un nuovo sotto-percorso può non esserlo ancora.
+      await databaseRequest("private/adminUpdates", {
+        method:"PATCH",
+        body:JSON.stringify({ ownerUid:auth.uid, updatedAt:item.updatedAt, gestioneNaviConfig:item.configurations })
+      });
+    }
+    return item;
+  }
+
   async function getAnnouncements() {
     const result = await databaseRequest("private/adminUpdates/announcements");
     return result.data && typeof result.data === "object" ? result.data : {};
@@ -630,6 +669,8 @@
     deleteChangeRequest,
     getAdminUpdates,
     saveAdminUpdates,
+    getShipConfigurations,
+    saveShipConfigurations,
     getBaristaUpdates,
     saveBaristaUpdates,
     getAnnouncements,
