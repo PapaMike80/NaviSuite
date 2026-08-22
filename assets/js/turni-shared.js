@@ -86,6 +86,18 @@ window.TurniShared = (() => {
       String(profile?.qualifica || "").toLowerCase() === "barista";
   }
 
+  function isHibaProfile(profile) {
+    const id = String(profile?.id || "").trim().toUpperCase();
+    const name = String(profile?.name || profile?.agente || "").trim().toUpperCase();
+    return id === "BARISTA_HIBA" || (isBaristaProfile(profile) && name === "HIBA");
+  }
+
+  // Le normali bariste vedono soltanto il proprio ambito di lavoro.
+  // Hiba mantiene il ruolo barista, ma sui Turni ha visibilità completa.
+  function isRestrictedBaristaProfile(profile) {
+    return isBaristaProfile(profile) && !isHibaProfile(profile);
+  }
+
   function isOfficeProfile(profile) {
     if (String(profile?.residence || "").toLowerCase() === "uffici") return true;
     return ["movimento","amministrazione","personale","controllo","direzione"]
@@ -111,6 +123,8 @@ window.TurniShared = (() => {
     isSyntheticClickAfterTouch,
     readLoggedAgentProfile,
     isBaristaProfile,
+    isHibaProfile,
+    isRestrictedBaristaProfile,
     isOfficeProfile,
     getBaristaProfileId
   });
