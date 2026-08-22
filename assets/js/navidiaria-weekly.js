@@ -25,7 +25,7 @@
   function monday(value){const d=new Date(value);d.setHours(12,0,0,0);const day=d.getDay()||7;d.setDate(d.getDate()-day+1);return d}
   function addDays(value,n){const d=new Date(value);d.setDate(d.getDate()+n);return d}
   function weekNumber(value){const d=new Date(Date.UTC(value.getFullYear(),value.getMonth(),value.getDate())),day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-yearStart)/86400000)+1)/7)}
-  function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+  function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}function todayIso(){return iso(new Date())}
   function currentMonthDate(){const input=document.getElementById('monthFilter');if(!/^\d{4}-\d{2}$/.test(input.value))input.value=todayIso().slice(0,7);const [year,month]=input.value.split('-').map(Number);return new Date(year,month-1,1,12)}
   function entryFor(date){return entries.find(entry=>entry.date===date)}
   function isWorking(entry){return !!entry&&!['RIP','RIPOSO','MALATTIA'].includes(String(entry.shift||'').toUpperCase())}
