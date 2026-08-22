@@ -16,7 +16,9 @@ function startPresence(agent) {
 const $ = id => document.getElementById(id);
 const isAdminAgent = agent => ['91', '92'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
 const isMovementAgent = agent => isAdminAgent(agent) || String(agent?.qualifica || agent?.office || '').toLowerCase().includes('movimento');
-const isDiariaTester = agent => isAdminAgent(agent) || ['superuser','super_user','super-user'].includes(String(agent?.role || '').toLowerCase());
+// NaviDiaria e' un registro personale: e' disponibile per ogni agente che ha
+// gia' completato l'accesso, senza modificare il suo ruolo o i suoi permessi.
+const canUseDiaria = agent => Boolean(String(agent?.id || '').trim());
 const isBaristaAgent = agent => String(agent?.role || '').toLowerCase() === 'barista' || String(agent?.qualifica || '').toLowerCase() === 'barista';
 const isHibaBarista = agent => String(agent?.id || '').toUpperCase() === 'BARISTA_HIBA' || (isBaristaAgent(agent) && String(agent?.name || agent?.agente || '').trim().toUpperCase() === 'HIBA');
 let agentProfiles = {};
@@ -107,7 +109,7 @@ function showChoice(agent) {
   const updates = document.querySelector('.app-card.updates');
   const agentAdmin = document.querySelector('.app-card.agents');
   const shipManagement = document.querySelector('[data-navi-tab="NaviGestioneNaviTab"]');
-  if (diaria) diaria.hidden = !isDiariaTester(agent);
+  if (diaria) diaria.hidden = !canUseDiaria(agent);
   if (docs) docs.hidden = isBaristaAgent(agent);
   if (trova) trova.hidden = isBaristaAgent(agent);
   // Orario visibile solo agli admin (nascosto alle bariste)

@@ -1663,8 +1663,7 @@
       label.title = loggedAgentProfile ? "Rimetti l'agente in cima" : "Accesso non effettuato";
       if (changeButton) changeButton.style.display = loggedAgentProfile ? "inline-flex" : "none";
       if (diariaNavLink) {
-        const role = String(loggedAgentProfile?.role || "").toLowerCase();
-        const canUseDiaria = ["92"].includes(String(loggedAgentProfile?.id || "")) || role === "admin" || ["superuser","super_user","super-user"].includes(role);
+        const canUseDiaria = Boolean(String(loggedAgentProfile?.id || "").trim());
         diariaNavLink.hidden = !canUseDiaria;
       }
       if (archiveNavLink) archiveNavLink.hidden = isBaristaProfile();
