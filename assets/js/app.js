@@ -6,6 +6,7 @@
     code=code.replace("const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','TERRA','MALATTIA','RIPOSO']);","const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','F.P.','FP','TERRA','MALATTIA','RIPOSO']);");
     code=code.replace("const EMBARK_VERSION='competence-based-v1'","const EMBARK_VERSION='competence-based-v2-fp'");
     (0,eval)(code);
+    document.dispatchEvent(new Event('navidiaria:ready'));
   }catch(error){
     console.error('Impossibile caricare NaviDiaria',error);
     const toast=document.getElementById('toast');if(toast){toast.textContent='Errore caricamento Diaria';toast.classList.add('show')}
