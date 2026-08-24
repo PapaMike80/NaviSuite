@@ -73,11 +73,21 @@
     }
   }
 
+  // Più componenti della stessa pagina possono richiedere Firebase insieme.
+  // Condividiamo una sola autenticazione in corso, evitando di creare account
+  // anonimi multipli sullo stesso dispositivo.
+  let pendingAuth = null;
   async function ensureAuth() {
     const auth = readAuth();
     if (auth?.idToken && auth?.uid && Number(auth.expiresAt || 0) > Date.now() + 60000) return auth;
-    if (auth?.refreshToken) return refreshAuth(auth);
-    return signUp();
+    if (pendingAuth) return pendingAuth;
+    pendingAuth = (async()=>{
+      const latest = readAuth();
+      if (latest?.idToken && latest?.uid && Number(latest.expiresAt || 0) > Date.now() + 60000) return latest;
+      return latest?.refreshToken ? refreshAuth(latest) : signUp();
+    })();
+    try { return await pendingAuth; }
+    finally { pendingAuth = null; }
   }
 
   async function databaseRequest(path, options = {}) {
