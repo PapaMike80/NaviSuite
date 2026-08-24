@@ -9,6 +9,17 @@
   document.documentElement.classList.toggle('navisuite-light',initialLightTheme);
   document.body.classList.toggle('navisuite-light',initialLightTheme);
   if(initialLightTheme)document.documentElement.dataset.theme='light';
+  const sessionValue=localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null';
+  let sessionAgent=null;try{sessionAgent=JSON.parse(sessionValue)}catch{}
+  // Registra un solo dato di attività: pagina corrente e ora. Il tentativo viene
+  // ripetuto perché in alcune pagine Firebase è caricato dopo questo script.
+  const trackPageView=attempt=>{
+    if(!sessionAgent?.id)return;
+    const tracker=window.NaviAdminFirebase?.recordUserAccess;
+    if(typeof tracker==='function'){tracker(sessionAgent).catch(()=>{});return;}
+    if(attempt<8)setTimeout(()=>trackPageView(attempt+1),250);
+  };
+  trackPageView(0);
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
@@ -21,7 +32,6 @@
   const page=document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
   const tabNames={turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
   if(page==='archive')document.body.classList.add('archive-page');
-  let sessionAgent=null;try{sessionAgent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{}
   const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
   const isNaviPage=location.pathname.toLowerCase().endsWith('/gestione_navi.html');
   // La Diaria e' personale, non amministrativa: basta una sessione autenticata.
