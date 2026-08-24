@@ -342,7 +342,28 @@
     return String(agentId || "").trim().replace(/[.#$\[\]\/]/g, "_");
   }
 
-  async function recordUserAccess(profile = {}) {
+  function currentPageLabel() {
+    const filename = String(location?.pathname || "").split("/").pop().toLowerCase();
+    const labels = {
+      "": "Home",
+      "index.html": "Home",
+      "naviturni.html": "Turni",
+      "cambi_turno.html": "Cambio turno",
+      "navidiaria.html": "Diaria",
+      "documenti.html": "Documenti",
+      "segnalazioni.html": "Segnalazioni",
+      "impostazioni.html": "Impostazioni",
+      "aggiornamenti.html": "Aggiornamenti",
+      "agenti.html": "Agenti",
+      "gestione_navi.html": "Gestione navi",
+      "orario.html": "Orario",
+      "orari-tabella.html": "Tabelle orari",
+      "quiz.html": "Quiz"
+    };
+    return labels[filename] || (filename ? filename.replace(/\.html$/i, "") : "Home");
+  }
+
+  async function recordUserAccess(profile = {}, activity = {}) {
     const id = String(profile.id || profile.agentId || "").trim();
     if (!id) return null;
     const key = safeUserKey(id);
@@ -357,7 +378,9 @@
       qualifica:String(profile.qualifica || previous?.qualifica || "").trim(),
       role:String(profile.role || previous?.role || "").trim(),
       registeredAt:String(previous?.registeredAt || now),
-      lastAccess:now
+      lastAccess:now,
+      // Conserviamo esclusivamente l'ultima pagina aperta, non lo storico di navigazione.
+      lastPage:String(activity.page || currentPageLabel() || previous?.lastPage || "").trim()
     };
     await databaseRequest(`private/adminUpdates/userRegistry/${key}`, {
       method:"PUT",
@@ -441,6 +464,7 @@
         name:String(user.name || previous.name || id),
         registeredAt:String(previous.registeredAt || user.registeredAt || new Date().toISOString()),
         lastAccess:String(latest || previous.lastAccess || user.lastAccess || ""),
+        lastPage:String(previous.lastPage || user.lastPage || ""),
         importedFromApps:true
       };
     });
