@@ -73,11 +73,11 @@
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
     </section>
     <section class="section admin-section" id="gestione-utenti" hidden>
-      <div class="section-head"><div><h2>Gestione utenti</h2><p>Agenti registrati e ultimo accesso rilevati direttamente da Firebase.</p></div><span class="badge">Firebase · Admin</span></div>
+      <div class="section-head"><div><h2>Gestione utenti</h2><p>Agenti registrati, ultimo accesso e ultima pagina aperta rilevati direttamente da Firebase.</p></div><span class="badge">Firebase · Admin</span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Utente</th><th>Registrato il</th><th>Ultimo accesso</th><th>PIN</th></tr></thead>
-          <tbody id="users-list"><tr><td class="empty-row" colspan="4">Caricamento utenti…</td></tr></tbody>
+          <thead><tr><th>Utente</th><th>Registrato il</th><th>Ultimo accesso</th><th>Ultima pagina</th><th>PIN</th></tr></thead>
+          <tbody id="users-list"><tr><td class="empty-row" colspan="5">Caricamento utenti…</td></tr></tbody>
         </table>
       </div>
       <div class="status" id="users-status" aria-live="polite"></div>
@@ -89,9 +89,9 @@
     <a href="documenti.html" class="nav-item"><span class="nav-icon">▤</span><span>Doc</span></a>
     <a href="impostazioni.html" class="nav-item active" aria-current="page"><span class="nav-icon">⚙</span><span>Impost.</span></a>
   </nav>
-  <script src="assets/js/admin-firebase-rest.js?v=35"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=40"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.44"></script>
+  <script src="assets/js/shared-menu.js?v=1.45"></script>
   <script src="assets/js/mobile-menu-solid.js?v=1"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
@@ -137,10 +137,10 @@
       return Number.isFinite(parsed)?parsed:0;
     }
     function renderUsers(users){
-      if(!users.length){usersList.innerHTML='<tr><td class="empty-row" colspan="4">Nessun utente registrato.</td></tr>';return;}
+      if(!users.length){usersList.innerHTML='<tr><td class="empty-row" colspan="5">Nessun utente registrato.</td></tr>';return;}
       const ordered=[...users].sort((a,b)=>accessTimestamp(b.lastAccess)-accessTimestamp(a.lastAccess)||String(a.name||'').localeCompare(String(b.name||''),'it'));
       const date=value=>{const time=accessTimestamp(value);return time?new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'medium'}).format(new Date(time)):'—';};
-      usersList.innerHTML=ordered.map(user=>`<tr><td><span class="user-name">${safeText(user.name)}</span><span class="user-meta">ID ${safeText(user.id)}${user.residence?` · ${safeText(user.residence)}`:''}</span></td><td>${safeText(date(user.registeredAt))}</td><td>${safeText(date(user.lastAccess))}</td><td><button class="reset-btn" type="button" data-reset-pin="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Reset PIN</button><button class="delete-user-btn" type="button" data-delete-user="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Elimina</button></td></tr>`).join('');
+      usersList.innerHTML=ordered.map(user=>`<tr><td><span class="user-name">${safeText(user.name)}</span><span class="user-meta">ID ${safeText(user.id)}${user.residence?` · ${safeText(user.residence)}`:''}</span></td><td>${safeText(date(user.registeredAt))}</td><td>${safeText(date(user.lastAccess))}</td><td>${safeText(user.lastPage||'—')}</td><td><button class="reset-btn" type="button" data-reset-pin="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Reset PIN</button><button class="delete-user-btn" type="button" data-delete-user="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Elimina</button></td></tr>`).join('');
     }
     function formatWeekDate(iso){
       const [year,month,day]=String(iso||'').split('-').map(Number);
@@ -222,11 +222,11 @@
     async function loadRegisteredUsers(){
       if(!isAdmin)return;
       adminSection.hidden=false;
-      if(!window.NaviAdminFirebase){usersList.innerHTML='<tr><td class="empty-row" colspan="4">Firebase non disponibile. Ricarica la pagina.</td></tr>';return;}
+      if(!window.NaviAdminFirebase){usersList.innerHTML='<tr><td class="empty-row" colspan="5">Firebase non disponibile. Ricarica la pagina.</td></tr>';return;}
       try{
         await NaviAdminFirebase.recordUserAccess(profile);
         renderUsers(await NaviAdminFirebase.listRegisteredUsers());
-      }catch(error){usersList.innerHTML=`<tr><td class="empty-row" colspan="4">${safeText(error.message||'Impossibile caricare gli utenti.')}</td></tr>`;}
+      }catch(error){usersList.innerHTML=`<tr><td class="empty-row" colspan="5">${safeText(error.message||'Impossibile caricare gli utenti.')}</td></tr>`;}
     }
     usersList.addEventListener('click',async event=>{
       const button=event.target.closest('[data-reset-pin],[data-delete-user]');if(!button)return;
