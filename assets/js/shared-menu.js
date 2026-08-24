@@ -76,8 +76,6 @@
   }
   // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
   if((page==='agenti'||page==='aggiornamenti')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
-  // Registra su Firebase l'accesso alle pagine interne senza conservare il PIN.
-  window.NaviAdminFirebase?.recordUserAccess?.(sessionAgent).catch(() => {});
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
