@@ -300,4 +300,13 @@ render();
 function flushFirebaseSave(){if(firebaseSaveTimer){clearTimeout(firebaseSaveTimer);firebaseSaveTimer=null;saveEntriesToFirebase().catch(()=>{})}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushFirebaseSave()});
 window.addEventListener('pagehide',flushFirebaseSave);
-initializeAccess().then(()=>{if(new URLSearchParams(location.search).get('pin')==='1'&&activeAgent)$('pinSettingsButton').click()});
+initializeAccess().then(()=>{
+  const params=new URLSearchParams(location.search);
+  if(params.get('pin')==='1'&&activeAgent)$('pinSettingsButton').click();
+  const editDate=params.get('editDate');
+  if(activeAgent&&/^\d{4}-\d{2}-\d{2}$/.test(String(editDate||''))){
+    $('monthFilter').value=editDate.slice(0,7);
+    render();
+    requestAnimationFrame(()=>openDayEditorForDate(editDate));
+  }
+});

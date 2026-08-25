@@ -1541,6 +1541,15 @@
     line-height:1.2 !important;
   }
 </style>
+<style id="crew-day-editor-link-style">
+  .crew-edit-day {
+    appearance:none;border:1px solid rgba(45,212,191,.45);border-radius:999px;
+    background:rgba(13,148,136,.14);color:#99f6e4;font:700 11px/1.1 inherit;
+    padding:7px 10px;white-space:nowrap;cursor:pointer;
+  }
+  .crew-edit-day:hover,.crew-edit-day:focus-visible { background:rgba(13,148,136,.28);outline:none; }
+  @media (max-width:700px) { .crew-edit-day { width:100%;margin-top:6px;justify-content:center; } }
+</style>
 <style id="naviturni-mobile-header-fix">
   @media (max-width:950px) {
     :root { --month-header-height:18px !important; --date-header-height:42px !important; --turni-agent-column-width:126px !important; }
@@ -1655,7 +1664,7 @@
   </footer>
 
   <script src="assets/js/turni-shared.js"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=35"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=36"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
   <script src="assets/js/shared-data.js?v=117"></script>
   <script src="assets/js/firebase-auth.js"></script>
@@ -1683,6 +1692,7 @@
     let isEditMode = false;
     let loggedAgentProfile = null;
     let baristaAccessApplied = false;
+    let diariaShiftOverrides = new Map();
     const AGENT_LOGIN_STORAGE_KEY = "naviturni_logged_agent";
     const BARISTA_PRIVATE_SHIFT = "__PRIVATE__";
     const {
@@ -1738,7 +1748,51 @@
       const week = settimaneInfo.find(item => Array.isArray(item.dateIso) && item.dateIso.includes(iso));
       if (!week) return "rip";
       const dayIndex = week.dateIso.indexOf(iso);
-      return (agent?.turni_settimanali?.[week.key] || [])[dayIndex] || "rip";
+      const scheduled = (agent?.turni_settimanali?.[week.key] || [])[dayIndex] || "rip";
+      const ods = agent?.variazioni_ods?.[iso]?.turno_nuovo;
+      const manual = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      return manual?.shift || ods || scheduled;
+    }
+
+    async function loadDiariaShiftOverrides() {
+      if (!window.NaviAdminFirebase?.loadAllDiaria) return false;
+      try {
+        await NaviAdminFirebase.ready;
+        const records = await NaviAdminFirebase.loadAllDiaria();
+        const next = new Map();
+        records.forEach(record => (record.entries || []).forEach(entry => {
+          if (!entry?.date || !entry?.shift || entry.manualOverride !== true || entry.manualModified !== true) return;
+          next.set(`${String(record.agentId)}|${String(entry.date).slice(0, 10)}`, {
+            shift:String(entry.shift),
+            from:String(entry.manualFrom || ""),
+            updatedAt:String(record.updatedAt || "")
+          });
+        }));
+        diariaShiftOverrides = next;
+        if (globalData) {
+          renderTable();
+          if (selectedCol !== null) {
+            const cal = dateCalendario.find(item => item.col === selectedCol);
+            if (cal) selectDay(cal.col, cal.labelEstesa, selectedShiftValue, selectedCrewAgent);
+          }
+          renderCoverageTable();
+        }
+        return true;
+      } catch (error) {
+        console.warn("Modifiche NaviDiaria non disponibili in Turni", error);
+        return false;
+      }
+    }
+
+    function canEditCrewDay(agent) {
+      return String(agent?.id || "") === String(loggedAgentProfile?.id || "");
+    }
+
+    function openCrewDayEditor(agentId, date) {
+      if (String(agentId || "") !== String(loggedAgentProfile?.id || "")) return;
+      const url = new URL("navidiaria.html", location.href);
+      url.searchParams.set("editDate", String(date || "").slice(0, 10));
+      location.href = url.href;
     }
 
     function getLoggedBaristaSchedule() {
@@ -2441,9 +2495,7 @@
       if (!cal || !loggedAgent) return;
 
       const dayIndex = (cal.col - 3) % 7;
-      const weeklyShift = (loggedAgent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-      const odsShift = loggedAgent.variazioni_ods?.[cal.iso]?.turno_nuovo;
-      const myEffectiveShift = odsShift || weeklyShift;
+      const myEffectiveShift = getAgentShiftOnDate(loggedAgent, cal.iso);
 
       // La data deve aprire sempre la MIA corsa effettiva di quel giorno,
       // esattamente come il clic sulla cella della mia riga.
@@ -2456,9 +2508,7 @@
     function selectDayForPinnedAgent(cal) {
       const agent = pinnedAgentIdx !== null ? currentAgentsList[pinnedAgentIdx] : null;
       if (!agent || !cal) return;
-      const dayIndex = (cal.col - 3) % 7;
-      const weeklyShifts = agent.turni_settimanali[cal.weekKey] || [];
-      const rawShift = weeklyShifts[dayIndex] || "rip";
+      const rawShift = getAgentShiftOnDate(agent, cal.iso);
       const cleanShift = ottieniTurnoPulito(rawShift);
 
       activeShiftFilter = getCrewShiftKey(cleanShift) || null;
@@ -2488,9 +2538,7 @@
       const agent = location?.agent;
       if (!agent) return false;
       const dayIndex = (cal.col - 3) % 7;
-      const weeklyShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-      const odsShift = agent.variazioni_ods?.[cal.iso]?.turno_nuovo;
-      const effectiveShift = odsShift || weeklyShift;
+      const effectiveShift = getAgentShiftOnDate(agent, cal.iso);
       activeShiftFilter = getCrewShiftKey(ottieniTurnoPulito(effectiveShift)) || null;
       generaFiltriTurnoRiferimento();
       selectDay(cal.col, cal.labelEstesa, effectiveShift, agent);
@@ -2700,12 +2748,12 @@
         calendarDay.setHours(0, 0, 0, 0);
         if (!Number.isFinite(calendarDay.getTime())) return;
         const dayIndex = (cal.col - 3) % 7;
-        const loggedRaw = (loggedAgent.turni_settimanali[cal.weekKey] || [])[dayIndex] || "rip";
+        const loggedRaw = getAgentShiftOnDate(loggedAgent, cal.iso);
         const loggedShift = ottieniTurnoPulito(loggedRaw);
         if (!getShiftResidence(loggedShift)) return;
 
         if (pinnedAgent && pinnedAgent !== loggedAgent) {
-          const pinnedRaw = (pinnedAgent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
+          const pinnedRaw = getAgentShiftOnDate(pinnedAgent, cal.iso);
           const pinnedShift = ottieniTurnoPulito(pinnedRaw);
           if (getShiftResidence(pinnedShift) && isSameCrewShift(loggedShift, pinnedShift)) {
             loggedRow.querySelector(`td[data-col="${cal.col}"]`)?.classList.add("pinned-shared-crew-day");
@@ -2717,7 +2765,7 @@
         const departedIndexes = [];
         currentAgentsList.forEach((agent, index) => {
           if (index === loggedIndex) return;
-          const colleagueRaw = (agent.turni_settimanali[cal.weekKey] || [])[dayIndex] || "rip";
+          const colleagueRaw = getAgentShiftOnDate(agent, cal.iso);
           const colleagueShift = ottieniTurnoPulito(colleagueRaw);
           if (getShiftResidence(colleagueShift) && isSameCrewShift(loggedShift, colleagueShift)) matchingIndexes.push(index);
           const variation = agent.variazioni_ods?.[cal.iso];
@@ -2760,17 +2808,13 @@
       const now = new Date();
       const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-      const effectiveShift = (person, cal, dayIndex) => {
-        const weeklyShift = (person.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
-        const odsShift = person.variazioni_ods?.[cal.iso]?.turno_nuovo;
-        return ottieniTurnoPulito(odsShift || weeklyShift);
-      };
+      const effectiveShift = (person, cal) => ottieniTurnoPulito(getAgentShiftOnDate(person, cal.iso));
 
       return dateCalendario.some(cal => {
         if (!cal.iso || cal.iso < todayIso) return false;
         const dayIndex = (cal.col - 3) % 7;
-        const loggedShift = effectiveShift(loggedAgent, cal, dayIndex);
-        const colleagueShift = effectiveShift(agent, cal, dayIndex);
+        const loggedShift = effectiveShift(loggedAgent, cal);
+        const colleagueShift = effectiveShift(agent, cal);
         const shiftKey = getCrewShiftKey(loggedShift);
 
         // Riposi e servizi di terra non generano il pallino equipaggio.
@@ -2852,7 +2896,7 @@
           // Le bariste vengono gestite separatamente e non fanno parte del
           // conteggio minimo dell'equipaggio operativo.
           if (isBaristaProfile(agent)) return;
-          const rawShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
+          const rawShift = getAgentShiftOnDate(agent, cal.iso);
           if (isSameCrewShift(rawShift, cleanShift)) {
             count++;
             const rawUpper = String(rawShift).trim().toUpperCase();
@@ -3070,7 +3114,7 @@
           Object.entries(globalData.residenze || {}).forEach(([residence, agents]) => {
             (agents || []).forEach(agent => {
               if (isBaristaProfile(agent)) return;
-              const rawShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
+              const rawShift = getAgentShiftOnDate(agent, cal.iso);
               if (isSameCrewShift(rawShift, shift)) {
                 const rawUpper = String(rawShift).trim().toUpperCase();
                 const isTransfer = residence !== currentResidence || rawUpper.startsWith("C") || rawUpper.endsWith("C");
@@ -3125,7 +3169,7 @@
       const agent = getAgentForTableRow(tr);
       if (!agent || !cal) return "";
       const dayIndex = (cal.col - 3) % 7;
-      return ottieniTurnoPulito((agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip").toUpperCase();
+      return ottieniTurnoPulito(getAgentShiftOnDate(agent, cal.iso)).toUpperCase();
     }
 
     function removeTemporaryTransferRows() {
@@ -3146,8 +3190,7 @@
         globalData.residenze[residence].forEach((agent, rowIndex) => {
           if (isBaristaProfile(agent)) return;
           if (loggedLocation && residence === loggedLocation.residence && rowIndex === loggedLocation.index) return;
-          const shifts = agent.turni_settimanali[calInfo.weekKey] || [];
-          const rawShift = shifts[dayIndex] || "rip";
+          const rawShift = getAgentShiftOnDate(agent, calInfo.iso);
           if (!isSameCrewShift(rawShift, selectedShift)) return;
 
           const tr = createRowDOM(agent, rowIndex, false, residence, true);
@@ -3235,11 +3278,8 @@
       });
 
       dateCalendario.forEach(cal => {
-        let arrayTurniSettimana = agenteObj.turni_settimanali[cal.weekKey] || ["rip", "rip", "rip", "rip", "rip", "rip",
-          "rip"
-        ];
         let giornoInternoIdx = (cal.col - 3) % 7;
-        let turnoVal = arrayTurniSettimana[giornoInternoIdx] || "rip";
+        let turnoVal = getAgentShiftOnDate(agenteObj, cal.iso);
 
         const td = document.createElement("td");
         const tdClasses = [];
@@ -3369,8 +3409,7 @@
       trElements.forEach(tr => {
         let ag = getAgentForTableRow(tr);
         if (!ag) return;
-        let turniSett = ag.turni_settimanali[calInfo.weekKey] || [];
-        let hisShiftRaw = turniSett[giornoInternoIdx] || "rip";
+        let hisShiftRaw = getAgentShiftOnDate(ag, calInfo.iso);
         let hisShiftPuro = ottieniTurnoPulito(hisShiftRaw);
 
         let match = isSameCrewShift(hisShiftPuro, cleanShift);
@@ -3384,6 +3423,9 @@
       panelGroups.innerHTML = "";
 
       const shipDayInfo = isCrewShift ? renderShipDayInfo(calInfo, cleanShift) : "";
+      const personalEditButton = focusAgent && canEditCrewDay(focusAgent)
+        ? `<button class="crew-edit-day" type="button" onclick="openCrewDayEditor('${escapeAttribute(String(focusAgent.id || ""))}', '${calInfo.iso}')">✎ Modifica giornata</button>`
+        : "";
       const infoDiv = document.createElement("div");
       infoDiv.className = "shift-group crew-info-group";
       infoDiv.innerHTML = `<div class="colleague-cards"><div class="colleague-card crew-info-card">
@@ -3401,7 +3443,7 @@
             </div>
           </div>
         </div>
-        ${shipDayInfo}
+        ${shipDayInfo}${personalEditButton}
       </div></div>`;
       panelGroups.appendChild(infoDiv);
       document.getElementById("panel-shift-selector").innerHTML = renderResidenceShiftBubbles(cleanShift);
@@ -3413,11 +3455,11 @@
           // Evita la prima copia "trasferta da BARISTE": la presenza corretta
           // viene aggiunta una sola volta da getCrewBaristas qui sotto.
           if (isBaristaProfile(ag)) return;
-          let turniSett = ag.turni_settimanali[calInfo.weekKey] || [];
-          let hisShiftRaw = turniSett[giornoInternoIdx] || "rip";
+          let hisShiftRaw = getAgentShiftOnDate(ag, calInfo.iso);
           let hisShiftPuro = ottieniTurnoPulito(hisShiftRaw);
           const odsVariation = ag.variazioni_ods?.[calInfo.iso] || null;
-          const movedAwayByOds = odsVariation &&
+          const hasManualDay = diariaShiftOverrides.has(`${String(ag.id || "")}|${calInfo.iso}`);
+          const movedAwayByOds = !hasManualDay && odsVariation &&
             isSameCrewShift(odsVariation.turno_originale, cleanShift) &&
             !isSameCrewShift(odsVariation.turno_nuovo, cleanShift);
 
@@ -3501,9 +3543,14 @@
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)
           ? '<span class="future-shared-dot" title="Avete turni in comune da oggi in avanti" aria-label="Turni in comune da oggi in avanti"></span>'
           : "";
+        const manualDay = diariaShiftOverrides.get(`${String(r.id || "")}|${calInfo.iso}`);
+        const manualBadge = manualDay ? `<span class="c-res" title="Turno previsto: ${escapeAttribute(manualDay.from || "—")}">MODIFICATO</span>` : "";
+        const editDayButton = !r.isBarista && canEditCrewDay(r)
+          ? `<button class="crew-edit-day" type="button" onclick="openCrewDayEditor('${escapeAttribute(String(r.id || ""))}', '${calInfo.iso}')">✎ Modifica giornata</button>`
+          : "";
         card.innerHTML = `<span class="c-num">${r.id || "—"}</span>
-          <span class="c-name">${r.agente}${odsBadge}${groundService}${instructorMark} ${infoResidenza}</span>
-          ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>`;
+          <span class="c-name">${r.agente}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
+          ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>${editDayButton}`;
           if (!r.isBarista) {
             card.classList.add("pinnable-colleague");
             card.title = [card.title, "Clicca per pinnare l’agente"].filter(Boolean).join(" · ");
@@ -4457,6 +4504,7 @@
           if (menuStatus) menuStatus.textContent = "Aggiornato";
           document.getElementById("upload-status").textContent = "✅ Dati aggiornati — " + new Date().toLocaleTimeString("it-IT");
         }).catch(error => console.warn("Aggiornamenti secondari non disponibili", error));
+        loadDiariaShiftOverrides();
 
         // Aggiorna in coda le sole intestazioni se lo stato delle settimane
         // è realmente cambiato.
@@ -4541,14 +4589,14 @@
         const weekKey = cal.weekKey;
         const rowAgent = getAgentForTableRow(td.closest("tr"));
         if (!rowAgent) return;
-        const hoveredShift = ottieniTurnoPulito((rowAgent.turni_settimanali?.[weekKey] || [])[dayIndex] || "rip");
+        const hoveredShift = ottieniTurnoPulito(getAgentShiftOnDate(rowAgent, cal.iso));
         if (!getShiftResidence(hoveredShift)) return;
         const loggedAgent = getLoggedAgentLocation()?.agent;
         const crew = [];
         trElements.forEach(tr => {
           const agent = getAgentForTableRow(tr);
           if (!agent) return;
-          const rawShift = (agent.turni_settimanali?.[weekKey] || [])[dayIndex] || "rip";
+          const rawShift = getAgentShiftOnDate(agent, cal.iso);
           if (!isSameCrewShift(rawShift, hoveredShift)) return;
           crew.push(agent);
         });
