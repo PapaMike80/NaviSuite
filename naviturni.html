@@ -1707,6 +1707,8 @@
     } = window.TurniShared;
     const isBaristaProfile = (profile = loggedAgentProfile) =>
       window.TurniShared.isBaristaProfile(profile);
+    const isHibaProfile = (profile = loggedAgentProfile) =>
+      window.TurniShared.isHibaProfile(profile);
     const isOfficeProfile = (profile = loggedAgentProfile) =>
       window.TurniShared.isOfficeProfile(profile);
 
@@ -1751,7 +1753,15 @@
       const scheduled = (agent?.turni_settimanali?.[week.key] || [])[dayIndex] || "rip";
       const ods = agent?.variazioni_ods?.[iso]?.turno_nuovo;
       const manual = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
-      return manual?.shift || ods || scheduled;
+      const isLoggedHibaRow = isHibaProfile() &&
+        normalizeOdsAgentName(agent?.agente) === normalizeOdsAgentName(loggedAgentProfile?.name);
+      const hibaRecord = isLoggedHibaRow ? getBaristaRecords().find(record => {
+        const name = normalizeOdsAgentName(record.barista || record.agente || record.nome);
+        const active = record.attiva !== false && !/^(no|false|0)$/i.test(String(record.attiva || ""));
+        return active && name === normalizeOdsAgentName(loggedAgentProfile?.name) &&
+          String(record.data || "").slice(0, 10) === iso && String(record.corsa || "").trim();
+      }) : null;
+      return manual?.shift || hibaRecord?.corsa || ods || scheduled;
     }
 
     async function loadDiariaShiftOverrides() {
