@@ -2869,7 +2869,7 @@
 
     function getCrewBaristas(calInfo, shift) {
       const cleanShift = ottieniTurnoPulito(shift).toUpperCase();
-      if (!calInfo?.iso || !["D2", "D3", "P2", "P3"].includes(cleanShift)) return [];
+      if (!calInfo?.iso || !["D2", "D3", "P1", "P2"].includes(cleanShift)) return [];
       const records = Array.isArray(globalData?.bariste)
         ? globalData.bariste
         : (Array.isArray(globalData?.barista) ? globalData.barista : []);

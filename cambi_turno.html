@@ -1640,6 +1640,10 @@
     } = window.TurniShared;
     const isBaristaProfile = (profile = loggedAgentProfile) =>
       window.TurniShared.isBaristaProfile(profile);
+    const isHibaProfile = (profile = loggedAgentProfile) =>
+      window.TurniShared.isHibaProfile(profile);
+    const isAnyBaristaProfile = (profile = loggedAgentProfile) =>
+      isBaristaProfile(profile) || isHibaProfile(profile);
     const isOfficeProfile = (profile = loggedAgentProfile) =>
       window.TurniShared.isOfficeProfile(profile);
 
@@ -1647,6 +1651,54 @@
       return Array.isArray(globalData?.bariste)
         ? globalData.bariste
         : (Array.isArray(globalData?.barista) ? globalData.barista : []);
+    }
+
+    function normalizeBaristaShift(value) {
+      const raw = String(value || "").trim();
+      const key = raw.toUpperCase().replace(/\./g, "");
+      if (!raw || ["RIP", "RIPOSO", "===", "---", "----"].includes(key)) return "rip";
+      if (["MAL", "MALATTIA"].includes(key)) return "Malattia";
+      return ["D2", "D3", "P1", "P2"].includes(key) ? key : "rip";
+    }
+
+    function buildBaristaResidence() {
+      if (!globalData?.residenze || !settimaneInfo.length) return;
+      const byName = new Map();
+      const ensureBarista = (name, id = "") => {
+        const cleanName = String(name || "").trim();
+        const key = normalizeOdsAgentName(cleanName);
+        if (!key) return null;
+        if (!byName.has(key)) {
+          const turniSettimanali = {};
+          settimaneInfo.forEach(week => { turniSettimanali[week.key] = (week.dateIso || []).map(() => "rip"); });
+          byName.set(key, { id:String(id || `BARISTA_${key.replace(/[^a-z0-9]+/g, "_").toUpperCase()}`), agente:cleanName, qualifica:"barista", turni_settimanali:turniSettimanali });
+        }
+        return byName.get(key);
+      };
+
+      (globalData.residenze.BARISTE || []).forEach(agent => {
+        const target = ensureBarista(agent.agente, agent.id);
+        if (!target) return;
+        settimaneInfo.forEach(week => {
+          const source = agent.turni_settimanali?.[week.key] || [];
+          target.turni_settimanali[week.key] = (week.dateIso || []).map((iso, index) => normalizeBaristaShift(source[index]));
+        });
+      });
+
+      getBaristaRecords().forEach(record => {
+        const active = record.attiva !== false && !/^(no|false|0)$/i.test(String(record.attiva || ""));
+        const name = record.barista || record.agente || record.nome;
+        const iso = String(record.data || "").slice(0, 10);
+        const rawShift = String(record.corsa || "").trim();
+        const shift = normalizeBaristaShift(rawShift);
+        if (!active || !/^\d{4}-\d{2}-\d{2}$/.test(iso) || !rawShift) return;
+        const target = ensureBarista(name, getBaristaProfileId(record, name));
+        const week = settimaneInfo.find(item => item.dateIso?.includes(iso));
+        if (!target || !week) return;
+        target.turni_settimanali[week.key][week.dateIso.indexOf(iso)] = shift;
+      });
+
+      globalData.residenze.BARISTE = [...byName.values()].sort((a, b) => a.agente.localeCompare(b.agente, "it"));
     }
 
     function updateLoginUserPanel() {
@@ -1765,7 +1817,7 @@
 
       if (matches.length > 1 && !choice.classList.contains("visible")) {
         choice.innerHTML = matches.map((item, index) =>
-          `<option value="${index}">${escapeAttribute(item.name)} — ${escapeAttribute(item.residence)}</option>`
+          `<option value="${index}">${escapeAttribute(item.name)}${String(item.residence).toUpperCase() === "BARISTE" ? "" : ` — ${escapeAttribute(item.residence)}`}</option>`
         ).join("");
         choice.dataset.matches = JSON.stringify(matches);
         choice.classList.add("visible");
@@ -1808,18 +1860,10 @@
     }
 
     function applyLoggedAgentProfile() {
-      if (isBaristaProfile()) {
-        const today = formatDateISOClient(new Date());
-        const profileName = normalizeOdsAgentName(loggedAgentProfile.name);
-        const assignment = getBaristaRecords()
-          .filter(record => normalizeOdsAgentName(record.barista || record.agente || record.nome) === profileName)
-          .filter(record => !record.data || String(record.data).slice(0, 10) >= today)
-          .sort((a, b) => String(a.data || "").localeCompare(String(b.data || "")))[0];
-        const targetResidence = getShiftResidence(assignment?.corsa) ||
-          Object.keys(globalData?.residenze || {}).find(name => name.trim().toLowerCase() === "desenzano") ||
-          Object.keys(globalData?.residenze || {})[0];
-        if (!targetResidence) return false;
-        selectResidence(targetResidence);
+      if (isAnyBaristaProfile()) {
+        if (!globalData?.residenze?.BARISTE?.length) return false;
+        selectResidence("BARISTE");
+        renderResidenceButtons();
         pinnedAgentIdx = null;
         renderTable();
         updateLoginUserPanel();
@@ -1837,7 +1881,7 @@
 
     function repinLoggedAgent() {
       if (!loggedAgentProfile || !globalData) return;
-      if (isBaristaProfile()) return;
+      if (isAnyBaristaProfile() && currentResidence !== "BARISTE") selectResidence("BARISTE");
       if (currentResidence !== loggedAgentProfile.residence) {
         selectResidence(loggedAgentProfile.residence);
       }
@@ -2545,7 +2589,7 @@
 
     function getCrewBaristas(calInfo, shift) {
       const cleanShift = ottieniTurnoPulito(shift).toUpperCase();
-      if (!calInfo?.iso || !["D2", "D3", "P2", "P3"].includes(cleanShift)) return [];
+      if (!calInfo?.iso || !["D2", "D3", "P1", "P2"].includes(cleanShift)) return [];
       const records = Array.isArray(globalData?.bariste)
         ? globalData.bariste
         : (Array.isArray(globalData?.barista) ? globalData.barista : []);
@@ -3805,7 +3849,7 @@
     }
 
     function selectResidence(resName) {
-      if (String(resName || "").toUpperCase() === "BARISTE" && !isBaristaProfile()) return;
+      if (String(resName || "").toUpperCase() === "BARISTE" && !isAnyBaristaProfile()) return;
       if (isEditMode) {
         if (!confirm("Uscire dalla modalità modifica senza salvare i cambi correnti?")) return;
         toggleEditMode();
@@ -3821,7 +3865,9 @@
       } else {
         currentAgentsList = globalData.residenze[resName] || [];
       }
-      document.getElementById("stat-residence").textContent = resName;
+      const residenceStat = document.getElementById("stat-residence")?.closest(".stat-card");
+      if (residenceStat) residenceStat.hidden = String(resName || "").toUpperCase() === "BARISTE";
+      document.getElementById("stat-residence").textContent = String(resName || "").toUpperCase() === "BARISTE" ? "" : resName;
       document.getElementById("stat-agents").textContent = currentAgentsList.length;
       const search = document.getElementById("agent-search");
       if (search) search.value = "";
@@ -3926,6 +3972,7 @@
       const modalContainer = document.getElementById("modal-residence-buttons");
       if (!modalContainer) return;
       modalContainer.innerHTML = "";
+      if (isAnyBaristaProfile()) return;
 
       // Solo TUTTE + residenza corrente per Trova Turno.
       const residences = ["TUTTE", currentResidence];
@@ -3962,7 +4009,7 @@
     function getVisibleResidences() {
       return Object.keys(globalData?.residenze || {}).filter(residence => {
         const key = String(residence || "").toUpperCase();
-        return (key !== "BARISTE" || isBaristaProfile()) && key !== "UFFICI";
+        return key !== "BARISTE" && key !== "UFFICI";
       });
     }
 
@@ -4111,6 +4158,7 @@
       data = applyOdsVariations(data);
       globalData = data;
       inizializzaCalendario();
+      buildBaristaResidence();
       buildTableHeader();
       document.getElementById("stat-status").textContent = "Aggiornati";
       document.getElementById("welcome-notice").style.display = "none";
@@ -4733,7 +4781,10 @@
       peschiera: ['desenzano', 'riva', 'maderno'],
       riva: ['maderno', 'peschiera', 'desenzano']
     }[home] || [];
-    const residences = Object.keys(globalData?.residenze || {}).filter(name => normalizeResidenceName(name) !== home);
+    const residences = Object.keys(globalData?.residenze || {}).filter(name => {
+      const normalized = normalizeResidenceName(name);
+      return normalized !== home && normalized !== 'bariste' && normalized !== 'uffici';
+    });
     return residences.sort((a, b) => {
       const ai = preferred.indexOf(normalizeResidenceName(a));
       const bi = preferred.indexOf(normalizeResidenceName(b));
@@ -4774,6 +4825,7 @@
   }
 
   function toggleOtherResidences() {
+    if (isAnyBaristaProfile()) return;
     cambioShowOtherResidences = !cambioShowOtherResidences;
     appendOtherResidenceRows();
     applyPermanentPeerFilter();
@@ -5530,7 +5582,7 @@
     removeSharedCrewDecorations();
 
     const {info} = ensurePanels();
-    const residenceButton =
+    const residenceButton = isAnyBaristaProfile() ? '' :
       `<button type="button" class="cambio-residence-toggle" onclick="toggleOtherResidences()">` +
       `${cambioShowOtherResidences ? 'Nascondi altre residenze' : 'Carica altre residenze'}` +
       `</button>`;
