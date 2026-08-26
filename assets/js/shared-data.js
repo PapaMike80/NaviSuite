@@ -277,6 +277,23 @@
         });
       });
     });
+
+    // Correzione verificata sulla bozza 07/09-04/10/2026: la riga 66
+    // BITTURINI D. era stata spezzata dal PDF e alcune celle venivano
+    // sostituite impropriamente con RIP durante il primo import.
+    const bitturiniBozza = {
+      '2026-09-07':'D3', '2026-09-08':'RIP', '2026-09-09':'RIP', '2026-09-10':'D3',
+      '2026-09-11':'RIP', '2026-09-12':'CP1C', '2026-09-13':'BIS', '2026-09-14':'D4',
+      '2026-09-15':'RIP', '2026-09-16':'D2', '2026-09-17':'D3', '2026-09-18':'RIP',
+      '2026-09-19':'D2', '2026-09-20':'D3', '2026-09-21':'RIP', '2026-09-22':'D3',
+      '2026-09-23':'D2', '2026-09-24':'D4', '2026-09-25':'RIP', '2026-09-26':'D3',
+      '2026-09-27':'RIP', '2026-09-28':'D3', '2026-09-29':'RIP', '2026-09-30':'RIP',
+      '2026-10-01':'BIS', '2026-10-02':'D3', '2026-10-03':'S.S.', '2026-10-04':'F.P.'
+    };
+    const bitturini = agents.find(agent => normalizeAgentName(agent?.agente) === 'BITTURINI D');
+    if (bitturini && active.some(batch => String(batch.inizio) === '2026-09-07' && String(batch.fine) === '2026-10-04')) {
+      bitturini.turni = { ...(bitturini.turni || {}), ...bitturiniBozza };
+    }
     data.date = [...dateMap.values()].sort((a,b) => a.iso.localeCompare(b.iso));
     data.scheduleImports = active;
     return data;
