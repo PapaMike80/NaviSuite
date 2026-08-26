@@ -1184,7 +1184,9 @@
       line-height:.9;
       letter-spacing:.04em;
     }
-    button.panel-course-name.crew-day-trigger { border:0; background:transparent; padding:0; cursor:pointer; font:inherit; }
+    /* La corsa è sempre un button: anche per altri agenti deve restare graficamente neutro. */
+    button.panel-course-name { appearance:none; -webkit-appearance:none; border:0!important; background:transparent!important; background-image:none!important; box-shadow:none!important; padding:0; margin:0; cursor:default; font:inherit; color:inherit; }
+    button.panel-course-name.crew-day-trigger { cursor:pointer; }
     .quick-residence-selector{display:flex;align-items:center;justify-content:center;gap:3px;width:100%;min-height:34px}
     .quick-residence-btn{display:grid;place-items:center;width:27px;height:27px;padding:0;border:1px solid var(--quick-res-color);border-radius:999px;background:color-mix(in srgb,var(--quick-res-color) 17%,#0c2934);color:color-mix(in srgb,var(--quick-res-color) 88%,#f3ffff);font:900 11px/1 Manrope,sans-serif;cursor:pointer;touch-action:manipulation}
     .quick-residence-btn:hover,.quick-residence-btn:focus-visible{outline:none;filter:brightness(1.18)}
@@ -3460,7 +3462,7 @@
           <div class="panel-header-main">
             <div class="panel-title-row">
               <div class="panel-date" id="panel-date-label"></div>
-              <button${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : (myShiftPuro === "TERRA" ? "<small>Servizi</small>" : "<small>Corsa</small>")}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
+              <button type="button"${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : (myShiftPuro === "TERRA" ? "<small>Servizi</small>" : "<small>Corsa</small>")}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
             </div>
             <div class="panel-date-navigation" aria-label="Navigazione primaria della data">
               <button class="panel-arrow" id="previous-day-btn" type="button" onclick="changeSelectedDay(-1)" aria-label="Giorno precedente"><svg class="panel-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
