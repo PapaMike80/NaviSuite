@@ -9,7 +9,7 @@
 
 // Cambio obbligatorio dopo il ripristino dello script popup: invalida anche
 // le copie memorizzate dalla PWA e da Safari.
-const CACHE_VERSION = 'navisuite-v185-cambi-bariste-p1';
+const CACHE_VERSION = 'navisuite-v186-diaria-direct-edit';
 const CACHE_NAME = CACHE_VERSION;
 
 // File statici da pre-caricare durante l'installazione.
@@ -58,6 +58,7 @@ const STATIC_ASSETS = [
   'assets/js/portal.js',
   'assets/js/app.js',
   'assets/js/navidiaria-weekly.js',
+  'assets/js/day-popup.js',
   'assets/js/navidiaria-monthly.js',
   'assets/js/shared-menu.js',
   'assets/js/mobile-menu-solid.js',
