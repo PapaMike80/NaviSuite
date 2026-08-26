@@ -1,11 +1,11 @@
 /*
- * Service Worker NaviSuite - modalità emergenza.
+ * Service Worker NaviSuite - modalità emergenza con hotfix menu.
  *
- * Disattiva temporaneamente la cache applicativa per evitare che Safari/PWA
- * o Chrome continuino a servire file JS/HTML obsoleti dopo gli ultimi deploy.
+ * Disattiva la cache applicativa e corregge al volo shared-menu.js per evitare
+ * il blocco del click su NaviDiaria causato da palette residenza non mappata.
  */
 
-const CACHE_VERSION = 'navisuite-v188-no-cache-emergency';
+const CACHE_VERSION = 'navisuite-v189-shared-menu-hotfix';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -19,5 +19,23 @@ self.addEventListener('activate', event => {
   })());
 });
 
-// Non intercettiamo più le richieste: il browser va direttamente in rete.
-// Questo evita blocchi causati da cache vecchie o da asset parzialmente aggiornati.
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin || url.pathname !== '/NaviSuite/assets/js/shared-menu.js') return;
+  event.respondWith((async () => {
+    const response = await fetch(event.request, { cache: 'reload' });
+    let text = await response.text();
+    text = text.replace(
+      "const palette=type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw] || ['#94a3b8','rgba(148,163,184,.13)'];",
+      "const palette=(type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw]) || ['#2dd4bf','rgba(45,212,191,.13)'];"
+    );
+    return new Response(text, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'no-store'
+      }
+    });
+  })());
+});
