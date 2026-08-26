@@ -1506,6 +1506,13 @@
 <style id="change-register-both-agents-style">
 .change-day-block{display:grid;grid-template-columns:minmax(82px,auto) minmax(0,1fr);gap:2px 12px;align-items:start}.change-day-date{grid-row:1 / span 2;color:#5eead4;font-weight:900;text-transform:capitalize;white-space:nowrap}.change-agent-line{display:block;line-height:1.45;white-space:nowrap}.change-agent-line+ .change-agent-line{margin-top:2px;color:#fdba74}.change-day-separator{border:0;border-top:1px solid rgba(255,255,255,.12);margin:8px 0}
 </style>
+<style id="crew-panel-close-control">
+  #day-panel .panel-controls-top{display:flex;align-items:flex-start;gap:8px;width:100%}
+  #day-panel .panel-controls-top .panel-shift-selector{flex:1 1 auto;min-width:0}
+  #day-panel .panel-close{display:grid;place-items:center;flex:0 0 42px;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;margin:0!important;padding:0!important;border:2px solid rgba(255,255,255,.45)!important;border-radius:50%!important;background:#dc2626!important;color:#fff!important;font:1000 21px/1 system-ui,sans-serif!important;box-shadow:0 4px 13px rgba(127,29,29,.42)!important;cursor:pointer}
+  #day-panel .panel-close:hover,#day-panel .panel-close:focus-visible{background:#ef4444!important;outline:2px solid #fecaca;outline-offset:2px}
+  @media(max-width:520px){#day-panel .panel-controls-top{gap:6px}#day-panel .panel-close{flex-basis:40px;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}}
+</style>
 </head>
 <body class="turni-page trova-turno-page">
 
@@ -1566,9 +1573,6 @@
 
     <button id="crew-drawer-toggle" type="button" onclick="toggleCrewDrawer()" aria-label="Mostra equipaggio" aria-expanded="false">⌄</button>
     <div id="day-panel" aria-hidden="true">
-      <div class="panel-header">
-        <button class="panel-close" onclick="resetCleanTable()">✕ Chiudi finestra</button>
-      </div>
       <div class="panel-groups" id="panel-groups"></div>
     </div>
 
@@ -3278,7 +3282,7 @@
       infoDiv.className = "shift-group crew-info-group";
       infoDiv.innerHTML = `<div class="colleague-cards"><div class="colleague-card crew-info-card">
         <div class="panel-controls-box" aria-label="Selezione corsa e data">
-          <div class="panel-shift-selector" id="panel-shift-selector" aria-label="Corse della residenza"></div>
+          <div class="panel-controls-top"><div class="panel-shift-selector" id="panel-shift-selector" aria-label="Corse della residenza"></div><button class="panel-close" type="button" onclick="resetCleanTable()" aria-label="Chiudi scheda equipaggio">✕</button></div>
           <div class="panel-header-main">
             <div class="panel-date" id="panel-date-label"></div>
             <div class="panel-date-navigation" aria-label="Navigazione primaria della data">
