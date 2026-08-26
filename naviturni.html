@@ -3469,7 +3469,7 @@
           <div class="panel-header-main">
             <div class="panel-title-row">
               <div class="panel-date" id="panel-date-label"></div>
-              <button type="button"${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : `<span class="panel-course-label">${focusAgent && canEditCrewDay(focusAgent) ? '<span class="panel-course-edit-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>' : ""}<small>${myShiftPuro === "TERRA" ? "Servizi" : "Corsa"}</small></span>`}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
+              <button type="button"${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : (focusAgent && canEditCrewDay(focusAgent) ? '<span class="panel-course-edit-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>' : "")}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
             </div>
             <div class="panel-date-navigation" aria-label="Navigazione primaria della data">
               <button class="panel-arrow" id="previous-day-btn" type="button" onclick="changeSelectedDay(-1)" aria-label="Giorno precedente"><svg class="panel-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
