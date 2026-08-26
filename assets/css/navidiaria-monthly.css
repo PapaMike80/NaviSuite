@@ -17,7 +17,7 @@
 @media(max-width:760px){.monthly-sheet-toolbar .weekly-month-switch .monthly-today-button{min-width:0;padding:0 8px;font-size:.72rem}}
 .monthly-table thead th[data-date]{cursor:pointer}
 .monthly-table thead th[data-date]:hover{background:#1c4a56;color:#fff}
-.monthly-bubble-dialog{width:min(430px,100%)}.monthly-bubble-actions{grid-template-columns:1fr!important}
+.monthly-bubble-dialog{width:min(430px,100%)}.monthly-bubble-actions{grid-template-columns:1fr 1fr!important}
 .monthly-bubble-dialog .weekly-bubble[data-bubble-field=delay].has-value{border-color:#f59e0b;background:rgba(245,158,11,.18);color:#ffd47e}
 .monthly-bubble-dialog .weekly-bubble[data-bubble-field=bank].has-value{border-color:#22c55e;background:rgba(34,197,94,.17);color:#a7f3bb}
 .monthly-bubble-dialog .weekly-bubble[data-bubble-field=ticket].has-value{border-color:#06b6d4;background:rgba(6,182,212,.18);color:#8eeafb}
@@ -35,6 +35,7 @@
 .monthly-bubble-dialog .weekly-service strong{font:900 1.05rem Manrope,sans-serif}
 .monthly-bubble-dialog .weekly-service small{font:800 .74rem DM Sans,sans-serif}
 .monthly-bubble-dialog .weekly-service{display:flex;justify-content:center;align-items:center;gap:10px;text-align:center}
+.monthly-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.monthly-quick-actions button{min-height:44px;border:1px solid rgba(45,212,191,.38);border-radius:12px;background:rgba(45,212,191,.1);color:#dffaf7;font:900 .8rem Manrope,sans-serif;cursor:pointer}.monthly-quick-actions button.active{border-color:#facc15;background:rgba(250,204,21,.2);color:#fff3b0;box-shadow:0 0 0 2px rgba(250,204,21,.12)}.monthly-quick-actions button:hover{background:rgba(45,212,191,.18)}
 .monthly-table .weekly-total-head,.monthly-table .weekly-total-cell{border-right:3px solid #2dd4bf}
 .monthly-table thead th.today-column{background:rgba(250,204,21,.26)}
 .monthly-table td.today-column{background:rgba(250,204,21,.18)}
