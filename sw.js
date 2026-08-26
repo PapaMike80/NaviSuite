@@ -93,8 +93,21 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   event.respondWith((async () => {
     try {
-      const response = await fetch(event.request);
-      if (response.ok && new URL(event.request.url).origin === self.location.origin) {
+      const requestUrl = new URL(event.request.url);
+      const forceFresh = requestUrl.origin === self.location.origin && [
+        '/assets/js/day-popup.js',
+        '/assets/js/navidiaria-monthly.js',
+        '/assets/css/navidiaria-monthly.css'
+      ].includes(requestUrl.pathname);
+      const request = forceFresh
+        ? new Request(`${requestUrl.origin}${requestUrl.pathname}?cache=${CACHE_VERSION}`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'reload'
+          })
+        : event.request;
+      const response = await fetch(request);
+      if (response.ok && requestUrl.origin === self.location.origin) {
         const cache = await caches.open(CACHE_NAME);
         cache.put(event.request, response.clone());
       }
