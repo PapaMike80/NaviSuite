@@ -1177,6 +1177,9 @@
       font-weight:900;
       letter-spacing:.16em;
     }
+    #day-panel .panel-course-label { display:inline-flex; align-items:center; gap:4px; }
+    #day-panel .panel-course-edit-indicator { display:inline-grid; place-items:center; width:13px; height:13px; color:var(--crew-shift-color); filter:drop-shadow(0 0 4px color-mix(in srgb, var(--crew-shift-color) 55%, transparent)); }
+    #day-panel .panel-course-edit-indicator svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
     #day-panel .panel-course-name strong,
     #coverage-crew-copy .panel-course-name strong {
       font-size:clamp(30px,4vw,58px);
@@ -1580,9 +1583,9 @@
 <style id="crew-panel-close-control">
   #day-panel .panel-controls-top{display:flex;align-items:flex-start;gap:8px;width:100%}
   #day-panel .panel-controls-top .panel-shift-selector{flex:1 1 auto;min-width:0}
-  #day-panel .panel-close{display:grid;place-items:center;flex:0 0 42px;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;margin:0!important;padding:0!important;border:2px solid rgba(255,255,255,.45)!important;border-radius:50%!important;background:#dc2626!important;color:#fff!important;font:1000 21px/1 system-ui,sans-serif!important;box-shadow:0 4px 13px rgba(127,29,29,.42)!important;cursor:pointer}
-  #day-panel .panel-close:hover,#day-panel .panel-close:focus-visible{background:#ef4444!important;outline:2px solid #fecaca;outline-offset:2px}
-  @media(max-width:520px){#day-panel .panel-controls-top{gap:6px}#day-panel .panel-close{flex-basis:40px;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}}
+  #day-panel .panel-close{display:grid;place-items:center;flex:0 0 46px;width:46px!important;height:34px!important;min-width:46px!important;min-height:34px!important;margin:0!important;padding:0!important;border:1.5px solid rgba(248,113,113,.9)!important;border-radius:999px!important;background:rgba(127,29,29,.28)!important;color:#fda4af!important;font:1000 20px/1 system-ui,sans-serif!important;box-shadow:0 0 12px rgba(239,68,68,.22),inset 0 1px 0 rgba(255,255,255,.08)!important;cursor:pointer;-webkit-appearance:none;appearance:none}
+  #day-panel .panel-close:hover,#day-panel .panel-close:focus-visible{background:rgba(185,28,28,.42)!important;border-color:#fca5a5!important;color:#ffe4e6!important;outline:2px solid rgba(254,202,202,.65);outline-offset:2px}
+  @media(max-width:520px){#day-panel .panel-controls-top{gap:6px}#day-panel .panel-close{flex-basis:44px;width:44px!important;height:32px!important;min-width:44px!important;min-height:32px!important}}
 </style>
 </head>
 <body class="turni-page">
@@ -3466,7 +3469,7 @@
           <div class="panel-header-main">
             <div class="panel-title-row">
               <div class="panel-date" id="panel-date-label"></div>
-              <button type="button"${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : (myShiftPuro === "TERRA" ? "<small>Servizi</small>" : "<small>Corsa</small>")}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
+              <button type="button"${personalCourseAction} aria-label="${isRest ? "Riposo" : (myShiftPuro === "TERRA" ? "Servizi a terra" : "Corsa selezionata")}">${isRest ? "" : `<span class="panel-course-label">${focusAgent && canEditCrewDay(focusAgent) ? '<span class="panel-course-edit-indicator" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>' : ""}<small>${myShiftPuro === "TERRA" ? "Servizi" : "Corsa"}</small></span>`}<strong>${escapeAttribute(panelShiftLabel)}</strong></button>
             </div>
             <div class="panel-date-navigation" aria-label="Navigazione primaria della data">
               <button class="panel-arrow" id="previous-day-btn" type="button" onclick="changeSelectedDay(-1)" aria-label="Giorno precedente"><svg class="panel-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
