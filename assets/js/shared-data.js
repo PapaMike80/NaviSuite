@@ -136,9 +136,24 @@
     normalizeScheduleAgents(data);
     normalizeScheduleShifts(data);
     injectProfileAgents(data);
-    localStorage.setItem(DATA_KEY, JSON.stringify(data));
-    localStorage.setItem(TIME_KEY, String(Date.now()));
-    localStorage.setItem(DIRECTORY_KEY, JSON.stringify(directoryFrom(data)));
+    const serialized = JSON.stringify(data);
+    const directory = JSON.stringify(directoryFrom(data));
+    try {
+      localStorage.setItem(DATA_KEY, serialized);
+      localStorage.setItem(TIME_KEY, String(Date.now()));
+      localStorage.setItem(DIRECTORY_KEY, directory);
+    } catch (error) {
+      // La cache è un'accelerazione, non un requisito: Safari/Chrome possono
+      // esaurire la quota locale. In quel caso i dati appena letti restano
+      // utilizzabili in memoria e la pagina non deve fermarsi al turno base.
+      console.warn('Cache turni non disponibile; continuo senza cache locale', error);
+      try {
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(TIME_KEY);
+        localStorage.removeItem(DIRECTORY_KEY);
+        localStorage.setItem(DIRECTORY_KEY, directory);
+      } catch (_) {}
+    }
     return data;
   }
 
@@ -268,8 +283,10 @@
         const legacyBatch = !row.agent_uid && String(batch.inizio || '') === '2026-06-22' && String(batch.fine || '') === '2026-07-26';
         const legacyName = legacyBatch ? legacyDesenzanoJune2026[Number(row.id_agente)] : '';
         const wantedUid = String(row.agent_uid || stableAgentUid(legacyName || row.agente));
+        const wantedName = normalizeAgentName(row.agente);
         const target = agents.find(agent => String(agent.agent_uid || stableAgentUid(agent.agente)) === wantedUid) ||
-          (!wantedUid ? agents.find(agent => String(agent.id || '') === String(row.id_agente || '')) : null);
+          (wantedName ? agents.find(agent => normalizeAgentName(agent.agente) === wantedName) : null) ||
+          agents.find(agent => String(agent.id || '') === String(row.id_agente || ''));
         if (!target) return;
         if (!target.turni) target.turni = {};
         (batch.dates || []).forEach((iso, index) => {
@@ -294,19 +311,38 @@
     if (bitturini && active.some(batch => String(batch.inizio) === '2026-09-07' && String(batch.fine) === '2026-10-04')) {
       bitturini.turni = { ...(bitturini.turni || {}), ...bitturiniBozza };
     }
+    // Nel PDF originale la B di BERTUZZO è codificata come "Ɓ". Il primo
+    // import non ha quindi riconosciuto il nominativo e ha escluso l'intera
+    // riga. Questi sono i 28 valori letti direttamente dalla riga 116.
+    const bertuzzoBozza = {
+      '2026-09-07':'P2', '2026-09-08':'P2', '2026-09-09':'RIP', '2026-09-10':'P2',
+      '2026-09-11':'RIP', '2026-09-12':'RIP', '2026-09-13':'RIP', '2026-09-14':'RIP',
+      '2026-09-15':'P1', '2026-09-16':'P2', '2026-09-17':'CD2C', '2026-09-18':'S.S.',
+      '2026-09-19':'P1', '2026-09-20':'RIP', '2026-09-21':'P1', '2026-09-22':'P2',
+      '2026-09-23':'P1', '2026-09-24':'P2', '2026-09-25':'RIP', '2026-09-26':'RIP',
+      '2026-09-27':'RIP', '2026-09-28':'RIP', '2026-09-29':'P1', '2026-09-30':'P1',
+      '2026-10-01':'P2', '2026-10-02':'RIP', '2026-10-03':'P2', '2026-10-04':'P1'
+    };
+    const bertuzzo = agents.find(agent => normalizeAgentName(agent?.agente) === 'BERTUZZO F');
+    if (bertuzzo && active.some(batch => String(batch.inizio) === '2026-09-07' && String(batch.fine) === '2026-10-04')) {
+      bertuzzo.turni = { ...(bertuzzo.turni || {}), ...bertuzzoBozza };
+    }
     data.date = [...dateMap.values()].sort((a,b) => a.iso.localeCompare(b.iso));
-    data.scheduleImports = active;
+    // Non conservare anche l'importazione grezza: i valori sono già stati
+    // applicati a agent.turni e duplicarli può esaurire la quota localStorage.
+    delete data.scheduleImports;
     return data;
   }
 
   async function mergeAdminUpdates(data) {
-    const provider = window.NaviFirebase?.getAdminUpdates
-      ? window.NaviFirebase
-      : window.NaviAdminFirebase;
-    if (!data || !provider?.getAdminUpdates) return data;
-    try {
-      await provider.ready;
-      const updates = await provider.getAdminUpdates();
+    const providers = [window.NaviFirebase, window.NaviAdminFirebase]
+      .filter((provider, index, list) => provider?.getAdminUpdates && list.indexOf(provider) === index);
+    if (!data || !providers.length) return data;
+    let lastError = null;
+    for (const provider of providers) {
+      try {
+        await provider.ready;
+        const updates = await provider.getAdminUpdates();
       applyScheduleImports(data, updates.scheduleImports);
       const profileOverrides = updates.agentProfiles || {};
       data.agentProfileOverrides = profileOverrides;
@@ -342,9 +378,12 @@
         item => `${item?.data || ''}|${item?.corsa || ''}|${String(item?.nave || '').trim().toLocaleUpperCase('it')}`
       );
       data.dismissedOdsApprovals = Array.isArray(updates.dismissedOdsApprovals) ? updates.dismissedOdsApprovals : [];
-    } catch (error) {
-      console.warn('Aggiornamenti amministrativi Firebase non disponibili.', error);
+        return data;
+      } catch (error) {
+        lastError = error;
+      }
     }
+    console.warn('Aggiornamenti amministrativi Firebase non disponibili.', lastError);
     return data;
   }
 
