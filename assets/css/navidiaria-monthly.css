@@ -42,3 +42,4 @@
 .monthly-table .row-service td.today-column{background:rgba(250,204,21,.24)}
 .monthly-table .row-service td.today-column{box-shadow:inset 2px 0 #facc15,inset -2px 0 #facc15,0 5px 10px rgba(0,0,0,.28)}
 .monthly-mobile-sticky .monthly-table .row-service td.today-column{box-shadow:inset 2px 0 #facc15,inset -2px 0 #facc15!important}
+.monthly-table td.change-suggested{opacity:.72;color:#facc15;font-style:italic;background-image:repeating-linear-gradient(135deg,transparent 0,transparent 7px,rgba(250,204,21,.05) 7px,rgba(250,204,21,.05) 14px)}

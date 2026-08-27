@@ -9,6 +9,7 @@
     {key:'service',label:'Ore servizio',kind:'computed'},
     {key:'delay',label:'Straordinario',kind:'number',field:'delay'},
     {key:'worked',label:'Ore lavorate',kind:'computed'},
+    {key:'change',label:'Cambi',kind:'computed'},
     {key:'bank',label:'Banca ore',kind:'number',field:'bank'},
     {key:'allowance',label:'Diaria',kind:'allowance'},
     {key:'overnight40',label:'Pernotto',kind:'toggle',field:'overnight40'},
@@ -30,7 +31,8 @@
   function entryFor(date){return entries.find(entry=>entry.date===date)}
   function isWorking(entry){return !!entry&&!['RIP','RIPOSO','MALATTIA'].includes(String(entry.shift||'').toUpperCase())}
   function baseMinutes(entry){if(!isWorking(entry))return 0;return Number.isFinite(Number(entry.serviceMinutes))?Math.max(0,Math.round(Number(entry.serviceMinutes))):Math.round((Number(shiftFor(entry.shift).hours)||0)*60)}
-  function workedMinutes(entry){const manual=Number(entry?.workedMinutes);return Number.isFinite(manual)&&manual>=0?manual:baseMinutes(entry)+(Number(entry?.delay)||0)}
+  function changeMinutes(entry){return Math.max(0,Math.round(Number(entry?.changeMinutes)||0))}
+  function workedMinutes(entry){const manual=Number(entry?.workedMinutes),base=Number.isFinite(manual)&&manual>=0?manual:baseMinutes(entry)+(Number(entry?.delay)||0);return base+changeMinutes(entry)}
   function clock(value){const minutes=Math.max(0,Math.round(Number(value)||0));return `${Math.floor(minutes/60)}:${String(minutes%60).padStart(2,'0')}`}
   function isHoliday(date){return date.getDay()===0||fixedHolidays.has(iso(date).slice(5))}
   function holidayValue(entry,date){return entry?.holidayWorked===undefined?isWorking(entry)&&isHoliday(date):!!entry.holidayWorked}
