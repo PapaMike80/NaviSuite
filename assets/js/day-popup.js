@@ -2,7 +2,7 @@
   const colors={D1:'#2563eb',D2:'#059669',D3:'#ea580c',D4:'#c026d3',BIS:'#0891b2',POND:'#dc2626',DT:'#d4a900',AGB:'#2563eb',LD:'#64748b',PT:'#64748b',AGM:'#64748b',AGT:'#64748b',PONM:'#dc2626',SR1:'#7c3aed'};
   const shiftRow={key:'shift',label:'Servizio',kind:'shift'},primary=[{key:'worked',label:'Ore lavorate',kind:'worked',field:'workedMinutes'},{key:'delay',label:'Straordinario',kind:'number',field:'delay'},{key:'bank',label:'Banca ore',kind:'number',field:'bank'},{key:'ticket',label:'Buono',kind:'ticket'},{key:'allowance',label:'Diaria',kind:'allowance'}],other=[{key:'overnight40',label:'Pernotto',kind:'toggle',field:'overnight40'},{key:'holiday',label:'Festività',kind:'holiday'},{key:'secondMeal',label:'2° ticket',kind:'toggle',field:'secondMeal'},{key:'embark',label:'Imbarco',kind:'toggle',field:'embark'},{key:'hydrofoil',label:'Aliscafo',kind:'hydrofoil'}];
   const holidays=new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26']);
-  let opts=null,draft=null,day=null,label='',token=0;
+  let opts=null,draft=null,day=null,label='',token=0,saveRevision=0,pendingSave=null,saveLoop=null;
   const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const working=e=>!!e&&!['RIP','RIPOSO','MALATTIA'].includes(String(e.shift||'').toUpperCase());
   const clock=v=>{const m=Math.max(0,Math.round(Number(v)||0));return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`};
@@ -18,8 +18,34 @@
   function close(){token+=1;modal().hidden=true;document.body.classList.toggle('weekly-dialog-open',false);opts?.onClose?.();opts=null;draft=null}
   function shown(row){if(!draft)return'';switch(row.key){case'worked':return working(draft)?clock(worked(draft)):'';case'delay':case'bank':{const n=Math.round(Number(draft[row.field])||0);return n?`${n} min`:''}case'ticket':return ticketLabel(draft);case'allowance':return Number(draft.allowanceRate)?`${draft.allowanceRate}%`:'';case'overnight40':return draft.overnight40?'Sì':'';case'holiday':return holiday(draft)?'Sì':'';case'secondMeal':return Number(draft.secondMeal)>0?'Sì':'';case'embark':return draft.embark?'Sì':'';case'hydrofoil':return hydro(draft)?'Sì':'';default:return''}}
   function render(){const m=modal(),active=working(draft),color=active?(opts.shiftColors?.[String(draft.shift||'').toUpperCase()]||colors[String(draft.shift||'').toUpperCase()]||'#64748b'):'#64748b',ship=active?String(opts.shipForService?.(draft.date,draft.shift)||'').trim():'',duration=active?Math.max(0,Math.round((Number(opts.shiftFor(draft.shift).hours)||0)*60)):0;m.querySelector('[data-bubble-title]').textContent=label;const button=m.querySelector('.weekly-service');button.className=`weekly-service${active?' has-service':''}`;button.style.setProperty('--shift-color',color);button.innerHTML=`<strong>${esc([draft.shift||'Servizio',ship].filter(Boolean).join(' · '))}</strong>${duration?`<small>${esc(clock(duration))}</small>`:''}`;m.querySelector('[data-bubble-grid]').innerHTML=primary.concat(other).map(row=>{const value=shown(row),disabled=row.kind==='refuel'&&!refuel(draft);return `<button type="button" class="weekly-bubble${value?' has-value':' is-empty'}" data-bubble-field="${row.key}" ${disabled?'disabled title="Nessun suggerimento configurato"':''}><span>${row.label}</span><strong>${esc(value||'—')}</strong></button>`}).join('')}
-  async function save(){if(!draft)return;draft.imported=false;render();const saved=await opts.saveEntry({...draft});if(saved)draft={...saved};render()}
-  async function toggle(row){if(!draft)return;if(row.kind==='holiday')draft.holidayWorked=!holiday(draft);else if(row.kind==='ticket'){if(!ticketDue(draft))return;draft.ticketPresence=!ticket(draft);draft.mealUsed=draft.ticketPresence}else if(row.kind==='hydrofoil')draft.hydrofoil=hydro(draft)?0:1;else if(row.key==='secondMeal')draft.secondMeal=Number(draft.secondMeal)>0?0:1;else draft[row.field]=!draft[row.field];await save()}
+  function nextPaint(){return new Promise(resolve=>requestAnimationFrame(()=>resolve()))}
+  function save(){
+    if(!draft||!opts)return Promise.resolve();
+    draft.imported=false;
+    const revision=++saveRevision,owner=opts;
+    pendingSave={revision,owner,data:{...draft}};
+    render();
+    if(saveLoop)return saveLoop;
+    saveLoop=(async()=>{
+      // Lascia dipingere subito la bolla aggiornata prima di serializzare
+      // l'archivio e avviare la richiesta Firebase.
+      await nextPaint();
+      while(pendingSave){
+        const job=pendingSave;
+        pendingSave=null;
+        try{
+          const saved=await job.owner.saveEntry(job.data);
+          if(saved&&job.revision===saveRevision&&opts===job.owner&&draft)draft={...saved};
+        }catch(error){
+          console.warn('Salvataggio giornata non riuscito',error);
+          job.owner.onSaveError?.(error);
+        }
+      }
+      if(draft&&opts)render();
+    })().finally(()=>{saveLoop=null;if(pendingSave)save()});
+    return saveLoop;
+  }
+  function toggle(row){if(!draft)return;if(row.kind==='holiday')draft.holidayWorked=!holiday(draft);else if(row.kind==='ticket'){if(!ticketDue(draft))return;draft.ticketPresence=!ticket(draft);draft.mealUsed=draft.ticketPresence}else if(row.kind==='hydrofoil')draft.hydrofoil=hydro(draft)?0:1;else if(row.key==='secondMeal')draft.secondMeal=Number(draft.secondMeal)>0?0:1;else draft[row.field]=!draft[row.field];save()}
   function valueModal(){let m=document.getElementById('monthlyBubbleValueDialog');if(m)return m;m=document.createElement('div');m.id='monthlyBubbleValueDialog';m.className='weekly-edit-overlay';m.hidden=true;m.innerHTML='<form class="weekly-edit-dialog"><button type="button" class="weekly-edit-close" aria-label="Chiudi">✕</button><small>MODIFICA DATO</small><h3></h3><label><span></span><select></select><input></label><p class="weekly-edit-preview" hidden></p><div><button type="button" class="weekly-edit-cancel">Annulla</button><button type="submit" class="weekly-edit-save">Salva</button></div></form>';document.body.appendChild(m);return m}
   function edit(row){const m=valueModal(),form=m.querySelector('form'),select=m.querySelector('select'),input=m.querySelector('input'),preview=m.querySelector('.weekly-edit-preview'),fieldLabel=m.querySelector('label span');m.querySelector('h3').textContent=`${row.label} · ${label}`;fieldLabel.textContent=row.label;select.hidden=true;input.hidden=true;preview.hidden=true;
     if(row.kind==='shift'){select.hidden=false;select.replaceChildren(...opts.shifts.map(s=>new Option(s.code,s.code,false,s.code===draft.shift)));const update=()=>{const c=opts.shiftFor(select.value),rest=['RIP','RIPOSO','MALATTIA'].includes(String(select.value).toUpperCase()),parts=[rest?'Nessuna ora':clock(Math.round((Number(c.hours)||0)*60))];if(!rest&&c.meal)parts.push('Ticket');if(!rest&&c.embark)parts.push('Imbarco');if(!rest&&c.allowance)parts.push(`Diaria ${c.allowanceRate}%`);preview.textContent=parts.join(' · ');preview.hidden=false};select.onchange=update;update()}
