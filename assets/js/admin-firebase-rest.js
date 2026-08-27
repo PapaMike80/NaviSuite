@@ -2,14 +2,17 @@
   const API_KEY = "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE";
   const DATABASE_URL = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app";
   const AUTH_KEY = "navisuite.adminFirebaseAuth.v1";
+  let volatileAuth = null;
 
   function readAuth() {
-    try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); }
-    catch (_) { return null; }
+    try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null") || volatileAuth; }
+    catch (_) { return volatileAuth; }
   }
 
   function saveAuth(value) {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(value));
+    volatileAuth = value;
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify(value)); }
+    catch (error) { console.warn("Token Firebase mantenuto solo per questa sessione", error); }
     return value;
   }
 
@@ -455,6 +458,7 @@
     return {
       users:Object.values(value.userRegistry || {}).filter(Boolean),
       profiles:value.agentProfiles || {},
+      auth:value.userAuth || {},
       legacyUsersImportedAt:String(value.legacyUsersImportedAt || "")
     };
   }
