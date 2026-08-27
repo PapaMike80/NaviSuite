@@ -732,6 +732,9 @@
       return (best?.items||[]).sort((a,b)=>a.x-b.x).slice(0,expected).map(item=>item.x+(item.width||0)/2);
     }
     function resolvePdfRowAgents(prefix){
+      // Alcuni PDF OpenOffice incorporano la B di certi cognomi come Ɓ:
+      // uniformarla evita che righe complete (es. BERTUZZO) vengano scartate.
+      prefix=String(prefix||'').replace(/[Ɓɓ]/g,'B');
       const number=String(prefix||'').match(/^\s*(\d+)(?:\s*[-/]\s*(\d+))?/);
       const list=agents().filter(agent=>String(agent.residence||'').toUpperCase()!=='BARISTE');
       const withoutNumber=String(prefix||'').replace(/^\s*\d+(?:\s*[-/]\s*\d+)?\s*/,'').trim();
