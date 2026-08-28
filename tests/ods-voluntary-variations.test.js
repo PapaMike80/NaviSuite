@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'aggiornamenti.html'), 'utf8');
 const between = (from, to) => html.slice(html.indexOf(from), html.indexOf(to, html.indexOf(from)));
 const parserSource = `${between('    function linesFromItems', '    function rowsFromDelimited')}${between('    function parseOdsPdf', '    function odsDateRange')}`;
+const csvSource = `${between('    const isoDate=', '    const italianDate=')}${between('    function rowsFromDelimited', '    function parseOdsPdf')}${between('    function parseCsvMatrix', '    function googleSheetCsvUrl')}`;
 const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
 const italianDate = value => {
   const months = {GENNAIO:1,FEBBRAIO:2,MARZO:3,APRILE:4,MAGGIO:5,GIUGNO:6,LUGLIO:7,AGOSTO:8,SETTEMBRE:9,OTTOBRE:10,NOVEMBRE:11,DICEMBRE:12};
@@ -54,4 +55,15 @@ assert.deepEqual(variations.filter(row => row.tipo === 'ODS VOLONTARIO').map(row
   '2026-08-29|REGA|P3',
 ]);
 assert.equal(variations.filter(row => row.tipo === 'ODS UFFICIO').length, 2);
+
+const rowsFromDelimited = new Function('normalize', `${csvSource}; return rowsFromDelimited;`)(normalize);
+const csvRows = rowsFromDelimited(`Tipo_Variazione,Data,Dipendente,Turno_Assegnato
+Ufficio,2026-08-28,DOLCERA,PonD
+Volontario,2026-08-28,HARRABI,P2
+Volontario,2026-08-28,REGA,rip`, 'ods');
+assert.deepEqual(csvRows, [
+  {data:'2026-08-28',agente:'DOLCERA',id_agente:'',turno_originale:'',turno_nuovo:'POND',tipo:'Ufficio',note:''},
+  {data:'2026-08-28',agente:'HARRABI',id_agente:'',turno_originale:'',turno_nuovo:'P2',tipo:'Volontario',note:''},
+  {data:'2026-08-28',agente:'REGA',id_agente:'',turno_originale:'',turno_nuovo:'RIP',tipo:'Volontario',note:''},
+]);
 console.log('ODS voluntary variations regression test passed');
