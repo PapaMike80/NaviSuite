@@ -36,6 +36,13 @@
     entry.sentineActivity=normalized?{type:normalized,minutes:amount}:null;
     return recalculateOrdinary(entry,serviceMinutes);
   }
+  function setSentineMinutes(entry,value,serviceMinutes){
+    activate(entry);
+    const amount=minutes(value);
+    entry.overtimeComponents.sentine=amount;
+    entry.sentineActivity=amount?{minutes:amount}:null;
+    return recalculateOrdinary(entry,serviceMinutes);
+  }
   function setWorked(entry,value,serviceMinutes){
     activate(entry);
     entry.workedMinutes=minutes(value);
@@ -43,5 +50,5 @@
     return recalculateOrdinary(entry,serviceMinutes);
   }
   function create(){return {ordinario:0,cambi:0,sentine:0}}
-  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setWorked,create,minutes,SENTINE_TYPES};
+  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,create,minutes,SENTINE_TYPES};
 })();
