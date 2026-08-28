@@ -2,6 +2,7 @@ NAVISUITE - VERSIONE FIREBASE
 
 Avvio locale:
 1. Aprire il terminale nella cartella del progetto.
+   Per importare ODS scansiti installare una volta il comando OCR: `sudo apt install tesseract-ocr`.
 2. Eseguire: node server.js
 3. Aprire: http://127.0.0.1:8765/
 
