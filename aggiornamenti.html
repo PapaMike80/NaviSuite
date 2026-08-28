@@ -547,9 +547,30 @@
       const pages=[];
       for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
         const page=await pdf.getPage(pageNo),content=await page.getTextContent();
-        pages.push(content.items.filter(item=>item.str?.trim()).map(item=>({text:item.str.trim(),x:item.transform[4],y:item.transform[5],width:Number(item.width||0),height:Number(item.height||0),page:pageNo})));
+        const textItems=content.items.filter(item=>item.str?.trim()).map(item=>({text:item.str.trim(),x:item.transform[4],y:item.transform[5],width:Number(item.width||0),height:Number(item.height||0),page:pageNo}));
+        // Alcuni ODS sono scansioni: PDF.js non può estrarne testo, anche se la
+        // pagina contiene variazioni valide. In quel caso chiediamo al server
+        // locale il solo OCR della pagina, senza alcuna scrittura Firebase.
+        pages.push(textItems.length?textItems:await ocrScannedPdfPage(page,pageNo));
       }
       return pages;
+    }
+    async function ocrScannedPdfPage(page,pageNo){
+      if(location.protocol==='file:')throw new Error(`La pagina ${pageNo} del PDF è una scansione. Apri NaviSuite tramite server locale per eseguire l'OCR.`);
+      const viewport=page.getViewport({scale:2});
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+      await page.render({canvasContext:canvas.getContext('2d',{willReadFrequently:false}),viewport}).promise;
+      const image=canvas.toDataURL('image/png');
+      let response,payload;
+      try{
+        response=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image})});
+        payload=await response.json();
+      }catch(error){
+        throw new Error(`La pagina ${pageNo} del PDF è una scansione e il servizio OCR locale non è raggiungibile.`);
+      }
+      if(!response.ok||!payload?.text)throw new Error(payload?.error||`OCR non riuscito per la pagina ${pageNo}`);
+      return String(payload.text).split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map((text,index)=>({text,x:0,y:10000-index*20,width:0,height:0,page:pageNo,ocr:true}));
     }
     function linesFromItems(pages){
       return pages.flatMap(items=>{
@@ -589,7 +610,9 @@
       const records=[];
       const sectionForHeading=line=>{
         const heading=normalize(line);
-        if(!heading.includes('VARIAZIONITURNI'))return '';
+        // L'OCR può leggere "TURNI" come "TURN!": riconosciamo quindi il
+        // prefisso semantico, non una frase letterale o una singola grafia.
+        if(!heading.includes('VARIAZIONITURN'))return '';
         if(heading.includes('VOLONTAR'))return 'ODS VOLONTARIO';
         if(heading.includes('DAUFFICIO'))return 'ODS UFFICIO';
         return 'ODS';
