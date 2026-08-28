@@ -144,6 +144,7 @@
   <script src="assets/js/shared-data.js?v=3"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
   (() => {
     document.querySelectorAll('.card.foldable').forEach(card=>{const toggle=card.querySelector('.card-fold-toggle'),heading=card.querySelector('.card-heading');const change=()=>card.dataset.collapsed=card.dataset.collapsed==='true'?'false':'true';toggle.addEventListener('click',change);heading.addEventListener('click',event=>{if(!event.target.closest('button,input,select,textarea,a'))change()})});
@@ -549,8 +550,8 @@
         const page=await pdf.getPage(pageNo),content=await page.getTextContent();
         const textItems=content.items.filter(item=>item.str?.trim()).map(item=>({text:item.str.trim(),x:item.transform[4],y:item.transform[5],width:Number(item.width||0),height:Number(item.height||0),page:pageNo}));
         // Alcuni ODS sono scansioni: PDF.js non può estrarne testo, anche se la
-        // pagina contiene variazioni valide. In quel caso chiediamo al server
-        // locale il solo OCR della pagina, senza alcuna scrittura Firebase.
+        // pagina contiene variazioni valide. L'OCR avviene nel browser e non
+        // effettua alcuna scrittura Firebase.
         pages.push(textItems.length?textItems:await ocrScannedPdfPage(page,pageNo));
       }
       return pages;
@@ -561,16 +562,27 @@
       const canvas=document.createElement('canvas');
       canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
       await page.render({canvasContext:canvas.getContext('2d',{willReadFrequently:false}),viewport}).promise;
-      const image=canvas.toDataURL('image/png');
-      let response,payload;
+      // Il motore OCR principale lavora sul dispositivo: la pagina non viene
+      // inviata a servizi esterni. Il server locale resta solo un fallback.
       try{
-        response=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image})});
-        payload=await response.json();
-      }catch(error){
-        throw new Error(`La pagina ${pageNo} del PDF è una scansione e il servizio OCR locale non è raggiungibile.`);
+        if(!window.Tesseract?.createWorker)throw new Error('Motore OCR browser non caricato');
+        const worker=await window.Tesseract.createWorker('eng',1,{langPath:'https://tessdata.projectnaptha.com/4.0.0'});
+        try{
+          const result=await worker.recognize(canvas),text=String(result?.data?.text||'').trim();
+          if(text)return ocrTextItems(text,pageNo);
+        }finally{await worker.terminate()}
+      }catch(browserError){
+        try{
+          const response=await fetch('/api/ocr',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:canvas.toDataURL('image/png')})});
+          const payload=await response.json();
+          if(response.ok&&payload?.text)return ocrTextItems(payload.text,pageNo);
+        }catch(serverError){}
+        throw new Error(`La pagina ${pageNo} del PDF è una scansione e l'OCR non è disponibile. Verifica la connessione Internet e riprova.`);
       }
-      if(!response.ok||!payload?.text)throw new Error(payload?.error||`OCR non riuscito per la pagina ${pageNo}`);
-      return String(payload.text).split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map((text,index)=>({text,x:0,y:10000-index*20,width:0,height:0,page:pageNo,ocr:true}));
+      throw new Error(`OCR non riuscito per la pagina ${pageNo}`);
+    }
+    function ocrTextItems(value,pageNo){
+      return String(value).split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map((text,index)=>({text,x:0,y:10000-index*20,width:0,height:0,page:pageNo,ocr:true}));
     }
     function linesFromItems(pages){
       return pages.flatMap(items=>{
@@ -594,11 +606,11 @@
         const parsed=JSON.parse(trimmed),rows=Array.isArray(parsed)?parsed:(parsed.records||parsed.variations||parsed.turni||[]);
         return rows.map(fromJson);
       }
-      const rows=trimmed.split(/\r?\n/).filter(Boolean).map(line=>line.split(/[;,]/).map(v=>v.trim()));
+      const rows=parseCsvMatrix(trimmed);
       const header=rows.shift().map(normalize);
       const get=(row,...names)=>{const index=header.findIndex(h=>names.includes(h));return index>=0?row[index]:''};
       const fromCsv=row=>{
-        if(kind==='ods')return {data:isoDate(get(row,'DATA','DATE')),agente:get(row,'AGENTE','AGENT'),id_agente:get(row,'IDAGENTE','AGENTID'),turno_originale:get(row,'TURNOORIGINALE','OLDSHIFT'),turno_nuovo:String(get(row,'TURNONUOVO','NEWSHIFT','TURNO')).toUpperCase(),note:get(row,'NOTE','NOTA')};
+        if(kind==='ods')return {data:isoDate(get(row,'DATA','DATE')),agente:get(row,'AGENTE','AGENT','DIPENDENTE','NOMINATIVO','PERSONALE'),id_agente:get(row,'IDAGENTE','AGENTID'),turno_originale:get(row,'TURNOORIGINALE','OLDSHIFT'),turno_nuovo:String(get(row,'TURNONUOVO','NEWSHIFT','TURNO','TURNOASSEGNATO','NUOVOTURNO')).toUpperCase(),tipo:get(row,'TIPOVARIAZIONE','TIPO','SOURCE'),note:get(row,'NOTE','NOTA')};
         if(kind==='nave')return {data:isoDate(get(row,'DATA','DATE')),corsa:String(get(row,'CORSA','TURNO','SHIFT')).toUpperCase(),nave:get(row,'NAVE','SHIP','MOTONAVE'),rifornimento_mattina:get(row,'RIFORNIMENTOMATTINA','RIFORNIMENTO'),ormeggio_serale:get(row,'ORMEGGIOSERALE','ORMEGGIO')};
         return {data:isoDate(get(row,'DATA','DATE')),corsa:String(get(row,'CORSA','TURNO','SHIFT')).toUpperCase(),barista:get(row,'BARISTA','NOME','NAME')};
       };
