@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="assets/css/naviturni-theme.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <link rel="stylesheet" href="assets/css/navidiaria-weekly.css?v=110">
-  <link rel="stylesheet" href="assets/css/navidiaria-monthly.css?v=121">
+  <link rel="stylesheet" href="assets/css/navidiaria-monthly.css?v=122">
   <style>
     .ccnl-result-line{grid-column:1/-1;margin:0;padding:0;font-weight:700;line-height:1.45}
     .ccnl-result-line small{display:block;font-weight:500;opacity:.72;margin-top:3px}
@@ -135,11 +135,13 @@
                 <h2 id="monthlySheetTitle">—</h2>
                 <button id="monthlyNext" class="monthly-month-button" type="button" aria-label="Mese successivo">›</button>
                 <button id="monthlyToday" class="monthly-today-button" type="button">Oggi</button>
+                <button id="monthlyPrint" class="monthly-today-button" type="button">Stampa / PDF</button>
               </div>
+              <p id="monthlyCompetencePeriod" class="monthly-sheet-period"></p>
             </div>
           </div>
           <div id="monthlySheetGrid" class="monthly-sheet-grid"></div>
-          <p class="monthly-sheet-help">Tocca una colonna per modificare la giornata. Scorri orizzontalmente per vedere tutto il mese.</p>
+          <p class="monthly-sheet-help">Tocca una colonna per modificare la giornata. Scorri orizzontalmente per vedere tutto il periodo di competenza.</p>
         </section>
 
         <section id="weeklyCalendar" class="weekly-calendar panel" aria-label="Calendario settimanale" hidden>
@@ -276,10 +278,10 @@
   <script src="assets/js/shared-menu.js?v=1.44"></script>
   <script src="assets/js/mobile-menu-solid.js?v=1"></script>
   <script src="assets/js/overtime-components.js?v=4"></script>
-  <script src="assets/js/app.js?v=117"></script>
-  <script src="assets/js/navidiaria-weekly.js?v=122"></script>
+  <script src="assets/js/app.js?v=118"></script>
+  <script src="assets/js/navidiaria-weekly.js?v=123"></script>
   <script src="assets/js/day-popup.js?v=11"></script>
-  <script src="assets/js/navidiaria-monthly.js?v=126"></script>
+  <script src="assets/js/navidiaria-monthly.js?v=127"></script>
   <script src="assets/js/navidiaria-reset-hours.js?v=1"></script>
   <script>
   (() => {
