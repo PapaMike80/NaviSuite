@@ -1,15 +1,253 @@
-[eval]:1
-process.stdout.write(require('fs').readFileSync(agenti.html,'utf8'))
-                                                ^
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NaviSuite Agenti</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--red:#fb7185}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}main{margin-left:230px;padding:30px;max-width:1500px}.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}.hero h1{margin:7px 0 5px;font-size:30px}.hero p{margin:0;color:var(--muted)}.status{margin:20px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#0b222c;color:#b9d2d8}.status.ok{border-color:#1d8f7f;color:#99f6e4}.status.bad{border-color:#9f3044;color:#fecdd3}.section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px;cursor:pointer;user-select:none}.section-head>div{flex:1;min-width:0}.chevron{color:var(--muted);font-size:12px;transition:transform .2s}.section.collapsed .chevron{transform:rotate(-90deg)}.section.collapsed .section-body{display:none}.hidden{display:none!important}.section h2{margin:0;font-size:18px}.section p{margin:4px 0 0;color:var(--muted);font-size:12px}.count{padding:4px 9px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px;font-weight:900}.agent-list{display:grid;gap:9px}.agent-search-input{width:min(620px,100%);margin-top:10px;padding:11px 12px;border:1px solid #3b707c;border-radius:10px;background:#0b2731;color:#fff;font:800 13px inherit}.agent-search-input::placeholder{color:#8faeb6}.agent-row.search-target{outline:3px solid #facc15;outline-offset:2px;box-shadow:0 0 22px rgba(250,204,21,.42);transition:outline-color .35s,box-shadow .35s}.agent-row{display:grid;grid-template-columns:minmax(210px,1.4fr) minmax(145px,.9fr) minmax(120px,.7fr) minmax(140px,.8fr) auto;gap:10px;align-items:center;padding:12px;border:1px solid #28515d;border-radius:11px;background:#071b24}.agent-row.latest{border-color:var(--accent);background:linear-gradient(100deg,rgba(45,212,191,.13),#071b24)}.agent-name strong{display:block;font-size:14px}.agent-name small{display:block;margin-top:4px;color:#86aab3}.access{color:#bfe2e6;font-size:12px}.access strong{display:block;color:#fff}.agent-row label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.agent-row select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}.save-agent{min-height:38px;padding:8px 12px;border:1px solid var(--accent);border-radius:8px;background:rgba(45,212,191,.15);color:#99f6e4;font-weight:900;cursor:pointer}.save-agent:disabled{opacity:.5}.empty{padding:20px;color:#86aab3;text-align:center}.mobile-nav{display:none}
+    @media(max-width:850px){body{padding-bottom:100px}main{margin:0;padding:18px 12px}.hero h1{font-size:25px}.section{padding:13px}.agent-row{grid-template-columns:1fr 1fr}.agent-name,.access{grid-column:1/-1}.save-agent{grid-column:1/-1;width:100%}.mobile-nav{position:fixed;left:50%;bottom:14px;z-index:50;display:flex;align-items:center;justify-content:space-evenly;width:calc(100% - 24px);height:70px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.24);border-radius:38px;background:rgba(18,34,45,.42);box-shadow:0 24px 48px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%)}.mobile-nav a{display:flex;flex:1 1 0;min-width:0;max-width:65px;flex-direction:column;align-items:center;gap:4px;padding:8px;color:#9fb8c2;text-decoration:none;font-size:9px;font-weight:800}.mobile-nav a span{font-size:20px}.mobile-nav a.active{color:var(--accent)}}
+    .agent-row{border-color:color-mix(in srgb,var(--grade-color,#9ca3af) 60%,#28515d);border-left:5px solid var(--grade-color,#9ca3af);background:linear-gradient(100deg,color-mix(in srgb,var(--grade-color,#9ca3af) 13%,#071b24),#071b24 42%)}.agent-row.latest{border-color:var(--grade-color,#2dd4bf);box-shadow:0 0 0 1px color-mix(in srgb,var(--grade-color,#2dd4bf) 45%,transparent)}.agent-name strong{color:var(--grade-color,#edfafa)}.grade-badge{display:inline-flex;margin-top:6px;padding:3px 7px;border:1px solid var(--grade-color);border-radius:999px;background:color-mix(in srgb,var(--grade-color) 14%,transparent);color:var(--grade-color);font-size:9px;font-weight:900;text-transform:uppercase}.agent-actions{display:grid;gap:6px;min-width:122px}.agent-actions button{min-height:34px;padding:7px 9px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer}.reset-pin{border:1px solid #f59e0b;background:#3a2910;color:#fcd34d}.delete-registration{border:1px solid #e11d48;background:#3b1721;color:#fecdd3}.delete-agent{border:1px solid #dc2626;background:#3b0f14;color:#fecaca}.online-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 9px #22c55e}.online-time{color:#86efac!important}    .agent-row select[data-grade]{border-color:var(--grade-color,#315b66)}
+    .initial-pin-panel{margin:12px 0 4px;padding:13px;border:1px solid rgba(245,158,11,.48);border-radius:11px;background:rgba(58,41,16,.45)}.initial-pin-panel p{margin:0 0 10px;color:#fcd34d}.initial-pin-output{margin-top:10px;white-space:pre-wrap;font:800 13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fef3c7}.generate-pin{border:1px solid #f59e0b;background:#3a2910;color:#fcd34d}.new-agent-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}.new-agent-form label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.new-agent-form input,.new-agent-form select{width:100%;padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
+    @media(max-width:850px){.new-agent-form{grid-template-columns:1fr 1fr}.new-agent-form label{grid-column:1/-1}.new-agent-form .save-agent{grid-column:1/-1;width:100%}}
+    @media(max-width:850px){.agent-actions{grid-column:1/-1;grid-template-columns:repeat(2,1fr);width:100%}.agent-actions .save-agent{grid-column:auto}.agent-actions button{min-height:42px}}
+    .copy-initial-pin{border:1px solid #38bdf8;background:#0c2f45;color:#bae6fd}.pin-copy-overlay{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:20px;background:rgba(2,10,16,.78);backdrop-filter:blur(5px)}.pin-copy-card{width:min(100%,360px);padding:22px;border:1px solid #3b82a0;border-radius:16px;background:#0c2530;box-shadow:0 20px 55px rgba(0,0,0,.5);text-align:center}.pin-copy-card h2{margin:0;color:#e0f2fe;font-size:20px}.pin-copy-name{margin:8px 0 15px;color:#9eb9c1;font-size:13px}.pin-copy-value{margin:0 0 17px;color:#fef3c7;font:900 42px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em}.pin-copy-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.pin-copy-actions button{min-height:42px;border-radius:9px;font-weight:900;cursor:pointer}.pin-copy-confirm{border:1px solid #38bdf8;background:#075985;color:#e0f2fe}.pin-copy-close{border:1px solid #49636d;background:#102d37;color:#d4e8eb}
+    html.navisuite-light body.agenti-page{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .hero p,html.navisuite-light .section p,html.navisuite-light .agent-name small,html.navisuite-light .empty{color:#547078!important}html.navisuite-light .status,html.navisuite-light .section{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important;box-shadow:0 7px 20px rgba(22,56,66,.08)!important}html.navisuite-light .agent-row{background:linear-gradient(100deg,color-mix(in srgb,var(--grade-color,#9ca3af) 14%,#fff),#fff 48%)!important;border-color:color-mix(in srgb,var(--grade-color,#9ca3af) 45%,#bdd8dc)!important;box-shadow:0 3px 10px rgba(22,56,66,.05)!important}html.navisuite-light .agent-row.latest{background:linear-gradient(100deg,color-mix(in srgb,var(--grade-color,#2dd4bf) 20%,#fff),#fff 55%)!important}html.navisuite-light .agent-name strong,html.navisuite-light .access strong{color:#17323a!important}html.navisuite-light .access,html.navisuite-light .agent-row label{color:#547078!important}html.navisuite-light .agent-row select,html.navisuite-light .new-agent-form input,html.navisuite-light .new-agent-form select{background:#f8fcfc!important;color:#17323a!important;border-color:#b6d4d9!important}html.navisuite-light .count{background:#e2f5f2!important;color:#087b6e!important}html.navisuite-light .save-agent{background:#e3f7f3!important;color:#087b6e!important}html.navisuite-light .reset-pin,html.navisuite-light .generate-pin{background:#fff8df!important;color:#9a6200!important}html.navisuite-light .delete-registration,html.navisuite-light .delete-agent{background:#fff3f4!important;color:#b53c4c!important}html.navisuite-light .pin-copy-overlay{background:rgba(225,241,242,.82)!important}html.navisuite-light .pin-copy-card{background:#fff!important;border-color:#a9cbd1!important}html.navisuite-light .pin-copy-card h2,html.navisuite-light .pin-copy-name{color:#17323a!important}
+  </style>
+</head>
+<body class="agenti-page">
+  <aside class="app-sidebar" id="admin-sidebar"></aside>
+  <main>
+    <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Gestione agenti</h1><p>Anagrafica completa, registrazioni e ultimo accesso.</p></header>
+    <section class="section" id="agent-search-section"><div class="section-head" style="cursor:default"><div><h2>Ricerca agente</h2><p>Scegli un agente dall’elenco per raggiungere subito la sua scheda.</p></div></div><input id="agent-search-input" class="agent-search-input" list="agent-search-options" type="search" autocomplete="off" placeholder="Inizia a digitare nome o ID…" aria-label="Cerca agente"><datalist id="agent-search-options"></datalist></section>
+    <div id="status" class="status">Caricamento dati da Firebase…</div>
+    <section class="section collapsed"><div class="section-head"><div><h2>Connessi adesso</h2><p>Utenti attivi su NaviSuite negli ultimi due minuti.</p></div><span id="online-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="latest-user" class="agent-list"><div class="empty">Caricamento…</div></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>Agenti registrati</h2><p>Ordinati dall’accesso più recente; chi non ha ancora uno storico compare in fondo.</p></div><span id="registered-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="registered-users" class="agent-list"></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>Altri agenti</h2><p>Presenti nell’anagrafica turni ma non ancora registrati, in ordine di grado e anzianità.</p></div><span id="other-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="other-users" class="agent-list"></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>PIN primo accesso</h2><p>Genera una sola volta i PIN iniziali di quattro cifre. Restano visibili accanto agli agenti non registrati fino al loro primo accesso.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="initial-pin-panel"><p>Il PIN iniziale obbliga ogni agente a sceglierne uno personale al primo accesso.</p><button id="generate-all-pins" class="save-agent generate-pin" type="button">Genera PIN mancanti</button><div id="initial-pin-output" class="initial-pin-output" aria-live="polite"></div></div></div></section>
+    <section class="section collapsed"><div class="section-head"><div><h2>Nuovo agente</h2><p>Crea un agente nella residenza scelta (o nella residenza Uffici) e genera un PIN iniziale casuale di 4 cifre.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="new-agent-form"><label>Cognome e nome<input id="new-agent-name" type="text" placeholder="Es. ROSSI M."></label><label>ID agente<input id="new-agent-id" type="text" inputmode="numeric" placeholder="Vuoto = automatico"></label><label>Residenza<select id="new-agent-residence"></select></label><label>Ruolo<select id="new-agent-role"><option value="">Agente standard</option><option value="admin">Amministratore</option></select></label><label id="office-field">Ufficio<select id="new-agent-office"><option value="movimento">Movimento</option><option value="amministrazione">Amministrazione</option><option value="personale">Personale</option><option value="controllo">Controllo</option><option value="direzione">Direzione</option></select></label><label id="grade-field" class="hidden">Grado<select id="new-agent-grade"></select></label><button id="save-new-agent" class="save-agent" type="button">Crea agente</button></div></div></section>
+  </main>
+  <script src="assets/js/admin-firebase-rest.js?v=38"></script>
+  <script src="assets/js/shared-menu.js?v=1.46"></script>
+  <script src="assets/js/mobile-menu-solid.js?v=2"></script>
+  <script src="assets/js/shared-data.js?v=118"></script>
+  <script>
+  (()=>{
+    const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');
+    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    if(!profile||!isAdmin){location.replace('index.html');return;}
+    const $=id=>document.getElementById(id),esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const time=value=>{
+      const raw=String(value||'').trim();
+      if(!raw)return 0;
+      if(/^\d{4}-\d{2}-\d{2}(?:T|\s|$)/.test(raw))return Date.parse(raw)||0;
+      const it=raw.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})(?:\s+(?:alle\s*)?(\d{1,2})[:.](\d{2})(?::(\d{2}))?)?$/i);
+      if(it)return new Date(Number(it[3].length===2?`20${it[3]}`:it[3]),Number(it[2])-1,Number(it[1]),Number(it[4]||0),Number(it[5]||0),Number(it[6]||0)).getTime();
+      return Date.parse(raw)||0;
+    };
+    const fmt=value=>{const timestamp=time(value);return timestamp?new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'medium'}).format(new Date(timestamp)):'Mai';};
+    const roleOptions=['','agente','superuser','admin','barista'];
+    const roleLabels={'':'Agente standard',agente:'Agente standard',superuser:'Super user · prova NaviDiaria',admin:'Amministratore',barista:'Barista'};
+    const gradeDefaults=['marinaio','motorista','capitano','ufficio','barista'];
+    const officeOptions=['movimento','amministrazione','personale','controllo','direzione'];
+    const officeLabel=value=>{const v=String(value||'').trim().toLowerCase();return v?v.charAt(0).toLocaleUpperCase('it')+v.slice(1):v;};
+    const gradeRank={capitano:1,comandante:1,'capo timoniere':1,capotimoniere:1,motorista:2,timoniere:3,'aiuto motorista':4,aiutomotorista:4,marinaio:5,operaio:6,ufficio:7,barista:8,movimento:9,amministrazione:10,personale:11,controllo:12,direzione:13};
+    async function pinHash(pin){
+      const bytes=new TextEncoder().encode('NaviDiaria:'+pin);
+      const digest=await crypto.subtle.digest('SHA-256',bytes);
+      return [...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+    }
+    function randomInitialPin(){
+      const bytes=new Uint32Array(1);crypto.getRandomValues(bytes);
+      return String(1000+(bytes[0]%9000));
+    }
+    async function generateInitialPin(agentId){
+      if(!window.crypto?.subtle||!window.crypto?.getRandomValues)throw new Error('Il browser non supporta la generazione sicura del PIN.');
+      const pin=randomInitialPin();
+      await NaviAdminFirebase.saveUserAuth(agentId,await pinHash(pin),{mustChangePin:true,initialPin:pin});
+      return pin;
+    }
+    async function copyText(value){
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return;}
+      const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();
+      const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('Copia non riuscita.');
+    }
+    function openPinCopyPopup(agentName,pin){
+      const overlay=document.createElement('div');overlay.className='pin-copy-overlay';
+      const card=document.createElement('section');card.className='pin-copy-card';card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
+      const title=document.createElement('h2');title.textContent='PIN iniziale';
+      const name=document.createElement('p');name.className='pin-copy-name';name.textContent=agentName;
+      const value=document.createElement('p');value.className='pin-copy-value';value.textContent=pin;
+      const actions=document.createElement('div');actions.className='pin-copy-actions';
+      const close=document.createElement('button');close.type='button';close.className='pin-copy-close';close.textContent='Chiudi';
+      const copy=document.createElement('button');copy.type='button';copy.className='pin-copy-confirm';copy.textContent='Copia PIN';
+      const dismiss=()=>overlay.remove();close.addEventListener('click',dismiss);overlay.addEventListener('click',event=>{if(event.target===overlay)dismiss();});
+      copy.addEventListener('click',async()=>{try{await copyText(pin);copy.textContent='Copiato ✓';$('status').className='status ok';$('status').textContent=`PIN di ${agentName} copiato negli appunti.`;}catch(error){copy.textContent='Copia non riuscita';$('status').className='status bad';$('status').textContent=error.message||'Impossibile copiare il PIN.';}});
+      actions.append(close,copy);card.append(title,name,value,actions);overlay.append(card);document.body.append(overlay);copy.focus();
+    }
+    const rankOf=agent=>gradeRank[String(agent.qualifica||'marinaio').trim().toLowerCase()]||99;
+    const seniorityOf=name=>NaviSharedData.seniorityRank?NaviSharedData.seniorityRank(name):Number.POSITIVE_INFINITY;
+    let directory=[],registry=[],profiles={},presence=[],initialPins={},searchableAgents=[];
+    const overrideFor=id=>profiles[String(id)]||Object.values(profiles).find(item=>String(item?.id)===String(id))||{};
+    const gradeColor=value=>{
+      const office={movimento:'#facc15',amministrazione:'#38bdf8',personale:'#fb923c',controllo:'#34d399',direzione:'#f472b6'}[String(value||'').toLowerCase()];
+      if(office)return office;
+      return ({capitano:'#facc15',comandante:'#facc15','capo timoniere':'#fb923c',capotimoniere:'#fb923c',timoniere:'#22c55e','aiuto motorista':'#3b82f6',aiutomotorista:'#3b82f6',motorista:'#a855f7',marinaio:'#9ca3af',operaio:'#14b8a6',ufficio:'#22d3ee',barista:'#ec4899'}[String(value||'').toLowerCase()]||'#9ca3af');
+    };
+    function card(agent,user,online=false){
+      const override=overrideFor(agent.id),role=override.role??agent.role??'',grade=override.qualifica||agent.qualifica||'marinaio';
+      const initialPin=!user?String(initialPins[String(agent.id)]||''):'';
+      const isUffici=String(override.residence||agent.residence||'').trim().toLowerCase()==='uffici';
+      const roles=[...new Set([...roleOptions,role].filter((v,i,a)=>a.indexOf(v)===i))],grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),String(grade||'').toLowerCase()].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));
+      const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${initialPin?`<button class="copy-initial-pin" type="button" data-pin="${esc(initialPin)}">Copia PIN</button>`:''}<button class="generate-pin" type="button">${initialPin?'Rigenera PIN':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
+      return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}</article>`;
+    }
+    function refreshInitialPins(authRecords={}){
+      const registeredIds=new Set(registry.map(item=>String(item.id)));
+      const rows=directory.filter(agent=>!registeredIds.has(String(agent.id))).map(agent=>{
+        const auth=authRecords[String(agent.id)]||Object.values(authRecords).find(item=>String(item?.id)===String(agent.id))||null;
+        const pin=auth?.mustChangePin&&/^\d{4}$/.test(String(auth.initialPin||''))?String(auth.initialPin):'';
+        return [String(agent.id),pin];
+      });
+      initialPins=Object.fromEntries(rows.filter(([,pin])=>pin));
+    }
+    async function generateMissingInitialPins(){
+      const registeredIds=new Set(registry.map(item=>String(item.id)));
+      const missing=directory.filter(agent=>!registeredIds.has(String(agent.id))&&!initialPins[String(agent.id)]);
+      for(const agent of missing)initialPins[String(agent.id)]=await generateInitialPin(agent.id);
+      return missing.length;
+    }
+    function render(){
+      const registeredIds=new Set(registry.map(item=>String(item.id))),byId=new Map(directory.map(item=>[String(item.id),item]));
+      registry.forEach(user=>{if(!byId.has(String(user.id)))byId.set(String(user.id),{id:String(user.id),name:user.name||user.id,residence:user.residence||'',qualifica:user.qualifica||'',role:user.role||''})});
+      const registered=registry.map(user=>({user,agent:byId.get(String(user.id))})).sort((a,b)=>{
+        const accessA=time(a.user.lastAccess),accessB=time(b.user.lastAccess);
+        if(accessA!==accessB)return accessB-accessA;
+        if(Boolean(accessA)!==Boolean(accessB))return accessA?-1:1;
+        return String(a.agent?.name||a.user.name||'').localeCompare(String(b.agent?.name||b.user.name||''),'it');
+      });
+      const others=[...byId.values()].filter(agent=>!registeredIds.has(String(agent.id))).sort((a,b)=>{
+        const ra=rankOf(a),rb=rankOf(b);
+        if(ra!==rb)return ra-rb;
+        const sa=seniorityOf(a.name),sb=seniorityOf(b.name);
+        if(sa!==sb)return sa-sb;
+        return String(a.name).localeCompare(String(b.name),'it');
+      });
+      const online=presence.map(item=>{const agent=byId.get(String(item.id))||{id:item.id,name:item.name||item.id,residence:'',qualifica:'marinaio',role:''};const user=registry.find(entry=>String(entry.id)===String(item.id))||{id:item.id,name:item.name};return {agent,user:{...user,onlineAt:item.lastSeen}};});
+      $('latest-user').innerHTML=online.length?online.map(item=>card(item.agent,item.user,true)).join(''):'<div class="empty">Nessun utente connesso in questo momento.</div>';
+      $('registered-users').innerHTML=registered.length?registered.map(item=>card(item.agent,item.user)).join(''):'<div class="empty">Nessun agente registrato.</div>';
+      $('other-users').innerHTML=others.length?others.map(agent=>card(agent,null)).join(''):'<div class="empty">Tutti gli agenti risultano registrati.</div>';
+      $('online-count').textContent=online.length;$('registered-count').textContent=registered.length;$('other-count').textContent=others.length;
+      const search=$('agent-search-input'),options=$('agent-search-options'),previous=search.value,allAgents=[...byId.values()].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'it')||String(a.id||'').localeCompare(String(b.id||''),'it'));
+      searchableAgents=allAgents.map(agent=>({...agent,searchLabel:String(agent.name||agent.id)+' · '+String(agent.id)}));
+      options.innerHTML=searchableAgents.map(agent=>'<option value="'+esc(agent.searchLabel)+'" label="'+esc(agent.residence||'Residenza non indicata')+'"></option>').join('');
+      search.value=previous;
+    }
+    function focusAgent(agentId){
+      const target=[...document.querySelectorAll('.agent-row[data-agent-id]')].find(row=>String(row.dataset.agentId)===String(agentId)&&row.closest('#registered-users,#other-users'));
+      if(!target)return;
+      const section=target.closest('.section');if(section)section.classList.remove('collapsed');
+      requestAnimationFrame(()=>{target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.add('search-target');setTimeout(()=>target.classList.remove('search-target'),2200);});
+    }
+    document.getElementById('agent-search-input').addEventListener('change',event=>{const value=String(event.target.value||'').trim().toLocaleLowerCase('it');const match=searchableAgents.find(agent=>agent.searchLabel.toLocaleLowerCase('it')===value);if(match)focusAgent(match.id);});
+    document.addEventListener('change',event=>{const select=event.target.closest('[data-grade]');if(!select)return;const row=select.closest('.agent-row');row.style.setProperty('--grade-color',gradeColor(select.value));row.querySelector('.grade-badge').textContent=officeOptions.includes(String(select.value).toLowerCase())?officeLabel(select.value):select.value;});
+    document.addEventListener('click',event=>{
+      const head=event.target.closest('.section-head');
+      if(!head||head.closest('.save-agent'))return;
+      const section=head.closest('.section');
+      if(section)section.classList.toggle('collapsed');
+    });
+    document.addEventListener('click',async event=>{
+      const copyButton=event.target.closest('.copy-initial-pin');
+      if(copyButton){const row=copyButton.closest('[data-agent-id]');openPinCopyPopup(row.dataset.agentName,copyButton.dataset.pin);return;}
+      const button=event.target.closest('.save-agent,.generate-pin,.delete-registration,.delete-agent');if(!button)return;const row=button.closest('[data-agent-id]'),targetAgentId=row.dataset.agentId,user=registry.find(item=>String(item.id)===String(targetAgentId));button.disabled=true;
+      try{
+        if(button.classList.contains('save-agent')){
+          const isUfficiRow=String(row.dataset.residence||'').trim().toLowerCase()==='uffici';
+          const saved=await NaviAdminFirebase.saveAgentProfile(targetAgentId,{
+            role:row.querySelector('[data-role]').value,
+            qualifica:row.querySelector('[data-grade]').value,
+            ...(isUfficiRow?{residence:'Uffici',name:String(row.dataset.agentName||'')}:{})
+          });
+          profiles[String(saved.id)]=saved;NaviSharedData.clear();$('status').textContent='Ruolo e grado salvati su Firebase.';}
+        else if(button.classList.contains('generate-pin')){
+          const agentLabel=user?.name||row.dataset.agentName||targetAgentId;
+          if(!confirm(`Generare un nuovo PIN iniziale per ${agentLabel}? L’eventuale PIN personale precedente non funzionerà più.`))return;
+          const pin=await generateInitialPin(targetAgentId);
+          initialPins[String(targetAgentId)]=pin;
+          localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);
+          render();
+          $('status').textContent=`Nuovo PIN iniziale per ${agentLabel}: ${pin}. Comunicalo all’agente: al primo accesso dovrà modificarlo.`;
+        }
+        else if(button.classList.contains('delete-agent')){
+          const agentLabel=user?.name||row.dataset.agentName||targetAgentId;
+          if(!confirm(`Eliminare definitivamente l'agente ${agentLabel}? Verranno rimossi profilo, PIN e registrazione.`))return;
+          await Promise.allSettled([NaviAdminFirebase.deleteAgentProfile(targetAgentId),NaviAdminFirebase.resetUserAuth(targetAgentId),NaviAdminFirebase.deleteRegisteredUser(targetAgentId)]);
+          localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);
+          NaviSharedData.clear();
+          await NaviSharedData.load('',{force:true}).catch(()=>{});
+          directory=NaviSharedData.directory()||[];
+          const data=await NaviAdminFirebase.getAgentAdminData();
+          registry=data.users||[];profiles=data.profiles||{};
+          presence=await NaviAdminFirebase.listUserPresence();
+          render();
+          $('status').textContent=`Agente ${agentLabel} eliminato.`;}
+        else{
+          if(button.classList.contains('reset-pin')){if(!confirm(`Resettare il PIN di ${user?.name||targetAgentId}?`))return;const pin=await generateInitialPin(targetAgentId);localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);$('status').textContent=`Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
+          else{if(!confirm(`Eliminare la registrazione di ${user?.name||targetAgentId}? L’agente resterà nell’anagrafica e riceverà un nuovo PIN iniziale.`))return;const pin=await generateInitialPin(targetAgentId);await NaviAdminFirebase.deleteRegisteredUser(targetAgentId);registry=registry.filter(item=>String(item.id)!==String(targetAgentId));initialPins[String(targetAgentId)]=pin;localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);render();$('status').textContent=`Registrazione eliminata. Nuovo PIN iniziale per ${user?.name||targetAgentId}: ${pin}.`;}
+        }
+        $('status').className='status ok';
+      }catch(error){        $('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}finally{button.disabled=false;}
+    });
+    document.getElementById('generate-all-pins').addEventListener('click',async()=>{
+      const button=$('generate-all-pins'),output=$('initial-pin-output');
+      button.disabled=true;output.textContent='Verifica PIN iniziali…';
+      try{
+        const created=await generateMissingInitialPins();
+        render();
+        output.textContent=created?`Generati ${created} PIN: sono ora visibili accanto ai rispettivi agenti.`:'Nessun PIN mancante.';
+        $('status').className='status ok';
+        $('status').textContent=created?`Generati ${created} PIN iniziali mancanti.`:'Tutti gli agenti non registrati hanno già un PIN iniziale.';
+      }catch(error){output.textContent='Errore: '+(error.message||'generazione non riuscita.');}
+      finally{button.disabled=false;}
+    });
 
-ReferenceError: agenti is not defined
-    at [eval]:1:49
-    at runScriptInThisContext (node:internal/vm:219:10)
-    at node:internal/process/execution:451:12
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:449:60)
-    at evalFunction (node:internal/process/execution:283:30)
-    at evalTypeScript (node:internal/process/execution:295:3)
-    at node:internal/main/eval_string:71:3
+    document.getElementById('save-new-agent').addEventListener('click',async()=>{
+      const name=$('new-agent-name').value.trim().toLocaleUpperCase('it');
+      const residence=$('new-agent-residence').value;
+      const isUffici=String(residence||'').toLowerCase()==='uffici';
+      const qualifica=(isUffici?$('new-agent-office'):$('new-agent-grade')).value;
+      const role=$('new-agent-role').value;
+      let id=$('new-agent-id').value.trim();
+      if(!name){$('status').className='status bad';$('status').textContent='Inserisci il cognome e nome dell’agente.';return;}
+      if(!residence){$('status').className='status bad';$('status').textContent='Seleziona una residenza.';return;}
+      if(!qualifica){$('status').className='status bad';$('status').textContent=isUffici?'Seleziona un ufficio valido.':'Seleziona un grado valido.';return;}
+      if(!id)id=isUffici?`UFF_${Date.now().toString().slice(-8)}`:`NEW_${Date.now().toString().slice(-8)}`;
+      const button=$('save-new-agent');button.disabled=true;
+      try{
+        const saved=await NaviAdminFirebase.saveAgentProfile(id,{name,residence,qualifica,role});
+        const initialPin=await generateInitialPin(id);
+        initialPins[String(id)]=initialPin;
+        profiles[String(saved.id)]=saved;
+        NaviSharedData.clear();
+        await NaviSharedData.load('',{force:true}).catch(()=>{});
+        directory=NaviSharedData.directory()||[];
+        render();
+        $('new-agent-name').value='';$('new-agent-id').value='';
+        $('status').className='status ok';
+        $('status').textContent=isUffici
+          ? `Agente ${name} creato in residenza Uffici · ${officeLabel(qualifica)}. PIN iniziale: ${initialPin}.`
+          : `Agente ${name} creato in residenza ${residence} · grado ${qualifica}. PIN iniziale: ${initialPin}.`;
+      }catch(error){$('status').className='status bad';$('status').textContent=error.message||'Operazione non riuscita.';}
+      finally{button.disabled=false;}
+    });
+    (async()=>{await NaviAdminFirebase.ready;await NaviAdminFirebase.touchUserPresence(profile);await NaviSharedData.load('',{force:true});directory=NaviSharedData.directory()||[];const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};refreshInitialPins(data.auth||{});presence=await NaviAdminFirebase.listUserPresence();const residenceSelect=$('new-agent-residence');const residenceOptions=[...new Set(['Uffici',...directory.map(item=>String(item.residence||'').trim()),...Object.values(profiles).map(item=>String(item.residence||'').trim())].filter(Boolean))];residenceSelect.innerHTML=residenceOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const gradeOptions=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),...Object.values(profiles).map(item=>String(item.qualifica||'').toLowerCase())].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));$('new-agent-grade').innerHTML=gradeOptions.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('');const syncNewAgentFields=()=>{const isUffici=String(residenceSelect.value||'').toLowerCase()==='uffici';$('office-field').classList.toggle('hidden',!isUffici);$('grade-field').classList.toggle('hidden',isUffici);};residenceSelect.addEventListener('change',syncNewAgentFields);syncNewAgentFields();render();setInterval(async()=>{try{await NaviAdminFirebase.touchUserPresence(profile);presence=await NaviAdminFirebase.listUserPresence();render();}catch{}},30000);$('status').className='status ok';$('status').textContent=`Firebase connesso · ${directory.length} agenti in anagrafica · ${registry.length} registrati.`;})().catch(error=>{$('status').className='status bad';$('status').textContent=`Errore: ${error.message}`;});
+  })();
+  </script>
 
-Node.js v24.19.0
+  <script src="assets/js/announcements-recovered.js?v=1"></script>
+</body>
+</html>
