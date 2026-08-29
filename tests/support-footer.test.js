@@ -11,7 +11,7 @@ assert.match(menu,/aria-label="Offrimi un caffè e sostieni NaviSuite tramite Pa
 assert.match(menu,/min-height:44px/);
 assert.doesNotMatch(menu,/\.navisuite-support-footer\{[^}]*position:\s*(?:fixed|sticky)/);
 
-for(const file of ['index.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','segnalazioni.html','agenti.html','impostazioni.html','aggiornamenti.html','Orario.html','orari-tabella.html','gestione_navi.html']){
+for(const file of ['index.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','segnalazioni.html','agenti.html','impostazioni.html','aggiornamenti.html','Orario.html','orari-tabella.html','gestione_navi.html','quiz.html','cambia-pin.html','accademia_ufficio_movimento.html']){
   const html=fs.readFileSync(file,'utf8');
   assert.match(html,/assets\/js\/shared-menu\.js\?v=1\.46/,'shared footer cache version missing in '+file);
 }
