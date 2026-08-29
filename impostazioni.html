@@ -1,15 +1,265 @@
-[eval]:1
-process.stdout.write(require('fs').readFileSync(impostazioni.html,'utf8'))
-                                                ^
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NaviDiaria">
+  <meta name="theme-color" content="#002b5e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <link rel="apple-touch-startup-image" href="assets/images/splash_ios.png">
+  <title>NaviSuite Impostazioni</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/navi-layout.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--nav:var(--navy);--nav-2:#102d37;--accent:#2dd4bf;--bg:#081a23;--card:#102833;--line:#22424d;--ink:#e8f3f4;--muted:#91aab2;--danger:#f47782;font-family:var(--navi-font-sans)}
+    .switch-row{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:24px 0 18px;padding:15px 0;border-top:1px solid #203e48;border-bottom:1px solid #203e48}.switch-copy strong{display:block;font-size:14px}.switch-copy span{color:var(--muted);font-size:12px}.switch{position:relative;width:48px;height:28px;flex:none}.switch input{position:absolute;opacity:0}.switch i{display:block;width:100%;height:100%;border-radius:999px;background:#49626a;transition:.2s}.switch i:after{content:"";position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#eaf5f5;box-shadow:0 2px 6px #0006;transition:.2s}.switch input:checked+i{background:var(--accent)}.switch input:checked+i:after{transform:translateX(20px)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{display:grid;gap:7px}.field label{font-size:12px;font-weight:800;color:#b7cbd0}.field input,.field select{width:100%;padding:11px 12px;border:1px solid #31535e;border-radius:9px;background:#0b2029;color:var(--ink);outline:none;color-scheme:dark}.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #2dd4bf22}
+    .status{min-height:22px;margin-top:13px;color:#63dfca;font-size:13px;font-weight:700}.future{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.future div{padding:16px;border:1px dashed #36545d;border-radius:10px;background:#0d232c;color:var(--muted);font-size:13px}.future strong{display:block;margin-bottom:4px;color:#c5d7da}
+    .admin-section[hidden]{display:none}.table-wrap{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:12px 14px;border-bottom:1px solid #203e48;text-align:left;font-size:13px}th{background:#0b2029;color:#9db7be;font-size:11px;letter-spacing:.06em;text-transform:uppercase}tbody tr:hover{background:#14323d}tr:last-child td{border-bottom:0}.user-name{font-weight:800}.user-meta{display:block;margin-top:3px;color:var(--muted);font-size:11px}.pin-badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#123f3d;color:#6ce9d5;font-size:11px;font-weight:800}.reset-btn,.delete-user-btn{padding:7px 10px;border:1px solid #80424a;border-radius:8px;background:#351e24;color:#ff9ba4;font-size:11px;font-weight:800;cursor:pointer}.reset-btn:hover{background:#b83b45;color:#fff}.delete-user-btn{margin-left:6px;border-color:#b83b45;background:#6b2029;color:#fff}.delete-user-btn:hover{background:#dc3545}.empty-row{padding:25px!important;text-align:center;color:var(--muted)}
+    .weeks-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap}.weeks-legend{display:flex;gap:8px;flex-wrap:wrap}.weeks-legend span{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:11px;font-weight:800}.weeks-legend i{width:9px;height:9px;border-radius:3px}.weeks-legend .official{background:#22c55e}.weeks-legend .draft{background:#f59e0b}.weeks-legend .hidden{background:#64748b}.weeks-list{display:grid;gap:10px;margin-top:16px}.week-row{display:grid;grid-template-columns:minmax(190px,1fr) auto;gap:14px;align-items:center;padding:14px;border:1px solid #294b56;border-radius:11px;background:#0b2029}.week-label strong{display:block;font-size:14px}.week-label span{display:block;margin-top:4px;color:var(--muted);font-size:11px}.week-state{display:flex;gap:6px}.week-state button{padding:7px 9px;border:1px solid #31535e;border-radius:8px;background:#102833;color:#9fb8c2;font-size:10px;font-weight:900;cursor:pointer}.week-state button.active[data-state="ufficiale"]{border-color:#22c55e;background:#143622;color:#86efac}.week-state button.active[data-state="bozza"]{border-color:#f59e0b;background:#3a2910;color:#fcd34d}.week-state button.active[data-state="nascosta"]{border-color:#64748b;background:#202a36;color:#cbd5e1}.month-title{margin:20px 0 2px;color:#6ce9d5;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.weeks-loading{padding:20px;text-align:center;color:var(--muted)}
+    .settings-foldable>.section-head{position:relative;cursor:pointer;user-select:none}.settings-foldable>.section-head:focus{outline:2px solid #2dd4bf;outline-offset:4px;border-radius:8px}.settings-foldable .settings-chevron{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;border:1px solid #31535e;border-radius:50%;color:var(--accent);font-size:16px;transition:transform .2s}.settings-foldable[data-collapsed="true"] .settings-chevron{transform:rotate(-90deg)}.settings-foldable[data-collapsed="true"]>:not(.section-head){display:none!important}.settings-foldable>.section-head p{padding-right:42px}
+    .calendar-url{display:grid;gap:8px;margin-top:18px}.calendar-url input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #31535e;border-radius:9px;background:#071b23;color:#9fded6;font:600 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}.calendar-help{margin:12px 0 0;padding:12px 14px;border:1px solid #294b56;border-radius:9px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5}.calendar-help strong{color:#d8e8ea}.calendar-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.calendar-actions[hidden],.calendar-url[hidden]{display:none!important}.calendar-login{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-top:16px;padding:14px;border:1px solid #31535e;border-radius:10px;background:#0b2029}.calendar-login[hidden]{display:none!important}
+    @media(max-width:800px){.grid,.future,.calendar-login{grid-template-columns:1fr}.week-row{grid-template-columns:1fr}.week-state{display:grid;grid-template-columns:repeat(3,1fr)}.week-state button{padding:8px 4px}body.impostazioni-page .mobile-liquid-nav .nav-item{width:64px}body.impostazioni-page .mobile-liquid-nav .nav-item span:last-child{width:auto;font-size:9px;white-space:nowrap}}
+  </style>
+</head>
+<body class="impostazioni-page turni-page">
+  <aside class="sidebar app-sidebar" id="settings-sidebar">
+    <a class="brand" href="index.html"><span>N</span> NaviTurni</a>
+    <nav>
+      <a href="naviturni.html"><span>▦</span> NaviTurni</a>
+      <a href="navidiaria.html"><span>≈</span> NaviDiaria</a>
+      <a href="documenti.html"><span>▤</span> ODS / Turni</a>
+      <a class="active" href="impostazioni.html"><span>⚙</span> Impostazioni</a>
+    </nav>
+    <div class="user">PROFILO<strong id="profile-name">—</strong></div>
+  </aside>
+  <header><small>AREA PERSONALE</small><h1>NaviSuite Impostazioni</h1></header>
+  <main>
+    <p class="intro">Gestisci le preferenze personali di NaviTurni. Le impostazioni sono associate al tuo profilo.</p>
+    <section class="section admin-section" id="gestione-settimane" hidden>
+      <div class="section-head"><div><h2>Pubblicazione settimane</h2><p>Scegli quali settimane Firebase considera ufficiali, in bozza oppure nascoste.</p></div><span class="badge">Solo amministratori</span></div>
+      <div class="calendar-login" id="draft-period-box">
+        <div class="grid">
+          <div class="field"><label for="draft-start">Inizio bozza</label><input id="draft-start" type="date" value="2026-08-10"></div>
+          <div class="field"><label for="draft-end">Fine bozza</label><input id="draft-end" type="date" value="2026-09-06"></div>
+        </div>
+        <button class="btn primary" type="button" id="save-draft-period">Salva periodo bozza</button>
+        <button class="btn" type="button" id="delete-draft-period" style="border-color:#80424a;background:#351e24;color:#ff9ba4">Elimina bozza</button>
+      </div>
+      <div class="status" id="draft-period-status" aria-live="polite"></div>
+      <div class="weeks-toolbar">
+        <div class="weeks-legend"><span><i class="official"></i>Ufficiale</span><span><i class="draft"></i>Bozza</span><span><i class="hidden"></i>Nascosta</span></div>
+        <button class="btn primary" type="button" id="save-weeks">Salva calendario</button>
+      </div>
+      <div class="weeks-list" id="weeks-list"><div class="weeks-loading">Caricamento settimane…</div></div>
+      <div class="status" id="weeks-status" aria-live="polite"></div>
+    </section>
+    <section class="section admin-section" id="gestione-avvisi" hidden>
+      <div class="section-head"><div><h2>Guide popup</h2><p>Prepara, controlla in anteprima e pubblica una guida diversa per ciascuna pagina.</p></div><span class="badge">Pubblicazione · Tutti gli utenti</span></div>
+      <div id="announcement-grid"></div>
+      <div class="status" id="announcement-status" aria-live="polite"></div>
+    </section>
+    <section class="section" id="theme-test-setting" hidden>
+      <div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è disponibile solo per il tuo profilo di prova.</p></div><span class="badge">Solo Pedro</span></div>
+      <div class="field" style="max-width:320px"><label for="navisuite-theme-select">Aspetto</label><select id="navisuite-theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>
+    </section>
+    <section class="section" id="altre-preferenze">
+      <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
+      <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
+    </section>
+    <section class="section admin-section" id="gestione-utenti" hidden>
+      <div class="section-head"><div><h2>Gestione utenti</h2><p>Agenti registrati, ultimo accesso e ultima pagina aperta rilevati direttamente da Firebase.</p></div><span class="badge">Firebase · Admin</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Utente</th><th>Registrato il</th><th>Ultimo accesso</th><th>Ultima pagina</th><th>PIN</th></tr></thead>
+          <tbody id="users-list"><tr><td class="empty-row" colspan="5">Caricamento utenti…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="status" id="users-status" aria-live="polite"></div>
+    </section>
+  </main>
+  <nav class="mobile-liquid-nav" aria-label="Navigazione principale mobile">
+    <a href="naviturni.html" class="nav-item"><span class="nav-icon">▦</span><span>Turni</span></a>
+    <a href="cambi_turno.html" class="nav-item"><span class="nav-icon">⇄</span><span>Cambio</span></a>
+    <a href="documenti.html" class="nav-item"><span class="nav-icon">▤</span><span>Doc</span></a>
+    <a href="impostazioni.html" class="nav-item active" aria-current="page"><span class="nav-icon">⚙</span><span>Impost.</span></a>
+  </nav>
+  <script src="assets/js/admin-firebase-rest.js?v=40"></script>
+  <script src="assets/js/draft-period.js?v=1"></script>
+  <script src="assets/js/shared-menu.js?v=1.46"></script>
+  <script src="assets/js/mobile-menu-solid.js?v=1"></script>
+  <script>
+    const LOGIN_KEY="naviturni_logged_agent";
+    const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
+    if(!profile){location.replace("index.html");}
+    const profileName=profile?.name||profile?.cognome||"Agente";
+    const profileNameElement=document.getElementById("profile-name");
+    if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
+    const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
+    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    const isPedroThemeTest=['91','AG_PEDRONI_M'].includes(String(profile?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(profile?.name||profile?.agente||profile?.cognome||''));
+    const themeTestSection=document.getElementById('theme-test-setting');
+    const themeSelect=document.getElementById('navisuite-theme-select');
+    if(isPedroThemeTest&&themeTestSection&&themeSelect){
+      themeTestSection.hidden=false;
+      const themeKey='navisuite.theme.'+String(profile?.id||'PEDRONI');
+      themeSelect.value=localStorage.getItem(themeKey)==='light'?'light':'dark';
+      themeSelect.addEventListener('change',()=>{
+        localStorage.setItem(themeKey,themeSelect.value);
+        document.documentElement.classList.toggle('navisuite-light',themeSelect.value==='light');
+        document.body.classList.toggle('navisuite-light',themeSelect.value==='light');
+      });
+    }
+    const weeksSection=document.getElementById('gestione-settimane');
+    const weeksList=document.getElementById('weeks-list');
+    const weeksStatus=document.getElementById('weeks-status');
+    const saveWeeksButton=document.getElementById('save-weeks');
+    let loadedWeeks=[];
+    const adminSection=document.getElementById('gestione-utenti');
+    const usersList=document.getElementById('users-list');
+    const usersStatus=document.getElementById('users-status');
 
-ReferenceError: impostazioni is not defined
-    at [eval]:1:49
-    at runScriptInThisContext (node:internal/vm:219:10)
-    at node:internal/process/execution:451:12
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:449:60)
-    at evalFunction (node:internal/process/execution:283:30)
-    at evalTypeScript (node:internal/process/execution:295:3)
-    at node:internal/main/eval_string:71:3
+    function safeText(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+    function accessTimestamp(value){
+      const raw=String(value||'').trim();
+      if(!raw)return 0;
+      const italian=raw.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})(?:\s+(?:alle\s*)?(\d{1,2})[:.](\d{2})(?::(\d{2}))?)?/i);
+      if(italian){
+        const year=Number(italian[3].length===2?`20${italian[3]}`:italian[3]);
+        return new Date(year,Number(italian[2])-1,Number(italian[1]),Number(italian[4]||0),Number(italian[5]||0),Number(italian[6]||0)).getTime();
+      }
+      const parsed=Date.parse(raw);
+      return Number.isFinite(parsed)?parsed:0;
+    }
+    function renderUsers(users){
+      if(!users.length){usersList.innerHTML='<tr><td class="empty-row" colspan="5">Nessun utente registrato.</td></tr>';return;}
+      const ordered=[...users].sort((a,b)=>accessTimestamp(b.lastAccess)-accessTimestamp(a.lastAccess)||String(a.name||'').localeCompare(String(b.name||''),'it'));
+      const date=value=>{const time=accessTimestamp(value);return time?new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'medium'}).format(new Date(time)):'—';};
+      usersList.innerHTML=ordered.map(user=>`<tr><td><span class="user-name">${safeText(user.name)}</span><span class="user-meta">ID ${safeText(user.id)}${user.residence?` · ${safeText(user.residence)}`:''}</span></td><td>${safeText(date(user.registeredAt))}</td><td>${safeText(date(user.lastAccess))}</td><td>${safeText(user.lastPage||'—')}</td><td><button class="reset-btn" type="button" data-reset-pin="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Reset PIN</button><button class="delete-user-btn" type="button" data-delete-user="${safeText(user.id)}" data-user-name="${safeText(user.name)}">Elimina</button></td></tr>`).join('');
+    }
+    function formatWeekDate(iso){
+      const [year,month,day]=String(iso||'').split('-').map(Number);
+      if(!year||!month||!day)return iso||'';
+      return new Intl.DateTimeFormat('it-IT',{day:'numeric',month:'long'}).format(new Date(year,month-1,day));
+    }
+    function renderWeeks(weeks){
+      loadedWeeks=Array.isArray(weeks)?weeks:[];
+      if(!loadedWeeks.length){weeksList.innerHTML='<div class="weeks-loading">Nessuna settimana trovata su Firebase.</div>';return;}
+      let currentMonth='';
+      weeksList.innerHTML=loadedWeeks.map((week,index)=>{
+        const month=String(week.start||'').slice(0,7);
+        const monthHeading=month!==currentMonth?`<div class="month-title">${new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(new Date(`${week.start}T12:00:00`))}</div>`:'';
+        currentMonth=month;
+        const state=String(week.state||'ufficiale').toLowerCase();
+        return `${monthHeading}<div class="week-row" data-week-index="${index}"><div class="week-label"><strong>${formatWeekDate(week.start)} – ${formatWeekDate(week.end)}</strong><span>${week.days||7} giorni disponibili</span></div><div class="week-state"><button type="button" data-state="ufficiale" class="${state==='ufficiale'?'active':''}">UFFICIALE</button><button type="button" data-state="bozza" class="${state==='bozza'?'active':''}">BOZZA</button><button type="button" data-state="nascosta" class="${state==='nascosta'?'active':''}">NASCOSTA</button></div></div>`;
+      }).join('');
+    }
+    weeksList.addEventListener('click',event=>{
+      const button=event.target.closest('[data-state]');if(!button)return;
+      const row=button.closest('[data-week-index]');if(!row)return;
+      const index=Number(row.dataset.weekIndex);if(!loadedWeeks[index])return;
+      loadedWeeks[index].state=button.dataset.state;
+      row.querySelectorAll('[data-state]').forEach(item=>item.classList.toggle('active',item===button));
+      weeksStatus.textContent='Modifiche non ancora salvate.';
+    });
+    async function loadWeeks(){
+      if(!isAdmin)return;
+      weeksSection.hidden=false;
+      if(!window.NaviAdminFirebase){weeksList.innerHTML='<div class="weeks-loading">Firebase non disponibile.</div>';return;}
+      try{
+        await NaviAdminFirebase.ready;
+        renderWeeks(await NaviAdminFirebase.getWeekStatuses());
+      }catch(error){weeksList.innerHTML=`<div class="weeks-loading">${safeText(error.message||'Impossibile caricare le settimane.')}</div>`;}
+    }
+    saveWeeksButton.addEventListener('click',async()=>{
+      if(!loadedWeeks.length)return;
+      saveWeeksButton.disabled=true;weeksStatus.textContent='Salvataggio calendario…';
+      try{
+        const statuses=loadedWeeks.map(week=>({start:week.start,end:week.end,state:week.state}));
+        await NaviAdminFirebase.saveWeekStatuses(statuses);
+        weeksStatus.textContent='Calendario salvato. NaviTurni userà subito questi stati al prossimo aggiornamento.';
+      }catch(error){weeksStatus.textContent=error.message||'Salvataggio non riuscito.';}
+      finally{saveWeeksButton.disabled=false;}
+    });
 
-Node.js v24.19.0
+    const draftStart=document.getElementById('draft-start');
+    const draftEnd=document.getElementById('draft-end');
+    const draftStatus=document.getElementById('draft-period-status');
+    const saveDraftButton=document.getElementById('save-draft-period');
+    async function loadDraftPeriod(){
+      if(!isAdmin||!window.NaviDraftPeriod)return;
+      const period=await NaviDraftPeriod.refresh();
+      draftStart.value=period.start;draftEnd.value=period.end;
+      draftStatus.textContent=`Periodo attuale: ${formatWeekDate(period.start)} – ${formatWeekDate(period.end)}.`;
+    }
+    saveDraftButton.addEventListener('click',async()=>{
+      if(!draftStart.value||!draftEnd.value){draftStatus.textContent='Inserisci entrambe le date.';return;}
+      if(draftStart.value>draftEnd.value){draftStatus.textContent='La data iniziale non può essere successiva alla data finale.';return;}
+      saveDraftButton.disabled=true;draftStatus.textContent='Salvataggio del periodo bozza…';
+      try{
+        const period=await NaviDraftPeriod.save({start:draftStart.value,end:draftEnd.value});
+        draftStatus.textContent=`Periodo bozza salvato: ${formatWeekDate(period.start)} – ${formatWeekDate(period.end)}. Turni e Cambi si aggiorneranno automaticamente.`;
+      }catch(error){draftStatus.textContent=error.message||'Salvataggio non riuscito.';}
+      finally{saveDraftButton.disabled=false;}
+});
+
+    const deleteDraftButton=document.getElementById('delete-draft-period');
+    deleteDraftButton.addEventListener('click',async()=>{
+      if(!confirm('Eliminare il periodo bozza? Tutte le settimane torneranno a "Ufficiale".'))return;
+      draftStatus.textContent='Eliminazione bozza…';
+      try{
+        await NaviDraftPeriod.reset();
+        draftStart.value='';draftEnd.value='';
+        draftStatus.textContent='Bozza eliminata. Il periodo è stato resettato.';
+      }catch(error){draftStatus.textContent=error.message||'Eliminazione non riuscita.';}
+    });
+
+    async function loadRegisteredUsers(){
+      if(!isAdmin)return;
+      adminSection.hidden=false;
+      if(!window.NaviAdminFirebase){usersList.innerHTML='<tr><td class="empty-row" colspan="5">Firebase non disponibile. Ricarica la pagina.</td></tr>';return;}
+      try{
+        await NaviAdminFirebase.recordUserAccess(profile);
+        renderUsers(await NaviAdminFirebase.listRegisteredUsers());
+      }catch(error){usersList.innerHTML=`<tr><td class="empty-row" colspan="5">${safeText(error.message||'Impossibile caricare gli utenti.')}</td></tr>`;}
+    }
+    usersList.addEventListener('click',async event=>{
+      const button=event.target.closest('[data-reset-pin],[data-delete-user]');if(!button)return;
+      const deleting=button.hasAttribute('data-delete-user');
+      const targetAgentId=deleting?button.dataset.deleteUser:button.dataset.resetPin;
+      const userName=button.dataset.userName||targetAgentId;
+      const question=deleting?`Eliminare l’account di ${userName}? Saranno cancellati PIN, accessi e dati associati. L’agente resterà nell’anagrafica dei turni e potrà registrarsi di nuovo.`:`Resettare il PIN di ${userName}? Al prossimo accesso dovrà impostarne uno nuovo.`;
+      if(!confirm(question))return;
+      button.disabled=true;usersStatus.textContent=deleting?'Eliminazione utente in corso…':'Reset PIN in corso…';
+      try{
+        await NaviAdminFirebase.resetUserAuth(targetAgentId);
+        if(deleting)await NaviAdminFirebase.deleteRegisteredUser(targetAgentId);
+        localStorage.removeItem(`navidiaria.pin.${targetAgentId}`);
+        usersStatus.textContent=deleting?`Account di ${userName} eliminato.`:`PIN di ${userName} resettato.`;
+        await loadRegisteredUsers();
+      }catch(error){usersStatus.textContent=error.message||'Reset PIN non riuscito.';button.disabled=false;}
+    });
+    function installSettingsAccordion(){
+      document.querySelectorAll('main > .section').forEach(section=>{
+        const head=section.querySelector(':scope > .section-head');
+        if(!head||section.dataset.accordionReady)return;
+        section.dataset.accordionReady='true';section.classList.add('settings-foldable');section.dataset.collapsed='true';
+        head.tabIndex=0;head.setAttribute('role','button');head.setAttribute('aria-expanded','false');
+        const chevron=document.createElement('span');chevron.className='settings-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';head.appendChild(chevron);
+        const toggle=()=>{const collapsed=section.dataset.collapsed==='true';section.dataset.collapsed=String(!collapsed);head.setAttribute('aria-expanded',String(collapsed));};
+        head.addEventListener('click',event=>{if(event.target.closest('button,a,input,select,textarea'))return;toggle();});
+        head.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}});
+      });
+    }
+    installSettingsAccordion();
+    loadWeeks();
+    loadDraftPeriod();
+  </script>
+  <script src="assets/js/announcements-recovered.js?v=1"></script>
+</body>
+</html>
