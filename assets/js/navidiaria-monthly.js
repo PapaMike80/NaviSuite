@@ -98,7 +98,7 @@ try{(()=>{
     window.NaviDayModal?.open({date:dateIso,showDiariaButton:false,shifts:SHIFTS,shiftFor,shiftColors,
       shipForService:(date,shift)=>(monthlyShipAssignments.get(`${date}|${String(shift||'').trim().toUpperCase()}`)||[]).join(' / '),refuelSuggestionMinutes:()=>0,changeSuggestionMinutes:entry=>window.NaviDiariaChange?.suggestionMinutes(entry)||0,
       loadEntry:async()=>{await loadMonthlyShipAssignments();const existing=entries.find(e=>e.date===dateIso);return existing?{...existing}:defaultEntry(dateIso)},
-      saveEntry:draft=>{if(!draft.id){draft.id=crypto.randomUUID();draft.manualOverride=true;entries.push(draft)}else{const existing=entries.find(e=>e.id===draft.id)||entries.find(e=>e.date===draft.date);if(existing)Object.assign(existing,draft);else entries.push(draft)}persist();return draft},
+      saveEntry:async draft=>{if(!draft.id){draft.id=crypto.randomUUID();draft.manualOverride=true;entries.push(draft)}else{const existing=entries.find(e=>e.id===draft.id)||entries.find(e=>e.date===draft.date);if(existing)Object.assign(existing,draft);else entries.push(draft)}persist();await window.NaviDiariaRuntime?.saveNow?.();return draft},
       onClose:()=>document.dispatchEvent(new CustomEvent('navidiaria:render'))
     });
   }
