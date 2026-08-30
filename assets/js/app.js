@@ -326,9 +326,14 @@ const sidebar=document.querySelector('.sidebar'),menuButton=document.querySelect
 document.querySelectorAll('.section-collapse').forEach(button=>button.addEventListener('click',()=>{const target=$(button.dataset.collapseTarget),opening=target.hidden;target.hidden=!opening;button.textContent=opening?'⌃':'⌄';button.setAttribute('aria-expanded',String(opening))}));
 document.querySelectorAll('.section-title-toggle').forEach(title=>{const toggle=()=>document.querySelector(`.section-collapse[data-collapse-target="${title.dataset.collapseTarget}"]`).click();title.addEventListener('click',toggle);title.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle()}})});
 document.querySelectorAll('.sidebar a.nav-link').forEach(link=>link.addEventListener('click',event=>{const href=link.getAttribute('href')||'';if(!href.startsWith('#'))return;event.preventDefault();const section=document.querySelector(href);if(!section)return;const alreadySelected=link.classList.contains('active');if(section.id!=='oggi'){if(section.id==='competenze'){const body=$('competencyBody');if(alreadySelected||body.hidden)$('toggleCompetencies').click()}else{const collapseButton=section.querySelector('.section-collapse'),body=collapseButton&&$(collapseButton.dataset.collapseTarget);if(collapseButton&&(alreadySelected||body.hidden))collapseButton.click()}}document.querySelectorAll('.sidebar a.nav-link').forEach(item=>item.classList.toggle('active',item===link));section.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'',href)}));
-window.NaviDiariaRuntime={version:'95',ready:true};
+async function saveEntriesNow(){
+  if(firebaseSaveTimer){clearTimeout(firebaseSaveTimer);firebaseSaveTimer=null}
+  if(localStorage.getItem(FIREBASE_DIRTY_KEY)!=='1')return;
+  await saveEntriesToFirebase();
+}
+window.NaviDiariaRuntime={version:'96',ready:true,saveNow:saveEntriesNow};
 render();
-function flushFirebaseSave(){if(firebaseSaveTimer){clearTimeout(firebaseSaveTimer);firebaseSaveTimer=null;saveEntriesToFirebase().catch(()=>{})}}
+function flushFirebaseSave(){saveEntriesNow().catch(()=>{})}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushFirebaseSave()});
 window.addEventListener('pagehide',flushFirebaseSave);
 initializeAccess().then(()=>{
