@@ -11,6 +11,7 @@
   const sentine=entry=>structured(entry)?minutes(components(entry).sentine):minutes(entry?.sentineActivity?.minutes);
   const sentineType=entry=>entry?.sentineActivity?.type||null;
   const isOrdinaryManual=entry=>entry?.overtimeMeta?.ordinaryMode==='manual';
+  const isWorkedManual=entry=>entry?.overtimeMeta?.workedMode==='manual';
   function activate(entry){
     if(structured(entry))return entry.overtimeComponents;
     // I record precedenti restano intatti fino a una modifica esplicita.
@@ -26,7 +27,10 @@
     if(structured(entry))entry.delay=sum(entry);
     // La nuova relazione viene applicata solo durante un salvataggio esplicito.
     // Nessuna semplice lettura/apertura di una giornata storica la modifica.
-    if(Number.isFinite(Number(serviceMinutes)))entry.workedMinutes=minutes(serviceMinutes)+sum(entry);
+    // Le ore lavorate sono calcolate automaticamente solo finché l'agente
+    // non le ha corrette esplicitamente. Il servizio è una durata prevista,
+    // non un valore minimo delle ore effettivamente lavorate.
+    if(Number.isFinite(Number(serviceMinutes))&&!isWorkedManual(entry))entry.workedMinutes=minutes(serviceMinutes)+sum(entry);
     return entry;
   }
   function recalculateOrdinary(entry,serviceMinutes){
@@ -52,11 +56,12 @@
     return sync(entry,serviceMinutes);
   }
   function setWorked(entry,value,serviceMinutes){
-    activate(entry);
     entry.workedMinutes=minutes(value);
-    entry.overtimeMeta={...(entry.overtimeMeta||{}),ordinaryMode:'auto'};
-    return recalculateOrdinary(entry,serviceMinutes);
+    entry.overtimeMeta={...(entry.overtimeMeta||{}),workedMode:'manual'};
+    // Una correzione manuale delle ore non ricava né modifica le causali:
+    // ritardo, cambio e sentine restano dati distinti e non negativi.
+    return entry;
   }
   function create(){return {ordinario:0,cambi:0,sentine:0}}
-  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,create,minutes,SENTINE_TYPES};
+  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,create,minutes,SENTINE_TYPES};
 })();
