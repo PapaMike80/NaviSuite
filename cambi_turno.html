@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 66161)
-Total output lines: 6439
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -2821,7 +2818,484 @@ Total output lines: 6439
         updateCoverageShiftButtons(ottieniTurnoPulito(selectedShiftValue));
       }
       const residenceButtons = document.getElementById("coverage-residence-buttons");
-      if (residenceBu…6161 tokens truncated…mentById("panel-shift-selector").innerHTML = renderResidenceShiftBubbles(cleanShift);
+      if (residenceButtons) {
+        residenceButtons.innerHTML = Object.keys(globalData.residenze || {}).map(residence =>
+          `<button class="coverage-residence-btn ${residence === currentResidence ? "active" : ""}" data-res="${escapeAttribute(residence)}" type="button" onclick="selectCoverageResidence(decodeURIComponent('${encodeURIComponent(residence)}'))">${residence}</button>`
+        ).join("");
+      }
+      if (document.getElementById("crew-minimum-panel")?.classList.contains("open")) {
+        renderCrewMinimumControls();
+      }
+
+      thead.innerHTML = `<tr><th>Corsa</th>${dateCalendario.map((cal, index) =>
+        `<th data-col="${cal.col}" class="${getCalendarVisualClasses(cal, index)}"><span class="date-head-day">${cal.giornoSett}</span><span class="date-head-num">${cal.dayNum}</span>${cal.odsCoverageNumber ? `<span class="date-head-markers"><span class="date-head-ods" aria-label="Coperto dall’ODS ${cal.odsCoverageNumber}" title="Coperto dall’ODS ${cal.odsCoverageNumber} fino al ${cal.odsCoverageUntil.split('-').reverse().join('/')}"></span></span>` : ''}</th>`
+      ).join("")}</tr>`;
+
+      tbody.innerHTML = shifts.map(shift => {
+        const shiftColor = shiftBorderColor[classify(shift)] || "#94a3b8";
+        const requiredValue = requirements[shift] ?? requirements[shift.toUpperCase()];
+        const required = requiredValue === "" || requiredValue == null ? null : parseInt(requiredValue, 10);
+
+        const cells = dateCalendario.map((cal, calIndex) => {
+          const dayIndex = (cal.col - 3) % 7;
+          const crew = [];
+          let hasTransfer = false;
+          Object.entries(globalData.residenze || {}).forEach(([residence, agents]) => {
+            (agents || []).forEach(agent => {
+              const rawShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
+              if (isSameCrewShift(rawShift, shift)) {
+                const rawUpper = String(rawShift).trim().toUpperCase();
+                const isTransfer = residence !== currentResidence || rawUpper.startsWith("C") || rawUpper.endsWith("C");
+                hasTransfer ||= isTransfer;
+                crew.push(isTransfer ? `${agent.agente} (trasferta da ${residence})` : agent.agente);
+              }
+            });
+          });
+
+          const count = crew.length;
+          const hasOdsVariation = Object.values(globalData.residenze || {}).some(agents =>
+            (agents || []).some(agent => {
+              const variation = agent.variazioni_ods?.[cal.iso];
+              if (!variation) return false;
+              return [variation.turno_originale, variation.turno_nuovo].some(value =>
+                isSameCrewShift(value, shift)
+              );
+            })
+          );
+          const status = required == null || Number.isNaN(required) ? "unconfigured" :
+            count < required ? "incomplete" : count > required ? "overstaffed" : "complete";
+          const label = required == null || Number.isNaN(required) ? String(count) : `${count}/${required}`;
+          const hasRequirement = required != null && !Number.isNaN(required);
+          const cellNotices = [
+            hasRequirement && count > required ? "Sovrannumero" : "",
+            hasTransfer ? "Trasferta" : "",
+            hasOdsVariation ? "Variazione ODS" : ""
+          ].filter(Boolean);
+          const title = escapeAttribute(
+            (crew.length ? crew.join(", ") : "Nessun agente assegnato") +
+            (cellNotices.length ? ` · ${cellNotices.join(" · ")}` : "")
+          );
+          const indicators =
+            (hasRequirement ? `<span class="coverage-indicator ${count < required ? "incomplete" : "complete"}"></span>` : "") +
+            (hasRequirement && count > required ? `<span class="coverage-indicator overstaffed"></span>` : "") +
+            (hasTransfer ? `<span class="coverage-indicator transfer"></span>` : "") +
+            (hasOdsVariation ? `<span class="coverage-indicator ods"></span>` : "");
+          return `<td data-col="${cal.col}" class="coverage-cell ${status} ${hasTransfer ? "has-transfer" : ""} ${getCalendarVisualClasses(cal, calIndex)}" title="${title}" onclick="openCoverageCrew(${cal.col}, '${shift}')"><span class="coverage-indicators">${indicators}</span><span class="coverage-count">${label}</span></td>`;
+        }).join("");
+
+        return `<tr data-shift="${shift}" style="--coverage-shift-color:${shiftColor};--coverage-shift-bg:${shiftColor}24"><td>${shift}</td>${cells}</tr>`;
+      }).join("");
+
+      section.style.display = shifts.length ? "block" : "none";
+    }
+
+    function getTableGradeRank(tr) {
+      const gradeOrder = {
+        "grado-capitano": 1,
+        "grado-capo": 1,
+        "grado-timoniere": 2,
+        "grado-motorista": 3,
+        "grado-aiuto": 4,
+        "grado-marinaio": 5,
+        "grado-operaio": 6
+        ,"grado-ufficio-movimento": 7
+        ,"grado-ufficio-amministrazione": 8
+        ,"grado-ufficio-personale": 9
+        ,"grado-ufficio-controllo": 10
+        ,"grado-ufficio-direzione": 11
+      };
+      const gradeClass = Object.keys(gradeOrder).find(cls => tr.classList.contains(cls));
+      return gradeOrder[gradeClass] || 99;
+    }
+
+    function getAgentForTableRow(tr) {
+      const rowIndex = parseInt(tr.dataset.rowIndex);
+      const residence = tr.dataset.residence || currentResidence;
+      return globalData?.residenze?.[residence]?.[rowIndex] || null;
+    }
+
+    function getTableRowShift(tr, cal = dateCalendario.find(item => item.col === selectedCol)) {
+      const agent = getAgentForTableRow(tr);
+      if (!agent || !cal) return "";
+      const dayIndex = (cal.col - 3) % 7;
+      return ottieniTurnoPulito((agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip").toUpperCase();
+    }
+
+    function removeTemporaryTransferRows() {
+      const temporaryRows = trElements.filter(tr => tr.classList.contains("temporary-transfer-row"));
+      temporaryRows.forEach(tr => tr.remove());
+      trElements = trElements.filter(tr => !tr.classList.contains("temporary-transfer-row"));
+    }
+
+    function importTemporaryTransferRows(calInfo, dayIndex, selectedShift) {
+      removeTemporaryTransferRows();
+      if (!globalData?.residenze || !calInfo || !selectedShift) return;
+
+      const tbody = document.getElementById("tbody");
+      const loggedLocation = getLoggedAgentLocation();
+      Object.keys(globalData.residenze).forEach(residence => {
+        if (residence === currentResidence) return;
+
+        globalData.residenze[residence].forEach((agent, rowIndex) => {
+          if (loggedLocation && residence === loggedLocation.residence && rowIndex === loggedLocation.index) return;
+          const shifts = agent.turni_settimanali[calInfo.weekKey] || [];
+          const rawShift = shifts[dayIndex] || "rip";
+          if (!isSameCrewShift(rawShift, selectedShift)) return;
+
+          const tr = createRowDOM(agent, rowIndex, false, residence, true);
+          tbody.appendChild(tr);
+          trElements.push(tr);
+        });
+      });
+    }
+
+    function moveSelectedCrewToTop() {
+      // I risultati vengono evidenziati sul posto: l'ordine PDF/anzianità
+      // deve restare invariato anche durante la ricerca di un cambio.
+      return;
+    }
+
+    function restoreDefaultTableOrder() {
+      const tbody = document.getElementById("tbody");
+      if (!tbody) return;
+
+      removeTemporaryTransferRows();
+
+      trElements.sort((a, b) => {
+        const loggedA = a.classList.contains("logged-agent-row") ? 0 : 1;
+        const loggedB = b.classList.contains("logged-agent-row") ? 0 : 1;
+        if (loggedA !== loggedB) return loggedA - loggedB;
+        const pinnedA = a.classList.contains("pinned-row") ? 0 : 1;
+        const pinnedB = b.classList.contains("pinned-row") ? 0 : 1;
+        return pinnedA - pinnedB || parseInt(a.dataset.rowIndex) - parseInt(b.dataset.rowIndex);
+      });
+
+      trElements.forEach(tr => tbody.appendChild(tr));
+    }
+
+    function createRowDOM(agenteObj, ri, isPinned = false, residence = currentResidence, isTemporaryTransfer = false) {
+      const tr = document.createElement("tr");
+      tr.dataset.rowIndex = ri;
+      tr.dataset.agentId = String(agenteObj.id || '');
+      tr.dataset.agentName = String(agenteObj.agente || '');
+      tr.dataset.residence = residence;
+      tr.classList.add(getGradeClass(agenteObj.id, agenteObj.agente, agenteObj.qualifica));
+      if (isPinned) tr.classList.add("pinned-row");
+      if (ri === findLoggedAgentIndex(residence)) tr.classList.add("logged-agent-row");
+      if (isTemporaryTransfer) tr.classList.add("temporary-transfer-row");
+
+      const transferLabel = isTemporaryTransfer ? `<span class="transfer-table-label">Trasferta da ${residence}</span>` : "";
+      let html = `<td class="td-name" title="${agenteObj.id || ''} ${agenteObj.agente} — ${agenteObj.qualifica || ''}"><span class="agent-name-text">${agenteObj.agente}</span>${transferLabel}</td>`;
+      tr.innerHTML = html;
+
+      const agentNameCell = tr.querySelector(".td-name");
+      const pinThisAgent = (targetCal = null) => {
+        if (isEditMode || isTemporaryTransfer) return;
+        if (pinnedAgentIdx === ri) {
+          resetCleanTable();
+          return;
+        }
+
+        placeDayPanel("main");
+        pinnedAgentIdx = ri;
+        // Quando il pin nasce dal doppio tap su una cella, conserva la data toccata.
+        // Il doppio tap sul nome dell'agente continua invece ad aprire la giornata odierna.
+        const calToOpen = targetCal || dateCalendario.find(cal => isTodayDate(cal.realObj));
+        renderTable();
+        if (calToOpen) selectDayForPinnedAgent(calToOpen);
+        setTimeout(() => {
+          scrollCrewPanelIntoView();
+        }, 80);
+      };
+
+      agentNameCell.addEventListener("click", event => {
+        if (isSyntheticClickAfterTouch()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        pinThisAgent();
+      });
+      agentNameCell.addEventListener("pointerdown", event => beginMobileTapGesture(agentNameCell, event));
+      agentNameCell.addEventListener("pointermove", event => updateMobileTapGesture(agentNameCell, event));
+      agentNameCell.addEventListener("pointercancel", () => cancelMobileTapGesture(agentNameCell));
+      agentNameCell.addEventListener("pointerup", event => {
+        if (event.pointerType !== "touch") return;
+        if (!finishMobileTapGesture(agentNameCell, event)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        // Su mobile il nome si pinna esclusivamente con un doppio tap reale.
+        handleMobileTap(agentNameCell, null, pinThisAgent);
+      });
+
+      dateCalendario.forEach(cal => {
+        let arrayTurniSettimana = agenteObj.turni_settimanali[cal.weekKey] || ["rip", "rip", "rip", "rip", "rip", "rip",
+          "rip"
+        ];
+        let giornoInternoIdx = (cal.col - 3) % 7;
+        let turnoVal = arrayTurniSettimana[giornoInternoIdx] || "rip";
+
+        const td = document.createElement("td");
+        const tdClasses = [];
+        tdClasses.push(cal.weekIdx % 2 === 0 ? "week-even" : "week-odd");
+        if (cal.giornoSett === "Lun") tdClasses.push("week-start");
+        if (cal.giornoSett === "Dom") tdClasses.push("week-end");
+        if (isTodayDate(cal.realObj)) tdClasses.push("today-col");
+        if (cal.isBozza) tdClasses.push("bozza-col");
+        if (cal.isBozza && dateCalendario[(cal.col - 3) - 1]?.isBozza !== true) tdClasses.push("bozza-start");
+
+          const crewStatus = getCrewStatusForDate(cal, turnoVal);
+        const odsVariation = agenteObj.variazioni_ods?.[cal.iso] || null;
+        const shipInfo = getShipDayInfo(cal, turnoVal);
+        const hasRefuel = /^(sì|si|true|1)$/i.test(String(shipInfo?.rifornimento_mattina || "").trim());
+        const hasCrewIndicators = crewStatus.incomplete || crewStatus.overstaffed || crewStatus.hasTransfer || odsVariation;
+        if (hasCrewIndicators) tdClasses.push("has-crew-indicators");
+        if (hasRefuel) tdClasses.push("has-refuel-indicator");
+        td.className = tdClasses.join(" ");
+        td.dataset.col = cal.col;
+        const cellNotices = [
+          crewStatus.overstaffed ? "Sovrannumero" : "",
+          crewStatus.hasTransfer ? "Trasferta" : "",
+          hasRefuel ? "Rifornimento" : "",
+          odsVariation ? `Variazione ODS${odsVariation.ods ? ` ${odsVariation.ods}` : ""}` : ""
+        ].filter(Boolean);
+        if (cellNotices.length) td.title = cellNotices.join(" · ");
+
+        if (isEditMode) {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "edit-input";
+          input.value = turnoVal;
+          input.dataset.weekKey = cal.weekKey;
+          input.dataset.dayIdx = giornoInternoIdx;
+          input.dataset.agentIdx = ri;
+          td.appendChild(input);
+        } else {
+          const crewIndicators = hasCrewIndicators
+            ? `<span class="upper-cell-indicators">${crewStatus.incomplete ? '<span class="upper-cell-indicator incomplete"></span>' : ''}${crewStatus.overstaffed ? '<span class="upper-cell-indicator overstaffed"></span>' : ''}${crewStatus.hasTransfer ? '<span class="upper-cell-indicator transfer"></span>' : ''}${odsVariation ? '<span class="upper-cell-indicator ods"></span>' : ''}</span>`
+            : "";
+          const refuelIndicator = hasRefuel ? '<span class="upper-cell-refuel" aria-label="Rifornimento"></span>' : '';
+          td.innerHTML = `${crewIndicators}${refuelIndicator}${pill(turnoVal)}`;
+          const groupThisShift = () => {
+            clearPinnedAgentSelection();
+            placeDayPanel("main");
+            selectDay(cal.col, cal.labelEstesa, turnoVal, agenteObj);
+          };
+          const pinCellAgent = () => {
+            if (tr.classList.contains("logged-agent-row")) {
+              groupThisShift();
+              return;
+            }
+            pinThisAgent(cal);
+          };
+          const singleTapCellAction = () => {
+            // Un solo tap, quando esiste un pin, elimina qualsiasi agente fissato.
+            if (pinnedAgentIdx !== null) {
+              pinnedAgentIdx = null;
+              selectedCrewAgent = null;
+              clearSelection();
+              renderTable();
+              return;
+            }
+            if (tr.classList.contains("logged-agent-row")) {
+              highlightCommonColleaguesForMyCell(cal, turnoVal, td);
+              return;
+            }
+            // Sulle righe dei colleghi evidenzia con il bordo giallo il collega
+            // e tutte le date nelle quali lavora insieme all'agente collegato.
+            clearMyCellCommonColleagues();
+            setSharedCrewFocus(tr, true);
+          };
+          td.addEventListener("click", () => {
+            if (isSyntheticClickAfterTouch()) return;
+            groupThisShift();
+          });
+          td.addEventListener("pointerdown", event => beginMobileTapGesture(td, event));
+          td.addEventListener("pointermove", event => updateMobileTapGesture(td, event));
+          td.addEventListener("pointercancel", () => cancelMobileTapGesture(td));
+          td.addEventListener("pointerup", event => {
+            if (event.pointerType !== "touch") return;
+            if (!finishMobileTapGesture(td, event)) return;
+            event.preventDefault();
+            handleMobileTap(td, singleTapCellAction, pinCellAgent);
+          });
+          td.addEventListener("pointerenter", event => {
+            if (event.pointerType === "touch" || !tr.classList.contains("logged-agent-row")) return;
+            highlightCommonColleaguesForMyCell(cal, turnoVal, td);
+          });
+          td.addEventListener("pointerleave", event => {
+            if (event.pointerType === "touch" || !tr.classList.contains("logged-agent-row")) return;
+            clearMyCellCommonColleagues();
+          });
+        }
+        tr.appendChild(td);
+      });
+
+      tr.addEventListener("pointerenter", event => {
+        if (tr.classList.contains("logged-agent-row")) return;
+        if (event.pointerType !== "touch" && tr.querySelector("td.shared-crew-day")) {
+          setSharedCrewFocus(tr, true);
+        }
+      });
+      // Su PC l'evidenziazione è solo temporanea: sparisce appena il mouse lascia la riga.
+      tr.addEventListener("pointerleave", event => {
+        if (event.pointerType === "touch" || tr.classList.contains("logged-agent-row")) return;
+        setSharedCrewFocus(tr, false);
+      });
+
+      return tr;
+    }
+
+    function clearMyCellCommonColleagues() {
+      document.querySelectorAll("#tbody tr.hover-common-colleague").forEach(row => row.classList.remove("hover-common-colleague"));
+      document.querySelectorAll("#tbody td.hover-common-cell").forEach(cell => cell.classList.remove("hover-common-cell"));
+      document.querySelectorAll(".date-header th.hover-current-cell-date").forEach(th => th.classList.remove("hover-current-cell-date"));
+    }
+
+    function highlightCommonColleaguesForMyCell(cal, rawShift, sourceCell) {
+      clearMyCellCommonColleagues();
+      const shift = ottieniTurnoPulito(rawShift);
+      const shiftKey = getCrewShiftKey(shift);
+      if (!cal || !shiftKey || isGroundCrewShiftKey(shiftKey)) return;
+      const dayIndex = (cal.col - 3) % 7;
+      let found = false;
+      trElements.forEach(row => {
+        if (row.classList.contains("logged-agent-row")) return;
+        const agent = getAgentForTableRow(row);
+        if (!agent) return;
+        const agentShift = (agent.turni_settimanali?.[cal.weekKey] || [])[dayIndex] || "rip";
+        const variation = agent.variazioni_ods?.[cal.iso] || null;
+        const movedAway = variation &&
+          isSameCrewShift(variation.turno_originale, shift) &&
+          !isSameCrewShift(variation.turno_nuovo, shift);
+        if (!movedAway && isSameCrewShift(agentShift, shift)) {
+          row.classList.add("hover-common-colleague");
+          row.querySelector(`td[data-col="${cal.col}"]`)?.classList.add("hover-common-cell");
+          found = true;
+        }
+      });
+      if (found) {
+        sourceCell?.classList.add("hover-common-cell");
+        document.querySelector(`.date-header th[data-col="${cal.col}"]`)?.classList.add("hover-current-cell-date");
+      }
+    }
+
+    function setSharedCrewFocus(row, active) {
+      if (!active) {
+        row?.classList.remove("shared-crew-focus");
+        // L'evidenziazione da hover deve essere interamente temporanea:
+        // quando il mouse lascia la riga, spegni anche tutte le date collegate.
+        document.querySelectorAll(".date-header th.hover-shared-date")
+          .forEach(th => th.classList.remove("hover-shared-date"));
+        return;
+      }
+      if (!row) return;
+      document.querySelectorAll("#tbody tr.shared-crew-focus").forEach(otherRow => {
+        if (otherRow !== row) otherRow.classList.remove("shared-crew-focus");
+      });
+      document.querySelectorAll(".date-header th.hover-shared-date").forEach(th => th.classList.remove("hover-shared-date"));
+      row.classList.add("shared-crew-focus");
+      row.querySelectorAll("td.shared-crew-day[data-col]").forEach(cell => {
+        document.querySelector(`.date-header th[data-col="${cell.dataset.col}"]`)?.classList.add("hover-shared-date");
+      });
+    }
+
+    function selectDay(col, label, cellShiftValue, focusAgent = null) {
+      if (isEditMode) return;
+      const clickedShiftKey = getCrewShiftKey(ottieniTurnoPulito(cellShiftValue));
+      const selectedShiftKey = getCrewShiftKey(ottieniTurnoPulito(selectedShiftValue));
+      if (selectedCol === col && clickedShiftKey === selectedShiftKey) {
+        clearSelection();
+        return;
+      }
+      // Ogni nuova selezione usa il giorno scelto come prima colonna visibile.
+      showPastColumns = false;
+      selectedCol = col;
+      selectedShiftValue = cellShiftValue || selectedShiftValue;
+      selectedCrewAgent = focusAgent;
+      document.querySelectorAll(".date-header th").forEach(t => t.classList.remove("selected-day"));
+      document.querySelectorAll("#tbody td.selected-shared-crew-day").forEach(td => td.classList.remove("selected-shared-crew-day"));
+      let targetTh = document.querySelector(`.date-header th[data-col="${col}"]`);
+      if (targetTh) targetTh.classList.add("selected-day");
+
+      let calInfo = dateCalendario.find(c => c.col === col);
+      let giornoInternoIdx = (col - 3) % 7;
+      const cleanShift = ottieniTurnoPulito(cellShiftValue);
+      const crewShift = getCrewShiftKey(cleanShift);
+      const crewPanelColor = shiftBorderColor[classify(cleanShift)] || "#2dd4bf";
+      document.getElementById("day-panel")?.style.setProperty("--crew-shift-color", crewPanelColor);
+      const isRest = cleanShift === "";
+      const crewResidence = getShiftResidence(cleanShift);
+      const isCrewShift = Boolean(crewResidence);
+      const myShiftPuro = isRest ? "RIPOSO" : (isGroundCrewShiftKey(crewShift) ? "TERRA" : crewShift);
+      updateCoverageShiftButtons(crewShift);
+      updateCoverageCellSelection(col, crewShift);
+
+      if (!calInfo) {
+        document.getElementById("tbody").classList.remove("has-selection");
+        trElements.forEach(tr => tr.classList.remove("row-match"));
+        restoreDefaultTableOrder();
+        document.getElementById("day-panel").classList.remove("open");
+        document.getElementById("day-panel").setAttribute("aria-hidden", "true");
+        return;
+      }
+
+      document.getElementById("tbody").classList.add("has-selection");
+
+      if (isCrewShift) importTemporaryTransferRows(calInfo, giornoInternoIdx, cleanShift);
+          hidePastColumns();
+
+      trElements.forEach(tr => {
+        let ag = getAgentForTableRow(tr);
+        if (!ag) return;
+        let turniSett = ag.turni_settimanali[calInfo.weekKey] || [];
+        let hisShiftRaw = turniSett[giornoInternoIdx] || "rip";
+        let hisShiftPuro = ottieniTurnoPulito(hisShiftRaw);
+
+        let match = isSameCrewShift(hisShiftPuro, cleanShift);
+        tr.classList.toggle("row-match", match);
+        if (tr.classList.contains("logged-agent-row")) {
+          tr.classList.toggle("logged-in-selected-crew", match && isCrewShift);
+        }
+
+        tr.querySelectorAll("td[data-col]").forEach(td => {
+          td.classList.toggle("col-selected", parseInt(td.dataset.col) === col);
+        });
+      });
+
+      const loggedMatchingRow = trElements.find(tr =>
+        tr.classList.contains("logged-agent-row") && tr.classList.contains("row-match")
+      );
+      const hasMatchingColleague = trElements.some(tr =>
+        !tr.classList.contains("logged-agent-row") && tr.classList.contains("row-match")
+      );
+      if (loggedMatchingRow && hasMatchingColleague && isCrewShift) {
+        loggedMatchingRow.querySelector(`td[data-col="${col}"]`)?.classList.add("selected-shared-crew-day");
+      }
+
+      moveSelectedCrewToTop();
+      setTimeout(scrollGroupedCrewTableToTop, 60);
+
+      const panelGroups = document.getElementById("panel-groups");
+      panelGroups.innerHTML = "";
+
+      const shipDayInfo = isCrewShift ? renderShipDayInfo(calInfo, cleanShift) : "";
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "shift-group crew-info-group";
+      infoDiv.innerHTML = `<div class="colleague-cards"><div class="colleague-card crew-info-card">
+        <div class="panel-controls-box" aria-label="Selezione corsa e data">
+          <div class="panel-controls-top"><div class="panel-shift-selector" id="panel-shift-selector" aria-label="Corse della residenza"></div><button class="panel-close" type="button" onclick="resetCleanTable()" aria-label="Chiudi scheda equipaggio">✕</button></div>
+          <div class="panel-header-main">
+            <div class="panel-date" id="panel-date-label"></div>
+            <div class="panel-date-navigation" aria-label="Navigazione primaria della data">
+              <button class="panel-arrow" id="previous-day-btn" type="button" onclick="changeSelectedDay(-1)" aria-label="Giorno precedente"><svg class="panel-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg></button>
+              <button class="panel-arrow" id="next-day-btn" type="button" onclick="changeSelectedDay(1)" aria-label="Giorno successivo"><svg class="panel-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg></button>
+              <button class="panel-arrow panel-today" id="today-day-btn" type="button" onclick="goToToday()" aria-label="Vai a oggi">OGGI</button>
+            </div>
+          </div>
+        </div>
+        ${shipDayInfo}
+      </div></div>`;
+      panelGroups.appendChild(infoDiv);
+      document.getElementById("panel-shift-selector").innerHTML = renderResidenceShiftBubbles(cleanShift);
 
       if (isCrewShift) {
         let allColleagues = [];
