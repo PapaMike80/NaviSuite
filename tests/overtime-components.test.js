@@ -22,9 +22,16 @@ overtime.setChanges(day,0,day.serviceMinutes);
 assert.equal(overtime.total(day),90);
 assert.equal(day.workedMinutes,13*60+90);
 
-overtime.setWorked(day,17*60,day.serviceMinutes);
-assert.equal(overtime.ordinary(day),180);
-assert.equal(overtime.total(day),240);
+const shortenedDay={shift:'DT',serviceMinutes:9*60+25,delay:0,changeMinutes:0};
+overtime.setWorked(shortenedDay,8*60,shortenedDay.serviceMinutes);
+assert.equal(shortenedDay.workedMinutes,8*60);
+assert.equal(shortenedDay.overtimeMeta.workedMode,'manual');
+assert.equal(overtime.total(shortenedDay),0);
+overtime.sync(shortenedDay,shortenedDay.serviceMinutes);
+assert.equal(shortenedDay.workedMinutes,8*60);
+overtime.setChanges(shortenedDay,60,shortenedDay.serviceMinutes);
+assert.equal(shortenedDay.workedMinutes,8*60);
+assert.equal(overtime.total(shortenedDay),60);
 
 const changedService={shift:'PonD',serviceMinutes:565,delay:0,changeMinutes:0,bank:30,mealUsed:true,allowanceRate:24,embark:true,overnight40:true};
 overtime.setOrdinary(changedService,15,changedService.serviceMinutes);
