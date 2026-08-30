@@ -26,4 +26,19 @@ overtime.setWorked(day,17*60,day.serviceMinutes);
 assert.equal(overtime.ordinary(day),180);
 assert.equal(overtime.total(day),240);
 
+const changedService={shift:'PonD',serviceMinutes:565,delay:0,changeMinutes:0,bank:30,mealUsed:true,allowanceRate:24,embark:true,overnight40:true};
+overtime.setOrdinary(changedService,15,changedService.serviceMinutes);
+overtime.setChanges(changedService,60,changedService.serviceMinutes);
+overtime.setSentineMinutes(changedService,30,changedService.serviceMinutes);
+changedService.shift='DT';
+changedService.serviceMinutes=480;
+overtime.sync(changedService,changedService.serviceMinutes);
+assert.equal(overtime.total(changedService),105);
+assert.equal(changedService.workedMinutes,585);
+assert.equal(changedService.bank,30);
+assert.equal(changedService.mealUsed,true);
+assert.equal(changedService.allowanceRate,24);
+assert.equal(changedService.embark,true);
+assert.equal(changedService.overnight40,true);
+
 console.log('Overtime component regression test passed');
