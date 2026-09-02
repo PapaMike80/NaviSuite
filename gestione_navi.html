@@ -190,6 +190,5 @@
     loadCrewConfig();const user=profile();if(!user)location.replace("index.html");else if(!allowed(user))document.getElementById("denied").classList.add("open");else{document.getElementById("app").hidden=false;load().then(()=>{setTimeout(scrollToToday,30);setInterval(refreshSharedNaviState,12000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshSharedNaviState()})})}
   </script>
   <script src="assets/js/shared-menu.js?v=1.52"></script>
-  <script src="assets/js/mobile-menu-solid.js?v=2"></script>
 </body>
 </html>
