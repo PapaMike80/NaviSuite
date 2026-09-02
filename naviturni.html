@@ -1428,7 +1428,7 @@
       stroke-linejoin:round;
       pointer-events:none;
     }
-  </style>
+      .today-month-link a{display:flex;align-items:center;justify-content:center;min-height:42px;color:#a7fff0!important;text-decoration:none;font-weight:900;letter-spacing:.08em} .today-month-link{cursor:pointer!important}\n  </style>
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <style>
     /* Anche nel tema scuro i filtri sono bolle colorate, non tasti tutti uguali. */
@@ -2495,7 +2495,7 @@
         if (last && last.key === key) last.count++;
         else groups.push({ key, count:1, label:`${mesiNomi[cal.realObj.getMonth()]} ${cal.realObj.getFullYear()}` });
       });
-      return `<tr class="month-header"><th>Periodo</th>${groups.map(group => `<th colspan="${group.count}" data-month="${group.key}"><span class="month-visible-label">${group.label}</span></th>`).join("")}</tr>`;
+      return `<tr class="month-header"><th class="today-month-link"><a href="oggi.html">☀ Oggi</a></th>${groups.map(group => `<th colspan="${group.count}" data-month="${group.key}"><span class="month-visible-label">${group.label}</span></th>`).join("")}</tr>`;
     }
 
     function buildTableHeader() {
