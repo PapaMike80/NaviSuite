@@ -8,7 +8,7 @@ const html = fs.readFileSync('oggi.html', 'utf8');
 const source = fs.readFileSync('assets/js/oggi.js', 'utf8');
 assert.match(html, /class="turni-page oggi-page"/);
 assert.match(html, /assets\/js\/shared-data\.js/);
-assert.match(html, /assets\/js\/oggi\.js\?v=1/);
+assert.match(html, /assets\/js\/oggi\.js\?v=2/);
 assert.match(source, /turni_navi/);
 assert.match(source, /variazioni_ods/);
 assert.match(source, /residenze/);
@@ -27,6 +27,8 @@ const document = {
 const sample = { residenze:{ DESENZANO:[
   { id:'1', agente:'Rossi', qualifica:'capitano', turni:{ '2026-09-02':'D1' } },
   { id:'2', agente:'Bianchi', qualifica:'motorista', turni:{ '2026-09-02':'D1' } }
+], PESCHIERA:[
+  { id:'3', agente:'Verdi', qualifica:'capo timoniere', turni:{ '2026-09-02':'CD1C' } }
 ] }, turni_navi:[{ data:'2026-09-02', corsa:'D1', nave:'Agone' }], variazioni_ods:[] };
 const context = { window:{ NaviSharedData:{ load:async()=>sample } }, document, localStorage:{ getItem(){ return 'null'; } }, console, Date, Intl, setTimeout, clearTimeout };
 vm.createContext(context);
@@ -35,5 +37,7 @@ const cards = context.window.NaviOggi.buildCourses(sample, '2026-09-02');
 assert.equal(cards.length, 1);
 assert.equal(cards[0].course, 'D1');
 assert.equal(cards[0].ship, 'Agone');
-assert.deepEqual(cards[0].crew.map(a => a.agente), ['Rossi', 'Bianchi']);
+assert.deepEqual(cards[0].crew.map(a => a.agente), ['Rossi', 'Verdi', 'Bianchi']);
+assert.match(source, /CD1C/);
+assert.match(source, /aria-expanded/);
 console.log('Oggi page checks passed');
