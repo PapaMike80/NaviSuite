@@ -463,3 +463,29 @@ body.turni-page #modal-residence-buttons.modal-buttons-grid {
 		margin-left:0!important;
 	}
 }
+
+/* Android: il pannello del menu deve restare sempre nel viewport utile. */
+@media(max-width:850px){
+	#navisuite-popup{
+		overflow-x:hidden!important;
+	}
+	#navisuite-popup .ns-menu-dialog,
+	.navisuite-mobile-menu > section{
+		left:12px!important;
+		right:12px!important;
+		width:auto!important;
+		min-width:0!important;
+		max-width:calc(100% - 24px)!important;
+		margin-left:0!important;
+		margin-right:0!important;
+		box-sizing:border-box!important;
+	}
+	#navisuite-popup .ns-menu-head,
+	#navisuite-popup .ns-menu-links,
+	#navisuite-popup .ns-menu-foot,
+	.navisuite-mobile-menu-links{
+		min-width:0!important;
+		max-width:100%!important;
+		box-sizing:border-box!important;
+	}
+}
