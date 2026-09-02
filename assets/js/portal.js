@@ -101,6 +101,7 @@ function showChoice(agent) {
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
   const diaria = document.querySelector('.app-card.diaria');
+  const oggi = document.querySelector('.app-card.oggi');
   const docs = document.querySelector('.app-card.docs');
   const trova = document.querySelector('.app-card.trova');
   const orario = document.querySelector('.app-card.orario');
@@ -110,6 +111,7 @@ function showChoice(agent) {
   const agentAdmin = document.querySelector('.app-card.agents');
   const shipManagement = document.querySelector('[data-navi-tab="NaviGestioneNaviTab"]');
   if (diaria) diaria.hidden = !canUseDiaria(agent);
+  if (oggi) oggi.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
   if (docs) docs.hidden = isBaristaAgent(agent);
   if (trova) trova.hidden = isBaristaAgent(agent);
   // Orario visibile solo agli admin (nascosto alle bariste)
