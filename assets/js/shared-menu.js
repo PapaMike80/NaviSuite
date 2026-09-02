@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION='v1.43';
+  const APP_VERSION='v1.44';
   const NAVISUITE_PAYPAL_URL='https://www.paypal.com/pool/9sbGlr5lE9?sr=wccr';
   function installSupportFooter(){
     if(document.getElementById('navisuite-support-footer'))return;
@@ -43,8 +43,8 @@
       }).catch(()=>null);
     }
   }
-  const page=document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
-  const tabNames={turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
+  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
+  const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
   if(page==='archive')document.body.classList.add('archive-page');
   const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
   const isNaviPage=location.pathname.toLowerCase().endsWith('/gestione_navi.html');
@@ -108,12 +108,16 @@
     }));
   }catch{}
   // Orario è ora accessibile a TUTTI gli utenti (rimosso controllo admin)
-  if(isBaristaSession&&page==='aggiornamenti'&&!isHibaBarista(sessionAgent)){location.replace('naviturni.html');return}
+  if(isBaristaSession&&(page==='aggiornamenti'||page==='oggi')&&!isHibaBarista(sessionAgent)){location.replace('naviturni.html');return}
   const item=(href,icon,label,active=false,id='')=>`<a ${id?`id="${id}" `:''}class="nav-link${active?' active':''}" href="${href}"${['competencyNav','adminNav','archiveAdminNav'].includes(id)?' hidden':''}><span>${icon}</span>${label}</a>`;
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
   const adminOrarioLink=item('Orario.html','◴','Orario',false,'orarioNavLink');
 
-  if(page==='diaria'){
+  if(page==='oggi'){
+    common=item('#oggi','☀','Oggi',true,'oggiNav')+item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    specific='<span class="sidebar-menu-label">GIORNATA</span>';
+    user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="window.NaviOggi?.refresh?.()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
+  }else if(page==='diaria'){
     common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('#oggi','≈','NaviDiaria',true,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">DIARIA</span>${item('#registro','≡','Registro mese')}${item('#consultivo','≈','Consultivo settimane')}${item('#competenze','◇','Competenze',false,'competencyNav')}${item('agenti.html','♙','Gestione agenti',false,'adminNav')}`;
     user=`<div class="sidebar-user-actions"><button id="syncShifts" class="sidebar-footer-update" type="button"><span>↻</span>Aggiorna</button><small id="syncStatus" class="sidebar-data-status">Locale</small><strong id="sidebarAgentName" class="sidebar-agent-name">AGENTE</strong><button id="logoutButton" class="sidebar-action sidebar-exit" type="button" hidden>Esci</button><button id="pinSettingsButton" class="sidebar-action" type="button" hidden>Cambia PIN</button></div>`;
@@ -173,9 +177,10 @@
   // Gestione navi resta, per ora, un collegamento riservato agli amministratori.
   if(isAdminAgent(sessionAgent))common+=item('gestione_navi.html','▤','Navi',isNaviPage,'naviAdminNav');
 
+  if(page!=='oggi')common=item('oggi.html','☀','Oggi',false,'oggiNav')+common;
   common=item('index.html','⌂','Home')+common+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');
 
-  const brandTitle=page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
