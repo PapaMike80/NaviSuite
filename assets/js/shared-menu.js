@@ -115,44 +115,44 @@
   const adminOrarioLink=item('Orario.html','◴','Orario',false,'orarioNavLink');
 
   if(page==='oggi'){
-    common=item('#oggi','☀','Oggi',true,'oggiNav')+item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('#oggi','☀','Oggi',true,'oggiNav')+item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific='<span class="sidebar-menu-label">GIORNATA</span>';
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="window.NaviOggi?.refresh?.()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='diaria'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('#oggi','≈','NaviDiaria',true,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('#oggi','≈','Distinta',true,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">DIARIA</span>${item('#registro','≡','Registro mese')}${item('#consultivo','≈','Consultivo settimane')}${item('#competenze','◇','Competenze',false,'competencyNav')}${item('agenti.html','♙','Gestione agenti',false,'adminNav')}`;
     user=`<div class="sidebar-user-actions"><button id="syncShifts" class="sidebar-footer-update" type="button"><span>↻</span>Aggiorna</button><small id="syncStatus" class="sidebar-data-status">Locale</small><strong id="sidebarAgentName" class="sidebar-agent-name">AGENTE</strong><button id="logoutButton" class="sidebar-action sidebar-exit" type="button" hidden>Esci</button><button id="pinSettingsButton" class="sidebar-action" type="button" hidden>Cambia PIN</button></div>`;
   }else if(page==='trova'){
-    common=item('naviturni.html','▦','NaviTurni')+item('#turni-operativi','⇄','Trova turno',true)+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('#turni-operativi','⇄','Trova turno',true)+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     // Elementi tecnici richiesti dal codice di NaviTurni: restano nel DOM ma non sono visibili.
     specific=`<div hidden aria-hidden="true"><button id="togglePastBtn" type="button"></button><div id="shift-filter-container"><div id="top-residence-buttons"></div><div id="shift-buttons-wrapper"></div></div></div>`;
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='turni'){
-    common=item('#turni-operativi','▦','NaviTurni',true)+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('#turni-operativi','▦','NaviTurni',true)+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button><div class="shifts-filter-block" id="shift-filter-container"><div class="top-filter-controls"><div class="top-residence-controls"><a class="today-residence-link" href="oggi.html">☀ Oggi</a><span class="filter-label">Residenze</span><div class="coverage-residence-buttons" id="top-residence-buttons"></div></div><div class="top-filter-group"><span class="filter-label">Corse</span><div class="shift-buttons-grid" id="shift-buttons-wrapper"></div></div></div></div>`;
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='orario' || page==='orario-data'){
     const graficoLink=item('Orario.html','◴','Grafico interattivo',page==='orario','orarioGraphNavLink');
     const tabelleLink=item('orari-tabella.html','▥','Orari tabella',page==='orario-data','orarioDataNavLink');
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+item('Orario.html','◴','Orario',true,'orarioNavLink')+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+item('Orario.html','◴','Orario',true,'orarioNavLink')+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">ORARIO</span>${graficoLink}${tabelleLink}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
     status='';
   }else if(page==='settings'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('#altre-preferenze','⚙','Impostazioni',true);
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('#altre-preferenze','⚙','Impostazioni',true);
     specific=`<span class="sidebar-menu-label">PREFERENZE</span>${item('#altre-preferenze','≡','Altre preferenze')}${isAdminAgent(sessionAgent)?item('aggiornamenti.html','↻','Aggiornamenti turni')+item('agenti.html','♙','Gestione agenti'):''}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='tickets'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">ASCOLTO</span>${item('#ticket-form','✉','Nuova segnalazione',true)}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='agenti'||page==='aggiornamenti'){
     const isAgenti=page==='agenti';
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Trova turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',!isAgenti,'aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else{
-    common=item('naviturni.html','▦','NaviTurni')+item('navidiaria.html','≈','NaviDiaria',false,'diariaNavLink')+item('#turni-docs','▤','Documenti',true,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
+    common=item('naviturni.html','▦','NaviTurni')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('#turni-docs','▤','Documenti',true,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
     user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><small id="archiveMenuStatus" class="sidebar-data-status">Locale</small><strong id="archiveSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="archiveLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="archiveChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }
@@ -187,7 +187,61 @@
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
   sidebar.innerHTML=`<a class="shared-sidebar-brand" href="${brandHref}"><span class="shared-brand-mark">N</span><strong>${brandTitle}</strong></a><nav>${common}${specific}</nav>${user}${status}${version}`;
   if(!canUseDiaria(sessionAgent))sidebar.querySelectorAll('a[href="navidiaria.html"],#diariaNavLink').forEach(link=>link.hidden=true);
-  const installHeaderMenu=()=>{if(document.getElementById('navisuite-header-menu'))return;const host=document.querySelector('.page-header,.archive-header,.diaria-header,main>header');if(!host)return;host.style.position=host.style.position||'relative';const style=document.createElement('style');style.textContent='#navisuite-header-menu{position:absolute;right:12px;top:12px;z-index:30;width:42px;height:42px;border:1px solid #2dd4bf;border-radius:12px;background:#103a3d;color:#a7fff0;font-size:24px;font-weight:900}#navisuite-popup[hidden]{display:none}#navisuite-popup{position:fixed;inset:0;z-index:2000;background:rgba(2,12,17,.62);padding:calc(env(safe-area-inset-top,0px) + 18px) 18px;display:flex;justify-content:flex-end}#navisuite-popup-box{width:min(330px,92vw);max-height:78vh;overflow:auto;padding:16px;border:1px solid #2e6971;border-radius:20px;background:#0d2631}#navisuite-popup nav{display:grid;gap:6px}#navisuite-popup nav a{padding:12px;border:1px solid #28505a;border-radius:11px;color:#e7f8f8;text-decoration:none;font-weight:750}';document.head.append(style);const b=document.createElement('button');b.id='navisuite-header-menu';b.textContent='☰';host.append(b);const p=document.createElement('div');p.id='navisuite-popup';p.hidden=true;p.innerHTML='<div id="navisuite-popup-box"><button id="navisuite-popup-close">×</button><nav></nav></div>';document.body.append(p);b.onclick=()=>{p.querySelector('nav').innerHTML=sidebar.querySelector('nav').innerHTML;p.hidden=false};p.onclick=e=>{if(e.target===p||e.target.id==='navisuite-popup-close')p.hidden=true};};if(page!=='turni')setTimeout(installHeaderMenu,0);
+  const installHeaderMenu=()=>{
+    if(document.getElementById('navisuite-popup'))return;
+    const style=document.createElement('style');
+    style.id='navisuite-unified-menu-style';
+    style.textContent=`
+      @media(max-width:950px){.mobile-liquid-nav{display:none!important}}
+      #navisuite-popup[hidden]{display:none!important}
+      #navisuite-popup{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 14px calc(env(safe-area-inset-bottom,0px) + 16px);background:rgba(2,12,17,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+      .ns-menu-dialog{box-sizing:border-box;width:min(430px,100%);max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e6971;border-radius:26px;background:linear-gradient(165deg,#102e39,#0a222c);box-shadow:0 22px 56px rgba(0,0,0,.5)}
+      .ns-menu-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;color:#a7fff0;font:900 26px/1 Manrope,system-ui,sans-serif}
+      .ns-menu-close{width:44px;height:44px;border:1px solid rgba(126,243,226,.35);border-radius:14px;background:rgba(255,255,255,.06);color:#eafffb;font-size:30px;line-height:1;cursor:pointer}
+      .ns-menu-links{display:grid;gap:8px;overflow:auto;padding:0 18px 14px;-webkit-overflow-scrolling:touch}
+      .ns-menu-links a{display:flex;align-items:center;gap:13px;min-height:52px;padding:0 16px;border:1px solid #285560;border-radius:16px;background:rgba(255,255,255,.025);color:#e8f7f7;text-decoration:none;font:800 17px/1.15 Manrope,system-ui,sans-serif}
+      .ns-menu-links a span{width:23px;color:#55e6d3;font-size:23px;text-align:center}
+      .ns-menu-links a.active{border-color:#45d9c7;background:rgba(45,212,191,.14);color:#cafff7}
+      .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}
+      .ns-menu-foot a,.ns-menu-foot button{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.05);color:#d9eff0;text-decoration:none;font:800 14px/1 Manrope,system-ui,sans-serif;cursor:pointer}
+      .ns-menu-foot .ns-menu-exit{border-color:rgba(251,113,133,.52);background:rgba(251,113,133,.09);color:#fdb2ba}
+      @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}.ns-menu-links a{min-height:49px;font-size:16px}}
+    `;
+    document.head.appendChild(style);
+    const popup=document.createElement('div');
+    popup.id='navisuite-popup';
+    popup.hidden=true;
+    popup.innerHTML='<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">Menu <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><nav class="ns-menu-links"></nav><div class="ns-menu-foot"><a href="navidiaria.html?open-pin=1">Cambia PIN</a><button type="button" class="ns-menu-exit">Esci</button></div></section>';
+    document.body.appendChild(popup);
+    const close=()=>{popup.hidden=true;document.body.classList.remove('ns-menu-open');};
+    const open=()=>{
+      const target=popup.querySelector('.ns-menu-links');
+      const used=new Set();
+      const links=[...sidebar.querySelectorAll('nav a[href]')].filter(link=>!link.hidden&&link.offsetParent!==null).filter(link=>{const href=link.getAttribute('href');if(!href||used.has(href))return false;used.add(href);return true;});
+      target.innerHTML='';
+      links.forEach(link=>{const clone=link.cloneNode(true);clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});
+      popup.hidden=false;document.body.classList.add('ns-menu-open');
+    };
+    popup.querySelector('.ns-menu-close').addEventListener('click',close);
+    popup.addEventListener('click',event=>{if(event.target===popup)close();});
+    popup.querySelector('.ns-menu-exit').addEventListener('click',()=>{
+      if(typeof window.logoutAgent==='function'){window.logoutAgent();return;}
+      localStorage.removeItem('navidiaria.activeAgent');
+      localStorage.removeItem('naviturni_logged_agent');
+      location.href='index.html';
+    });
+    window.NaviSuiteMenu={open,close};
+    const host=document.querySelector('.page-header,.archive-header,.diaria-header,main>header');
+    if(host&&page!=='turni'){
+      host.style.position=host.style.position||'relative';
+      const button=document.createElement('button');
+      button.type='button';button.id='navisuite-header-menu';button.setAttribute('aria-label','Apri menu');button.textContent='☰';
+      button.style.cssText='position:absolute;right:12px;top:12px;z-index:30;width:44px;height:44px;border:1px solid #2dd4bf;border-radius:13px;background:#103a3d;color:#a7fff0;font-size:25px;font-weight:900';
+      host.appendChild(button);
+      button.addEventListener('click',open);
+    }
+  };
+  setTimeout(installHeaderMenu,0);
 
   function installThemeSettings(){
     if(page!=='settings'||!isLightThemeTester||document.getElementById('theme-test-setting'))return;
