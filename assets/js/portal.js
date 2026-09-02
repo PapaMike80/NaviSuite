@@ -100,8 +100,10 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
-  const preferred=localStorage.getItem('navisuite.startPage.'+String(agent.id||''))||'naviturni.html';
-  if(preferred!=='naviturni.html'){location.href=preferred;return;}
+  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','Orario.html','impostazioni.html','segnalazioni.html','aggiornamenti.html','agenti.html','gestione_navi.html']);
+  const savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));
+  const preferred=allowedStartPages.has(savedStartPage||'')?savedStartPage:'index.html';
+  if(preferred&&preferred!=='index.html'){location.href=preferred;return;}
   const diaria = document.querySelector('.app-card.diaria');
   const oggi = document.querySelector('.app-card.oggi');
   const docs = document.querySelector('.app-card.docs');
