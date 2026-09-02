@@ -2495,7 +2495,7 @@
         if (last && last.key === key) last.count++;
         else groups.push({ key, count:1, label:`${mesiNomi[cal.realObj.getMonth()]} ${cal.realObj.getFullYear()}` });
       });
-      return `<tr class="month-header"><th class="today-month-link"><a href="oggi.html">☀ Oggi</a></th>${groups.map(group => `<th colspan="${group.count}" data-month="${group.key}"><span class="month-visible-label">${group.label}</span></th>`).join("")}</tr>`;
+      return `<tr class="month-header"><th class="turni-header-actions"><a href="oggi.html" aria-label="Apri Oggi">☀ Oggi</a><button type="button" id="turni-header-menu" aria-label="Apri menu">☰</button></th>${groups.map(group => `<th colspan="${group.count}" data-month="${group.key}"><span class="month-visible-label">${group.label}</span></th>`).join("")}</tr>`;
     }
 
     function buildTableHeader() {
@@ -4935,5 +4935,5 @@
   }
 </style>
   <script src="assets/js/announcements-recovered.js?v=1"></script>
-</body>
+<style>@media(max-width:950px){.mobile-liquid-nav{display:none!important}.turni-header-actions{padding:0!important;background:#0d2631!important}.turni-header-actions a,.turni-header-actions button{display:inline-flex;align-items:center;justify-content:center;height:60px;border:0;background:transparent;color:#a7fff0;font:900 17px/1 inherit;text-decoration:none}.turni-header-actions a{width:72%;border-right:1px solid #28505a}.turni-header-actions button{width:28%;font-size:25px;cursor:pointer}}#turni-nav-popup[hidden]{display:none}#turni-nav-popup{position:fixed;inset:0;z-index:1000;background:rgba(2,12,17,.62);padding:calc(env(safe-area-inset-top,0px) + 18px) 18px 18px;display:flex;align-items:flex-start;justify-content:flex-end}#turni-nav-popup-box{width:min(330px,92vw);max-height:78vh;overflow:auto;padding:16px;border:1px solid #2e6971;border-radius:20px;background:#0d2631;box-shadow:0 16px 42px rgba(0,0,0,.45)}#turni-nav-popup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:#a7fff0;font-weight:900}#turni-nav-popup-close{border:0;background:transparent;color:#fff;font-size:25px}#turni-nav-popup nav{display:grid;gap:6px}#turni-nav-popup nav a{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #28505a;border-radius:11px;color:#e7f8f8;text-decoration:none;font-weight:750}#turni-nav-popup nav a span{color:#62e4d0}</style><div id="turni-nav-popup" hidden><div id="turni-nav-popup-box" role="dialog" aria-modal="true"><div id="turni-nav-popup-head">Menu <button id="turni-nav-popup-close">×</button></div><nav></nav></div></div><script>document.addEventListener('click',e=>{const pop=document.getElementById('turni-nav-popup');if(e.target.closest('#turni-header-menu')){const nav=document.querySelector('.app-sidebar nav');if(nav)pop.querySelector('nav').innerHTML=nav.innerHTML;pop.hidden=false;return}if(e.target===pop||e.target.closest('#turni-nav-popup-close'))pop.hidden=true;});</script></body>
 </html>
