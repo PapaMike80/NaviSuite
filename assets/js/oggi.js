@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const COURSES={DESENZANO:['D1','D2','D3','D4','BIS'],MADERNO:['T1','T2','M1'],RIVA:['R1','R2','R3','R4','CAR'],PESCHIERA:['P1','P2','P3','CAP','SR1']};
+  const COURSES={DESENZANO:['D1','D2','D3','D4','BIS'],MADERNO:['T1','T2','M1'],RIVA:['R1','R2','R3','R4','CAR'],PESCHIERA:['P1','P2','P3','SR1','CAP']};
   const COURSE_COLORS={D1:'#58d8c5',D2:'#44b8f1',D3:'#b78cff',D4:'#f1a960',BIS:'#f1ce62',T1:'#75d992',T2:'#b0df64',M1:'#48c7ba',R1:'#e988b2',R2:'#efac73',R3:'#d782ef',R4:'#e67e7e',CAR:'#80b5ff',P1:'#80b5ff',P2:'#82d8ea',P3:'#71cdae',CAP:'#b8a2ff',SR1:'#e6cc75'};
   const ROLE_INFO=[
     [/capitano|comandante/i,'Capitano','#facc15',1],
@@ -28,6 +28,7 @@
     return code==='CAR'||code==='CAP'?code:direct;
   };
   const residenceForCourse=course=>Object.entries(COURSES).find(([,list])=>list.includes(course))?.[0]||'ALTRE CORSE';
+  const coursePosition=(residence,course)=>{const order=COURSES[residence]||[];const index=order.indexOf(course);return index<0?order.length:index};
   const roleFor=agent=>{
     const value=String(agent?.qualifica||agent?.grado||agent?.role||'');
     return ROLE_INFO.find(([pattern])=>pattern.test(value))?.slice(1)||['Equipaggio','#94a3b8',99];
@@ -59,12 +60,15 @@
       const key=String(agent?.agent_uid||agent?.id||norm(agent?.agente));if(!key||unique.has(key))return;unique.add(key);agents.push({...agent,__residence:residence});
     }));
     const cards=new Map();
-    const ensure=(course,residence)=>{if(!course)return null;const key=`${residenceForCourse(course)}:${course}`;if(!cards.has(key))cards.set(key,{course,residence:residence||residenceForCourse(course),ship:'',crew:[]});return cards.get(key)};
+    const ensure=(course,residence)=>{if(!course)return null;const courseResidence=residenceForCourse(course);const key=`${courseResidence}:${course}`;if(!cards.has(key))cards.set(key,{course,residence:courseResidence==='ALTRE CORSE'?(residence||courseResidence):courseResidence,ship:'',crew:[]});return cards.get(key)};
     (data?.turni_navi||[]).filter(item=>String(item?.data||'').slice(0,10)===iso&&item?.attiva!==false).forEach(item=>{
       const course=cleanShift(item?.corsa||item?.turno);const card=ensure(course);if(card){const ship=validShip(item?.nave||item?.nome_nave);if(ship)card.ship=ship;}
     });
     agents.forEach(agent=>{const course=getShift(agent,iso,variationMap);const card=ensure(course,agent.__residence);if(card)card.crew.push(agent);});
-    return [...cards.values()].map(card=>({...card,crew:card.crew.sort((a,b)=>roleFor(a)[2]-roleFor(b)[2]||String(a.agente||a.name).localeCompare(String(b.agente||b.name),'it'))})).sort((a,b)=>Object.keys(COURSES).indexOf(a.residence)-Object.keys(COURSES).indexOf(b.residence)||a.course.localeCompare(b.course,undefined,{numeric:true}));
+    return [...cards.values()].map(card=>({...card,crew:card.crew.sort((a,b)=>roleFor(a)[2]-roleFor(b)[2]||String(a.agente||a.name).localeCompare(String(b.agente||b.name),'it'))})).sort((a,b)=>{
+      const residenceOrder=Object.keys(COURSES).indexOf(a.residence)-Object.keys(COURSES).indexOf(b.residence);if(residenceOrder)return residenceOrder;
+      const courseOrder=coursePosition(a.residence,a.course)-coursePosition(b.residence,b.course);return courseOrder||a.course.localeCompare(b.course,undefined,{numeric:true});
+    });
   }
   function escapeHtml(value){const el=document.createElement('div');el.textContent=String(value||'');return el.innerHTML}
   function render(data,iso){
@@ -72,9 +76,10 @@
     if(!cards.length){contentEl.innerHTML='<div class="oggi-empty">Non risultano corse operative per questa giornata.</div>';return}
     const grouped=cards.reduce((map,card)=>{(map[card.residence]||=[]).push(card);return map},{});
     const ordered=['DESENZANO','PESCHIERA','MADERNO','RIVA'].filter(residence=>grouped[residence]?.length).map(residence=>[residence,grouped[residence]]);
+    const currentDate=dateLabel(iso);
     contentEl.classList.add('oggi-pairs');
     const colors={DESENZANO:'#4ea9ff',PESCHIERA:'#51cf92',MADERNO:'#f59f55',RIVA:'#be8cff'};
-    contentEl.innerHTML=ordered.map(([residence,items])=>`<section class="oggi-residence" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="false">${escapeHtml(residence)} ⌄</button><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button></h2><div class="oggi-grid">${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`).join('');
+    contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;return `<section class="oggi-residence" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="false" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button><span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button></h2><div id="${gridId}" class="oggi-grid" hidden>${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
   }
   async function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
@@ -84,7 +89,7 @@
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
     const menuButton=event.target.closest('.oggi-residence-menu');if(menuButton){window.NaviOggi?.openMenu?.();return;}
-    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){const section=residenceButton.closest('.oggi-residence');const open=residenceButton.getAttribute('aria-expanded')!=='true';residenceButton.setAttribute('aria-expanded',String(open));section.querySelectorAll('.oggi-card').forEach(card=>{card.classList.toggle('is-open',open);card.querySelector('.oggi-card-head').setAttribute('aria-expanded',String(open));});return;}
+    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){const section=residenceButton.closest('.oggi-residence');const grid=section?.querySelector('.oggi-grid');const open=residenceButton.getAttribute('aria-expanded')!=='true';residenceButton.setAttribute('aria-expanded',String(open));section?.classList.toggle('is-open',open);if(grid)grid.hidden=!open;return;}
     const button=event.target.closest('.oggi-card-head');if(!button)return;
     const card=button.closest('.oggi-card');const open=!card.classList.contains('is-open');
     card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));
