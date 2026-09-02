@@ -13,7 +13,6 @@
   const statusEl=document.getElementById('oggi-status');
   const contentEl=document.getElementById('oggi-content');
   const refreshButton=document.getElementById('oggi-refresh');
-  const dateEl=document.getElementById('oggi-date');
   const todayIso=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Rome'});
   const dateLabel=iso=>new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Rome'}).format(new Date(`${iso}T12:00:00`));
   const norm=value=>String(value||'').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim();
@@ -69,16 +68,17 @@
   }
   function escapeHtml(value){const el=document.createElement('div');el.textContent=String(value||'');return el.innerHTML}
   function render(data,iso){
-    const cards=buildCourses(data,iso);dateEl.textContent=`${dateLabel(iso)} · corse, navi ed equipaggi di tutte le residenze.`;
-    statusEl.textContent=cards.length?`${cards.length} corse trovate · equipaggi aggiornati dal piano turni e dalle variazioni ODS.`:'Nessuna corsa operativa trovata per oggi.';statusEl.classList.remove('error');
+    const cards=buildCourses(data,iso);statusEl.hidden=true;statusEl.classList.remove('error');
     if(!cards.length){contentEl.innerHTML='<div class="oggi-empty">Non risultano corse operative per questa giornata.</div>';return}
     const grouped=cards.reduce((map,card)=>{(map[card.residence]||=[]).push(card);return map},{});
-    contentEl.innerHTML=Object.entries(grouped).map(([residence,items])=>`<section class="oggi-residence"><h2 class="oggi-residence-title">${escapeHtml(residence)}</h2><div class="oggi-grid">${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`).join('');
+    const ordered=['DESENZANO','PESCHIERA','MADERNO','RIVA'].filter(residence=>grouped[residence]?.length).map(residence=>[residence,grouped[residence]]);
+    contentEl.classList.add('oggi-pairs');
+    contentEl.innerHTML=ordered.map(([residence,items])=>`<section class="oggi-residence"><h2 class="oggi-residence-title">${escapeHtml(residence)}</h2><div class="oggi-grid">${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`).join('');
   }
   async function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
-    const iso=todayIso();refreshButton.disabled=true;statusEl.hidden=false;statusEl.classList.remove('error');statusEl.textContent='Aggiornamento equipaggi…';
-    try{const data=await window.NaviSharedData.load('',{force:true});render(data,iso)}catch(error){console.error('Oggi: caricamento non riuscito',error);statusEl.textContent='Impossibile caricare le corse di oggi. Riprova.';statusEl.classList.add('error');contentEl.innerHTML=''}finally{refreshButton.disabled=false}
+    const iso=todayIso();if(refreshButton)refreshButton.disabled=true;statusEl.hidden=false;statusEl.classList.remove('error');statusEl.textContent='Aggiornamento equipaggi…';
+    try{const data=await window.NaviSharedData.load('',{force:true});render(data,iso)}catch(error){console.error('Oggi: caricamento non riuscito',error);statusEl.hidden=false;statusEl.textContent='Impossibile caricare le corse di oggi. Riprova.';statusEl.classList.add('error');contentEl.innerHTML=''}finally{if(refreshButton)refreshButton.disabled=false}
   }
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
