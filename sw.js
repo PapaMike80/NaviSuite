@@ -8,7 +8,7 @@
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v195-turni-cambi-menu';
+const CACHE_VERSION = 'navisuite-v196-turni-cambi-menu';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -53,21 +53,24 @@ self.addEventListener('fetch', event => {
       let text = await response.text();
       text += `
 
-/* Android Turni/Cambi: menu compatto, centrato e con chiusura/footer sempre visibili. */
+/* Android Turni/Cambi: pannello ancorato ai bordi del viewport, senza translate. */
 @media(max-width:850px){
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup{
     overflow:hidden!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-dialog{
-    top:max(10px,env(safe-area-inset-top,0px))!important;
-    left:50%!important;
-    right:auto!important;
-    width:calc(100vw - 36px)!important;
-    max-width:360px!important;
+    position:fixed!important;
+    top:10px!important;
+    bottom:10px!important;
+    left:20px!important;
+    right:20px!important;
+    width:auto!important;
+    height:auto!important;
     min-width:0!important;
-    max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    max-width:none!important;
+    max-height:none!important;
     margin:0!important;
-    transform:translateX(-50%)!important;
+    transform:none!important;
     box-sizing:border-box!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-head,
