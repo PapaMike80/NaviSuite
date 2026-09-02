@@ -194,8 +194,8 @@
     style.textContent=`
       @media(max-width:950px){.mobile-liquid-nav{display:none!important}}
       #navisuite-popup[hidden]{display:none!important}
-      #navisuite-popup{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) max(14px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(14px, env(safe-area-inset-left,0px));background:rgba(2,12,17,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-      .ns-menu-dialog{box-sizing:border-box;width:100%;max-width:430px;margin:0 auto;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e6971;border-radius:26px;background:linear-gradient(165deg,#102e39,#0a222c);box-shadow:0 22px 56px rgba(0,0,0,.5)}
+      #navisuite-popup{position:fixed;inset:0;z-index:10000;background:rgba(2,12,17,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+      .ns-menu-dialog{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:max(12px, env(safe-area-inset-left,0px));right:max(12px, env(safe-area-inset-right,0px));box-sizing:border-box;width:auto;max-width:none;margin:0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e6971;border-radius:26px;background:linear-gradient(165deg,#102e39,#0a222c);box-shadow:0 22px 56px rgba(0,0,0,.5)}
       .ns-menu-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;color:#a7fff0;font:900 26px/1 Manrope,system-ui,sans-serif}
       .ns-menu-close{width:44px;height:44px;border:1px solid rgba(126,243,226,.35);border-radius:14px;background:rgba(255,255,255,.06);color:#eafffb;font-size:30px;line-height:1;cursor:pointer}
       .ns-menu-links{display:grid;gap:8px;overflow:auto;padding:0 18px 14px;-webkit-overflow-scrolling:touch}
@@ -205,7 +205,7 @@
       .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}
       .ns-menu-foot a,.ns-menu-foot button{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.05);color:#d9eff0;text-decoration:none;font:800 14px/1 Manrope,system-ui,sans-serif;cursor:pointer}
       .ns-menu-foot .ns-menu-exit{border-color:rgba(251,113,133,.52);background:rgba(251,113,133,.09);color:#fdb2ba}
-      @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}.ns-menu-links a{min-height:49px;font-size:16px}}
+      @media(min-width:851px){.ns-menu-dialog{left:50%;right:auto;width:min(430px,calc(100vw - 24px));transform:translateX(-50%)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}.ns-menu-links a{min-height:49px;font-size:16px}}
     `;
     document.head.appendChild(style);
     const popup=document.createElement('div');
@@ -517,57 +517,7 @@
   window.refreshOdsVariationStatus=refreshOdsVariationStatus;
   window.addEventListener('DOMContentLoaded',refreshOdsVariationStatus);
 
-  function installUniversalMobileMenu(){
-    document.querySelectorAll('.mobile-liquid-nav,.admin-mobile-nav,.hiba-updates-mobile-nav,.hiba-mobile-nav').forEach(node=>node.hidden=true);
-    document.getElementById('navisuite-mobile-nav')?.remove();
-    document.getElementById('navisuite-mobile-menu')?.remove();
-
-    const nav=document.createElement('nav');
-    nav.id='navisuite-mobile-nav';
-    nav.className='navisuite-mobile-nav';
-    nav.setAttribute('aria-label','Navigazione principale');
-    const primary=[
-      ['naviturni.html','▦','Turni','turni'],
-      ['cambi_turno.html','⇄','Cambio','trova'],
-      ['navidiaria.html','≈','Diaria','diaria'],
-      ['documenti.html','▤','Documenti','archive']
-    ];
-    nav.innerHTML=primary.map(([href,icon,label,key])=>`<a href="${href}" class="${page===key?'active':''}"><span>${icon}</span><b>${label}</b></a>`).join('')+'<button type="button" data-open-mobile-menu aria-label="Apri menu"><span>☰</span><b>Menu</b></button>';
-    document.body.appendChild(nav);
-
-    const overlay=document.createElement('div');
-    overlay.id='navisuite-mobile-menu';
-    overlay.className='navisuite-mobile-menu';
-    overlay.hidden=true;
-    const isAdmin=isAdminAgent(sessionAgent),canUpdate=isAdmin||isHibaBarista(sessionAgent);
-    const links=[];
-    if(isAdmin)links.push(['impostazioni.html','⚙','Impostazioni']);
-    if(canUpdate)links.push(['aggiornamenti.html','↻','Aggiornamenti']);
-    if(isAdmin)links.push(['agenti.html','♙','Agenti']);
-    if(isAdmin)links.push(['Orario.html','◴','Orario']);
-    links.push(['segnalazioni.html','✉','Segnalazioni']);
-    overlay.innerHTML=`<section><header><strong>Menu NaviSuite</strong><button type="button" data-close-mobile-menu aria-label="Chiudi">✕</button></header><div class="navisuite-mobile-menu-links">${links.map(([href,icon,label])=>`<a href="${href}"><span>${icon}</span>${label}</a>`).join('')}<button type="button" data-mobile-logout><span>⇥</span>Esci</button></div></section>`;
-    document.body.appendChild(overlay);
-
-    const open=()=>{overlay.hidden=false;requestAnimationFrame(()=>overlay.classList.add('open'));};
-    const close=()=>{overlay.classList.remove('open');setTimeout(()=>{if(!overlay.classList.contains('open'))overlay.hidden=true;},160);};
-    nav.querySelector('[data-open-mobile-menu]')?.addEventListener('click',open);
-    overlay.querySelector('[data-close-mobile-menu]')?.addEventListener('click',close);
-    overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
-    overlay.querySelector('[data-mobile-logout]')?.addEventListener('click',()=>{
-      if(typeof window.logoutAgent==='function'){window.logoutAgent();return;}
-      localStorage.removeItem('navidiaria.activeAgent');
-      localStorage.removeItem('naviturni_logged_agent');
-      location.href='index.html';
-    });
-
-    if(!document.getElementById('navisuite-mobile-menu-style')){
-      const style=document.createElement('style');
-      style.id='navisuite-mobile-menu-style';
-      style.textContent='.mobile-liquid-nav[hidden],.admin-mobile-nav[hidden],.hiba-updates-mobile-nav[hidden],.hiba-mobile-nav[hidden]{display:none!important}.navisuite-mobile-nav,.navisuite-mobile-menu{display:none}@media(max-width:850px){body{padding-bottom:102px!important}.navisuite-mobile-nav{position:fixed;left:50vw;bottom:14px;z-index:2200;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;width:calc(100vw - 24px);max-width:620px;height:68px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.18);border-top-color:rgba(255,255,255,.28);border-radius:36px;background:rgba(18,34,45,.78);box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.13);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}.navisuite-mobile-nav a,.navisuite-mobile-nav button{display:flex;flex:1 1 0;min-width:0;max-width:72px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin:0;padding:7px 2px;border:0;border-radius:28px;background:transparent;color:#a9c4ca;text-decoration:none;font:800 9px/1 Inter,Arial,sans-serif}.navisuite-mobile-nav span{font-size:20px;line-height:20px;color:#b9d2d8}.navisuite-mobile-nav a.active{background:rgba(45,212,191,.14);color:#99f6e4}.navisuite-mobile-nav a.active span{color:#2dd4bf}.navisuite-mobile-menu{position:fixed;inset:0;z-index:2300;background:rgba(1,15,21,.58);opacity:0;transition:opacity .16s ease}.navisuite-mobile-menu.open{opacity:1}.navisuite-mobile-menu section{position:absolute;left:12px;right:12px;bottom:94px;padding:12px;border:1px solid rgba(255,255,255,.18);border-radius:23px;background:rgba(13,39,50,.96);box-shadow:0 18px 45px rgba(0,0,0,.42);backdrop-filter:blur(22px)}.navisuite-mobile-menu header{display:flex;align-items:center;justify-content:space-between;padding:4px 5px 10px;color:#e9ffff;font:800 15px Inter,Arial,sans-serif}.navisuite-mobile-menu header button{width:32px;height:32px;border:1px solid rgba(151,212,221,.35);border-radius:50%;background:transparent;color:#9de8e0;font-size:16px}.navisuite-mobile-menu-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}.navisuite-mobile-menu-links a,.navisuite-mobile-menu-links button{display:flex;align-items:center;gap:9px;min-height:45px;padding:10px 12px;border:1px solid rgba(114,170,181,.35);border-radius:13px;background:rgba(5,26,35,.68);color:#e7fbfb;text-decoration:none;font:800 12px Inter,Arial,sans-serif;text-align:left}.navisuite-mobile-menu-links span{font-size:18px;color:#34d6c0}.navisuite-mobile-menu-links [data-mobile-logout]{color:#ffd3d9}.navisuite-mobile-menu-links [data-mobile-logout] span{color:#fb8291}}';
-      document.head.appendChild(style);
-    }
-  }
+  // La precedente barra mobile è stata rimossa: la navigazione usa solo il popup condiviso.
 
   function installHibaMobileNav(){
     if(!isHibaBarista(sessionAgent))return;
