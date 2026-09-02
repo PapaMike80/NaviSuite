@@ -83,7 +83,8 @@
   }
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
-    const menuButton=event.target.closest('.oggi-residence-menu');if(menuButton){window.NaviOggi?.openMenu?.();return;}\n    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){const section=residenceButton.closest('.oggi-residence');const open=residenceButton.getAttribute('aria-expanded')!=='true';residenceButton.setAttribute('aria-expanded',String(open));section.querySelectorAll('.oggi-card').forEach(card=>{card.classList.toggle('is-open',open);card.querySelector('.oggi-card-head').setAttribute('aria-expanded',String(open));});return;}
+    const menuButton=event.target.closest('.oggi-residence-menu');if(menuButton){window.NaviOggi?.openMenu?.();return;}
+    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){const section=residenceButton.closest('.oggi-residence');const open=residenceButton.getAttribute('aria-expanded')!=='true';residenceButton.setAttribute('aria-expanded',String(open));section.querySelectorAll('.oggi-card').forEach(card=>{card.classList.toggle('is-open',open);card.querySelector('.oggi-card-head').setAttribute('aria-expanded',String(open));});return;}
     const button=event.target.closest('.oggi-card-head');if(!button)return;
     const card=button.closest('.oggi-card');const open=!card.classList.contains('is-open');
     card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));
