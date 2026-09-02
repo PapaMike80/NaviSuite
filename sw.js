@@ -3,12 +3,12 @@
  *
  * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
  * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket;
- * - shared-menu.js: aggiunge fallback colori se manca una residenza;
+ * - shared-menu.js: aggiunge fallback colori e isola le classi del popup;
  * - shared-menu.css: forza il ricaricamento delle correzioni del menu mobile;
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v196-turni-cambi-menu';
+const CACHE_VERSION = 'navisuite-v197-left-menu';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -53,7 +53,7 @@ self.addEventListener('fetch', event => {
       let text = await response.text();
       text += `
 
-/* Android Turni/Cambi: pannello ancorato ai bordi del viewport, senza translate. */
+/* Android Turni/Cambi: resa simile a Impostazioni, pannello stretto allineato a sinistra. */
 @media(max-width:850px){
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup{
     overflow:hidden!important;
@@ -62,12 +62,12 @@ self.addEventListener('fetch', event => {
     position:fixed!important;
     top:10px!important;
     bottom:10px!important;
-    left:20px!important;
-    right:20px!important;
-    width:auto!important;
+    left:12px!important;
+    right:auto!important;
+    width:clamp(180px,56vw,240px)!important;
     height:auto!important;
     min-width:0!important;
-    max-width:none!important;
+    max-width:calc(100vw - 24px)!important;
     max-height:none!important;
     margin:0!important;
     transform:none!important;
@@ -77,47 +77,67 @@ self.addEventListener('fetch', event => {
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-foot{
     flex:0 0 auto!important;
     min-width:0!important;
+    width:100%!important;
     box-sizing:border-box!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-head{
-    padding:14px 14px 10px!important;
-    font-size:22px!important;
+    padding:12px 10px 8px!important;
+    font-size:20px!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-close{
-    flex:0 0 40px!important;
-    width:40px!important;
-    min-width:40px!important;
-    height:40px!important;
+    flex:0 0 36px!important;
+    width:36px!important;
+    min-width:36px!important;
+    height:36px!important;
+    margin:0!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-links{
+    display:grid!important;
     flex:1 1 auto!important;
     min-height:0!important;
+    width:100%!important;
     overflow-x:hidden!important;
     overflow-y:auto!important;
     gap:6px!important;
-    padding:0 12px 10px!important;
+    padding:0 9px 9px!important;
     box-sizing:border-box!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-links a{
+    display:flex!important;
+    flex:0 0 44px!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:9px!important;
+    width:100%!important;
+    height:44px!important;
     min-height:44px!important;
-    padding:0 12px!important;
-    border-radius:13px!important;
-    font-size:14px!important;
+    max-height:44px!important;
+    margin:0!important;
+    padding:0 10px!important;
+    box-sizing:border-box!important;
+    border-radius:12px!important;
+    font-size:13px!important;
+    line-height:1!important;
+    transform:none!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-links a span{
-    width:20px!important;
-    font-size:19px!important;
+    flex:0 0 18px!important;
+    width:18px!important;
+    font-size:17px!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-foot{
     grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-    gap:7px!important;
-    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px))!important;
+    gap:6px!important;
+    padding:8px 9px calc(8px + env(safe-area-inset-bottom,0px))!important;
   }
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-foot a,
   body.turni-page:not(.diaria-page):not(.archive-page):not(.orario-page):not(.orario-data-page) #navisuite-popup .ns-menu-foot button{
     min-width:0!important;
-    min-height:42px!important;
-    font-size:13px!important;
+    min-height:40px!important;
+    padding:0 4px!important;
+    font-size:11px!important;
   }
 }
 `;
@@ -151,6 +171,10 @@ self.addEventListener('fetch', event => {
       text = text.replace(
         "const palette=type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw] || ['#94a3b8','rgba(148,163,184,.13)'];",
         "const palette=(type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw]) || ['#2dd4bf','rgba(45,212,191,.13)'];"
+      );
+      text = text.replace(
+        "links.forEach(link=>{const clone=link.cloneNode(true);clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});",
+        "links.forEach(link=>{const clone=link.cloneNode(true);clone.className=link.classList.contains('active')?'active':'';clone.removeAttribute('id');clone.removeAttribute('style');clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});"
       );
       return js(text);
     })());
