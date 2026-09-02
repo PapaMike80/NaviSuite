@@ -10,18 +10,17 @@
     [/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','#3b82f6',5],
     [/marinaio/i,'Marinaio','#94a3b8',6]
   ];
+  const WEEKDAY_LABELS=['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
+  const MONTH_LABELS=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SETT','OTT','NOV','DIC'];
   const statusEl=document.getElementById('oggi-status');
   const contentEl=document.getElementById('oggi-content');
   const refreshButton=document.getElementById('oggi-refresh');
   const todayIso=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Rome'});
-  const dateLabel=iso=>new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Rome'}).format(new Date(`${iso}T12:00:00`));
+  const dateLabel=iso=>{const [year,month,day]=String(iso||'').split('-').map(Number);const date=new Date(Date.UTC(year,month-1,day,12));return `${WEEKDAY_LABELS[date.getUTCDay()]} ${day} ${MONTH_LABELS[month-1]}`;};
   const norm=value=>String(value||'').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim();
   const cleanShift=value=>{
     const raw=String(value||'').trim().toUpperCase().replace(/[‐‑–—]/g,'-').replace(/\s+/g,'');
     if(!raw||/^(RIP|RIPOSO|===|--+|CON|FP|F\.P\.|TERRA|LAV)$/.test(raw))return '';
-    // Le trasferte sono codificate nel piano con una C prima e/o dopo il
-    // turno: CD1C, CP1C, CR3C, CT2C. La C non è una nuova corsa: l'agente
-    // deve entrare nell'equipaggio della corsa di destinazione.
     const direct=raw.match(/^C?(D[1-4]|BIS|T[12]|M1|R[1-4]|CAR\d*|P[1-3]|CAP\d*|SR1)C?$/)?.[1];
     if(!direct)return '';
     const code=direct.replace(/\d+$/,'');
@@ -48,7 +47,7 @@
     const map=new Map();
     (data?.variazioni_ods||[]).forEach(item=>{
       const iso=String(item?.data||item?.date||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(iso))return;
-      const shift=item?.turno_nuovo??item?.turno??item?.dopo; if(shift===undefined)return;
+      const shift=item?.turno_nuovo??item?.turno??item?.dopo;if(shift===undefined)return;
       const keys=[];if(item?.id_agente||item?.agentId)keys.push(`id:${String(item.id_agente||item.agentId)}`);if(item?.agente||item?.nome)keys.push(`name:${norm(item.agente||item.nome)}`);
       keys.forEach(key=>{if(!map.has(key))map.set(key,new Map());map.get(key).set(iso,shift);});
     });
@@ -79,7 +78,7 @@
     const currentDate=dateLabel(iso);
     contentEl.classList.add('oggi-pairs');
     const colors={DESENZANO:'#4ea9ff',PESCHIERA:'#51cf92',MADERNO:'#f59f55',RIVA:'#be8cff'};
-    contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;return `<section class="oggi-residence" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="false" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button><span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button></h2><div id="${gridId}" class="oggi-grid" hidden>${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
+    contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;const firstMeta=index===0?`<span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button>`:'';return `<section class="oggi-residence" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="false" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button>${firstMeta}</h2><div id="${gridId}" class="oggi-grid" hidden>${items.map(card=>`<article class="oggi-card" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="false" aria-label="Apri equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>⛴ ${card.ship?escapeHtml(card.ship):'Nave non assegnata'} · ${escapeHtml(card.crew.length)} equipaggio</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
   }
   async function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
@@ -89,7 +88,12 @@
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
     const menuButton=event.target.closest('.oggi-residence-menu');if(menuButton){window.NaviOggi?.openMenu?.();return;}
-    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){const section=residenceButton.closest('.oggi-residence');const grid=section?.querySelector('.oggi-grid');const open=residenceButton.getAttribute('aria-expanded')!=='true';residenceButton.setAttribute('aria-expanded',String(open));section?.classList.toggle('is-open',open);if(grid)grid.hidden=!open;return;}
+    const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){
+      const section=residenceButton.closest('.oggi-residence');const grid=section?.querySelector('.oggi-grid');const open=residenceButton.getAttribute('aria-expanded')!=='true';
+      residenceButton.setAttribute('aria-expanded',String(open));section?.classList.toggle('is-open',open);if(grid)grid.hidden=!open;
+      section?.querySelectorAll('.oggi-card').forEach(card=>{card.classList.toggle('is-open',open);card.querySelector('.oggi-card-head')?.setAttribute('aria-expanded',String(open));});
+      return;
+    }
     const button=event.target.closest('.oggi-card-head');if(!button)return;
     const card=button.closest('.oggi-card');const open=!card.classList.contains('is-open');
     card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));
