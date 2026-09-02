@@ -4,10 +4,11 @@
  * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
  * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket;
  * - shared-menu.js: aggiunge fallback colori se manca una residenza;
- * - shared-menu.css: forza il ricaricamento delle correzioni del menu mobile.
+ * - shared-menu.css: forza il ricaricamento delle correzioni del menu mobile;
+ * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v193-mobile-menu-width';
+const CACHE_VERSION = 'navisuite-v194-orario-menu';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -37,6 +38,11 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname === '/NaviSuite/assets/css/shared-menu.css') {
+    event.respondWith(fetch(event.request, { cache: 'reload' }));
+    return;
+  }
+
+  if (url.pathname === '/NaviSuite/assets/js/orario-lucide-init.js') {
     event.respondWith(fetch(event.request, { cache: 'reload' }));
     return;
   }
