@@ -76,5 +76,5 @@ const buttons=[...document.querySelectorAll('#ccnlIndex button')];const lessons=
 buttons.forEach(b=>b.addEventListener('click',()=>{buttons.forEach(x=>x.classList.remove('active'));lessons.forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('lesson-'+b.dataset.lesson).classList.add('active');if(innerWidth<900)document.getElementById('lesson-'+b.dataset.lesson).scrollIntoView({behavior:'smooth',block:'start'})}));
 document.querySelectorAll('.quiz').forEach(q=>{const ans=Number(q.dataset.answer);const opts=[...q.querySelectorAll('button')];const f=q.querySelector('.feedback');opts.forEach((o,i)=>o.onclick=()=>{opts.forEach((x,j)=>{x.disabled=true;if(j===ans)x.classList.add('correct');if(j===i&&j!==ans)x.classList.add('wrong')});f.textContent=i===ans?'Risposta corretta.':'Risposta errata: profilo e parametro non sostituiscono le abilitazioni previste dalla normativa.'})});
 </script>
-<script src="assets/js/shared-menu.js?v=1.46"></script>
+<script src="assets/js/shared-menu.js?v=1.47"></script>
 </body></html>
