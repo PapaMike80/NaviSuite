@@ -100,6 +100,8 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
+  const preferred=localStorage.getItem('navisuite.startPage.'+String(agent.id||''))||'naviturni.html';
+  if(preferred!=='naviturni.html'){location.href=preferred;return;}
   const diaria = document.querySelector('.app-card.diaria');
   const oggi = document.querySelector('.app-card.oggi');
   const docs = document.querySelector('.app-card.docs');
