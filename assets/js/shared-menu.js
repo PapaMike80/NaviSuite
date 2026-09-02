@@ -34,6 +34,7 @@
     if(attempt<8)setTimeout(()=>trackPageView(attempt+1),250);
   };
   trackPageView(0);
+  const installTodayAboveResidences=()=>{const box=document.getElementById('top-residence-buttons');if(!box||document.getElementById('today-above-residences'))return Boolean(box);const link=document.createElement('a');link.id='today-above-residences';link.href='oggi.html';link.textContent='☀ Oggi';link.style.cssText='display:flex;align-items:center;justify-content:center;min-height:40px;margin:0 0 7px;border:1px solid #2dd4bf;border-radius:12px;background:rgba(45,212,191,.14);color:#a7fff0;font-size:13px;font-weight:900;text-decoration:none;letter-spacing:.04em';box.parentNode.insertBefore(link,box);return true;};let todayAttempts=0;const todayTimer=setInterval(()=>{if(installTodayAboveResidences()||++todayAttempts>30)clearInterval(todayTimer)},250);
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
