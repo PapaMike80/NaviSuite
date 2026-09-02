@@ -71,7 +71,7 @@
     <section class="section" id="altre-preferenze">
       <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
-      <div class="field" style="max-width:320px;margin-top:20px"><label for="navisuite-start-page">Prima pagina di apertura</label><select id="navisuite-start-page"><option value="naviturni.html">NaviTurni</option><option value="oggi.html">Oggi</option><option value="cambi_turno.html">Cambi turno</option><option value="navidiaria.html">NaviDiaria</option><option value="documenti.html">Documenti</option><option value="impostazioni.html">Impostazioni</option></select></div>
+      <div class="field" style="max-width:360px;margin-top:20px"><label for="navisuite-start-page">Prima pagina di apertura</label><p style="margin:0 0 8px;color:var(--muted);font-size:12px">Scegli dove aprire NaviSuite dopo l’accesso. Per impostazione predefinita rimani nella Home.</p><select id="navisuite-start-page"><option value="index.html">Home</option></select></div>
     </section>
     <section class="section admin-section" id="gestione-utenti" hidden>
       <div class="section-head"><div><h2>Gestione utenti</h2><p>Agenti registrati, ultimo accesso e ultima pagina aperta rilevati direttamente da Firebase.</p></div><span class="badge">Firebase · Admin</span></div>
@@ -92,14 +92,22 @@
   </nav>
   <script src="assets/js/admin-firebase-rest.js?v=40"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.49"></script>
+  <script src="assets/js/shared-menu.js?v=1.50"></script>
   <script src="assets/js/mobile-menu-solid.js?v=1"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
     if(!profile){location.replace("index.html");}
     const profileName=profile?.name||profile?.cognome||"Agente";
-    const startKey='navisuite.startPage.'+String(profile?.id||'');const startSelect=document.getElementById('navisuite-start-page');if(startSelect){startSelect.value=localStorage.getItem(startKey)||'naviturni.html';startSelect.addEventListener('change',()=>localStorage.setItem(startKey,startSelect.value));}
+    const startKey='navisuite.startPage.'+String(profile?.id||'');const startSelect=document.getElementById('navisuite-start-page');if(startSelect){
+      const labels={index:'Home',oggi:'☀ Oggi',naviturni:'NaviTurni',cambi_turno:'Cambio turno',navidiaria:'Distinta',documenti:'Documenti',Orario:'Orario',impostazioni:'Impostazioni',segnalazioni:'Segnalazioni',aggiornamenti:'Aggiornamenti',agenti:'Agenti',gestione_navi:'Navi'};
+      const known=new Set(['index.html']);
+      const navLinks=[...document.querySelectorAll('#settings-sidebar nav a[href]')].filter(link=>!link.hidden).filter(link=>/^[A-Za-z0-9_-]+\.html$/.test(link.getAttribute('href')||''));
+      navLinks.forEach(link=>{const value=link.getAttribute('href');if(known.has(value))return;known.add(value);const option=document.createElement('option');option.value=value;option.textContent=labels[value.replace(/\.html$/,'')]||link.textContent.trim();startSelect.appendChild(option);});
+      const saved=localStorage.getItem(startKey)||'index.html';
+      startSelect.value=known.has(saved)?saved:'index.html';
+      startSelect.addEventListener('change',()=>localStorage.setItem(startKey,startSelect.value));
+    }
     const profileNameElement=document.getElementById("profile-name");
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
