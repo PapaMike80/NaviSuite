@@ -231,7 +231,7 @@
       location.href='index.html';
     });
     window.NaviSuiteMenu={open,close};
-    const host=document.querySelector('.page-header,.archive-header,.diaria-header,main>header');
+    const host=document.querySelector('.page-header,.archive-header,.diaria-header,main>header,body.impostazioni-page>header');
     if(host){
       host.style.position=host.style.position||'relative';
       const button=document.createElement('button');
