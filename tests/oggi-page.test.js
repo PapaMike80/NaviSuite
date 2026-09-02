@@ -8,15 +8,17 @@ const html = fs.readFileSync('oggi.html', 'utf8');
 const source = fs.readFileSync('assets/js/oggi.js', 'utf8');
 assert.match(html, /class="turni-page oggi-page"/);
 assert.match(html, /assets\/js\/shared-data\.js/);
-assert.match(html, /assets\/js\/oggi\.js\?v=8/);
+assert.match(html, /assets\/js\/oggi\.js\?v=9/);
 assert.match(html, /\.oggi-grid\[hidden\]/);
 assert.match(source, /turni_navi/);
 assert.match(source, /variazioni_ods/);
 assert.match(source, /residenze/);
 assert.match(source, /Capo timoniere/);
 assert.match(source, /todayIso/);
-assert.match(source, /dateLabel\(iso\)/);
+assert.match(source, /MONTH_LABELS=.*'SETT'/);
 assert.match(source, /oggi-residence-date/);
+assert.match(source, /index===0/);
+assert.match(source, /querySelectorAll\('\.oggi-card'\)/);
 assert.match(source, /class="oggi-grid" hidden/);
 assert.match(source, /PESCHIERA:\['P1','P2','P3','SR1','CAP'\]/);
 
@@ -45,6 +47,7 @@ assert.equal(cards[0].ship, 'Agone');
 assert.deepEqual(cards[0].crew.map(a => a.agente), ['Rossi', 'Verdi', 'Bianchi']);
 assert.match(source, /CD1C/);
 assert.match(source, /aria-expanded/);
+assert.match(source, /WEEKDAY_LABELS/);
 
 const orderSample = {
   residenze:{ DESENZANO:[], PESCHIERA:[], MADERNO:[], RIVA:[] },
