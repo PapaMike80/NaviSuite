@@ -90,6 +90,6 @@
     card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));
   });
   document.getElementById('oggi-menu')?.addEventListener('click',()=>document.querySelector('.app-sidebar')?.classList.toggle('open'));
-  const openMenu=()=>{const p=document.getElementById('oggi-nav-popup');const nav=document.querySelector('.app-sidebar nav');if(p&&nav){p.querySelector('nav').innerHTML=nav.innerHTML;p.hidden=false;}};document.getElementById('oggi-nav-popup')?.addEventListener('click',e=>{if(e.target.id==='oggi-nav-popup'||e.target.closest('#oggi-nav-close'))e.currentTarget.hidden=true;});window.NaviOggi={refresh,buildCourses,openMenu};
+  const openMenu=()=>window.NaviSuiteMenu?.open?.();document.getElementById('oggi-nav-popup')?.addEventListener('click',e=>{if(e.target.id==='oggi-nav-popup'||e.target.closest('#oggi-nav-close'))e.currentTarget.hidden=true;});window.NaviOggi={refresh,buildCourses,openMenu};
   refresh();
 })();
