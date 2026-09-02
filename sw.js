@@ -3,12 +3,13 @@
  *
  * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
  * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket;
- * - shared-menu.js: aggiunge fallback colori e isola le classi del popup;
+ * - shared-menu.js: aggiunge fallback colori, isola le classi del popup e
+ *   forza il pannello Turni/Cambi dentro il visual viewport Android;
  * - shared-menu.css: forza il ricaricamento del menu condiviso senza override pagina;
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v198-settings-menu';
+const CACHE_VERSION = 'navisuite-v199-visual-viewport-menu';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -72,6 +73,85 @@ self.addEventListener('fetch', event => {
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});",
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.className=link.classList.contains('active')?'active':'';clone.removeAttribute('id');clone.removeAttribute('style');clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});"
       );
+      text += `
+;(()=>{
+  if(!/(?:^|\\/)(?:naviturni|cambi_turno)\\.html$/i.test(location.pathname)) return;
+
+  const installVisualViewportFix=()=>{
+    const popup=document.getElementById('navisuite-popup');
+    if(!popup || popup.dataset.visualViewportFix==='1') return;
+    popup.dataset.visualViewportFix='1';
+
+    const fit=()=>{
+      if(popup.hidden) return;
+      const dialog=popup.querySelector('.ns-menu-dialog');
+      if(!dialog) return;
+      const vv=window.visualViewport;
+      const vw=Math.max(240,Math.floor(vv?.width || document.documentElement.clientWidth || window.innerWidth));
+      const vh=Math.max(320,Math.floor(vv?.height || document.documentElement.clientHeight || window.innerHeight));
+      const ox=Math.max(0,Math.floor(vv?.offsetLeft || 0));
+      const oy=Math.max(0,Math.floor(vv?.offsetTop || 0));
+      const margin=12;
+      const width=Math.max(216,vw-(margin*2));
+      const height=Math.max(296,vh-(margin*2));
+
+      dialog.style.setProperty('position','fixed','important');
+      dialog.style.setProperty('left',(ox+margin)+'px','important');
+      dialog.style.setProperty('right','auto','important');
+      dialog.style.setProperty('top',(oy+margin)+'px','important');
+      dialog.style.setProperty('bottom','auto','important');
+      dialog.style.setProperty('width',width+'px','important');
+      dialog.style.setProperty('min-width','0','important');
+      dialog.style.setProperty('max-width',width+'px','important');
+      dialog.style.setProperty('height',height+'px','important');
+      dialog.style.setProperty('max-height',height+'px','important');
+      dialog.style.setProperty('margin','0','important');
+      dialog.style.setProperty('transform','none','important');
+      dialog.style.setProperty('box-sizing','border-box','important');
+      dialog.style.setProperty('overflow','hidden','important');
+
+      const head=dialog.querySelector('.ns-menu-head');
+      const links=dialog.querySelector('.ns-menu-links');
+      const foot=dialog.querySelector('.ns-menu-foot');
+      [head,links,foot].forEach(el=>{
+        if(!el) return;
+        el.style.setProperty('width','100%','important');
+        el.style.setProperty('max-width','100%','important');
+        el.style.setProperty('min-width','0','important');
+        el.style.setProperty('box-sizing','border-box','important');
+      });
+      if(links){
+        links.style.setProperty('flex','1 1 auto','important');
+        links.style.setProperty('min-height','0','important');
+        links.style.setProperty('overflow-y','auto','important');
+        links.style.setProperty('overflow-x','hidden','important');
+      }
+      if(head) head.style.setProperty('flex','0 0 auto','important');
+      if(foot) foot.style.setProperty('flex','0 0 auto','important');
+    };
+
+    const observer=new MutationObserver(()=>{
+      if(!popup.hidden){
+        fit();
+        requestAnimationFrame(fit);
+        setTimeout(fit,60);
+      }
+    });
+    observer.observe(popup,{attributes:true,attributeFilter:['hidden']});
+
+    const refit=()=>{ if(!popup.hidden) fit(); };
+    window.addEventListener('resize',refit,{passive:true});
+    window.visualViewport?.addEventListener('resize',refit,{passive:true});
+    window.visualViewport?.addEventListener('scroll',refit,{passive:true});
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(installVisualViewportFix,0),{once:true});
+  }else{
+    setTimeout(installVisualViewportFix,0);
+  }
+})();
+`;
       return js(text);
     })());
   }
