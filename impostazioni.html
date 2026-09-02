@@ -71,6 +71,7 @@
     <section class="section" id="altre-preferenze">
       <div class="section-head"><div><h2>Altre preferenze</h2><p>Questa pagina potrà raccogliere altre impostazioni senza aggiungere nuove pagine al portale.</p></div><span class="badge">In futuro</span></div>
       <div class="future" style="margin-top:20px"><div><strong>Aspetto</strong>Tema e leggibilità</div><div><strong>NaviTurni</strong>Vista e filtri predefiniti</div><div><strong>Altri canali</strong>WhatsApp e nuove notifiche</div></div>
+      <div class="field" style="max-width:320px;margin-top:20px"><label for="navisuite-start-page">Prima pagina di apertura</label><select id="navisuite-start-page"><option value="naviturni.html">NaviTurni</option><option value="oggi.html">Oggi</option><option value="cambi_turno.html">Cambi turno</option><option value="navidiaria.html">NaviDiaria</option><option value="documenti.html">Documenti</option><option value="impostazioni.html">Impostazioni</option></select></div>
     </section>
     <section class="section admin-section" id="gestione-utenti" hidden>
       <div class="section-head"><div><h2>Gestione utenti</h2><p>Agenti registrati, ultimo accesso e ultima pagina aperta rilevati direttamente da Firebase.</p></div><span class="badge">Firebase · Admin</span></div>
@@ -98,6 +99,7 @@
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
     if(!profile){location.replace("index.html");}
     const profileName=profile?.name||profile?.cognome||"Agente";
+    const startKey='navisuite.startPage.'+String(profile?.id||'');const startSelect=document.getElementById('navisuite-start-page');if(startSelect){startSelect.value=localStorage.getItem(startKey)||'naviturni.html';startSelect.addEventListener('change',()=>localStorage.setItem(startKey,startSelect.value));}
     const profileNameElement=document.getElementById("profile-name");
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
