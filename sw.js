@@ -3,10 +3,11 @@
  *
  * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
  * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket;
- * - shared-menu.js: aggiunge fallback colori se manca una residenza.
+ * - shared-menu.js: aggiunge fallback colori se manca una residenza;
+ * - shared-menu.css: forza il ricaricamento delle correzioni del menu mobile.
  */
 
-const CACHE_VERSION = 'navisuite-v192-diaria-loop-hotfix';
+const CACHE_VERSION = 'navisuite-v193-mobile-menu-width';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -34,6 +35,11 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname === '/NaviSuite/assets/css/shared-menu.css') {
+    event.respondWith(fetch(event.request, { cache: 'reload' }));
+    return;
+  }
 
   if (url.pathname === '/NaviSuite/assets/js/navidiaria-monthly.js') {
     event.respondWith((async () => {
