@@ -9,7 +9,7 @@
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v200-turni-menu-past';
+const CACHE_VERSION = 'navisuite-v201-turni-menu-past-main';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -79,24 +79,37 @@ self.addEventListener('fetch', event => {
 
   const ensureTurniPastButton=()=>{
     if(!/(?:^|\\/)naviturni\\.html$/i.test(location.pathname)) return true;
-    const actions=document.querySelector('#navisuite-popup .mobile-menu-actions');
-    if(!actions) return false;
-    if(actions.querySelector('[data-mobile-past]')) return true;
+    const popup=document.getElementById('navisuite-popup');
+    const target=popup?.querySelector('.ns-menu-links');
+    if(!target) return false;
 
-    const button=document.createElement('button');
-    button.type='button';
-    button.setAttribute('data-mobile-past','');
-    button.innerHTML='<span>◷</span><b>Mostra passato</b>';
-    button.addEventListener('click',()=>{
-      if(typeof window.togglePastColumns==='function') window.togglePastColumns();
-      const source=document.getElementById('togglePastBtn');
-      const label=button.querySelector('b');
-      if(label) label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato';
-    });
+    popup.querySelectorAll('.mobile-menu-actions [data-mobile-past]').forEach(el=>el.remove());
 
-    const refresh=actions.querySelector('[data-mobile-refresh]');
-    if(refresh?.nextSibling) actions.insertBefore(button,refresh.nextSibling);
-    else actions.appendChild(button);
+    let link=target.querySelector('[data-turni-main-past]');
+    if(!link){
+      link=document.createElement('a');
+      link.href='#';
+      link.setAttribute('data-turni-main-past','');
+      link.innerHTML='<span>◷</span><b>Mostra passato</b>';
+      link.addEventListener('click',event=>{
+        event.preventDefault();
+        if(typeof window.togglePastColumns==='function') window.togglePastColumns();
+        const source=document.getElementById('togglePastBtn');
+        const label=link.querySelector('b');
+        if(label) label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato';
+      });
+
+      const turniLink=[...target.querySelectorAll('a')].find(item=>{
+        const href=(item.getAttribute('href')||'').toLowerCase();
+        return href.endsWith('naviturni.html')||/naviturni/i.test(item.textContent||'');
+      });
+      if(turniLink) turniLink.insertAdjacentElement('afterend',link);
+      else target.prepend(link);
+    }
+
+    const source=document.getElementById('togglePastBtn');
+    const label=link.querySelector('b');
+    if(label) label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato';
     return true;
   };
 
@@ -158,7 +171,7 @@ self.addEventListener('fetch', event => {
         ensureTurniPastButton();
         fit();
         requestAnimationFrame(fit);
-        setTimeout(fit,60);
+        setTimeout(()=>{ensureTurniPastButton();fit();},60);
       }
     });
     observer.observe(popup,{attributes:true,attributeFilter:['hidden']});
