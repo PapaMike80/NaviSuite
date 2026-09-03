@@ -55,4 +55,13 @@
 
   window.NaviDraftPeriod = {get:() => ({...current}), contains, refresh, save, reset, defaults:{...DEFAULT_PERIOD}};
   window.addEventListener('DOMContentLoaded', () => setTimeout(refresh, 150));
+
+  // Le Impostazioni caricano qui anche il modulo Calendario personale, così
+  // la funzione resta confinata alla pagina senza appesantire il resto di NaviSuite.
+  if (document.body?.classList.contains('impostazioni-page')) {
+    const script = document.createElement('script');
+    script.src = 'assets/js/calendar-settings.js?v=1';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
 })();
