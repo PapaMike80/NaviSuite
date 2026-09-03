@@ -140,5 +140,48 @@
     });
   }
 
+  async function repairStoredTibilettiSeptember2026(){
+    if(!document.body.classList.contains('aggiornamenti-page')||!window.NaviAdminFirebase?.getAdminUpdates)return;
+    try{
+      const storedClean=value=>String(value||'').toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[Ɓɓ]/g,'B').replace(/[^A-Z0-9]+/g,'').trim();
+      const storedShift=value=>{const raw=String(value??'').trim().toUpperCase().replace(/[‐‑–—]/g,'-');if(!raw||/^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw))return 'RIP';if(/^(?:CONG?\.?|CON;|CONC\.?|C\.)$/.test(raw))return 'CON';if(/^(?:LAV\.?|TERRA)$/.test(raw))return 'TERRA';if(/^F\.?P\.?-*$/.test(raw))return 'F.P.';return raw.replace(/\.{2,}$/g,'.').replace(/-+$/g,'')};
+      await window.NaviAdminFirebase.ready;
+      const saved=await window.NaviAdminFirebase.getAdminUpdates();
+      const expected={
+        '2026-09-07':'D2','2026-09-08':'RIP','2026-09-09':'D1','2026-09-10':'RIP',
+        '2026-09-11':'RIP','2026-09-12':'D2','2026-09-13':'D3','2026-09-14':'D2',
+        '2026-09-15':'D3','2026-09-16':'RIP','2026-09-17':'BIS','2026-09-18':'RIP',
+        '2026-09-19':'D3','2026-09-20':'RIP'
+      };
+      let changed=false;
+      const batches=(saved.scheduleImports||[]).map(batch=>{
+        const filename=String(batch?.filename||batch?.titolo||'').toUpperCase();
+        const exactPeriod=String(batch?.inizio||'')==='2026-09-07'&&String(batch?.fine||'')==='2026-09-20';
+        const officialFile=exactPeriod&&filename.includes('TURNO')&&!filename.includes('BOZZA');
+        if(!officialFile)return batch;
+        let batchChanged=false;
+        const rows=(batch.rows||[]).map(row=>{
+          if(!storedClean(row?.agente).includes('TIBILETTI'))return row;
+          const dates=Array.isArray(batch.dates)?batch.dates:[];
+          const current=Array.isArray(row.turni)?row.turni:[];
+          const next=dates.map((iso,index)=>expected[iso]||current[index]||'RIP');
+          if(next.some((value,index)=>storedShift(current[index])!==value)){batchChanged=true;changed=true}
+          return {...row,turni:next};
+        });
+        return batchChanged?{...batch,rows,identityVersion:Math.max(3,Number(batch.identityVersion||0))}:batch;
+      });
+      if(!changed)return;
+      await window.NaviAdminFirebase.saveAdminUpdates({...saved,scheduleImports:batches});
+      window.NaviSharedData?.clear?.();
+      const status=document.getElementById('status');
+      if(status){status.textContent='✓ Tibiletti corretto anche nel turno salvato 07/09–20/09. Ora puoi caricare la nuova bozza.';status.className='status ok'}
+    }catch(error){
+      console.warn('Correzione turno salvato Tibiletti non applicata',error);
+    }
+  }
+
   installTurnPdfPreviewRepair();
+  const scheduleStoredRepair=()=>setTimeout(repairStoredTibilettiSeptember2026,1600);
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',scheduleStoredRepair,{once:true});
+  else scheduleStoredRepair();
 })();
