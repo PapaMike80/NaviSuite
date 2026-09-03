@@ -5,13 +5,14 @@
  * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket e
  *   corregge il calcolo Ore lavorate = servizio + straordinari finché le ore
  *   non sono state modificate manualmente;
+ * - portal.js: distingue l'apertura automatica dalla richiesta esplicita Home;
  * - shared-menu.js: aggiunge fallback colori, isola le classi del popup e
  *   forza il pannello Turni/Cambi dentro il visual viewport Android;
  * - shared-menu.css: forza il ricaricamento del menu condiviso senza override pagina;
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v202-distinta-worked-overtime';
+const CACHE_VERSION = 'navisuite-v203-home-explicit';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -67,6 +68,19 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  if (url.pathname === '/NaviSuite/assets/js/portal.js') {
+    event.respondWith((async () => {
+      const response = await fetch(event.request, { cache: 'reload' });
+      let text = await response.text();
+      text = text.replace(
+        "if(preferred&&preferred!=='index.html'){location.href=preferred;return;}",
+        "const explicitHome=new URLSearchParams(location.search).get('home')==='1';if(!explicitHome&&preferred&&preferred!=='index.html'){location.href=preferred;return;}"
+      );
+      return js(text);
+    })());
+    return;
+  }
+
   if (url.pathname === '/NaviSuite/assets/js/shared-menu.js') {
     event.respondWith((async () => {
       const response = await fetch(event.request, { cache: 'reload' });
@@ -78,6 +92,10 @@ self.addEventListener('fetch', event => {
       text = text.replace(
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});",
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.className=link.classList.contains('active')?'active':'';clone.removeAttribute('id');clone.removeAttribute('style');clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});"
+      );
+      text = text.replace(
+        "item('index.html','⌂','Home')",
+        "item('index.html?home=1','⌂','Home')"
       );
       text += `
 ;(()=>{
