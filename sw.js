@@ -2,14 +2,16 @@
  * Service Worker NaviSuite - hotfix minimo Diaria e menu condiviso.
  *
  * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
- * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket;
+ * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket e
+ *   corregge il calcolo Ore lavorate = servizio + straordinari finché le ore
+ *   non sono state modificate manualmente;
  * - shared-menu.js: aggiunge fallback colori, isola le classi del popup e
  *   forza il pannello Turni/Cambi dentro il visual viewport Android;
  * - shared-menu.css: forza il ricaricamento del menu condiviso senza override pagina;
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v201-turni-menu-past-main';
+const CACHE_VERSION = 'navisuite-v202-distinta-worked-overtime';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -55,6 +57,10 @@ self.addEventListener('fetch', event => {
       text = text.replace(
         "new MutationObserver(fix).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(fix,0)",
         "document.addEventListener('navidiaria:render',()=>setTimeout(fix,0));setTimeout(fix,0)"
+      );
+      text = text.replace(
+        "function baseWorkedMinutes(e){const manual=Number(e?.workedMinutes);return Number.isFinite(manual)&&manual>=0?manual:serviceMinutes(e)+(overtime?.structured(e)?overtimeTotal(e):ordinaryOvertime(e))}",
+        "function baseWorkedMinutes(e){const manual=Number(e?.workedMinutes),manualWorked=overtime?.isWorkedManual?.(e);if(manualWorked&&Number.isFinite(manual)&&manual>=0)return manual;if(overtime?.structured(e))return serviceMinutes(e)+overtimeTotal(e);return Number.isFinite(manual)&&manual>=0?manual:serviceMinutes(e)+ordinaryOvertime(e)}"
       );
       return js(text);
     })());
