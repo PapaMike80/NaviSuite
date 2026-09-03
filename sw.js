@@ -9,7 +9,7 @@
  * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
  */
 
-const CACHE_VERSION = 'navisuite-v199-visual-viewport-menu';
+const CACHE_VERSION = 'navisuite-v200-turni-menu-past';
 
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
@@ -77,6 +77,29 @@ self.addEventListener('fetch', event => {
 ;(()=>{
   if(!/(?:^|\\/)(?:naviturni|cambi_turno)\\.html$/i.test(location.pathname)) return;
 
+  const ensureTurniPastButton=()=>{
+    if(!/(?:^|\\/)naviturni\\.html$/i.test(location.pathname)) return true;
+    const actions=document.querySelector('#navisuite-popup .mobile-menu-actions');
+    if(!actions) return false;
+    if(actions.querySelector('[data-mobile-past]')) return true;
+
+    const button=document.createElement('button');
+    button.type='button';
+    button.setAttribute('data-mobile-past','');
+    button.innerHTML='<span>◷</span><b>Mostra passato</b>';
+    button.addEventListener('click',()=>{
+      if(typeof window.togglePastColumns==='function') window.togglePastColumns();
+      const source=document.getElementById('togglePastBtn');
+      const label=button.querySelector('b');
+      if(label) label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato';
+    });
+
+    const refresh=actions.querySelector('[data-mobile-refresh]');
+    if(refresh?.nextSibling) actions.insertBefore(button,refresh.nextSibling);
+    else actions.appendChild(button);
+    return true;
+  };
+
   const installVisualViewportFix=()=>{
     const popup=document.getElementById('navisuite-popup');
     if(!popup || popup.dataset.visualViewportFix==='1') return;
@@ -132,6 +155,7 @@ self.addEventListener('fetch', event => {
 
     const observer=new MutationObserver(()=>{
       if(!popup.hidden){
+        ensureTurniPastButton();
         fit();
         requestAnimationFrame(fit);
         setTimeout(fit,60);
@@ -145,11 +169,18 @@ self.addEventListener('fetch', event => {
     window.visualViewport?.addEventListener('scroll',refit,{passive:true});
   };
 
+  const install=()=>{
+    ensureTurniPastButton();
+    installVisualViewportFix();
+  };
+
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>setTimeout(installVisualViewportFix,0),{once:true});
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});
   }else{
-    setTimeout(installVisualViewportFix,0);
+    setTimeout(install,0);
   }
+  setTimeout(ensureTurniPastButton,250);
+  setTimeout(ensureTurniPastButton,1000);
 })();
 `;
       return js(text);
