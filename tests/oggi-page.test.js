@@ -8,7 +8,7 @@ const html = fs.readFileSync('oggi.html', 'utf8');
 const source = fs.readFileSync('assets/js/oggi.js', 'utf8');
 assert.match(html, /class="turni-page oggi-page"/);
 assert.match(html, /assets\/js\/shared-data\.js/);
-assert.match(html, /assets\/js\/oggi\.js\?v=9/);
+assert.match(html, /assets\/js\/oggi\.js\?v=10/);
 assert.match(html, /\.oggi-grid\[hidden\]/);
 assert.match(source, /turni_navi/);
 assert.match(source, /variazioni_ods/);
@@ -19,7 +19,12 @@ assert.match(source, /MONTH_LABELS=.*'SETT'/);
 assert.match(source, /oggi-residence-date/);
 assert.match(source, /index===0/);
 assert.match(source, /querySelectorAll\('\.oggi-card'\)/);
-assert.match(source, /class="oggi-grid" hidden/);
+assert.match(source, /class="oggi-residence is-open"/);
+assert.match(source, /class="oggi-card is-open"/);
+assert.match(source, /aria-expanded="true"/);
+assert.match(source, /ormeggio_serale/);
+assert.match(source, /Ormeggio serale/);
+assert.doesNotMatch(source, /class="oggi-grid" hidden/);
 assert.match(source, /PESCHIERA:\['P1','P2','P3','SR1','CAP'\]/);
 
 const nodes = new Map();
@@ -36,17 +41,17 @@ const sample = { residenze:{ DESENZANO:[
   { id:'2', agente:'Bianchi', qualifica:'motorista', turni:{ '2026-09-02':'D1' } }
 ], PESCHIERA:[
   { id:'3', agente:'Verdi', qualifica:'capo timoniere', turni:{ '2026-09-02':'CD1C' } }
-] }, turni_navi:[{ data:'2026-09-02', corsa:'D1', nave:'Agone' }], variazioni_ods:[] };
+] }, turni_navi:[{ data:'2026-09-02', corsa:'D1', nave:'Baldo', ormeggio_serale:'Pontile 2' }], variazioni_ods:[] };
 const context = { window:{ NaviSharedData:{ load:async()=>sample } }, document, localStorage:{ getItem(){ return 'null'; } }, console, Date, Intl, setTimeout, clearTimeout };
 vm.createContext(context);
 vm.runInContext(source, context);
 const cards = context.window.NaviOggi.buildCourses(sample, '2026-09-02');
 assert.equal(cards.length, 1);
 assert.equal(cards[0].course, 'D1');
-assert.equal(cards[0].ship, 'Agone');
+assert.equal(cards[0].ship, 'Baldo');
+assert.equal(cards[0].mooring, 'Pontile 2');
 assert.deepEqual(cards[0].crew.map(a => a.agente), ['Rossi', 'Verdi', 'Bianchi']);
 assert.match(source, /CD1C/);
-assert.match(source, /aria-expanded/);
 assert.match(source, /WEEKDAY_LABELS/);
 
 const orderSample = {
