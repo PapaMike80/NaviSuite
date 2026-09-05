@@ -24,13 +24,17 @@ assert.match(source, /class="oggi-card is-open"/);
 assert.match(source, /aria-expanded="true"/);
 assert.match(source, /ormeggio_serale/);
 assert.match(source, /Ormeggio serale/);
+assert.match(source, /OGGI_CACHE_KEY/);
+assert.match(source, /readSnapshot/);
+assert.match(source, /writeSnapshot/);
+assert.match(source, /controllo aggiornamenti/);
 assert.doesNotMatch(source, /class="oggi-grid" hidden/);
 assert.match(source, /PESCHIERA:\['P1','P2','P3','SR1','CAP'\]/);
 
 const nodes = new Map();
 const document = {
   getElementById(id) {
-    if (!nodes.has(id)) nodes.set(id, { id, textContent:'', innerHTML:'', hidden:false, classList:{ add(){}, remove(){} }, addEventListener(){} });
+    if (!nodes.has(id)) nodes.set(id, { id, textContent:'', innerHTML:'', hidden:false, classList:{ add(){}, remove(){}, toggle(){} }, addEventListener(){} });
     return nodes.get(id);
   },
   querySelector() { return { classList:{ toggle(){} } }; },
