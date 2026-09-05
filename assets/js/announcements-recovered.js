@@ -29,8 +29,6 @@
         firstCall=false;
         const cached=await readCompleteCache();
         if(cached&&typeof cached==='object'){
-          // Avvia subito il vero refresh senza aspettarlo. La successiva load()
-          // troverà il fetch pendente e produrrà direttamente il dataset completo.
           originalLoadBase(url,{...options,force:true}).catch(error=>
             console.warn('Aggiornamento calendario base in background non riuscito',error)
           );
@@ -53,5 +51,5 @@
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
   // NaviSuite produce l'evento di collegamento; il Web Push viene poi consegnato
   // alla subscription dell'amministratore registrata dalla PWA Navibeta.
-  load('assets/js/connection-webpush.js?v=20260905-3');
+  load('assets/js/connection-webpush.js?v=20260905-4');
 })();
