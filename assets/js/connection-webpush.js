@@ -7,14 +7,26 @@
   const AUTH_KEY='navisuite.adminFirebaseAuth.v1';
   const TARGET_ADMIN_IDS=['92','91','AG_PEDRONI_M'];
   const DEFAULT_TARGET_ADMIN_ID='92';
-  const RECONNECT_MS=90*1000;
-  const HEARTBEAT_MS=25*1000;
-  const HEARTBEAT_PREFIX='navisuite.connectionHeartbeat.';
+
+  // Una pausa reale dell'app deve valere come nuovo collegamento anche se il
+  // profilo e' gia' autenticato. I cambi pagina interni vengono invece marcati
+  // esplicitamente e non generano notifiche.
+  const RESUME_MIN_MS=3000;
+  const STALE_ACTIVITY_MS=8000;
+  const HEARTBEAT_MS=10000;
+  const DEDUP_MS=5000;
+  const INTERNAL_NAV_TTL_MS=15000;
+  const ACTIVITY_PREFIX='navisuite.connectionActivity.';
+  const HIDDEN_PREFIX='navisuite.connectionHidden.';
+  const INTERNAL_NAV_PREFIX='navisuite.connectionInternalNav.';
   const LOCK_PREFIX='navisuite.connectionPushLock.';
 
   const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null');}catch(_){return null;}};
   const safeKey=value=>String(value||'').trim().replace(/[.#$\[\]\/]/g,'_');
   const formatName=value=>String(value||'').trim().split(/\s+/).map(part=>part.length>1?part[0]+part.slice(1).toLocaleLowerCase('it'):part).join(' ');
+  const readNumber=key=>{try{return Number(localStorage.getItem(key)||0);}catch(_){return 0;}};
+  const writeNumber=(key,value)=>{try{localStorage.setItem(key,String(value));}catch(_){ }};
+  const removeKey=key=>{try{localStorage.removeItem(key);}catch(_){ }};
 
   function activeAgent(){
     return readJson('navidiaria.activeAgent')||readJson('naviturni_logged_agent');
@@ -26,25 +38,38 @@
     return TARGET_ADMIN_IDS.includes(id)||/\bPEDRONI\b/i.test(name);
   }
 
-  function heartbeatKey(agentId){return HEARTBEAT_PREFIX+String(agentId||'');}
+  function activityKey(agentId){return ACTIVITY_PREFIX+String(agentId||'');}
+  function hiddenKey(agentId){return HIDDEN_PREFIX+String(agentId||'');}
+  function internalNavKey(agentId){return INTERNAL_NAV_PREFIX+String(agentId||'');}
   function lockKey(agentId){return LOCK_PREFIX+String(agentId||'');}
 
-  function lastHeartbeat(agentId){
-    try{return Number(localStorage.getItem(heartbeatKey(agentId))||0);}catch(_){return 0;}
+  function markActivity(agentId,stamp=Date.now()){
+    if(agentId)writeNumber(activityKey(agentId),stamp);
   }
 
-  function touchHeartbeat(agentId,stamp=Date.now()){
-    try{localStorage.setItem(heartbeatKey(agentId),String(stamp));}catch(_){ }
+  function markHidden(agentId,stamp=Date.now()){
+    if(!agentId)return;
+    writeNumber(hiddenKey(agentId),stamp);
+    markActivity(agentId,stamp);
+  }
+
+  function markInternalNavigation(agentId,stamp=Date.now()){
+    if(agentId)writeNumber(internalNavKey(agentId),stamp+INTERNAL_NAV_TTL_MS);
+  }
+
+  function consumeInternalNavigation(agentId,stamp=Date.now()){
+    const key=internalNavKey(agentId);
+    const until=readNumber(key);
+    removeKey(key);
+    return Boolean(until&&stamp<=until);
   }
 
   function acquireLock(agentId,stamp=Date.now()){
-    try{
-      const key=lockKey(agentId);
-      const previous=Number(localStorage.getItem(key)||0);
-      if(previous&&stamp-previous<30000)return false;
-      localStorage.setItem(key,String(stamp));
-      return true;
-    }catch(_){return true;}
+    const key=lockKey(agentId);
+    const previous=readNumber(key);
+    if(previous&&stamp-previous<DEDUP_MS)return false;
+    writeNumber(key,stamp);
+    return true;
   }
 
   async function waitProvider(){
@@ -61,8 +86,7 @@
     try{await provider.ready;}catch(_){ }
     try{await provider.recordUserAccess(agent,{page:'Connessione'});}catch(_){ }
     const auth=readJson(AUTH_KEY);
-    if(auth?.idToken)return auth;
-    return null;
+    return auth?.idToken?auth:null;
   }
 
   async function resolveTargetAdminId(auth){
@@ -88,7 +112,7 @@
 
     const auth=await validAuth(agent);
     if(!auth?.idToken){
-      try{localStorage.removeItem(lockKey(agentId));}catch(_){ }
+      removeKey(lockKey(agentId));
       return false;
     }
 
@@ -116,48 +140,98 @@
     const url=`${DATABASE_URL}/private/adminUpdates/pushQueue/${safeKey(id)}.json?auth=${encodeURIComponent(auth.idToken)}`;
     const response=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
     if(!response.ok){
-      try{localStorage.removeItem(lockKey(agentId));}catch(_){ }
+      removeKey(lockKey(agentId));
       const error=await response.json().catch(()=>null);
       throw new Error(error?.error||`Firebase HTTP ${response.status}`);
     }
     return true;
   }
 
-  async function evaluate(agent,reason,{force=false}={}){
+  async function notify(agent,reason){
+    if(!agent?.id||isTargetAdmin(agent))return;
+    try{await queueConnection(agent,reason);}
+    catch(error){console.warn('Notifica collegamento NaviSuite non accodata',error);}
+  }
+
+  function evaluateBoot(agent){
     const agentId=String(agent?.id||agent?.agentId||'').trim();
     if(!agentId)return;
     const now=Date.now();
-    const previous=lastHeartbeat(agentId);
-    const isConnection=force||!previous||(now-previous)>=RECONNECT_MS;
-    // Scriviamo subito prima delle operazioni di rete: il cambio pagina successivo
-    // vede una sessione ancora attiva e non genera una seconda notifica.
-    touchHeartbeat(agentId,now);
-    if(!isConnection||isTargetAdmin(agent))return;
-    try{await queueConnection(agent,reason);}catch(error){console.warn('Notifica collegamento NaviSuite non accodata',error);}
+    const lastActivity=readNumber(activityKey(agentId));
+    const hiddenAt=readNumber(hiddenKey(agentId));
+    const internalNavigation=consumeInternalNavigation(agentId,now);
+    removeKey(hiddenKey(agentId));
+    markActivity(agentId,now);
+
+    if(internalNavigation||isTargetAdmin(agent))return;
+    const hiddenLongEnough=hiddenAt&&now-hiddenAt>=RESUME_MIN_MS;
+    const staleLongEnough=lastActivity&&now-lastActivity>=STALE_ACTIVITY_MS;
+    if(!lastActivity||hiddenLongEnough||staleLongEnough)notify(agent,'session-resume');
   }
+
+  function evaluateForeground(agent){
+    const agentId=String(agent?.id||agent?.agentId||'').trim();
+    if(!agentId)return;
+    const now=Date.now();
+    const hiddenAt=readNumber(hiddenKey(agentId));
+    const lastActivity=readNumber(activityKey(agentId));
+    removeKey(hiddenKey(agentId));
+    markActivity(agentId,now);
+    if(isTargetAdmin(agent))return;
+
+    const hiddenFor=hiddenAt?now-hiddenAt:0;
+    const inactiveFor=lastActivity?now-lastActivity:0;
+    if(hiddenFor>=RESUME_MIN_MS||(!hiddenAt&&inactiveFor>=STALE_ACTIVITY_MS))notify(agent,'foreground-resume');
+  }
+
+  // Segna i normali link interni: anche se una pagina fosse lenta a caricarsi,
+  // il passaggio Turni -> Diaria -> Oggi non deve sembrare una nuova connessione.
+  document.addEventListener('click',event=>{
+    const link=event.target.closest?.('a[href]');
+    const agent=activeAgent();
+    if(!link||!agent?.id)return;
+    try{
+      const target=new URL(link.href,location.href);
+      if(target.origin===location.origin)markInternalNavigation(String(agent.id));
+    }catch(_){ }
+  },true);
 
   const bootAgent=activeAgent();
   const hadAgentAtBoot=Boolean(bootAgent?.id);
-  if(bootAgent?.id)evaluate(bootAgent,'session-resume').catch(()=>{});
+  if(bootAgent?.id)evaluateBoot(bootAgent);
 
   document.addEventListener('navisuite-login-complete',()=>{
     const agent=activeAgent();
     if(!agent?.id)return;
-    // Se all'apertura della pagina non c'era alcuna sessione, questo evento segue
-    // un vero accesso con PIN (o il completamento del primo PIN): notificalo sempre.
-    evaluate(agent,hadAgentAtBoot?'session-resume':'pin-login',{force:!hadAgentAtBoot}).catch(()=>{});
+    const agentId=String(agent.id);
+    removeKey(hiddenKey(agentId));
+    markActivity(agentId);
+    // Se la pagina era partita senza sessione, il PIN e' appena stato verificato.
+    if(!hadAgentAtBoot)notify(agent,'pin-login');
   });
 
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState!=='visible')return;
     const agent=activeAgent();
-    if(agent?.id)evaluate(agent,'foreground-resume').catch(()=>{});
+    if(!agent?.id)return;
+    const agentId=String(agent.id);
+    if(document.visibilityState==='hidden')markHidden(agentId);
+    else if(document.visibilityState==='visible')evaluateForeground(agent);
+  });
+
+  window.addEventListener('pagehide',()=>{
+    const agent=activeAgent();
+    if(agent?.id)markHidden(String(agent.id));
+  });
+
+  window.addEventListener('pageshow',event=>{
+    if(!event.persisted)return;
+    const agent=activeAgent();
+    if(agent?.id)evaluateForeground(agent);
   });
 
   setInterval(()=>{
     if(document.visibilityState==='hidden')return;
     const agent=activeAgent();
-    const agentId=String(agent?.id||agent?.agentId||'').trim();
-    if(agentId)touchHeartbeat(agentId);
+    if(agent?.id)markActivity(String(agent.id));
   },HEARTBEAT_MS);
 })();
