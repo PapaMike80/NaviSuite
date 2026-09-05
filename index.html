@@ -94,7 +94,6 @@
           <a class="app-card docs" href="segnalazioni.html" data-navi-tab="NaviSegnalazioniTab"><span class="app-icon">✉</span><small>ASCOLTO</small><strong>Segnalazioni</strong><p>Invia bug e idee di miglioramento.</p><b>Apri segnalazioni →</b></a>
           <a class="app-card updates" href="aggiornamenti.html" data-navi-tab="NaviAggiornamentiTab" hidden><span class="app-icon">↻</span><small>AMMINISTRAZIONE</small><strong>Aggiornamenti</strong><p>Importa ODS, turni, bozze e variazioni.</p><b>Apri Aggiornamenti →</b></a>
           <a class="app-card agents" href="agenti.html" data-navi-tab="NaviAgentiTab" hidden><span class="app-icon">♙</span><small>AMMINISTRAZIONE</small><strong>Agenti</strong><p>Gestisci accessi, ruoli e gradi del personale.</p><b>Apri Gestione agenti →</b></a>
-          <a class="app-card login-notifications" href="notifiche_accessi.html" hidden><span class="app-icon">🔔</span><small>AMMINISTRAZIONE</small><strong>Notifiche accessi</strong><p>Ricevi un avviso quando un agente torna online su NaviSuite.</p><b>Apri notifiche →</b></a>
           <a class="app-card turni" href="gestione_navi.html" data-navi-tab="NaviGestioneNaviTab" hidden><span class="app-icon">⛴</span><small>UFFICIO MOVIMENTO</small><strong>Navi</strong><p>Gestisci assegnazioni, equipaggi minimi, ormeggi e rifornimenti.</p><b>Apri Gestione navi →</b></a>
         </div>
         <button id="logoutButton" class="text-button" type="button">Esci e cambia utente</button>
@@ -107,20 +106,5 @@
   <script src="assets/js/portal.js?v=102"></script>
   <script src="assets/js/shared-menu.js?v=1.54"></script>
   <script src="assets/js/announcements-recovered.js?v=1"></script>
-  <script>
-    (()=>{
-      const revealLoginNotifications=()=>{
-        const card=document.querySelector('.app-card.login-notifications');
-        if(!card)return;
-        let agent=null;
-        try{agent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');}catch(_){agent=null;}
-        const admin=['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
-        card.hidden=!admin;
-      };
-      revealLoginNotifications();
-      document.addEventListener('navisuite-login-complete',revealLoginNotifications);
-      window.addEventListener('pageshow',revealLoginNotifications);
-    })();
-  </script>
 </body>
 </html>
