@@ -127,35 +127,75 @@ function showChoice(agent) {
   if (shipManagement) shipManagement.hidden = !isAdminAgent(agent);
 }
 
-async function loadAgents() {
-  // La directory deve essere aggiornata a ogni apertura: NAVI_UTENTI può cambiare.
-  try {
-    await NaviSharedData.load(DIRECTORY_URL, { force:true });
-  } catch (error) {
-    // In assenza di rete resta disponibile l'ultima copia valida.
-  }
-  agents = NaviSharedData.directory() || [];
-  await loadAgentProfiles();
-  agents = agents
+function applyDirectory(directory) {
+  const list = Array.isArray(directory) ? directory : [];
+  agents = list
     .map(applyAgentProfile)
     .sort((a, b) => Number(isBaristaAgent(a)) - Number(isBaristaAgent(b)) || a.name.localeCompare(b.name, 'it'));
   renderSuggestions();
+  return agents;
+}
+
+async function refreshAgentsInBackground() {
+  try {
+    // Aggiornamento completo solo dopo che l'Index è già utilizzabile.
+    await NaviSharedData.load(DIRECTORY_URL, { force:true });
+  } catch (error) {
+    console.warn('Aggiornamento directory in background non disponibile', error);
+  }
+  await loadAgentProfiles();
+  const latest = NaviSharedData.directory() || [];
+  if (latest.length) applyDirectory(latest);
+}
+
+async function loadAgents() {
+  // Prima scelta: usa SEMPRE la directory locale, anche se il dataset turni è
+  // più vecchio di 10 minuti. Per il login servono solo id/nome/residenza e
+  // non ha senso bloccare l'Index aspettando tutti i turni, ODS e navi.
+  const localDirectory = NaviSharedData.directory() || [];
+  if (localDirectory.length) {
+    applyDirectory(localDirectory);
+    refreshAgentsInBackground().catch(() => {});
+    return;
+  }
+
+  // Primo utilizzo assoluto del dispositivo: non esiste ancora alcuna copia
+  // locale. Carichiamo solo il calendario base necessario a costruire la
+  // directory; il merge completo verrà comunque eseguito in background.
+  try {
+    await NaviSharedData.loadBase(DIRECTORY_URL);
+  } catch (error) {
+    throw new Error('Impossibile caricare gli agenti. Controlla la connessione e ricarica.');
+  }
+  const initialDirectory = NaviSharedData.directory() || [];
+  if (!initialDirectory.length) throw new Error('Elenco agenti non disponibile.');
+  applyDirectory(initialDirectory);
+  refreshAgentsInBackground().catch(() => {});
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   let active = JSON.parse(localStorage.getItem(DIARIA_SESSION) || 'null') || JSON.parse(localStorage.getItem(TURNI_SESSION) || 'null');
   if (active) {
-    await loadAgentProfiles();active=applyAgentProfile(active);localStorage.setItem(DIARIA_SESSION,JSON.stringify(active));localStorage.setItem(TURNI_SESSION,JSON.stringify(active));
-    await NaviFirebaseAuth.migrateStoredPin(active.id).catch(error=>console.warn('Migrazione PIN Firebase non completata',error));
+    // Sessione già valida: mostra subito la destinazione/preferenza salvata.
+    // Profili, PIN e dataset vengono aggiornati senza bloccare l'avvio.
     showChoice(active);
     window.NaviAdminFirebase?.recordUserAccess?.(active).catch(() => {});
+    loadAgentProfiles().then(() => {
+      active = applyAgentProfile(active);
+      localStorage.setItem(DIARIA_SESSION,JSON.stringify(active));
+      localStorage.setItem(TURNI_SESSION,JSON.stringify(active));
+      // Se siamo rimasti nella Home aggiorna la visibilità delle card in base
+      // all'ultimo profilo senza imporre una seconda attesa all'utente.
+      if (!$('appChoice').hidden) showChoice(active);
+    }).catch(() => {});
+    NaviFirebaseAuth.migrateStoredPin(active.id).catch(error=>console.warn('Migrazione PIN Firebase non completata',error));
     NaviSharedData.load(DIRECTORY_URL, { force:true }).catch(() => {});
     return;
   }
   try {
     await loadAgents();
   } catch (error) {
-    $('loginMessage').textContent = 'Impossibile caricare gli agenti. Controlla la connessione e ricarica.';
+    $('loginMessage').textContent = error.message || 'Impossibile caricare gli agenti. Controlla la connessione e ricarica.';
     $('loginSubmit').disabled = true;
   }
 });
