@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#061821">
+  <title>NaviSuite · Notifiche accessi</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <style>
+    :root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--red:#fb7185;--amber:#fbbf24}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(28px + env(safe-area-inset-bottom,0px))}
+    main{width:min(720px,100%);margin:0 auto}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .back{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:999px;color:var(--ink);text-decoration:none;font-weight:800}
+    .eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.14em}
+    h1{margin:6px 0 5px;font-size:clamp(26px,7vw,38px);line-height:1.05}
+    .intro{margin:0;color:var(--muted);line-height:1.5}
+    .card{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(12,37,48,.96);box-shadow:0 16px 45px rgba(0,0,0,.2)}
+    .state{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-weight:900}
+    .dot{width:11px;height:11px;border-radius:50%;background:#64748b;box-shadow:0 0 0 5px rgba(100,116,139,.12)}
+    .dot.on{background:#22c55e;box-shadow:0 0 0 5px rgba(34,197,94,.13),0 0 14px rgba(34,197,94,.8)}
+    .dot.warn{background:var(--amber);box-shadow:0 0 0 5px rgba(251,191,36,.13)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{min-height:48px;border-radius:12px;border:1px solid var(--accent);background:rgba(45,212,191,.14);color:#a7fff0;font:900 14px inherit;cursor:pointer}
+    button.secondary{border-color:#44616b;background:#102b35;color:#c6dde2}
+    button:disabled{opacity:.45;cursor:default}
+    .note{margin:14px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+    .status{margin-top:12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#081f29;color:#b7d7dc;font-size:12px;line-height:1.45}
+    .status.ok{border-color:#1b7f71;color:#a7f3d0}.status.bad{border-color:#8f3344;color:#fecdd3}.status.warn{border-color:#8a6a17;color:#fde68a}
+    h2{margin:0 0 10px;font-size:17px}
+    .online{display:flex;flex-wrap:wrap;gap:7px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#123641;border:1px solid #315965;color:#d9f0f2;font-size:12px;font-weight:800}
+    .pill i{width:7px;height:7px;border-radius:50%;background:#22c55e}
+    .empty{color:var(--muted);font-size:13px}
+    .log{display:grid;gap:8px}.log-row{padding:10px 11px;border:1px solid #234854;border-radius:10px;background:#071c25}.log-row strong{display:block;font-size:13px}.log-row small{color:var(--muted)}
+    @media(max-width:520px){.actions{grid-template-columns:1fr}.top{align-items:flex-start}.back{min-height:38px;padding:0 11px;font-size:12px}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <div class="eyebrow">NAVISUITE ADMIN</div>
+      <h1>Notifiche accessi</h1>
+      <p class="intro">Ti avvisa quando un agente torna online su NaviSuite, senza notificare i semplici cambi di pagina.</p>
+    </div>
+    <a class="back" href="index.html?home=1">Home</a>
+  </div>
+
+  <section class="card">
+    <div class="state"><span id="state-dot" class="dot"></span><span id="state-label">Monitoraggio disattivato</span></div>
+    <div class="actions">
+      <button id="enable" type="button">Attiva notifiche</button>
+      <button id="disable" class="secondary" type="button">Disattiva</button>
+    </div>
+    <div id="status" class="status">Controllo autorizzazioni…</div>
+    <p class="note">Su iPhone il permesso va concesso con un tocco. La pagina usa solo nome, ID e presenza online già registrati da NaviSuite; non crea uno storico delle pagine visitate.</p>
+  </section>
+
+  <section class="card">
+    <h2>Connessi adesso</h2>
+    <div id="online" class="online"><span class="empty">Caricamento…</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Avvisi rilevati su questo dispositivo</h2>
+    <div id="log" class="log"><span class="empty">Nessun nuovo accesso rilevato.</span></div>
+  </section>
+</main>
+
+<script src="assets/js/admin-firebase-rest.js?v=38"></script>
+<script>
+(() => {
+  'use strict';
+  const ENABLE_KEY='navisuite.loginNotifications.enabled.v1';
+  const POLL_MS=12000;
+  const ONLINE_MS=120000;
+  const $=id=>document.getElementById(id);
+  const stateDot=$('state-dot'),stateLabel=$('state-label'),status=$('status'),onlineBox=$('online'),logBox=$('log');
+  const enableBtn=$('enable'),disableBtn=$('disable');
+  let timer=null;
+  let initialized=false;
+  let previousOnline=new Set();
+  let lastPresenceById=new Map();
+  let log=[];
+
+  function readSession(){
+    for(const key of ['navidiaria.activeAgent','naviturni_logged_agent']){
+      try{const value=JSON.parse(localStorage.getItem(key)||'null');if(value?.id)return value;}catch(_){ }
+    }
+    return null;
+  }
+  const session=readSession();
+  const sessionId=String(session?.id||'');
+  const isAdmin=['91','92'].includes(sessionId)||String(session?.role||'').toLowerCase()==='admin';
+  const formatName=value=>String(value||'').trim().split(/\s+/).map(part=>part.length>1?part[0]+part.slice(1).toLocaleLowerCase('it'):part).join(' ');
+  const timeOf=value=>{const date=new Date(value||Date.now());return Number.isNaN(date.getTime())?'':date.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});};
+
+  function setStatus(text,kind=''){
+    status.textContent=text;
+    status.className='status'+(kind?' '+kind:'');
+  }
+  function updateState(){
+    const enabled=localStorage.getItem(ENABLE_KEY)==='1';
+    const permission=('Notification' in window)?Notification.permission:'unsupported';
+    const active=enabled&&permission==='granted';
+    stateDot.className='dot '+(active?'on':enabled?'warn':'');
+    stateLabel.textContent=active?'Monitoraggio attivo':enabled?'Permesso notifiche non disponibile':'Monitoraggio disattivato';
+    disableBtn.disabled=!enabled;
+    enableBtn.textContent=active?'Notifiche attive':'Attiva notifiche';
+    return active;
+  }
+  function renderOnline(items){
+    const visible=items.filter(item=>String(item.id||'')!==sessionId);
+    if(!visible.length){onlineBox.innerHTML='<span class="empty">Nessun altro agente online negli ultimi due minuti.</span>';return;}
+    onlineBox.innerHTML=visible.map(item=>'<span class="pill"><i></i>'+escapeHtml(formatName(item.name||item.id))+'</span>').join('');
+  }
+  function renderLog(){
+    if(!log.length){logBox.innerHTML='<span class="empty">Nessun nuovo accesso rilevato.</span>';return;}
+    logBox.innerHTML=log.map(item=>'<div class="log-row"><strong>'+escapeHtml(formatName(item.name||item.id))+'</strong><small>Online alle '+escapeHtml(timeOf(item.lastSeen))+'</small></div>').join('');
+  }
+  function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));}
+
+  async function registration(){
+    if(!('serviceWorker' in navigator))return null;
+    try{
+      if(!window.__naviSwRegistrationPromise){
+        window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?login-notifications=1').then(reg=>{reg?.update?.().catch(()=>{});return reg;}).catch(()=>null);
+      }
+      return await window.__naviSwRegistrationPromise;
+    }catch(_){return null;}
+  }
+
+  async function showAgentNotification(item){
+    if(Notification.permission!=='granted'||localStorage.getItem(ENABLE_KEY)!=='1')return;
+    const name=formatName(item.name||item.id);
+    const when=timeOf(item.lastSeen)||timeOf(Date.now());
+    const title='NaviSuite · agente online';
+    const body=name+' si è collegato alle '+when;
+    try{
+      const reg=await registration();
+      if(reg?.showNotification){
+        await reg.showNotification(title,{body,icon:'assets/images/icona_192.png',badge:'assets/images/icona_192.png',tag:'navisuite-login-'+String(item.id||'')+'-'+String(item.lastSeen||Date.now()),renotify:true,data:{url:'agenti.html'}});
+        return;
+      }
+      const notice=new Notification(title,{body,icon:'assets/images/icona_192.png',tag:'navisuite-login-'+String(item.id||'')});
+      notice.onclick=()=>{window.focus();location.href='agenti.html';};
+    }catch(error){console.warn('Notifica accesso non mostrata',error);}
+  }
+
+  async function poll(){
+    if(!isAdmin)return;
+    const provider=window.NaviAdminFirebase;
+    if(!provider?.listUserPresence){setStatus('Modulo presenza Firebase non disponibile.','bad');return;}
+    try{
+      await provider.ready;
+      const items=await provider.listUserPresence(ONLINE_MS);
+      renderOnline(items);
+      const current=new Set(items.map(item=>String(item.id||'')).filter(Boolean));
+      const nowMap=new Map(items.map(item=>[String(item.id||''),item]));
+      if(!initialized){
+        previousOnline=current;
+        lastPresenceById=nowMap;
+        initialized=true;
+        setStatus(updateState()?'Monitoraggio attivo. Ti avviserò quando un agente passa da offline a online.':'Presenza aggiornata. Attiva le notifiche per ricevere gli avvisi.',updateState()?'ok':'');
+        return;
+      }
+      const newcomers=items.filter(item=>{
+        const id=String(item.id||'');
+        return id&&id!==sessionId&&!previousOnline.has(id);
+      });
+      for(const item of newcomers){
+        log.unshift(item);log=log.slice(0,20);renderLog();
+        await showAgentNotification(item);
+      }
+      previousOnline=current;
+      lastPresenceById=nowMap;
+      if(updateState())setStatus('Monitoraggio attivo · controllo ogni 12 secondi.','ok');
+    }catch(error){
+      console.warn('Controllo accessi non disponibile',error);
+      setStatus('Non riesco a leggere la presenza online: '+String(error?.message||error),'bad');
+    }
+  }
+
+  function start(){
+    if(timer)clearInterval(timer);
+    initialized=false;
+    previousOnline=new Set();
+    poll();
+    timer=setInterval(poll,POLL_MS);
+  }
+  function stop(){if(timer){clearInterval(timer);timer=null;}updateState();setStatus('Monitoraggio disattivato.');}
+
+  enableBtn.addEventListener('click',async()=>{
+    if(!isAdmin){setStatus('Questa funzione è disponibile solo agli amministratori.','bad');return;}
+    if(!('Notification' in window)){setStatus('Questo browser non espone le notifiche web. Su iPhone apri NaviSuite dalla schermata Home.','warn');return;}
+    try{
+      const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
+      if(permission!=='granted'){
+        localStorage.removeItem(ENABLE_KEY);
+        updateState();
+        setStatus('Permesso notifiche non concesso. Puoi abilitarlo dalle impostazioni di Safari/iPhone.','warn');
+        return;
+      }
+      localStorage.setItem(ENABLE_KEY,'1');
+      await registration();
+      updateState();
+      setStatus('Notifiche attive. Il primo controllo crea solo la situazione iniziale, senza avvisi arretrati.','ok');
+      start();
+    }catch(error){setStatus('Impossibile attivare le notifiche: '+String(error?.message||error),'bad');}
+  });
+  disableBtn.addEventListener('click',()=>{localStorage.removeItem(ENABLE_KEY);stop();});
+
+  if(!session?.id){
+    enableBtn.disabled=true;disableBtn.disabled=true;
+    setStatus('Accedi prima a NaviSuite con il tuo profilo amministratore.','bad');
+    setTimeout(()=>{location.href='index.html?home=1';},1800);
+    return;
+  }
+  if(!isAdmin){
+    enableBtn.disabled=true;disableBtn.disabled=true;
+    setStatus('Questa pagina è riservata agli amministratori.','bad');
+    return;
+  }
+  updateState();
+  registration().catch(()=>{});
+  start();
+})();
+</script>
+</body>
+</html>
