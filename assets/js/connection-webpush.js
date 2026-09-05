@@ -5,8 +5,8 @@
 
   const DATABASE_URL='https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app';
   const AUTH_KEY='navisuite.adminFirebaseAuth.v1';
-  // La subscription Web Push di Marco in Navibeta e' associata al profilo PEDRONI M. ID 92.
-  const TARGET_ADMIN_ID='92';
+  const TARGET_ADMIN_IDS=['92','91','AG_PEDRONI_M'];
+  const DEFAULT_TARGET_ADMIN_ID='92';
   const RECONNECT_MS=90*1000;
   const HEARTBEAT_MS=25*1000;
   const HEARTBEAT_PREFIX='navisuite.connectionHeartbeat.';
@@ -23,7 +23,7 @@
   function isTargetAdmin(agent){
     const id=String(agent?.id||agent?.agentId||'').toUpperCase();
     const name=String(agent?.name||agent?.agente||agent?.cognome||'');
-    return ['91','92','AG_PEDRONI_M'].includes(id)||/\bPEDRONI\b/i.test(name);
+    return TARGET_ADMIN_IDS.includes(id)||/\bPEDRONI\b/i.test(name);
   }
 
   function heartbeatKey(agentId){return HEARTBEAT_PREFIX+String(agentId||'');}
@@ -65,6 +65,21 @@
     return null;
   }
 
+  async function resolveTargetAdminId(auth){
+    if(!auth?.idToken)return DEFAULT_TARGET_ADMIN_ID;
+    for(const candidate of TARGET_ADMIN_IDS){
+      try{
+        const url=`${DATABASE_URL}/private/adminUpdates/pushSubscriptions/${safeKey(candidate)}.json?auth=${encodeURIComponent(auth.idToken)}`;
+        const response=await fetch(url,{cache:'no-store'});
+        if(!response.ok)continue;
+        const devices=await response.json().catch(()=>null);
+        const active=Object.values(devices||{}).some(item=>item&&item.enabled!==false&&item.endpoint&&item.keys?.p256dh&&item.keys?.auth);
+        if(active)return candidate;
+      }catch(_){ }
+    }
+    return DEFAULT_TARGET_ADMIN_ID;
+  }
+
   async function queueConnection(agent,reason){
     const agentId=String(agent?.id||agent?.agentId||'').trim();
     if(!agentId||isTargetAdmin(agent))return false;
@@ -77,6 +92,7 @@
       return false;
     }
 
+    const targetAdminId=await resolveTargetAdminId(auth);
     const name=formatName(agent?.name||agent?.agente||agent?.cognome||agentId);
     const residence=String(agent?.residence||agent?.residenza||'').trim();
     const id=`CONNECT_${stamp}_${Math.random().toString(36).slice(2,8)}`;
@@ -87,7 +103,7 @@
       requestedByAgentId:agentId,
       requestedByName:name,
       ownerUid:auth.uid||'',
-      targetAgentId:TARGET_ADMIN_ID,
+      targetAgentId:targetAdminId,
       title:'NaviSuite · agente collegato',
       body:`${name} si è collegato a NaviSuite${residence?` · ${residence}`:''}.`,
       url:'agenti.html',
