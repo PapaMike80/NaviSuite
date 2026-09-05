@@ -12,11 +12,13 @@
   ];
   const WEEKDAY_LABELS=['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
   const MONTH_LABELS=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SETT','OTT','NOV','DIC'];
+  const OGGI_CACHE_KEY='navisuite.oggi.snapshot.v1';
   const statusEl=document.getElementById('oggi-status');
   const contentEl=document.getElementById('oggi-content');
   const refreshButton=document.getElementById('oggi-refresh');
   const todayIso=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Rome'});
   const dateLabel=iso=>{const [year,month,day]=String(iso||'').split('-').map(Number);const date=new Date(Date.UTC(year,month-1,day,12));return `${WEEKDAY_LABELS[date.getUTCDay()]} ${day} ${MONTH_LABELS[month-1]}`;};
+  const timeLabel=value=>{const date=new Date(Number(value)||value);return Number.isNaN(date.getTime())?'':date.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});};
   const norm=value=>String(value||'').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim();
   const cleanShift=value=>{
     const raw=String(value||'').trim().toUpperCase().replace(/[‐‑–—]/g,'-').replace(/\s+/g,'');
@@ -70,10 +72,24 @@
       const courseOrder=coursePosition(a.residence,a.course)-coursePosition(b.residence,b.course);return courseOrder||a.course.localeCompare(b.course,undefined,{numeric:true});
     });
   }
+  function snapshotCards(cards){
+    return (cards||[]).map(card=>({
+      course:card.course,residence:card.residence,ship:card.ship||'',mooring:card.mooring||'',
+      crew:(card.crew||[]).map(agent=>({id:agent?.id||'',agent_uid:agent?.agent_uid||'',agente:agent?.agente||agent?.name||'',name:agent?.name||agent?.agente||'',qualifica:agent?.qualifica||'',grado:agent?.grado||'',role:agent?.role||''}))
+    }));
+  }
+  function readSnapshot(iso){
+    try{const value=JSON.parse(localStorage.getItem(OGGI_CACHE_KEY)||'null');return value?.iso===iso&&Array.isArray(value?.cards)?value:null}catch{return null}
+  }
+  function writeSnapshot(iso,cards){
+    const savedAt=Date.now();
+    try{localStorage.setItem(OGGI_CACHE_KEY,JSON.stringify({iso,savedAt,cards:snapshotCards(cards)}))}catch(error){console.warn('Oggi: cache locale non disponibile',error)}
+    return savedAt;
+  }
   function escapeHtml(value){const el=document.createElement('div');el.textContent=String(value||'');return el.innerHTML}
   function shipLine(card){const ship=card.ship?escapeHtml(card.ship):'Nave non assegnata';const mooring=card.mooring?` · Ormeggio serale ${escapeHtml(card.mooring)}`:'';return `⛴ ${ship}${mooring}`}
-  function render(data,iso){
-    const cards=buildCourses(data,iso);statusEl.hidden=true;statusEl.classList.remove('error');
+  function renderCards(cards,iso){
+    statusEl.classList.remove('error');
     if(!cards.length){contentEl.innerHTML='<div class="oggi-empty">Non risultano corse operative per questa giornata.</div>';return}
     const grouped=cards.reduce((map,card)=>{(map[card.residence]||=[]).push(card);return map},{});
     const ordered=['DESENZANO','PESCHIERA','MADERNO','RIVA'].filter(residence=>grouped[residence]?.length).map(residence=>[residence,grouped[residence]]);
@@ -82,10 +98,23 @@
     const colors={DESENZANO:'#4ea9ff',PESCHIERA:'#51cf92',MADERNO:'#f59f55',RIVA:'#be8cff'};
     contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;const firstMeta=index===0?`<span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button>`:'';return `<section class="oggi-residence is-open" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="true" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button>${firstMeta}</h2><div id="${gridId}" class="oggi-grid">${items.map(card=>`<article class="oggi-card is-open" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="true" aria-label="Chiudi equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><strong>${escapeHtml(card.course)}</strong><small>${shipLine(card)}</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
   }
+  function render(data,iso){const cards=buildCourses(data,iso);renderCards(cards,iso);return cards}
+  function setStatus(message,{error=false,hide=false}={}){statusEl.hidden=hide;statusEl.textContent=message||'';statusEl.classList.toggle('error',error)}
   async function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
-    const iso=todayIso();if(refreshButton)refreshButton.disabled=true;statusEl.hidden=false;statusEl.classList.remove('error');statusEl.textContent='Aggiornamento equipaggi…';
-    try{const data=await window.NaviSharedData.load('',{force:true});render(data,iso)}catch(error){console.error('Oggi: caricamento non riuscito',error);statusEl.hidden=false;statusEl.textContent='Impossibile caricare le corse di oggi. Riprova.';statusEl.classList.add('error');contentEl.innerHTML=''}finally{if(refreshButton)refreshButton.disabled=false}
+    const iso=todayIso();if(refreshButton)refreshButton.disabled=true;
+    const snapshot=readSnapshot(iso);let cachedShown=false;
+    if(snapshot){renderCards(snapshot.cards,iso);cachedShown=true;setStatus(`Dati salvati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'} · controllo aggiornamenti…`)}
+    else setStatus('Aggiornamento equipaggi…');
+    try{
+      const data=await window.NaviSharedData.load('',{force:true});
+      const cards=render(data,iso);const savedAt=writeSnapshot(iso,cards);setStatus(`Aggiornato alle ${timeLabel(savedAt)}`);
+      setTimeout(()=>{if(statusEl.textContent===`Aggiornato alle ${timeLabel(savedAt)}`)statusEl.hidden=true},1400);
+    }catch(error){
+      console.error('Oggi: caricamento non riuscito',error);
+      if(cachedShown)setStatus(`Connessione non disponibile · dati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'}`);
+      else{setStatus('Impossibile caricare le corse di oggi. Riprova.',{error:true});contentEl.innerHTML=''}
+    }finally{if(refreshButton)refreshButton.disabled=false}
   }
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
