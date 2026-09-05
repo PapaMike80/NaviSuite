@@ -51,7 +51,4 @@
   load('assets/js/announcements-core-20260903.js?v=1');
   load('assets/js/turn-pdf-import-repair-v2.js?v=20260903-2');
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
-  // Usa la coda Web Push già attiva (worker TrueNAS/Navibeta) per notificare
-  // Marco quando un agente apre una nuova sessione NaviSuite.
-  load('assets/js/agent-login-webpush.js?v=20260905-1');
 })();
