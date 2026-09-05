@@ -4,6 +4,7 @@
   const DATABASE_URL='https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app';
   const AUTH_KEY='navisuite.adminFirebaseAuth.v1';
   const TARGET_ADMIN_ID='91';
+  const TARGET_URL='https://papamike80.github.io/NaviSuite/agenti.html';
   const COOLDOWN_MS=3*60*1000;
 
   const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null');}catch(_){return null;}};
@@ -64,7 +65,7 @@
       targetAgentId:TARGET_ADMIN_ID,
       title:'NaviSuite · agente collegato',
       body:`${name} si è collegato a NaviSuite${residence?` · ${residence}`:''}.`,
-      url:'agenti.html',
+      url:TARGET_URL,
       createdAt:now,
       source:'navisuite-login',
       loginAgentId:agentId
