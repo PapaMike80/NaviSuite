@@ -53,5 +53,5 @@
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
   // NaviSuite produce l'evento di collegamento; il Web Push viene poi consegnato
   // alla subscription dell'amministratore registrata dalla PWA Navibeta.
-  load('assets/js/connection-webpush.js?v=20260905-1');
+  load('assets/js/connection-webpush.js?v=20260905-2');
 })();
