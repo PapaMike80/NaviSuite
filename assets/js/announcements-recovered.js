@@ -1,13 +1,9 @@
 (function(){
-  // NaviTurni non deve ridisegnarsi prima con il solo calendario base e poi
-  // con gli aggiornamenti amministrativi. La copia locale completa resta
-  // visibile subito; la prima sincronizzazione di rete restituisce già il
-  // dataset completo (base + importazioni + ODS + profili).
-  if(/(?:^|\/)naviturni\.html$/i.test(location.pathname)&&window.NaviSharedData?.loadBase&&window.NaviSharedData?.load&&!window.NaviSharedData.__naviturniCompleteFirst){
-    const loadComplete=window.NaviSharedData.load.bind(window.NaviSharedData);
-    window.NaviSharedData.loadBase=(url,options={})=>loadComplete(url,options);
-    window.NaviSharedData.__naviturniCompleteFirst=true;
-  }
+  // NaviTurni usa già una copia locale (localStorage + IndexedDB) e mostra
+  // immediatamente l'ultimo calendario disponibile. Non trasformare loadBase
+  // in load(): in assenza di cache il calendario base deve comparire appena
+  // arriva, mentre ODS, profili e aggiornamenti amministrativi continuano a
+  // sincronizzarsi in background dal normale flusso di NaviTurni.
 
   const load=(src)=>{
     const script=document.createElement('script');
