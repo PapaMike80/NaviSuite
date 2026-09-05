@@ -221,13 +221,34 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Distinta ${html(monthLabel)}</title>
 <style>
-  @page { size: A4 landscape; margin: 6mm 7mm; }
+  @page { size: 297mm 210mm; margin: 6mm 7mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #000; }
   body { font-family: Arial, Helvetica, sans-serif; }
   .sheet { width: 100%; }
+  .print-actions {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 9999;
+    display: flex;
+    gap: 8px;
+  }
+  .print-actions button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0 17px;
+    font: 700 15px Arial, Helvetica, sans-serif;
+    color: #fff;
+    background: #183b52;
+    box-shadow: 0 3px 14px rgba(0,0,0,.18);
+    cursor: pointer;
+  }
+  .print-actions .close-button { background: #b42318; }
   .top {
     display: grid;
     grid-template-columns: 45mm 68mm 1fr 58mm;
@@ -318,11 +339,18 @@
   .signature { text-align: center; }
   .signature span { display: block; margin-top: .2mm; }
   @media print {
+    html, body { width: 297mm; min-height: 210mm; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sheet { width: 283mm; }
+    .print-actions { display: none !important; }
   }
 </style>
 </head>
 <body>
+  <div class="print-actions" aria-label="Comandi distinta">
+    <button type="button" onclick="window.print()">Stampa</button>
+    <button type="button" class="close-button" onclick="window.close()">Chiudi</button>
+  </div>
   <div class="sheet">
     <div class="top">
       <div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div>
