@@ -1,27 +1,109 @@
 /*
- * Service Worker NaviSuite - hotfix minimo Diaria e menu condiviso.
+ * Service Worker NaviSuite - hotfix + shell offline.
  *
- * Non usa cache. Intercetta solo gli script che hanno causato blocchi:
- * - navidiaria-monthly.js: rimuove il MutationObserver globale dei ticket e
- *   corregge il calcolo Ore lavorate = servizio + straordinari finché le ore
- *   non sono state modificate manualmente;
- * - portal.js: distingue l'apertura automatica dalla richiesta esplicita Home;
- * - shared-menu.js: aggiunge fallback colori, isola le classi del popup e
- *   forza il pannello Turni/Cambi dentro il visual viewport Android;
- * - shared-menu.css: forza il ricaricamento del menu condiviso senza override pagina;
- * - orario-lucide-init.js: forza il ricaricamento del pulsante menu in Orario.
+ * Obiettivi:
+ * - conservare una copia locale dell'involucro dell'app (Index, Oggi, Turni);
+ * - lasciare i dati operativi a localStorage/IndexedDB, senza duplicarli qui;
+ * - mantenere gli hotfix runtime gia' usati da NaviSuite;
+ * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v203-home-explicit';
+const CACHE_VERSION = 'navisuite-v204-offline-shell';
+const CORE_ASSETS = [
+  './',
+  './index.html',
+  './oggi.html',
+  './naviturni.html',
+  './manifest.json',
+  './assets/css/portal.css',
+  './assets/css/navi-shared.css',
+  './assets/css/navi-layout.css',
+  './assets/css/turni-common.css',
+  './assets/css/shared-menu.css',
+  './assets/js/admin-firebase-rest.js',
+  './assets/js/shared-data.js',
+  './assets/js/firebase-auth.js',
+  './assets/js/portal.js',
+  './assets/js/shared-menu.js',
+  './assets/js/oggi.js',
+  './assets/js/announcements-recovered.js',
+  './assets/images/favicon.svg',
+  './assets/images/icona_192.png',
+  './assets/images/icona_512.png',
+  './assets/images/icona_apple_180.png'
+];
+
+async function cachePut(request, response) {
+  if (!response || !response.ok) return response;
+  try {
+    const cache = await caches.open(CACHE_VERSION);
+    await cache.put(request, response.clone());
+  } catch (_) {}
+  return response;
+}
+
+async function cachedResponse(request) {
+  const cache = await caches.open(CACHE_VERSION);
+  return (await cache.match(request)) || (await cache.match(request, { ignoreSearch:true })) || null;
+}
+
+async function fetchAndCache(request, options = {}) {
+  const response = await fetch(request, options);
+  return cachePut(request, response);
+}
+
+async function networkFirst(request, fallbackUrl = '') {
+  try {
+    return await fetchAndCache(request);
+  } catch (error) {
+    const cached = await cachedResponse(request);
+    if (cached) return cached;
+    if (fallbackUrl) {
+      const cache = await caches.open(CACHE_VERSION);
+      const fallback = await cache.match(fallbackUrl, { ignoreSearch:true });
+      if (fallback) return fallback;
+    }
+    throw error;
+  }
+}
+
+async function staleWhileRevalidate(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_VERSION);
+  const exact = await cache.match(request);
+  const fallback = exact || await cache.match(request, { ignoreSearch:true });
+  const refresh = fetch(request, { cache:'reload' })
+    .then(response => cachePut(request, response))
+    .catch(() => null);
+  if (fallback) {
+    event.waitUntil(refresh);
+    return fallback;
+  }
+  const fresh = await refresh;
+  if (fresh) return fresh;
+  throw new Error('Risorsa non disponibile offline');
+}
 
 self.addEventListener('install', event => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_VERSION);
+    // Un singolo asset momentaneamente non disponibile non deve impedire
+    // l'installazione del Service Worker. Salviamo tutto cio' che risponde.
+    await Promise.allSettled(CORE_ASSETS.map(async asset => {
+      const request = new Request(asset, { cache:'reload' });
+      const response = await fetch(request);
+      if (response.ok) await cache.put(request, response.clone());
+    }));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.map(name => caches.delete(name)));
+    await Promise.all(names
+      .filter(name => name.startsWith('navisuite-') && name !== CACHE_VERSION)
+      .map(name => caches.delete(name)));
     await self.clients.claim();
   })());
 });
@@ -36,25 +118,38 @@ function js(text) {
   });
 }
 
+async function transformedScript(request, transform) {
+  let sourceResponse = null;
+  try {
+    sourceResponse = await fetch(request, { cache:'reload' });
+    if (!sourceResponse.ok) throw new Error(`HTTP ${sourceResponse.status}`);
+  } catch (error) {
+    sourceResponse = await cachedResponse(request);
+    if (!sourceResponse) throw error;
+  }
+  const text = transform(await sourceResponse.text());
+  const response = js(text);
+  await cachePut(request, response.clone());
+  return response;
+}
+
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname === '/NaviSuite/assets/css/shared-menu.css') {
-    event.respondWith(fetch(event.request, { cache: 'reload' }));
+  if (url.pathname.endsWith('/assets/css/shared-menu.css')) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
-  if (url.pathname === '/NaviSuite/assets/js/orario-lucide-init.js') {
-    event.respondWith(fetch(event.request, { cache: 'reload' }));
+  if (url.pathname.endsWith('/assets/js/orario-lucide-init.js')) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
-  if (url.pathname === '/NaviSuite/assets/js/navidiaria-monthly.js') {
-    event.respondWith((async () => {
-      const response = await fetch(event.request, { cache: 'reload' });
-      let text = await response.text();
+  if (url.pathname.endsWith('/assets/js/navidiaria-monthly.js')) {
+    event.respondWith(transformedScript(event.request, text => {
       text = text.replace(
         "new MutationObserver(fix).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(fix,0)",
         "document.addEventListener('navidiaria:render',()=>setTimeout(fix,0));setTimeout(fix,0)"
@@ -63,28 +158,21 @@ self.addEventListener('fetch', event => {
         "function baseWorkedMinutes(e){const manual=Number(e?.workedMinutes);return Number.isFinite(manual)&&manual>=0?manual:serviceMinutes(e)+(overtime?.structured(e)?overtimeTotal(e):ordinaryOvertime(e))}",
         "function baseWorkedMinutes(e){const manual=Number(e?.workedMinutes),manualWorked=overtime?.isWorkedManual?.(e);if(manualWorked&&Number.isFinite(manual)&&manual>=0)return manual;if(overtime?.structured(e))return serviceMinutes(e)+overtimeTotal(e);return Number.isFinite(manual)&&manual>=0?manual:serviceMinutes(e)+ordinaryOvertime(e)}"
       );
-      return js(text);
-    })());
+      return text;
+    }));
     return;
   }
 
-  if (url.pathname === '/NaviSuite/assets/js/portal.js') {
-    event.respondWith((async () => {
-      const response = await fetch(event.request, { cache: 'reload' });
-      let text = await response.text();
-      text = text.replace(
-        "if(preferred&&preferred!=='index.html'){location.href=preferred;return;}",
-        "const explicitHome=new URLSearchParams(location.search).get('home')==='1';if(!explicitHome&&preferred&&preferred!=='index.html'){location.href=preferred;return;}"
-      );
-      return js(text);
-    })());
+  if (url.pathname.endsWith('/assets/js/portal.js')) {
+    event.respondWith(transformedScript(event.request, text => text.replace(
+      "if(preferred&&preferred!=='index.html'){location.href=preferred;return;}",
+      "const explicitHome=new URLSearchParams(location.search).get('home')==='1';if(!explicitHome&&preferred&&preferred!=='index.html'){location.href=preferred;return;}"
+    )));
     return;
   }
 
-  if (url.pathname === '/NaviSuite/assets/js/shared-menu.js') {
-    event.respondWith((async () => {
-      const response = await fetch(event.request, { cache: 'reload' });
-      let text = await response.text();
+  if (url.pathname.endsWith('/assets/js/shared-menu.js')) {
+    event.respondWith(transformedScript(event.request, text => {
       text = text.replace(
         "const palette=type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw] || ['#94a3b8','rgba(148,163,184,.13)'];",
         "const palette=(type==='residence'\n        ? residenceColors[raw]\n        : shiftColors[raw]) || ['#2dd4bf','rgba(45,212,191,.13)'];"
@@ -220,7 +308,25 @@ self.addEventListener('fetch', event => {
   setTimeout(ensureTurniPastButton,1000);
 })();
 `;
-      return js(text);
-    })());
+      return text;
+    }));
+    return;
   }
+
+  // Le pagine HTML provano prima la rete per ricevere subito gli aggiornamenti;
+  // se manca la connessione, usano la copia locale. Se la pagina richiesta non
+  // e' mai stata aperta, torniamo almeno all'Index gia' precaricato.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(networkFirst(event.request, './index.html'));
+    return;
+  }
+
+  // CSS, JS, immagini e font: risposta locale immediata e aggiornamento silenzioso.
+  if (['script','style','image','font','manifest'].includes(event.request.destination)) {
+    event.respondWith(staleWhileRevalidate(event));
+    return;
+  }
+
+  // Altre risorse same-origin: rete con fallback locale se gia' viste.
+  event.respondWith(networkFirst(event.request));
 });
