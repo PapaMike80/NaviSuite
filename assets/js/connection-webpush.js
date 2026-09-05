@@ -5,7 +5,8 @@
 
   const DATABASE_URL='https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app';
   const AUTH_KEY='navisuite.adminFirebaseAuth.v1';
-  const TARGET_ADMIN_ID='91';
+  // La subscription Web Push di Marco in Navibeta e' associata al profilo PEDRONI M. ID 92.
+  const TARGET_ADMIN_ID='92';
   const RECONNECT_MS=90*1000;
   const HEARTBEAT_MS=25*1000;
   const HEARTBEAT_PREFIX='navisuite.connectionHeartbeat.';
@@ -22,7 +23,7 @@
   function isTargetAdmin(agent){
     const id=String(agent?.id||agent?.agentId||'').toUpperCase();
     const name=String(agent?.name||agent?.agente||agent?.cognome||'');
-    return ['91','AG_PEDRONI_M'].includes(id)||/\bPEDRONI\b/i.test(name);
+    return ['91','92','AG_PEDRONI_M'].includes(id)||/\bPEDRONI\b/i.test(name);
   }
 
   function heartbeatKey(agentId){return HEARTBEAT_PREFIX+String(agentId||'');}
