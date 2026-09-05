@@ -82,7 +82,6 @@
   let timer=null;
   let initialized=false;
   let previousOnline=new Set();
-  let lastPresenceById=new Map();
   let log=[];
 
   function readSession(){
@@ -133,7 +132,7 @@
   }
 
   async function showAgentNotification(item){
-    if(Notification.permission!=='granted'||localStorage.getItem(ENABLE_KEY)!=='1')return;
+    if(!('Notification' in window)||Notification.permission!=='granted'||localStorage.getItem(ENABLE_KEY)!=='1')return;
     const name=formatName(item.name||item.id);
     const when=timeOf(item.lastSeen)||timeOf(Date.now());
     const title='NaviSuite · agente online';
@@ -158,12 +157,11 @@
       const items=await provider.listUserPresence(ONLINE_MS);
       renderOnline(items);
       const current=new Set(items.map(item=>String(item.id||'')).filter(Boolean));
-      const nowMap=new Map(items.map(item=>[String(item.id||''),item]));
       if(!initialized){
         previousOnline=current;
-        lastPresenceById=nowMap;
         initialized=true;
-        setStatus(updateState()?'Monitoraggio attivo. Ti avviserò quando un agente passa da offline a online.':'Presenza aggiornata. Attiva le notifiche per ricevere gli avvisi.',updateState()?'ok':'');
+        const active=updateState();
+        setStatus(active?'Monitoraggio attivo. Ti avviserò quando un agente passa da offline a online.':'Presenza aggiornata. Attiva le notifiche per ricevere gli avvisi.',active?'ok':'');
         return;
       }
       const newcomers=items.filter(item=>{
@@ -175,7 +173,6 @@
         await showAgentNotification(item);
       }
       previousOnline=current;
-      lastPresenceById=nowMap;
       if(updateState())setStatus('Monitoraggio attivo · controllo ogni 12 secondi.','ok');
     }catch(error){
       console.warn('Controllo accessi non disponibile',error);
