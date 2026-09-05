@@ -1,9 +1,46 @@
 (function(){
-  // NaviTurni usa già una copia locale (localStorage + IndexedDB) e mostra
-  // immediatamente l'ultimo calendario disponibile. Non trasformare loadBase
-  // in load(): in assenza di cache il calendario base deve comparire appena
-  // arriva, mentre ODS, profili e aggiornamenti amministrativi continuano a
-  // sincronizzarsi in background dal normale flusso di NaviTurni.
+  // NaviTurni usa una copia locale completa (localStorage + IndexedDB). Se la
+  // copia esiste, non deve essere rimpiazzata per alcuni secondi dal solo
+  // calendario base Firebase, che può terminare prima delle importazioni/bozze.
+  // Manteniamo quindi la copia completa a schermo e avviamo comunque il fetch
+  // del calendario base in background: il normale NaviSharedData.load() che
+  // segue si aggancia a quel fetch, applica ODS/profili/importazioni e aggiorna
+  // la tabella soltanto quando il dataset completo è pronto.
+  if(/(?:^|\/)naviturni\.html$/i.test(location.pathname)&&window.NaviSharedData?.loadBase&&!window.NaviSharedData.__turniKeepCompleteCache){
+    const originalLoadBase=window.NaviSharedData.loadBase.bind(window.NaviSharedData);
+    let firstCall=true;
+
+    const readCompleteCache=async()=>{
+      try{
+        if(typeof window.readTurniCache==='function'){
+          const saved=await window.readTurniCache();
+          if(saved)return typeof saved==='string'?JSON.parse(saved):saved;
+        }
+      }catch(error){console.warn('Cache Turni IndexedDB non leggibile',error)}
+      try{
+        const saved=localStorage.getItem('turno_finali_data');
+        if(saved)return JSON.parse(saved);
+      }catch(error){console.warn('Cache Turni locale non leggibile',error)}
+      return null;
+    };
+
+    window.NaviSharedData.loadBase=async(url,options={})=>{
+      if(firstCall){
+        firstCall=false;
+        const cached=await readCompleteCache();
+        if(cached&&typeof cached==='object'){
+          // Avvia subito il vero refresh senza aspettarlo. La successiva load()
+          // troverà il fetch pendente e produrrà direttamente il dataset completo.
+          originalLoadBase(url,{...options,force:true}).catch(error=>
+            console.warn('Aggiornamento calendario base in background non riuscito',error)
+          );
+          return cached;
+        }
+      }
+      return originalLoadBase(url,options);
+    };
+    window.NaviSharedData.__turniKeepCompleteCache=true;
+  }
 
   const load=(src)=>{
     const script=document.createElement('script');
