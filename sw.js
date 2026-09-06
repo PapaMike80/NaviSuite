@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v204-offline-shell';
+const CACHE_VERSION = 'navisuite-v205-push-offline';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,8 @@ const CORE_ASSETS = [
   './assets/js/shared-menu.js',
   './assets/js/oggi.js',
   './assets/js/announcements-recovered.js',
+  './assets/js/push-notifications-v3.js',
+  './assets/js/push-center.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
   './assets/images/icona_512.png',
@@ -329,4 +331,40 @@ self.addEventListener('fetch', event => {
 
   // Altre risorse same-origin: rete con fallback locale se gia' viste.
   event.respondWith(networkFirst(event.request));
+});
+
+// Web Push reale NaviSuite. Il worker TrueNAS invia il payload e questo Service
+// Worker mostra l'avviso anche quando la PWA e' chiusa o l'iPhone e' bloccato.
+self.addEventListener('push', event => {
+  event.waitUntil((async () => {
+    let payload = {};
+    try { payload = event.data ? event.data.json() : {}; }
+    catch (_) { payload = { body:event.data ? event.data.text() : '' }; }
+    const title = String(payload.title || 'NaviSuite');
+    const options = {
+      body:String(payload.body || ''),
+      icon:payload.icon || 'assets/images/icona_192.png',
+      badge:payload.badge || 'assets/images/icona_192.png',
+      tag:payload.tag || 'navisuite-push',
+      renotify:payload.renotify !== false,
+      data:{ url:String(payload.url || 'naviturni.html'), ...(payload.data || {}) }
+    };
+    await self.registration.showNotification(title, options);
+  })());
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const relative = String(event.notification?.data?.url || 'naviturni.html');
+    const target = new URL(relative, self.registration.scope).href;
+    const windows = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
+    for (const client of windows) {
+      try {
+        if ('navigate' in client) await client.navigate(target);
+        if ('focus' in client) return client.focus();
+      } catch (_) { }
+    }
+    return self.clients.openWindow ? self.clients.openWindow(target) : null;
+  })());
 });
