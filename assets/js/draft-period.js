@@ -64,8 +64,13 @@
     document.head.appendChild(ticketScript);
 
     const calendarScript = document.createElement('script');
-    calendarScript.src = 'assets/js/calendar-settings-v2.js?v=2';
+    calendarScript.src = 'assets/js/calendar-settings-v2.js?v=3';
     calendarScript.defer = true;
     document.head.appendChild(calendarScript);
+
+    const calendarActivationScript = document.createElement('script');
+    calendarActivationScript.src = 'assets/js/calendar-activation-v3.js?v=1';
+    calendarActivationScript.defer = true;
+    document.head.appendChild(calendarActivationScript);
   }
 })();
