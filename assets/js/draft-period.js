@@ -56,12 +56,16 @@
   window.NaviDraftPeriod = {get:() => ({...current}), contains, refresh, save, reset, defaults:{...DEFAULT_PERIOD}};
   window.addEventListener('DOMContentLoaded', () => setTimeout(refresh, 150));
 
-  // Le Impostazioni caricano qui anche il modulo Calendario personale, così
-  // la funzione resta confinata alla pagina senza appesantire il resto di NaviSuite.
+  // Le Impostazioni caricano qui le preferenze personali collegate alla pagina.
   if (document.body?.classList.contains('impostazioni-page')) {
-    const script = document.createElement('script');
-    script.src = 'assets/js/calendar-settings-v2.js?v=2';
-    script.defer = true;
-    document.head.appendChild(script);
+    const ticketScript = document.createElement('script');
+    ticketScript.src = 'assets/js/ticket-personalization.js?v=1';
+    ticketScript.defer = true;
+    document.head.appendChild(ticketScript);
+
+    const calendarScript = document.createElement('script');
+    calendarScript.src = 'assets/js/calendar-settings-v2.js?v=2';
+    calendarScript.defer = true;
+    document.head.appendChild(calendarScript);
   }
 })();
