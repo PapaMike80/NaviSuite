@@ -16,13 +16,13 @@ permissions:
   id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# However, do NOT cancel in-progress runs as we want the production deployment to finish.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  # Single deploy job
   deploy:
     environment:
       name: github-pages
@@ -34,6 +34,12 @@ jobs:
         with:
           # Pubblica esattamente il commit che ha attivato il workflow.
           ref: ${{ github.sha }}
+      - name: Verify notification modules
+        run: |
+          node --check assets/js/push-notifications-v3.js
+          node --check assets/js/push-center.js
+          node --check assets/js/announcements-recovered.js
+          node --check sw.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
