@@ -60,7 +60,7 @@
   // la funzione resta confinata alla pagina senza appesantire il resto di NaviSuite.
   if (document.body?.classList.contains('impostazioni-page')) {
     const script = document.createElement('script');
-    script.src = 'assets/js/calendar-settings.js?v=1';
+    script.src = 'assets/js/calendar-settings-v2.js?v=2';
     script.defer = true;
     document.head.appendChild(script);
   }
