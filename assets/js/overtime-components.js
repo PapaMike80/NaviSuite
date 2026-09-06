@@ -65,3 +65,16 @@
   function create(){return {ordinario:0,cambi:0,sentine:0}}
   window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,create,minutes,SENTINE_TYPES};
 })();
+
+(() => {
+  if (!document.body?.classList.contains('diaria-page')) return;
+  const load = () => {
+    if (window.NaviTicketPersonalizationLoaded || document.querySelector('script[data-navi-ticket-personalization]')) return;
+    const script = document.createElement('script');
+    script.src = 'assets/js/ticket-personalization.js?v=1';
+    script.dataset.naviTicketPersonalization = '1';
+    document.head.appendChild(script);
+  };
+  if (document.readyState === 'complete') setTimeout(load, 0);
+  else window.addEventListener('load', load, {once:true});
+})();
