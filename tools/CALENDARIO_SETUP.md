@@ -23,12 +23,24 @@ La sincronizzazione richiede un feed HTTPS pubblico. NaviSuite usa Google Apps S
 3. In **Impostazioni progetto → Proprietà script** aggiungi:
    - nome: `NAVISUITE_FIREBASE_API_KEY`
    - valore: la Firebase Web API Key già usata da NaviSuite.
-4. Esegui il deploy come **Applicazione web**:
+4. Verifica che la funzione `postResult_` restituisca un `HtmlOutput` con `setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)`. NaviSuite riceve infatti l'esito dell'attivazione tramite un iframe nascosto; senza `ALLOWALL` Apps Script usa la protezione X-Frame predefinita e il browser non può consegnare il `postMessage` di risposta.
+5. Esegui il deploy come **Applicazione web**:
    - esegui come: proprietario del progetto;
    - accesso: chiunque.
-5. Copia l'URL finale che termina con `/exec`.
-6. Inserisci quell'URL in `assets/calendar-config.json` come valore di `feedBase`.
-7. Pubblica la modifica.
+6. Copia l'URL finale che termina con `/exec`.
+7. Inserisci quell'URL in `assets/calendar-config.json` come valore di `feedBase`.
+8. Pubblica la modifica.
+
+La funzione corretta è:
+
+```js
+function postResult_(requestId,result){
+  const payload=JSON.stringify(Object.assign({source:'navisuite-calendar',requestId:String(requestId||'')},result||{})).replace(/<\//g,'<\\/');
+  return HtmlService
+    .createHtmlOutput('<!doctype html><meta charset="utf-8"><script>parent.postMessage('+payload+',"*");<\\/script>')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+```
 
 Esempio configurazione:
 
@@ -42,12 +54,13 @@ Esempio configurazione:
 
 ## Test finale
 
-1. Apri NaviSuite e accedi normalmente.
-2. Vai in **Impostazioni → Calendario personale**.
-3. Premi **Attiva sincronizzazione**.
-4. Verifica che compaiano il link personale e i pulsanti **Aggiungi su iPhone** / **Aggiungi su Google**.
-5. Apri una giornata con turno nave e controlla servizio, nave, ormeggio, rifornimento ed equipaggio.
-6. Modifica un turno o una variazione ODS e verifica che il feed mantenga lo stesso UID della giornata e restituisca i dati aggiornati.
+1. Apri direttamente l'URL `/exec` senza token: deve apparire `Calendario NaviSuite: link non valido.`. Se compare una richiesta di accesso Google, la distribuzione non è pubblica e va impostata su **Chiunque**.
+2. Apri NaviSuite e accedi normalmente.
+3. Vai in **Impostazioni → Calendario personale**.
+4. Premi **Attiva sincronizzazione**.
+5. Verifica che compaiano il link personale e i pulsanti **Aggiungi su iPhone** / **Aggiungi su Google**.
+6. Apri una giornata con turno nave e controlla servizio, nave, ormeggio, rifornimento ed equipaggio.
+7. Modifica un turno o una variazione ODS e verifica che il feed mantenga lo stesso UID della giornata e restituisca i dati aggiornati.
 
 ## Sicurezza
 
@@ -56,3 +69,4 @@ Esempio configurazione:
 - La registrazione del token viene accettata solo se l'hash del PIN corrisponde a quello salvato in Firebase.
 - Rigenerando il link, il token precedente viene revocato.
 - La Firebase Web API Key non è salvata nel nuovo sorgente Apps Script: viene letta dalle Script Properties.
+- `ALLOWALL` viene usato solo sulla piccola risposta HTML di registrazione/revoca necessaria al `postMessage`; la validazione del token e del PIN resta lato server.
