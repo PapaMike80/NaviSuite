@@ -49,7 +49,14 @@
   load('assets/js/announcements-core-20260903.js?v=1');
   load('assets/js/turn-pdf-import-repair-v2.js?v=20260903-2');
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
-  // NaviSuite produce l'evento di collegamento; il Web Push viene poi consegnato
-  // alla subscription dell'amministratore registrata dalla PWA Navibeta.
+
+  // Notifica l'amministratore quando un agente torna attivo su NaviSuite.
   load('assets/js/connection-webpush.js?v=20260905-4');
+
+  // Centro Web Push di produzione: attivazione dispositivo, orari automatici,
+  // invio giornata admin e messaggi personalizzati tra agenti.
+  if(/(?:^|\/)impostazioni\.html$/i.test(location.pathname)){
+    load('assets/js/push-notifications-v3.js?v=20260906-1');
+    load('assets/js/push-center.js?v=20260906-1');
+  }
 })();
