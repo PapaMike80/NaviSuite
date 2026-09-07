@@ -103,6 +103,7 @@
       <div class="correction-actions"><span class="correction-status" id="correctionStatus"></span><button type="button" class="primary" id="saveCorrections">Salva su Firebase</button></div>
     </section>
   </div>
+<script src="assets/js/shared-roles.js?v=1"></script>
 <script src="assets/js/admin-firebase-rest.js"></script>
 <script src="assets/js/shared-menu.js?v=1.47"></script>
 <script>
@@ -572,7 +573,7 @@ const correctIndex=(questionIndex,testIndex=activeTest)=>{
 function readQuizProfile(){
   try{return JSON.parse(localStorage.getItem("naviturni_logged_agent")||localStorage.getItem("navidiaria.activeAgent")||"null")}catch(_){return null}
 }
-function isQuizAdmin(profile){return ["91","92"].includes(String(profile?.id||""))||String(profile?.role||"").toLowerCase()==="admin"}
+function isQuizAdmin(profile){return window.NaviRoles.isAdminAgent(profile)}
 const topicInfo={
  rd148:["R.D. 148/1931","Ripassa gerarchia, periodo di prova, dimissioni e sistema disciplinare."],
  dpr631:["Regolamento navigazione interna","Ripassa libretto, titoli professionali e manovre periodiche di sicurezza."],

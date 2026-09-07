@@ -83,6 +83,7 @@
       <div class="status" id="users-status" aria-live="polite"></div>
     </section>
   </main>
+  <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=40"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
   <script src="assets/js/shared-menu.js?v=1.55"></script>
@@ -103,7 +104,7 @@
     const profileNameElement=document.getElementById("profile-name");
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
-    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    const isAdmin=window.NaviRoles.isAdminAgent(profile);
     const isPedroThemeTest=['91','AG_PEDRONI_M'].includes(String(profile?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(profile?.name||profile?.agente||profile?.cognome||''));
     const themeTestSection=document.getElementById('theme-test-setting');
     const themeSelect=document.getElementById('navisuite-theme-select');

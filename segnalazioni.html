@@ -32,12 +32,13 @@
       <div id="ticket-list" class="ticket-list"><div class="empty">Caricamento…</div></div>
     </section>
   </main>
+  <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=39"></script>
   <script src="assets/js/shared-menu.js?v=1.54"></script>
   <script>
   (()=>{
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');
-    const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+    const isAdmin=window.NaviRoles.isAdminAgent(profile);
     if(!profile){location.replace('index.html');return;}
     const $=id=>document.getElementById(id);
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

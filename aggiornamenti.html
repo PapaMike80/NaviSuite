@@ -137,6 +137,7 @@
     <a class="active" href="aggiornamenti.html"><span>↻</span>Aggiorna</a>
     <a href="agenti.html"><span>♙</span>Agenti</a>
   </nav>
+  <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/turni-shared.js"></script>
   <script src="assets/js/admin-firebase-rest.js?v=36"></script>
   <script src="assets/js/shared-menu.js?v=1.54"></script>
@@ -153,8 +154,8 @@
     const $=id=>document.getElementById(id);
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const profile=()=>window.TurniShared?.readLoggedAgentProfile?.()||JSON.parse(localStorage.getItem('naviturni_logged_agent')||'null');
-    const isAdmin=p=>['91','92'].includes(String(p?.id||''))||String(p?.role||'').toLowerCase()==='admin';
-    const isHiba=p=>String(p?.id||'').toUpperCase()==='BARISTA_HIBA'||(String(p?.role||'').toLowerCase()==='barista'&&normalize(String(p?.name||p?.agente||p?.cognome||''))==='HIBA');
+    const isAdmin=p=>window.NaviRoles.isAdminAgent(p);
+    const isHiba=p=>window.NaviRoles.isHibaBarista(p);
     const canManageBariste=p=>isAdmin(p)||isHiba(p);
     // Una stessa variazione ODS è identificata da agente, data e numero ODS.
     // La provenienza (ufficio/volontaria) è informativa e non deve generare un
