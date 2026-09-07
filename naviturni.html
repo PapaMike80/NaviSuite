@@ -2867,8 +2867,13 @@
     function updateLoggedStickyOffset() {
       const monthHeader = document.querySelector(".month-header");
       const dateHeader = document.querySelector(".date-header");
-      const monthHeight = monthHeader ? Math.ceil(monthHeader.getBoundingClientRect().height) : 27;
-      const dateHeight = dateHeader ? Math.ceil(dateHeader.getBoundingClientRect().height) : 38;
+      // offsetHeight e' gia' un intero e corrisponde all'altezza reale della riga:
+      // sommando i due valori la riga dell'agente loggato si incolla esattamente
+      // sotto l'header. Con Math.ceil su ciascun getBoundingClientRect si perdeva
+      // fino a ~2px (il "piccolo spazio" visibile soprattutto con lo zoom di
+      // sistema di Windows a 125%).
+      const monthHeight = monthHeader ? monthHeader.offsetHeight : 27;
+      const dateHeight = dateHeader ? dateHeader.offsetHeight : 38;
       document.documentElement.style.setProperty("--month-header-height", monthHeight + "px");
       document.documentElement.style.setProperty("--date-header-height", dateHeight + "px");
       document.documentElement.style.setProperty("--logged-row-sticky-top", (monthHeight + dateHeight) + "px");
@@ -4916,5 +4921,5 @@
   }
 </style>
   <script src="assets/js/announcements-recovered.js?v=1"></script>
-<style>@media(max-width:950px){.turni-header-actions{padding:0!important;background:#0d2631!important}.turni-header-actions a,.turni-header-actions button{display:inline-flex;align-items:center;justify-content:center;height:60px;border:0;background:transparent;color:#a7fff0;font:950 21px/1 inherit;text-decoration:none}.turni-header-actions a{width:72%;border-right:1px solid #28505a}.turni-header-actions button{width:28%;font-size:25px;cursor:pointer}}</style><script>document.addEventListener('click',e=>{if(e.target.closest('#turni-header-menu'))window.NaviSuiteMenu?.open?.();});</script></body>
+<style>@media(min-width:951px){#matrix-scroll-wrap .month-header th.turni-header-actions{padding:2px 6px!important;white-space:nowrap}.turni-header-actions a,.turni-header-actions button{display:inline-flex;align-items:center;justify-content:center;gap:3px;height:16px;margin:0 2px;padding:0 6px;border:1px solid rgba(45,212,191,.42);border-radius:7px;background:rgba(45,212,191,.13);color:#a7fff0;font:900 11px/1 inherit;text-decoration:none;cursor:pointer;vertical-align:middle;-webkit-appearance:none;appearance:none}.turni-header-actions button{height:17px;font-size:13px}.turni-header-actions a:hover,.turni-header-actions button:hover{background:rgba(45,212,191,.26);border-color:#54e0cd}.turni-header-actions a:focus-visible,.turni-header-actions button:focus-visible{outline:2px solid #7ae5d6;outline-offset:1px}}@media(max-width:950px){.turni-header-actions{padding:0!important;background:#0d2631!important}.turni-header-actions a,.turni-header-actions button{display:inline-flex;align-items:center;justify-content:center;height:60px;border:0;background:transparent;color:#a7fff0;font:950 21px/1 inherit;text-decoration:none}.turni-header-actions a{width:72%;border-right:1px solid #28505a}.turni-header-actions button{width:28%;font-size:25px;cursor:pointer}}</style><script>document.addEventListener('click',e=>{if(e.target.closest('#turni-header-menu'))window.NaviSuiteMenu?.open?.();});</script></body>
 </html>
