@@ -1,0 +1,47 @@
+name: Ponte Radio menu rollout
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ponteradio-menu-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add Ponte Radio to shared menu
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('assets/js/shared-menu.js')
+          s=p.read_text()
+          s=s.replace("document.body.classList.contains('impostazioni-page')?'settings':", "document.body.classList.contains('ponteradio-page')?'ponteradio':document.body.classList.contains('impostazioni-page')?'settings':")
+          s=s.replace("archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab'", "archive:'NaviDocumentiTab',ponteradio:'NaviPonteRadioTab',settings:'NaviImpostazioniTab'")
+          marker="common=item('index.html','⌂','Home')+common+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');"
+          replacement="common=item('index.html','⌂','Home')+common+item('ponteradio.html','📻','Ponte Radio',page==='ponteradio','ponteRadioNav')+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');"
+          if marker not in s:
+              raise SystemExit('shared menu insertion marker not found')
+          s=s.replace(marker,replacement)
+          s=s.replace("page==='settings'?'NaviSuite Impostazioni':", "page==='ponteradio'?'NaviSuite Ponte Radio':page==='settings'?'NaviSuite Impostazioni':")
+          s=s.replace("register('sw.js?menu=168')", "register('sw.js?menu=169')")
+          p.write_text(s)
+
+          p=Path('ponteradio.html')
+          s=p.read_text()
+          s=s.replace('.app-sidebar{display:none}', '.app-sidebar{}')
+          p.write_text(s)
+          PY
+      - name: Commit rollout
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/js/shared-menu.js ponteradio.html
+          git commit -m 'Show Ponte Radio in every NaviSuite menu'
+          git push
