@@ -1,6 +1,6 @@
 (function(){'use strict';
 const readProfile=()=>{try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{return null}};
-const profile=readProfile(),id=String(profile?.id||profile?.agentId||''),name=String(profile?.name||profile?.agente||profile?.cognome||id),isAdmin=['91','92'].includes(id)||['admin','super_user'].includes(String(profile?.role||'').toLowerCase());
+const profile=readProfile(),id=String(profile?.id||profile?.agentId||''),name=String(profile?.name||profile?.agente||profile?.cognome||id),isAdmin=window.NaviRoles.isAdminOrSuperUser(profile);
 const $=x=>document.getElementById(x),key='navisuite.ponteradio.history.'+id;
 if(!profile||!id){document.getElementById('radio-app').innerHTML='<section class="radio-card admin-lock"><h1>📻 Ponte Radio</h1><p>Accedi a NaviSuite per usare Ponte Radio.</p><a href="index.html" style="color:#2dd4bf">Torna alla Home</a></section>';return;}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

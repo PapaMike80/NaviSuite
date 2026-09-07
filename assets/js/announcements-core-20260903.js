@@ -1,7 +1,7 @@
 (function(){
   const getProfile=()=>{try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{return null}};
   let profile=getProfile();
-  const isAdmin=['91','92'].includes(String(profile?.id||''))||String(profile?.role||'').toLowerCase()==='admin';
+  const isAdmin=window.NaviRoles.isAdminAgent(profile);
   const body=document.body;
   const isHomePage=location.pathname.endsWith('/')||location.pathname.endsWith('/index.html');
   const pageKey=body.classList.contains('impostazioni-page')?'settings':body.classList.contains('trova-turno-page')?'cambi':body.classList.contains('diaria-page')?'diaria':body.classList.contains('turni-page')?'turni':isHomePage?'home':'';

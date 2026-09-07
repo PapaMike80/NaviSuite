@@ -14,13 +14,13 @@ function startPresence(agent) {
 }
 
 const $ = id => document.getElementById(id);
-const isAdminAgent = agent => ['91', '92'].includes(String(agent?.id || '')) || String(agent?.role || '').toLowerCase() === 'admin';
+const isAdminAgent = agent => window.NaviRoles.isAdminAgent(agent);
 const isMovementAgent = agent => isAdminAgent(agent) || String(agent?.qualifica || agent?.office || '').toLowerCase().includes('movimento');
 // NaviDiaria e' un registro personale: e' disponibile per ogni agente che ha
 // gia' completato l'accesso, senza modificare il suo ruolo o i suoi permessi.
 const canUseDiaria = agent => Boolean(String(agent?.id || '').trim());
-const isBaristaAgent = agent => String(agent?.role || '').toLowerCase() === 'barista' || String(agent?.qualifica || '').toLowerCase() === 'barista';
-const isHibaBarista = agent => String(agent?.id || '').toUpperCase() === 'BARISTA_HIBA' || (isBaristaAgent(agent) && String(agent?.name || agent?.agente || '').trim().toUpperCase() === 'HIBA');
+const isBaristaAgent = agent => window.NaviRoles.isBaristaAgent(agent);
+const isHibaBarista = agent => window.NaviRoles.isHibaBarista(agent);
 let agentProfiles = {};
 const profileFor = id => agentProfiles[String(id)] || Object.values(agentProfiles).find(item => String(item?.id) === String(id)) || {};
 const applyAgentProfile = agent => ({...agent,...profileFor(agent?.id),id:agent?.id,name:agent?.name,residence:agent?.residence});

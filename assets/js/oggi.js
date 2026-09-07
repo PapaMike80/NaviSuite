@@ -35,8 +35,8 @@
     const value=String(agent?.qualifica||agent?.grado||agent?.role||'');
     return ROLE_INFO.find(([pattern])=>pattern.test(value))?.slice(1)||['Equipaggio','#94a3b8',99];
   };
-  const isBarista=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
-  const isHiba=agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||(isBarista(agent)&&norm(agent?.name||agent?.agente||agent?.cognome)==='HIBA');
+  const isBarista=agent=>window.NaviRoles.isBaristaAgent(agent);
+  const isHiba=agent=>window.NaviRoles.isHibaBarista(agent);
   function getSession(){try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{return null}}
   function validShip(value){const ship=String(value||'').trim();return ship&&!/^(?:-|N\/A|NESSUNA|NON ASSEGNATA|RIP)$/i.test(ship)&&!cleanShift(ship)?ship:''}
   function mooringFor(item){return String(item?.ormeggio_serale||item?.ormeggio||item?.ormeggioSera||'').trim()}

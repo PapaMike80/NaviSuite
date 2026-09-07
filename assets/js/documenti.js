@@ -40,9 +40,7 @@ function isAdminUser() {
       localStorage.getItem('naviturni_logged_agent') ||
       'null'
     );
-    if (!agent) return false;
-    return ['91', '92'].includes(String(agent.id || '')) ||
-      String(agent.role || '').toLowerCase() === 'admin';
+    return window.NaviRoles.isAdminAgent(agent);
   } catch {
     return false;
   }

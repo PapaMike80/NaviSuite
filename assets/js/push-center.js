@@ -7,7 +7,7 @@
 
   const agentId=String(profile?.id||profile?.agentId||'').trim();
   const agentName=String(profile?.name||profile?.agente||profile?.cognome||agentId).trim();
-  const isAdmin=['91','92'].includes(agentId)||['admin','super_user'].includes(String(profile?.role||'').toLowerCase());
+  const isAdmin=window.NaviRoles.isAdminOrSuperUser(profile);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const $=id=>document.getElementById(id);
