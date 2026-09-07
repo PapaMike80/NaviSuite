@@ -1,44 +1,6 @@
 (function(){
-  // NaviTurni usa una copia locale completa (localStorage + IndexedDB). Se la
-  // copia esiste, non deve essere rimpiazzata per alcuni secondi dal solo
-  // calendario base Firebase, che può terminare prima delle importazioni/bozze.
-  // Manteniamo quindi la copia completa a schermo e avviamo comunque il fetch
-  // del calendario base in background: il normale NaviSharedData.load() che
-  // segue si aggancia a quel fetch, applica ODS/profili/importazioni e aggiorna
-  // la tabella soltanto quando il dataset completo è pronto.
-  if(/(?:^|\/)naviturni\.html$/i.test(location.pathname)&&window.NaviSharedData?.loadBase&&!window.NaviSharedData.__turniKeepCompleteCache){
-    const originalLoadBase=window.NaviSharedData.loadBase.bind(window.NaviSharedData);
-    let firstCall=true;
-
-    const readCompleteCache=async()=>{
-      try{
-        if(typeof window.readTurniCache==='function'){
-          const saved=await window.readTurniCache();
-          if(saved)return typeof saved==='string'?JSON.parse(saved):saved;
-        }
-      }catch(error){console.warn('Cache Turni IndexedDB non leggibile',error)}
-      try{
-        const saved=localStorage.getItem('turno_finali_data');
-        if(saved)return JSON.parse(saved);
-      }catch(error){console.warn('Cache Turni locale non leggibile',error)}
-      return null;
-    };
-
-    window.NaviSharedData.loadBase=async(url,options={})=>{
-      if(firstCall){
-        firstCall=false;
-        const cached=await readCompleteCache();
-        if(cached&&typeof cached==='object'){
-          originalLoadBase(url,{...options,force:true}).catch(error=>
-            console.warn('Aggiornamento calendario base in background non riuscito',error)
-          );
-          return cached;
-        }
-      }
-      return originalLoadBase(url,options);
-    };
-    window.NaviSharedData.__turniKeepCompleteCache=true;
-  }
+  // La strategia cache-first di NaviTurni ora passa da NaviSharedData.loadCacheFirst
+  // (vedi shared-data.js e naviturni.html): non serve più intercettare loadBase qui.
 
   const load=(src)=>{
     const script=document.createElement('script');
