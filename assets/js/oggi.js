@@ -98,25 +98,70 @@
     const currentDate=dateLabel(iso);
     contentEl.classList.add('oggi-pairs');
     const colors={DESENZANO:'#4ea9ff',PESCHIERA:'#51cf92',MADERNO:'#f59f55',RIVA:'#be8cff'};
-    contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;const firstMeta=index===0?`<span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button>`:'';return `<section class="oggi-residence is-open" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="true" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button>${firstMeta}</h2><div id="${gridId}" class="oggi-grid">${items.map(card=>`<article class="oggi-card is-open" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="true" aria-label="Chiudi equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><span class="oggi-card-title"><strong>${escapeHtml(card.course)}</strong>${tripNumbers(card.course)}</span><small>${shipLine(card)}</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
+    contentEl.innerHTML=ordered.map(([residence,items],index)=>{const gridId=`oggi-grid-${index}`;const firstMeta=index===0?`<span class="oggi-residence-date">${escapeHtml(currentDate)}</span><button class="oggi-residence-menu" type="button" aria-label="Apri menu">☰</button>`:'';return `<section class="oggi-residence is-open" data-residence="${escapeHtml(residence)}" style="--res-color:${colors[residence]}"><h2 class="oggi-residence-title"><button class="oggi-residence-toggle" type="button" aria-expanded="true" aria-controls="${gridId}"><span>${escapeHtml(residence)}</span><span class="oggi-residence-chevron" aria-hidden="true">⌄</span></button>${firstMeta}</h2><div id="${gridId}" class="oggi-grid">${items.map(card=>`<article class="oggi-card is-open" data-course="${escapeHtml(card.course)}" style="--course-color:${COURSE_COLORS[card.course]||'#62e4d0'}"><button class="oggi-card-head" type="button" aria-expanded="true" aria-label="Chiudi equipaggio ${escapeHtml(card.course)}"><span class="oggi-code">${escapeHtml(card.course)}</span><span class="oggi-card-copy"><span class="oggi-card-title"><strong>${escapeHtml(card.course)}</strong>${tripNumbers(card.course)}</span><small>${shipLine(card)}</small></span><span class="oggi-card-arrow" aria-hidden="true">⌄</span></button><div class="oggi-card-body">${card.crew.length?`<ul class="oggi-crew">${card.crew.map(agent=>{const [role,color]=roleFor(agent);return `<li><i class="oggi-role-dot" style="--role-color:${color}"></i><span class="oggi-crew-name">${escapeHtml(agent.agente||agent.name)}</span><span class="oggi-role">${escapeHtml(role)}</span></li>`}).join('')}</ul>`:'<p class="oggi-no-crew">Nessun componente equipaggio assegnato.</p>'}</div></article>`).join('')}</div></section>`}).join('');
   }
-  function render(data,iso){const cards=buildCourses(data,iso);renderCards(cards,iso);return cards}
+  // Aggiornamento silenzioso: conserva sezioni/card chiuse e la posizione di scroll.
+  let lastRenderedSignature='';
+  function captureViewState(){
+    const state={scrollY:window.scrollY,residences:{},cards:{}};
+    contentEl.querySelectorAll('.oggi-residence').forEach(sec=>{state.residences[sec.dataset.residence]=sec.classList.contains('is-open')});
+    contentEl.querySelectorAll('.oggi-card').forEach(card=>{state.cards[card.dataset.course]=card.classList.contains('is-open')});
+    return state;
+  }
+  function restoreViewState(state){
+    if(!state)return;
+    contentEl.querySelectorAll('.oggi-residence').forEach(sec=>{
+      if(state.residences[sec.dataset.residence]===false){
+        sec.classList.remove('is-open');
+        sec.querySelector('.oggi-residence-toggle')?.setAttribute('aria-expanded','false');
+        const grid=sec.querySelector('.oggi-grid');if(grid)grid.hidden=true;
+        sec.querySelectorAll('.oggi-card').forEach(c=>{c.classList.remove('is-open');c.querySelector('.oggi-card-head')?.setAttribute('aria-expanded','false')});
+      }
+    });
+    contentEl.querySelectorAll('.oggi-card').forEach(card=>{
+      if(state.cards[card.dataset.course]===false){
+        card.classList.remove('is-open');
+        card.querySelector('.oggi-card-head')?.setAttribute('aria-expanded','false');
+      }
+    });
+    if(typeof state.scrollY==='number')window.scrollTo(0,state.scrollY);
+  }
+  function applyCards(cards,iso,{silent=false}={}){
+    const signature=JSON.stringify(snapshotCards(cards));
+    if(silent&&signature===lastRenderedSignature)return;
+    const previous=silent?captureViewState():null;
+    renderCards(cards,iso);
+    lastRenderedSignature=signature;
+    if(previous)restoreViewState(previous);
+  }
   function setStatus(message,{error=false,hide=false}={}){statusEl.hidden=hide;statusEl.textContent=message||'';statusEl.classList.toggle('error',error)}
-  async function refresh(){
+  function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
     const iso=todayIso();if(refreshButton)refreshButton.disabled=true;
-    const snapshot=readSnapshot(iso);let cachedShown=false;
-    if(snapshot){renderCards(snapshot.cards,iso);cachedShown=true;setStatus(`Dati salvati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'} · controllo aggiornamenti…`)}
+    const snapshot=readSnapshot(iso);let painted=false;
+    if(snapshot){renderCards(snapshot.cards,iso);lastRenderedSignature=JSON.stringify(snapshot.cards);painted=true;setStatus(`Dati salvati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'} · controllo aggiornamenti…`)}
     else setStatus('Aggiornamento equipaggi…');
-    try{
-      const data=await window.NaviSharedData.load('',{force:true});
-      const cards=render(data,iso);const savedAt=writeSnapshot(iso,cards);setStatus(`Aggiornato alle ${timeLabel(savedAt)}`);
+    return window.NaviSharedData.loadCacheFirst((data,{stale})=>{
+      const cards=buildCourses(data,iso);
+      if(stale){
+        // La cache condivisa serve solo se lo snapshot odierno non c'è ancora.
+        if(painted)return;
+        applyCards(cards,iso,{silent:false});painted=true;
+        setStatus('Dati salvati · controllo aggiornamenti…');
+        return;
+      }
+      applyCards(cards,iso,{silent:painted});painted=true;
+      const savedAt=writeSnapshot(iso,cards);
+      setStatus(`Aggiornato alle ${timeLabel(savedAt)}`);
       setTimeout(()=>{if(statusEl.textContent===`Aggiornato alle ${timeLabel(savedAt)}`)statusEl.hidden=true},1400);
-    }catch(error){
+    }).then(result=>{
+      // result === null: rete non disponibile ma una copia locale è a schermo.
+      if(result===null&&painted)setStatus(`Connessione non disponibile · dati delle ${timeLabel(snapshot?.savedAt)||'ultima apertura'}`);
+    }).catch(error=>{
       console.error('Oggi: caricamento non riuscito',error);
-      if(cachedShown)setStatus(`Connessione non disponibile · dati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'}`);
+      if(painted)setStatus(`Connessione non disponibile · dati delle ${timeLabel(snapshot?.savedAt)||'ultima apertura'}`);
       else{setStatus('Impossibile caricare le corse di oggi. Riprova.',{error:true});contentEl.innerHTML=''}
-    }finally{if(refreshButton)refreshButton.disabled=false}
+    }).finally(()=>{if(refreshButton)refreshButton.disabled=false});
   }
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
