@@ -419,6 +419,34 @@
     });
   }
 
+  // Cache-first + aggiornamento in background, condiviso fra Oggi e Turni.
+  // 1. Se esiste una copia locale (anche vecchia) chiama subito onData(dati, { stale:true }).
+  // 2. In parallelo scarica il dataset completo da Firebase (base + variazioni admin),
+  //    riscrive la cache e richiama onData(dati, { stale:false }).
+  // Al primo avvio assoluto (nessuna copia locale) chiama onData una volta sola,
+  // dopo la rete; se anche la rete fallisce propaga l'errore al chiamante.
+  function loadCacheFirst(onData, { url = '' } = {}) {
+    const local = cached(true);
+    const hadLocal = !!local;
+    if (hadLocal) {
+      try { onData(local, { stale: true, hadLocal: true }); }
+      catch (error) { console.warn('Render dalla copia locale non riuscito', error); }
+    }
+    return load(url, { force: true })
+      .then(fresh => {
+        try { onData(fresh, { stale: false, hadLocal }); }
+        catch (error) { console.warn('Render dei dati aggiornati non riuscito', error); }
+        return fresh;
+      })
+      .catch(error => {
+        if (hadLocal) {
+          console.warn('Aggiornamento in background non riuscito; resta la copia locale.', error);
+          return null;
+        }
+        throw error;
+      });
+  }
+
   async function loadBase(_url, { force = false } = {}) {
     if (!force) {
       const data = cached();
@@ -458,6 +486,7 @@
   window.NaviSharedData = {
     load,
     loadBase,
+    loadCacheFirst,
     directory,
     clear,
     isFresh:() => !!cached(),
