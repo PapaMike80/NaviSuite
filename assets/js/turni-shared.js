@@ -37,13 +37,18 @@ window.TurniShared = (() => {
     try { return JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem("navidiaria.activeAgent") || "null"); }
     catch { localStorage.removeItem(storageKey); return null; }
   }
+  // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
+  // per le pagine che non caricano shared-roles.js (es. gestione_navi.html) e
+  // deve restare allineato alla logica canonica.
+  const Roles = window.NaviRoles || {
+    isBaristaAgent: profile => String(profile?.role || "").toLowerCase() === "barista" || String(profile?.qualifica || "").toLowerCase() === "barista",
+    isHibaBarista: profile => String(profile?.id || "").trim().toUpperCase() === "BARISTA_HIBA" || ((String(profile?.role || "").toLowerCase() === "barista" || String(profile?.qualifica || "").toLowerCase() === "barista") && String(profile?.name || profile?.agente || profile?.cognome || "").trim().toUpperCase() === "HIBA"),
+  };
   function hasBaristaRole(profile) {
-    return String(profile?.role || "").toLowerCase() === "barista" || String(profile?.qualifica || "").toLowerCase() === "barista";
+    return Roles.isBaristaAgent(profile);
   }
   function isHibaProfile(profile) {
-    const id = String(profile?.id || "").trim().toUpperCase();
-    const name = String(profile?.name || profile?.agente || "").trim().toUpperCase();
-    return id === "BARISTA_HIBA" || (hasBaristaRole(profile) && name === "HIBA");
+    return Roles.isHibaBarista(profile);
   }
   // Nei moduli Turni/Cambi solo le altre bariste sono limitate.
   // Hiba conserva il ruolo barista nei dati, ma viene trattata come utente con vista completa.

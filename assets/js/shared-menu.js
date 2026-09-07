@@ -47,12 +47,20 @@
   const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('ponteradio-page')?'ponteradio':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
   const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',ponteradio:'NaviPonteRadioTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
   if(page==='archive')document.body.classList.add('archive-page');
-  const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
+  // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
+  // per le pagine che non caricano shared-roles.js (es. gestione_navi.html) e
+  // deve restare allineato alla logica canonica.
+  const Roles=window.NaviRoles||{
+    isAdminAgent:agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin',
+    isBaristaAgent:agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista',
+    isHibaBarista:agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||((String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista')&&String(agent?.name||agent?.agente||agent?.cognome||'').trim().toUpperCase()==='HIBA'),
+  };
+  const isAdminAgent=agent=>Roles.isAdminAgent(agent);
   const isNaviPage=location.pathname.toLowerCase().endsWith('/gestione_navi.html');
   // La Diaria e' personale, non amministrativa: basta una sessione autenticata.
   const canUseDiaria=agent=>Boolean(String(agent?.id||'').trim());
-  const isBaristaAgent=agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista';
-  const isHibaBarista=agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||(isBaristaAgent(agent)&&String(agent?.name||agent?.agente||agent?.cognome||'').trim().toUpperCase()==='HIBA');
+  const isBaristaAgent=agent=>Roles.isBaristaAgent(agent);
+  const isHibaBarista=agent=>Roles.isHibaBarista(agent);
   const isBaristaSession=isBaristaAgent(sessionAgent);
   // Il test è riservato a Marco: riconosciamo sia gli ID storici sia il cognome
   // con cui può comparire nelle diverse versioni dell'anagrafica.
