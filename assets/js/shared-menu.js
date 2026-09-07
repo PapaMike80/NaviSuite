@@ -38,14 +38,14 @@
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
-      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=168').then(registration=>{
+      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=169').then(registration=>{
         if(registration&&typeof registration.update==='function')registration.update().catch(()=>{});
         return registration;
       }).catch(()=>null);
     }
   }
-  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
-  const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
+  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('tickets-page')?'tickets':document.body.classList.contains('orario-data-page')?'orario-data':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('ponteradio-page')?'ponteradio':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
+  const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',ponteradio:'NaviPonteRadioTab',settings:'NaviImpostazioniTab',orario:'NaviOrarioTab','orario-data':'NaviOrarioTab'};
   if(page==='archive')document.body.classList.add('archive-page');
   const isAdminAgent=agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin';
   const isNaviPage=location.pathname.toLowerCase().endsWith('/gestione_navi.html');
@@ -179,9 +179,9 @@
   if(isAdminAgent(sessionAgent))common+=item('gestione_navi.html','▤','Navi',isNaviPage,'naviAdminNav');
 
   if(page!=='oggi')common=item('oggi.html','☀','Oggi',false,'oggiNav')+common;
-  common=item('index.html','⌂','Home')+common+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');
+  common=item('index.html','⌂','Home')+common+item('ponteradio.html','📻','Ponte Radio',page==='ponteradio','ponteRadioNav')+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');
 
-  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='ponteradio'?'NaviSuite Ponte Radio':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
