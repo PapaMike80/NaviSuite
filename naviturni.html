@@ -1707,6 +1707,10 @@
     let crewCompletenessCache = new Map();
     let coverageRenderHandle = null;
     let lastLoadedDataSignature = "";
+    // true finché non è avvenuto il primo disegno completo della tabella.
+    // Dopo, gli aggiornamenti in background sono "soft": non resettano
+    // residenza/filtro/scroll scelti dall'utente.
+    let turniFirstRender = true;
     let showPastColumns = false;
     let automaticPastFromTime = null;
     let isEditMode = false;
@@ -3970,6 +3974,17 @@
       document.getElementById("stat-agents").textContent = visible;
     }
 
+    // Ricostruisce currentAgentsList dalla globalData aggiornata mantenendo la
+    // residenza già selezionata (usato dagli aggiornamenti in background).
+    function refreshCurrentResidenceData() {
+      if (!currentResidence || !globalData?.residenze) return;
+      currentAgentsList = currentResidence === "TUTTE"
+        ? getVisibleResidences().flatMap(res => globalData.residenze[res] || [])
+        : (globalData.residenze[currentResidence] || []);
+      const agentsStat = document.getElementById("stat-agents");
+      if (agentsStat) agentsStat.textContent = currentAgentsList.length;
+    }
+
     function selectResidence(resName) {
       if (String(resName || "").toUpperCase() === "BARISTE" && !isBaristaProfile()) return;
       if (isEditMode) {
@@ -4299,7 +4314,7 @@
       };
     }
 
-    function processJSONData(data) {
+    function processJSONData(data, { soft = false } = {}) {
       data = adattaFormatoNaviturni(data);
       data = applyOdsVariations(data);
       // Ogni risposta (cache locale o rete) contiene nuovamente il dataset
@@ -4330,6 +4345,17 @@
       populateLoginSurnameOptions();
       loggedAgentProfile = readLoggedAgentProfile();
       updateLoginUserPanel();
+
+      // Aggiornamento in background: rinfresca i dati della vista corrente
+      // senza toccare la residenza, il filtro turno e lo scroll dell'utente.
+      if (soft && loggedAgentProfile && currentResidence && globalData?.residenze) {
+        const scrollLeft = window.scrollX, scrollTop = window.scrollY;
+        refreshCurrentResidenceData();
+        renderTable();
+        window.scrollTo(scrollLeft, scrollTop);
+        return;
+      }
+
       if (loggedAgentProfile && applyLoggedAgentProfile()) return;
       if (loggedAgentProfile) {
         // La copia locale può essere precedente all'aggiunta dell'agente (in
@@ -4402,8 +4428,8 @@
       window.scrollTo({ left:offset, top:window.scrollY, behavior:"auto" });
     }
 
-    // I turni arrivano da Firebase; la copia locale resta disponibile offline.
-    const FIREBASE_DATA_SOURCE = "";
+    // I turni arrivano da Firebase (via NaviSharedData); la copia locale qui
+    // sotto resta disponibile offline e per il primo paint immediato.
     const TURNI_CACHE_KEY = "turno_finali_data";
     const TURNI_CACHE_DB = "naviturni-offline";
     const TURNI_CACHE_STORE = "dati";
@@ -4507,6 +4533,7 @@
           lastLoadedDataSignature = saved;
           processJSONData(JSON.parse(saved));
           localDataShown = true;
+          turniFirstRender = false;
           const menuStatus = document.getElementById("turniMenuStatus");
           if (menuStatus) menuStatus.textContent = "Locale";
           document.getElementById("upload-status").textContent = "⚡ Turni aperti dalla memoria locale; controllo aggiornamenti…";
@@ -4517,48 +4544,60 @@
         }
       }
 
-      try {
-        // Prima arriva il calendario base: è ciò che serve per aprire Turni.
-        // Variazioni, ODS e profili vengono applicati subito dopo in background.
-        const datiJson = await NaviSharedData.loadBase(FIREBASE_DATA_SOURCE, { force });
-        const networkSignature = JSON.stringify(datiJson);
-        const dataChanged = networkSignature !== lastLoadedDataSignature;
-        saveTurniCache(networkSignature).catch(error =>
-          console.warn("Salvataggio aggiornato dei turni non disponibile.", error)
-        );
-
-        if (dataChanged || !localDataShown) {
-          lastLoadedDataSignature = networkSignature;
-          processJSONData(datiJson);
-          setTimeout(scrollToToday, 30);
-        }
-
+      // Aggiornamento in rete condiviso (base + variazioni admin) tramite
+      // NaviSharedData.loadCacheFirst. La copia robusta (turno_finali_data) è
+      // già a schermo qui sopra; il callback "stale" serve solo come rete di
+      // sicurezza se quella copia mancava o era illeggibile.
+      return NaviSharedData.loadCacheFirst((datiJson, { stale }) => {
         const menuStatus = document.getElementById("turniMenuStatus");
-        if (menuStatus) menuStatus.textContent = NaviSharedData.source() === "local" ? "Locale" : "Aggiornato";
-        document.getElementById("upload-status").textContent = "⚡ Turni pronti — sincronizzazione degli aggiornamenti…";
-
-        NaviSharedData.load(FIREBASE_DATA_SOURCE).then(updatedData => {
-          const updatedSignature = JSON.stringify(updatedData);
-          if (updatedSignature !== lastLoadedDataSignature) {
-            lastLoadedDataSignature = updatedSignature;
-            processJSONData(updatedData);
-            saveTurniCache(updatedSignature).catch(() => {});
+        const signature = JSON.stringify(datiJson);
+        if (stale) {
+          if (localDataShown) return;
+          lastLoadedDataSignature = signature;
+          processJSONData(datiJson);
+          localDataShown = true;
+          turniFirstRender = false;
+          setTimeout(scrollToToday, 30);
+          if (menuStatus) menuStatus.textContent = "Locale";
+          document.getElementById("upload-status").textContent = "⚡ Turni aperti dalla memoria locale; controllo aggiornamenti…";
+          return;
+        }
+        if (signature !== lastLoadedDataSignature) {
+          lastLoadedDataSignature = signature;
+          saveTurniCache(signature).catch(error =>
+            console.warn("Salvataggio aggiornato dei turni non disponibile.", error)
+          );
+          // force = "Aggiorna" manuale: torna alla vista predefinita.
+          // Apertura normale dopo il primo paint: aggiornamento "soft" che
+          // non tocca residenza/filtro/scroll dell'utente.
+          processJSONData(datiJson, { soft: force ? false : !turniFirstRender });
+          if (turniFirstRender) {
+            setTimeout(scrollToToday, 30);
+            turniFirstRender = false;
           }
-          const menuStatus = document.getElementById("turniMenuStatus");
-          if (menuStatus) menuStatus.textContent = "Aggiornato";
-          document.getElementById("upload-status").textContent = "✅ Dati aggiornati — " + new Date().toLocaleTimeString("it-IT");
-        }).catch(error => console.warn("Aggiornamenti secondari non disponibili", error));
+        }
+        // source() === "local": la rete è fallita e loadBase ha restituito la
+        // copia salvata come fallback. In quel caso non annunciare "aggiornato".
+        const online = NaviSharedData.source() !== "local";
+        if (menuStatus) menuStatus.textContent = online ? "Aggiornato" : "Locale";
+        document.getElementById("upload-status").textContent = online
+          ? "✅ Dati aggiornati — " + new Date().toLocaleTimeString("it-IT")
+          : "⚠️ Firebase non raggiungibile — uso i dati salvati";
+      }).then(result => {
+        // result === null: rete non disponibile ma esisteva una copia locale.
+        if (result === null && localDataShown) {
+          document.getElementById("upload-status").textContent = "⚠️ Firebase non raggiungibile — uso i dati salvati";
+        }
         loadDiariaShiftOverrides();
-
         // Aggiorna in coda le sole intestazioni se lo stato delle settimane
-        // è realmente cambiato.
+        // è realmente cambiato (fire-and-forget, come prima).
         caricaStatoSettimane().then(() => {
           if (weekStatusBefore === JSON.stringify([...weekStatusMap]) || !globalData) return;
           inizializzaCalendario();
           buildTableHeader();
-          renderTable();
+          if (currentResidence) renderTable();
         }).catch(() => {});
-      } catch (errore) {
+      }).catch(errore => {
         console.warn("Caricamento da Firebase fallito.", errore);
         if (localDataShown) {
           document.getElementById("upload-status").textContent = "⚠️ Firebase non raggiungibile — uso i dati salvati";
@@ -4568,11 +4607,8 @@
         welcomeNotice.classList.add("is-error");
         welcomeNotice.innerHTML = `<h3>⚠️ Dati non disponibili</h3><p>Non è stato possibile caricare i turni. Riprova con il pulsante Aggiorna.</p>`;
         welcomeNotice.style.display = "block";
-        document.getElementById("upload-status").textContent = "❌ Impossibile caricare i dati: " + errore.message;
-      }
-
-      // processJSONData costruisce già intestazione e righe: evitare un
-      // secondo rendering completo, particolarmente costoso sui telefoni.
+        document.getElementById("upload-status").textContent = "❌ Impossibile caricare i dati: " + (errore?.message || errore);
+      });
     }
 
     function ricaricaDati() {
