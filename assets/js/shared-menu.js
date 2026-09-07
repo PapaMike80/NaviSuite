@@ -91,7 +91,6 @@
     menuToggleLight.textContent='html.navisuite-light .sidebar-collapse-button{background:#fff!important;border-color:#9fc4ca!important;color:#176b87!important;box-shadow:6px 0 16px rgba(22,56,66,.14)!important}html.navisuite-light .sidebar-collapse-button:hover{background:#e5f6f3!important;color:#087b6e!important}html.navisuite-light .app-sidebar .shifts-filter-block{background:#f7fcfc!important;border-color:#bdd8dc!important}html.navisuite-light .app-sidebar .filter-label{color:#547078!important}html.navisuite-light .diaria-page .weekly-calendar,html.navisuite-light .diaria-page .weekly-week{background:#fff!important;border-color:#bdd8dc!important}html.navisuite-light .diaria-page .weekly-week-heading{background:#e8f5f4!important;border-color:#bdd8dc!important}html.navisuite-light .diaria-page .weekly-week-heading>div:first-child small{color:#087b6e!important}html.navisuite-light .diaria-page .weekly-week-heading>div:first-child strong{color:#17323a!important}html.navisuite-light .diaria-page .weekly-days-row{background:#bdd8dc!important}html.navisuite-light .diaria-page .weekly-day{background:#fff!important;color:#17323a!important}html.navisuite-light .diaria-page .weekly-day-name,html.navisuite-light .diaria-page .weekly-field,html.navisuite-light .diaria-page .weekly-field strong,html.navisuite-light .diaria-page .weekly-service{color:#17323a!important}html.navisuite-light .diaria-page .weekly-service{background:#f8fcfc!important;border-color:#b7d4d8!important}html.navisuite-light .diaria-page .weekly-field,html.navisuite-light .diaria-page .weekly-bubble{background:#f5fafb!important;border-color:#c7dfe2!important}html.navisuite-light .diaria-page .weekly-more{background:#fff5fb!important;border-color:#efbdd9!important;color:#b33b81!important}html.navisuite-light .diaria-page .weekly-week-totals span,html.navisuite-light .diaria-page .weekly-total-bubble{background:#f5fafb!important;border-color:#b9d7dc!important}html.navisuite-light .diaria-page .weekly-week-totals small,html.navisuite-light .diaria-page .weekly-week-totals b{color:#17323a!important}html.navisuite-light #day-panel .panel-date,html.navisuite-light #day-panel .shift-nav-label,html.navisuite-light #day-panel .crew-tooltip{background:#f8fcfc!important;color:#17323a!important;border-color:#9fc6cd!important}html.navisuite-light #day-panel .service-code{background:transparent!important;color:var(--day-color,#176b87)!important}html.navisuite-light #day-panel .crew-tooltip *{color:#17323a!important}';
     document.head.appendChild(menuToggleLight);
   }
-  const isPinChangePage=page==='diaria'&&new URLSearchParams(location.search).has('pin');
   if(!sessionAgent){
     document.documentElement.style.display='none';
     location.replace('index.html');
@@ -120,74 +119,74 @@
   if(isBaristaSession&&(page==='aggiornamenti'||page==='oggi')&&!isHibaBarista(sessionAgent)){location.replace('naviturni.html');return}
   const item=(href,icon,label,active=false,id='')=>`<a ${id?`id="${id}" `:''}class="nav-link${active?' active':''}" href="${href}"${['competencyNav','adminNav','archiveAdminNav'].includes(id)?' hidden':''}><span>${icon}</span>${label}</a>`;
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
-  const adminOrarioLink=item('Orario.html','◴','Orario',false,'orarioNavLink');
+
+  // Menu principale: un solo ordine, identico su ogni pagina e per ogni ruolo.
+  // Home · Oggi · NaviTurni · Distinta · Ponte Radio · Documenti · Impostazioni
+  // · Cambio turno · Orario · Segnalazioni, e infine (solo admin) Aggiornamenti
+  // · Agenti · Navi. Cambia soltanto quale voce e' attiva.
+  common=(()=>{
+    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',settings:'impostazioni.html',ponteradio:'ponteradio.html',tickets:'segnalazioni.html',orario:'Orario.html','orario-data':'Orario.html'}[page]||'';
+    // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
+    const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
+    return [
+      ['index.html','⌂','Home',''],
+      ['oggi.html','☀','Oggi','oggiNav'],
+      ['naviturni.html','▦','NaviTurni',''],
+      ['navidiaria.html','≈','Distinta','diariaNavLink'],
+      ['ponteradio.html','📻','Ponte Radio','ponteRadioNav'],
+      ['documenti.html','▤','Documenti','archiveNavLink'],
+      ['impostazioni.html','⚙','Impostazioni',''],
+      ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
+      ['Orario.html','◴','Orario','orarioNavLink'],
+      ['segnalazioni.html','✉','Segnalazioni',''],
+    ].map(([href,icon,label,id])=>{
+      const active=href===activeHref;
+      return item(active&&selfAnchor[href]?selfAnchor[href]:href,icon,label,active,id);
+    }).join('');
+  })();
 
   if(page==='oggi'){
-    common=item('#oggi','☀','Oggi',true,'oggiNav')+item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific='<span class="sidebar-menu-label">GIORNATA</span>';
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="window.NaviOggi?.refresh?.()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='diaria'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('#oggi','≈','Distinta',true,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">DIARIA</span>${item('#registro','≡','Registro mese')}${item('#consultivo','≈','Consultivo settimane')}${item('#competenze','◇','Competenze',false,'competencyNav')}${item('agenti.html','♙','Gestione agenti',false,'adminNav')}`;
     user=`<div class="sidebar-user-actions"><button id="syncShifts" class="sidebar-footer-update" type="button"><span>↻</span>Aggiorna</button><small id="syncStatus" class="sidebar-data-status">Locale</small><strong id="sidebarAgentName" class="sidebar-agent-name">AGENTE</strong><button id="logoutButton" class="sidebar-action sidebar-exit" type="button" hidden>Esci</button><button id="pinSettingsButton" class="sidebar-action" type="button" hidden>Cambia PIN</button></div>`;
   }else if(page==='trova'){
-    common=item('naviturni.html','▦','NaviTurni')+item('#turni-operativi','⇄','Cambio turno',true)+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     // Elementi tecnici richiesti dal codice di NaviTurni: restano nel DOM ma non sono visibili.
     specific=`<div hidden aria-hidden="true"><button id="togglePastBtn" type="button"></button><div id="shift-filter-container"><div id="top-residence-buttons"></div><div id="shift-buttons-wrapper"></div></div></div>`;
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='turni'){
-    common=item('#turni-operativi','▦','NaviTurni',true)+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button><div class="shifts-filter-block" id="shift-filter-container"><div class="top-filter-controls"><div class="top-residence-controls"><a class="today-residence-link" href="oggi.html">☀ Oggi</a><span class="filter-label">Residenze</span><div class="coverage-residence-buttons" id="top-residence-buttons"></div></div><div class="top-filter-group"><span class="filter-label">Corse</span><div class="shift-buttons-grid" id="shift-buttons-wrapper"></div></div></div></div>`;
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
   }else if(page==='orario' || page==='orario-data'){
     const graficoLink=item('Orario.html','◴','Grafico interattivo',page==='orario','orarioGraphNavLink');
     const tabelleLink=item('orari-tabella.html','▥','Orari tabella',page==='orario-data','orarioDataNavLink');
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+item('Orario.html','◴','Orario',true,'orarioNavLink')+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">ORARIO</span>${graficoLink}${tabelleLink}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
     status='';
   }else if(page==='settings'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni',true);
     specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='tickets'||page==='ponteradio'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=page==='tickets'?`<span class="sidebar-menu-label">ASCOLTO</span>${item('#ticket-form','✉','Nuova segnalazione',true)}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='agenti'||page==='aggiornamenti'){
     const isAgenti=page==='agenti';
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',!isAgenti,'aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else{
-    common=item('naviturni.html','▦','NaviTurni')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('#turni-docs','▤','Documenti',true,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
     specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
     user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><small id="archiveMenuStatus" class="sidebar-data-status">Locale</small><strong id="archiveSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="archiveLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="archiveChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }
 
-  if(isBaristaSession&&page==='turni'){
-    common=item('#turni-operativi','▦','NaviTurni',true);
-    specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button><div id="shift-filter-container" hidden aria-hidden="true"><div id="top-residence-buttons"></div><div id="shift-buttons-wrapper"></div></div>`;
-    status='';
-  }else if(isBaristaSession&&isPinChangePage){
-    common=item('naviturni.html','▦','NaviTurni',false,true);
-    specific='';
-    status='';
-  }
-
-  // Collegamento amministrativo comune: non viene mai creato per gli utenti
-  // ordinari o per le bariste. In Impostazioni è già presente nella sezione
-  // PREFERENZE, quindi evitiamo di mostrarlo due volte.
+  // Collegamenti amministrativi: solo per gli amministratori e, in coda, dopo le
+  // voci comuni. Su Impostazioni/Agenti/Aggiornamenti sono gia' nella sezione
+  // dedicata, quindi li' non vengono ripetuti.
   if(isAdminAgent(sessionAgent)&&page!=='settings'&&page!=='agenti'&&page!=='aggiornamenti'){
     common+=item('aggiornamenti.html','↻','Aggiornamenti');
     common+=item('agenti.html','♙','Agenti');
   }
-
-  // Gestione navi resta, per ora, un collegamento riservato agli amministratori.
   if(isAdminAgent(sessionAgent))common+=item('gestione_navi.html','▤','Navi',isNaviPage,'naviAdminNav');
-
-  if(page!=='oggi')common=item('oggi.html','☀','Oggi',false,'oggiNav')+common;
-  common=item('index.html','⌂','Home')+common+item('ponteradio.html','📻','Ponte Radio',page==='ponteradio','ponteRadioNav')+item('segnalazioni.html','✉','Segnalazioni',page==='tickets');
 
   const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='ponteradio'?'NaviSuite Ponte Radio':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
