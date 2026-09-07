@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION='v1.44';
+  const APP_VERSION='v1.45';
   const NAVISUITE_PAYPAL_URL='https://www.paypal.com/pool/9sbGlr5lE9?sr=wccr';
   function installSupportFooter(){
     if(document.getElementById('navisuite-support-footer'))return;
@@ -38,7 +38,7 @@
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
-      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=170').then(registration=>{
+      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=171').then(registration=>{
         if(registration&&typeof registration.update==='function')registration.update().catch(()=>{});
         return registration;
       }).catch(()=>null);
@@ -129,7 +129,7 @@
     // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
     const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
     return [
-      ['index.html','⌂','Home',''],
+      ['index.html?home=1','⌂','Home',''],
       ['oggi.html','☀','Oggi','oggiNav'],
       ['naviturni.html','▦','NaviTurni',''],
       ['navidiaria.html','≈','Distinta','diariaNavLink'],

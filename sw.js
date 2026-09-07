@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v206-ponteradio';
+const CACHE_VERSION = 'navisuite-v207-menu-ruoli';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -24,6 +24,7 @@ const CORE_ASSETS = [
   './assets/js/admin-firebase-rest.js',
   './assets/js/shared-data.js',
   './assets/js/firebase-auth.js',
+  './assets/js/shared-roles.js',
   './assets/js/portal.js',
   './assets/js/shared-menu.js',
   './assets/js/oggi.js',
@@ -185,10 +186,7 @@ self.addEventListener('fetch', event => {
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});",
         "links.forEach(link=>{const clone=link.cloneNode(true);clone.className=link.classList.contains('active')?'active':'';clone.removeAttribute('id');clone.removeAttribute('style');clone.innerHTML=clone.innerHTML.replace(/NaviDiaria/g,'Distinta');if(/navidiaria\\.html/.test(clone.getAttribute('href')||''))clone.setAttribute('aria-label','Apri Distinta');target.appendChild(clone);});"
       );
-      text = text.replace(
-        "item('index.html','⌂','Home')",
-        "item('index.html?home=1','⌂','Home')"
-      );
+      // La voce Home punta gia' a index.html?home=1 direttamente in shared-menu.js.
       text += `
 ;(()=>{
   if(!/(?:^|\\/)(?:naviturni|cambi_turno)\\.html$/i.test(location.pathname)) return;
