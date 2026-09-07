@@ -38,7 +38,7 @@
   const sidebar=document.querySelector('.app-sidebar');if(!sidebar)return;
   if('serviceWorker' in navigator){
     if(!window.__naviSwRegistrationPromise){
-      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=169').then(registration=>{
+      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=170').then(registration=>{
         if(registration&&typeof registration.update==='function')registration.update().catch(()=>{});
         return registration;
       }).catch(()=>null);
@@ -139,12 +139,12 @@
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
     status='';
   }else if(page==='settings'){
-    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('#altre-preferenze','⚙','Impostazioni',true);
-    specific=`<span class="sidebar-menu-label">PREFERENZE</span>${item('#altre-preferenze','≡','Altre preferenze')}${isAdminAgent(sessionAgent)?item('aggiornamenti.html','↻','Aggiornamenti turni')+item('agenti.html','♙','Gestione agenti'):''}`;
+    common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni',true);
+    specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
-  }else if(page==='tickets'){
+  }else if(page==='tickets'||page==='ponteradio'){
     common=item('naviturni.html','▦','NaviTurni')+item('cambi_turno.html','⇄','Cambio turno',false,'trovaTurnoNavLink')+item('navidiaria.html','≈','Distinta',false,'diariaNavLink')+item('documenti.html','▤','Documenti',false,'archiveNavLink')+adminOrarioLink+item('impostazioni.html','⚙','Impostazioni');
-    specific=`<span class="sidebar-menu-label">ASCOLTO</span>${item('#ticket-form','✉','Nuova segnalazione',true)}`;
+    specific=page==='tickets'?`<span class="sidebar-menu-label">ASCOLTO</span>${item('#ticket-form','✉','Nuova segnalazione',true)}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='agenti'||page==='aggiornamenti'){
     const isAgenti=page==='agenti';

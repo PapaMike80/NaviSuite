@@ -125,23 +125,10 @@
           <div class="section-head" style="margin-bottom:10px"><div><h3 style="margin:0 0 4px;font-size:16px">Invia giornata · Admin</h3><p style="margin:0;color:var(--muted);font-size:12px">Invia manualmente a un agente il riepilogo reale della giornata.</p></div><span class="badge">Admin</span></div>
           <div class="grid"><div class="field"><label for="push-day-agent">Destinatario</label><select id="push-day-agent"><option value="">Caricamento…</option></select></div><div class="field"><label for="push-day-date">Giornata</label><input id="push-day-date" type="date" value="${todayRome()}"></div></div>
           <div id="push-day-preview" style="margin-top:12px;padding:12px 14px;border:1px solid #294b56;border-radius:10px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5;white-space:pre-line">Scegli destinatario e giornata per vedere l’anteprima.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button></div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button><button class="btn" id="push-day-refresh" type="button">Aggiorna destinatari</button></div>
           <div class="status" id="push-day-status" aria-live="polite"></div>
         </div>
 
-        <div id="push-custom" style="padding-top:5px">
-          <div style="height:1px;background:#294b56;margin:2px 0 14px"></div>
-          <div class="section-head" style="margin-bottom:10px"><div><h3 style="margin:0 0 4px;font-size:16px">Invia notifica personalizzata</h3><p style="margin:0;color:var(--muted);font-size:12px">Invia un messaggio a un agente con Web Push attivo${isAdmin?', oppure a tutti':''}.</p></div><span class="badge">Web Push</span></div>
-          <div class="grid">
-            <div class="field"><label for="push-custom-agent">Destinatario</label><select id="push-custom-agent"><option value="">Caricamento…</option></select></div>
-            <div class="field"><label for="push-custom-sender">Mittente</label><input id="push-custom-sender" value="${esc(agentName)}" readonly aria-readonly="true"></div>
-          </div>
-          <div class="field" style="margin-top:10px"><label for="push-custom-body">Messaggio</label><textarea id="push-custom-body" maxlength="500" rows="4" placeholder="Scrivi qui il messaggio da inviare…" style="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #31535e;border-radius:9px;background:#0b2029;color:var(--ink);outline:none;color-scheme:dark;resize:vertical;min-height:96px;font:inherit"></textarea></div>
-          <div class="field" style="margin-top:10px"><label for="push-custom-destination">Apri al tocco</label><select id="push-custom-destination"><option value="index.html">Home</option><option value="oggi.html">Oggi</option><option value="naviturni.html" selected>Turni</option><option value="cambi_turno.html">Cambio turno</option><option value="navidiaria.html">Diaria</option><option value="documenti.html">Documenti</option></select></div>
-          <div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px"><button class="btn primary" id="push-custom-send" type="button">Invia notifica</button><button class="btn" id="push-refresh-recipients" type="button">Aggiorna destinatari</button></div>
-          <div class="status" id="push-custom-status" aria-live="polite"></div>
-          <p style="margin:8px 0 0;color:var(--muted);font-size:11px;line-height:1.4">Il mittente viene preso automaticamente dall’agente collegato e non può essere modificato.</p>
-        </div>
       </div>`;
     const intro=document.querySelector('main > .intro');if(intro)intro.insertAdjacentElement('afterend',section);else document.querySelector('main')?.prepend(section);
     const head=section.querySelector(':scope > .section-head');const toggle=()=>{const collapsed=section.dataset.collapsed==='true';section.dataset.collapsed=String(!collapsed);head.setAttribute('aria-expanded',String(collapsed));};
@@ -174,21 +161,20 @@
     else{$('push-device-title').textContent='🔕 Notifiche non attive';$('push-device-copy').textContent=state.permission==='denied'?'Il permesso è stato negato nelle impostazioni di iOS/browser.':'Attivale per ricevere gli avvisi di NaviSuite.';$('push-enable').hidden=false;$('push-enable').disabled=state.permission==='denied';$('push-disable').hidden=true;}
   }
 
-  let recipientRows=[];
   async function loadRecipients(){
-    const refresh=$('push-refresh-recipients');if(refresh)refresh.disabled=true;$('push-custom-status').textContent='Aggiornamento destinatari…';
+    const select=$('push-day-agent'),status=$('push-day-status');
+    if(!isAdmin||!select||!status)return;
+    const refresh=$('push-day-refresh');if(refresh)refresh.disabled=true;status.textContent='Aggiornamento destinatari…';
     try{
       const subs=await NaviPush.listSubscriptions();const map=new Map();
       subs.forEach(item=>{const id=String(item?.agentId||'').trim();if(!id)return;const row=map.get(id)||{id,name:String(item?.agentName||id),count:0};row.count+=1;if(item?.agentName)row.name=String(item.agentName);map.set(id,row);});
-      recipientRows=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'it'));
+      const recipientRows=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'it'));
       const options=recipientRows.map(row=>`<option value="${esc(row.id)}">${esc(row.name)} · ${row.count} dispositivo${row.count===1?'':'i'}</option>`).join('');
-      const broadcast=isAdmin?'<option value="*">📣 Tutti gli agenti con notifiche attive</option>':'';
-      $('push-custom-agent').innerHTML='<option value="">Scegli agente…</option>'+broadcast+options;
-      if(isAdmin)$('push-day-agent').innerHTML='<option value="">Scegli agente…</option>'+options;
-      if(map.has(agentId))$('push-custom-agent').value=agentId;if(isAdmin&&map.has(agentId))$('push-day-agent').value=agentId;
-      $('push-custom-status').textContent=`${subs.length} dispositivo${subs.length===1?'':'i'} push registrato${subs.length===1?'':'i'}.`;
-      if(isAdmin)refreshDayPreview();
-    }catch(error){$('push-custom-status').textContent=error?.message||'Impossibile caricare i destinatari.';}
+      select.innerHTML='<option value="">Scegli agente…</option>'+options;
+      if(map.has(agentId))select.value=agentId;
+      status.textContent=`${subs.length} dispositivo${subs.length===1?'':'i'} push registrato${subs.length===1?'':'i'}.`;
+      refreshDayPreview();
+    }catch(error){status.textContent=error?.message||'Impossibile caricare i destinatari.';}
     finally{if(refresh)refresh.disabled=false;}
   }
 
@@ -208,26 +194,13 @@
     catch(error){$('push-day-status').textContent='❌ '+(error?.message||'Invio non riuscito.');}finally{button.disabled=false;}
   }
 
-  async function sendCustom(){
-    const target=String($('push-custom-agent').value||''),body=String($('push-custom-body').value||'').trim(),url=String($('push-custom-destination').value||'naviturni.html');
-    if(!target){$('push-custom-status').textContent='Scegli un destinatario.';return;}if(target==='*'&&!isAdmin){$('push-custom-status').textContent='L’invio a tutti è riservato agli admin.';return;}if(!body){$('push-custom-status').textContent='Scrivi il messaggio da inviare.';return;}
-    if(target==='*'&&!confirm(`Inviare questo messaggio a tutti come ${agentName}?`))return;
-    const button=$('push-custom-send');button.disabled=true;$('push-custom-status').textContent=target==='*'?'Invio a tutti in corso…':'Invio in corso…';
-    try{
-      // Il titolo della push è SEMPRE il nome dell'agente collegato: nessuno può impersonare un altro mittente.
-      await NaviPush.queuePush({requestedByAgentId:agentId,requestedByName:agentName,targetAgentId:target,title:agentName,body,url,kind:isAdmin?'admin-custom':'user-custom',meta:{senderAgentId:agentId,senderName:agentName}});
-      $('push-custom-status').textContent=target==='*'?'✅ Messaggio inviato a tutti.':`✅ Messaggio inviato come ${agentName}.`;$('push-custom-body').value='';
-    }catch(error){$('push-custom-status').textContent=error?.message||'Invio non riuscito.';}finally{button.disabled=false;}
-  }
-
   async function install(){
     createSection();await waitPush();
     $('push-enable').addEventListener('click',async()=>{const btn=$('push-enable');btn.disabled=true;$('push-status').textContent='Attivazione notifiche…';try{await NaviPush.subscribe(profile,prefsFromUi());$('push-status').textContent='✅ Notifiche attive e dispositivo registrato.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Attivazione non riuscita.';}finally{btn.disabled=false;}});
     $('push-disable').addEventListener('click',async()=>{const btn=$('push-disable');btn.disabled=true;$('push-status').textContent='Disattivazione…';try{await NaviPush.unsubscribe(profile);$('push-status').textContent='Notifiche disattivate su questo dispositivo.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Disattivazione non riuscita.';}finally{btn.disabled=false;}});
     ['push-pref-summary','push-pref-changes','push-pref-ods'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
     ['push-summary-mode','push-summary-time','push-summary-lead'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs('Orario del riepilogo automatico salvato.');}));
-    $('push-refresh-recipients').addEventListener('click',loadRecipients);$('push-custom-send').addEventListener('click',sendCustom);
-    if(isAdmin){$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);}
+    if(isAdmin){$('push-day-refresh').addEventListener('click',loadRecipients);$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);}
     await refreshStatus();await loadRecipients();
   }
 

@@ -8,12 +8,13 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v205-push-offline';
+const CACHE_VERSION = 'navisuite-v206-ponteradio';
 const CORE_ASSETS = [
   './',
   './index.html',
   './oggi.html',
   './naviturni.html',
+  './ponteradio.html',
   './manifest.json',
   './assets/css/portal.css',
   './assets/css/navi-shared.css',
@@ -29,6 +30,7 @@ const CORE_ASSETS = [
   './assets/js/announcements-recovered.js',
   './assets/js/push-notifications-v3.js',
   './assets/js/push-center.js',
+  './assets/js/ponteradio.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
   './assets/images/icona_512.png',

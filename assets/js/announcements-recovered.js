@@ -54,12 +54,12 @@
   load('assets/js/connection-webpush.js?v=20260905-4');
 
   // Centro Web Push di produzione: attivazione dispositivo, orari automatici,
-  // invio giornata admin e messaggi personalizzati tra agenti.
+  // invio giornata admin. I messaggi tra agenti sono in Ponte Radio.
   if(/(?:^|\/)impostazioni\.html$/i.test(location.pathname)){
     // Impostazioni non caricava shared-data.js: senza questo il riepilogo manuale
     // non poteva leggere il turno e mostrava "Dati turni non disponibili".
     load('assets/js/shared-data.js?v=118');
     load('assets/js/push-notifications-v3.js?v=20260906-1');
-    load('assets/js/push-center.js?v=20260906-2');
+    load('assets/js/push-center.js?v=20260907-2');
   }
 })();
