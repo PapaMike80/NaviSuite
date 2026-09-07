@@ -1,24 +1,92 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>NaviSuite Ponte Radio</title>
-<link rel="stylesheet" href="assets/css/navi-shared.css"><link rel="stylesheet" href="assets/css/shared-menu.css">
-<style>
-:root{--bg:#061821;--panel:#0b2029;--line:#294b56;--ink:#e8f5f5;--muted:#8eaaaf;--accent:#2dd4bf}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.radio-main{max-width:780px;margin:auto;padding:18px 14px 100px}.radio-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.radio-head h1{margin:0;font-size:24px}.radio-head small{color:var(--muted)}.radio-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}.composer{display:grid;gap:10px}.composer label{font-size:12px;color:var(--muted);font-weight:700}.composer select,.composer textarea{width:100%;border:1px solid #31535e;border-radius:11px;background:#071a22;color:var(--ink);padding:12px;font:inherit}.composer textarea{min-height:92px;resize:vertical}.radio-btn{border:0;border-radius:11px;padding:12px 16px;background:var(--accent);color:#052d29;font-weight:900;font-size:15px}.radio-btn:disabled{opacity:.45}.status{min-height:20px;color:var(--muted);font-size:12px;margin-top:6px}.history-title{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 8px}.history-title h2{font-size:16px;margin:0}.history{display:grid;gap:9px}.message{border:1px solid var(--line);border-radius:14px;background:#0b2029;padding:11px 13px}.message.out{margin-left:32px;border-color:#287f75;background:#0c292d}.message .meta{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;margin-bottom:5px}.message .body{white-space:pre-wrap;line-height:1.4}.empty{text-align:center;color:var(--muted);padding:25px 10px}.admin-lock{max-width:520px;margin:80px auto;padding:24px;text-align:center}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#061821">
+  <title>NaviSuite Ponte Radio</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--bg:#061821;--panel:#0b2029;--line:#294b56;--ink:#e8f5f5;--muted:#8eaaaf;--accent:#2dd4bf}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .radio-main{max-width:780px;margin:auto;padding:18px 14px 100px}
+    .radio-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .radio-head h1{margin:0;font-size:24px}.radio-head small,.status{color:var(--muted)}
+    .radio-home{color:var(--accent);font-weight:800;text-decoration:none}
+    .radio-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .notifications{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .notifications strong{display:block;margin-bottom:3px}.notifications p{margin:0;color:var(--muted);font-size:12px;line-height:1.4}
+    .composer{display:grid;gap:10px}.composer label{font-size:12px;color:var(--muted);font-weight:700}
+    .composer input,.composer textarea{width:100%;border:1px solid #31535e;border-radius:11px;background:#071a22;color:var(--ink);padding:12px;font:inherit}
+    .recipient-picker{position:relative}
+    .recipient-results{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);max-height:260px;overflow:auto;border:1px solid #31535e;border-radius:13px;background:#071a22;box-shadow:0 18px 38px rgba(0,0,0,.35);padding:6px}
+    .recipient-option{width:100%;border:0;border-radius:10px;background:transparent;color:var(--ink);padding:10px;text-align:left;font:inherit;cursor:pointer}
+    .recipient-option:hover,.recipient-option:focus,.recipient-option.active{outline:0;background:rgba(45,212,191,.13)}
+    .recipient-option small{display:block;color:var(--muted);margin-top:2px}
+    .composer textarea{min-height:92px;resize:vertical}
+    .radio-btn{border:0;border-radius:11px;padding:12px 16px;background:var(--accent);color:#052d29;font-weight:900;font-size:15px;cursor:pointer}
+    .radio-btn.secondary{flex:0 0 auto;border:1px solid #39706f;background:rgba(45,212,191,.11);color:#a7fff0;font-size:13px}
+    .radio-btn:disabled{opacity:.45;cursor:default}.status{min-height:20px;font-size:12px;margin-top:6px}
+    .history-title{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 8px}
+    .history-title h2{font-size:16px;margin:0}.history-clear{border:0;background:none;color:var(--muted);font:inherit;cursor:pointer}
+    .history{display:grid;gap:9px}.message{border:1px solid var(--line);border-radius:14px;background:#0b2029;padding:11px 13px;cursor:pointer}
+    .message.out{margin-left:32px;border-color:#287f75;background:#0c292d}.message.in{margin-right:32px}
+    .message .meta{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;margin-bottom:5px}
+    .message .body{white-space:pre-wrap;line-height:1.4}.empty{text-align:center;color:var(--muted);padding:25px 10px}
+    .access-lock{max-width:520px;margin:80px auto;padding:24px;text-align:center}
+    html.navisuite-light .radio-card,html.navisuite-light .message{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important}
+    html.navisuite-light .composer input,html.navisuite-light .composer textarea{background:#f8fcfc!important;border-color:#a9c9cf!important;color:#17323a!important}
+    html.navisuite-light .recipient-results{background:#fff!important;border-color:#a9c9cf!important}html.navisuite-light .recipient-option{color:#17323a!important}
+    @media(max-width:560px){.notifications{align-items:flex-start;flex-direction:column}.radio-btn.secondary{width:100%}}
+  </style>
 </head>
 <body class="ponteradio-page">
-<aside class="app-sidebar"></aside>
-<main class="radio-main" id="radio-app">
- <header class="radio-head"><div><h1>📻 Ponte Radio</h1><small>Messaggi di servizio NaviSuite</small></div><a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:800">Home</a></header>
- <section class="radio-card composer">
-  <div><label for="radio-agent">DESTINATARIO</label><select id="radio-agent"><option value="">Caricamento…</option></select></div>
-  <div><label for="radio-body">MESSAGGIO</label><textarea id="radio-body" maxlength="500" placeholder="Scrivi un messaggio…"></textarea></div>
-  <button class="radio-btn" id="radio-send" type="button">Invia messaggio</button><div class="status" id="radio-status" aria-live="polite"></div>
- </section>
- <div class="history-title"><h2>Storico su questo dispositivo</h2><button id="radio-clear" type="button" style="border:0;background:none;color:var(--muted);font:inherit">Cancella storico</button></div>
- <section class="history" id="radio-history"></section>
-</main>
-<script src="assets/js/shared-roles.js?v=1"></script><script src="assets/js/admin-firebase-rest.js"></script><script src="assets/js/push-notifications-v3.js?v=20260907-1"></script><script src="assets/js/ponteradio.js?v=20260907-1"></script><script src="assets/js/shared-menu.js?v=1.56"></script>
-</body></html>
+  <aside class="app-sidebar"></aside>
+  <main class="radio-main" id="radio-app">
+    <header class="radio-head">
+      <div><h1>📻 Ponte Radio</h1><small>Messaggi di servizio NaviSuite</small></div>
+      <a class="radio-home" href="index.html?home=1">Home</a>
+    </header>
+
+    <section class="radio-card notifications">
+      <div>
+        <strong id="radio-push-title">Verifica notifiche…</strong>
+        <p id="radio-push-copy">Controllo questo dispositivo.</p>
+      </div>
+      <button class="radio-btn secondary" id="radio-enable" type="button" hidden>🔔 Attiva notifiche</button>
+    </section>
+
+    <section class="radio-card composer">
+      <div>
+        <label for="radio-agent-search">DESTINATARIO</label>
+        <div class="recipient-picker">
+          <input id="radio-agent-search" type="search" autocomplete="off" placeholder="Inizia a scrivere il cognome…" aria-autocomplete="list" aria-controls="radio-agent-results">
+          <input id="radio-agent" type="hidden">
+          <div id="radio-agent-results" class="recipient-results" role="listbox" hidden></div>
+        </div>
+      </div>
+      <div>
+        <label for="radio-body">MESSAGGIO</label>
+        <textarea id="radio-body" maxlength="500" placeholder="Scrivi un messaggio…"></textarea>
+      </div>
+      <button class="radio-btn" id="radio-send" type="button">Invia messaggio</button>
+      <div class="status" id="radio-status" aria-live="polite"></div>
+    </section>
+
+    <div class="history-title">
+      <h2>Storico su questo dispositivo</h2>
+      <button class="history-clear" id="radio-clear" type="button">Cancella storico</button>
+    </div>
+    <section class="history" id="radio-history"></section>
+  </main>
+
+  <script src="v2/assets/pb.js?v=20260907-ponteradio-ns"></script>
+  <script src="assets/js/ponteradio.js?v=20260907-pocketbase-ns"></script>
+  <script src="assets/js/shared-menu.js?v=1.56-ponteradio"></script>
+</body>
+</html>

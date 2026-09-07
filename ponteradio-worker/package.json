@@ -1,0 +1,8 @@
+{
+  "name": "navisuite-ponteradio-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": { "start": "node worker.js" },
+  "dependencies": { "web-push": "^3.6.7" }
+}

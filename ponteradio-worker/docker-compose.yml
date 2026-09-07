@@ -1,0 +1,14 @@
+services:
+  ponteradio-worker:
+    build: .
+    container_name: navisuite-ponteradio-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - pocketbase
+
+networks:
+  pocketbase:
+    external: true
+    name: ix-pocketbase_default

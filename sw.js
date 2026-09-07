@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v207-menu-ruoli';
+const CACHE_VERSION = 'navisuite-v208-ponteradio-pocketbase';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -32,6 +32,7 @@ const CORE_ASSETS = [
   './assets/js/push-notifications-v3.js',
   './assets/js/push-center.js',
   './assets/js/ponteradio.js',
+  './v2/assets/pb.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
   './assets/images/icona_512.png',
@@ -333,6 +334,35 @@ self.addEventListener('fetch', event => {
   event.respondWith(networkFirst(event.request));
 });
 
+function saveIncomingPonteRadio(payload) {
+  if (payload?.data?.kind !== 'ponteradio') return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('navisuite-ponteradio', 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('messages')) {
+        const store = db.createObjectStore('messages', { keyPath:'id' });
+        store.createIndex('time', 'time');
+      }
+    };
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction('messages', 'readwrite');
+      transaction.objectStore('messages').put({
+        id:'in-' + String(payload.data.messageId || payload.tag || Date.now()),
+        direction:'in',
+        peerId:String(payload.data.senderAgentId || ''),
+        peer:String(payload.data.senderName || 'Agente'),
+        body:String(payload.body || '').slice(0, 500),
+        time:String(payload.data.sentAt || new Date().toISOString()),
+      });
+      transaction.oncomplete = () => { db.close(); resolve(); };
+      transaction.onerror = () => { const error=transaction.error; db.close(); reject(error); };
+    };
+  });
+}
+
 // Web Push reale NaviSuite. Il worker TrueNAS invia il payload e questo Service
 // Worker mostra l'avviso anche quando la PWA e' chiusa o l'iPhone e' bloccato.
 self.addEventListener('push', event => {
@@ -349,7 +379,12 @@ self.addEventListener('push', event => {
       renotify:payload.renotify !== false,
       data:{ url:String(payload.url || 'naviturni.html'), ...(payload.data || {}) }
     };
+    await saveIncomingPonteRadio(payload).catch(() => {});
     await self.registration.showNotification(title, options);
+    if (payload?.data?.kind === 'ponteradio') {
+      const windows = await self.clients.matchAll({ type:'window', includeUncontrolled:true });
+      windows.forEach(client => client.postMessage({ type:'ponteradio:message' }));
+    }
   })());
 });
 
