@@ -34,14 +34,20 @@ assert.match(monthly,/await window\.NaviDiariaRuntime\?\.saveNow\?\.\(\)/);
 // La Distinta si ridisegna subito dopo un salvataggio dal popup, senza dover
 // uscire/rientrare: sia la riga Straordinari (persistEntry) sia il popup
 // giornata (saveEntry) richiamano direttamente refreshMonthly().
-assert.match(monthly,/function persistEntry\(\)\{persist\(\);refreshMonthly\(\);document\.dispatchEvent/);
-assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft\)\}persist\(\);refreshMonthly\(\);document\.dispatchEvent\(new CustomEvent\('navidiaria:render'\)\);await window\.NaviDiariaRuntime/);
-assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=128/);
+assert.match(monthly,/function persistEntry\(\)\{persist\(\);refreshMonthly\(\);document\.dispatchEvent\(new CustomEvent\('navidiaria:render'\)\);window\.NaviDiariaRuntime\?\.saveNow\?\.\(\)\}/);
+assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft\)\}persist\(\);refreshMonthly\(\);document\.dispatchEvent\(new CustomEvent\('navidiaria:render'\)\);/);
+// La cella STRAORDINARI e il popup giornata convergono: l'editor Straordinari
+// ridisegna la Distinta anche alla chiusura (onClose), come fa il popup giornata.
+assert.match(popup,/document\.body\.classList\.toggle\('weekly-dialog-open',!modal\(\)\.hidden\);options\.onClose\?\.\(\)\};m\.querySelectorAll\('\[data-overtime-close\]'\)/);
+assert.match(monthly,/onSave:\(\)=>commitOvertime\('onSave'\),onClose:\(\)=>commitOvertime\('onClose'\)/);
+assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=129/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=17/);
+assert.match(turni,/assets\/js\/day-popup\.js\?v=17/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
 assert.ok(turni.indexOf('assets/js/overtime-components.js')<turni.indexOf('assets/js/day-popup.js'));
 assert.ok(diaria.indexOf('assets/js/overtime-components.js')<diaria.indexOf('assets/js/day-popup.js'));
-assert.match(turni,/assets\/js\/day-popup\.js\?v=16/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=16/);
+assert.match(turni,/assets\/js\/day-popup\.js\?v=17/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=17/);
 
 console.log('Shared day popup regression test passed');
