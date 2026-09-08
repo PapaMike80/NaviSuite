@@ -31,6 +31,12 @@ assert.match(popup,/options\.includes\(value\)\?options:\[\.\.\.options,value\]/
 assert.match(popup,/optionFor\(changeSelect,change\(draft\)\)/);
 assert.match(popup,/optionFor\(sentineSelect,sentine\(draft\)\)/);
 assert.match(monthly,/await window\.NaviDiariaRuntime\?\.saveNow\?\.\(\)/);
+// La Distinta si ridisegna subito dopo un salvataggio dal popup, senza dover
+// uscire/rientrare: sia la riga Straordinari (persistEntry) sia il popup
+// giornata (saveEntry) richiamano direttamente refreshMonthly().
+assert.match(monthly,/function persistEntry\(\)\{persist\(\);refreshMonthly\(\);document\.dispatchEvent/);
+assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft\)\}persist\(\);refreshMonthly\(\);document\.dispatchEvent\(new CustomEvent\('navidiaria:render'\)\);await window\.NaviDiariaRuntime/);
+assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=128/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
 assert.ok(turni.indexOf('assets/js/overtime-components.js')<turni.indexOf('assets/js/day-popup.js'));
