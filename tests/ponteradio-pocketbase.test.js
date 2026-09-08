@@ -40,6 +40,8 @@ assert.match(hook, /routerAdd\("GET", "\/api\/navisuite-v2\/ponteradio\/recipien
 assert.match(hook, /if \(!agent\) continue;/);
 assert.doesNotMatch(hook, /agent\.id === me\.id/);
 assert.match(hook, /routerAdd\("GET", "\/api\/navisuite-v2\/ponteradio\/worker\/jobs"/);
+assert.match(hook, /worker\/sync-users"/);
+assert.match(hook, /passwordConfirm/);
 assert.match(hook, /worker\/result"/);
 
 assert.match(sw, /saveIncomingPonteRadio/);
