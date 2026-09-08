@@ -189,8 +189,23 @@
       return;
     }
     NaviV2PB.logout();
-    const passwordHash = localStorage.getItem('navidiaria.pin.' + legacyId) || '';
-    await NaviV2PB.loginWithPasswordHash(legacyId, passwordHash);
+    const passwordHash = String(localStorage.getItem('navidiaria.pin.' + legacyId) || '').trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(passwordHash)) {
+      const missing = new Error('Riaccedi a NaviSuite su questo dispositivo per attivare Ponte Radio.');
+      missing.code = 'no-credential';
+      throw missing;
+    }
+    try {
+      await NaviV2PB.loginWithPasswordHash(legacyId, passwordHash);
+    } catch (error) {
+      if (error && (error.status === 400 || error.status === 403 || error.status === 404)) {
+        const pending = new Error('Ponte Radio non e\u2019 ancora attivo per il tuo profilo. Comunica all\u2019amministratore il codice agente ' + legacyId + '.');
+        pending.code = 'not-provisioned';
+        pending.detail = error;
+        throw pending;
+      }
+      throw error;
+    }
     currentAgentId = String(NaviV2PB.agent()?.id || '');
   }
 
@@ -198,6 +213,37 @@
     const pad = '='.repeat((4 - value.length % 4) % 4);
     const raw = atob((value + pad).replace(/-/g, '+').replace(/_/g, '/'));
     return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+  }
+
+  // Una subscription creata con una chiave VAPID diversa (es. periodo beta)
+  // non e' recapitabile dal worker attuale: va ricreata, non riusata.
+  function serverKeyMatches(subscription) {
+    try {
+      const existing = subscription && subscription.options && subscription.options.applicationServerKey;
+      if (!existing) return true;
+      const want = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      const have = new Uint8Array(existing);
+      if (have.length !== want.length) return false;
+      for (let i = 0; i < want.length; i += 1) if (have[i] !== want[i]) return false;
+      return true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  async function activePushSubscription(registration, forceRecreate) {
+    let subscription = await registration.pushManager.getSubscription();
+    if (subscription && (forceRecreate || !serverKeyMatches(subscription))) {
+      try { await subscription.unsubscribe(); } catch (_) {}
+      subscription = null;
+    }
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    return subscription;
   }
 
   function deviceId() {
@@ -237,7 +283,7 @@
   async function saveSubscription(subscription) {
     const json = subscription.toJSON();
     if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) throw new Error('Subscription Web Push incompleta.');
-    return NaviV2PB.request(API_ROOT + '/subscription', {
+    const result = await NaviV2PB.request(API_ROOT + '/subscription', {
       method:'POST',
       body:{
         device_id:deviceId(),
@@ -250,54 +296,69 @@
         preferences:{ ponte_radio:true },
       },
     });
+    if (!result || !result.id) throw new Error('Il server non ha confermato la registrazione del dispositivo.');
+    return result;
   }
 
-  async function syncPushSubscription(requestPermission) {
+  function pushStatus(heading, text, showEnable, showRepair) {
     const title = $('radio-push-title');
     const copy = $('radio-push-copy');
-    const button = $('radio-enable');
+    const enable = $('radio-enable');
+    const repair = $('radio-repair');
+    if (title) title.textContent = heading;
+    if (copy) copy.textContent = text;
+    if (enable) enable.hidden = !showEnable;
+    if (repair) repair.hidden = !showRepair;
+  }
+
+  async function syncPushSubscription(requestPermission, forceRecreate) {
     if (!('Notification' in window) || !('PushManager' in window)) {
-      title.textContent = 'Notifiche non supportate';
-      copy.textContent = 'Questo browser non supporta Web Push.';
-      button.hidden = true;
+      pushStatus('Notifiche non supportate', 'Questo browser non supporta Web Push.', false, false);
       return false;
     }
     if (isIos() && !isStandalone()) {
-      title.textContent = 'Installa NaviSuite su iPhone';
-      copy.textContent = 'Apri NaviSuite dalla schermata Home per ricevere le notifiche.';
-      button.hidden = true;
+      pushStatus('Installa NaviSuite su iPhone', 'Apri NaviSuite dalla schermata Home per ricevere le notifiche.', false, false);
       return false;
     }
 
     let permission = Notification.permission;
     if (requestPermission && permission !== 'granted') permission = await Notification.requestPermission();
     if (permission === 'denied') {
-      title.textContent = 'Notifiche bloccate';
-      copy.textContent = 'Riattivale dalle impostazioni del browser.';
-      button.hidden = true;
+      pushStatus('Notifiche bloccate', 'Riattivale dalle impostazioni del browser, poi tocca 🔄 Ripara.', false, true);
       return false;
     }
     if (permission !== 'granted') {
-      title.textContent = 'Notifiche non ancora attive';
-      copy.textContent = 'Attivale per ricevere i messaggi anche con NaviSuite chiusa.';
-      button.hidden = false;
+      pushStatus('Notifiche non ancora attive', 'Attivale per ricevere i messaggi anche con NaviSuite chiusa.', true, false);
       return false;
     }
 
-    title.textContent = 'Attivazione notifiche…';
-    button.hidden = true;
-    const registration = await serviceWorkerRegistration();
-    let subscription = await registration.pushManager.getSubscription();
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly:true,
-        applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
+    pushStatus('Registrazione dispositivo…', 'Un momento.', false, false);
+    try {
+      await ensurePocketBaseAuth();
+      const registration = await serviceWorkerRegistration();
+      const subscription = await activePushSubscription(registration, forceRecreate === true);
+      await saveSubscription(subscription);
+    } catch (error) {
+      console.warn('[PonteRadio] registrazione notifiche non riuscita:', error && error.code, error && error.message);
+      if (error && error.code === 'no-credential') {
+        pushStatus('Riaccedi a NaviSuite', error.message, false, false);
+      } else if (error && error.code === 'not-provisioned') {
+        pushStatus('Ponte Radio non ancora attivo', error.message, false, false);
+      } else {
+        pushStatus('Errore registrazione notifiche', (error && error.message ? error.message + ' ' : '') + 'Tocca 🔄 Ripara per riprovare.', false, true);
+      }
+      return false;
     }
-    await saveSubscription(subscription);
-    title.textContent = '✅ Notifiche attive';
-    copy.textContent = 'Questo dispositivo può ricevere i messaggi di Ponte Radio.';
+    pushStatus('✅ Notifiche attive', 'Questo dispositivo può ricevere i messaggi di Ponte Radio.', false, true);
+    console.info('[PonteRadio] dispositivo registrato per', legacyId);
     return true;
+  }
+
+  async function repairNotifications() {
+    const button = $('radio-repair');
+    if (button) button.disabled = true;
+    try { await syncPushSubscription(true, true); }
+    finally { if (button) button.disabled = false; }
   }
 
   async function loadRecipients() {
@@ -420,23 +481,30 @@
 
     await renderHistory();
     await migrateLegacyHistory();
+
+    // Le notifiche si registrano per conto proprio: non devono dipendere dal
+    // caricamento dell'elenco destinatari.
+    syncPushSubscription(false).catch(error => {
+      console.warn('[PonteRadio] sync notifiche:', error && error.message);
+    });
+
     $('radio-status').textContent = 'Collegamento a PocketBase…';
     try {
       await ensurePocketBaseAuth();
       await loadRecipients();
       $('radio-status').textContent = displayName ? 'Pronto, ' + displayName + '.' : 'Ponte Radio pronto.';
-      syncPushSubscription(false).catch(error => {
-        $('radio-push-title').textContent = 'Notifiche non attive';
-        $('radio-push-copy').textContent = error?.message || 'Attivazione non riuscita.';
-        $('radio-enable').hidden = false;
-      });
     } catch (error) {
+      const code = error && error.code;
       $('radio-agent-search').placeholder = 'Destinatari non disponibili';
       $('radio-agent-search').disabled = true;
       $('radio-send').disabled = true;
-      $('radio-status').textContent = '❌ ' + (error?.message || 'Accesso PocketBase non riuscito.');
-      $('radio-push-title').textContent = 'Notifiche non disponibili';
-      $('radio-push-copy').textContent = 'Accedi nuovamente a NaviSuite e riprova.';
+      if (code === 'no-credential') {
+        $('radio-status').innerHTML = '⚠️ Riaccedi a NaviSuite su questo dispositivo. <a class="radio-home" href="index.html">Accedi</a>';
+      } else if (code === 'not-provisioned') {
+        $('radio-status').textContent = '⚠️ ' + error.message;
+      } else {
+        $('radio-status').textContent = '❌ ' + (error && error.message ? error.message : 'Accesso PocketBase non riuscito.');
+      }
     }
   }
 
@@ -481,14 +549,9 @@
   $('radio-enable').addEventListener('click', async () => {
     $('radio-enable').disabled = true;
     try { await syncPushSubscription(true); }
-    catch (error) {
-      $('radio-push-title').textContent = 'Notifiche non attive';
-      $('radio-push-copy').textContent = error?.message || 'Attivazione non riuscita.';
-      $('radio-enable').hidden = false;
-    } finally {
-      $('radio-enable').disabled = false;
-    }
+    finally { $('radio-enable').disabled = false; }
   });
+  $('radio-repair')?.addEventListener('click', repairNotifications);
   $('radio-history').addEventListener('click', event => {
     const card = event.target.closest('[data-message-id]');
     if (card) resumeConversation(card);

@@ -12,6 +12,8 @@ repository. Deve definire:
 - VAPID_PRIVATE_KEY
 - VAPID_SUBJECT
 - POLL_MS (facoltativo, predefinito 5000)
+- SYNC_USERS_URL (facoltativo): URL che restituisce {users:[{login_id,pin_hash,role,name}]}
+- SYNC_USERS_TOKEN, SYNC_USERS_INTERVAL_MS (facoltativi)
 
 Sul TrueNAS attuale il plugin Compose non è installato. Avvio:
 
