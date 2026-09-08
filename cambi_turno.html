@@ -10,7 +10,10 @@
     gtag('config', 'G-R59ZS3YB4Q');
   </script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- minimum-scale=1: la matrice cambi è volutamente più larga del viewport e
+       scorre in orizzontale. Senza questo, Chrome Android allarga il viewport di
+       layout per contenerla e rimpicciolisce tutta la pagina. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="NaviDiaria">
