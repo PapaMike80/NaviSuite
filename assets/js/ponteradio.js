@@ -9,6 +9,7 @@
   const MAX_HISTORY = 500;
   const DEVICE_KEY = 'navisuite.ponteradio.device';
   const $ = id => document.getElementById(id);
+  let volatileDeviceId = '';
 
   function readProfile() {
     try {
@@ -200,10 +201,13 @@
   }
 
   function deviceId() {
-    let id = localStorage.getItem(DEVICE_KEY);
+    let id = '';
+    try { id = localStorage.getItem(DEVICE_KEY) || ''; } catch (_) {}
+    if (!id && volatileDeviceId) return volatileDeviceId;
     if (!id) {
       id = randomId('device-');
-      localStorage.setItem(DEVICE_KEY, id);
+      volatileDeviceId = id;
+      try { localStorage.setItem(DEVICE_KEY, id); } catch (_) {}
     }
     return id;
   }

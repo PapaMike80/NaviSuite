@@ -3,20 +3,38 @@
   const TOKEN_KEY = 'navisuite.v2.pb.token';
   const USER_KEY = 'navisuite.v2.pb.user';
   const AGENT_KEY = 'navisuite.v2.agent';
+  const memoryStore = new Map();
 
-  const read = key => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } };
-  const token = () => String(localStorage.getItem(TOKEN_KEY) || '');
+  const getItem = key => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored === null ? memoryStore.get(key) || '' : stored;
+    } catch (_) {
+      return memoryStore.get(key) || '';
+    }
+  };
+  const setItem = (key, value) => {
+    const text = String(value);
+    memoryStore.set(key, text);
+    try { localStorage.setItem(key, text); } catch (_) {}
+  };
+  const removeItem = key => {
+    memoryStore.delete(key);
+    try { localStorage.removeItem(key); } catch (_) {}
+  };
+  const read = key => { try { return JSON.parse(getItem(key) || 'null'); } catch { return null; } };
+  const token = () => String(getItem(TOKEN_KEY) || '');
   const user = () => read(USER_KEY);
   const agent = () => read(AGENT_KEY);
   const saveAuth = auth => {
     if (!auth?.token || !auth?.record) return;
-    localStorage.setItem(TOKEN_KEY, String(auth.token));
-    localStorage.setItem(USER_KEY, JSON.stringify(auth.record));
+    setItem(TOKEN_KEY, auth.token);
+    setItem(USER_KEY, JSON.stringify(auth.record));
   };
   const clear = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(AGENT_KEY);
+    removeItem(TOKEN_KEY);
+    removeItem(USER_KEY);
+    removeItem(AGENT_KEY);
   };
   const escapeFilter = value => String(value ?? '').replaceAll('\\', '\\\\').replaceAll('"', '\\"');
 
@@ -42,7 +60,7 @@
     saveAuth(auth);
     const mine = await findOne('agenti', `legacy_id = "${escapeFilter(loginId)}"`, 'id,legacy_id,nome_completo,residenza,grado,ruolo,attivo,permessi_speciali');
     if (!mine) { clear(); throw new Error('Profilo agente PocketBase non trovato.'); }
-    localStorage.setItem(AGENT_KEY, JSON.stringify(mine));
+    setItem(AGENT_KEY, JSON.stringify(mine));
     return { user: auth.record, agent: mine };
   }
 
@@ -79,7 +97,7 @@
     if (!agent()) {
       const current=user(); if(!current?.login_id||!(await refresh())){location.replace('index.html');return false;}
       const mine=await findOne('agenti',`legacy_id = "${escapeFilter(user().login_id)}"`,'id,legacy_id,nome_completo,residenza,grado,ruolo,attivo,permessi_speciali');
-      if(!mine){clear();location.replace('index.html');return false;} localStorage.setItem(AGENT_KEY,JSON.stringify(mine));
+      if(!mine){clear();location.replace('index.html');return false;} setItem(AGENT_KEY,JSON.stringify(mine));
     }
     return true;
   }

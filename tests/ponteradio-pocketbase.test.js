@@ -18,8 +18,8 @@ for (const file of [
   assert.doesNotThrow(() => execFileSync(process.execPath, ['--check', file], { stdio:'pipe' }), file + ' must parse');
 }
 
-assert.match(html, /v2\/assets\/pb\.js\?v=20260907-ponteradio-ns/);
-assert.match(html, /assets\/js\/ponteradio\.js\?v=20260907-pocketbase-ns/);
+assert.match(html, /v2\/assets\/pb\.js\?v=20260908-storage-fallback/);
+assert.match(html, /assets\/js\/ponteradio\.js\?v=20260908-storage-fallback/);
 assert.match(html, /id="radio-agent-search"/);
 assert.match(html, /Inizia a scrivere il cognome/);
 assert.doesNotMatch(html, /admin-firebase-rest\.js|push-notifications-v3\.js|NaviPush/);
@@ -34,6 +34,8 @@ assert.match(js, /indexedDB\.open\(DB_NAME, 1\)/);
 assert.doesNotMatch(js, /NaviPush|listSubscriptions|queuePush|selectedOptions/);
 
 assert.match(pb, /https:\/\/truenas-scale\.tail805e51\.ts\.net/);
+assert.match(pb, /memoryStore/);
+assert.match(pb, /try \{ localStorage\.setItem\(key, text\); \} catch \(_\) \{\}/);
 assert.doesNotMatch(pb, /INSERISCI|GENERA_UN_SECRET|PRIVATE_KEY/);
 
 assert.match(hook, /routerAdd\("GET", "\/api\/navisuite-v2\/ponteradio\/recipients"/);
