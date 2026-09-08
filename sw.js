@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v209-ponteradio-storage-fallback';
+const CACHE_VERSION = 'navisuite-v210-cache-first-turni';
 const CORE_ASSETS = [
   './',
   './index.html',
