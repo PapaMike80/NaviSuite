@@ -3,7 +3,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 
-const context={window:{}};
+// overtime-components.js contiene anche un IIFE che, solo su navidiaria.html,
+// carica ticket-personalization.js: gli serve un minimo di ambiente DOM inerte.
+const context={window:{},setTimeout:()=>{},document:{readyState:'complete',body:{classList:{contains:()=>false}},querySelector:()=>null,createElement:()=>({}),head:{appendChild:()=>{}},addEventListener:()=>{}}};
+context.window.addEventListener=()=>{};
 vm.runInNewContext(fs.readFileSync('assets/js/overtime-components.js','utf8'),context);
 const overtime=context.window.NaviOvertimeComponents;
 const day={delay:0,changeMinutes:0,serviceMinutes:13*60};

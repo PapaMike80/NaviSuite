@@ -24,12 +24,18 @@ assert.match(popup,/await save\(\);dismiss\(\);render\(\)/);
 assert.match(popup,/weekly-edit-close'\)\.onclick=\(\)=>form\.requestSubmit\(\)/);
 assert.match(popup,/if\(!draft\|\|snapshot\(draft\)===initialSnapshot\)\{finalizeClose\(\);return true\}/);
 assert.doesNotMatch(popup,/draft\.bank=0;draft\.overnight40=false/);
+// Cambio/Sentine con valore non standard non devono essere azzerati alla chiusura:
+// il <select> include il valore reale e syncDraftFromDom lo rilegge solo se
+// esiste un'opzione corrispondente.
+assert.match(popup,/options\.includes\(value\)\?options:\[\.\.\.options,value\]/);
+assert.match(popup,/optionFor\(changeSelect,change\(draft\)\)/);
+assert.match(popup,/optionFor\(sentineSelect,sentine\(draft\)\)/);
 assert.match(monthly,/await window\.NaviDiariaRuntime\?\.saveNow\?\.\(\)/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
 assert.ok(turni.indexOf('assets/js/overtime-components.js')<turni.indexOf('assets/js/day-popup.js'));
 assert.ok(diaria.indexOf('assets/js/overtime-components.js')<diaria.indexOf('assets/js/day-popup.js'));
-assert.match(turni,/assets\/js\/day-popup\.js\?v=15/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=15/);
+assert.match(turni,/assets\/js\/day-popup\.js\?v=16/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=16/);
 
 console.log('Shared day popup regression test passed');
