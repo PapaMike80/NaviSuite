@@ -253,6 +253,209 @@ async function turni_effective(ctx) {
   return stats;
 }
 
+// ---------------------------------------------------------------------------
+// users: provisioning login PocketBase da private/adminUpdates/userAuth
+// (login_id + pinHash) + userRegistry / directory per nome e ruolo.
+// La password PocketBase E' l'hash SHA-256 (come v2/assets/pb.js).
+// ---------------------------------------------------------------------------
+const ROLE_MAP = { admin: 'admin', superuser: 'super_user', super_user: 'super_user' };
+const mapRole = r => ROLE_MAP[String(r || '').trim().toLowerCase()] || 'agente';
+
+async function users(ctx) {
+  const auth = (await ctx.fbGet('private/adminUpdates/userAuth')) || {};
+  const registry = (await ctx.fbGet('private/adminUpdates/userRegistry')) || {};
+  const profiles = (await ctx.fbGet('private/adminUpdates/agentProfiles')) || {};
+  const sched = (await ctx.fbGet('public/schedule')) || {};
+  const nameByLegacy = new Map();
+  for (const list of Object.values(sched.residenze || {})) for (const a of list || []) nameByLegacy.set(String(a.id), a.agente);
+
+  const existing = await ctx.pbListAll('users', { fields: 'id,login_id,role,nome_visualizzato,must_change_pin,attivo' });
+  const byLogin = new Map(existing.map(u => [String(u.login_id), u]));
+  const stats = { seen: 0, created: 0, updated: 0, unchanged: 0, pin_reset: 0, skipped: 0 };
+
+  for (const [id, rec] of Object.entries(auth)) {
+    const loginId = String(rec?.id || id);
+    const pinHash = String(rec?.pinHash || '').trim().toLowerCase();
+    if (!loginId || !/^[a-f0-9]{64}$/.test(pinHash)) { stats.skipped++; continue; }
+    stats.seen++;
+    const name = String(profiles[loginId]?.name || registry[loginId]?.name || nameByLegacy.get(loginId) || loginId).trim();
+    const role = mapRole(profiles[loginId]?.role || registry[loginId]?.role);
+    const mustChange = rec?.mustChangePin === true;
+    const row = byLogin.get(loginId);
+    const pinChanged = await ctx.markState('user', loginId, pinHash, 'private/adminUpdates/userAuth');
+
+    if (!row) {
+      await ctx.pbCreate('users', {
+        login_id: loginId, password: pinHash, passwordConfirm: pinHash,
+        email: `agent-${loginId.toLowerCase().replace(/[^a-z0-9_.-]+/g, '-')}@navisuite.invalid`,
+        emailVisibility: false, verified: true, role, nome_visualizzato: name,
+        attivo: true, must_change_pin: mustChange,
+      });
+      stats.created++;
+      continue;
+    }
+    const patch = {};
+    if (row.role !== role) patch.role = role;
+    if (String(row.nome_visualizzato || '') !== name) patch.nome_visualizzato = name;
+    if (Boolean(row.must_change_pin) !== mustChange) patch.must_change_pin = mustChange;
+    if (row.attivo === false) patch.attivo = true;
+    if (pinChanged) { patch.password = pinHash; patch.passwordConfirm = pinHash; stats.pin_reset++; }
+    if (Object.keys(patch).length) { await ctx.pbUpdate('users', row.id, patch); stats.updated++; }
+    else stats.unchanged++;
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// agenti: anagrafica da public/schedule.residenze + agentProfiles (override) +
+// bariste. Collega `user` al record users con lo stesso login_id.
+// ---------------------------------------------------------------------------
+async function agenti(ctx) {
+  const sched = (await ctx.fbGet('public/schedule')) || {};
+  const profiles = (await ctx.fbGet('private/adminUpdates/agentProfiles')) || {};
+
+  const wanted = new Map(); // legacy_id -> desired
+  const put = (legacyId, base, source) => {
+    const id = String(legacyId || '').trim();
+    if (!id) return;
+    const ov = profiles[id] || {};
+    const nome = String(ov.name || base.nome || id).trim();
+    wanted.set(id, {
+      legacy_id: id,
+      nome_completo: nome,
+      grado: String(ov.qualifica || base.grado || '').trim(),
+      residenza: String(ov.residence || base.residenza || '').trim(),
+      ruolo: mapRole(ov.role || base.ruolo),
+      attivo: true,
+      legacy_source: source,
+    });
+  };
+  for (const [residenza, list] of Object.entries(sched.residenze || {})) {
+    for (const a of list || []) put(a.id, { nome: a.agente, grado: a.qualifica, residenza }, 'public/schedule/residenze');
+  }
+  const baristaLegacy = name => {
+    const key = String(name || '').toLocaleUpperCase('it').normalize('NFD')
+      .replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+    return key ? `BARISTA_${key}` : '';
+  };
+  for (const b of sched.bariste || []) {
+    if (!b) continue;
+    put(b.id || baristaLegacy(b.barista), { nome: b.barista, grado: 'barista', residenza: 'BARISTE' }, 'public/schedule/bariste');
+  }
+  // override che aggiungono agenti non nel prospetto (uffici, ecc.)
+  for (const [id, ov] of Object.entries(profiles)) {
+    if (wanted.has(id) || !String(ov?.name || '').trim() || !String(ov?.residence || '').trim()) continue;
+    put(id, { nome: ov.name, grado: ov.qualifica, residenza: ov.residence }, 'agentProfiles');
+  }
+
+  const usersByLogin = new Map((await ctx.pbListAll('users', { fields: 'id,login_id' })).map(u => [String(u.login_id), u.id]));
+  const existing = await ctx.pbListAll('agenti', { fields: 'id,legacy_id,nome_completo,grado,residenza,ruolo,attivo,user' });
+  const byLegacy = new Map(existing.map(a => [String(a.legacy_id), a]));
+  const stats = { seen: wanted.size, created: 0, updated: 0, unchanged: 0 };
+  const cmp = ['nome_completo', 'grado', 'residenza', 'ruolo'];
+
+  for (const [id, want] of wanted) {
+    const userId = usersByLogin.get(id) || '';
+    const full = { ...want, user: userId };
+    const row = byLegacy.get(id);
+    if (!row) { await ctx.pbCreate('agenti', full); stats.created++; }
+    else if (cmp.some(k => String(row[k] ?? '') !== String(want[k] ?? '')) || String(row.user || '') !== String(userId) || row.attivo === false) {
+      await ctx.pbUpdate('agenti', row.id, full); stats.updated++;
+    } else stats.unchanged++;
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// segnalazioni: private/adminUpdates/feedbackTickets.
+// ---------------------------------------------------------------------------
+async function segnalazioni(ctx) {
+  const src = (await ctx.fbGet('private/adminUpdates/feedbackTickets')) || {};
+  const agByLegacy = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id' })).map(a => [String(a.legacy_id), a.id]));
+  const existing = await ctx.pbListAll('segnalazioni', { fields: 'id,legacy_id,stato,nota_admin,titolo' });
+  const byLegacy = new Map(existing.map(s => [s.legacy_id, s]));
+  const CAT = new Set(['bug', 'miglioria', 'altro']);
+  const STATO = new Set(['nuovo', 'verifica', 'risolto']);
+  const stats = { seen: 0, created: 0, updated: 0, unchanged: 0, no_agent: 0 };
+
+  for (const [key, t] of Object.entries(src)) {
+    const legacyId = String(t?.id || key);
+    const autore = agByLegacy.get(String(t?.authorId || ''));
+    if (!autore) { stats.no_agent++; continue; }
+    stats.seen++;
+    const desired = {
+      legacy_id: legacyId, autore,
+      categoria: CAT.has(String(t?.category)) ? t.category : 'altro',
+      area: String(t?.area || '').slice(0, 80),
+      titolo: String(t?.title || 'Segnalazione').slice(0, 120),
+      descrizione: String(t?.description || '').slice(0, 3000),
+      stato: STATO.has(String(t?.status)) ? t.status : 'nuovo',
+      nota_admin: String(t?.adminNote || t?.note || '').slice(0, 1600),
+      aperta_il: t?.createdAt ? new Date(t.createdAt).toISOString() : '',
+      aggiornata_il: t?.updatedAt ? new Date(t.updatedAt).toISOString() : '',
+    };
+    const row = byLegacy.get(legacyId);
+    if (!row) { await ctx.pbCreate('segnalazioni', desired); stats.created++; }
+    else if (['stato', 'nota_admin', 'titolo'].some(k => String(row[k] ?? '') !== String(desired[k] ?? ''))) {
+      await ctx.pbUpdate('segnalazioni', row.id, desired); stats.updated++;
+    } else stats.unchanged++;
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// variazioni: odsVariations + manualVariations. Chiave stabile dal contenuto
+// (come variationKey di shared-data.js). Riconcilia (crea/aggiorna/elimina).
+// I turni effettivi hanno gia' la variazione applicata: questa serve agli
+// indicatori "cella modificata da ODS".
+// ---------------------------------------------------------------------------
+async function variazioni(ctx) {
+  const ods = (await ctx.fbGet('private/adminUpdates/odsVariations')) || [];
+  const manual = (await ctx.fbGet('private/adminUpdates/manualVariations')) || [];
+  const agByLegacy = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id,nome_completo' })).map(a => [String(a.legacy_id), a]));
+  const agByName = new Map([...agByLegacy.values()].map(a => [String(a.nome_completo || '').trim().toUpperCase(), a.id]));
+
+  const ORIG = { "d'ufficio": 'ods_ufficio', 'ufficio': 'ods_ufficio', 'ods ufficio': 'ods_ufficio', 'volontari': 'ods_volontari', 'ods volontari': 'ods_volontari', manuale: 'manuale' };
+  const key = v => `${isoDay(v.data)}|${v.id_agente || v.agente || ''}|${String(v.tipo || '').toUpperCase()}|${v.ods || ''}`;
+
+  const wanted = new Map();
+  const add = (v, arr) => {
+    const data = isoDay(v?.data);
+    if (!data) return;
+    const legacyId = `VAR:${key(v)}`;
+    const recId = (v.id_agente && agByLegacy.get(String(v.id_agente))?.id)
+      || (v.agente && agByName.get(String(v.agente).trim().toUpperCase())) || '';
+    wanted.set(legacyId, {
+      legacy_id: legacyId, agente: recId, data: pbDate(data),
+      da_servizio: normShift(v.turno_originale) === 'RIP' && !v.turno_originale ? '' : String(v.turno_originale || ''),
+      a_servizio: String(v.turno_nuovo || ''),
+      origine: ORIG[String(v.tipo || '').trim().toLowerCase()] || (arr === 'manual' ? 'manuale' : 'ods_ufficio'),
+      stato: v.attiva === false ? 'annullata' : 'applicata',
+      note: String(v.note || '').slice(0, 2000),
+      legacy_payload: v,
+    });
+  };
+  for (const v of Array.isArray(ods) ? ods : Object.values(ods)) add(v, 'ods');
+  for (const v of Array.isArray(manual) ? manual : Object.values(manual)) add(v, 'manual');
+
+  const cmp = ['agente', 'a_servizio', 'da_servizio', 'origine', 'stato'];
+  const existing = await ctx.pbListAll('variazioni', { fields: `id,legacy_id,${cmp.join(',')}` });
+  const byLegacy = new Map(existing.map(r => [r.legacy_id, r]));
+  const stats = { seen: wanted.size, created: 0, updated: 0, unchanged: 0, deleted: 0 };
+
+  for (const [legacyId, want] of wanted) {
+    const row = byLegacy.get(legacyId);
+    if (!row) { await ctx.pbCreate('variazioni', want); stats.created++; }
+    else if (cmp.some(k => String(row[k] ?? '') !== String(want[k] ?? ''))) { await ctx.pbUpdate('variazioni', row.id, want); stats.updated++; }
+    else stats.unchanged++;
+  }
+  for (const [legacyId, row] of byLegacy) {
+    if (!wanted.has(legacyId)) { await ctx.pbDelete('variazioni', row.id); stats.deleted++; }
+  }
+  await ctx.markState('variazioni', 'ALL', ctx.hash([...wanted.keys()].sort()), 'private/adminUpdates/odsVariations+manualVariations');
+  return stats;
+}
+
 module.exports = {
-  ENTITIES: { configurazione, periodi_bozza, stati_settimana, annunci, turni_effective },
+  ENTITIES: { configurazione, periodi_bozza, stati_settimana, annunci, users, agenti, segnalazioni, variazioni, turni_effective },
 };
