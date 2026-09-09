@@ -12,28 +12,27 @@ PocketBase non è raggiungibile da fuori la LAN/Tailscale.
 
 | Entità PB | Sorgente Firebase | Chiave upsert |
 |---|---|---|
-| `configurazione` | `private/adminUpdates/shipConfigurations`, `.../announcements` | `chiave` |
-| `periodi_bozza` | `private/adminUpdates/draftPeriod` | `legacy_id = firebase-draft-period` |
-| `stati_settimana` | `private/adminUpdates/weekStatuses` | `data_inizio` (riconcilia: crea/aggiorna/**elimina**) |
-| `annunci` | `private/adminUpdates/announcements/personal/*` | `legacy_id = <published.id>` |
+| `configurazione` | `.../serviceConfigurations`, `.../announcements` | `chiave` |
+| `periodi_bozza` | `.../draftPeriod` | `legacy_id = firebase-draft-period` |
+| `stati_settimana` | `.../weekStatuses` | `data_inizio` (riconcilia) |
+| `annunci` | `.../announcements/personal/*` | `legacy_id = <published.id>` |
+| `users` | `.../userAuth` + `userRegistry` + `agentProfiles` | `login_id` (password = pinHash, reset solo se cambia) |
+| `agenti` | `public/schedule/residenze` + `agentProfiles` + bariste | `legacy_id` (collega `user`) |
+| `segnalazioni` | `.../feedbackTickets` | `legacy_id` |
+| `variazioni` | `.../odsVariations` + `manualVariations` | `legacy_id = VAR:<data>|<id_agente>|<tipo>|<ods>` (riconcilia) |
+| `turni_effective` | `.../effectiveSchedule` | `(agente, data)` (riconcilia) — **verify-turni.js: 0 differenze** |
 
 > `stato = nascosta` per le settimane non è nell'enum PB `stati_settimana.stato`
-> (`bozza`/`ufficiale`): quelle settimane vengono contate ma non scritte.
-> Aggiungere il valore all'enum per gestirle.
+> (`bozza`/`ufficiale`): contate ma non scritte. Aggiungere il valore all'enum.
 
 ## Da fare (prossime entità)
 
-Serve la logica di derivazione — idealmente lo **script del freeze del 1° settembre**
-(non nel repo) per replicarne le convenzioni:
-
-- `agenti` / `users` — da `public/schedule/residenze` + `private/adminUpdates/agentProfiles` + `userAuth`/`userRegistry`
-- `variazioni` — da `odsVariations` + `manualVariations`
-- `importazioni_turni` + `turni` + `turni_effective` — da `scheduleImports` + `public/schedule` (**la parte più complessa**: turno effettivo = base + variazione + cambio, con `versione`)
-- `turni_navi` / `navi` — da `turniNavi`
-- `cambi_turno` — da `private/changeRequests` (+ `approvedChangeRequests`, `deletedChangeRequests`)
-- `diaria` — da `private/diaria/<agentId>` (solo input; il calcolo resta nel frontend)
+- `turni_navi` / `navi` — da `turniNavi` (serve matching nome nave → `navi`, i valori Firebase sono sporchi)
+- `cambi_turno` — da `private/changeRequests` (+ `approvedChangeRequests`, `deletedChangeRequests`); lo `stato` è derivato, `changes[]` è multi
+- `diaria` — da `private/adminUpdates/diaria/<agentId>` (solo input; il calcolo resta nel frontend)
+- `turni` / `importazioni_turni` — da `scheduleImports` + `public/schedule` (grezzi; `turni_effective` basta al frontend)
 - `documenti` — da `documentsMeta` + Firebase Storage (download → upload file PB)
-- `segnalazioni` — da `feedbackTickets`
+- `correzioni_quiz`, `attivita_utenti`
 - `push_*` / `pushSettings` — unificare con l'infra Ponte Radio
 
 ## Configurazione
