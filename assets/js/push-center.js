@@ -159,7 +159,14 @@
       try{
         const next=await provider.savePushSettings({agentConnectionAlerts:box.checked});
         box.checked=next.agentConnectionAlerts!==false;
-        status.textContent=box.checked?'Avviso "agente collegato" attivo per tutti.':'Avviso "agente collegato" disattivato per tutti.';
+        if(box.checked){
+          status.textContent='Avviso "agente collegato" attivo per tutti.';
+        }else{
+          // Il worker invia la coda senza guardare il flag: svuota l'arretrato.
+          let removed=0;
+          try{removed=await provider.clearPendingConnectionAlerts?.()||0;}catch(_){ }
+          status.textContent=`Avviso "agente collegato" disattivato per tutti${removed?` · ${removed} già in coda rimossi`:''}.`;
+        }
       }catch(error){box.checked=!box.checked;status.textContent=error?.message||'Salvataggio non riuscito.';}
       finally{box.disabled=false;}
     });
