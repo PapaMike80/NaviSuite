@@ -336,6 +336,21 @@
     return { agentConnectionAlerts:item.agentConnectionAlerts };
   }
 
+  // Rimuove dalla coda push gli avvisi "agente collegato" ancora in attesa.
+  // Il worker invia tutto cio' che trova in pushQueue senza guardare il flag,
+  // quindi quando l'amministratore spegne l'interruttore va svuotato l'arretrato
+  // (accodato anche da NaviBeta o da client con cache vecchia).
+  async function clearPendingConnectionAlerts() {
+    const result = await databaseRequest("private/adminUpdates/pushQueue");
+    const keys = Object.entries(result.data || {})
+      .filter(([, value]) => value && (value.kind === "agent-connection" || value.source === "navisuite-connection"))
+      .map(([key]) => key);
+    await Promise.all(keys.map(key =>
+      databaseRequest(`private/adminUpdates/pushQueue/${encodeURIComponent(key)}`, { method:"DELETE" })
+    ));
+    return keys.length;
+  }
+
   async function getAdminDocuments() {
     const result = await databaseRequest("private/adminUpdates/documentsMeta");
     return Object.entries(result.data || {}).map(([id, value]) => ({ ...(value || {}), id:String(value?.id || id) }));
@@ -750,6 +765,7 @@
     resetDraftPeriod,
     getPushSettings,
     savePushSettings,
+    clearPendingConnectionAlerts,
     getAdminDocuments,
     getAdminDocumentFile,
     saveAdminDocument,
