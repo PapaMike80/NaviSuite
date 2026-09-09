@@ -118,6 +118,13 @@
           <div class="switch-row" style="margin:0;padding:12px 0"><div class="switch-copy"><strong>ODS e variazioni</strong><span>Nuovi ODS e variazioni rilevanti per il tuo servizio.</span></div><label class="switch"><input id="push-pref-ods" type="checkbox"><i></i></label></div>
         </div>
 
+        <div id="push-admin-alerts" ${isAdmin?'':'hidden'}>
+          <div style="height:1px;background:#294b56;margin:2px 0 10px"></div>
+          <div class="section-head" style="margin-bottom:6px"><div><h3 style="margin:0 0 4px;font-size:16px">Avvisi amministratore</h3><p style="margin:0;color:var(--muted);font-size:12px">Impostazione condivisa: vale per tutti i dispositivi.</p></div><span class="badge">Admin</span></div>
+          <div class="switch-row" style="margin:0;padding:12px 0;border-bottom:0"><div class="switch-copy"><strong>Agente collegato a NaviSuite</strong><span>Ricevi una notifica ogni volta che un agente apre o riprende NaviSuite.</span></div><label class="switch"><input id="push-alert-connections" type="checkbox"><i></i></label></div>
+          <div class="status" id="push-alert-status" aria-live="polite"></div>
+        </div>
+
         <div id="push-ios-help" style="display:none;padding:12px 14px;border:1px solid #795b24;border-radius:10px;background:#2b2415;color:#ffd27a;font-size:12px;line-height:1.5">Su iPhone le notifiche funzionano aprendo NaviSuite dall’icona aggiunta alla schermata Home.</div>
 
         <div id="push-admin-day" ${isAdmin?'':'hidden'} style="padding-top:5px">
@@ -138,6 +145,25 @@
   }
 
   async function waitPush(){for(let i=0;i<100&&!window.NaviPush;i++)await sleep(50);if(!window.NaviPush)throw new Error('Modulo Web Push non disponibile.');}
+  async function waitAdminFirebase(){for(let i=0;i<100&&!window.NaviAdminFirebase?.getPushSettings;i++)await sleep(50);return window.NaviAdminFirebase?.getPushSettings?window.NaviAdminFirebase:null;}
+  async function initAdminAlerts(){
+    if(!isAdmin)return;
+    const box=$('push-alert-connections'),status=$('push-alert-status');
+    if(!box||!status)return;
+    const provider=await waitAdminFirebase();
+    if(!provider){status.textContent='Impostazione non disponibile: Firebase non raggiungibile.';box.disabled=true;return;}
+    try{const settings=await provider.getPushSettings();box.checked=settings.agentConnectionAlerts!==false;}
+    catch(error){status.textContent=error?.message||'Impostazione non caricata.';}
+    box.addEventListener('change',async()=>{
+      box.disabled=true;status.textContent='Salvataggio…';
+      try{
+        const next=await provider.savePushSettings({agentConnectionAlerts:box.checked});
+        box.checked=next.agentConnectionAlerts!==false;
+        status.textContent=box.checked?'Avviso "agente collegato" attivo per tutti.':'Avviso "agente collegato" disattivato per tutti.';
+      }catch(error){box.checked=!box.checked;status.textContent=error?.message||'Salvataggio non riuscito.';}
+      finally{box.disabled=false;}
+    });
+  }
   function prefsFromUi(){return {tomorrowSummary:$('push-pref-summary').checked,shiftChanges:$('push-pref-changes').checked,ods:$('push-pref-ods').checked,summaryDelivery:{mode:String($('push-summary-mode').value||'previous-day'),time:String($('push-summary-time').value||'22:05'),leadMinutes:Number($('push-summary-lead').value||60)}};}
   function updateScheduleUi(){
     const mode=String($('push-summary-mode')?.value||'previous-day'),enabled=$('push-pref-summary')?.checked!==false,relative=mode==='before-service';
@@ -201,6 +227,7 @@
     ['push-pref-summary','push-pref-changes','push-pref-ods'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
     ['push-summary-mode','push-summary-time','push-summary-lead'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs('Orario del riepilogo automatico salvato.');}));
     if(isAdmin){$('push-day-refresh').addEventListener('click',loadRecipients);$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);}
+    initAdminAlerts().catch(error=>console.warn('Avvisi amministratore:',error));
     await refreshStatus();await loadRecipients();
   }
 
