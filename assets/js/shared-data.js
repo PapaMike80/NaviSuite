@@ -4,6 +4,11 @@
   const DIRECTORY_KEY = 'navi.agentDirectory.v2';
   const MAX_AGE = 10 * 60 * 1000;
   const FIREBASE_SCHEDULE_URL = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/schedule.json';
+  // Sorgente dati commutabile (test admin). Firebase resta il default.
+  const PB_DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net';
+  const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT_BASE).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT_BASE; } };
+  const dataSource = () => { try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
+  const scheduleUrl = () => (dataSource() === 'pocketbase' ? `${pbBase()}/api/navisuite-v2/schedule` : FIREBASE_SCHEDULE_URL);
   let pending = null;
   let lastSource = 'local';
 
@@ -413,6 +418,12 @@
 
   async function load(_url, { force = false } = {}) {
     const base = await loadBase(_url, { force });
+    // In modalita' PocketBase la route /schedule restituisce gia' il dataset
+    // completo (variazioni ODS, profili, bariste): niente merge Firebase.
+    if (dataSource() === 'pocketbase') {
+      lastSource = 'pocketbase';
+      return save(base);
+    }
     return mergeAdminUpdates(base).then(data => {
       lastSource = 'firebase';
       return save(data);
@@ -456,9 +467,10 @@
       }
     }
     if (pending) return pending;
-    pending = fetchJson(FIREBASE_SCHEDULE_URL, 8000)
+    const src = dataSource();
+    pending = fetchJson(scheduleUrl(), 8000)
       .then(data => {
-        lastSource = 'firebase';
+        lastSource = src === 'pocketbase' ? 'pocketbase' : 'firebase';
         return save(data);
       })
       .catch(error => {
@@ -491,7 +503,8 @@
     clear,
     isFresh:() => !!cached(),
     source:() => lastSource,
-    provider:() => lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale',
+    dataSource,
+    provider:() => lastSource === 'pocketbase' ? 'PocketBase' : lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale',
     seniorityRank:name => pdfSeniorityRank({ agente: name })
   };
 })();
