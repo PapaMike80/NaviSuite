@@ -91,17 +91,30 @@
 
   // L'amministratore puo' spegnere questi avvisi da Impostazioni > Notifiche
   // (private/adminUpdates/pushSettings/agentConnectionAlerts). Chiave
-  // assente/true => avvisi attivi; in caso di errore di rete restiamo
-  // sull'attivo per non perdere il comportamento storico.
+  // assente/true => avvisi attivi.
+  // L'ultimo valore letto con certezza viene memorizzato: se in seguito la
+  // lettura fallisce (rete, regole) usiamo quello, invece di tornare sempre
+  // sull'attivo. Senza alcun valore memorizzato resta il comportamento storico.
+  const ALERTS_FLAG_KEY='navisuite.connectionAlertsEnabled.v1';
+  function cachedAlertsFlag(){
+    try{return localStorage.getItem(ALERTS_FLAG_KEY)!=='0';}
+    catch(_){ return true; }
+  }
+  function rememberAlertsFlag(enabled){
+    try{localStorage.setItem(ALERTS_FLAG_KEY,enabled?'1':'0');}catch(_){ }
+  }
   async function connectionAlertsEnabled(auth){
-    if(!auth?.idToken)return true;
+    if(!auth?.idToken)return cachedAlertsFlag();
     try{
       const url=`${DATABASE_URL}/private/adminUpdates/pushSettings/agentConnectionAlerts.json?auth=${encodeURIComponent(auth.idToken)}`;
       const response=await fetch(url,{cache:'no-store'});
-      if(!response.ok)return true;
-      const value=await response.json().catch(()=>null);
-      return value!==false;
-    }catch(_){ return true; }
+      if(!response.ok)return cachedAlertsFlag();
+      const value=await response.json().catch(()=>undefined);
+      if(value===undefined)return cachedAlertsFlag();
+      const enabled=value!==false;
+      rememberAlertsFlag(enabled);
+      return enabled;
+    }catch(_){ return cachedAlertsFlag(); }
   }
 
   async function resolveTargetAdminId(auth){
