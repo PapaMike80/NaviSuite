@@ -17,7 +17,12 @@
       },
       "adminUpdates": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null",
+        "pushQueue": {
+          "$id": {
+            ".validate": "data.exists() || (newData.child('kind').val() !== 'agent-connection' && newData.child('source').val() !== 'navisuite-connection') || root.child('private/adminUpdates/pushSettings/agentConnectionAlerts').val() !== false"
+          }
+        }
       },
       "$other": {
         ".read": false,
