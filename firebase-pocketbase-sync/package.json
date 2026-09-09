@@ -1,0 +1,11 @@
+{
+  "name": "navisuite-firebase-pocketbase-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Mirror incrementale Firebase RTDB -> PocketBase per NaviSuite. Firebase resta autoritativo finche' il frontend non e' migrato.",
+  "scripts": {
+    "start": "node sync.js",
+    "once": "SYNC_ONCE=1 node sync.js"
+  }
+}
