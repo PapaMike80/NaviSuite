@@ -65,7 +65,9 @@ Il calcolo Diaria (straordinari, 39h, settimane a cavallo) resta lato client (`n
 
 ## Importer — stato
 
-`firebase-pocketbase-sync/` (Node, no deps). **Provato live 2026-09-09**: framework OK (auth Firebase anon + PB superuser, loop, `firebase_sync_runs`/`firebase_sync_state`, idempotente). Entità funzionanti: `configurazione`, `periodi_bozza`, `stati_settimana`, `annunci`. Da aggiungere: le altre righe della tabella qui sopra (`effectiveSchedule`/`turni_effective` è la più grossa ma non serve ri-derivare — è un blob pronto).
+`firebase-pocketbase-sync/` (Node, no deps). **Aggiornato 2026-09-09**: 17 entità implementate e verificate live (giro completo idempotente, 0 errori): `configurazione`, `periodi_bozza`, `stati_settimana`, `annunci`, `users`, `agenti`, `navi`, `correzioni_quiz`, `segnalazioni`, `variazioni`, `turni_navi`, `cambi_turno`, `turni`, `turni_effective`, `diaria`, `attivita_utenti`, **`importazioni_turni`/`turni_importati`** (nuova — batch storici `scheduleImports`, 6 batch / 18.255 righe, riconciliazione idempotente confermata su due run consecutivi).
+
+Restano solo `documenti` (richiede download/upload file da Firebase Storage) e `push_*` (da unificare con l'infra Ponte Radio) — vedi `firebase-pocketbase-sync/README.md`.
 
 ## Piano proposto
 

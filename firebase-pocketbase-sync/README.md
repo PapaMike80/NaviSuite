@@ -21,18 +21,21 @@ PocketBase non è raggiungibile da fuori la LAN/Tailscale.
 | `segnalazioni` | `.../feedbackTickets` | `legacy_id` |
 | `variazioni` | `.../odsVariations` + `manualVariations` | `legacy_id = VAR:<data>|<id_agente>|<tipo>|<ods>` (riconcilia) |
 | `turni_effective` | `.../effectiveSchedule` | `(agente, data)` (riconcilia) — **verify-turni.js: 0 differenze** |
+| `navi` | registro statico (SHIPS di `gestione_navi.html`) | solo creazione, niente delete |
+| `turni_navi` | `public/schedule.turni_navi` + `.../turniNavi` | `(nave, data, servizio)` (riconcilia); righe con nave irriconoscibile scartate (`no_nave`) |
+| `cambi_turno` | `private/changeRequests` + `approvedChangeRequests` + `deletedChangeRequests` | `legacy_id`, `stato` derivato |
+| `diaria` | `private/adminUpdates/diaria/<agentId>` | `(agente, data)`; solo input, i calcolati restano a 0 |
+| `turni` | `public/schedule.residenze[*].turni` (grezzo pre-ODS) | `(agente, data)` (riconcilia) |
+| `correzioni_quiz` | `private/adminUpdates/quizCorrections` | riga singola |
+| `attivita_utenti` | `userRegistry` + `userPresence` | una riga per agente |
+| `importazioni_turni` / `turni_importati` | `private/adminUpdates/scheduleImports[]` | un batch → N righe `(batch, agente, data)`; fallback su nome se `id_agente` è vuoto |
 
 > `stato = nascosta` per le settimane non è nell'enum PB `stati_settimana.stato`
 > (`bozza`/`ufficiale`): contate ma non scritte. Aggiungere il valore all'enum.
 
 ## Da fare (prossime entità)
 
-- `turni_navi` / `navi` — da `turniNavi` (serve matching nome nave → `navi`, i valori Firebase sono sporchi)
-- `cambi_turno` — da `private/changeRequests` (+ `approvedChangeRequests`, `deletedChangeRequests`); lo `stato` è derivato, `changes[]` è multi
-- `diaria` — da `private/adminUpdates/diaria/<agentId>` (solo input; il calcolo resta nel frontend)
-- `turni` / `importazioni_turni` — da `scheduleImports` + `public/schedule` (grezzi; `turni_effective` basta al frontend)
 - `documenti` — da `documentsMeta` + Firebase Storage (download → upload file PB)
-- `correzioni_quiz`, `attivita_utenti`
 - `push_*` / `pushSettings` — unificare con l'infra Ponte Radio
 
 ## Configurazione

@@ -718,11 +718,90 @@ async function turni(ctx) {
   return stats;
 }
 
+// ---------------------------------------------------------------------------
+// importazioni_turni + turni_importati: private/adminUpdates/scheduleImports[]
+// (batch storici xlsx/PDF, NON turni_effective). Ogni batch ha dates[] parallelo
+// a rows[].turni[]; una riga turni_importati per (batch, agente, data).
+// Audit/storia: turni_effective resta l'unica fonte per il frontend.
+// ---------------------------------------------------------------------------
+async function importazioni_turni(ctx) {
+  const raw = (await ctx.fbGet('private/adminUpdates/scheduleImports')) || [];
+  const batches = Array.isArray(raw) ? raw : Object.values(raw);
+  const agList = await ctx.pbListAll('agenti', { fields: 'id,legacy_id,nome_completo' });
+  const ag = new Map(agList.map(a => [String(a.legacy_id), a.id]));
+  // Fallback per nome: alcuni batch (es. xlsx piu' vecchi) hanno id_agente vuoto.
+  const agByName = new Map(agList.map(a => [String(a.nome_completo || '').trim().toUpperCase(), a.id]));
+
+  // 1) upsert dei batch (importazioni_turni), calcolando letti/scartati.
+  const wantedBatch = new Map(); // legacy_id -> { desired, rows: Map }
+  for (const b of batches) {
+    const legacy = String(b?.id || '');
+    if (!legacy) continue;
+    const dates = Array.isArray(b.dates) ? b.dates : [];
+    const rows = Array.isArray(b.rows) ? b.rows : [];
+    let letti = 0, scartati = 0;
+    const wantedRows = new Map();
+    for (const r of rows) {
+      const idAgente = String(r?.id_agente || '').trim();
+      const recId = ag.get(idAgente) || agByName.get(String(r?.agente || '').trim().toUpperCase());
+      const chiaveAgente = idAgente || String(r?.agente || '').trim().toUpperCase();
+      const turni = Array.isArray(r?.turni) ? r.turni : [];
+      for (let i = 0; i < dates.length; i++) {
+        const data = isoDay(dates[i]);
+        const servizio = normShift(turni[i]);
+        if (!data || !servizio || servizio === 'RIP') continue;
+        letti++;
+        if (!recId) { scartati++; continue; }
+        const chiave = `${legacy}|${chiaveAgente}|${data}`;
+        wantedRows.set(chiave, {
+          agente: recId, data: pbDate(data), servizio, residenza: String(r.residenza || ''),
+          tipo_periodo: 'legacy', riga_sorgente: i, chiave_sorgente: chiave,
+          source_payload: { agent_uid: r.agent_uid || '', agente: r.agente || '' },
+        });
+      }
+    }
+    wantedBatch.set(legacy, {
+      rows: wantedRows,
+      desired: {
+        legacy_id: legacy,
+        nome_file: String(b.filename || ''),
+        tipo: b.documentId ? 'pdf' : 'xlsx',
+        periodo_inizio: isoDay(b.inizio) ? pbDate(b.inizio) : '',
+        periodo_fine: isoDay(b.fine) ? pbDate(b.fine) : '',
+        importata_il: b.importedAt ? new Date(b.importedAt).toISOString() : '',
+        stato: b.attiva === false ? 'parziale' : 'importata',
+        record_letti: letti, record_creati: 0, record_aggiornati: 0, record_scartati: scartati,
+        metadati: { identityVersion: b.identityVersion || 0, documentId: b.documentId || '' },
+      },
+    });
+  }
+
+  const cmpBatch = ['nome_file', 'tipo', 'periodo_inizio', 'periodo_fine', 'stato', 'record_letti', 'record_scartati'];
+  const wantedForReconcile = new Map([...wantedBatch].map(([k, v]) => [k, v.desired]));
+  const statsBatch = await reconcile(ctx, 'importazioni_turni', wantedForReconcile, cmpBatch, { del: false });
+
+  // 2) turni_importati, per batch, con relazione `importazione` risolta ora.
+  const batchIds = new Map((await ctx.pbListAll('importazioni_turni', { fields: 'id,legacy_id' })).map(r => [String(r.legacy_id), r.id]));
+  const wantedRows = new Map();
+  for (const [legacy, { rows }] of wantedBatch) {
+    const importazione = batchIds.get(legacy);
+    if (!importazione) continue;
+    for (const [chiave, row] of rows) wantedRows.set(chiave, { ...row, importazione });
+  }
+  const statsRows = await reconcileBy(ctx, 'turni_importati', wantedRows, r => r.chiave_sorgente,
+    ['agente', 'importazione', 'data', 'servizio', 'residenza', 'tipo_periodo'], { extraFields: 'chiave_sorgente' });
+
+  return { seen: statsBatch.seen, created: statsBatch.created + statsRows.created,
+    updated: statsBatch.updated + statsRows.updated, unchanged: statsBatch.unchanged + statsRows.unchanged,
+    deleted: statsRows.deleted, batch_created: statsBatch.created, righe: statsRows.seen };
+}
+
 module.exports = {
   ENTITIES: {
     configurazione, periodi_bozza, stati_settimana, annunci,
     users, agenti, navi, correzioni_quiz,
     segnalazioni, variazioni, turni_navi, cambi_turno,
     turni, turni_effective, diaria, attivita_utenti,
+    importazioni_turni,
   },
 };
