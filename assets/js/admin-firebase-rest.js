@@ -314,6 +314,28 @@
     return true;
   }
 
+  // Impostazioni notifiche globali (lette anche dai dispositivi degli agenti,
+  // es. connection-webpush.js). Chiave assente => avvisi attivi (comportamento
+  // storico).
+  async function getPushSettings() {
+    const result = await databaseRequest("private/adminUpdates/pushSettings");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return { agentConnectionAlerts:value.agentConnectionAlerts !== false };
+  }
+
+  async function savePushSettings(patch = {}) {
+    const auth = await ensureAuth();
+    const current = await getPushSettings();
+    const item = {
+      ...current,
+      ...(typeof patch.agentConnectionAlerts === "boolean" ? { agentConnectionAlerts:patch.agentConnectionAlerts } : {}),
+      updatedAt:new Date().toISOString(),
+      ownerUid:auth.uid
+    };
+    await databaseRequest("private/adminUpdates/pushSettings", { method:"PUT", body:JSON.stringify(item) });
+    return { agentConnectionAlerts:item.agentConnectionAlerts };
+  }
+
   async function getAdminDocuments() {
     const result = await databaseRequest("private/adminUpdates/documentsMeta");
     return Object.entries(result.data || {}).map(([id, value]) => ({ ...(value || {}), id:String(value?.id || id) }));
@@ -726,6 +748,8 @@
     getDraftPeriod,
     saveDraftPeriod,
     resetDraftPeriod,
+    getPushSettings,
+    savePushSettings,
     getAdminDocuments,
     getAdminDocumentFile,
     saveAdminDocument,
