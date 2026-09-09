@@ -8,7 +8,22 @@
 // Gira sul TrueNAS, a fianco di ponteradio-worker (PocketBase non e' pubblico).
 
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { ENTITIES: ENTITY_MAP } = require('./entities');
+
+// .env accanto a sync.js (facoltativo, non nel repo). Nessuna dipendenza.
+(() => {
+  const file = path.join(__dirname, '.env');
+  if (!fs.existsSync(file)) return;
+  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+    if (!m || line.trim().startsWith('#')) continue;
+    let value = m[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+    if (process.env[m[1]] === undefined) process.env[m[1]] = value;
+  }
+})();
 
 const cfg = {
   fbDbUrl: reqEnv('FIREBASE_DB_URL').replace(/\/$/, ''),
