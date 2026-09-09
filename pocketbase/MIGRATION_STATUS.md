@@ -40,6 +40,33 @@ PocketBase 0.40.1 · `http://192.168.178.158:8095` (LAN) / `https://truenas-scal
 
 Il calcolo Diaria (straordinari, 39h, settimane a cavallo) resta lato client (`navidiaria-monthly.js`, `overtime-components.js`) — da NON toccare; PB conserva solo l'input.
 
+## Mappa dati Firebase (live, `navisuite-f116f`)
+
+| Nodo | Forma | → PocketBase |
+|---|---|---|
+| `public/schedule` | obj 485 KB (`residenze`, `date`, `turni_navi`, `variazioni_ods`, `bariste`, `periodo`) | `turni` base |
+| `private/adminUpdates/effectiveSchedule` | **obj 633 KB `{data, meta}`** — dataset già mergiato (base + ODS + profili) | **`turni_effective`** (parse del blob, niente ri-derivazione) |
+| `.../serviceConfigurations` | obj `{configurations, updatedAt, updatedBy}` | `configurazione` chiave `serviceConfigurations` ✅ |
+| `.../announcements` | obj `{cambi, diaria, general, home, personal, turni}` | `configurazione` chiave `announcementsDrafts` ✅ + `annunci` (personali) ✅ |
+| `.../draftPeriod` | obj `{start, end, ownerUid}` | `periodi_bozza` ✅ |
+| `.../weekStatuses` | `null` al momento | `stati_settimana` ✅ (enum manca `nascosta`) |
+| `.../odsVariations` | array[237] · `.../manualVariations` array[8] | `variazioni` |
+| `.../scheduleImports` | array[6] 258 KB | `importazioni_turni` + `turni_importati` |
+| `.../agentProfiles` | obj[20] (override qualifica/ruolo) | `agenti` |
+| `.../turniNavi` | array[800] 143 KB | `turni_navi` (+ `navi`) |
+| `.../userAuth` obj[146] · `.../userRegistry` obj[30] | login_id + pin_hash + role | `users` provisioning |
+| `.../diaria` | obj[22] per-agente, 730 KB | `diaria` (solo input) |
+| `.../feedbackTickets` | obj[1] | `segnalazioni` |
+| `.../quizCorrections` | obj[4] | `correzioni_quiz` |
+| `.../documentsMeta` obj[3] + `documentsFiles` | + Firebase Storage | `documenti` |
+| `private/changeRequests` (+ `approvedChangeRequests`, `deletedChangeRequests`) | | `cambi_turno` |
+| `.../pushSubscriptions` / `pushQueue` / `pushSettings` | | infra push (unificare con Ponte Radio) |
+| `.../userPresence` | | `attivita_utenti` |
+
+## Importer — stato
+
+`firebase-pocketbase-sync/` (Node, no deps). **Provato live 2026-09-09**: framework OK (auth Firebase anon + PB superuser, loop, `firebase_sync_runs`/`firebase_sync_state`, idempotente). Entità funzionanti: `configurazione`, `periodi_bozza`, `stati_settimana`, `annunci`. Da aggiungere: le altre righe della tabella qui sopra (`effectiveSchedule`/`turni_effective` è la più grossa ma non serve ri-derivare — è un blob pronto).
+
 ## Piano proposto
 
 **Percorso critico = l'importer, non il frontend.** Senza sync, qualunque cutover perde i dati dal 1° settembre in poi.
