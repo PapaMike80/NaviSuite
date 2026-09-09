@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v215-avvisi-agenti';
+const CACHE_VERSION = 'navisuite-v216-distinta-leggibile';
 const CORE_ASSETS = [
   './',
   './index.html',
