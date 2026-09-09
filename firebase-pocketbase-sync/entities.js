@@ -456,6 +456,273 @@ async function variazioni(ctx) {
   return stats;
 }
 
+// ---------------------------------------------------------------------------
+// Helper generico di riconciliazione per collezioni con legacy_id.
+// wanted: Map legacy_id -> desired. cmp: campi da confrontare (devono stare
+// tutti nel fields della fetch). Ritorna stats.
+// ---------------------------------------------------------------------------
+async function reconcile(ctx, collection, wanted, cmp, opts = {}) {
+  return reconcileBy(ctx, collection, wanted, r => r.legacy_id, cmp, { extraFields: 'legacy_id', ...opts });
+}
+
+// wanted: Map<chiave, desired>. keyOf(existingRow) deve produrre la stessa chiave.
+async function reconcileBy(ctx, collection, wanted, keyOf, cmp, { del = true, extraFields = '' } = {}) {
+  const fields = ['id', extraFields, ...cmp].filter(Boolean).join(',');
+  const existing = await ctx.pbListAll(collection, { fields });
+  const byKey = new Map();
+  for (const r of existing) { const k = keyOf(r); if (k != null) byKey.set(String(k), r); }
+  const stats = { seen: wanted.size, created: 0, updated: 0, unchanged: 0, deleted: 0 };
+  for (const [key, want] of wanted) {
+    const row = byKey.get(String(key));
+    if (!row) { await ctx.pbCreate(collection, want); stats.created++; }
+    else if (cmp.some(k => JSON.stringify(row[k] ?? null) !== JSON.stringify(want[k] ?? null))) { await ctx.pbUpdate(collection, row.id, want); stats.updated++; }
+    else stats.unchanged++;
+  }
+  if (del) for (const [key, row] of byKey) {
+    if (!wanted.has(key) && !wanted.has(String(key))) { await ctx.pbDelete(collection, row.id); stats.deleted++; }
+  }
+  return stats;
+}
+
+const NAVE_NORM = s => String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/['’.]/g, '').replace(/\s+/g, ' ').trim();
+
+// ---------------------------------------------------------------------------
+// navi: registro statico (SHIPS di gestione_navi.html). Solo upsert, niente
+// delete: la collection puo' avere navi in piu' aggiunte a mano.
+// ---------------------------------------------------------------------------
+const SHIP_RESIDENCE = { AGONE: 'DESENZANO', TONALE: 'DESENZANO', BALDO: 'DESENZANO', 'S. MARCO': 'PESCHIERA', CATULLO: 'PESCHIERA', 'S. VIGILIO': 'PESCHIERA', MINCIO: 'PESCHIERA', MANTOVA: 'PESCHIERA', TRENTO: 'MADERNO', BRENNERO: 'MADERNO', 'S. MARTINO': 'MADERNO', PELER: 'MADERNO', PARINI: 'MADERNO', SOLFERINO: 'MADERNO', "D'ANNUNZIO": 'MADERNO', BRESCIA: 'MADERNO', ANDROMEDA: 'RIVA', ANDER: 'RIVA', VIRGILIO: 'RIVA', GOETHE: 'RIVA', RIVIERE: 'RIVA', VERGA: 'RIVA' };
+async function navi(ctx) {
+  const ships = ['AGONE', 'TONALE', 'BALDO', 'S. MARCO', 'CATULLO', 'S. VIGILIO', 'MINCIO', 'MANTOVA', 'TRENTO', 'BRENNERO', 'S. MARTINO', 'PELER', 'PARINI', 'SOLFERINO', "D'ANNUNZIO", 'BRESCIA', 'ANDROMEDA', 'ANDER', 'VIRGILIO', 'GOETHE', 'RIVIERE', 'VERGA'];
+  const wanted = new Map(ships.map(n => {
+    const legacy = `NAVE:${n.replace(/[^A-Z0-9]+/g, '_').replace(/_$/, '')}`;
+    return [legacy, { legacy_id: legacy, nome: n, residenza: SHIP_RESIDENCE[n] || '', attiva: true }];
+  }));
+  // Solo creazione delle navi mancanti: nome e residenza esistenti non si toccano
+  // (la collection puo' avere navi/residenze aggiornate a mano).
+  return reconcile(ctx, 'navi', wanted, ['nome'], { del: false });
+}
+
+// ---------------------------------------------------------------------------
+// turni_navi: private/adminUpdates/turniNavi[]. `nave` e' una relazione
+// obbligatoria: le righe con nome nave non riconoscibile vengono saltate.
+// ---------------------------------------------------------------------------
+async function turni_navi(ctx) {
+  const sched = (await ctx.fbGet('public/schedule')) || {};
+  const admin = (await ctx.fbGet('private/adminUpdates/turniNavi')) || [];
+  // public/schedule.turni_navi = base pulito; adminUpdates/turniNavi = piu' recente
+  // ma con righe corrotte (nave = cognomi + codici). resolveNave scarta quelle.
+  const list = [
+    ...(Array.isArray(sched.turni_navi) ? sched.turni_navi : Object.values(sched.turni_navi || {})),
+    ...(Array.isArray(admin) ? admin : Object.values(admin)),
+  ];
+  const navi = await ctx.pbListAll('navi', { fields: 'id,nome' });
+  const byNorm = navi.map(n => [NAVE_NORM(n.nome), n.id]).sort((a, b) => b[0].length - a[0].length);
+  const resolveNave = raw => {
+    const norm = NAVE_NORM(raw);
+    for (const [name, id] of byNorm) if (name && (norm === name || norm.split(' ').includes(name) || norm.startsWith(name + ' '))) return id;
+    return '';
+  };
+  const wanted = new Map();
+  let noNave = 0;
+  for (const r of list) {
+    if (!r || r.attiva === false) continue;
+    const data = isoDay(r.data), corsa = String(r.corsa || '').trim().toUpperCase();
+    if (!data || !corsa) continue;
+    const nave = resolveNave(r.nave);
+    if (!nave) { noNave++; continue; }
+    const key = `${nave}\t${data}\t${corsa}`;
+    wanted.set(key, {
+      legacy_id: `TN:${data}|${corsa}|${NAVE_NORM(r.nave)}`, nave, data: pbDate(data), servizio: corsa,
+      ormeggio_serale: String(r.ormeggio_serale || '').slice(0, 160),
+      rifornimento_mattina: /^(s[iì]|true|1|x)$/i.test(String(r.rifornimento_mattina || '')),
+      legacy_payload: r,
+    });
+  }
+  const stats = await reconcileBy(ctx, 'turni_navi', wanted,
+    r => `${r.nave}\t${isoDay(r.data)}\t${r.servizio}`,
+    ['nave', 'data', 'servizio', 'ormeggio_serale', 'rifornimento_mattina']);
+  stats.no_nave = noNave;
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// cambi_turno: private/changeRequests + approvedChangeRequests +
+// deletedChangeRequests. `changes[]` e' multi -> primo elemento nei campi
+// piatti, tutto in legacy_payload. stato derivato.
+// ---------------------------------------------------------------------------
+async function cambi_turno(ctx) {
+  const reqs = (await ctx.fbGet('private/changeRequests')) || {};
+  const approved = (await ctx.fbGet('private/adminUpdates/approvedChangeRequests')) || [];
+  const deleted = (await ctx.fbGet('private/adminUpdates/deletedChangeRequests')) || {};
+  const approvedSet = new Set((Array.isArray(approved) ? approved : Object.values(approved)).map(a => String(a?.requestId || a)));
+  const deletedSet = new Set(Object.values(deleted).map(d => String(d?.requestId || '')).concat(Object.keys(deleted)));
+
+  const ag = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id' })).map(a => [String(a.legacy_id), a.id]));
+  const wanted = new Map();
+  let noAgent = 0;
+  for (const [key, r] of Object.entries(reqs)) {
+    const legacy = String(r?.id || key);
+    const richiedente = ag.get(String(r?.agentId || ''));
+    if (!richiedente) { noAgent++; continue; }
+    const changes = Array.isArray(r?.changes) ? r.changes : [];
+    const c0 = changes[0] || {};
+    const stato = deletedSet.has(legacy) ? 'cancelled' : approvedSet.has(legacy) ? 'approved' : 'pending';
+    wanted.set(legacy, {
+      legacy_id: legacy, richiedente, collega: ag.get(String(r?.colleagueId || '')) || '',
+      data_richiedente: c0.date ? pbDate(c0.date) : '',
+      turno_richiedente: String(c0.from || ''), turno_collega: String(c0.to || ''),
+      stato, inviata_il: r?.sentAt ? new Date(r.sentAt).toISOString() : '',
+      note: String(r?.note || '').slice(0, 2000), legacy_payload: r,
+    });
+  }
+  const stats = await reconcile(ctx, 'cambi_turno', wanted, ['richiedente', 'collega', 'stato', 'turno_richiedente', 'turno_collega']);
+  stats.no_agent = noAgent;
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// diaria: private/adminUpdates/diaria/<agentId>.entries[]. Solo input; le ore
+// e gli straordinari calcolati restano al frontend (campi a 0).
+// ---------------------------------------------------------------------------
+const PCT = new Set(['0', '9', '12', '24', '40', '50']);
+async function diaria(ctx) {
+  const all = (await ctx.fbGet('private/adminUpdates/diaria')) || {};
+  const ag = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id' })).map(a => [String(a.legacy_id), a.id]));
+  const wanted = new Map();
+  let noAgent = 0;
+  for (const [agentId, blob] of Object.entries(all)) {
+    const recId = ag.get(String(blob?.agentId || agentId));
+    if (!recId) { noAgent++; continue; }
+    for (const en of blob?.entries || []) {
+      const data = isoDay(en?.date);
+      if (!data) continue;
+      const ot = en.overtimeComponents || {};
+      const rate = String(en.allowanceRate ?? '');
+      // I campi minuti hanno min:0 nello schema PB; Firebase puo' avere valori
+      // negativi (es. banca ore usata). Il dato grezzo resta in legacy_payload.
+      const nn = x => Math.max(0, Math.round(Number(x) || 0));
+      wanted.set(`${recId}\t${data}`, {
+        agente: recId, data: pbDate(data), servizio: String(en.shift || ''),
+        straordinario_ritardo_minuti: nn(en.delay),
+        straordinario_cambio_minuti: nn(ot.cambi),
+        straordinario_sentine_minuti: nn(ot.sentine),
+        banca_ore_minuti: nn(en.bank),
+        diaria_percentuale: PCT.has(rate) ? rate : '0',
+        indennita_imbarco: !!en.embark, ticket_dovuto: !!en.mealUsed, ticket_usato: !!en.mealUsed,
+        secondo_ticket: !!en.secondMeal, maneggio_denaro: !!en.cashHandling,
+        trasferta_minuti: en.travel ? nn(en.travelMinutes) : 0, presenza: en.shift !== 'Riposo' && en.shift !== 'Assenza',
+        rifornimento: !!en.refuel, parametro_139: !!en.param139,
+        override_manuale: !!(en.manualModified || en.manualOverride),
+        note: String(en.note || '').slice(0, 2000), legacy_payload: en,
+      });
+    }
+  }
+  const stats = await reconcileBy(ctx, 'diaria', wanted,
+    r => `${r.agente}\t${isoDay(r.data)}`,
+    ['agente', 'data', 'servizio', 'straordinario_ritardo_minuti', 'straordinario_cambio_minuti', 'straordinario_sentine_minuti',
+      'banca_ore_minuti', 'diaria_percentuale', 'indennita_imbarco', 'ticket_dovuto', 'maneggio_denaro', 'override_manuale']);
+  stats.no_agent = noAgent;
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// correzioni_quiz: private/adminUpdates/quizCorrections (un blob).
+// ---------------------------------------------------------------------------
+async function correzioni_quiz(ctx) {
+  const src = await ctx.fbGet('private/adminUpdates/quizCorrections');
+  const risposte = src?.answers;
+  if (isEmpty(risposte)) return { seen: 0, skipped_empty: 1 };
+  const wanted = new Map([['firebase-quiz-corrections', {
+    legacy_id: 'firebase-quiz-corrections', quiz_id: 'default', risposte,
+    aggiornata_il: src?.updatedAt ? new Date(src.updatedAt).toISOString() : new Date().toISOString(),
+  }]]);
+  return reconcile(ctx, 'correzioni_quiz', wanted, ['risposte', 'quiz_id'], { del: false });
+}
+
+// ---------------------------------------------------------------------------
+// attivita_utenti: userRegistry (lastAccess/lastPage) + userPresence (lastSeen).
+// Una riga per agente. Niente legacy_id nello schema -> chiave = agente.
+// ---------------------------------------------------------------------------
+async function attivita_utenti(ctx) {
+  const registry = (await ctx.fbGet('private/adminUpdates/userRegistry')) || {};
+  const presence = (await ctx.fbGet('private/adminUpdates/userPresence')) || {};
+  const ag = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id' })).map(a => [String(a.legacy_id), a.id]));
+
+  const wanted = new Map(); // agente id -> desired
+  const seenIds = new Set([...Object.keys(registry), ...Object.keys(presence)]);
+  for (const legacyId of seenIds) {
+    const recId = ag.get(String(legacyId));
+    if (!recId) continue;
+    const reg = registry[legacyId] || {};
+    let lastSeen = '', uid = '';
+    for (const dev of Object.values(presence[legacyId] || {})) {
+      if (dev?.lastSeen && String(dev.lastSeen) > lastSeen) { lastSeen = String(dev.lastSeen); uid = String(dev.uid || ''); }
+    }
+    wanted.set(recId, {
+      agente: recId,
+      ultimo_accesso: reg.lastAccess ? new Date(reg.lastAccess).toISOString() : '',
+      ultima_pagina: String(reg.lastPage || '').slice(0, 120),
+      ultimo_contatto: lastSeen ? new Date(lastSeen).toISOString() : (reg.lastAccess ? new Date(reg.lastAccess).toISOString() : ''),
+      legacy_uid: uid,
+    });
+  }
+
+  const existing = await ctx.pbListAll('attivita_utenti', { fields: 'id,agente,ultimo_accesso,ultima_pagina,ultimo_contatto,legacy_uid' });
+  const byAgente = new Map(existing.map(r => [String(r.agente), r]));
+  const stats = { seen: wanted.size, created: 0, updated: 0, unchanged: 0 };
+  const norm = v => String(v || '').replace('T', ' ').slice(0, 19);
+  for (const [recId, want] of wanted) {
+    const row = byAgente.get(recId);
+    if (!row) { await ctx.pbCreate('attivita_utenti', want); stats.created++; }
+    else if (['ultimo_accesso', 'ultimo_contatto'].some(k => norm(row[k]) !== norm(want[k]))
+      || String(row.ultima_pagina || '') !== String(want.ultima_pagina || '')
+      || String(row.legacy_uid || '') !== String(want.legacy_uid || '')) {
+      await ctx.pbUpdate('attivita_utenti', row.id, want); stats.updated++;
+    } else stats.unchanged++;
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
+// turni: calendario base grezzo da public/schedule.residenze[*].turni
+// (pre-ODS). Il frontend usa turni_effective; questo e' storia/audit.
+// ---------------------------------------------------------------------------
+async function turni(ctx) {
+  const sched = (await ctx.fbGet('public/schedule')) || {};
+  if (isEmpty(sched.residenze)) return { seen: 0 };
+  const ag = new Map((await ctx.pbListAll('agenti', { fields: 'id,legacy_id' })).map(a => [String(a.legacy_id), a.id]));
+  const dateStato = new Map((sched.date || []).map(d => [isoDay(d.iso), String(d.stato || 'ufficiale').toLowerCase()]));
+
+  const wanted = new Map();
+  let noAgent = 0;
+  for (const [residenza, list] of Object.entries(sched.residenze)) {
+    for (const a of list || []) {
+      const recId = ag.get(String(a.id || ''));
+      if (!recId) { if (Object.keys(a.turni || {}).length) noAgent++; continue; }
+      for (const [rawIso, rawSrv] of Object.entries(a.turni || {})) {
+        const iso = isoDay(rawIso);
+        if (!iso) continue;
+        wanted.set(`${recId}\t${iso}`, {
+          agente: recId, data: pbDate(iso),
+          servizio: normShift(rawSrv), residenza,
+          origine: 'calendario',
+          stato: dateStato.get(iso) === 'bozza' ? 'bozza' : 'pubblicato',
+        });
+      }
+    }
+  }
+  const stats = await reconcileBy(ctx, 'turni', wanted,
+    r => `${r.agente}\t${isoDay(r.data)}`,
+    ['agente', 'data', 'servizio', 'residenza', 'stato']);
+  stats.no_agent = noAgent;
+  return stats;
+}
+
 module.exports = {
-  ENTITIES: { configurazione, periodi_bozza, stati_settimana, annunci, users, agenti, segnalazioni, variazioni, turni_effective },
+  ENTITIES: {
+    configurazione, periodi_bozza, stati_settimana, annunci,
+    users, agenti, navi, correzioni_quiz,
+    segnalazioni, variazioni, turni_navi, cambi_turno,
+    turni, turni_effective, diaria, attivita_utenti,
+  },
 };
