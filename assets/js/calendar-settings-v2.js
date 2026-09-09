@@ -282,18 +282,49 @@
     });
   }
 
-  function buildIcs(data) {
+  // Orari reali per codice turno (partenza prima corsa / arrivo ultima corsa
+  // della giornata), ricavati una volta sola da assets/js/orario-main.js —
+  // vedi assets/shift-times.json. Se un codice non e' in tabella (es. T1/T2,
+  // non presenti nella corse ufficiali imbarcate) l'evento resta a giornata
+  // intera invece di inventare un orario.
+  let shiftTimesCache = null;
+  async function loadShiftTimes() {
+    if (shiftTimesCache) return shiftTimesCache;
+    try {
+      const response = await fetch(`assets/shift-times.json?v=1`, {cache:'no-store'});
+      shiftTimesCache = response.ok ? ((await response.json()).turni || {}) : {};
+    } catch (_) { shiftTimesCache = {}; }
+    return shiftTimesCache;
+  }
+  const shiftTimeKey = code => (code === 'CAR' || code === 'CAP') ? `${code}1` : code;
+
+  // Blocco VTIMEZONE standard Europe/Rome (CET/CEST, cambio ultima domenica di
+  // marzo/ottobre): senza, gli orari verrebbero interpretati come UTC da Apple/
+  // Google Calendar, sbagliando di 1-2 ore.
+  const VTIMEZONE_ROME = [
+    'BEGIN:VTIMEZONE','TZID:Europe/Rome','X-LIC-LOCATION:Europe/Rome',
+    'BEGIN:DAYLIGHT','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','TZNAME:CEST','DTSTART:19700329T020000','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','END:DAYLIGHT',
+    'BEGIN:STANDARD','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','TZNAME:CET','DTSTART:19701025T030000','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','END:STANDARD',
+    'END:VTIMEZONE',
+  ];
+
+  async function buildIcs(data) {
     const events = buildEvents(data);
+    const shiftTimes = await loadShiftTimes();
     const agentId = String(profile.id).replace(/[^A-Za-z0-9_-]/g, '_');
     const calendarName = `NaviSuite - ${String(profile.name || profile.cognome || 'Turni').trim()}`;
     const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/, 'Z');
     const lines = [
       'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NaviSuite//Calendario personale//IT','CALSCALE:GREGORIAN','METHOD:PUBLISH',
-      `X-WR-CALNAME:${icsEscape(calendarName)}`,'X-WR-TIMEZONE:Europe/Rome','REFRESH-INTERVAL;VALUE=DURATION:PT1H','X-PUBLISHED-TTL:PT1H'
+      `X-WR-CALNAME:${icsEscape(calendarName)}`,'X-WR-TIMEZONE:Europe/Rome','REFRESH-INTERVAL;VALUE=DURATION:PT1H','X-PUBLISHED-TTL:PT1H',
+      ...VTIMEZONE_ROME,
     ];
     events.forEach(event => {
       const summary = `NaviSuite · ${event.shift}${event.vessel ? ` · ${event.vessel}` : ''}`;
-      lines.push('BEGIN:VEVENT',`UID:${agentId}-${event.iso}@navisuite`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${icsDate(event.iso)}`,`DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(event.description)}`,'STATUS:CONFIRMED','TRANSP:TRANSPARENT','END:VEVENT');
+      const times = shiftTimes[shiftTimeKey(event.shift)];
+      const start = times ? `DTSTART;TZID=Europe/Rome:${icsDate(event.iso)}T${times.start.replace(':','')}00` : `DTSTART;VALUE=DATE:${icsDate(event.iso)}`;
+      const end = times ? `DTEND;TZID=Europe/Rome:${icsDate(event.iso)}T${times.end.replace(':','')}00` : `DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`;
+      lines.push('BEGIN:VEVENT',`UID:${agentId}-${event.iso}@navisuite`,`DTSTAMP:${stamp}`,start,end,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(event.description)}`,'STATUS:CONFIRMED','TRANSP:TRANSPARENT','END:VEVENT');
     });
     lines.push('END:VCALENDAR');
     return lines.map(foldIcs).join('\r\n') + '\r\n';
@@ -309,7 +340,7 @@
     status.textContent = 'Aggiorno i turni e preparo il calendario…';
     try {
       const data = await loadCalendarData();
-      const ics = buildIcs(data);
+      const ics = await buildIcs(data);
       const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
