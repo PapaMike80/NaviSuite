@@ -282,21 +282,30 @@
     });
   }
 
-  // Orari reali per codice turno (partenza prima corsa / arrivo ultima corsa
-  // della giornata), ricavati una volta sola da assets/js/orario-main.js —
-  // vedi assets/shift-times.json. Se un codice non e' in tabella (es. T1/T2,
-  // non presenti nella corse ufficiali imbarcate) l'evento resta a giornata
-  // intera invece di inventare un orario.
-  let shiftTimesCache = null;
-  async function loadShiftTimes() {
-    if (shiftTimesCache) return shiftTimesCache;
-    try {
-      const response = await fetch(`assets/shift-times.json?v=1`, {cache:'no-store'});
-      shiftTimesCache = response.ok ? ((await response.json()).turni || {}) : {};
-    } catch (_) { shiftTimesCache = {}; }
-    return shiftTimesCache;
-  }
-  const shiftTimeKey = code => (code === 'CAR' || code === 'CAP') ? `${code}1` : code;
+  // Orari reali per codice turno (partenza prima corsa - 60' di
+  // presentazione / arrivo ultima corsa), ricavati da assets/js/orario-main.js
+  // con tools/generate-shift-times.py. Copiati qui in linea (invece di un
+  // fetch a assets/shift-times.json, che quel file resta comunque a
+  // generare) per non dipendere da un'altra richiesta di rete: su
+  // dispositivi reali un fetch in piu' durante il download del calendario
+  // ha piu' occasioni di fallire (service worker, cache, rete lenta) e il
+  // fallback silenzioso lo rendeva impossibile da diagnosticare da remoto.
+  // T1/T2 non sono nella tabella corse ufficiale: restano a giornata intera.
+  /* SHIFT_TIMES:START (rigenerato da tools/generate-shift-times.py, non modificare a mano) */
+  const SHIFT_TIMES = {
+    D1:{start:'07:55',end:'20:15'}, D2:{start:'07:20',end:'18:25'}, D3:{start:'07:00',end:'19:20'}, D4:{start:'07:15',end:'19:45'},
+    M1:{start:'07:20',end:'19:50'}, R1:{start:'07:50',end:'20:05'}, R2:{start:'07:00',end:'19:30'}, R3:{start:'07:40',end:'19:20'},
+    R4:{start:'08:20',end:'20:30'}, CAR1:{start:'07:20',end:'19:40'}, P1:{start:'08:10',end:'20:10'}, P2:{start:'07:00',end:'19:20'},
+    P3:{start:'07:35',end:'19:00'}, CAP1:{start:'07:30',end:'19:35'}, SR1:{start:'07:50',end:'19:30'},
+  };
+  /* SHIFT_TIMES:END */
+  // Il codice turno puo' arrivare con un asterisco o altro segno di nota
+  // (es. "D3*" per una variazione ODS, vedi naviturni.html): la cerchiamo
+  // per la ricerca dell'orario ma lasciamo il testo originale nel titolo.
+  const shiftTimeKey = code => {
+    const base = String(code || '').replace(/[^A-Z0-9]+$/i, '').toUpperCase();
+    return (base === 'CAR' || base === 'CAP') ? `${base}1` : base;
+  };
 
   // Blocco VTIMEZONE standard Europe/Rome (CET/CEST, cambio ultima domenica di
   // marzo/ottobre): senza, gli orari verrebbero interpretati come UTC da Apple/
@@ -310,7 +319,6 @@
 
   async function buildIcs(data) {
     const events = buildEvents(data);
-    const shiftTimes = await loadShiftTimes();
     const agentId = String(profile.id).replace(/[^A-Za-z0-9_-]/g, '_');
     const calendarName = `NaviSuite - ${String(profile.name || profile.cognome || 'Turni').trim()}`;
     const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/, 'Z');
@@ -321,7 +329,7 @@
     ];
     events.forEach(event => {
       const summary = `NaviSuite · ${event.shift}${event.vessel ? ` · ${event.vessel}` : ''}`;
-      const times = shiftTimes[shiftTimeKey(event.shift)];
+      const times = SHIFT_TIMES[shiftTimeKey(event.shift)];
       const start = times ? `DTSTART;TZID=Europe/Rome:${icsDate(event.iso)}T${times.start.replace(':','')}00` : `DTSTART;VALUE=DATE:${icsDate(event.iso)}`;
       const end = times ? `DTEND;TZID=Europe/Rome:${icsDate(event.iso)}T${times.end.replace(':','')}00` : `DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`;
       lines.push('BEGIN:VEVENT',`UID:${agentId}-${event.iso}@navisuite`,`DTSTAMP:${stamp}`,start,end,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(event.description)}`,'STATUS:CONFIRMED','TRANSP:TRANSPARENT','END:VEVENT');

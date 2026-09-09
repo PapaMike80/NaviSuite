@@ -18,7 +18,28 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ORARIO_JS = ROOT / "assets" / "js" / "orario-main.js"
 OUT_JSON = ROOT / "assets" / "shift-times.json"
+CALENDAR_JS = ROOT / "assets" / "js" / "calendar-settings-v2.js"
 PRESENTAZIONE_MINUTI = 60
+
+
+def update_inline_js(result):
+    """Aggiorna la costante SHIFT_TIMES in calendar-settings-v2.js (copiata in
+    linea per non dipendere da un fetch separato — vedi commento nel file)."""
+    text = CALENDAR_JS.read_text(encoding="utf-8")
+    start_marker = "/* SHIFT_TIMES:START (rigenerato da tools/generate-shift-times.py, non modificare a mano) */"
+    end_marker = "/* SHIFT_TIMES:END */"
+    start = text.index(start_marker)
+    end = text.index(end_marker, start) + len(end_marker)
+
+    codes = list(result.items())
+    rows = []
+    for i in range(0, len(codes), 4):
+        chunk = codes[i:i + 4]
+        rows.append("    " + " ".join(f"{code}:{{start:'{t['start']}',end:'{t['end']}'}}," for code, t in chunk))
+    body = "\n".join(rows)
+
+    replacement = f"{start_marker}\n  const SHIFT_TIMES = {{\n{body}\n  }};\n  {end_marker}"
+    CALENDAR_JS.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
 
 
 def minute_to_hhmm(minute):
@@ -62,7 +83,8 @@ def main():
         "turni": result,
     }
     OUT_JSON.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"scritto {OUT_JSON} ({len(result)} codici, mancanti: {missing})")
+    update_inline_js(result)
+    print(f"scritto {OUT_JSON} e aggiornato {CALENDAR_JS} ({len(result)} codici, mancanti: {missing})")
 
 
 if __name__ == "__main__":
