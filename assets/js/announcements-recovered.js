@@ -13,7 +13,7 @@
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
 
   // Notifica l'amministratore quando un agente torna attivo su NaviSuite.
-  load('assets/js/connection-webpush.js?v=20260909-1');
+  load('assets/js/connection-webpush.js?v=20260909-2');
 
   // Centro Web Push di produzione: attivazione dispositivo, orari automatici,
   // invio giornata admin. I messaggi tra agenti sono in Ponte Radio.
@@ -22,6 +22,6 @@
     // non poteva leggere il turno e mostrava "Dati turni non disponibili".
     load('assets/js/shared-data.js?v=119');
     load('assets/js/push-notifications-v3.js?v=20260906-1');
-    load('assets/js/push-center.js?v=20260909-1');
+    load('assets/js/push-center.js?v=20260909-2');
   }
 })();
