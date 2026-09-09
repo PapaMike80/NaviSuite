@@ -8,6 +8,8 @@
 // Convenzione: la sorgente autoritativa e' Firebase; qui si scrive solo verso
 // PocketBase, in modo idempotente per una chiave stabile.
 
+const isEmpty = v => v == null || (typeof v === 'object' && !Object.keys(v).length) || (Array.isArray(v) && !v.length);
+
 const isoDay = value => {
   const s = String(value || '').trim();
   const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -22,18 +24,20 @@ const pbDate = value => {
 
 // ---------------------------------------------------------------------------
 // configurazione: blob di configurazione Firebase copiati 1:1 in valore(json).
-//   private/adminUpdates/shipConfigurations -> chiave "serviceConfigurations"
-//   private/adminUpdates/announcements      -> chiave "announcementsDrafts"
+//   private/adminUpdates/serviceConfigurations -> chiave "serviceConfigurations"
+//   private/adminUpdates/announcements         -> chiave "announcementsDrafts"
 // ---------------------------------------------------------------------------
 async function configurazione(ctx) {
   const map = [
-    ['serviceConfigurations', 'private/adminUpdates/shipConfigurations', 'Configurazione servizi Firebase'],
+    ['serviceConfigurations', 'private/adminUpdates/serviceConfigurations', 'Configurazione servizi Firebase'],
     ['announcementsDrafts', 'private/adminUpdates/announcements', 'Bozze e impostazioni annunci Firebase'],
   ];
-  const stats = { seen: 0, created: 0, updated: 0, unchanged: 0 };
+  const stats = { seen: 0, created: 0, updated: 0, unchanged: 0, skipped_empty: 0 };
   for (const [chiave, path, descrizione] of map) {
-    const valore = (await ctx.fbGet(path)) ?? {};
+    const valore = await ctx.fbGet(path);
     stats.seen++;
+    // valore e' un campo required: mai sovrascrivere con un blob vuoto/null.
+    if (isEmpty(valore)) { stats.skipped_empty++; continue; }
     const changed = await ctx.markState('configurazione', chiave, ctx.hash(valore), path);
     if (!changed) { stats.unchanged++; continue; }
     const result = await ctx.upsert('configurazione', {
