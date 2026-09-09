@@ -2,9 +2,12 @@
 """Rigenera assets/shift-times.json dalla tabella corse imbarcata in
 assets/js/orario-main.js (variabile `data`, campi services[]/shifts[]).
 
-Per ogni codice turno: prende la partenza della prima corsa e l'arrivo
-dell'ultima corsa tra quelle assegnate al turno (data.shifts[codice].r),
-usando i minuti-da-mezzanotte in services[].p (coppia [fermata, minuto]).
+Per ogni codice turno: l'inizio e' la partenza della prima corsa MENO il
+margine di presentazione a bordo (PRESENTAZIONE_MINUTI, default 60'), la
+fine e' l'arrivo dell'ultima corsa cosi' com'e' (nessun anticipo/margine).
+Regola confermata sui codici D1-D4 gia' presenti nel vecchio
+tools/navisuite-calendar-apps-script-v2.gs (SERVICE_TIMES): partenza prima
+corsa - 60' in tutti e 4 i casi, arrivo ultima corsa invariato.
 
 Uso: python3 tools/generate-shift-times.py
 """
@@ -15,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ORARIO_JS = ROOT / "assets" / "js" / "orario-main.js"
 OUT_JSON = ROOT / "assets" / "shift-times.json"
+PRESENTAZIONE_MINUTI = 60
 
 
 def minute_to_hhmm(minute):
@@ -46,11 +50,14 @@ def main():
                 ends.append(max(minutes))
         if not starts:
             continue
-        result[code] = {"start": minute_to_hhmm(min(starts)), "end": minute_to_hhmm(max(ends))}
+        result[code] = {
+            "start": minute_to_hhmm(min(starts) - PRESENTAZIONE_MINUTI),
+            "end": minute_to_hhmm(max(ends)),
+        }
 
     missing = sorted(set(shifts.keys()) - set(result.keys()))
     out = {
-        "_fonte": "Ricavato da assets/js/orario-main.js (tabella corse ufficiale) — vedi tools/generate-shift-times.py",
+        "_fonte": f"Ricavato da assets/js/orario-main.js (tabella corse ufficiale) — inizio = partenza prima corsa - {PRESENTAZIONE_MINUTI}' di presentazione, fine = arrivo ultima corsa. Vedi tools/generate-shift-times.py",
         "_mancanti": missing,
         "turni": result,
     }

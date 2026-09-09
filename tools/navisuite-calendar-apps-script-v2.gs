@@ -5,10 +5,19 @@
  */
 const NAVI=Object.freeze({databaseUrl:'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app',publicScheduleUrl:'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/schedule.json',tokenProperty:'NAVISUITE_CALENDAR_TOKENS_V1',authProperty:'NAVISUITE_FIREBASE_AUTH_V1',apiKeyProperty:'NAVISUITE_FIREBASE_API_KEY',timezone:'Europe/Rome'});
 
-// Orari di presenza/servizio già usati operativamente da NaviSuite.
+// Orari di presenza/servizio: inizio = partenza prima corsa del turno - 60'
+// di presentazione a bordo, fine = arrivo ultima corsa (invariato). Ricavati
+// dalla tabella corse ufficiale (assets/js/orario-main.js) con
+// tools/generate-shift-times.py — vedi assets/shift-times.json, stessa fonte
+// usata dal generatore .ics lato client (assets/js/calendar-settings-v2.js).
+// BIS/DT/POND non sono nella tabella corse attuale: orari storici, tenuti
+// cosi' come sono finche' non si conferma il codice corrispondente aggiornato.
 // I servizi senza un orario verificato restano volutamente "tutto il giorno".
 const SERVICE_TIMES=Object.freeze({
   D1:['07:55','20:15'],D2:['07:20','18:25'],D3:['07:00','19:20'],D4:['07:15','19:45'],
+  M1:['07:20','19:50'],R1:['07:50','20:05'],R2:['07:00','19:30'],R3:['07:40','19:20'],R4:['08:20','20:30'],
+  CAR1:['07:20','19:40'],CAP1:['07:30','19:35'],SR1:['07:50','19:30'],
+  P1:['08:10','20:10'],P2:['07:00','19:20'],P3:['07:35','19:00'],
   BIS:['08:00','19:15'],DT:['06:55','17:15'],POND:['09:10','20:25']
 });
 
