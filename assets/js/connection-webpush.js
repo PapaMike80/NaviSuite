@@ -89,6 +89,21 @@
     return auth?.idToken?auth:null;
   }
 
+  // L'amministratore puo' spegnere questi avvisi da Impostazioni > Notifiche
+  // (private/adminUpdates/pushSettings/agentConnectionAlerts). Chiave
+  // assente/true => avvisi attivi; in caso di errore di rete restiamo
+  // sull'attivo per non perdere il comportamento storico.
+  async function connectionAlertsEnabled(auth){
+    if(!auth?.idToken)return true;
+    try{
+      const url=`${DATABASE_URL}/private/adminUpdates/pushSettings/agentConnectionAlerts.json?auth=${encodeURIComponent(auth.idToken)}`;
+      const response=await fetch(url,{cache:'no-store'});
+      if(!response.ok)return true;
+      const value=await response.json().catch(()=>null);
+      return value!==false;
+    }catch(_){ return true; }
+  }
+
   async function resolveTargetAdminId(auth){
     if(!auth?.idToken)return DEFAULT_TARGET_ADMIN_ID;
     for(const candidate of TARGET_ADMIN_IDS){
@@ -112,6 +127,11 @@
 
     const auth=await validAuth(agent);
     if(!auth?.idToken){
+      removeKey(lockKey(agentId));
+      return false;
+    }
+
+    if(!(await connectionAlertsEnabled(auth))){
       removeKey(lockKey(agentId));
       return false;
     }
