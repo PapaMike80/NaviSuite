@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v214-ponteradio-push-repair';
+const CACHE_VERSION = 'navisuite-v215-avvisi-agenti';
 const CORE_ASSETS = [
   './',
   './index.html',
