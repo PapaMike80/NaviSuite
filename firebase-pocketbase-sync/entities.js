@@ -22,6 +22,16 @@ const pbDate = value => {
   return Number.isNaN(d.getTime()) ? '' : d.toISOString().replace('T', ' ');
 };
 
+// Normalizzazione codici turno, allineata a shared-data.js normalizedImportedShift().
+const normShift = v => {
+  const raw = String(v ?? '').trim().toUpperCase().replace(/[‐‑–—]/g, '-');
+  if (!raw || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw)) return 'RIP';
+  if (/^(?:CONG?\.?|CON;|CONC\.?|C\.)$/.test(raw)) return 'CON';
+  if (/^(?:LAV\.?|TERRA)$/.test(raw)) return 'TERRA';
+  if (/^F\.?P\.?-*$/.test(raw)) return 'F.P.';
+  return raw.replace(/\.{2,}$/g, '.').replace(/-+$/g, '');
+};
+
 // ---------------------------------------------------------------------------
 // configurazione: blob di configurazione Firebase copiati 1:1 in valore(json).
 //   private/adminUpdates/serviceConfigurations -> chiave "serviceConfigurations"
@@ -155,6 +165,94 @@ async function annunci(ctx) {
   return stats;
 }
 
+// ---------------------------------------------------------------------------
+// turni_effective: private/adminUpdates/effectiveSchedule -> una riga per
+// (agente, data). Il blob e' gia' il turno effettivo mergiato (base + ODS +
+// cambi); effective_meta[`${id}|${iso}`] contiene base/origine per le celle
+// modificate. Le bariste hanno il turno nell'array bariste[].
+// ---------------------------------------------------------------------------
+const ORIGIN_MAP = { ods: 'ods', ods_ufficio: 'ods', ods_volontari: 'ods', manuale: 'manuale', cambio: 'cambio_turno', cambio_turno: 'cambio_turno' };
+
+async function turni_effective(ctx) {
+  const es = await ctx.fbGet('private/adminUpdates/effectiveSchedule');
+  const data = es?.data;
+  if (isEmpty(data?.residenze)) return { seen: 0, note: 'effectiveSchedule vuoto' };
+
+  const meta = data.effective_meta || {};
+  const dateStato = new Map((data.date || []).map(d => [isoDay(d.iso), String(d.stato || 'ufficiale').toLowerCase()]));
+  const statoRow = iso => (dateStato.get(iso) === 'bozza' ? 'bozza' : 'ufficiale');
+
+  // legacy_id agente -> id record PocketBase
+  const agenti = await ctx.pbListAll('agenti', { fields: 'id,legacy_id' });
+  const agenteId = new Map(agenti.map(a => [String(a.legacy_id), a.id]));
+
+  // stato voluto: "<agenteRecId>\t<iso>" -> { servizio, servizio_base, origine, residenza, stato }
+  const wanted = new Map();
+  const addWanted = (legacyId, iso, servizio, servizioBase, origine, residenza) => {
+    const recId = agenteId.get(String(legacyId));
+    if (!recId || !iso || !servizio) return false;
+    wanted.set(`${recId}\t${iso}`, {
+      agente: recId, data: pbDate(iso), servizio, servizio_base: servizioBase || servizio,
+      origine_effective: origine || 'turno_importato', stato: statoRow(iso), residenza: residenza || '',
+    });
+    return true;
+  };
+
+  let noAgent = 0;
+  for (const [residenza, list] of Object.entries(data.residenze)) {
+    for (const ag of list || []) {
+      const id = String(ag.id || '');
+      for (const [rawIso, rawSrv] of Object.entries(ag.turni || {})) {
+        const iso = isoDay(rawIso);
+        const cell = meta[`${id}|${iso}`];
+        const servizio = normShift(rawSrv);
+        const base = cell ? normShift(cell.baseService) : servizio;
+        const origine = cell ? (ORIGIN_MAP[String(cell.origin || '').toLowerCase()] || 'ods') : 'turno_importato';
+        if (!addWanted(id, iso, servizio, base, origine, residenza)) noAgent++;
+      }
+    }
+  }
+  // Molte righe bariste[] non hanno il campo id: si risale dal nome, come
+  // getBaristaProfileId() in turni-shared.js.
+  const baristaLegacy = name => {
+    const key = String(name || '').toLocaleUpperCase('it').normalize('NFD')
+      .replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+    return key ? `BARISTA_${key}` : '';
+  };
+  for (const b of data.bariste || []) {
+    if (!b || b.attiva === false) continue;
+    const legacy = b.id || (b.barista ? baristaLegacy(b.barista) : '');
+    const srv = normShift(b.corsa);
+    if (!addWanted(legacy, isoDay(b.data), srv, srv, 'turno_importato', 'BARISTE')) noAgent++;
+  }
+
+  // righe esistenti: "<agente>\t<iso>" -> record
+  const existing = await ctx.pbListAll('turni_effective', { fields: 'id,agente,data,servizio,servizio_base,origine_effective,stato,residenza' });
+  const byKey = new Map(existing.map(r => [`${r.agente}\t${isoDay(r.data)}`, r]));
+
+  const stats = { seen: wanted.size, created: 0, updated: 0, unchanged: 0, deleted: 0, no_agent: noAgent };
+  const cmp = ['servizio', 'servizio_base', 'origine_effective', 'stato', 'residenza'];
+
+  for (const [key, want] of wanted) {
+    const row = byKey.get(key);
+    if (!row) {
+      await ctx.pbCreate('turni_effective', { ...want, versione: 1, override_manuale: false });
+      stats.created++;
+    } else if (cmp.some(k => String(row[k] ?? '') !== String(want[k] ?? ''))) {
+      await ctx.pbUpdate('turni_effective', row.id, want);
+      stats.updated++;
+    } else stats.unchanged++;
+  }
+  for (const [key, row] of byKey) {
+    if (!wanted.has(key)) { await ctx.pbDelete('turni_effective', row.id); stats.deleted++; }
+  }
+
+  await ctx.markState('turni_effective', 'effectiveSchedule',
+    ctx.hash([...wanted.entries()].map(([k, v]) => `${k}=${v.servizio}`).sort()),
+    'private/adminUpdates/effectiveSchedule');
+  return stats;
+}
+
 module.exports = {
-  ENTITIES: { configurazione, periodi_bozza, stati_settimana, annunci },
+  ENTITIES: { configurazione, periodi_bozza, stati_settimana, annunci, turni_effective },
 };
