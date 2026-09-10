@@ -141,7 +141,7 @@
     if(typeof state.scrollY==='number')window.scrollTo(0,state.scrollY);
   }
   function applyCards(cards,iso,{silent=false}={}){
-    const signature=JSON.stringify(snapshotCards(cards));
+    const signature=iso+'|'+JSON.stringify(snapshotCards(cards));
     if(silent&&signature===lastRenderedSignature)return;
     const previous=silent?captureViewState():null;
     renderCards(cards,iso);
@@ -149,13 +149,27 @@
     if(previous)restoreViewState(previous);
   }
   function setStatus(message,{error=false,hide=false}={}){statusEl.hidden=hide;statusEl.textContent=message||'';statusEl.classList.toggle('error',error)}
+  // Ultimo blob turni caricato: contiene TUTTE le giornate del periodo, quindi
+  // cambiare giorno e' solo un ricalcolo locale, senza rifare il download da
+  // Firebase (schedule ~485KB + ~8 chiamate variazioni ODS ad ogni cambio).
+  let scheduleData=null;
+  function goToDay(iso){
+    selectedIso=iso;
+    if(scheduleData){
+      applyCards(buildCourses(scheduleData,iso),iso,{silent:true});
+      setStatus('',{hide:true});
+      return;
+    }
+    refresh(); // dati non ancora in memoria: caricamento normale
+  }
   function refresh(){
     const session=getSession();if(isBarista(session)&&!isHiba(session)){contentEl.innerHTML='<section class="oggi-access"><h1>Area riservata</h1><p>La panoramica degli equipaggi non è disponibile per questo profilo.</p></section>';statusEl.hidden=true;return}
     const iso=selectedIso;if(refreshButton)refreshButton.disabled=true;
     const snapshot=readSnapshot(iso);let painted=false;
-    if(snapshot){renderCards(snapshot.cards,iso);lastRenderedSignature=JSON.stringify(snapshot.cards);painted=true;setStatus(`Dati salvati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'} · controllo aggiornamenti…`)}
+    if(snapshot){renderCards(snapshot.cards,iso);lastRenderedSignature=iso+'|'+JSON.stringify(snapshot.cards);painted=true;setStatus(`Dati salvati delle ${timeLabel(snapshot.savedAt)||'ultima apertura'} · controllo aggiornamenti…`)}
     else setStatus('Aggiornamento equipaggi…');
     return window.NaviSharedData.loadCacheFirst((data,{stale})=>{
+      scheduleData=data;
       if(iso!==selectedIso)return; // la giornata e' cambiata nel frattempo: scarto il render vecchio
       const cards=buildCourses(data,iso);
       if(stale){
@@ -183,8 +197,8 @@
   refreshButton?.addEventListener('click',refresh);
   contentEl?.addEventListener('click',event=>{
     const dateNav=event.target.closest('.oggi-date-nav');
-    if(dateNav){selectedIso=addDays(selectedIso,Number(dateNav.dataset.step)||0);refresh();return;}
-    if(event.target.closest('.oggi-date-today')){selectedIso=todayIso();refresh();return;}
+    if(dateNav){goToDay(addDays(selectedIso,Number(dateNav.dataset.step)||0));return;}
+    if(event.target.closest('.oggi-date-today')){goToDay(todayIso());return;}
     const menuButton=event.target.closest('.oggi-residence-menu');if(menuButton){window.NaviOggi?.openMenu?.();return;}
     const residenceButton=event.target.closest('.oggi-residence-toggle');if(residenceButton){
       const section=residenceButton.closest('.oggi-residence');const grid=section?.querySelector('.oggi-grid');const open=residenceButton.getAttribute('aria-expanded')!=='true';
@@ -199,7 +213,7 @@
   contentEl?.addEventListener('change',event=>{
     const input=event.target.closest('.oggi-date-input');if(!input)return;
     const value=String(input.value||'');
-    if(/^\d{4}-\d{2}-\d{2}$/.test(value)&&value!==selectedIso){selectedIso=value;refresh();}
+    if(/^\d{4}-\d{2}-\d{2}$/.test(value)&&value!==selectedIso){goToDay(value);}
   });
   document.getElementById('oggi-menu')?.addEventListener('click',()=>document.querySelector('.app-sidebar')?.classList.toggle('open'));
   const openMenu=()=>window.NaviSuiteMenu?.open?.();document.getElementById('oggi-nav-popup')?.addEventListener('click',e=>{if(e.target.id==='oggi-nav-popup'||e.target.closest('#oggi-nav-close'))e.currentTarget.hidden=true;});window.NaviOggi={refresh,buildCourses,openMenu};

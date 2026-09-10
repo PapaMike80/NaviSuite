@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v220-oggi-datebar';
+const CACHE_VERSION = 'navisuite-v221-oggi-fluido';
 const CORE_ASSETS = [
   './',
   './index.html',
