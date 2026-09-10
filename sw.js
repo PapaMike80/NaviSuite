@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v218-pocketbase-source';
+const CACHE_VERSION = 'navisuite-v219-oggi-datepicker';
 const CORE_ASSETS = [
   './',
   './index.html',
