@@ -294,7 +294,12 @@ async function loginAgent(agentId,pin){
   localStorage.setItem(SESSION_KEY,JSON.stringify(agent));localStorage.setItem(NAVITURNI_SESSION_KEY,JSON.stringify({id:agent.id,name:agent.name,residence:agent.residence}));location.reload();
 }
 async function initializeAccess(){
-  if(!activeAgent&&!localStorage.getItem(NAVITURNI_SESSION_KEY)){location.replace('index.html');return}
+  if(!activeAgent&&!localStorage.getItem(NAVITURNI_SESSION_KEY)){
+    // DEBUG TEMPORANEO: mostra a schermo perche' sta per reindirizzare, invece
+    // di farlo in silenzio. Da rimuovere una volta capita la causa.
+    document.body.innerHTML='<pre style="padding:20px;color:#fff;background:#111;font-size:13px;white-space:pre-wrap;">DEBUG redirect\nactiveAgent='+String(localStorage.getItem(SESSION_KEY))+'\nnaviturni_logged_agent='+String(localStorage.getItem(NAVITURNI_SESSION_KEY))+'\nUA='+navigator.userAgent+'</pre>';
+    return;
+  }
   if(activeAgent){updateWelcome();$('pinSettingsButton').hidden=false;$('logoutButton').hidden=false;$('syncStatus').textContent='Sincronizzazione…';$('competenze').hidden=!isAdmin();$('competencyNav').hidden=!isAdmin();$('adminPanel').hidden=true;$('adminNav').hidden=true;
     // Nessuna migrazione PIN: su PocketBase l'autenticazione avviene sempre con
     // auth-with-password reale (vedi authenticateFirebase/loginAgent), non c'e'
