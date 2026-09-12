@@ -261,22 +261,28 @@
     if (!id) throw new Error('Agente non valido');
     const agente = await resolveAgente(id);
     if (!agente) throw new Error('Agente non trovato su PocketBase.');
-    let normalized = Array.isArray(diariaEntries) ? diariaEntries.filter(Boolean) : [];
+    const normalized = Array.isArray(diariaEntries) ? diariaEntries.filter(Boolean) : [];
     const existing = await list('diaria', { filter: `agente = "${esc(agente.id)}"`, sort: 'data', perPage: 2000 });
-    if (existing.length && normalized.length < existing.length) {
-      const byDay = new Map();
-      existing.forEach(r => byDay.set(String(r.data || '').slice(0, 10), diariaEntryFromRow(r)));
-      normalized.forEach(en => byDay.set(String(en.date || '').slice(0, 10), en));
-      normalized = [...byDay.values()].sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
-    }
+    // Protezione minima: un archivio del tutto vuoto quando prima c'erano righe
+    // e' quasi certamente un bug/crash del client (es. entries non ancora
+    // caricate), non una scelta deliberata — li' blocchiamo. L'eliminazione
+    // di UNA giornata (bottone "Elimina" del popup) arriva qui con
+    // `normalized` ancora pieno delle altre: e' una riconciliazione normale,
+    // la riga rimossa va cancellata per davvero su PocketBase, non
+    // "recuperata" al giro successivo (era il bug della versione precedente).
     if (existing.length && !normalized.length) throw new Error('Protezione attiva: non posso sostituire una diaria esistente con un archivio vuoto.');
     const byDayExisting = new Map(existing.map(r => [String(r.data || '').slice(0, 10), r]));
+    const wantedDays = new Set();
     for (const en of normalized) {
       const day = String(en.date || '').slice(0, 10);
       if (!day) continue;
+      wantedDays.add(day);
       const row = diariaRowFromEntry(agente.id, en);
       const current = byDayExisting.get(day);
       if (current) await patch('diaria', current.id, row); else await create('diaria', row);
+    }
+    for (const [day, row] of byDayExisting) {
+      if (!wantedDays.has(day)) await remove('diaria', row.id);
     }
     return { agentId: id, entries: normalized, entryCount: normalized.length, checksum: '', version: 1, updatedAt: new Date().toISOString() };
   }
