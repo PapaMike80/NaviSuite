@@ -58,7 +58,7 @@
           <datalist id="agentSuggestions"></datalist>
         </label>
         <label>PIN personale
-          <input id="agentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="current-password" placeholder="Da 4 a 8 cifre" required>
+          <input id="agentPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="off" placeholder="Da 4 a 8 cifre" required>
         </label>
         <p id="loginMessage" class="form-message" aria-live="polite"></p>
         <button id="loginSubmit" type="submit">Accedi <span>→</span></button>
@@ -69,10 +69,10 @@
         <h2>Scegli il tuo PIN</h2>
         <p>Il PIN iniziale è valido una sola volta. Imposta ora un PIN personale da 4 a 8 cifre.</p>
         <label>Nuovo PIN
-          <input id="firstNewPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Da 4 a 8 cifre" required>
+          <input id="firstNewPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="off" placeholder="Da 4 a 8 cifre" required>
         </label>
         <label>Conferma nuovo PIN
-          <input id="firstConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Ripeti il nuovo PIN" required>
+          <input id="firstConfirmPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="off" placeholder="Ripeti il nuovo PIN" required>
         </label>
         <p id="firstPinMessage" class="form-message" aria-live="polite"></p>
         <button id="firstPinSubmit" type="submit">Salva e accedi <span>→</span></button>
