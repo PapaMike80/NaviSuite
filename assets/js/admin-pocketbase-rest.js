@@ -256,6 +256,16 @@
   // Stessa protezione anti-perdita-dati di admin-firebase-rest.js: se l'array in
   // arrivo ha MENO voci di quelle gia' salvate, unisce per data invece di
   // sostituire (evita di cancellare mesi interi per un bug/crash del client).
+  // Confronto per decidere se una riga va davvero riscritta: 'entries' e' lo
+  // storico locale INTERO dell'agente (tutti i mesi mai registrati), non solo
+  // il periodo aperto — senza questo confronto, modificare un solo campo di
+  // un solo giorno riscriveva una richiesta di rete per OGNI giorno storico
+  // (anche centinaia), facendo sembrare il popup bloccato per oltre un minuto.
+  const DIARIA_COMPARE_FIELDS = ['servizio', 'straordinario_ritardo_minuti', 'straordinario_cambio_minuti', 'straordinario_sentine_minuti', 'banca_ore_minuti', 'diaria_percentuale', 'indennita_imbarco', 'ticket_dovuto', 'ticket_usato', 'secondo_ticket', 'maneggio_denaro', 'trasferta_minuti', 'presenza', 'rifornimento', 'parametro_139', 'override_manuale', 'note'];
+  function diariaRowUnchanged(current, row) {
+    return DIARIA_COMPARE_FIELDS.every(key => JSON.stringify(current[key] ?? null) === JSON.stringify(row[key] ?? null));
+  }
+
   async function saveDiaria(agentId, diariaEntries = []) {
     const id = String(agentId || '').trim();
     if (!id) throw new Error('Agente non valido');
@@ -279,7 +289,8 @@
       wantedDays.add(day);
       const row = diariaRowFromEntry(agente.id, en);
       const current = byDayExisting.get(day);
-      if (current) await patch('diaria', current.id, row); else await create('diaria', row);
+      if (current) { if (!diariaRowUnchanged(current, row)) await patch('diaria', current.id, row); }
+      else await create('diaria', row);
     }
     for (const [day, row] of byDayExisting) {
       if (!wantedDays.has(day)) await remove('diaria', row.id);
