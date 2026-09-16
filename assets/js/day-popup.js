@@ -44,7 +44,14 @@
     if(sentineSelect&&optionFor(sentineSelect,sentine(draft))){const value=Number(sentineSelect.value)||0;if(value!==sentine(draft))overtime.setSentineMinutes(draft,value,service(draft));}
   }
   function finalizeClose(){token+=1;modal().hidden=true;document.body.classList.toggle('weekly-dialog-open',false);opts?.onClose?.();opts=null;draft=null;initialSnapshot='';isClosing=false}
-  function setSaveError(error){const node=modal().querySelector('[data-bubble-save-error]');if(node){node.textContent='Impossibile salvare le modifiche. Riprova.';node.hidden=false}console.warn('Salvataggio giornata non riuscito',error)}
+  function setSaveError(error){const message=error&&/^Salvataggio troppo lento/.test(error.message||'')?error.message:'Impossibile salvare le modifiche. Riprova.';const node=modal().querySelector('[data-bubble-save-error]');if(node){node.textContent=message;node.hidden=false}window.notify?.(message);console.warn('Salvataggio giornata non riuscito',error)}
+  // Nessuna richiesta di rete di questo popup ha un timeout piu` lungo di 15s
+  // (Firebase) o 10s (PocketBase): se il salvataggio non risponde entro 20s
+  // qualcosa a monte si e` bloccato (rete assente, tab in background, ecc).
+  // Meglio sbloccare l'utente con un errore visibile che restare fermi
+  // a tempo indefinito senza alcun segnale.
+  const SAVE_TIMEOUT_MS=20000;
+  function withTimeout(promise,ms,message){let timer;const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms)});return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer))}
   function setSavingState(active){modal().querySelector('.monthly-bubble-dialog').dataset.bubbleState=active?'saving':''}
   async function close(){
     if(isClosing)return;
@@ -77,7 +84,7 @@
         const job=pendingSave;
         pendingSave=null;
         try{
-          const saved=await job.owner.saveEntry(job.data);
+          const saved=await withTimeout(job.owner.saveEntry(job.data),SAVE_TIMEOUT_MS,'Salvataggio troppo lento (rete assente o server irraggiungibile). Riprova.');
           if(saved&&job.revision===saveRevision&&opts===job.owner&&draft){draft={...saved};initialSnapshot=snapshot(draft)}
         }catch(error){
           job.owner.onSaveError?.(error);
@@ -117,7 +124,7 @@
     buttons.forEach(button=>button.disabled=true);
     setSavingState(true);
     try{
-      if(opts.onDelete)await opts.onDelete(draft.date,draft);
+      if(opts.onDelete)await withTimeout(opts.onDelete(draft.date,draft),SAVE_TIMEOUT_MS,'Eliminazione troppo lenta (rete assente o server irraggiungibile). Riprova.');
       draft=null;finalizeClose();
     }catch(error){setSaveError(error)}
     finally{setSavingState(false);if(!m.hidden)buttons.forEach(button=>button.disabled=false)}
