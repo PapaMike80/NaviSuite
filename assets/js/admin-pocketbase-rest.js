@@ -5,7 +5,7 @@
   // che gia' controllano il dataSource. La password (pinHash) di PocketBase non
   // e' MAI leggibile via API (per design): l'autenticazione vera avviene
   // chiamando auth-with-password, non confrontando hash lato client.
-  const DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net';
+  const DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net:8443';
   const TOKEN_KEY = 'navisuite.pb.token';
   const base = () => { try { return (localStorage.getItem('navisuite.pbBase') || DEFAULT_BASE).replace(/\/$/, ''); } catch (_) { return DEFAULT_BASE; } };
   const getToken = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (_) { return ''; } };

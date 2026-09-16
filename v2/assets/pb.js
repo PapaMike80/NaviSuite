@@ -1,5 +1,5 @@
 (() => {
-  const BASE_URL = 'https://truenas-scale.tail805e51.ts.net';
+  const BASE_URL = 'https://truenas-scale.tail805e51.ts.net:8443';
   const TOKEN_KEY = 'navisuite.v2.pb.token';
   const USER_KEY = 'navisuite.v2.pb.user';
   const AGENT_KEY = 'navisuite.v2.agent';

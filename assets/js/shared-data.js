@@ -5,7 +5,7 @@
   const MAX_AGE = 10 * 60 * 1000;
   const FIREBASE_SCHEDULE_URL = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/schedule.json';
   // Sorgente dati commutabile (test admin). Firebase resta il default.
-  const PB_DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net';
+  const PB_DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT_BASE).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT_BASE; } };
   const dataSource = () => { try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
   const scheduleUrl = () => (dataSource() === 'pocketbase' ? `${pbBase()}/api/navisuite-v2/schedule` : FIREBASE_SCHEDULE_URL);

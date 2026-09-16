@@ -16,7 +16,7 @@
 
   const get = (k, d) => { try { return localStorage.getItem(k) || d; } catch (_) { return d; } };
   const set = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (_) {} };
-  const DEFAULT_PB = 'https://truenas-scale.tail805e51.ts.net';
+  const DEFAULT_PB = 'https://truenas-scale.tail805e51.ts.net:8443';
 
   function mount() {
     const main = document.querySelector('main');
