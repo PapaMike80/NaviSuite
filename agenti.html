@@ -85,7 +85,7 @@
       const close=document.createElement('button');close.type='button';close.className='pin-copy-close';close.textContent='Chiudi';
       const copy=document.createElement('button');copy.type='button';copy.className='pin-copy-confirm';copy.textContent='Copia PIN';
       const dismiss=()=>overlay.remove();close.addEventListener('click',dismiss);overlay.addEventListener('click',event=>{if(event.target===overlay)dismiss();});
-      copy.addEventListener('click',async()=>{try{await copyText(pin);copy.textContent='Copiato ✓';$('status').className='status ok';$('status').textContent=`PIN di ${agentName} copiato negli appunti.`;}catch(error){copy.textContent='Copia non riuscita';$('status').className='status bad';$('status').textContent=error.message||'Impossibile copiare il PIN.';}});
+      copy.addEventListener('click',async()=>{try{const siteUrl=new URL('.',location.href).href;const message=`Ciao ${agentName}. Il tuo pin iniziale è ${pin}. Vai su ${siteUrl} per iniziare ad utilizzare NaviSuite`;await copyText(message);copy.textContent='Copiato ✓';$('status').className='status ok';$('status').textContent=`Messaggio di invito per ${agentName} copiato negli appunti.`;}catch(error){copy.textContent='Copia non riuscita';$('status').className='status bad';$('status').textContent=error.message||'Impossibile copiare il messaggio.';}});
       actions.append(close,copy);card.append(title,name,value,actions);overlay.append(card);document.body.append(overlay);copy.focus();
     }
     const rankOf=agent=>gradeRank[String(agent.qualifica||'marinaio').trim().toLowerCase()]||99;
