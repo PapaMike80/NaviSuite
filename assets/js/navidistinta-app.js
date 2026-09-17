@@ -19,7 +19,7 @@ const DEFAULT_SHIFTS=[
   {code:'AgM',hours:hm(9,45),allowance:false,allowanceRate:24,meal:false},{code:'AgT',hours:hm(11,10),allowance:false,allowanceRate:24,meal:false},
   {code:'PonM',hours:hm(10,25),allowance:false,allowanceRate:24,meal:false},  {code:'LD',hours:hm(8),allowance:false,allowanceRate:24,meal:false},
   {code:'F.P.',hours:hm(8),allowance:false,allowanceRate:24,meal:false},
-  {code:'TERRA',hours:hm(8),allowance:false,allowanceRate:24,meal:true},
+  {code:'LAV',hours:hm(8),allowance:false,allowanceRate:24,meal:true},
   {code:'RF',hours:0,allowance:false,allowanceRate:24,meal:false},
   {code:'Malattia',hours:0,allowance:false,allowanceRate:24,meal:false},{code:'Riposo',hours:0,allowance:false,allowanceRate:24,meal:false}
 ];
@@ -29,12 +29,12 @@ const ADMIN_AGENT_ID='92';
 let activeAgent=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
 let STORAGE=`navidiaria.entries.v1.${activeAgent?.id||'guest'}`;
 const SHIFTS_STORAGE='navidiaria.shifts.v1';
-const COMPETENCE_VERSION='durata-corse-2026-07-11';
+const COMPETENCE_VERSION='terra-rinominato-lav-2026-09-17';
 let SHIFTS=localStorage.getItem('navidiaria.competenceVersion')===COMPETENCE_VERSION?JSON.parse(localStorage.getItem(SHIFTS_STORAGE)||'null'):null;
 if(!SHIFTS){SHIFTS=DEFAULT_SHIFTS.map(s=>({...s}));localStorage.setItem(SHIFTS_STORAGE,JSON.stringify(SHIFTS));localStorage.setItem('navidiaria.competenceVersion',COMPETENCE_VERSION)}
 DEFAULT_SHIFTS.forEach(defaultShift=>{if(!SHIFTS.some(s=>s.code===defaultShift.code))SHIFTS.push({...defaultShift})});
 SHIFTS.forEach(s=>{if(Number(s.allowanceRate)===25)s.allowanceRate=24;if(![0,9,12,24].includes(Number(s.allowanceRate)))s.allowanceRate=24});
-const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','TERRA','MALATTIA','RIPOSO']);
+const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','LAV','MALATTIA','RIPOSO']);
 SHIFTS.forEach(s=>{if(s.embark===undefined)s.embark=!GROUND_SHIFTS.has(String(s.code).toUpperCase())});
 SHIFTS.forEach(s=>{const code=String(s.code).toUpperCase();if(GROUND_SHIFTS.has(code)&&!['RIPOSO','MALATTIA'].includes(code))s.meal=true});
 const TURNS_URL='';
@@ -42,14 +42,14 @@ const fmt=new Intl.DateTimeFormat('it-IT',{day:'2-digit',month:'short',weekday:'
 function parseEntriesSnapshot(raw){try{const parsed=JSON.parse(raw||'[]');return Array.isArray(parsed)?parsed.filter(Boolean):[]}catch(error){console.warn('Archivio locale della diaria non leggibile',error);return []}}
 const storedEntriesRaw=localStorage.getItem(STORAGE)||'[]';
 let entries=parseEntriesSnapshot(storedEntriesRaw);
-const ENTRIES_SCHEMA_VERSION=5,entriesSchemaKey=`navidiaria.entriesSchema.${activeAgent?.id||'guest'}`,entriesBackupKey=`navidiaria.entries.backup.${activeAgent?.id||'guest'}`,entriesHistoryKey=`navidiaria.entries.history.${activeAgent?.id||'guest'}`,entriesMetaKey=`navidiaria.entries.meta.${activeAgent?.id||'guest'}`;
+const ENTRIES_SCHEMA_VERSION=6,entriesSchemaKey=`navidiaria.entriesSchema.${activeAgent?.id||'guest'}`,entriesBackupKey=`navidiaria.entries.backup.${activeAgent?.id||'guest'}`,entriesHistoryKey=`navidiaria.entries.history.${activeAgent?.id||'guest'}`,entriesMetaKey=`navidiaria.entries.meta.${activeAgent?.id||'guest'}`;
 const FIREBASE_DIRTY_KEY=`navidiaria.cloudDirty.${activeAgent?.id||'guest'}`;
 function snapshotFingerprint(list){return JSON.stringify(list||[]) }
 function recordLocalBackup(reason='salvataggio',list=entries){try{const snapshot=JSON.stringify(list||[]),fingerprint=snapshotFingerprint(list),history=parseEntriesSnapshot(localStorage.getItem(entriesHistoryKey)||'[]');const latest=history.at(-1);if(latest?.fingerprint===fingerprint)return;history.push({savedAt:new Date().toISOString(),reason,entryCount:(list||[]).length,fingerprint,entries:JSON.parse(snapshot)});localStorage.setItem(entriesHistoryKey,JSON.stringify(history.slice(-35)));localStorage.setItem(entriesBackupKey,snapshot)}catch(error){console.warn('Backup locale non disponibile',error)}}
 function writeEntriesLocal(reason='salvataggio'){const snapshot=JSON.stringify(entries);recordLocalBackup(reason,entries);localStorage.setItem(STORAGE,snapshot);localStorage.setItem(entriesMetaKey,JSON.stringify({updatedAt:new Date().toISOString(),entryCount:entries.length,fingerprint:snapshotFingerprint(entries)}));return snapshot}
 if(entries.length&&!localStorage.getItem(entriesBackupKey))recordLocalBackup('prima protezione',entries);
 let entriesMigrated=localStorage.getItem(entriesSchemaKey)!==String(ENTRIES_SCHEMA_VERSION);
-entries.forEach(entry=>{if(entry.travel===undefined){entry.travel=false;entriesMigrated=true}if(entry.refuel===undefined){entry.refuel=0;entriesMigrated=true}else if(typeof entry.refuel==='boolean'){const legacyMinutes=entry.refuel?(String(entry.shift).toUpperCase()==='DT'?60:30):0;entry.bank=(Number(entry.bank)||0)+legacyMinutes;entry.refuel=legacyMinutes;entriesMigrated=true}if(entry.note===undefined){entry.note='';entriesMigrated=true}if(entry.manualOverride===undefined){entry.manualOverride=false;entriesMigrated=true}});
+entries.forEach(entry=>{if(entry.travel===undefined){entry.travel=false;entriesMigrated=true}if(entry.refuel===undefined){entry.refuel=0;entriesMigrated=true}else if(typeof entry.refuel==='boolean'){const legacyMinutes=entry.refuel?(String(entry.shift).toUpperCase()==='DT'?60:30):0;entry.bank=(Number(entry.bank)||0)+legacyMinutes;entry.refuel=legacyMinutes;entriesMigrated=true}if(String(entry.shift).toUpperCase()==='TERRA'){entry.shift='LAV';entriesMigrated=true}['manualFrom','manualTo','variationFrom','variationTo'].forEach(key=>{if(String(entry[key]).toUpperCase()==='TERRA'){entry[key]='LAV';entriesMigrated=true}});if(entry.note===undefined){entry.note='';entriesMigrated=true}if(entry.manualOverride===undefined){entry.manualOverride=false;entriesMigrated=true}});
 if(entriesMigrated){localStorage.setItem(STORAGE,JSON.stringify(entries));localStorage.setItem(entriesSchemaKey,String(ENTRIES_SCHEMA_VERSION))}
 const MEAL_DEFAULT_VERSION='used-by-default-v1';
 const mealVersionKey=`navidiaria.mealDefaultVersion.${activeAgent?.id||'guest'}`;const migrateMeals=localStorage.getItem(mealVersionKey)!==MEAL_DEFAULT_VERSION;
@@ -113,7 +113,7 @@ function formatAgentName(name){return String(name||'').trim().split(/\s+/).map(p
 function updateWelcome(){if(!activeAgent)return;const name=formatAgentName(activeAgent.name);$('welcomeName').textContent='NaviSuite Distinta';$('sidebarAgentName').textContent=name.toLocaleUpperCase('it')}
 function scheduleAssignment(raw){
   const cleaned=String(raw||'').trim().replace(/\*/g,'').replace(/--/g,'');
-  if(/^lav\.?$/i.test(cleaned))return {shift:'TERRA',travel:false};
+  if(/^(?:lav\.?|terra)$/i.test(cleaned))return {shift:'LAV',travel:false};
   if(/^rip\.?$/i.test(cleaned)||cleaned==='----'||!cleaned)return {shift:'Riposo',travel:false};
   if(/^mal/i.test(cleaned))return {shift:'Malattia',travel:false};
   const canonical=value=>SHIFTS.find(item=>item.code.toUpperCase()===String(value).toUpperCase())?.code||null;
@@ -253,7 +253,7 @@ function renderShiftSettings(){
   $('shiftCards').innerHTML=SHIFTS.filter(s=>s.code!=='Riposo').map(s=>`<div class="shift-card" data-shift="${s.code}"><strong>${s.code}</strong><label>Durata<input class="shift-hours" type="time" value="${hoursToClock(s.hours)}"></label><div class="shift-options"><label><input class="shift-embark" type="checkbox" ${s.embark?'checked':''}> Imbarco</label><label><input class="shift-allowance" type="checkbox" ${s.allowance?'checked':''}> Diaria</label><label class="rate-label">Aliquota <select class="shift-rate">${[0,9,12,24].map(rate=>`<option value="${rate}" ${Number(s.allowanceRate)===rate?'selected':''}>${rate}%</option>`).join('')}</select></label><label><input class="shift-meal" type="checkbox" ${s.meal?'checked':''}> Diritto al buono</label></div></div>`).join('');
 }
 function refreshShiftSelect(){const selected=$('entryShift').value;$('entryShift').innerHTML=SHIFTS.map(s=>`<option value="${s.code}">${s.code}${s.hours?' · '+minutesToText(s.hours*60):''}</option>`).join('');if(SHIFTS.some(s=>s.code===selected))$('entryShift').value=selected}
-function applyCompetenceDefaults(){const shift=shiftFor($('entryShift').value),working=!['RIPOSO','MALATTIA'].includes(String(shift.code).toUpperCase());$('entryEmbark').checked=!!shift.embark;$('entryAllowanceRate').value=shift.allowance?String(shift.allowanceRate):'';$('entryMeal').checked=working;$('entryMeal').disabled=!working;$('entryMeal').closest('label').title=working?'Usato per impostazione predefinita; deseleziona se non lo utilizzi':'Nessun buono pasto per questa giornata';$('entryRF').closest('label').hidden=String(shift.code).toUpperCase()!=='TERRA'}
+function applyCompetenceDefaults(){const shift=shiftFor($('entryShift').value),working=!['RIPOSO','MALATTIA'].includes(String(shift.code).toUpperCase());$('entryEmbark').checked=!!shift.embark;$('entryAllowanceRate').value=shift.allowance?String(shift.allowanceRate):'';$('entryMeal').checked=working;$('entryMeal').disabled=!working;$('entryMeal').closest('label').title=working?'Usato per impostazione predefinita; deseleziona se non lo utilizzi':'Nessun buono pasto per questa giornata';$('entryRF').closest('label').hidden=String(shift.code).toUpperCase()!=='LAV'}
 function resetEntryForm(){editingId=null;$('entryForm').reset();$('entryTravel').dataset.manual='false';$('entryDate').value=todayIso();$('entryEmbark').checked=true;$('entryRefuel').dataset.prev=$('entryRefuel').value;applyCompetenceDefaults();$('submitEntry').textContent='Aggiungi giornata';$('cancelEdit').hidden=true}
 function syncRefuelBank(){const select=$('entryRefuel'),bankInput=$('entryBank'),previous=Number(select.dataset.prev||0),next=Number(select.value)||0;bankInput.value=String((Number(bankInput.value)||0)+(next-previous));select.dataset.prev=String(next)}
 function closeEntryForm(){const form=$('entryForm');form.hidden=true;form.style.display='none';$('dayEditor').hidden=true}
