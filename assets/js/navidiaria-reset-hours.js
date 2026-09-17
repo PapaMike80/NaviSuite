@@ -82,6 +82,10 @@
   if (!printButton) return;
 
   const FIXED_HOLIDAYS = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26']);
+  const easterMondayKey = year => {
+    const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1,monday=new Date(year,month-1,day+1,12);
+    return `${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`;
+  };
   const overtimeApi = window.NaviOvertimeComponents;
   const html = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   const n = value => Math.max(0, Math.round(Number(value) || 0));
@@ -95,8 +99,6 @@
 
   const serviceMinutes = entry => {
     if (!entry) return 0;
-    const explicit = Number(entry.serviceMinutes);
-    if (Number.isFinite(explicit) && explicit >= 0) return explicit;
     try { return Math.max(0, Math.round((Number(shiftFor(entry.shift).hours) || 0) * 60)); }
     catch (_) { return 0; }
   };
@@ -116,6 +118,22 @@
     if (!entry) return false;
     return !['RIP','RIPOSO','MALATTIA'].includes(String(entry.shift || '').trim().toUpperCase());
   };
+  // Straordinario = ore eccedenti le 39 settimanali (Lun-Dom), non la somma dei
+  // componenti giornalieri: stessa regola gia' usata per il totale nella
+  // Distinta mensile (vedi 'case overtime' in navidiaria-monthly.js).
+  const weekOvertimeMinutes = date => {
+    const start = new Date(date);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    start.setHours(12, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const startIso = dateIso(start.getFullYear(), start.getMonth() + 1, start.getDate());
+    const endIso = dateIso(end.getFullYear(), end.getMonth() + 1, end.getDate());
+    const weekTotal = entries
+      .filter(e => e.date >= startIso && e.date <= endIso && isWorking(e))
+      .reduce((sum, e) => sum + workedMinutes(e), 0);
+    return Math.max(0, weekTotal - 39 * 60);
+  };
   const serviceCode = entry => {
     if (!entry) return '';
     const shift = String(entry.shift || '').trim().toUpperCase();
@@ -128,7 +146,7 @@
     if (!entry || !isWorking(entry)) return false;
     if (entry.holidayWorked !== undefined) return !!entry.holidayWorked;
     const key = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    return date.getDay() === 0 || FIXED_HOLIDAYS.has(key);
+    return FIXED_HOLIDAYS.has(key) || key === easterMondayKey(date.getFullYear());
   };
   const ticketDue = entry => {
     if (!isWorking(entry)) return false;
@@ -139,7 +157,7 @@
   const rows = [
     { label:'SERVIZIO', unit:'', type:'text', value:entry => serviceCode(entry) },
     { label:'ORE LAVORATE', unit:'H', type:'hours', value:entry => isWorking(entry) ? workedMinutes(entry) : 0 },
-    { label:'LAVORO STRAORD.', unit:'H', type:'hours', value:entry => isWorking(entry) ? overtimeMinutes(entry) : 0 },
+    { label:'LAVORO STRAORD.', unit:'H', type:'hours', value:(entry,date) => date.getDay() === 0 ? weekOvertimeMinutes(date) : 0 },
     { label:'(Straord. Autorizzato)', unit:'H', type:'hours', value:entry => n(entry?.authorizedOvertimeMinutes ?? entry?.straordinarioAutorizzato ?? 0) },
     { label:'IND. ALISCAFO', unit:'N', type:'count', value:entry => isWorking(entry) ? yes(String(entry.shift || '').toUpperCase() === 'SR1' || n(entry?.hydrofoil) > 0) : 0 },
     { label:'LAVORO NOTTURNO', unit:'H', type:'hours', value:entry => n(entry?.nightMinutes ?? entry?.nightWorkMinutes ?? 0) },
@@ -152,7 +170,7 @@
     { label:'PERNOTT. 40% T.', unit:'N', type:'count', value:entry => yes(isWorking(entry) && (entry?.overnight40Terra || entry?.overnightLand40)) },
     { label:'MAGG. NASTRO', unit:'H', type:'hours', value:entry => n(entry?.maggNastroMinutes ?? entry?.ribbonMinutes ?? 0) },
     { label:'SPOSTATO RIPOSO', unit:'H', type:'hours', value:entry => n(entry?.shiftedRestMinutes ?? entry?.spostatoRiposo ?? 0) },
-    { label:"FESTIVITA'", unit:'H', type:'hours', value:(entry,date) => holidayValue(entry,date) ? workedMinutes(entry) : 0 },
+    { label:"FESTIVITA'", unit:'N', type:'count', value:(entry,date) => yes(holidayValue(entry,date)) },
     { label:'MANCATO RIPOSO', unit:'H', type:'hours', value:entry => missedRestMinutes(entry) },
     { label:'IND COMANDO T.O', unit:'N', type:'count', value:entry => yes(entry?.commandAllowance || entry?.indComando) },
     { label:'ORE MANSIONI DIV.', unit:'H', type:'hours', value:entry => n(entry?.differentDutyMinutes ?? entry?.mansioniDiverseMinutes ?? 0) },
@@ -168,7 +186,7 @@
     { label:'IND IMBARCO', unit:'N', type:'count', value:entry => yes(isWorking(entry) && entry?.embark) },
     { label:'IND.SUPPL.IMBARCO', unit:'N', type:'count', value:entry => n(entry?.supplementoImbarco ?? 0) },
     { label:'IND TURNO', unit:'N', type:'count', value:entry => n(entry?.turnAllowance ?? 0) },
-    { label:'IND TURNO DOM', unit:'N', type:'count', value:entry => n(entry?.sundayTurnAllowance ?? 0) },
+    { label:'IND TURNO DOM', unit:'N', type:'count', value:(entry,date) => yes(isWorking(entry) && date.getDay() === 0) },
     { label:'IND DOM NON TURN', unit:'N', type:'count', value:entry => n(entry?.sundayNonTurnAllowance ?? 0) },
     { label:'TR ESTERO', unit:'N', type:'count', value:entry => n(entry?.foreignTravel ?? 0) },
     { label:'ORE HANDICAP L.104', unit:'H', type:'hours', value:entry => n(entry?.law104Minutes ?? entry?.handicap104Minutes ?? 0) },

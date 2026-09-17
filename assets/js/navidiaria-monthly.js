@@ -4,6 +4,7 @@ try{(()=>{
   installTicketSummaryLabels();
   let monthlyInitialScrollDone=false,monthlyShipAssignments=new Map(),stickyCleanup=()=>{};
   const monthFmt=new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}),weekFmt=new Intl.DateTimeFormat('it-IT',{weekday:'short'}),fixedHolidays=new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26']);
+  function easterMondayKey(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1,monday=new Date(year,month-1,day+1,12);return `${String(monday.getMonth()+1).padStart(2,'0')}-${String(monday.getDate()).padStart(2,'0')}`}
   const shiftColors={D1:'#2563eb',D2:'#059669',D3:'#ea580c',D4:'#c026d3',BIS:'#0891b2',POND:'#dc2626',DT:'#d4a900',AGB:'#2563eb',LD:'#64748b',PT:'#64748b',AGM:'#64748b',AGT:'#64748b',PONM:'#dc2626',SR1:'#7c3aed'};
   const rows=[
     {key:'service',label:'Servizio',mobileLabel:'Serv.',kind:'shift',value:e=>isWorking(e)?`${e.shift}\n${clock(serviceMinutes(e))}`:''},
@@ -16,6 +17,7 @@ try{(()=>{
     {key:'allowance50',label:'Diaria 50%',mobileLabel:'D. 50%',kind:'allowance',rate:50,value:e=>check(isWorking(e)&&Number(e.allowanceRate)===50)},
     {key:'overnight40',label:'Pernotto 40%',mobileLabel:'Pern. 40%',kind:'toggle',field:'overnight40',value:e=>check(isWorking(e)&&e.overnight40)},
     {key:'holiday',label:'Festivita',mobileLabel:'Fest.',kind:'holiday',value:(e,d)=>check(isWorking(e)&&holidayValue(e,d))},
+    {key:'sundayShift',label:'Ind. turno dom.',mobileLabel:'Ind.dom.',kind:'computed',value:(e,d)=>check(isWorking(e)&&d.getDay()===0)},
     {key:'second-ticket',label:'Secondo ticket',mobileLabel:'2 ticket',kind:'toggle',field:'secondMeal',value:e=>check(isWorking(e)&&e.secondMeal)},
     {key:'embark',label:'Ind. imbarco',mobileLabel:'Imbarco',kind:'toggle',field:'embark',value:e=>check(isWorking(e)&&e.embark)},
     {key:'cashHandling',label:'Maneggio denaro',mobileLabel:'Denaro',kind:'toggle',field:'cashHandling',value:e=>check(isWorking(e)&&e.cashHandling)},
@@ -31,7 +33,7 @@ try{(()=>{
   function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
   function addDays(date,amount){const next=new Date(date);next.setDate(next.getDate()+amount);return next}
   function todayIso(){return iso(new Date())}
-  function isHoliday(d){return d.getDay()===0||fixedHolidays.has(iso(d).slice(5))}
+  function isHoliday(d){const key=iso(d).slice(5);return fixedHolidays.has(key)||key===easterMondayKey(d.getFullYear())}
   function monthDate(){const input=document.getElementById('monthFilter');if(!/^\d{4}-\d{2}$/.test(input.value))input.value=todayIso().slice(0,7);const [y,m]=input.value.split('-').map(Number);return new Date(y,m-1,1,12)}
   function competencePeriod(){const shared=window.NaviDiariaCompetence?.period?.(document.getElementById('monthFilter').value);if(shared?.dates?.length)return shared;const first=monthDate(),last=new Date(first.getFullYear(),first.getMonth()+1,0,12),sundays=[];for(let date=new Date(first);date<=last;date=addDays(date,1))if(date.getDay()===0)sundays.push(new Date(date));const dates=sundays.flatMap(sunday=>{const start=weekBounds(sunday).start;return Array.from({length:7},(_,index)=>addDays(start,index))});return {dates,weeks:sundays.map(sunday=>weekBounds(sunday)),start:dates[0],end:dates.at(-1)}}
   function formatCompetenceDate(date){return new Intl.DateTimeFormat('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}).format(date)}
@@ -65,6 +67,7 @@ try{(()=>{
     case 'allowance50':return worked.filter(e=>Number(e.allowanceRate)===50).length||'';
     case 'overnight40':return worked.filter(e=>e.overnight40).length||'';
     case 'holiday':return worked.filter(e=>holidayValue(e,new Date(`${e.date}T12:00:00`))).length||'';
+    case 'sundayShift':return worked.filter(e=>new Date(`${e.date}T12:00:00`).getDay()===0).length||'';
     case 'second-ticket':return worked.filter(e=>e.secondMeal).length||'';
     case 'embark':return worked.filter(e=>e.embark).length||'';
     case 'cashHandling':return worked.filter(e=>e.cashHandling).length||'';
