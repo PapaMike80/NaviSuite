@@ -121,19 +121,31 @@
   // Straordinario = ore eccedenti le 39 settimanali (Lun-Dom), non la somma dei
   // componenti giornalieri: stessa regola gia' usata per il totale nella
   // Distinta mensile (vedi 'case overtime' in navidiaria-monthly.js).
-  const weekOvertimeMinutes = date => {
+  // Risolve i 7 giorni reali (Lun-Dom) della settimana di competenza che
+  // contiene "date", anche quando cadono nel mese precedente/successivo:
+  // stessa settimana usata da competencePeriod() nella Distinta mensile.
+  const weekEntryDates = date => {
     const start = new Date(date);
     start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
     start.setHours(12, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6);
-    const startIso = dateIso(start.getFullYear(), start.getMonth() + 1, start.getDate());
-    const endIso = dateIso(end.getFullYear(), end.getMonth() + 1, end.getDate());
-    const weekTotal = entries
-      .filter(e => e.date >= startIso && e.date <= endIso && isWorking(e))
-      .reduce((sum, e) => sum + workedMinutes(e), 0);
+    const days = [];
+    for (let i = 0; i < 7; i += 1) {
+      const d = new Date(start); d.setDate(d.getDate() + i);
+      const iso = dateIso(d.getFullYear(), d.getMonth() + 1, d.getDate());
+      days.push({ date: d, entry: entries.find(e => e.date === iso) || null });
+    }
+    return days;
+  };
+  const weekOvertimeMinutes = date => {
+    const weekTotal = weekEntryDates(date).filter(x => isWorking(x.entry)).reduce((sum, x) => sum + workedMinutes(x.entry), 0);
     return Math.max(0, weekTotal - 39 * 60);
   };
+  // Somma settimanale "di default" per una voce qualunque: ricalcola row.value
+  // su tutti e 7 i giorni della VERA settimana (non solo su quelli visibili in
+  // questa pagina), cosi' un giorno del mese precedente/successivo che rientra
+  // nella stessa settimana di competenza viene contato una volta sola, sul
+  // mese giusto - esattamente come gia' fa la Distinta mensile.
+  const weekRowSum = (row, date) => weekEntryDates(date).reduce((sum, x) => sum + n(row.value(x.entry, x.date)), 0);
   const serviceCode = entry => {
     if (!entry) return '';
     const shift = String(entry.shift || '').trim().toUpperCase();
@@ -242,9 +254,26 @@
     ).join('');
     const colgroupCells = columns.map(column => `<col class="${column.type === 'week' ? 'week-col' : 'day-col'}">`).join('');
 
+    // Giorni di coda del mese precedente che completano la prima settimana di
+    // competenza di questo mese (es. il 31 agosto se settembre inizia di
+    // martedi'): gia' inclusi nel calcolo della prima colonna Sett. (vedi
+    // weekRowSum/weekOvertimeMinutes), qui sono mostrati a parte nella
+    // colonna RIP solo per trasparenza - non vanno sommati di nuovo nel TOT.
+    const carryDays = (() => {
+      const firstWeekday = (new Date(year,month-1,1,12).getDay() + 6) % 7; // 0 = lunedi'
+      const days = [];
+      for (let i=firstWeekday; i>=1; i-=1) {
+        const d = new Date(year,month-1,1,12); d.setDate(d.getDate()-i);
+        const iso = dateIso(d.getFullYear(), d.getMonth()+1, d.getDate());
+        days.push({ date:d, entry: entries.find(e => e.date === iso) || null });
+      }
+      return days;
+    })();
+
     const body = rows.map(row => {
       const dayValues = new Map();
       for (let day=1; day<=maxDay; day+=1) dayValues.set(day, row.value(entryByDay.get(day), new Date(year,month-1,day,12)));
+      const carryValue = row.type === 'text' ? '' : carryDays.reduce((sum,x) => sum + n(row.value(x.entry,x.date)), 0);
       const weekValues = [];
       const cells = columns.map(column => {
         if (column.type === 'blank') return '<td class="outside-month"></td>';
@@ -253,27 +282,30 @@
           const rendered = row.icon === 'meal' && n(value) ? mealMark() : html(formatValue(row,value));
           return `<td>${rendered}</td>`;
         }
-        const weekValue = row.weeklyValue
-          ? (column.complete ? row.weeklyValue(new Date(year,month-1,column.days[column.days.length-1],12)) : 0)
-          : (row.type === 'text' ? '' : column.days.reduce((sum,day) => sum + n(dayValues.get(day)), 0));
+        const weekLastDay = new Date(year,month-1,column.days[column.days.length-1],12);
+        const weekValue = row.type === 'text' ? ''
+          : !column.complete ? 0
+          : row.weeklyValue ? row.weeklyValue(weekLastDay)
+          : weekRowSum(row, weekLastDay);
         weekValues.push(weekValue);
         return `<td class="week-cell">${html(formatValue(row,weekValue))}</td>`;
       }).join('');
       const hasValue = row.type === 'text'
-        ? [...dayValues.values()].some(value => String(value || '').trim() !== '')
-        : [...dayValues.values()].some(value => n(value) > 0);
+        ? [...dayValues.values()].some(value => String(value || '').trim() !== '') || String(carryValue || '').trim() !== ''
+        : [...dayValues.values()].some(value => n(value) > 0) || n(carryValue) > 0;
       if (!hasValue) return '';
       const result = row.type === 'hours' ? clock(weekValues.reduce((sum,value) => sum + n(value),0))
         : row.type === 'count' ? (weekValues.reduce((sum,value) => sum + n(value),0) || '')
         : '';
       const label = html(row.label);
-      return `<tr><th class="voice">${label}</th><th class="unit">${html(row.unit)}</th><td class="carry"></td>${cells}<td class="result">${html(result)}</td></tr>`;
+      const carryCell = html(row.type === 'text' ? '' : formatValue(row,carryValue));
+      return `<tr><th class="voice">${label}</th><th class="unit">${html(row.unit)}</th><td class="carry">${carryCell}</td>${cells}<td class="result">${html(result)}</td></tr>`;
     }).join('');
 
     return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Distinta ${html(monthLabel)}</title><style>
 @page{size:A4 landscape;margin:6mm 7mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#d8dde2;color:#000;width:100%;height:100%;overflow:hidden}body{font-family:Arial,Helvetica,sans-serif}.sheet{width:283mm;background:#fff;transform-origin:center center}.print-actions{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:9999;display:flex;gap:8px}.print-actions button{min-height:42px;border:0;border-radius:999px;padding:0 17px;font:700 15px Arial,Helvetica,sans-serif;color:#fff;background:#183b52;box-shadow:0 3px 14px rgba(0,0,0,.18);cursor:pointer}.print-actions .close-button{background:#b42318}.top{display:grid;grid-template-columns:45mm 68mm 1fr 58mm;gap:4mm;align-items:end;min-height:12mm;margin-bottom:1.2mm;font-size:7pt;font-weight:800}.company{line-height:1.35;white-space:nowrap}.field{display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap}.field b{font-size:6.8pt;font-weight:800}.field span{flex:1;min-width:20mm;min-height:3.2mm;border-bottom:.35mm solid #000;text-align:center;font-size:7.4pt;font-weight:800;padding:0 .8mm .3mm}table{border-collapse:collapse;width:100%;table-layout:fixed}.distinta{border:.45mm solid #000}.distinta col.voice-col{width:42mm}.distinta col.unit-col{width:5mm}.distinta col.carry-col,.distinta col.result-col,.distinta col.week-col{width:7mm}.distinta th,.distinta td{border:.28mm solid #000;height:4mm;padding:0 .35mm;text-align:center;vertical-align:middle;line-height:1.05;font-size:6.5pt;font-weight:700;overflow:hidden;white-space:nowrap}.distinta thead th{height:5mm;font-size:6.9pt;font-weight:800}.distinta .voices-head{text-align:center;letter-spacing:1.8mm;font-size:8pt;font-weight:800}.distinta .voice{text-align:left;padding-left:.7mm;font-size:7pt;font-weight:800}.distinta .unit{font-size:6.6pt;font-weight:700}.distinta .carry,.distinta .result{font-weight:700}.distinta .week-cell,.distinta .week-head{background:#eef6f4;font-weight:800}.distinta .outside-month{background:#f7f7f7}.meal-mark{display:inline-flex;width:3.15mm;height:3.15mm;align-items:center;justify-content:center;vertical-align:middle}.meal-mark svg{width:100%;height:100%;fill:none;stroke:#000;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.footer{display:grid;grid-template-columns:42mm 1fr 1fr 1fr 1.08fr;min-height:15mm;border:.45mm solid #000;border-top:0}.footer>div{position:relative;border-right:.28mm solid #000;padding:1.2mm 1.5mm;font-size:6.6pt;font-weight:800}.footer>div:last-child{border-right:0}.date-box{text-align:left}.signature{text-align:center}.signature span{display:block;margin-top:.2mm}
 @media print{html,body{width:297mm!important;height:auto!important;min-height:210mm!important;overflow:visible!important;background:#fff!important}.sheet{position:static!important;left:auto!important;top:auto!important;width:283mm!important;min-height:0!important;transform:none!important;box-shadow:none!important;break-inside:avoid!important;page-break-inside:avoid!important}.print-actions{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body><div class="print-actions" aria-label="Comandi distinta"><button type="button" data-print>Stampa</button><button type="button" class="close-button" data-close>Chiudi</button></div><div class="sheet"><div class="top"><div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div><div class="field"><b>DISTINTA MESE DI</b><span>${html(monthLabel)}</span></div><div class="field"><b>AGENTE</b><span>${html(agent.name.toUpperCase())}</span></div><div class="field"><b>QUALIFICA</b><span>${html(agent.qualifica.toUpperCase())}</span></div></div><table class="distinta"><colgroup><col class="voice-col"><col class="unit-col"><col class="carry-col">${colgroupCells}<col class="result-col"></colgroup><thead><tr><th class="voices-head">V O C I</th><th></th><th>RIP</th>${headCells}<th>R</th></tr></thead><tbody>${body}</tbody></table><div class="footer"><div class="date-box">DATA</div><div class="signature"><span>FIRMA DELL'AGENTE</span></div><div class="signature"><span>IL CAPO CANTIERE</span></div><div class="signature"><span>IL LIQUIDATORE</span></div><div class="signature"><span>IL DIRETTORE DI ESERCIZIO</span></div></div></div></body></html>`;
+</style></head><body><div class="print-actions" aria-label="Comandi distinta"><button type="button" data-print>Stampa</button><button type="button" class="close-button" data-close>Chiudi</button></div><div class="sheet"><div class="top"><div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div><div class="field"><b>DISTINTA MESE DI</b><span>${html(monthLabel)}</span></div><div class="field"><b>AGENTE</b><span>${html(agent.name.toUpperCase())}</span></div><div class="field"><b>QUALIFICA</b><span>${html(agent.qualifica.toUpperCase())}</span></div></div><table class="distinta"><colgroup><col class="voice-col"><col class="unit-col"><col class="carry-col">${colgroupCells}<col class="result-col"></colgroup><thead><tr><th class="voices-head">V O C I</th><th></th><th>RIP</th>${headCells}<th>TOT</th></tr></thead><tbody>${body}</tbody></table><div class="footer"><div class="date-box">DATA</div><div class="signature"><span>FIRMA DELL'AGENTE</span></div><div class="signature"><span>IL CAPO CANTIERE</span></div><div class="signature"><span>IL LIQUIDATORE</span></div><div class="signature"><span>IL DIRETTORE DI ESERCIZIO</span></div></div></div></body></html>`;
   }
 
   function installLandscapePreview(popup) {
