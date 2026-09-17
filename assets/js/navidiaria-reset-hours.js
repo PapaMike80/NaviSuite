@@ -157,7 +157,7 @@
   const rows = [
     { label:'SERVIZIO', unit:'', type:'text', value:entry => serviceCode(entry) },
     { label:'ORE LAVORATE', unit:'H', type:'hours', value:entry => isWorking(entry) ? workedMinutes(entry) : 0 },
-    { label:'LAVORO STRAORD.', unit:'H', type:'hours', value:(entry,date) => date.getDay() === 0 ? weekOvertimeMinutes(date) : 0 },
+    { label:'LAVORO STRAORD.', unit:'H', type:'hours', value:entry => isWorking(entry) ? overtimeMinutes(entry) : 0, weeklyValue:lastDay => weekOvertimeMinutes(lastDay) },
     { label:'(Straord. Autorizzato)', unit:'H', type:'hours', value:entry => n(entry?.authorizedOvertimeMinutes ?? entry?.straordinarioAutorizzato ?? 0) },
     { label:'IND. ALISCAFO', unit:'N', type:'count', value:entry => isWorking(entry) ? yes(String(entry.shift || '').toUpperCase() === 'SR1' || n(entry?.hydrofoil) > 0) : 0 },
     { label:'LAVORO NOTTURNO', unit:'H', type:'hours', value:entry => n(entry?.nightMinutes ?? entry?.nightWorkMinutes ?? 0) },
@@ -194,14 +194,6 @@
   ];
 
   const formatValue = (row, raw) => row.type === 'hours' ? clock(raw) : row.type === 'count' ? (n(raw) ? String(n(raw)) : '') : String(raw || '');
-  const totalValue = (row, values) => {
-    if (row.type === 'hours') return clock(values.reduce((sum,value) => sum + n(value), 0));
-    if (row.type === 'count') {
-      const total = values.reduce((sum,value) => sum + n(value), 0);
-      return total ? String(total) : '';
-    }
-    return '';
-  };
   const readAgent = () => {
     let profile = null;
     for (const key of ['navidiaria.activeAgent','naviturni_logged_agent']) {
@@ -224,26 +216,59 @@
     const entryByDay = new Map();
     for (let day=1; day<=maxDay; day+=1) entryByDay.set(day, entries.find(entry => entry.date === dateIso(year,month,day)) || null);
 
-    const dayHeaders = Array.from({length:31},(_,index) => `<th class="day-head">${String(index+1).padStart(2,'0')}</th>`).join('');
+    // Colonne del corpo: un giorno per ogni data del mese, con una colonna
+    // "Sett." subito dopo l'ultimo giorno di ogni settimana (domenica), inclusa
+    // l'eventuale settimana parziale a inizio/fine mese.
+    const columns = [];
+    let weekDays = [];
+    for (let day=1; day<=maxDay; day+=1) {
+      columns.push({ type:'day', day });
+      weekDays.push(day);
+      if (new Date(year,month-1,day,12).getDay() === 0) { columns.push({ type:'week', days:weekDays }); weekDays = []; }
+    }
+    if (weekDays.length) columns.push({ type:'week', days:weekDays });
+    // Il modulo prestampato ha sempre 31 colonne giorno: i mesi piu' corti
+    // completano con celle vuote grigie, come nell'originale.
+    for (let extra=maxDay+1; extra<=31; extra+=1) columns.push({ type:'blank', day:extra });
+
+    const headCells = columns.map(column => column.type === 'week'
+      ? '<th class="week-head">Sett.</th>'
+      : `<th class="day-head">${String(column.day).padStart(2,'0')}</th>`
+    ).join('');
+    const colgroupCells = columns.map(column => `<col class="${column.type === 'week' ? 'week-col' : 'day-col'}">`).join('');
+
     const body = rows.map(row => {
-      const values = Array.from({length:31},(_,index) => {
-        const day = index+1;
-        if (day > maxDay) return null;
-        return row.value(entryByDay.get(day), new Date(year,month-1,day,12));
-      });
-      const cells = values.map((value,index) => {
-        if (index+1 > maxDay) return '<td class="outside-month"></td>';
-        const rendered = row.icon === 'meal' && n(value) ? mealMark() : html(formatValue(row,value));
-        return `<td>${rendered}</td>`;
+      const dayValues = new Map();
+      for (let day=1; day<=maxDay; day+=1) dayValues.set(day, row.value(entryByDay.get(day), new Date(year,month-1,day,12)));
+      const weekValues = [];
+      const cells = columns.map(column => {
+        if (column.type === 'blank') return '<td class="outside-month"></td>';
+        if (column.type === 'day') {
+          const value = dayValues.get(column.day);
+          const rendered = row.icon === 'meal' && n(value) ? mealMark() : html(formatValue(row,value));
+          return `<td>${rendered}</td>`;
+        }
+        const weekValue = row.weeklyValue
+          ? row.weeklyValue(new Date(year,month-1,column.days[column.days.length-1],12))
+          : (row.type === 'text' ? '' : column.days.reduce((sum,day) => sum + n(dayValues.get(day)), 0));
+        weekValues.push(weekValue);
+        return `<td class="week-cell">${html(formatValue(row,weekValue))}</td>`;
       }).join('');
+      const hasValue = row.type === 'text'
+        ? [...dayValues.values()].some(value => String(value || '').trim() !== '')
+        : [...dayValues.values()].some(value => n(value) > 0);
+      if (!hasValue) return '';
+      const result = row.type === 'hours' ? clock(weekValues.reduce((sum,value) => sum + n(value),0))
+        : row.type === 'count' ? (weekValues.reduce((sum,value) => sum + n(value),0) || '')
+        : '';
       const label = html(row.label);
-      return `<tr><th class="voice">${label}</th><th class="unit">${html(row.unit)}</th><td class="carry"></td>${cells}<td class="result">${html(totalValue(row,values.filter(value => value !== null)))}</td></tr>`;
+      return `<tr><th class="voice">${label}</th><th class="unit">${html(row.unit)}</th><td class="carry"></td>${cells}<td class="result">${html(result)}</td></tr>`;
     }).join('');
 
     return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Distinta ${html(monthLabel)}</title><style>
-@page{size:A4 landscape;margin:6mm 7mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#d8dde2;color:#000;width:100%;height:100%;overflow:hidden}body{font-family:Arial,Helvetica,sans-serif}.sheet{width:283mm;background:#fff;transform-origin:center center}.print-actions{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:9999;display:flex;gap:8px}.print-actions button{min-height:42px;border:0;border-radius:999px;padding:0 17px;font:700 15px Arial,Helvetica,sans-serif;color:#fff;background:#183b52;box-shadow:0 3px 14px rgba(0,0,0,.18);cursor:pointer}.print-actions .close-button{background:#b42318}.top{display:grid;grid-template-columns:45mm 68mm 1fr 58mm;gap:4mm;align-items:end;min-height:12mm;margin-bottom:1.2mm;font-size:7pt;font-weight:800}.company{line-height:1.35;white-space:nowrap}.field{display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap}.field b{font-size:6.8pt;font-weight:800}.field span{flex:1;min-width:20mm;min-height:3.2mm;border-bottom:.35mm solid #000;text-align:center;font-size:7.4pt;font-weight:800;padding:0 .8mm .3mm}table{border-collapse:collapse;width:100%;table-layout:fixed}.distinta{border:.45mm solid #000}.distinta col.voice-col{width:42mm}.distinta col.unit-col{width:5mm}.distinta col.carry-col,.distinta col.result-col{width:7mm}.distinta th,.distinta td{border:.28mm solid #000;height:4mm;padding:0 .35mm;text-align:center;vertical-align:middle;line-height:1.05;font-size:6.5pt;font-weight:700;overflow:hidden;white-space:nowrap}.distinta thead th{height:5mm;font-size:6.9pt;font-weight:800}.distinta .voices-head{text-align:center;letter-spacing:1.8mm;font-size:8pt;font-weight:800}.distinta .voice{text-align:left;padding-left:.7mm;font-size:7pt;font-weight:800}.distinta .unit{font-size:6.6pt;font-weight:700}.distinta .carry,.distinta .result{font-weight:700}.distinta .outside-month{background:#f7f7f7}.meal-mark{display:inline-flex;width:3.15mm;height:3.15mm;align-items:center;justify-content:center;vertical-align:middle}.meal-mark svg{width:100%;height:100%;fill:none;stroke:#000;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.footer{display:grid;grid-template-columns:42mm 1fr 1fr 1fr 1.08fr;min-height:15mm;border:.45mm solid #000;border-top:0}.footer>div{position:relative;border-right:.28mm solid #000;padding:1.2mm 1.5mm;font-size:6.6pt;font-weight:800}.footer>div:last-child{border-right:0}.date-box{text-align:left}.signature{text-align:center}.signature span{display:block;margin-top:.2mm}
+@page{size:A4 landscape;margin:6mm 7mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#d8dde2;color:#000;width:100%;height:100%;overflow:hidden}body{font-family:Arial,Helvetica,sans-serif}.sheet{width:283mm;background:#fff;transform-origin:center center}.print-actions{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));z-index:9999;display:flex;gap:8px}.print-actions button{min-height:42px;border:0;border-radius:999px;padding:0 17px;font:700 15px Arial,Helvetica,sans-serif;color:#fff;background:#183b52;box-shadow:0 3px 14px rgba(0,0,0,.18);cursor:pointer}.print-actions .close-button{background:#b42318}.top{display:grid;grid-template-columns:45mm 68mm 1fr 58mm;gap:4mm;align-items:end;min-height:12mm;margin-bottom:1.2mm;font-size:7pt;font-weight:800}.company{line-height:1.35;white-space:nowrap}.field{display:flex;align-items:flex-end;gap:1.5mm;white-space:nowrap}.field b{font-size:6.8pt;font-weight:800}.field span{flex:1;min-width:20mm;min-height:3.2mm;border-bottom:.35mm solid #000;text-align:center;font-size:7.4pt;font-weight:800;padding:0 .8mm .3mm}table{border-collapse:collapse;width:100%;table-layout:fixed}.distinta{border:.45mm solid #000}.distinta col.voice-col{width:42mm}.distinta col.unit-col{width:5mm}.distinta col.carry-col,.distinta col.result-col,.distinta col.week-col{width:7mm}.distinta th,.distinta td{border:.28mm solid #000;height:4mm;padding:0 .35mm;text-align:center;vertical-align:middle;line-height:1.05;font-size:6.5pt;font-weight:700;overflow:hidden;white-space:nowrap}.distinta thead th{height:5mm;font-size:6.9pt;font-weight:800}.distinta .voices-head{text-align:center;letter-spacing:1.8mm;font-size:8pt;font-weight:800}.distinta .voice{text-align:left;padding-left:.7mm;font-size:7pt;font-weight:800}.distinta .unit{font-size:6.6pt;font-weight:700}.distinta .carry,.distinta .result{font-weight:700}.distinta .week-cell,.distinta .week-head{background:#eef6f4;font-weight:800}.distinta .outside-month{background:#f7f7f7}.meal-mark{display:inline-flex;width:3.15mm;height:3.15mm;align-items:center;justify-content:center;vertical-align:middle}.meal-mark svg{width:100%;height:100%;fill:none;stroke:#000;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.footer{display:grid;grid-template-columns:42mm 1fr 1fr 1fr 1.08fr;min-height:15mm;border:.45mm solid #000;border-top:0}.footer>div{position:relative;border-right:.28mm solid #000;padding:1.2mm 1.5mm;font-size:6.6pt;font-weight:800}.footer>div:last-child{border-right:0}.date-box{text-align:left}.signature{text-align:center}.signature span{display:block;margin-top:.2mm}
 @media print{html,body{width:297mm!important;height:auto!important;min-height:210mm!important;overflow:visible!important;background:#fff!important}.sheet{position:static!important;left:auto!important;top:auto!important;width:283mm!important;min-height:0!important;transform:none!important;box-shadow:none!important;break-inside:avoid!important;page-break-inside:avoid!important}.print-actions{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body><div class="print-actions" aria-label="Comandi distinta"><button type="button" data-print>Stampa</button><button type="button" class="close-button" data-close>Chiudi</button></div><div class="sheet"><div class="top"><div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div><div class="field"><b>DISTINTA MESE DI</b><span>${html(monthLabel)}</span></div><div class="field"><b>AGENTE</b><span>${html(agent.name.toUpperCase())}</span></div><div class="field"><b>QUALIFICA</b><span>${html(agent.qualifica.toUpperCase())}</span></div></div><table class="distinta"><colgroup><col class="voice-col"><col class="unit-col"><col class="carry-col">${Array.from({length:31},()=>'<col>').join('')}<col class="result-col"></colgroup><thead><tr><th class="voices-head">V O C I</th><th></th><th>RIP</th>${dayHeaders}<th>R</th></tr></thead><tbody>${body}</tbody></table><div class="footer"><div class="date-box">DATA</div><div class="signature"><span>FIRMA DELL'AGENTE</span></div><div class="signature"><span>IL CAPO CANTIERE</span></div><div class="signature"><span>IL LIQUIDATORE</span></div><div class="signature"><span>IL DIRETTORE DI ESERCIZIO</span></div></div></div></body></html>`;
+</style></head><body><div class="print-actions" aria-label="Comandi distinta"><button type="button" data-print>Stampa</button><button type="button" class="close-button" data-close>Chiudi</button></div><div class="sheet"><div class="top"><div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div><div class="field"><b>DISTINTA MESE DI</b><span>${html(monthLabel)}</span></div><div class="field"><b>AGENTE</b><span>${html(agent.name.toUpperCase())}</span></div><div class="field"><b>QUALIFICA</b><span>${html(agent.qualifica.toUpperCase())}</span></div></div><table class="distinta"><colgroup><col class="voice-col"><col class="unit-col"><col class="carry-col">${colgroupCells}<col class="result-col"></colgroup><thead><tr><th class="voices-head">V O C I</th><th></th><th>RIP</th>${headCells}<th>R</th></tr></thead><tbody>${body}</tbody></table><div class="footer"><div class="date-box">DATA</div><div class="signature"><span>FIRMA DELL'AGENTE</span></div><div class="signature"><span>IL CAPO CANTIERE</span></div><div class="signature"><span>IL LIQUIDATORE</span></div><div class="signature"><span>IL DIRETTORE DI ESERCIZIO</span></div></div></div></body></html>`;
   }
 
   function installLandscapePreview(popup) {
