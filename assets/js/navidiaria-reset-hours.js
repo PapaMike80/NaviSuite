@@ -218,15 +218,20 @@
 
     // Colonne del corpo: un giorno per ogni data del mese, con una colonna
     // "Sett." subito dopo l'ultimo giorno di ogni settimana (domenica), inclusa
-    // l'eventuale settimana parziale a inizio/fine mese.
+    // l'eventuale settimana parziale a inizio/fine mese. Una settimana e'
+    // "completa" (chiusa da una domenica reale in questo mese) solo se
+    // raggiunge una domenica prima della fine del mese: esattamente come fa
+    // gia' la Distinta mensile (competencePeriod), che assegna ogni settimana
+    // al mese della sua domenica, cosi' una settimana a cavallo (es. 28-30
+    // settembre) non viene contata qui E ANCHE nel mese successivo.
     const columns = [];
     let weekDays = [];
     for (let day=1; day<=maxDay; day+=1) {
       columns.push({ type:'day', day });
       weekDays.push(day);
-      if (new Date(year,month-1,day,12).getDay() === 0) { columns.push({ type:'week', days:weekDays }); weekDays = []; }
+      if (new Date(year,month-1,day,12).getDay() === 0) { columns.push({ type:'week', days:weekDays, complete:true }); weekDays = []; }
     }
-    if (weekDays.length) columns.push({ type:'week', days:weekDays });
+    if (weekDays.length) columns.push({ type:'week', days:weekDays, complete:false });
     // Il modulo prestampato ha sempre 31 colonne giorno: i mesi piu' corti
     // completano con celle vuote grigie, come nell'originale.
     for (let extra=maxDay+1; extra<=31; extra+=1) columns.push({ type:'blank', day:extra });
@@ -249,7 +254,7 @@
           return `<td>${rendered}</td>`;
         }
         const weekValue = row.weeklyValue
-          ? row.weeklyValue(new Date(year,month-1,column.days[column.days.length-1],12))
+          ? (column.complete ? row.weeklyValue(new Date(year,month-1,column.days[column.days.length-1],12)) : 0)
           : (row.type === 'text' ? '' : column.days.reduce((sum,day) => sum + n(dayValues.get(day)), 0));
         weekValues.push(weekValue);
         return `<td class="week-cell">${html(formatValue(row,weekValue))}</td>`;
