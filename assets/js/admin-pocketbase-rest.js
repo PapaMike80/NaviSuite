@@ -199,13 +199,14 @@
 
   function diariaRowFromEntry(agenteId, en) {
     const nn = x => Math.max(0, Math.round(Number(x) || 0));
+    const ni = x => Math.round(Number(x) || 0);
     const ot = en.overtimeComponents || {};
     const rate = String(en.allowanceRate ?? '');
     const date = String(en.date || '').slice(0, 10);
     return {
       agente: agenteId, data: `${date} 00:00:00.000Z`, servizio: String(en.shift || ''),
       straordinario_ritardo_minuti: nn(en.delay), straordinario_cambio_minuti: nn(ot.cambi), straordinario_sentine_minuti: nn(ot.sentine),
-      banca_ore_minuti: nn(en.bank), diaria_percentuale: DIARIA_PCT.has(rate) ? rate : '0',
+      banca_ore_minuti: nn(en.bank), rf_minuti: ni(en.rf), rf_manuale: !!en.rfManual, diaria_percentuale: DIARIA_PCT.has(rate) ? rate : '0',
       indennita_imbarco: !!en.embark, ticket_dovuto: !!en.mealUsed, ticket_usato: !!en.mealUsed,
       secondo_ticket: !!en.secondMeal, maneggio_denaro: !!en.cashHandling,
       trasferta_minuti: en.travel ? nn(en.travelMinutes) : 0, presenza: en.shift !== 'Riposo' && en.shift !== 'Assenza',
@@ -222,7 +223,7 @@
       date: String(r.data || '').slice(0, 10), shift: r.servizio || '',
       delay: r.straordinario_ritardo_minuti || 0,
       overtimeComponents: { cambi: r.straordinario_cambio_minuti || 0, sentine: r.straordinario_sentine_minuti || 0 },
-      bank: r.banca_ore_minuti || 0, allowanceRate: r.diaria_percentuale || '0',
+      bank: r.banca_ore_minuti || 0, rf: r.rf_minuti || 0, rfManual: !!r.rf_manuale, allowanceRate: r.diaria_percentuale || '0',
       embark: !!r.indennita_imbarco, mealUsed: !!r.ticket_usato, secondMeal: !!r.secondo_ticket,
       cashHandling: !!r.maneggio_denaro, travel: Number(r.trasferta_minuti || 0) > 0, travelMinutes: r.trasferta_minuti || 0,
       refuel: !!r.rifornimento, param139: !!r.parametro_139, manualModified: !!r.override_manuale, note: r.note || '',
@@ -261,7 +262,7 @@
   // il periodo aperto — senza questo confronto, modificare un solo campo di
   // un solo giorno riscriveva una richiesta di rete per OGNI giorno storico
   // (anche centinaia), facendo sembrare il popup bloccato per oltre un minuto.
-  const DIARIA_COMPARE_FIELDS = ['servizio', 'straordinario_ritardo_minuti', 'straordinario_cambio_minuti', 'straordinario_sentine_minuti', 'banca_ore_minuti', 'diaria_percentuale', 'indennita_imbarco', 'ticket_dovuto', 'ticket_usato', 'secondo_ticket', 'maneggio_denaro', 'trasferta_minuti', 'presenza', 'rifornimento', 'parametro_139', 'override_manuale', 'note'];
+  const DIARIA_COMPARE_FIELDS = ['servizio', 'straordinario_ritardo_minuti', 'straordinario_cambio_minuti', 'straordinario_sentine_minuti', 'banca_ore_minuti', 'rf_minuti', 'rf_manuale', 'diaria_percentuale', 'indennita_imbarco', 'ticket_dovuto', 'ticket_usato', 'secondo_ticket', 'maneggio_denaro', 'trasferta_minuti', 'presenza', 'rifornimento', 'parametro_139', 'override_manuale', 'note'];
   function diariaRowUnchanged(current, row) {
     return DIARIA_COMPARE_FIELDS.every(key => JSON.stringify(current[key] ?? null) === JSON.stringify(row[key] ?? null));
   }

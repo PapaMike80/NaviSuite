@@ -2336,6 +2336,7 @@
       "c-cong": "#a78bfa",
       "c-agb": "#60a5fa",
       "c-fp": "#94a3b8",
+      "c-rf": "#84cc16",
       "c-other": "#94a3b8"
     };
 
@@ -2497,6 +2498,7 @@
       if (/^AGB/.test(uPulito)) return "c-agb";
       if (uPulito.startsWith("CONG") || uPulito === "CON;") return "c-cong";
       if (uPulito === "FP" || uPulito === "F.P." || uPulito === "CORSO") return "c-fp";
+      if (uPulito === "RF") return "c-rf";
       return "c-other";
     }
 

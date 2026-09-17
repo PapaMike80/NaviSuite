@@ -815,6 +815,10 @@
       color: var(--fp);
       background: var(--fp-bg);
     }
+    .c-rf {
+      color: var(--rf);
+      background: var(--rf-bg);
+    }
     .c-other {
       color: var(--other);
       background: var(--other-bg);
