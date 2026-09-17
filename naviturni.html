@@ -274,6 +274,35 @@
       background:#22c55e;
       box-shadow:0 0 0 2px rgba(34,197,94,.18),0 0 7px rgba(34,197,94,.48);
     }
+    .date-head-legend {
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:8px 16px;
+      margin:8px 2px 0;
+      color:var(--ink-dim);
+      font-size:11px;
+      font-weight:700;
+    }
+    .date-head-legend .legend-item {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .date-head-legend .legend-dot {
+      display:block;
+      flex:0 0 auto;
+      width:7px;
+      height:7px;
+      border-radius:50%;
+    }
+    .date-head-legend .legend-dot.legend-ods-day { background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,.18),0 0 6px rgba(34,197,94,.4); }
+    .date-head-legend .legend-dot.legend-incomplete { background:#ef4444; }
+    .date-head-legend .legend-dot.legend-overstaffed { background:#facc15; }
+    .date-head-legend .legend-dot.legend-transfer { background:#60a5fa; }
+    .date-head-legend .legend-dot.legend-ods-agent { background:#a855f7; }
+    .date-head-legend .legend-dot.legend-refuel { background:#f59e0b; box-shadow:0 0 0 1px rgba(245,158,11,.25); }
 
     .coverage-section {
       display:none;
@@ -1660,6 +1689,15 @@
         <thead id="thead-container"></thead>
         <tbody id="tbody"></tbody>
       </table>
+    </div>
+
+    <div class="date-head-legend">
+      <span class="legend-item"><span class="legend-dot legend-ods-day" aria-hidden="true"></span>Giorno coperto da un ODS</span>
+      <span class="legend-item"><span class="legend-dot legend-incomplete" aria-hidden="true"></span>Equipaggio sotto il minimo richiesto</span>
+      <span class="legend-item"><span class="legend-dot legend-overstaffed" aria-hidden="true"></span>Equipaggio sopra il minimo richiesto</span>
+      <span class="legend-item"><span class="legend-dot legend-transfer" aria-hidden="true"></span>Collega in trasferta su quel turno</span>
+      <span class="legend-item"><span class="legend-dot legend-ods-agent" aria-hidden="true"></span>Variazione ODS per l'agente</span>
+      <span class="legend-item"><span class="legend-dot legend-refuel" aria-hidden="true"></span>Rifornimento nave</span>
     </div>
 
     <div class="upload-container" id="upload-container">
