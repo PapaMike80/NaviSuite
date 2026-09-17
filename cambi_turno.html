@@ -2167,13 +2167,18 @@
       return "c-other";
     }
 
+    function normalizeShiftDisplay(v) {
+      const stripped = String(v || "").trim().replace(/[;,.]+$/, "");
+      return /^(?:LAV|TERRA)$/i.test(stripped) ? "LAV" : v;
+    }
+
     function pill(v) {
       if (!v || v.trim() === "" || v.trim() === "----" || v.trim().toLowerCase() === "rip" || v.trim().toLowerCase() === "rip.") {
         return '<span class="cell-pill c-rip">rip</span>';
       }
       const cls = classify(v);
-      if (!cls) return `<span style="color:#3a3f50">${v}</span>`;
-      return `<span class="cell-pill ${cls}">${v}</span>`;
+      if (!cls) return `<span style="color:#3a3f50">${normalizeShiftDisplay(v)}</span>`;
+      return `<span class="cell-pill ${cls}">${normalizeShiftDisplay(v)}</span>`;
     }
 
     function isTodayDate(dateObj) {
@@ -3312,7 +3317,8 @@
             isSameCrewShift(odsVariation.turno_originale, cleanShift) &&
             !isSameCrewShift(odsVariation.turno_nuovo, cleanShift);
 
-          if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds) {
+          if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds &&
+            (!isGroundCrewShiftKey(cleanShift) || resKey === crewResidence)) {
             let rawUpper = hisShiftRaw.toUpperCase();
             let isTrasfertaFlag = rawUpper.startsWith("C") || rawUpper.endsWith("C") || resKey !==
               crewResidence;
@@ -3399,7 +3405,7 @@
         const instructorMark = r.isInstructor ? `<span class="c-res instructor-mark">SOVRANNUMERO</span>` : "";
         const groundServiceCode = ottieniTurnoPulito(r.rawShift).toUpperCase();
         const groundService = myShiftPuro === "TERRA"
-          ? `<span class="c-res">${escapeAttribute(etichetteServiziTerra[groundServiceCode] || groundServiceCode)}</span>`
+          ? `<span class="c-res">${escapeAttribute(etichetteServiziTerra[groundServiceCode] || normalizeShiftDisplay(groundServiceCode))}</span>`
           : "";
         const odsBadge = renderAgentOdsBadge(r.odsVariation);
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)

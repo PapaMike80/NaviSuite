@@ -2502,6 +2502,11 @@
       return "c-other";
     }
 
+    function normalizeShiftDisplay(v) {
+      const stripped = String(v || "").trim().replace(/[;,.]+$/, "");
+      return /^(?:LAV|TERRA)$/i.test(stripped) ? "LAV" : v;
+    }
+
     function pill(v) {
       if (String(v || "") === BARISTA_PRIVATE_SHIFT) {
         return '<span class="cell-pill c-rip private-shift" aria-label="Turno non condiviso"></span>';
@@ -2510,8 +2515,8 @@
         return '<span class="cell-pill c-rip">rip</span>';
       }
       const cls = classify(v);
-      if (!cls) return `<span style="color:#3a3f50">${v}</span>`;
-      return `<span class="cell-pill ${cls}">${v}</span>`;
+      if (!cls) return `<span style="color:#3a3f50">${normalizeShiftDisplay(v)}</span>`;
+      return `<span class="cell-pill ${cls}">${normalizeShiftDisplay(v)}</span>`;
     }
 
     function isTodayDate(dateObj) {
@@ -3478,7 +3483,7 @@
       const isCrewShift = Boolean(crewResidence);
       const myShiftPuro = isRest ? "RIPOSO" : (isGroundCrewShiftKey(crewShift) ? "TERRA" : crewShift);
       const panelShiftLabel = myShiftPuro === "TERRA"
-        ? (etichetteServiziTerra[cleanShift.toUpperCase()] || cleanShift.toUpperCase() || "TERRA")
+        ? (etichetteServiziTerra[cleanShift.toUpperCase()] || normalizeShiftDisplay(cleanShift.toUpperCase()) || "LAV")
         : myShiftPuro;
       updateCoverageShiftButtons(crewShift);
       updateCoverageCellSelection(col, crewShift);
@@ -3556,9 +3561,10 @@
             isSameCrewShift(odsVariation.turno_originale, cleanShift) &&
             !isSameCrewShift(odsVariation.turno_nuovo, cleanShift);
 
-          if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds) {
+          const originResidence = ag.residenzaOrigine || resKey;
+          if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds &&
+            (!isGroundCrewShiftKey(cleanShift) || originResidence === crewResidence)) {
             let rawUpper = hisShiftRaw.toUpperCase();
-            const originResidence = ag.residenzaOrigine || resKey;
             let isTrasfertaFlag = rawUpper.startsWith("C") || rawUpper.endsWith("C") || originResidence !==
               crewResidence;
 
@@ -3630,7 +3636,7 @@
         const instructorMark = r.isInstructor ? `<span class="c-res instructor-mark">SOVRANNUMERO</span>` : "";
         const groundServiceCode = ottieniTurnoPulito(r.rawShift).toUpperCase();
         const groundService = myShiftPuro === "TERRA"
-          ? `<span class="c-res">${escapeAttribute(etichetteServiziTerra[groundServiceCode] || groundServiceCode)}</span>`
+          ? `<span class="c-res">${escapeAttribute(etichetteServiziTerra[groundServiceCode] || normalizeShiftDisplay(groundServiceCode))}</span>`
           : "";
         const odsBadge = renderAgentOdsBadge(r.odsVariation);
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)
