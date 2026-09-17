@@ -204,7 +204,9 @@
             </label>
             <label class="check-label"><input id="entryEmbark" type="checkbox" checked><span>Giorno d'imbarco</span></label>
             <label class="check-label"><input id="entryCashHandling" type="checkbox"><span>Indennità maneggio denaro</span></label>
-            <label class="check-label"><input id="entryRefuel" type="checkbox"><span id="refuelLabel">Rifornimento (+30 min)</span></label>
+            <label>Rifornimento (banca ore)
+              <select id="entryRefuel"><option value="0">Nessuno</option><option value="30">00:30</option><option value="60">01:00</option><option value="90">01:30</option><option value="120">02:00</option></select>
+            </label>
             <label class="check-label"><input id="entryMeal" type="checkbox"><span>Buono pasto usato</span></label>
             <label>Note<input id="entryNote" type="text" placeholder="Facoltative"></label>
             <label class="check-label"><input id="entryTravel" type="checkbox"><span>Trasferta · diaria 50%</span></label>
