@@ -1928,7 +1928,7 @@
 
     function getCrewShiftKey(shiftValue) {
       const cleanShift = ottieniTurnoPulito(shiftValue).toUpperCase();
-      if (cleanShift === "TERRA") {
+      if (cleanShift === "TERRA" || /^LAV\.?$/.test(cleanShift)) {
         const residenceKey = String(currentResidence || "").trim().toUpperCase();
         return serviziTerraPerResidenza[residenceKey] ? `TERRA_${residenceKey}` : "TERRA";
       }
@@ -1959,7 +1959,7 @@
           residence.toUpperCase().trim() === groundResidence
         ) || groundResidence;
       }
-      if (rawShift === "TERRA") return currentResidence;
+      if (rawShift === "TERRA" || /^LAV\.?$/.test(rawShift)) return currentResidence;
       const cleanShift = getCrewShiftKey(rawShift);
       const match = Object.entries(turniMappaResidenze).find(([, shifts]) =>
         shifts.some(shift => getCrewShiftKey(shift) === cleanShift)
