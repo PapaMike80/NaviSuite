@@ -2145,6 +2145,17 @@
       applyLoggedAgentProfile();
     }
 
+    // Riga mia/fissata in alto: turni completi anche per i giorni svolti in
+    // un'altra residenza (cambio di residenza con decorrenza).
+    function completeAgent(agent) {
+      if (!agent?.turni_settimanali_completi) return agent;
+      return {
+        ...agent,
+        turni_settimanali: agent.turni_settimanali_completi,
+        variazioni_ods: { ...(agent.variazioni_ods || {}), ...(agent.variazioni_ods_completi || {}) }
+      };
+    }
+
     function getLoggedAgentLocation() {
       if (!loggedAgentProfile) return null;
       // Gli agenti d'ufficio non hanno un turno: nessuna riga personale.
@@ -2155,7 +2166,7 @@
         const sameId = loggedAgentProfile.id && String(agent.id || "") === loggedAgentProfile.id;
         return sameId || normalizeOdsAgentName(agent.agente) === normalizeOdsAgentName(loggedAgentProfile.name);
       });
-      return index >= 0 ? { residence, index, agent: agents[index] } : null;
+      return index >= 0 ? { residence, index, agent: completeAgent(agents[index]) } : null;
     }
 
     function findLoggedAgentIndex(residence = currentResidence) {
@@ -2614,7 +2625,7 @@
     }
 
     function selectDayForPinnedAgent(cal) {
-      const agent = pinnedAgentIdx !== null ? currentAgentsList[pinnedAgentIdx] : null;
+      const agent = pinnedAgentIdx !== null ? completeAgent(currentAgentsList[pinnedAgentIdx]) : null;
       if (!agent || !cal) return;
       const rawShift = getAgentShiftOnDate(agent, cal.iso);
       const cleanShift = ottieniTurnoPulito(rawShift);
@@ -2791,7 +2802,7 @@
       }
 
       orderedIndexes.forEach(ri => {
-        const agenteObj = currentAgentsList[ri];
+        const agenteObj = ri === pinnedAgentIdx || ri === loggedIndex ? completeAgent(currentAgentsList[ri]) : currentAgentsList[ri];
         const tr = createRowDOM(agenteObj, ri, ri === pinnedAgentIdx);
         fragment.appendChild(tr);
         trElements.push(tr);
@@ -2820,7 +2831,7 @@
       const loggedIndex = findLoggedAgentIndex();
       const loggedAgent = loggedLocation.agent;
       const loggedRow = document.querySelector("#tbody tr.logged-agent-row");
-      const pinnedAgent = pinnedAgentIdx !== null ? currentAgentsList[pinnedAgentIdx] : null;
+      const pinnedAgent = pinnedAgentIdx !== null ? completeAgent(currentAgentsList[pinnedAgentIdx]) : null;
       if (!loggedAgent || !loggedRow) return;
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
@@ -4292,22 +4303,36 @@
         const week = settimaneInfo.find(item => item.dateIso.includes(variation.data));
         if (!week) return;
         const dayIndex = week.dateIso.indexOf(variation.data);
-        const weeklyShifts = agent.turni_settimanali?.[week.key];
-        if (!weeklyShifts || dayIndex < 0) return;
+        if (dayIndex < 0) return;
 
-        const currentShift = weeklyShifts[dayIndex] || "rip";
-        const newShift = normalizeOdsShift(variation.turno_nuovo);
-        weeklyShifts[dayIndex] = newShift;
+        // Un agente con cambio di residenza compare in due residenze: la
+        // variazione va applicata a tutte le sue copie (e ai turni completi).
+        const copies = agents.filter(item => item === agent ||
+          (String(item.id || "") === String(agent.id || "") && item.agente === agent.agente));
+        copies.forEach(copy => {
+          const weeklyShifts = copy.turni_settimanali?.[week.key];
+          const fullShifts = copy.turni_settimanali_completi?.[week.key];
+          if (!weeklyShifts || dayIndex >= weeklyShifts.length) return;
 
-        if (!agent.variazioni_ods) agent.variazioni_ods = {};
-        agent.variazioni_ods[variation.data] = {
-          ...variation,
-          // Il turno di partenza deve riflettere sempre il valore corrente
-          // di Foglio1; quello riportato nell'ODS potrebbe essere precedente
-          // a una successiva correzione del turno base.
-          turno_originale: normalizeOdsShift(currentShift),
-          turno_nuovo: newShift
-        };
+          const hidden = weeklyShifts[dayIndex] === BARISTA_PRIVATE_SHIFT;
+          const currentShift = (hidden ? fullShifts?.[dayIndex] : weeklyShifts[dayIndex]) || "rip";
+          const newShift = normalizeOdsShift(variation.turno_nuovo);
+          if (!hidden) weeklyShifts[dayIndex] = newShift;
+          if (fullShifts) fullShifts[dayIndex] = newShift;
+
+          // Sui giorni nascosti la variazione resta solo nei dati completi,
+          // altrimenti rivelerebbe il turno nella residenza sbagliata.
+          const storeKey = hidden ? "variazioni_ods_completi" : "variazioni_ods";
+          if (!copy[storeKey]) copy[storeKey] = {};
+          copy[storeKey][variation.data] = {
+            ...variation,
+            // Il turno di partenza deve riflettere sempre il valore corrente
+            // di Foglio1; quello riportato nell'ODS potrebbe essere precedente
+            // a una successiva correzione del turno base.
+            turno_originale: normalizeOdsShift(currentShift),
+            turno_nuovo: newShift
+          };
+        });
       });
 
       return data;
@@ -4354,12 +4379,17 @@
       const residenze = {};
       const buildRow = (ag, isHidden) => {
         const turni_settimanali = {};
+        const turni_settimanali_completi = {};
+        let masked = false;
 
         settimaneInfo.forEach(sett => {
-          turni_settimanali[sett.key] = sett.dateIso.map(iso =>
-            isHidden(iso) ? BARISTA_PRIVATE_SHIFT
-              : (ag.turni && ag.turni[iso]) ? normalizeOdsShift(ag.turni[iso]) : "rip"
-          );
+          const full = sett.dateIso.map(iso => (ag.turni && ag.turni[iso]) ? normalizeOdsShift(ag.turni[iso]) : "rip");
+          turni_settimanali_completi[sett.key] = full;
+          turni_settimanali[sett.key] = sett.dateIso.map((iso, index) => {
+            if (!isHidden(iso)) return full[index];
+            masked = true;
+            return BARISTA_PRIVATE_SHIFT;
+          });
         });
 
         const row = {
@@ -4368,6 +4398,9 @@
           qualifica: ag.qualifica || "marinaio",
           turni_settimanali
         };
+        // Nella tabella di una residenza i giorni svolti nell'altra restano
+        // vuoti; la riga fissata in alto (mia / collega) mostra invece tutto.
+        if (masked) row.turni_settimanali_completi = turni_settimanali_completi;
         if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova) {
           row.residenzaDal = ag.residenzaDal;
           row.residenzaPrecedente = ag.residenzaPrecedente;

@@ -108,7 +108,8 @@ console.log('turn-import ok');
   for(;end<src.length;end++){if(src[end]==='{')depth++;if(src[end]==='}'&&--depth===0)break}
   const fn=src.slice(start,end+1);
   const win={NaviSharedData:{seniorityRank:name=>({'A':1,'B':2,'C':3}[String(name).split(' ')[0]]||99)}};
-  const adapt=new Function('window','settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${fn};return adattaFormatoNaviturni;`)(win,[],'__PRIVATE__',value=>String(value).toLowerCase());
+  const adaptInfo=[];
+  const adapt=new Function('window','settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${fn};return adattaFormatoNaviturni;`)(win,adaptInfo,'__PRIVATE__',value=>String(value).toLowerCase());
   const days=['2026-10-04','2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-10'];
   const mover={id:'3',agente:'B X.',turni:Object.fromEntries(days.map(iso=>[iso,'R1'])),residenzaPrecedente:'DESENZANO',residenzaNuova:'MADERNO',residenzaDal:'2026-10-05'};
   const out=adapt({date:days.map(iso=>({iso})),residenze:{
@@ -121,5 +122,25 @@ console.log('turn-import ok');
   assert.deepEqual(weekOf(mad),['__PRIVATE__',...Array(6).fill('r1')]);
   assert.deepEqual(out.residenze.MADERNO.map(agent=>agent.id),['1','3','2']);
   assert.equal(mad.residenzaDal,'2026-10-05');
+  // La riga fissata in alto (mia / collega) porta sempre tutti i turni.
+  assert.deepEqual(Object.values(des.turni_settimanali_completi)[0],Array(7).fill('r1'));
+  assert.deepEqual(Object.values(mad.turni_settimanali_completi)[0],Array(7).fill('r1'));
+  assert.equal(out.residenze.MADERNO.find(agent=>agent.id==='1').turni_settimanali_completi,undefined);
+
+  // Variazione ODS su un giorno nascosto: solo nei dati completi.
+  const hdr=src.indexOf('function applyOdsVariations(');
+  let e=src.indexOf('{',src.indexOf(')',hdr)),dd=0;
+  for(;e<src.length;e++){if(src[e]==='{')dd++;if(src[e]==='}'&&--dd===0)break}
+  const fnOds=src.slice(hdr,e+1),normFn=src.slice(src.indexOf('function normalizeOdsAgentName('));
+  const nameFn=normFn.slice(0,normFn.indexOf('\n    }')+6);
+  const ods=new Function('settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${nameFn};${fnOds};return applyOdsVariations;`);
+  const apply=ods(adaptInfo,'__PRIVATE__',value=>String(value).toLowerCase());
+  const done=apply({...out,variazioni_ods:[{data:'2026-10-07',id_agente:'3',agente:'B X.',turno_nuovo:'T2',ods:'ODS 1'}]});
+  const d2=done.residenze.DESENZANO.find(agent=>agent.id==='3'),m2=done.residenze.MADERNO.find(agent=>agent.id==='3');
+  assert.equal(Object.values(m2.turni_settimanali)[0][3],'t2');
+  assert.equal(Object.values(d2.turni_settimanali)[0][3],'__PRIVATE__');
+  assert.equal(d2.variazioni_ods,undefined);
+  assert.equal(d2.variazioni_ods_completi['2026-10-07'].turno_nuovo,'t2');
+  assert.equal(Object.values(d2.turni_settimanali_completi)[0][3],'t2');
 }
 console.log('naviturni residence ok');
