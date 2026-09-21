@@ -1726,7 +1726,7 @@
   <script src="assets/js/turni-shared.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=38"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-data.js?v=120"></script>
+  <script src="assets/js/shared-data.js?v=121"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.56"></script>
   <script src="assets/js/overtime-components.js?v=5"></script>
@@ -2170,7 +2170,22 @@
       return true;
     }
 
+    // Agente con cambio di residenza a data futura/passata: la sessione salvata
+    // al login puo' avere la residenza vecchia, si allinea a quella in vigore oggi.
+    function reconcileLoggedResidence() {
+      if (!loggedAgentProfile?.id || !globalData?.residenze) return;
+      const today = new Date().toLocaleDateString('sv-SE');
+      for (const list of Object.values(globalData.residenze)) {
+        const agent = (list || []).find(item => String(item.id || '') === String(loggedAgentProfile.id));
+        if (agent?.residenzaDal && agent.residenzaNuova && agent.residenzaPrecedente) {
+          loggedAgentProfile.residence = today >= agent.residenzaDal ? agent.residenzaNuova : agent.residenzaPrecedente;
+          return;
+        }
+      }
+    }
+
     function applyLoggedAgentProfile() {
+      reconcileLoggedResidence();
       if (isBaristaProfile()) {
         if (applyBaristaAccessScope()) {
           selectResidence("BARISTE");
@@ -4337,24 +4352,58 @@
       }
 
       const residenze = {};
+      const buildRow = (ag, isHidden) => {
+        const turni_settimanali = {};
+
+        settimaneInfo.forEach(sett => {
+          turni_settimanali[sett.key] = sett.dateIso.map(iso =>
+            isHidden(iso) ? BARISTA_PRIVATE_SHIFT
+              : (ag.turni && ag.turni[iso]) ? normalizeOdsShift(ag.turni[iso]) : "rip"
+          );
+        });
+
+        const row = {
+          id: ag.id || "",
+          agente: ag.agente || "",
+          qualifica: ag.qualifica || "marinaio",
+          turni_settimanali
+        };
+        if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova) {
+          row.residenzaDal = ag.residenzaDal;
+          row.residenzaPrecedente = ag.residenzaPrecedente;
+          row.residenzaNuova = ag.residenzaNuova;
+        }
+        return row;
+      };
+      const moved = [];
 
       Object.keys(data.residenze || {}).forEach(residenza => {
         residenze[residenza] = (data.residenze[residenza] || []).map(ag => {
-          const turni_settimanali = {};
-
-          settimaneInfo.forEach(sett => {
-            turni_settimanali[sett.key] = sett.dateIso.map(iso =>
-              (ag.turni && ag.turni[iso]) ? normalizeOdsShift(ag.turni[iso]) : "rip"
-            );
-          });
-
-          return {
-            id: ag.id || "",
-            agente: ag.agente || "",
-            qualifica: ag.qualifica || "marinaio",
-            turni_settimanali
-          };
+          // Agente con cambio di residenza a decorrere da una data (import turni):
+          // fino a quel giorno compare nella residenza precedente, dopo in quella
+          // nuova. Nell'altra residenza le celle restano vuote, non "rip".
+          if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova) {
+            const dal = ag.residenzaDal;
+            const isNew = residenza.toUpperCase() === String(ag.residenzaNuova).toUpperCase();
+            moved.push({ ag, dal, previous: ag.residenzaPrecedente, next: ag.residenzaNuova });
+            return buildRow(ag, iso => (isNew ? iso < dal : iso >= dal));
+          }
+          return buildRow(ag, () => false);
         });
+      });
+
+      // Copia dell'agente spostato nell'altra residenza, con la finestra opposta.
+      moved.forEach(({ ag, dal, previous, next }) => {
+        const currentKey = Object.keys(residenze).find(key => (data.residenze[key] || []).includes(ag)) || "";
+        const otherWanted = currentKey.toUpperCase() === String(next).toUpperCase() ? previous : next;
+        const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(otherWanted).toUpperCase());
+        if (!otherKey) return;
+        const otherIsNew = otherKey.toUpperCase() === String(next).toUpperCase();
+        const copy = buildRow(ag, iso => (otherIsNew ? iso < dal : iso >= dal));
+        const rank = name => (window.NaviSharedData?.seniorityRank ? window.NaviSharedData.seniorityRank(name) : Number.POSITIVE_INFINITY);
+        const list = residenze[otherKey];
+        const position = list.findIndex(item => rank(item.agente) > rank(copy.agente));
+        if (position === -1) list.push(copy); else list.splice(position, 0, copy);
       });
 
       return {

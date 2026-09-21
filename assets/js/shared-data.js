@@ -33,16 +33,26 @@
   // PDF è stato usato soltanto per trascrivere questa lista: a runtime
   // l'abbinamento avviene esclusivamente tramite il nominativo normalizzato,
   // così un futuro cambio di numero non modifica l'anzianità.
-  const PDF_SENIORITY_NAMES = `CANDOLFO N.|RONCAGALLI M.|CASTELLARI M.|RASPOLINI F.|GARIANO A.|CINGARLINI N.|MESSINA G.|STEFANI D.|BERNARDELLI M.|VALENTI M.|GAVIOLI D.|LORENZINI F.|DAL BOSCO G.|MAROGNA S.|BARZOI A.|FERRARI M.|KARPATI L.|SERVINO S.|COLO' J.|PINCELLI A.|OMEZZOLLI O.|GAROFALO A.|GUADAGNOLO O.|PERINI N.|TAMBURINI A.|MAFFEI K.|POLETTINI T.|AMATO M.|MIORELLI A.|GUARISE R.|MESSINA GNI.|BERNARDELLI S.|FACCOLI A.|DEFANT M.|RIGOBELLO M.|BOCCOLA G.|CARLETTI A.|SCARMIGLIATI M.|TONONI R.|FERTONANI GL.|SISTO S.|GENOCCHIO PC.|MEMINI I.|FERRARO V.|ALGERI A.|TONELLI D.|RAMBALDINI M.|ZANINI GL.|VINCIATI C.|GONZALEZ E.|FORESTI A.|TOSINI GL.|DA FORNO F.|BOTTURI D.|CENTONZA P.F.|FERRARI P.|BUCCHIERI N.|MORETTO A.C.|STRINGHINI G.|MODENA L.|LUGOBONI A.|VERTUA F.|AMADORI D.|CIVETTINI G.|TIBILETTI F.|BITTURINI D.|GASPARINI F.|BURDO A.|GRUMELLI M.|BETTINI M.|GIACCI GL.|AVANZINI A.|GHIZZI E.|ZENEGAGLIA D.|COSTAMAGNA S.|PROSPERO L.|SCANNAPIECO A.|CEFARIELLO G.|SQUARZONI P.|LA BELLA V.|CAMPOSTRINI E.|CHIMINELLI M.|BARBIERI G.|TANZI E.|VALOTTI G.|MONACO S.|PEROTTI F.|CAMPAGNARO R.|FRANZONI F.|DOLCERA L.|PEDRONI M.|STUMPO D.|BARTOLI F.|LONARDI N.|SCALA L.|BUTTURINI C.|GARDANI R.|BERSANELLI S.|SCARMIGLIATI A.|CACEFFO M.|SPILLER M.|BERGAMINI D.|PAIOLA D.|VERITA' M.|PITTIGLIANI F.|VALLE M.|PUSINELLI L.|CASTELLINI F.|LAVELLI D.|LUGO G.|PEGORARI C.|MOSCATELLI A.|CENZON A.|PEROTTI D.|SAMBERO A.|BERTAJOLA D.|BERTUZZO F.|CHIGNOLA M.|TAMIOZZO M.|GOLA M.|FONTANA A.|FORTE D.|SCHIPPERS E.|CALANCHI N.|HARRABI S.|RIGHETTI M.|POLLONI G.|REGA F.|TURRINI M.|BITTURINI N.|VULTAGGIO F.|NIZI M.|MARCOLINI A.|PEGORARI L.|CHIMINI M.|BUTTITTA A.|MOSELE M.|MENEGHETTI G.|PERINELLI A.|GHIDINELLI F.|MEDA M.|DALLA BONA M.|MALVONE S.|PRADELLA P.|MOSELE S.|BIGNOTTI F.|CUPOLILLO M.`.split('|');
-  const PDF_SENIORITY_RANK = new Map(
-    PDF_SENIORITY_NAMES.map((name, index) => [normalizeAgentName(name), index])
-  );
+  const PDF_SENIORITY_NAMES = `CANDOLFO N.|RONCAGALLI M.|CASTELLARI M.|RASPOLINI F.|GARIANO A.|CINGARLINI N.|MESSINA G.|STEFANI D.|BERNARDELLI M.|VALENTI M.|GAVIOLI D.|LORENZINI F.|DAL BOSCO G.|MAROGNA S.|BARZOI A.|FERRARI M.|KARPATI L.|SERVINO S.|COLO' J.|PINCELLI A.|OMEZZOLLI O.|GAROFALO A.|GUADAGNOLO O.|PERINI N.|TAMBURINI A.|MAFFEI K.|POLETTINI T.|AMATO M.|MIORELLI A.|GUARISE R.|MESSINA GNI.|BERNARDELLI S.|FACCOLI A.|DEFANT M.|RIGOBELLO M.|BOCCOLA G.|CARLETTI A.|SCARMIGLIATI M.|TONONI R.|FERTONANI GL.|SISTO S.|GENOCCHIO PC.|MEMINI I.|FERRARO V.|ALGERI A.|TONELLI D.|RAMBALDINI M.|ZANINI GL.|VINCIATI C.|GONZALEZ E.|FORESTI A.|TOSINI GL.|DA FORNO F.|BOTTURI D.|CENTONZA P.F.|FERRARI P.|BUCCHIERI N.|MORETTO A.C.|STRINGHINI G.|MODENA L.|LUGOBONI A.|VERTUA F.|AMADORI D.|CIVETTINI G.|TIBILETTI F.|BITTURINI D.|GASPARINI F.|BURDO A.|GRUMELLI M.|BETTINI M.|GIACCI GL.|AVANZINI A.|GHIZZI E.|ZENEGAGLIA D.|COSTAMAGNA S.|PROSPERO L.|SCANNAPIECO A.|CEFARIELLO G.|BLEIL L.|SQUARZONI P.|LA BELLA V.|CAMPOSTRINI E.|CHIMINELLI M.|BARBIERI G.|TANZI E.|VALOTTI G.|MONACO S.|PEROTTI F.|CAMPAGNARO R.|FRANZONI F.|DOLCERA L.|PEDRONI M.|STUMPO D.|BARTOLI F.|LONARDI N.|SCALA L.|BUTTURINI C.|GARDANI R.|BERSANELLI S.|SCARMIGLIATI A.|CACEFFO M.|SPILLER M.|BERGAMINI D.|PAIOLA D.|VERITA' M.|PITTIGLIANI F.|VALLE M.|PUSINELLI L.|CASTELLINI F.|LAVELLI D.|LUGO G.|PEGORARI C.|MOSCATELLI A.|CENZON A.|PEROTTI D.|SAMBERO A.|BERTAJOLA D.|BERTUZZO F.|CHIGNOLA M.|TAMIOZZO M.|GOLA M.|FONTANA A.|FORTE D.|SCHIPPERS E.|CALANCHI N.|HARRABI S.|RIGHETTI M.|POLLONI G.|REGA F.|TURRINI M.|BITTURINI N.|VULTAGGIO F.|NIZI M.|MARCOLINI A.|PEGORARI L.|CHIMINI M.|BUTTITTA A.|MOSELE M.|MENEGHETTI G.|PERINELLI A.|GHIDINELLI F.|MEDA M.|DALLA BONA M.|MALVONE S.|PRADELLA P.|MOSELE S.|BIGNOTTI F.|CUPOLILLO M.`.split('|');
+  // Ordine del turno 05/10-01/11/2026 (residenze cambiate per 15 agenti, un
+  // nuovo agente, nove cessati in fondo). Vale dalla data di decorrenza: prima
+  // di allora restano validi l'ordine e le residenze precedenti.
+  const PDF_SENIORITY_NAMES_2026_10_05 = `CANDOLFO N.|RONCAGALLI M.|CASTELLARI M.|RASPOLINI F.|GARIANO A.|CINGARLINI N.|MESSINA G.|STEFANI D.|SISTO S.|BERNARDELLI M.|VALENTI M.|AVANZINI A.|DAL BOSCO G.|MAROGNA S.|BARZOI A.|LORENZINI F.|FERRARI M.|KARPATI L.|SERVINO S.|COLO' J.|PINCELLI A.|GAROFALO A.|OMEZZOLLI O.|TAMBURINI A.|AMATO M.|MIORELLI A.|GUARISE R.|MESSINA GNI.|BERNARDELLI S.|FACCOLI A.|DEFANT M.|RIGOBELLO M.|BOCCOLA G.|CARLETTI A.|SCARMIGLIATI M.|TONONI R.|FERTONANI GL.|CENZON A.|GENOCCHIO PC.|MEMINI I.|GAVIOLI D.|ALGERI A.|TONELLI D.|RAMBALDINI M.|ZANINI GL.|VINCIATI C.|MAFFEI K.|POLETTINI T.|REGA F.|FRANZONI F.|PEDRONI M.|GONZALEZ E.|TOSINI GL.|BOTTURI D.|CENTONZA P.F.|FERRARI P.|BUCCHIERI N.|MORETTO A.C.|STRINGHINI G.|MODENA L.|LUGOBONI A.|VERTUA F.|AMADORI D.|CIVETTINI G.|TIBILETTI F.|BITTURINI D.|GASPARINI F.|BURDO A.|BETTINI M.|GIACCI GL.|GHIZZI E.|ZENEGAGLIA D.|COSTAMAGNA S.|PROSPERO L.|SCANNAPIECO A.|CEFARIELLO G.|BLEIL L.|CAMPOSTRINI E.|CHIMINELLI M.|FERRARO V.|BARBIERI G.|LA BELLA V.|TANZI E.|VALOTTI G.|MONACO S.|TURRINI M.|POLLONI G.|DOLCERA L.|STUMPO D.|BARTOLI F.|LONARDI N.|SCALA L.|BUTTURINI C.|GARDANI R.|BERSANELLI S.|SCARMIGLIATI A.|CACEFFO M.|SPILLER M.|BERGAMINI D.|VERITA' M.|PITTIGLIANI F.|VALLE M.|PUSINELLI L.|LAVELLI D.|GRUMELLI M.|LUGO G.|PEGORARI C.|MOSCATELLI A.|PEROTTI D.|SAMBERO A.|BERTAJOLA D.|BERTUZZO F.|CHIGNOLA M.|TAMIOZZO M.|GOLA M.|FONTANA A.|SQUARZONI P.|FORTE D.|SCHIPPERS E.|CALANCHI N.|HARRABI S.|RIGHETTI M.|BITTURINI N.|VULTAGGIO F.|NIZI M.|MARCOLINI A.|BUTTITTA A.|MOSELE M.|MENEGHETTI G.|PERINELLI A.|GHIDINELLI F.|PAIOLA D.|MEDA M.|DALLA BONA M.|MALVONE S.|PRADELLA P.|MOSELE S.|BIGNOTTI F.|CUPOLILLO M.`.split('|');
+  const SENIORITY_SETS = [
+    { from: '', ranks: new Map(PDF_SENIORITY_NAMES.map((name, index) => [normalizeAgentName(name), index])) },
+    { from: '2026-10-05', ranks: new Map(PDF_SENIORITY_NAMES_2026_10_05.map((name, index) => [normalizeAgentName(name), index])) }
+  ];
 
-  function pdfSeniorityRank(agent) {
-    return PDF_SENIORITY_RANK.get(normalizeAgentName(agent?.agente)) ?? Number.POSITIVE_INFINITY;
+  function seniorityRanks(todayIso) {
+    const today = todayIso || localTodayIso();
+    return SENIORITY_SETS.filter(set => today >= set.from).pop().ranks;
   }
 
-  function normalizeScheduleAgents(data) {
+  function pdfSeniorityRank(agent, todayIso) {
+    return seniorityRanks(todayIso).get(normalizeAgentName(agent?.agente)) ?? Number.POSITIVE_INFINITY;
+  }
+
+  function normalizeScheduleAgents(data, todayIso) {
     const seen = new Map();
     Object.entries(data?.residenze || {}).forEach(([residence, list]) => {
       const unique = [];
@@ -65,7 +75,7 @@
       // sort() è stabile: i nuovi nominativi non ancora presenti nel PDF
       // conservano il loro ordine originale in fondo alla residenza.
       data.residenze[residence] = unique.sort((a, b) =>
-        pdfSeniorityRank(a) - pdfSeniorityRank(b)
+        pdfSeniorityRank(a, todayIso) - pdfSeniorityRank(b, todayIso)
       );
     });
     return data;
@@ -172,8 +182,9 @@
   function normalizedImportedShift(value) {
     const raw = String(value ?? '').trim().toUpperCase().replace(/[‐‑–—]/g, '-');
     if (!raw || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw)) return 'RIP';
-    if (/^(?:CONG?\.?|CON;|CONC\.?|C\.)$/.test(raw)) return 'CON';
-    if (/^(?:LAV\.?|TERRA)$/.test(raw)) return 'TERRA';
+    if (/^(?:CONG?\.?|CON[;/]|CONC\.?|C\.)$/.test(raw)) return 'CON';
+    if (/^(?:LAV[.;]?|TERRA)$/.test(raw)) return 'TERRA';
+    if (/^L\.?D[.;]?$/.test(raw)) return 'L.D.';
     if (/^F\.?P\.?-*$/.test(raw)) return 'F.P.';
     return raw.replace(/\.{2,}$/g, '.').replace(/-+$/g, '');
   }
@@ -272,8 +283,40 @@
     };
   }
 
-  function applyScheduleImports(data, imports) {
-    normalizeScheduleAgents(data);
+  function localTodayIso() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  function residenceKeyOf(data, agent) {
+    return Object.keys(data?.residenze || {}).find(key => (data.residenze[key] || []).includes(agent)) || '';
+  }
+
+  // Sposta l'agente nella residenza "effettiva" oggi: quella precedente fino
+  // alla data di decorrenza, quella nuova da quel giorno in poi. E' idempotente:
+  // i dati in cache vengono rielaborati a ogni caricamento.
+  function moveAgentToResidence(data, agent, wanted) {
+    const current = residenceKeyOf(data, agent);
+    if (!wanted || (current && current.toUpperCase() === String(wanted).toUpperCase())) return;
+    const target = Object.keys(data.residenze || {}).find(key => key.toUpperCase() === String(wanted).toUpperCase()) || String(wanted).toUpperCase();
+    if (current) data.residenze[current] = data.residenze[current].filter(item => item !== agent);
+    data.residenze[target] = data.residenze[target] || [];
+    data.residenze[target].push(agent);
+  }
+
+  function sortResidencesBySeniority(data, todayIso) {
+    Object.keys(data?.residenze || {}).forEach(key => {
+      if (key === UFFICI_RESIDENCE || key.toUpperCase() === 'BARISTE') return;
+      data.residenze[key] = (data.residenze[key] || [])
+        .map((agent, index) => ({ agent, index }))
+        .sort((a, b) => (pdfSeniorityRank(a.agent, todayIso) - pdfSeniorityRank(b.agent, todayIso)) || (a.index - b.index))
+        .map(item => item.agent);
+    });
+  }
+
+  function applyScheduleImports(data, imports, options = {}) {
+    const todayIso = options.today || localTodayIso();
+    normalizeScheduleAgents(data, todayIso);
     const active = (imports || []).filter(item => item && item.attiva !== false)
       .sort((a,b) => String(a.importedAt || '').localeCompare(String(b.importedAt || '')));
     if (!active.length) return data;
@@ -289,16 +332,43 @@
         const legacyName = legacyBatch ? legacyDesenzanoJune2026[Number(row.id_agente)] : '';
         const wantedUid = String(row.agent_uid || stableAgentUid(legacyName || row.agente));
         const wantedName = normalizeAgentName(row.agente);
-        const target = agents.find(agent => String(agent.agent_uid || stableAgentUid(agent.agente)) === wantedUid) ||
+        let target = agents.find(agent => String(agent.agent_uid || stableAgentUid(agent.agente)) === wantedUid) ||
           (wantedName ? agents.find(agent => normalizeAgentName(agent.agente) === wantedName) : null) ||
           agents.find(agent => String(agent.id || '') === String(row.id_agente || ''));
+        // Agente nuovo comparso per la prima volta nel turno (es. neo assunto):
+        // viene creato nella residenza indicata dal PDF, con la qualifica scelta
+        // in anteprima. Ai caricamenti successivi viene ritrovato per agent_uid.
+        if (!target && row.nuovo && row.residenza) {
+          const residence = String(row.residenza).trim().toUpperCase();
+          target = {
+            id: String(row.id_agente || wantedUid),
+            agente: String(row.agente || '').trim(),
+            agent_uid: wantedUid,
+            qualifica: String(row.qualifica || 'marinaio').trim().toLowerCase(),
+            turni: {}
+          };
+          data.residenze = data.residenze || {};
+          const key = Object.keys(data.residenze).find(item => item.toUpperCase() === residence) || residence;
+          (data.residenze[key] = data.residenze[key] || []).push(target);
+          agents.push(target);
+        }
         if (!target) return;
         if (!target.turni) target.turni = {};
         (batch.dates || []).forEach((iso, index) => {
           target.turni[iso] = normalizedImportedShift(row.turni?.[index]);
         });
+        if (row.residenzaNuova && row.sposta !== false) {
+          const dal = String(row.residenzaDal || batch.inizio || '').slice(0, 10);
+          const before = String(row.residenzaPrecedente || '').toUpperCase();
+          const after = String(row.residenzaNuova).toUpperCase();
+          target.residenzaPrecedente = before;
+          target.residenzaNuova = after;
+          target.residenzaDal = dal;
+          moveAgentToResidence(data, target, dal && todayIso < dal && before ? before : after);
+        }
       });
     });
+    sortResidencesBySeniority(data, todayIso);
 
     // Correzione verificata sulla bozza 07/09-04/10/2026: la riga 66
     // BITTURINI D. era stata spezzata dal PDF e alcune celle venivano
@@ -505,6 +575,7 @@
     source:() => lastSource,
     dataSource,
     provider:() => lastSource === 'pocketbase' ? 'PocketBase' : lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale',
-    seniorityRank:name => pdfSeniorityRank({ agente: name })
+    seniorityRank:name => pdfSeniorityRank({ agente: name }),
+    applyScheduleImports
   };
 })();

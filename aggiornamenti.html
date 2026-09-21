@@ -141,7 +141,8 @@
   <script src="assets/js/turni-shared.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=36"></script>
   <script src="assets/js/shared-menu.js?v=1.56"></script>
-  <script src="assets/js/shared-data.js?v=120"></script>
+  <script src="assets/js/shared-data.js?v=121"></script>
+  <script src="assets/js/turn-import-helpers.js?v=1"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -758,7 +759,9 @@
     function normalizeImportedShift(value){
       const raw=String(value??'').trim().toUpperCase().replace(/[‐‑–—]/g,'-');
       if(!raw||/^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw))return 'RIP';
-      if(/^(?:CONG?\.?|CON;|CONC\.?|C\.)$/.test(raw))return 'CON';
+      if(/^(?:CONG?\.?|CON[;/]|CONC\.?|C\.)$/.test(raw))return 'CON';
+      if(/^LAV[.;]?$/.test(raw))return 'LAV';
+      if(/^L\.?D[.;]?$/.test(raw))return 'L.D.';
       if(/^F\.?P\.?-*$/.test(raw))return 'F.P.';
       return raw.replace(/\.{2,}$/g,'.').replace(/-+$/g,'');
     }
@@ -787,9 +790,21 @@
       const number=String(prefix||'').match(/^\s*(\d+)(?:\s*[-/]\s*(\d+))?/);
       const list=agents().filter(agent=>String(agent.residence||'').toUpperCase()!=='BARISTE');
       const withoutNumber=String(prefix||'').replace(/^\s*\d+(?:\s*[-/]\s*\d+)?\s*/,'').trim();
-      const key=normalize(withoutNumber),exact=resolveAgent(withoutNumber);
+      const key=normalize(withoutNumber);
+      // Righe senza nome (titolo, numeri dei giorni) non appartengono a nessuno.
+      if(!key)return [];
+      const parsedName=window.NaviTurnImport?.parseRowPrefix(prefix);
+      if(parsedName){
+        const same=list.filter(agent=>window.NaviTurnImport.sameAgent(agent.agente,parsedName.name));if(same.length===1)return same;
+        // Cognome (anche con un refuso) presente una sola volta: e' lui. Altrimenti
+        // l'agente e' nuovo o ambiguo: si lascia decidere all'anteprima.
+        const surname=normalize(parsedName.name.replace(/\s+(?:[A-Za-z]{1,3}\.)+$/,''));
+        const sameSurname=list.filter(agent=>{const s=normalize(String(agent.agente||'').replace(/\s+(?:[A-Za-z]{1,3}\.)+$/,''));return s===surname||(s.length>3&&Math.abs(s.length-surname.length)<=1&&editDistance(s,surname)<=1)});
+        return sameSurname.length===1?sameSurname:[];
+      }
+      const exact=resolveAgent(withoutNumber);
       if(exact)return [exact];
-      const byName=list.filter(agent=>{
+      const byName=parsedName?[]:list.filter(agent=>{
         const surname=normalize(String(agent.agente||'').split(/\s+/)[0]);
         return surname.length>3&&key.includes(surname);
       });
@@ -800,11 +815,21 @@
       }
       return [];
     }
+    // Righe del PDF senza agente in anagrafica ma con formato "N COGNOME I.":
+    // sono agenti nuovi (es. neo assunti), creati nella residenza della sezione.
+    function newAgentFromPrefix(prefix,section){
+      const parsed=window.NaviTurnImport?.parseRowPrefix(prefix);
+      if(!parsed||!section)return null;
+      const uid=stableAgentUid(parsed.name);
+      return {nuovo:true,agente:parsed.name,agent_uid:uid,id:`NEW_${uid.replace(/^AG_/,'')}`,residence:section,qualifica:'marinaio'};
+    }
     function parseTurnPdf(pages,start,end,tipo,filename){
+      const Turn=window.NaviTurnImport;
       const dates=datesBetween(start,end);
       if(!dates.length||dates.length%7!==0)throw new Error('Il periodo deve contenere settimane complete di 7 giorni');
-      const rows=new Map();let pendingAgents=[];
+      const collected=[];let pendingAgents=[],section='';
       pages.forEach(items=>{
+        pendingAgents=[];
         const centers=pageDayCenters(items,dates.length);
         if(centers.length<7)throw new Error('Non trovo le 7 colonne dei giorni in una pagina del PDF');
         const spacing=centers.slice(1).reduce((sum,x,i)=>sum+(x-centers[i]),0)/Math.max(1,centers.length-1);
@@ -814,35 +839,73 @@
             const item=line.items.filter(entry=>Math.abs((entry.x+(entry.width||0)/2)-center)<spacing*.40).sort((a,b)=>Math.abs(a.x-center)-Math.abs(b.x-center))[0];
             return item?normalizeImportedShift(item.text):'RIP';
           });
-          if(cells.some(value=>/^(?:LUN|MAR|MER|GIO|VEN|SAB|DOM)(?:\s+\d{1,2})?$/i.test(value)))return;
-          const populated=cells.filter(value=>value!=='RIP').length;
           const prefix=line.items.filter(item=>item.x<centers[0]-spacing*.48).map(item=>item.text).join(' ').replace(/\s+/g,' ').trim();
-          const rowAgents=resolvePdfRowAgents(prefix);
+          if(cells.some(value=>/^(?:LUN|MAR|MER|GIO|VEN|SAB|DOM)(?:\s+\d{1,2})?$/i.test(value))){
+            const heading=Turn?.sectionResidence(prefix);if(heading)section=heading;
+            return;
+          }
+          const populated=cells.filter(value=>value!=='RIP').length;
+          const rowAgents=(()=>{const found=resolvePdfRowAgents(prefix);if(found.length)return found;const created=newAgentFromPrefix(prefix,section);return created?[created]:[]})();
           if(rowAgents.length){
-            if(!populated){pendingAgents=rowAgents;return}
-            rowAgents.forEach(agent=>rows.set(String(agent.agent_uid||stableAgentUid(agent.agente)),{id_agente:String(agent.id),agent_uid:String(agent.agent_uid||stableAgentUid(agent.agente)),agente:agent.agente,residenza:agent.residence,turni:cells}));
+            if(!populated){pendingAgents=rowAgents.map(agent=>({agent,section}));return}
+            rowAgents.forEach(agent=>collected.push({agent,section,cells}));
             pendingAgents=[];
           }else if(pendingAgents.length&&populated>=2){
-            pendingAgents.forEach(agent=>rows.set(String(agent.agent_uid||stableAgentUid(agent.agente)),{id_agente:String(agent.id),agent_uid:String(agent.agent_uid||stableAgentUid(agent.agente)),agente:agent.agente,residenza:agent.residence,turni:cells}));
+            pendingAgents.forEach(item=>collected.push({agent:item.agent,section:item.section,cells}));
             pendingAgents=[];
           }
         });
       });
-      const parsed=[...rows.values()];
+      // Un agente puo' comparire in piu' sezioni (trasferta): le righe si fondono.
+      const groups=new Map();
+      collected.forEach(item=>{
+        const uid=String(item.agent.agent_uid||stableAgentUid(item.agent.agente));
+        if(!groups.has(uid))groups.set(uid,{uid,agent:item.agent,sections:[],cellsList:[]});
+        const group=groups.get(uid);group.sections.push(item.section);group.cellsList.push(item.cells);
+      });
+      const parsed=[...groups.values()].map(group=>{
+        const agent=group.agent,sections=[...new Set(group.sections.filter(Boolean))];
+        const turni=(Turn?Turn.mergeCells(group.cellsList):group.cellsList[0]).map(value=>Turn?.isTransferMarker(value)?'RIP':value);
+        const current=String(agent.residence||'').toUpperCase();
+        // Con piu' sezioni (trasferta) la sede resta quella attuale se presente.
+        const home=agent.nuovo?sections[0]:(sections.includes(current)?current:sections[0]);
+        const row={id_agente:String(agent.id),agent_uid:group.uid,agente:agent.agente,residenza:home||current,turni};
+        if(agent.nuovo){row.nuovo=true;row.qualifica=agent.qualifica||'marinaio'}
+        else{const move=Turn?.planResidenceMove(agent,home,start);if(move)Object.assign(row,move)}
+        return row;
+      });
       if(!parsed.length)throw new Error('Nessun agente riconosciuto nel PDF');
       parsed.forEach(row=>{while(row.turni.length<dates.length)row.turni.push('RIP');row.turni=row.turni.slice(0,dates.length).map(normalizeImportedShift)});
+      // Agenti in anagrafica ma assenti dal PDF (es. cessati): proposti come CONG
+      // per tutto il periodo, da confermare in anteprima.
+      const seen=new Set(parsed.map(row=>row.agent_uid));
+      const sawSections=collected.some(item=>item.section);
+      const missing=sawSections?agents().filter(agent=>String(agent.residence||'').toUpperCase()!=='BARISTE'&&String(agent.residence||'').toLowerCase()!=='uffici'&&!seen.has(String(agent.agent_uid||stableAgentUid(agent.agente)))):[];
+      missing.forEach(agent=>parsed.push({id_agente:String(agent.id),agent_uid:String(agent.agent_uid||stableAgentUid(agent.agente)),agente:agent.agente,residenza:agent.residence,assente:true,turni:dates.map(()=>'CON')}));
       return {id:`TURN_${Date.now()}`,tipo,filename,dates,rows:parsed,inizio:start,fine:end,importedAt:new Date().toISOString(),attiva:true};
+    }
+    function turnRowNotes(row){
+      const notes=[];
+      if(row.nuovo)notes.push(`<span class="approved-badge">Nuovo agente</span> <select data-field="qualifica" aria-label="Qualifica ${esc(row.agente)}">${['marinaio','motorista','capitano'].map(q=>`<option value="${q}"${String(row.qualifica||'marinaio')===q?' selected':''}>${q}</option>`).join('')}</select>`);
+      if(row.residenzaNuova)notes.push(`<label><input type="checkbox" data-field="sposta" checked> ${esc(row.residenzaPrecedente)} → <b>${esc(row.residenzaNuova)}</b> dal ${esc(row.residenzaDal.split('-').reverse().join('/'))}</label>`);
+      if(row.assente)notes.push('<span class="approved-badge">Non nel PDF: CONG per tutto il periodo</span>');
+      return notes.length?`<br><small>${notes.join('<br>')}</small>`:'';
     }
     function renderTurnImportPreview(){
       const box=$('turn-import-preview'),batch=pendingTurnImport;box.hidden=!batch;if(!batch)return;
       const labels=batch.dates.map(date=>new Date(`${date}T12:00:00`).toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'2-digit'}));
-      box.innerHTML=`<div><strong>${batch.rows.length} agenti · ${batch.dates.length} giornate</strong> · celle vuote convertite in RIP</div><div class="table-wrap"><table class="pending-table"><thead><tr><th>Usa</th><th>Agente</th>${labels.map(label=>`<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${batch.rows.map((row,index)=>`<tr data-pending-turn="${index}"><td><input type="checkbox" data-field="use" checked></td><td><strong>${esc(row.agente)}</strong><small>${esc(row.residenza||'')}</small></td>${row.turni.map((shift,day)=>`<td><input data-turn-day="${day}" value="${esc(shift)}" aria-label="${esc(row.agente)} ${esc(labels[day])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      const moves=batch.rows.filter(row=>row.residenzaNuova).length,created=batch.rows.filter(row=>row.nuovo).length,absent=batch.rows.filter(row=>row.assente).length;
+      const summary=[moves&&`${moves} cambi di residenza`,created&&`${created} nuovi agenti`,absent&&`${absent} agenti non presenti nel PDF`].filter(Boolean).join(' · ');
+      box.innerHTML=`<div><strong>${batch.rows.length} agenti · ${batch.dates.length} giornate</strong> · celle vuote convertite in RIP${summary?`<br>${esc(summary)}`:''}</div><div class="table-wrap"><table class="pending-table"><thead><tr><th>Usa</th><th>Agente</th>${labels.map(label=>`<th>${esc(label)}</th>`).join('')}</tr></thead><tbody>${batch.rows.map((row,index)=>`<tr data-pending-turn="${index}"><td><input type="checkbox" data-field="use" checked></td><td><strong>${esc(row.agente)}</strong><small>${esc(row.residenzaNuova||row.residenza||'')}</small>${turnRowNotes(row)}</td>${row.turni.map((shift,day)=>`<td><input data-turn-day="${day}" value="${esc(shift)}" aria-label="${esc(row.agente)} ${esc(labels[day])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     }
     function collectTurnImport(){
       if(!pendingTurnImport)return null;
       const rows=[...$('turn-import-preview').querySelectorAll('[data-pending-turn]')].filter(tr=>tr.querySelector('[data-field=use]').checked).map(tr=>{
         const source=pendingTurnImport.rows[Number(tr.dataset.pendingTurn)];
-        return {...source,turni:[...tr.querySelectorAll('[data-turn-day]')].map(input=>normalizeImportedShift(input.value))};
+        const row={...source,turni:[...tr.querySelectorAll('[data-turn-day]')].map(input=>normalizeImportedShift(input.value))};
+        const move=tr.querySelector('[data-field=sposta]');if(move)row.sposta=move.checked;
+        const qualifica=tr.querySelector('[data-field=qualifica]');if(qualifica)row.qualifica=qualifica.value;
+        return row;
       });
       return {...pendingTurnImport,rows};
     }

@@ -9,7 +9,7 @@
     document.head.appendChild(script);
   };
   load('assets/js/announcements-core-20260903.js?v=1');
-  load('assets/js/turn-pdf-import-repair-v2.js?v=20260903-2');
+  load('assets/js/turn-pdf-import-repair-v2.js?v=20260921-1');
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
 
   // Notifica l'amministratore quando un agente torna attivo su NaviSuite.
@@ -20,7 +20,7 @@
   if(/(?:^|\/)impostazioni\.html$/i.test(location.pathname)){
     // Impostazioni non caricava shared-data.js: senza questo il riepilogo manuale
     // non poteva leggere il turno e mostrava "Dati turni non disponibili".
-    load('assets/js/shared-data.js?v=120');
+    load('assets/js/shared-data.js?v=121');
     load('assets/js/push-notifications-v3.js?v=20260906-1');
     load('assets/js/push-center.js?v=20260909-2');
   }
