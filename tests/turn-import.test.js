@@ -98,7 +98,7 @@ const turni=fs.readFileSync('naviturni.html','utf8');
 assert.match(turni,/residenzaDal/);
 console.log('turn-import ok');
 
-// ---- naviturni: agente spostato visibile in entrambe le residenze -----------
+// ---- naviturni: agente spostato, prima e dopo la decorrenza ---------------
 {
   const html=fs.readFileSync('naviturni.html','utf8');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
@@ -109,41 +109,66 @@ console.log('turn-import ok');
   const fn=src.slice(start,end+1);
   const win={NaviSharedData:{seniorityRank:name=>({'A':1,'B':2,'C':3}[String(name).split(' ')[0]]||99)}};
   const adaptInfo=[];
-  const adapt=new Function('window','settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${fn};return adattaFormatoNaviturni;`)(win,adaptInfo,'__PRIVATE__',value=>String(value).toLowerCase());
+  const makeAdapt=todayIso=>new Function('window','settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift','localIsoToday',
+    `${fn};return adattaFormatoNaviturni;`)(win,adaptInfo,'__PRIVATE__',value=>String(value).toLowerCase(),()=>todayIso);
   const days=['2026-10-04','2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-10'];
-  const mover={id:'3',agente:'B X.',turni:Object.fromEntries(days.map(iso=>[iso,'R1'])),residenzaPrecedente:'DESENZANO',residenzaNuova:'MADERNO',residenzaDal:'2026-10-05'};
-  const out=adapt({date:days.map(iso=>({iso})),residenze:{
-    MADERNO:[{id:'1',agente:'A X.',turni:{}},{id:'2',agente:'C X.',turni:{}}],
-    DESENZANO:[mover]}});
-  const weekOf=agent=>Object.values(agent.turni_settimanali)[0];
-  const des=out.residenze.DESENZANO.find(agent=>agent.id==='3'),mad=out.residenze.MADERNO.find(agent=>agent.id==='3');
-  assert.ok(des&&mad);
-  assert.deepEqual(weekOf(des),['r1',...Array(6).fill('__PRIVATE__')]);
-  assert.deepEqual(weekOf(mad),['__PRIVATE__',...Array(6).fill('r1')]);
-  assert.deepEqual(out.residenze.MADERNO.map(agent=>agent.id),['1','3','2']);
-  assert.equal(mad.residenzaDal,'2026-10-05');
-  // La riga fissata in alto (mia / collega) porta sempre tutti i turni.
-  assert.deepEqual(Object.values(des.turni_settimanali_completi)[0],Array(7).fill('r1'));
-  assert.deepEqual(Object.values(mad.turni_settimanali_completi)[0],Array(7).fill('r1'));
-  assert.equal(out.residenze.MADERNO.find(agent=>agent.id==='1').turni_settimanali_completi,undefined);
+  const mover=()=>({id:'3',agente:'B X.',turni:Object.fromEntries(days.map(iso=>[iso,'R1'])),residenzaPrecedente:'DESENZANO',residenzaNuova:'MADERNO',residenzaDal:'2026-10-05'});
+  // Il record base e' gia' nella residenza giusta secondo moveAgentToResidence
+  // (shared-data.js), che gira PRIMA di adattaFormatoNaviturni: fino alla
+  // decorrenza sta in DESENZANO, da quel giorno in poi in MADERNO.
+  const dataset=todayIso=>{
+    const home=todayIso<'2026-10-05'?'DESENZANO':'MADERNO';
+    return {date:days.map(iso=>({iso})),residenze:{
+      MADERNO:[{id:'1',agente:'A X.',turni:{}},{id:'2',agente:'C X.',turni:{}},...(home==='MADERNO'?[mover()]:[])],
+      DESENZANO:home==='DESENZANO'?[mover()]:[]}};
+  };
 
-  // Variazione ODS su un giorno nascosto: solo nei dati completi.
+  // Prima della decorrenza: turni veri in DESENZANO (la sua vera residenza),
+  // etichetta "A MADERNO" dal giorno del trasferimento; anteprima in MADERNO
+  // etichettata "A DESENZANO" fino ad allora, poi i turni veri.
+  const before=makeAdapt('2026-10-01')(dataset('2026-10-01'));
+  const weekOf=agent=>Object.values(agent.turni_settimanali)[0];
+  const desBefore=before.residenze.DESENZANO.find(agent=>agent.id==='3'),madBefore=before.residenze.MADERNO.find(agent=>agent.id==='3');
+  assert.ok(desBefore&&madBefore,'prima della decorrenza compare in entrambe le residenze');
+  assert.deepEqual(weekOf(desBefore),['r1',...Array(6).fill('A MADERNO')]);
+  assert.deepEqual(weekOf(madBefore),['A DESENZANO',...Array(6).fill('r1')]);
+  assert.deepEqual(before.residenze.MADERNO.map(agent=>agent.id),['1','3','2']);
+  assert.equal(madBefore.residenzaDal,'2026-10-05');
+  // La riga fissata in alto (mia / collega) porta sempre tutti i turni veri.
+  assert.deepEqual(Object.values(desBefore.turni_settimanali_completi)[0],Array(7).fill('r1'));
+  assert.deepEqual(Object.values(madBefore.turni_settimanali_completi)[0],Array(7).fill('r1'));
+  assert.equal(before.residenze.MADERNO.find(agent=>agent.id==='1').turni_settimanali_completi,undefined);
+
+  // Alla decorrenza (e dopo): sparisce del tutto da DESENZANO, in MADERNO e'
+  // una riga normale con i turni veri, senza etichette ne' dati "completi".
+  ['2026-10-05','2026-10-10'].forEach(todayIso=>{
+    const after=makeAdapt(todayIso)(dataset(todayIso));
+    assert.equal(after.residenze.DESENZANO.find(agent=>agent.id==='3'),undefined,`scomparso da Desenzano il ${todayIso}`);
+    const mad=after.residenze.MADERNO.find(agent=>agent.id==='3');
+    assert.ok(mad,`presente a Maderno il ${todayIso}`);
+    assert.deepEqual(weekOf(mad),Array(7).fill('r1'));
+    assert.equal(mad.turni_settimanali_completi,undefined);
+  });
+
+  // Variazione ODS su un giorno etichettato "A MADERNO": solo nei dati completi.
   const hdr=src.indexOf('function applyOdsVariations(');
   let e=src.indexOf('{',src.indexOf(')',hdr)),dd=0;
   for(;e<src.length;e++){if(src[e]==='{')dd++;if(src[e]==='}'&&--dd===0)break}
   const fnOds=src.slice(hdr,e+1),normFn=src.slice(src.indexOf('function normalizeOdsAgentName('));
   const nameFn=normFn.slice(0,normFn.indexOf('\n    }')+6);
-  const ods=new Function('settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${nameFn};${fnOds};return applyOdsVariations;`);
+  const isElsewhereSrc=src.slice(src.indexOf('const isElsewhereShift'),src.indexOf('const isElsewhereShift')+src.slice(src.indexOf('const isElsewhereShift')).indexOf(';')+1);
+  const ods=new Function('settimaneInfo','BARISTA_PRIVATE_SHIFT','normalizeOdsShift',`${isElsewhereSrc};${nameFn};${fnOds};return applyOdsVariations;`);
   const apply=ods(adaptInfo,'__PRIVATE__',value=>String(value).toLowerCase());
-  const done=apply({...out,variazioni_ods:[{data:'2026-10-07',id_agente:'3',agente:'B X.',turno_nuovo:'T2',ods:'ODS 1'}]});
+  const done=apply({...before,variazioni_ods:[{data:'2026-10-07',id_agente:'3',agente:'B X.',turno_nuovo:'T2',ods:'ODS 1'}]});
   const d2=done.residenze.DESENZANO.find(agent=>agent.id==='3'),m2=done.residenze.MADERNO.find(agent=>agent.id==='3');
   assert.equal(Object.values(m2.turni_settimanali)[0][3],'t2');
-  assert.equal(Object.values(d2.turni_settimanali)[0][3],'__PRIVATE__');
+  assert.equal(Object.values(d2.turni_settimanali)[0][3],'A MADERNO');
   assert.equal(d2.variazioni_ods,undefined);
   assert.equal(d2.variazioni_ods_completi['2026-10-07'].turno_nuovo,'t2');
   assert.equal(Object.values(d2.turni_settimanali_completi)[0][3],'t2');
 }
 console.log('naviturni residence ok');
+
 
 // ---- naviturni: agenti che hanno terminato il servizio vengono nascosti ----
 // (finche' non si carica/mostra il passato, dove riappaiono se avevano turni veri)

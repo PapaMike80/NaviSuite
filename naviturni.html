@@ -1760,6 +1760,10 @@
     let diariaShiftOverrides = new Map();
     const AGENT_LOGIN_STORAGE_KEY = "naviturni_logged_agent";
     const BARISTA_PRIVATE_SHIFT = "__PRIVATE__";
+    // Cella "non qui": mascherata per la privacy delle bariste (sentinella) o
+    // etichettata "A <residenza>" per un agente che, in quel giorno, e' altrove
+    // per un cambio di residenza pianificato.
+    const isElsewhereShift = v => v === BARISTA_PRIVATE_SHIFT || /^A [A-ZÀ-Ý' ]+$/.test(String(v || ""));
     const {
       beginMobileTapGesture,
       updateMobileTapGesture,
@@ -3443,7 +3447,7 @@
           const refuelIndicator = hasRefuel ? '<span class="upper-cell-refuel" aria-label="Rifornimento"></span>' : '';
           td.innerHTML = `${crewIndicators}${refuelIndicator}${pill(turnoVal)}`;
           const groupThisShift = () => {
-            if (turnoVal === BARISTA_PRIVATE_SHIFT) return;
+            if (isElsewhereShift(turnoVal)) return;
             clearPinnedAgentSelection();
             placeDayPanel("main");
             // La prima riga rappresenta l'utente collegato: come il clic sulla
@@ -4364,7 +4368,7 @@
           const fullShifts = copy.turni_settimanali_completi?.[week.key];
           if (!weeklyShifts || dayIndex >= weeklyShifts.length) return;
 
-          const hidden = weeklyShifts[dayIndex] === BARISTA_PRIVATE_SHIFT;
+          const hidden = isElsewhereShift(weeklyShifts[dayIndex]);
           const currentShift = (hidden ? fullShifts?.[dayIndex] : weeklyShifts[dayIndex]) || "rip";
           const newShift = normalizeOdsShift(variation.turno_nuovo);
           if (!hidden) weeklyShifts[dayIndex] = newShift;
@@ -4427,7 +4431,7 @@
       }
 
       const residenze = {};
-      const buildRow = (ag, isHidden) => {
+      const buildRow = (ag, isHidden, labelFor) => {
         const turni_settimanali = {};
         const turni_settimanali_completi = {};
         let masked = false;
@@ -4438,7 +4442,7 @@
           turni_settimanali[sett.key] = sett.dateIso.map((iso, index) => {
             if (!isHidden(iso)) return full[index];
             masked = true;
-            return BARISTA_PRIVATE_SHIFT;
+            return labelFor ? labelFor(iso) : BARISTA_PRIVATE_SHIFT;
           });
         });
 
@@ -4449,7 +4453,8 @@
           turni_settimanali
         };
         // Nella tabella di una residenza i giorni svolti nell'altra restano
-        // vuoti; la riga fissata in alto (mia / collega) mostra invece tutto.
+        // etichettati "A <residenza>"; la riga fissata in alto (mia / collega)
+        // mostra invece sempre i turni veri.
         if (masked) row.turni_settimanali_completi = turni_settimanali_completi;
         if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova) {
           row.residenzaDal = ag.residenzaDal;
@@ -4459,30 +4464,32 @@
         return row;
       };
       const moved = [];
+      const today = localIsoToday();
 
       Object.keys(data.residenze || {}).forEach(residenza => {
         residenze[residenza] = (data.residenze[residenza] || []).map(ag => {
           // Agente con cambio di residenza a decorrere da una data (import turni):
-          // fino a quel giorno compare nella residenza precedente, dopo in quella
-          // nuova. Nell'altra residenza le celle restano vuote, non "rip".
-          if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova) {
+          // prima della decorrenza compare ancora qui con i turni veri, etichettato
+          // "A <nuova residenza>" da quel giorno in poi (li' lo trovi per davvero).
+          // Dalla decorrenza in poi sparisce del tutto da qui: il suo record e'
+          // ormai nella nuova residenza (spostato da moveAgentToResidence).
+          if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova && today < ag.residenzaDal) {
             const dal = ag.residenzaDal;
-            const isNew = residenza.toUpperCase() === String(ag.residenzaNuova).toUpperCase();
-            moved.push({ ag, dal, previous: ag.residenzaPrecedente, next: ag.residenzaNuova });
-            return buildRow(ag, iso => (isNew ? iso < dal : iso >= dal));
+            const label = `A ${String(ag.residenzaNuova).toUpperCase()}`;
+            moved.push({ ag, dal });
+            return buildRow(ag, iso => iso >= dal, () => label);
           }
           return buildRow(ag, () => false);
         });
       });
 
-      // Copia dell'agente spostato nell'altra residenza, con la finestra opposta.
-      moved.forEach(({ ag, dal, previous, next }) => {
-        const currentKey = Object.keys(residenze).find(key => (data.residenze[key] || []).includes(ag)) || "";
-        const otherWanted = currentKey.toUpperCase() === String(next).toUpperCase() ? previous : next;
-        const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(otherWanted).toUpperCase());
+      // Copia "in anteprima" nella residenza futura: prima della decorrenza mostra
+      // dov'e' davvero l'agente ("A <residenza attuale>"), poi i turni veri.
+      moved.forEach(({ ag, dal }) => {
+        const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(ag.residenzaNuova).toUpperCase());
         if (!otherKey) return;
-        const otherIsNew = otherKey.toUpperCase() === String(next).toUpperCase();
-        const copy = buildRow(ag, iso => (otherIsNew ? iso < dal : iso >= dal));
+        const label = `A ${String(ag.residenzaPrecedente).toUpperCase()}`;
+        const copy = buildRow(ag, iso => iso < dal, () => label);
         const rank = name => (window.NaviSharedData?.seniorityRank ? window.NaviSharedData.seniorityRank(name) : Number.POSITIVE_INFINITY);
         const list = residenze[otherKey];
         const position = list.findIndex(item => rank(item.agente) > rank(copy.agente));
