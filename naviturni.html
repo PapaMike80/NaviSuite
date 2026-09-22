@@ -38,6 +38,10 @@
       box-shadow:none!important;
     }
     #day-panel.open { box-shadow:0 10px 30px rgba(17,55,49,.08); }
+    /* La cella dei giorni "A <residenza>" uniti (colspan) non deve ereditare
+       la larghezza fissa di 40px di una singola colonna, altrimenti si
+       schiaccia e tutte le celle successive della riga si disallineano. */
+    .scroll-wrap table td.elsewhere-span { width:auto!important; min-width:0!important; max-width:none!important; }
     .compact .scroll-wrap table td { padding-top:2px; padding-bottom:2px; }
     .compact .cell-pill { padding:1px 5px; font-size:9px; }
     .compact .scroll-wrap { max-height:calc(100vh - 205px); }

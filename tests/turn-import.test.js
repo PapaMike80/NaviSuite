@@ -276,3 +276,12 @@ console.log('finished-service index alignment ok');
   assert.match(src,/const span = isEditMode \? 1 : elsewhereSpanLength\(/);
 }
 console.log('elsewhere span merge ok');
+
+// ---- naviturni: la cella unita "A <residenza>" non deve avere larghezza fissa
+// (altrimenti si schiaccia e le celle successive della riga si disallineano) --
+{
+  const html=fs.readFileSync('naviturni.html','utf8');
+  assert.match(html,/tdClasses\.push\("elsewhere-span"\)/);
+  assert.match(html,/td\.elsewhere-span\s*\{\s*width:auto!important;\s*min-width:0!important;\s*max-width:none!important;\s*\}/);
+}
+console.log('elsewhere span width override ok');
