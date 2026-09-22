@@ -176,3 +176,21 @@ console.log('naviturni residence ok');
   assert.equal(hasFinishedService(stillWorking,''),false);
 }
 console.log('finished-service hide ok');
+
+// ---- naviturni: nascondere i terminati non deve sfalsare gli indici -------
+// (bug reale: se currentAgentsList viene filtrato, findLoggedAgentIndex - che
+// cerca in globalData.residenze non filtrato - punta alla riga sbagliata e
+// mostra un altro agente al posto del proprio, solo quando qualcuno prima in
+// ordine di anzianita' e' nascosto).
+{
+  const html=fs.readFileSync('naviturni.html','utf8');
+  const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  const src=scripts.find(text=>text.includes('function hasFinishedService'));
+  assert.doesNotMatch(src,/currentAgentsList\s*=\s*\([^)]*\)\.filter\(agent => !hasFinishedService/,
+    'currentAgentsList non deve essere filtrato: sfalserebbe gli indici usati da getLoggedAgentLocation');
+  assert.doesNotMatch(src,/currentAgentsList\s*=\s*currentAgentsList\.filter\(agent => !hasFinishedService/,
+    'currentAgentsList non deve essere filtrato: sfalserebbe gli indici usati da getLoggedAgentLocation');
+  assert.match(src,/if \(hasFinishedService\(agent\)\) return;\s*\n\s*restIndexes\.push\(index\);/,
+    'il nascondere deve avvenire solo scegliendo quali righe disegnare (restIndexes), non rimuovendo elementi dall\'array');
+}
+console.log('finished-service index alignment ok');

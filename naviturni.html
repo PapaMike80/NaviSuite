@@ -2761,7 +2761,11 @@
       }
       const restIndexes = [];
       currentAgentsList.forEach((agent, index) => {
-        if (index !== loggedIndex && index !== pinnedAgentIdx) restIndexes.push(index);
+        if (index === loggedIndex || index === pinnedAgentIdx) return;
+        // Chi da oggi in poi ha solo CON/RIP ha terminato il servizio: la sua
+        // riga resta nei dati (ricerca, ODS, coverage) ma non compare qui.
+        if (hasFinishedService(agent)) return;
+        restIndexes.push(index);
       });
       // La tabella è organizzata per sezioni di grado (capitano e capo
       // timoniere pari grado). All'interno dello stesso grado l'ordine segue
@@ -4073,6 +4077,10 @@
       return checked && !real;
     }
 
+    function countVisibleAgents(list) {
+      return (list || []).filter(agent => !hasFinishedService(agent)).length;
+    }
+
     function filterAgents(query) {
       const q = (query || "").trim().toLocaleLowerCase("it");
       let visible = 0;
@@ -4088,11 +4096,11 @@
     // residenza già selezionata (usato dagli aggiornamenti in background).
     function refreshCurrentResidenceData() {
       if (!currentResidence || !globalData?.residenze) return;
-      currentAgentsList = (currentResidence === "TUTTE"
+      currentAgentsList = currentResidence === "TUTTE"
         ? getVisibleResidences().flatMap(res => globalData.residenze[res] || [])
-        : (globalData.residenze[currentResidence] || [])).filter(agent => !hasFinishedService(agent));
+        : (globalData.residenze[currentResidence] || []);
       const agentsStat = document.getElementById("stat-agents");
-      if (agentsStat) agentsStat.textContent = currentAgentsList.length;
+      if (agentsStat) agentsStat.textContent = countVisibleAgents(currentAgentsList);
     }
 
     function selectResidence(resName) {
@@ -4113,11 +4121,8 @@
       } else {
         currentAgentsList = globalData.residenze[resName] || [];
       }
-      // Chi da oggi in poi ha solo CON/RIP ha terminato il servizio: si nasconde
-      // dalla tabella, ma resta nei dati (ricerca, ODS, coverage lo trovano ancora).
-      currentAgentsList = currentAgentsList.filter(agent => !hasFinishedService(agent));
       document.getElementById("stat-residence").textContent = resName;
-      document.getElementById("stat-agents").textContent = currentAgentsList.length;
+      document.getElementById("stat-agents").textContent = countVisibleAgents(currentAgentsList);
       const search = document.getElementById("agent-search");
       if (search) search.value = "";
       document.querySelectorAll(".res-btn, .coverage-residence-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.res === resName));
