@@ -89,6 +89,22 @@ shared.applyScheduleImports(data,batch(rows),{today:'2026-10-05'});
 const order=names(data,'DESENZANO');
 assert.ok(order.indexOf('BLEIL L.')<order.indexOf('SQUARZONI P.'),order.join(','));
 
+// Riga importata SENZA residenzaPrecedente (es. batch salvato da una versione
+// precedente del codice): non deve partire subito, si deriva la residenza
+// attuale dall'agente stesso (dove sta davvero oggi), non dal solo campo.
+data=fresh();
+const rowsNoPrecedente=rows.map(row=>{const {residenzaPrecedente, ...rest}=row;return rest});
+shared.applyScheduleImports(data,batch(rowsNoPrecedente),{today:'2026-09-21'});
+assert.ok(names(data,'DESENZANO').includes('PEDRONI M.'),'senza residenzaPrecedente salvato, resta a Desenzano prima della decorrenza');
+assert.ok(!names(data,'MADERNO').includes('PEDRONI M.'));
+const pedroniNoPrec=data.residenze.DESENZANO.find(agent=>agent.agente==='PEDRONI M.');
+assert.equal(pedroniNoPrec.residenzaPrecedente,'DESENZANO','il campo viene comunque valorizzato correttamente per i consumatori successivi');
+// Alla decorrenza si sposta comunque, esattamente come col campo presente.
+data=fresh();
+shared.applyScheduleImports(data,batch(rowsNoPrecedente),{today:'2026-10-05'});
+assert.ok(names(data,'MADERNO').includes('PEDRONI M.'));
+assert.ok(!names(data,'DESENZANO').includes('PEDRONI M.'));
+
 // ---- integrazione nelle pagine -------------------------------------------
 const agg=fs.readFileSync('aggiornamenti.html','utf8');
 assert.match(agg,/assets\/js\/turn-import-helpers\.js/);
@@ -166,6 +182,20 @@ console.log('turn-import ok');
   assert.equal(d2.variazioni_ods,undefined);
   assert.equal(d2.variazioni_ods_completi['2026-10-07'].turno_nuovo,'t2');
   assert.equal(Object.values(d2.turni_settimanali_completi)[0][3],'t2');
+
+  // La riga puo' avere residenzaNuova/Dal senza residenzaPrecedente (batch
+  // vecchio, salvato prima di una correzione): l'etichetta usa comunque la
+  // residenza strutturale attuale dell'agente, non il solo campo salvato.
+  const moverNoPrec={id:'9',agente:'D X.',turni:Object.fromEntries(days.map(iso=>[iso,'T1'])),residenzaNuova:'DESENZANO',residenzaDal:'2026-10-05'};
+  const dataNoPrecedente=todayIso=>({date:days.map(iso=>({iso})),residenze:{
+    MADERNO:[{id:'1',agente:'A X.',turni:{}},{id:'2',agente:'C X.',turni:{}}],
+    DESENZANO:todayIso>='2026-10-05'?[moverNoPrec]:[],
+    PESCHIERA:todayIso<'2026-10-05'?[moverNoPrec]:[]}});
+  const beforeNoPrec=makeAdapt('2026-10-01')(dataNoPrecedente('2026-10-01'));
+  const desMirror=beforeNoPrec.residenze.DESENZANO.find(a=>a.id==='9'),pesHome=beforeNoPrec.residenze.PESCHIERA.find(a=>a.id==='9');
+  assert.ok(desMirror&&pesHome,'anche senza residenzaPrecedente, compare in entrambe le residenze');
+  assert.deepEqual(weekOf(pesHome),['t1',...Array(6).fill('A DESENZANO')]);
+  assert.deepEqual(weekOf(desMirror),['A PESCHIERA',...Array(6).fill('t1')]);
 }
 console.log('naviturni residence ok');
 

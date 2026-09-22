@@ -359,7 +359,10 @@
         });
         if (row.residenzaNuova && row.sposta !== false) {
           const dal = String(row.residenzaDal || batch.inizio || '').slice(0, 10);
-          const before = String(row.residenzaPrecedente || '').toUpperCase();
+          // Se la riga importata non porta la residenza precedente (es. import
+          // salvato prima di questa correzione), si usa quella strutturale
+          // attuale dell'agente: cosi' non parte prima del tempo per Firebase.
+          const before = String(row.residenzaPrecedente || residenceKeyOf(data, target) || '').toUpperCase();
           const after = String(row.residenzaNuova).toUpperCase();
           target.residenzaPrecedente = before;
           target.residenzaNuova = after;

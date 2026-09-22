@@ -4496,11 +4496,16 @@
           // prima della decorrenza compare ancora qui con i turni veri, etichettato
           // "A <nuova residenza>" da quel giorno in poi (li' lo trovi per davvero).
           // Dalla decorrenza in poi sparisce del tutto da qui: il suo record e'
-          // ormai nella nuova residenza (spostato da moveAgentToResidence).
-          if (ag.residenzaDal && ag.residenzaPrecedente && ag.residenzaNuova && today < ag.residenzaDal) {
+          // ormai nella nuova residenza (spostato da moveAgentToResidence). La
+          // "residenza attuale" e' quella in cui lo troviamo qui (non ci si fida
+          // del solo campo residenzaPrecedente salvato, che su import piu' vecchi
+          // puo' mancare): resta cosi' corretto anche per import fatti prima di
+          // una correzione di questa logica.
+          if (ag.residenzaDal && ag.residenzaNuova && today < ag.residenzaDal &&
+            residenza.toUpperCase() !== String(ag.residenzaNuova).toUpperCase()) {
             const dal = ag.residenzaDal;
             const label = `A ${String(ag.residenzaNuova).toUpperCase()}`;
-            moved.push({ ag, dal });
+            moved.push({ ag, dal, home: residenza });
             return buildRow(ag, iso => iso >= dal, () => label);
           }
           return buildRow(ag, () => false);
@@ -4509,10 +4514,10 @@
 
       // Copia "in anteprima" nella residenza futura: prima della decorrenza mostra
       // dov'e' davvero l'agente ("A <residenza attuale>"), poi i turni veri.
-      moved.forEach(({ ag, dal }) => {
+      moved.forEach(({ ag, dal, home }) => {
         const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(ag.residenzaNuova).toUpperCase());
         if (!otherKey) return;
-        const label = `A ${String(ag.residenzaPrecedente).toUpperCase()}`;
+        const label = `A ${String(home).toUpperCase()}`;
         const copy = buildRow(ag, iso => iso < dal, () => label);
         const rank = name => (window.NaviSharedData?.seniorityRank ? window.NaviSharedData.seniorityRank(name) : Number.POSITIVE_INFINITY);
         const list = residenze[otherKey];
