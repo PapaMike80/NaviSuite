@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v232-fix-confine-oggi-celle-unite';
+const CACHE_VERSION = 'navisuite-v234-fix-quota-cambi-turno';
 const CORE_ASSETS = [
   './',
   './index.html',

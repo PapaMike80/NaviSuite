@@ -4,7 +4,7 @@
     const cell = event.target.closest('td[data-row="hours"][data-date]');
     if (!cell) return;
     const entry = entries.find(item => item.date === cell.dataset.date);
-    scheduled = entry ? (Number(entry.serviceMinutes) || Math.round((Number(shiftFor(entry.shift).hours) || 0) * 60)) : 0;
+    scheduled = entry ? (Number(entry.serviceMinutes) || Math.round((Number(shiftFor(entry.shift, entry.date).hours) || 0) * 60)) : 0;
   }, true);
   new MutationObserver(() => {
     const dialog = document.getElementById('monthlyValueDialog');
@@ -99,7 +99,7 @@
 
   const serviceMinutes = entry => {
     if (!entry) return 0;
-    try { return Math.max(0, Math.round((Number(shiftFor(entry.shift).hours) || 0) * 60)); }
+    try { return Math.max(0, Math.round((Number(shiftFor(entry.shift, entry.date).hours) || 0) * 60)); }
     catch (_) { return 0; }
   };
   const overtimeMinutes = entry => {
@@ -162,7 +162,7 @@
   };
   const ticketDue = entry => {
     if (!isWorking(entry)) return false;
-    try { return !!shiftFor(entry.shift).meal; } catch (_) { return false; }
+    try { return !!shiftFor(entry.shift, entry.date).meal; } catch (_) { return false; }
   };
   const ticketUsed = entry => !!entry && (entry.ticketPresence === undefined ? !!entry.mealUsed : !!entry.ticketPresence);
 

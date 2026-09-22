@@ -101,7 +101,7 @@
     };
 
     const dueForShift = code => {
-      try { return !!shiftFor(code)?.meal && !['RIP','RIPOSO','MALATTIA'].includes(String(code || '').trim().toUpperCase()); }
+      try { return !!shiftFor(code)?.meal && !['RIP','RIPOSO','MALATTIA'].includes(String(code || '').trim().toUpperCase()); } // meal non cambia per decorrenza: nessuna data disponibile qui
       catch (_) { return false; }
     };
 

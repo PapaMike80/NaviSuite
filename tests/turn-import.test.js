@@ -317,3 +317,20 @@ console.log('elsewhere span width override ok');
   assert.equal(get(moved,'2026-09-23'),'T2','i giorni normali restano quelli programmati');
 }
 console.log('manual override does not leak through elsewhere label ok');
+
+// ---- cambi_turno: un QuotaExceededError nella cache locale non deve far
+// fallire il caricamento (i dati da Firebase erano comunque arrivati bene) --
+{
+  const html=fs.readFileSync('cambi_turno.html','utf8');
+  const i=html.indexOf('const networkSignature = JSON.stringify(datiJson);');
+  const chunk=html.slice(i,i+600);
+  assert.match(chunk,/try\s*\{\s*localStorage\.setItem\("turno_finali_data",\s*networkSignature\)/,
+    'la scrittura in cache dei dati appena scaricati deve essere protetta da try/catch');
+  assert.match(chunk,/catch\s*\(error\)\s*\{\s*console\.warn/,
+    'un errore di quota deve solo avvisare, non interrompere il caricamento');
+  assert.match(html,/try\s*\{\s*localStorage\.setItem\("turno_finali_data",\s*txt\)/,
+    'anche il salvataggio del JSON incollato manualmente e\' protetto');
+  assert.match(html,/try\s*\{\s*localStorage\.setItem\("turno_finali_data",\s*JSON\.stringify\(globalData\)\)/,
+    'anche il salvataggio dopo un cambio turno manuale e\' protetto');
+}
+console.log('cambi_turno quota-safe cache ok');

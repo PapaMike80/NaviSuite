@@ -37,7 +37,7 @@ try{(()=>{
   function monthDate(){const input=document.getElementById('monthFilter');if(!/^\d{4}-\d{2}$/.test(input.value))input.value=todayIso().slice(0,7);const [y,m]=input.value.split('-').map(Number);return new Date(y,m-1,1,12)}
   function competencePeriod(){const shared=window.NaviDiariaCompetence?.period?.(document.getElementById('monthFilter').value);if(shared?.dates?.length)return shared;const first=monthDate(),last=new Date(first.getFullYear(),first.getMonth()+1,0,12),sundays=[];for(let date=new Date(first);date<=last;date=addDays(date,1))if(date.getDay()===0)sundays.push(new Date(date));const dates=sundays.flatMap(sunday=>{const start=weekBounds(sunday).start;return Array.from({length:7},(_,index)=>addDays(start,index))});return {dates,weeks:sundays.map(sunday=>weekBounds(sunday)),start:dates[0],end:dates.at(-1)}}
   function formatCompetenceDate(date){return new Intl.DateTimeFormat('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}).format(date)}
-  function serviceMinutes(e){return e?Math.max(0,Number.isFinite(Number(e.serviceMinutes))?Number(e.serviceMinutes):Math.round(shiftFor(e.shift).hours*60)):0}
+  function serviceMinutes(e){return e?Math.max(0,Number.isFinite(Number(e.serviceMinutes))?Number(e.serviceMinutes):Math.round(shiftFor(e.shift,e.date).hours*60)):0}
   const overtime=window.NaviOvertimeComponents;
   function changeMinutes(e){return overtime?.changes(e)??Math.max(0,Math.round(Number(e?.changeMinutes)||0))}
   function sentineMinutes(e){return overtime?.sentine(e)??Math.max(0,Math.round(Number(e?.sentineActivity?.minutes)||0))}
@@ -48,7 +48,7 @@ try{(()=>{
   function baseWorkedMinutes(e){const manual=Number(e?.workedMinutes);return Number.isFinite(manual)&&manual>=0?manual:serviceMinutes(e)+(overtime?.structured(e)?overtimeTotal(e):ordinaryOvertime(e))}
   function workedMinutes(e){return baseWorkedMinutes(e)+(overtime?.structured(e)?0:changeMinutes(e))}
   function holidayValue(e,d){return e.holidayWorked===undefined?isHoliday(d):!!e.holidayWorked}
-  function ticketDue(e){return isWorking(e)&&!!shiftFor(e.shift).meal}
+  function ticketDue(e){return isWorking(e)&&!!shiftFor(e.shift,e.date).meal}
   function ticketValue(e){return e.ticketPresence===undefined?!!e.mealUsed:!!e.ticketPresence}
   function ticketText(e){if(!e||!ticketDue(e))return '';return ticketValue(e)?'USATO':'NON USATO'}
   function updateMonthButtons(date){const previous=new Date(date.getFullYear(),date.getMonth()-1,1),next=new Date(date.getFullYear(),date.getMonth()+1,1),previousButton=document.getElementById('monthlyPrevious'),nextButton=document.getElementById('monthlyNext');previousButton.textContent='‹';nextButton.textContent='›';previousButton.setAttribute('aria-label',`Vai a ${new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(previous)}`);nextButton.setAttribute('aria-label',`Vai a ${new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(next)}`)}

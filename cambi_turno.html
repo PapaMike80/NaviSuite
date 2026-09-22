@@ -1612,6 +1612,7 @@
   <script src="assets/js/turni-shared.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=38"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
+  <script src="assets/js/shift-competence.js?v=1"></script>
   <script src="assets/js/shared-data.js?v=121"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.56"></script>
@@ -2047,8 +2048,18 @@
       AGT: "11 ore 10 min", PONM: "10 ore 25 min"
     };
 
+    function formatShiftDurationText(hours) {
+      const totalMinutes = Math.round((Number(hours) || 0) * 60);
+      const h = Math.floor(totalMinutes / 60), m = totalMinutes % 60;
+      return m ? `${h} ore ${m} min` : `${h} ore`;
+    }
     function getShiftDuration(shiftCode, calInfo) {
       const code = (shiftCode || "").toUpperCase().trim();
+      // Ore con decorrenza (es. turno 05/10/2026): stessa tabella di NaviDiaria,
+      // cosi' non resta una copia ferma ai valori vecchi.
+      const wanted = code === "CAR" ? "CAR1" : code;
+      const shared = window.NaviShiftCompetence?.shiftsFor(calInfo?.iso)?.find(s => String(s.code).toUpperCase() === wanted);
+      if (shared) return formatShiftDurationText(shared.hours);
       return shiftDurations[code] || "";
     }
 
@@ -3965,7 +3976,8 @@
       });
 
       globalData.residenze[currentResidence] = currentAgentsList;
-      localStorage.setItem("turno_finali_data", JSON.stringify(globalData));
+      try { localStorage.setItem("turno_finali_data", JSON.stringify(globalData)); }
+      catch (error) { console.warn("Cache locale non disponibile (quota superata); il cambio resta comunque a video.", error); }
 
       alert("Cambio turni salvato correttamente in memoria locale!");
       toggleEditMode();
@@ -4198,7 +4210,8 @@
       const txt = document.getElementById("json-paste-input").value.trim();
       try {
         const parsed = JSON.parse(txt);
-        localStorage.setItem("turno_finali_data", txt);
+        try { localStorage.setItem("turno_finali_data", txt); }
+        catch (error) { console.warn("Cache locale non disponibile (quota superata); continuo comunque.", error); }
         processJSONData(parsed);
         setTimeout(scrollToToday, 80);
         toggleUpload();
@@ -4305,7 +4318,11 @@
         }
 
         const networkSignature = JSON.stringify(datiJson);
-        localStorage.setItem("turno_finali_data", networkSignature);
+        // La cache locale e' solo un'accelerazione: se il browser ha esaurito
+        // la quota (QuotaExceededError) i dati appena arrivati da Firebase
+        // restano comunque validi e non devono far fallire il caricamento.
+        try { localStorage.setItem("turno_finali_data", networkSignature); }
+        catch (error) { console.warn("Cache locale non disponibile (quota superata); continuo senza cache.", error); }
 
         // Evita un secondo rendering completo quando i dati sono identici.
         if (!localDataShown || networkSignature !== lastLoadedDataSignature) {
