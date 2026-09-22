@@ -85,6 +85,10 @@
             <div class="actions"><button id="parse-new-turn" disabled>Leggi e controlla PDF</button><button id="save-new-turn" class="primary" disabled>Salva settimane e documento</button></div>
             <div id="turn-import-preview" class="preview" hidden></div>
             <div id="uploaded-documents" class="uploaded-documents"></div>
+            <details class="import-box foldable" style="margin-top:10px">
+              <summary><h3>Diagnostica cambi di residenza</h3></summary>
+              <div class="import-inner"><div id="residence-move-debug"></div></div>
+            </details>
           </div></details>
           <details class="import-box full-upload foldable">
             <summary><h3>Foglio Google dei turni</h3></summary><div class="import-inner">
@@ -509,6 +513,22 @@
         else if(kind==='BARISTA')state.baristas[index]={...state.baristas[index],attiva:false,eliminata_il:new Date().toISOString()};
         await save();renderHistory();renderChangeApprovals();updateCurrent();
       }));
+    }
+    // Sola lettura: mostra esattamente cosa e' salvato per ogni riga con un
+    // cambio di residenza, in tutti gli import (anche quelli disattivati/vecchi),
+    // per capire se un batch precedente ha scritto dati incompleti o sbagliati.
+    function renderResidenceMoveDebug(){
+      const box=$('residence-move-debug');if(!box)return;
+      const rows=[];
+      (state.scheduleImports||[]).forEach(batch=>{
+        (batch.rows||[]).forEach(row=>{
+          if(!row.residenzaNuova && !row.residenzaPrecedente)return;
+          rows.push({batchId:batch.id,importedAt:batch.importedAt,attiva:batch.attiva!==false,inizio:batch.inizio,fine:batch.fine,...row});
+        });
+      });
+      if(!rows.length){box.innerHTML='<div class="empty">Nessuna riga con cambio di residenza in nessun import.</div>';return;}
+      rows.sort((a,b)=>String(a.agente).localeCompare(String(b.agente),'it')||String(a.importedAt||'').localeCompare(String(b.importedAt||'')));
+      box.innerHTML=`<table class="pending-table"><thead><tr><th>Agente</th><th>Da</th><th>A</th><th>Decorrenza</th><th>Sposta</th><th>Import</th><th>Attivo</th></tr></thead><tbody>${rows.map(row=>`<tr${row.attiva?'':' style="opacity:.5"'}><td>${esc(row.agente)}</td><td>${esc(row.residenzaPrecedente||'—')}</td><td>${esc(row.residenzaNuova||'—')}</td><td>${esc(row.residenzaDal||'—')}</td><td>${row.sposta===false?'NO':'sì'}</td><td>${esc((row.importedAt||'').slice(0,16).replace('T',' '))} · ${esc(row.inizio||'')}–${esc(row.fine||'')}</td><td>${row.attiva?'attivo':'disattivato'}</td></tr>`).join('')}</tbody></table>`;
     }
     function renderUploadedDocuments(){
       const box=$('uploaded-documents');if(!box)return;
@@ -1011,6 +1031,7 @@
       $('date').value='2026-08-14';updateCurrent();renderHistory();
       renderChangeApprovals();
       renderUploadedDocuments();
+      renderResidenceMoveDebug();
       const linkedSheet=state.scheduleImports.filter(item=>item.source==='google_sheet'&&item.attiva!==false).sort((a,b)=>String(b.importedAt).localeCompare(String(a.importedAt)))[0];
       $('turn-sheet-url').value=linkedSheet?.sheetUrl||localStorage.getItem('navisuite.turnSheetUrl')||'';
       setStatus(repairedLegacyTurn?'✓ Turno 22 giugno–26 luglio riparato per nome agente e salvato su Firebase.':'Connesso a Firebase. Puoi importare i documenti o registrare una variazione.','ok');
@@ -1085,6 +1106,7 @@
         await save();
         adminDocuments=await window.NaviAdminFirebase.getAdminDocuments();
         renderUploadedDocuments();
+        renderResidenceMoveDebug();
         $('new-turn-file').value='';pendingTurnImport=null;$('turn-import-preview').hidden=true;$('parse-new-turn').disabled=true;
         setStatus(`✓ ${batch.rows.length} agenti aggiornati per ${batch.dates.length} giorni. Il PDF di prova può essere eliminato dalla riga qui sopra.`,'ok');
       }catch(error){
