@@ -4038,6 +4038,41 @@
       window.scrollTo({ left:0, top:0, behavior:"smooth" });
     }
 
+    function localIsoToday() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+
+    // Da quale data in poi si controlla se un agente ha smesso di lavorare:
+    // normalmente da oggi, ma se il passato è visibile (pulsante "Mostra
+    // passato" o navigazione su una data vecchia) si guarda tutto lo storico,
+    // cosi' chi aveva turni veri prima di finire il servizio ricompare.
+    function finishedServiceFloorIso() {
+      if (showPastColumns) return "";
+      if (automaticPastFromTime !== null) {
+        const d = new Date(automaticPastFromTime);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+      return localIsoToday();
+    }
+
+    // Agente sempre CON o RIP nel periodo attualmente visibile: ha terminato
+    // il servizio, va nascosto dalla tabella (ma resta nei dati). Caricare il
+    // passato lo fa ricomparire se in quel periodo aveva turni veri.
+    function hasFinishedService(agent, floorIso = finishedServiceFloorIso()) {
+      let checked = false, real = false;
+      settimaneInfo.forEach(week => {
+        const shifts = agent?.turni_settimanali?.[week.key] || [];
+        (week.dateIso || []).forEach((iso, index) => {
+          if (iso < floorIso) return;
+          checked = true;
+          const shift = ottieniTurnoPulito(shifts[index] || "rip");
+          if (shift !== "" && shift !== "CON") real = true;
+        });
+      });
+      return checked && !real;
+    }
+
     function filterAgents(query) {
       const q = (query || "").trim().toLocaleLowerCase("it");
       let visible = 0;
@@ -4053,9 +4088,9 @@
     // residenza già selezionata (usato dagli aggiornamenti in background).
     function refreshCurrentResidenceData() {
       if (!currentResidence || !globalData?.residenze) return;
-      currentAgentsList = currentResidence === "TUTTE"
+      currentAgentsList = (currentResidence === "TUTTE"
         ? getVisibleResidences().flatMap(res => globalData.residenze[res] || [])
-        : (globalData.residenze[currentResidence] || []);
+        : (globalData.residenze[currentResidence] || [])).filter(agent => !hasFinishedService(agent));
       const agentsStat = document.getElementById("stat-agents");
       if (agentsStat) agentsStat.textContent = currentAgentsList.length;
     }
@@ -4078,6 +4113,9 @@
       } else {
         currentAgentsList = globalData.residenze[resName] || [];
       }
+      // Chi da oggi in poi ha solo CON/RIP ha terminato il servizio: si nasconde
+      // dalla tabella, ma resta nei dati (ricerca, ODS, coverage lo trovano ancora).
+      currentAgentsList = currentAgentsList.filter(agent => !hasFinishedService(agent));
       document.getElementById("stat-residence").textContent = resName;
       document.getElementById("stat-agents").textContent = currentAgentsList.length;
       const search = document.getElementById("agent-search");
@@ -4128,7 +4166,12 @@
       today.setHours(0, 0, 0, 0);
       const selectedDate = new Date(cal.realObj);
       selectedDate.setHours(0, 0, 0, 0);
+      const previous = automaticPastFromTime;
       automaticPastFromTime = selectedDate < today ? selectedDate.getTime() : null;
+      if (automaticPastFromTime !== previous) {
+        refreshCurrentResidenceData();
+        renderTable();
+      }
     }
 
     function togglePastColumns() {
@@ -4138,6 +4181,8 @@
         updateAutomaticPastWindow(dateCalendario.find(cal => cal.col === selectedCol));
       }
       hidePastColumns();
+      refreshCurrentResidenceData();
+      renderTable();
       const selectedCal = dateCalendario.find(cal => cal.col === selectedCol);
       setTimeout(() => selectedCal ? scrollDateColumnIntoView(selectedCal, "auto") : scrollToToday(), 30);
     }

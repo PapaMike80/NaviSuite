@@ -144,3 +144,35 @@ console.log('turn-import ok');
   assert.equal(Object.values(d2.turni_settimanali_completi)[0][3],'t2');
 }
 console.log('naviturni residence ok');
+
+// ---- naviturni: agenti che hanno terminato il servizio vengono nascosti ----
+// (finche' non si carica/mostra il passato, dove riappaiono se avevano turni veri)
+{
+  const html=fs.readFileSync('naviturni.html','utf8');
+  const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  const src=scripts.find(text=>text.includes('function hasFinishedService'));
+  function grabFn(name){
+    const i=src.indexOf('function '+name+'(');if(i<0)throw new Error('missing '+name);
+    let j=src.indexOf('{',src.indexOf(')',i)),d=0;
+    for(;j<src.length;j++){if(src[j]==='{')d++;if(src[j]==='}'&&--d===0)break}
+    return src.slice(i,j+1);
+  }
+  const fns=['isRiposoShift','ottieniTurnoPulito','hasFinishedService'].map(grabFn).join('\n');
+  const settimaneInfo=[
+    {key:'w1',dateIso:['2020-01-01','2020-01-02']},
+    {key:'w2',dateIso:['2099-01-01','2099-01-02']}
+  ];
+  const hasFinishedService=new Function('settimaneInfo',`${fns};return hasFinishedService;`)(settimaneInfo);
+  const finished={turni_settimanali:{w1:['T1','R1'],w2:['CON','rip']}};
+  const stillWorking={turni_settimanali:{w1:['CON','CON'],w2:['CON','T1']}};
+  // Da oggi (floor 2099, "futuro" nel test) in poi: solo CON/RIP -> nascosto.
+  // (buildRow riempie sempre ogni settimana, anche senza dati importati, con
+  // "rip": un agente senza alcun turno vero da oggi in poi risulta comunque
+  // terminato, ed e' corretto nasconderlo.)
+  assert.equal(hasFinishedService(finished,'2099-01-01'),true,'terminato: solo CON/RIP da oggi in poi');
+  assert.equal(hasFinishedService(stillWorking,'2099-01-01'),false,'ha ancora un turno vero in futuro');
+  // Con il passato caricato (floor vuoto): i turni veri del 2020 lo fanno ricomparire.
+  assert.equal(hasFinishedService(finished,''),false,'con il passato visibile riappare: aveva turni veri prima');
+  assert.equal(hasFinishedService(stillWorking,''),false);
+}
+console.log('finished-service hide ok');
