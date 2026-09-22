@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v231-fix-larghezza-cella-unita';
+const CACHE_VERSION = 'navisuite-v232-fix-confine-oggi-celle-unite';
 const CORE_ASSETS = [
   './',
   './index.html',

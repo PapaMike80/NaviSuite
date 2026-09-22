@@ -1824,6 +1824,10 @@
       if (!week) return "rip";
       const dayIndex = week.dateIso.indexOf(iso);
       const scheduled = (agent?.turni_settimanali?.[week.key] || [])[dayIndex] || "rip";
+      // Giorno "A <residenza>" (cambio di residenza pianificato, non ancora
+      // effettivo): un'eventuale variazione/correzione manuale su quel giorno
+      // riguarda l'altra residenza e non deve far sparire l'etichetta qui.
+      if (scheduled !== BARISTA_PRIVATE_SHIFT && isElsewhereShift(scheduled)) return scheduled;
       const ods = agent?.variazioni_ods?.[iso]?.turno_nuovo;
       const manual = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
       const isLoggedHibaRow = isHibaProfile() &&
@@ -3365,9 +3369,19 @@
     // il giorno dopo ha un valore diverso, altrimenti la lunghezza della serie.
     function elsewhereSpanLength(agenteObj, turnoVal, calIdx) {
       if (!isElsewhereShift(turnoVal) || turnoVal === BARISTA_PRIVATE_SHIFT) return 1;
+      // Non attraversare il confine "oggi": hidePastColumns() nasconde/mostra
+      // una colonna passata guardando solo il data-col del PRIMO giorno della
+      // cella unita. Se quella cella comprendesse sia giorni passati che
+      // giorni odierni/futuri, verrebbe nascosta per intero appena c'e' anche
+      // un solo giorno passato (es. l'inizio del turno mesi fa) - anche nella
+      // parte che dovrebbe restare visibile di default.
+      const todayIso = localIsoToday();
+      const startIsPast = dateCalendario[calIdx].iso < todayIso;
       let span = 1;
-      while (calIdx + span < dateCalendario.length &&
-        getAgentShiftOnDate(agenteObj, dateCalendario[calIdx + span].iso) === turnoVal) {
+      while (calIdx + span < dateCalendario.length) {
+        const nextIso = dateCalendario[calIdx + span].iso;
+        if ((nextIso < todayIso) !== startIsPast) break;
+        if (getAgentShiftOnDate(agenteObj, nextIso) !== turnoVal) break;
         span++;
       }
       return span;

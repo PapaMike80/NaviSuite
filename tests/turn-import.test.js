@@ -266,14 +266,26 @@ console.log('finished-service index alignment ok');
   const shifts={'2026-10-05':'A MADERNO','2026-10-06':'A MADERNO','2026-10-07':'A MADERNO','2026-10-08':'T1'};
   const isElsewhereShift=v=>v==='__PRIVATE__'||/^A [A-ZÀ-Ý' ]+$/.test(String(v||''));
   const getAgentShiftOnDate=(agent,iso)=>shifts[iso];
-  const elsewhereSpanLength=new Function('dateCalendario','BARISTA_PRIVATE_SHIFT','isElsewhereShift','getAgentShiftOnDate',
-    `${fns};return elsewhereSpanLength;`)(dateCalendario,'__PRIVATE__',isElsewhereShift,getAgentShiftOnDate);
+  const makeSpanFn=todayIso=>new Function('dateCalendario','BARISTA_PRIVATE_SHIFT','isElsewhereShift','getAgentShiftOnDate','localIsoToday',
+    `${fns};return elsewhereSpanLength;`)(dateCalendario,'__PRIVATE__',isElsewhereShift,getAgentShiftOnDate,()=>todayIso);
+  const elsewhereSpanLength=makeSpanFn('2026-10-05');
   assert.equal(elsewhereSpanLength(null,'A MADERNO',0),3,'i 3 giorni consecutivi uguali si uniscono');
   assert.equal(elsewhereSpanLength(null,'A MADERNO',2),1,'l\'ultimo giorno della serie non si unisce col successivo diverso (T1)');
   assert.equal(elsewhereSpanLength(null,'T1',3),1,'un turno vero non si unisce mai');
   assert.equal(elsewhereSpanLength(null,'__PRIVATE__',0),1,'la sentinella bariste resta un pallino per giorno, non si unisce');
   // Il merge in tabella deve avvenire solo fuori dalla modalita' modifica.
   assert.match(src,/const span = isEditMode \? 1 : elsewhereSpanLength\(/);
+
+  // Bug reale: una cella unita che comprende sia giorni passati sia
+  // oggi/futuro veniva nascosta per intero da hidePastColumns() (che guarda
+  // solo il primo giorno), sparendo di default e ricomparendo solo con
+  // "Mostra passato". La cella non deve mai attraversare il confine "oggi".
+  const wideCal=['2026-09-20','2026-09-21','2026-09-22','2026-09-23','2026-09-24'].map(iso=>({iso}));
+  const wideShifts=Object.fromEntries(wideCal.map(c=>[c.iso,'A MADERNO']));
+  const spanToday22=new Function('dateCalendario','BARISTA_PRIVATE_SHIFT','isElsewhereShift','getAgentShiftOnDate','localIsoToday',
+    `${fns};return elsewhereSpanLength;`)(wideCal,'__PRIVATE__',isElsewhereShift,(a,iso)=>wideShifts[iso],()=>'2026-09-22');
+  assert.equal(spanToday22(null,'A MADERNO',0),2,'si ferma il giorno prima di oggi (19-20 sett, passato)');
+  assert.equal(spanToday22(null,'A MADERNO',2),3,'da oggi in poi e\' un\'altra cella, cosi\' non viene mai nascosta come "passata"');
 }
 console.log('elsewhere span merge ok');
 
@@ -285,3 +297,23 @@ console.log('elsewhere span merge ok');
   assert.match(html,/td\.elsewhere-span\s*\{\s*width:auto!important;\s*min-width:0!important;\s*max-width:none!important;\s*\}/);
 }
 console.log('elsewhere span width override ok');
+
+// ---- naviturni: una correzione manuale non deve far sparire l'etichetta
+// "A <residenza>" su un giorno in cui l'agente non e' fisicamente li' ------
+{
+  const html=fs.readFileSync('naviturni.html','utf8');
+  const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  const src=scripts.find(text=>text.includes('function getAgentShiftOnDate'));
+  const i=src.indexOf('function getAgentShiftOnDate(');
+  let j=src.indexOf('{',src.indexOf(')',i)),d=0;
+  for(;j<src.length;j++){if(src[j]==='{')d++;if(src[j]==='}'&&--d===0)break}
+  const fn=src.slice(i,j+1);
+  const isElsewhereShift=v=>v==='__PRIVATE__'||/^A [A-ZÀ-Ý' ]+$/.test(String(v||''));
+  const settimaneInfo=[{key:'w1',dateIso:['2026-09-22','2026-09-23']}];
+  const get=new Function('settimaneInfo','diariaShiftOverrides','isElsewhereShift','BARISTA_PRIVATE_SHIFT','isHibaProfile','getBaristaRecords','loggedAgentProfile','normalizeOdsAgentName',
+    `${fn};return getAgentShiftOnDate;`)(settimaneInfo,new Map([['9|2026-09-22',{shift:'T1'}]]),isElsewhereShift,'__PRIVATE__',()=>false,()=>[],null,v=>String(v||''));
+  const moved={id:'9',turni_settimanali:{w1:['A MADERNO','T2']}};
+  assert.equal(get(moved,'2026-09-22'),'A MADERNO','la correzione manuale su quel giorno non deve rivelare che e\'altrove');
+  assert.equal(get(moved,'2026-09-23'),'T2','i giorni normali restano quelli programmati');
+}
+console.log('manual override does not leak through elsewhere label ok');
