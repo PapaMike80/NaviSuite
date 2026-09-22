@@ -3249,15 +3249,15 @@
       updateCoverageCellSelection(col, crewShift);
 
       if (!calInfo) {
-        document.getElementById("tbody").classList.remove("has-selection");
+        document.getElementById("tbody")?.classList.remove("has-selection");
         trElements.forEach(tr => tr.classList.remove("row-match"));
         restoreDefaultTableOrder();
-        document.getElementById("day-panel").classList.remove("open");
-        document.getElementById("day-panel").setAttribute("aria-hidden", "true");
+        document.getElementById("day-panel")?.classList.remove("open");
+        document.getElementById("day-panel")?.setAttribute("aria-hidden", "true");
         return;
       }
 
-      document.getElementById("tbody").classList.add("has-selection");
+      document.getElementById("tbody")?.classList.add("has-selection");
 
       if (isCrewShift) importTemporaryTransferRows(calInfo, giornoInternoIdx, cleanShift);
           hidePastColumns();
@@ -3791,16 +3791,21 @@
       selectedCol = null;
       selectedShiftValue = "";
       selectedCrewAgent = null;
-      document.getElementById("day-panel").classList.remove("open");
-      document.getElementById("day-panel").setAttribute("aria-hidden", "true");
+      // Elementi opzionali: un DOM non ancora pronto (es. richiamata molto
+      // presto durante il caricamento) non deve interrompere il resto -
+      // altrimenti un caricamento dati va in errore per un dettaglio visivo.
+      document.getElementById("day-panel")?.classList.remove("open");
+      document.getElementById("day-panel")?.setAttribute("aria-hidden", "true");
       document.body.classList.remove("crew-drawer-open", "crew-drawer-main", "crew-drawer-coverage");
       document.documentElement.style.setProperty("--crew-drawer-offset", "0px");
       const drawerToggle = document.getElementById("crew-drawer-toggle");
-      drawerToggle.hidden = true;
-      drawerToggle.textContent = "⌄";
-      drawerToggle.setAttribute("aria-expanded", "false");
-      drawerToggle.setAttribute("aria-label", "Mostra equipaggio");
-      document.getElementById("tbody").classList.remove("has-selection");
+      if (drawerToggle) {
+        drawerToggle.hidden = true;
+        drawerToggle.textContent = "⌄";
+        drawerToggle.setAttribute("aria-expanded", "false");
+        drawerToggle.setAttribute("aria-label", "Mostra equipaggio");
+      }
+      document.getElementById("tbody")?.classList.remove("has-selection");
       document.querySelectorAll(".date-header th").forEach(t => t.classList.remove("selected-day"));
       document.querySelectorAll("#tbody td.selected-shared-crew-day").forEach(td => td.classList.remove("selected-shared-crew-day"));
       trElements.forEach(tr => {
@@ -3891,8 +3896,10 @@
       }
       const residenceStat = document.getElementById("stat-residence")?.closest(".stat-card");
       if (residenceStat) residenceStat.hidden = String(resName || "").toUpperCase() === "BARISTE";
-      document.getElementById("stat-residence").textContent = String(resName || "").toUpperCase() === "BARISTE" ? "" : resName;
-      document.getElementById("stat-agents").textContent = currentAgentsList.length;
+      const statResidence = document.getElementById("stat-residence");
+      if (statResidence) statResidence.textContent = String(resName || "").toUpperCase() === "BARISTE" ? "" : resName;
+      const statAgents = document.getElementById("stat-agents");
+      if (statAgents) statAgents.textContent = currentAgentsList.length;
       const search = document.getElementById("agent-search");
       if (search) search.value = "";
       document.querySelectorAll(".res-btn, .coverage-residence-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.res === resName));
@@ -3900,7 +3907,8 @@
       generaFiltriTurnoRiferimento();
 
       if (currentAgentsList.length > 0) {
-        document.getElementById("matrix-scroll-wrap").style.display = "block";
+        const matrixWrap = document.getElementById("matrix-scroll-wrap");
+        if (matrixWrap) matrixWrap.style.display = "block";
         renderTable();
       } else {
         clearSelection();
@@ -4185,12 +4193,15 @@
       inizializzaCalendario();
       buildBaristaResidence();
       buildTableHeader();
-      document.getElementById("stat-status").textContent = "Aggiornati";
-      document.getElementById("welcome-notice").style.display = "none";
+      const statStatus = document.getElementById("stat-status");
+      if (statStatus) statStatus.textContent = "Aggiornati";
+      const welcomeNotice = document.getElementById("welcome-notice");
+      if (welcomeNotice) welcomeNotice.style.display = "none";
       
       // Aggiorna il periodo nel titolo
       if (data.periodo) {
-        document.getElementById("periodLabel").textContent = String(data.periodo).replace(/^.*?\bDAL\b\s*/i, "");
+        const periodLabel = document.getElementById("periodLabel");
+        if (periodLabel) periodLabel.textContent = String(data.periodo).replace(/^.*?\bDAL\b\s*/i, "");
       }
       
       renderResidenceButtons();

@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v234-fix-quota-cambi-turno';
+const CACHE_VERSION = 'navisuite-v235-fix-crash-day-panel-cambi-turno';
 const CORE_ASSETS = [
   './',
   './index.html',

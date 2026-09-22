@@ -334,3 +334,16 @@ console.log('manual override does not leak through elsewhere label ok');
     'anche il salvataggio dopo un cambio turno manuale e\' protetto');
 }
 console.log('cambi_turno quota-safe cache ok');
+
+// ---- cambi_turno: clearSelection/selectResidence/processJSONData non devono
+// crashare se un elemento opzionale del DOM non e' (ancora) presente --------
+{
+  const html=fs.readFileSync('cambi_turno.html','utf8');
+  assert.match(html,/document\.getElementById\("day-panel"\)\?\.classList\.remove\("open"\)/,
+    'clearSelection deve usare optional chaining su day-panel');
+  assert.match(html,/document\.getElementById\("tbody"\)\?\.classList\.remove\("has-selection"\)/,
+    'clearSelection deve usare optional chaining su tbody');
+  assert.doesNotMatch(html,/document\.getElementById\("day-panel"\)\.classList/,
+    'non deve restare nessun accesso non protetto a day-panel');
+}
+console.log('cambi_turno defensive DOM access ok');
