@@ -3356,6 +3356,19 @@
       trElements.forEach(tr => tbody.appendChild(tr));
     }
 
+    // Quanti giorni da calIdx (incluso) hanno la stessa etichetta "altrove"
+    // (cambio di residenza pianificato): 1 se il giorno non e' "altrove" o se
+    // il giorno dopo ha un valore diverso, altrimenti la lunghezza della serie.
+    function elsewhereSpanLength(agenteObj, turnoVal, calIdx) {
+      if (!isElsewhereShift(turnoVal) || turnoVal === BARISTA_PRIVATE_SHIFT) return 1;
+      let span = 1;
+      while (calIdx + span < dateCalendario.length &&
+        getAgentShiftOnDate(agenteObj, dateCalendario[calIdx + span].iso) === turnoVal) {
+        span++;
+      }
+      return span;
+    }
+
     function createRowDOM(agenteObj, ri, isPinned = false, residence = currentResidence, isTemporaryTransfer = false) {
       const tr = document.createElement("tr");
       tr.dataset.rowIndex = ri;
@@ -3409,9 +3422,15 @@
         handleMobileTap(agentNameCell, null, pinThisAgent);
       });
 
-      dateCalendario.forEach(cal => {
+      for (let calIdx = 0; calIdx < dateCalendario.length; calIdx++) {
+        const cal = dateCalendario[calIdx];
         let giornoInternoIdx = (cal.col - 3) % 7;
         let turnoVal = getAgentShiftOnDate(agenteObj, cal.iso);
+
+        // Giorni consecutivi "altrove" (cambio di residenza pianificato) con la
+        // stessa etichetta: una sola cella con la scritta, non un pallino/testo
+        // per ogni giorno.
+        const span = isEditMode ? 1 : elsewhereSpanLength(agenteObj, turnoVal, calIdx);
 
         const td = document.createElement("td");
         const tdClasses = [];
@@ -3421,6 +3440,10 @@
         if (cal.isBozza) tdClasses.push("bozza-col");
         const prevCal = dateCalendario[dateCalendario.indexOf(cal) - 1];
         if (cal.isBozza && (!prevCal || !prevCal.isBozza)) tdClasses.push("bozza-start");
+        if (span > 1) {
+          td.colSpan = span;
+          tdClasses.push("elsewhere-span");
+        }
           const crewStatus = getCrewStatusForDate(cal, turnoVal);
         const odsVariation = agenteObj.variazioni_ods?.[cal.iso] || null;
         const shipInfo = getShipDayInfo(cal, turnoVal);
@@ -3488,7 +3511,8 @@
           });
         }
         tr.appendChild(td);
-      });
+        calIdx += span - 1;
+      }
 
       return tr;
     }

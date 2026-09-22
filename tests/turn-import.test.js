@@ -219,3 +219,30 @@ console.log('finished-service hide ok');
     'il nascondere deve avvenire solo scegliendo quali righe disegnare (restIndexes), non rimuovendo elementi dall\'array');
 }
 console.log('finished-service index alignment ok');
+
+// ---- naviturni: giorni "altrove" consecutivi in un'unica cella (colspan) --
+{
+  const html=fs.readFileSync('naviturni.html','utf8');
+  const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  const src=scripts.find(text=>text.includes('function elsewhereSpanLength'));
+  function grabFn(name){
+    const i=src.indexOf('function '+name+'(');if(i<0)throw new Error('missing '+name);
+    let j=src.indexOf('{',src.indexOf(')',i)),d=0;
+    for(;j<src.length;j++){if(src[j]==='{')d++;if(src[j]==='}'&&--d===0)break}
+    return src.slice(i,j+1);
+  }
+  const fns=['isRiposoShift','ottieniTurnoPulito','elsewhereSpanLength'].map(grabFn).join('\n');
+  const dateCalendario=['2026-10-05','2026-10-06','2026-10-07','2026-10-08'].map(iso=>({iso}));
+  const shifts={'2026-10-05':'A MADERNO','2026-10-06':'A MADERNO','2026-10-07':'A MADERNO','2026-10-08':'T1'};
+  const isElsewhereShift=v=>v==='__PRIVATE__'||/^A [A-ZÀ-Ý' ]+$/.test(String(v||''));
+  const getAgentShiftOnDate=(agent,iso)=>shifts[iso];
+  const elsewhereSpanLength=new Function('dateCalendario','BARISTA_PRIVATE_SHIFT','isElsewhereShift','getAgentShiftOnDate',
+    `${fns};return elsewhereSpanLength;`)(dateCalendario,'__PRIVATE__',isElsewhereShift,getAgentShiftOnDate);
+  assert.equal(elsewhereSpanLength(null,'A MADERNO',0),3,'i 3 giorni consecutivi uguali si uniscono');
+  assert.equal(elsewhereSpanLength(null,'A MADERNO',2),1,'l\'ultimo giorno della serie non si unisce col successivo diverso (T1)');
+  assert.equal(elsewhereSpanLength(null,'T1',3),1,'un turno vero non si unisce mai');
+  assert.equal(elsewhereSpanLength(null,'__PRIVATE__',0),1,'la sentinella bariste resta un pallino per giorno, non si unisce');
+  // Il merge in tabella deve avvenire solo fuori dalla modalita' modifica.
+  assert.match(src,/const span = isEditMode \? 1 : elsewhereSpanLength\(/);
+}
+console.log('elsewhere span merge ok');

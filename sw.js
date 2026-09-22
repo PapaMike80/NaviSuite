@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v227-etichetta-a-residenza';
+const CACHE_VERSION = 'navisuite-v228-etichetta-unica';
 const CORE_ASSETS = [
   './',
   './index.html',
