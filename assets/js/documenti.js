@@ -2,11 +2,11 @@
 
 const CONFIG = {
   owner: 'PapaMike80',
-  repo: 'NaviDiaria',
+  repo: 'NaviSuite',
   branch: 'main',
   folders: ['turni', 'ods'],
   metadataFile: 'assets/js/documenti.json',
-  version: 'v1.07'
+  version: 'v1.08'
 };
 
 const state = {
