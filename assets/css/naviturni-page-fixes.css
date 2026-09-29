@@ -1,0 +1,154 @@
+    /* Anche nel tema scuro i filtri sono bolle colorate, non tasti tutti uguali. */
+    .turni-sidebar #top-residence-buttons [data-res="TUTTE"] { --filter-bubble:#2dd4bf; }
+    .turni-sidebar #top-residence-buttons [data-res="DESENZANO"] { --filter-bubble:#24b7f2; }
+    .turni-sidebar #top-residence-buttons [data-res="MADERNO"] { --filter-bubble:#f59e0b; }
+    .turni-sidebar #top-residence-buttons [data-res="PESCHIERA"] { --filter-bubble:#52c879; }
+    .turni-sidebar #top-residence-buttons [data-res="RIVA"] { --filter-bubble:#a78bfa; }
+    .turni-sidebar .shift-filter-btn,
+    .turni-sidebar #top-residence-buttons .coverage-residence-btn {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 16%,#071923) !important;
+      border-color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 76%,#28505a) !important;
+      color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 86%,#eaf5f5) !important;
+      border-radius:999px !important;
+    }
+    .turni-sidebar .shift-filter-btn.active,
+    .turni-sidebar #top-residence-buttons .coverage-residence-btn.active {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 48%,#071923) !important;
+      border-color:var(--filter-bubble,var(--btn-color,#2dd4bf)) !important;
+      color:#fff !important;
+      box-shadow:0 3px 12px color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 34%,transparent) !important;
+    }
+    /* Filtri della barra laterale: versione chiara, senza riquadro scuro. */
+    html.navisuite-light .turni-sidebar .shifts-filter-block {
+      background:#fff !important;
+      border-color:#c4dde1 !important;
+    }
+    html.navisuite-light .turni-sidebar .filter-label {
+      color:#547078 !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 16%,#fff) !important;
+      border-color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 62%,#a8cdd1) !important;
+      color:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 78%,#17323a) !important;
+      border-radius:999px !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn:hover,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn:hover {
+      background:#effaf8 !important;
+      border-color:#33bcae !important;
+      color:#087b6e !important;
+    }
+    html.navisuite-light .turni-sidebar .shift-filter-btn.active,
+    html.navisuite-light .turni-sidebar #top-residence-buttons .coverage-residence-btn.active {
+      background:color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 34%,#fff) !important;
+      border-color:var(--filter-bubble,var(--btn-color,#2dd4bf)) !important;
+      color:#17323a !important;
+      box-shadow:0 3px 10px color-mix(in srgb,var(--filter-bubble,var(--btn-color,#2dd4bf)) 24%,transparent) !important;
+    }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="TUTTE"] { --filter-bubble:#2dd4bf; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="DESENZANO"] { --filter-bubble:#24b7f2; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="MADERNO"] { --filter-bubble:#f59e0b; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="PESCHIERA"] { --filter-bubble:#52c879; }
+    html.navisuite-light .turni-sidebar #top-residence-buttons [data-res="RIVA"] { --filter-bubble:#a78bfa; }
+    @media (max-width:800px) {
+      body.turni-page .sidebar-collapse-button,
+      body.turni-page .sidebar-reopen-button {
+        display:none !important;
+      }
+    }
+
+/* ex <style id="naviturni-month-sticky-fix"> */
+  :root { --month-header-height: 22px; --date-header-height: 38px; --turni-agent-column-width:126px; }
+  #matrix-scroll-wrap .month-header th {
+    position:sticky !important; top:0 !important; z-index:52 !important;
+    height:var(--month-header-height); padding:4px 6px !important;
+    background:#0f2934 !important; color:#99f6e4 !important;
+    border-bottom:1px solid #28505a !important;
+    font-size:10px !important; font-weight:900 !important; letter-spacing:.08em;
+    text-transform:uppercase; white-space:nowrap;
+    box-shadow:0 1px 0 #28505a !important;
+  }
+  #matrix-scroll-wrap .month-header th:first-child { left:0 !important; z-index:56 !important; }
+  #matrix-scroll-wrap .month-header th:not(:first-child) {
+    padding:0 !important;
+    text-align:left !important;
+    overflow:visible !important;
+  }
+  #matrix-scroll-wrap .month-visible-label {
+    position:sticky;
+    left:calc(var(--turni-agent-column-width) + 8px);
+    display:inline-flex;
+    align-items:center;
+    height:var(--month-header-height);
+    padding:0 7px;
+    color:#99f6e4;
+    background:#0f2934;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  #matrix-scroll-wrap .date-header th {
+    position:sticky !important; top:var(--month-header-height) !important; z-index:48 !important;
+  }
+  #matrix-scroll-wrap .date-header th:first-child { z-index:55 !important; }
+
+/* ex <style id="naviturni-grid-alignment-fix"> */
+  :root { --date-header-height:46px !important; }
+  #matrix-scroll-wrap .date-header th {
+    height:46px !important; min-height:46px !important; max-height:46px !important;
+    box-sizing:border-box !important; vertical-align:top !important; padding:4px 2px 3px !important;
+  }
+  #matrix-scroll-wrap .date-head-day,
+  #matrix-scroll-wrap .date-head-num { display:block; line-height:1.05; }
+  #matrix-scroll-wrap .date-head-markers {
+    display:flex !important; position:absolute !important; top:3px !important; right:3px !important; height:auto !important; min-height:0 !important; margin:0 !important;
+    align-items:center !important; justify-content:center !important;
+  }
+  #matrix-scroll-wrap #tbody tr {
+    height:38px !important; min-height:38px !important; max-height:38px !important;
+  }
+  #matrix-scroll-wrap #tbody td {
+    height:38px !important; min-height:38px !important; max-height:38px !important;
+    box-sizing:border-box !important; padding-top:3px !important; padding-bottom:3px !important;
+    vertical-align:middle !important; overflow:hidden;
+  }
+  #matrix-scroll-wrap #tbody td[data-col] {
+    line-height:0 !important;
+  }
+  #matrix-scroll-wrap #tbody td .cell-pill {
+    box-sizing:border-box; max-height:30px; vertical-align:middle;
+    line-height:1.2 !important;
+  }
+
+/* ex <style id="crew-day-editor-link-style"> */
+  .crew-edit-day {
+    appearance:none;border:1px solid rgba(45,212,191,.45);border-radius:999px;
+    background:rgba(13,148,136,.14);color:#99f6e4;font:700 11px/1.1 inherit;
+    padding:7px 10px;white-space:nowrap;cursor:pointer;
+  }
+  .crew-edit-day:hover,.crew-edit-day:focus-visible { background:rgba(13,148,136,.28);outline:none; }
+  @media (max-width:700px) { .crew-edit-day { width:100%;margin-top:6px;justify-content:center; } }
+
+/* ex <style id="naviturni-mobile-header-fix"> */
+  @media (max-width:950px) {
+    :root { --month-header-height:60px !important; --date-header-height:36px !important; --turni-agent-column-width:126px !important; }
+    body.turni-page { padding-top:env(safe-area-inset-top,0px) !important; padding-left:0 !important; }
+    #matrix-scroll-wrap { margin-left:0 !important; left:0 !important; width:max-content !important; min-width:100% !important; }
+    #matrix-scroll-wrap .month-header th { top:env(safe-area-inset-top,0px) !important; height:60px !important; min-height:60px !important; max-height:60px !important; padding:0 !important; line-height:16px !important; font-size:8px !important; }
+    #matrix-scroll-wrap .month-visible-label { height:60px !important; padding:0 5px; }
+    #matrix-scroll-wrap .date-header th { top:calc(env(safe-area-inset-top,0px) + 60px) !important; height:36px !important; min-height:36px !important; max-height:36px !important; padding:2px 1px !important; vertical-align:top !important; }
+    #matrix-scroll-wrap .date-head-day { font-size:8px !important; line-height:9px !important; }
+    #matrix-scroll-wrap .date-head-num { font-size:14px !important; line-height:15px !important; }
+    #matrix-scroll-wrap .date-head-markers { position:absolute !important; top:2px !important; right:2px !important; height:auto !important; min-height:0 !important; margin:0 !important; font-size:7px !important; line-height:1 !important; }
+    #matrix-scroll-wrap th:first-child,
+    #matrix-scroll-wrap td:first-child { left:0 !important; }
+    #matrix-scroll-wrap .month-header th:first-child,
+    #matrix-scroll-wrap .date-header th:first-child { width:126px !important; min-width:126px !important; max-width:126px !important; }
+  }
+
+/* ex <style id="crew-panel-close-control"> */
+  #day-panel .panel-controls-top{display:flex;align-items:flex-start;gap:8px;width:100%}
+  #day-panel .panel-controls-top .panel-shift-selector{flex:1 1 auto;min-width:0}
+  #day-panel .panel-close{display:grid;place-items:center;flex:0 0 46px;width:46px!important;height:34px!important;min-width:46px!important;min-height:34px!important;margin:0!important;padding:0!important;border:1.5px solid rgba(248,113,113,.9)!important;border-radius:999px!important;background:rgba(127,29,29,.28)!important;color:#fda4af!important;font:1000 20px/1 system-ui,sans-serif!important;box-shadow:0 0 12px rgba(239,68,68,.22),inset 0 1px 0 rgba(255,255,255,.08)!important;cursor:pointer;-webkit-appearance:none;appearance:none}
+  #day-panel .panel-close:hover,#day-panel .panel-close:focus-visible{background:rgba(185,28,28,.42)!important;border-color:#fca5a5!important;color:#ffe4e6!important;outline:2px solid rgba(254,202,202,.65);outline-offset:2px}
+  @media(max-width:520px){#day-panel .panel-controls-top{gap:6px}#day-panel .panel-close{flex-basis:44px;width:44px!important;height:32px!important;min-width:44px!important;min-height:32px!important}}

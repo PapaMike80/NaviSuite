@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const {readPage}=require('./read-page');
 const {execFileSync}=require('node:child_process');
 
 const popup=fs.readFileSync('assets/js/day-popup.js','utf8');
-const turni=fs.readFileSync('naviturni.html','utf8');
+const turni=readPage('naviturni.html');
 const diaria=fs.readFileSync('navidiaria.html','utf8');
 const monthly=fs.readFileSync('assets/js/navidiaria-monthly.js','utf8');
 const app=fs.readFileSync('assets/js/app.js','utf8');
