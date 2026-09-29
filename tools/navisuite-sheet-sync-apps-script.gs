@@ -190,3 +190,74 @@ function firebaseAuth_() {
   props.setProperty(SHEET_SYNC.authProperty, JSON.stringify(auth));
   return auth;
 }
+
+// ---- Colori dei gradi ------------------------------------------------------
+// Stessi colori di NaviTurni (gradeInfo in naviturni.html). Colora le colonne
+// agent_uid/agente/residenza del foglio turni leggendo il grado dal foglio
+// "Anzianita e gradi" (colonne Agente e Grado). Eseguire coloraGradi() a mano
+// dopo aver cambiato i gradi; non influisce sulla sincronizzazione.
+
+const GRADE_COLORS = Object.freeze({
+  CAPITANO: '#facc15',
+  CAPO_TIMONIERE: '#fb923c',
+  TIMONIERE: '#22c55e',
+  AIUTO_MOTORISTA: '#3b82f6',
+  MOTORISTA: '#a855f7',
+  MARINAIO: '#9ca3af',
+  OPERAIO: '#14b8a6',
+  BARISTA: '#f472b6'
+});
+
+function coloraGradi() {
+  const ss = SpreadsheetApp.getActive();
+  const turni = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  const gradi = ss.getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
+  if (!turni) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  if (!gradi) throw new Error('Nessun foglio "Anzianita e gradi"');
+
+  const gradeMatrix = gradi.getDataRange().getDisplayValues();
+  const gradeHeader = gradeMatrix.shift().map(normalizeHeader_);
+  const agentCol = gradeHeader.indexOf('AGENTE');
+  const gradeCol = gradeHeader.indexOf('GRADO');
+  if (agentCol < 0 || gradeCol < 0) throw new Error('Nel foglio gradi servono le colonne Agente e Grado');
+  const gradeByAgent = {};
+  gradeMatrix.forEach(row => { gradeByAgent[normalizeHeader_(row[agentCol])] = gradeKey_(row[gradeCol]); });
+
+  const header = turni.getRange(1, 1, 1, turni.getLastColumn()).getDisplayValues()[0].map(normalizeHeader_);
+  const nameIndex = header.indexOf('AGENTE');
+  const infoColumns = Math.max(nameIndex, header.indexOf('RESIDENZA'), header.indexOf('AGENTUID')) + 1;
+  const lastRow = turni.getLastRow();
+  if (nameIndex < 0 || lastRow < 2) return;
+  const names = turni.getRange(2, nameIndex + 1, lastRow - 1, 1).getDisplayValues();
+  const backgrounds = [];
+  const fonts = [];
+  names.forEach(([name]) => {
+    const color = GRADE_COLORS[gradeByAgent[normalizeHeader_(name)]] || null;
+    const tint = color ? mixWithWhite_(color, 0.7) : null;
+    backgrounds.push(new Array(infoColumns).fill(tint));
+    fonts.push(new Array(infoColumns).fill(color ? '#111827' : null));
+  });
+  const range = turni.getRange(2, 1, lastRow - 1, infoColumns);
+  range.setBackgrounds(backgrounds);
+  range.setFontColors(fonts);
+  turni.getRange(2, nameIndex + 1, lastRow - 1, 1).setFontWeight('bold');
+}
+
+function gradeKey_(value) {
+  const raw = String(value || '').toUpperCase();
+  if (raw.indexOf('CAPITANO') >= 0) return 'CAPITANO';
+  if (raw.indexOf('CAPO') >= 0 && raw.indexOf('TIMON') >= 0) return 'CAPO_TIMONIERE';
+  if (raw.indexOf('AIUTO') >= 0 && raw.indexOf('MOTOR') >= 0) return 'AIUTO_MOTORISTA';
+  if (raw.indexOf('MOTORISTA') >= 0) return 'MOTORISTA';
+  if (raw.indexOf('TIMONIERE') >= 0) return 'TIMONIERE';
+  if (raw.indexOf('OPERAIO') >= 0) return 'OPERAIO';
+  if (raw.indexOf('BARIST') >= 0) return 'BARISTA';
+  if (raw.indexOf('MARINAIO') >= 0) return 'MARINAIO';
+  return '';
+}
+
+function mixWithWhite_(hex, amount) {
+  const n = parseInt(hex.slice(1), 16);
+  const channel = shift => Math.round(((n >> shift) & 255) * (1 - amount) + 255 * amount);
+  return '#' + [16, 8, 0].map(shift => channel(shift).toString(16).padStart(2, '0')).join('');
+}
