@@ -2536,9 +2536,10 @@
       if (isRiposoShift(v)) return "";
       let txt = String(v).toUpperCase().trim().replace(/\*/g, "").replace(/--/g, "");
 
-      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|POND|PONM|AGB|AGM|AGT|T1|M1|DT|T2|CAR|CAP|SR1)(?:C|$)/i);
+      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|POND?|PONM|AGB|AGM|AGT|T1|M1|DT|T2|CAR|CAP|SR1)(?:C|$)/i);
       if (match && match[1]) {
-        return match[1].toUpperCase();
+        // "CPONC" e' la forma abbreviata di "CPONDC" (pontile Desenzano).
+        return match[1].toUpperCase().replace(/^PON$/, "POND");
       }
       return txt;
     }
