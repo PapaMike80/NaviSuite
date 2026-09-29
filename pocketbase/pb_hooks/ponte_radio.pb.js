@@ -138,7 +138,7 @@ routerAdd("POST", "/api/navisuite-v2/ponteradio/send", (e) => {
   queue.set("status", "pending");
   queue.set("title", ("Ponte Radio · " + senderName).slice(0, 120));
   queue.set("body", message);
-  queue.set("url", "ponteradio.html");
+  queue.set("url", "index.html");
   queue.set("meta", {
     senderAgentId: sender.id,
     senderName: senderName,
@@ -279,7 +279,7 @@ routerAdd("POST", "/api/navisuite-v2/ponteradio/worker/result", (e) => {
   // operativo, non il contenuto della conversazione.
   job.set("title", "Ponte Radio");
   job.set("body", "[contenuto eliminato dopo l'invio]");
-  job.set("url", "ponteradio.html");
+  job.set("url", "index.html");
   job.set("meta", {});
   e.app.save(job);
 
