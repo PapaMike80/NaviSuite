@@ -3664,8 +3664,13 @@
             !isSameCrewShift(odsVariation.turno_nuovo, cleanShift);
 
           const originResidence = ag.residenzaOrigine || resKey;
+          // Un servizio a terra esplicito (es. "CPONC" di un agente di
+          // Peschiera) e' una trasferta: va mostrato come per i turni nave.
+          // Solo LAV/TERRA generici restano legati alla residenza d'origine.
+          const isExplicitGroundService = Object.values(serviziTerraPerResidenza)
+            .some(shifts => shifts.includes(String(hisShiftPuro).toUpperCase()));
           if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds &&
-            (!isGroundCrewShiftKey(cleanShift) || originResidence === crewResidence)) {
+            (!isGroundCrewShiftKey(cleanShift) || originResidence === crewResidence || isExplicitGroundService)) {
             let rawUpper = hisShiftRaw.toUpperCase();
             let isTrasfertaFlag = rawUpper.startsWith("C") || rawUpper.endsWith("C") || originResidence !==
               crewResidence;
