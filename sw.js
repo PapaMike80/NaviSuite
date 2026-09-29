@@ -8,13 +8,12 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v235-fix-crash-day-panel-cambi-turno';
+const CACHE_VERSION = 'navisuite-v236-rimozione-pagine';
 const CORE_ASSETS = [
   './',
   './index.html',
   './oggi.html',
   './naviturni.html',
-  './ponteradio.html',
   './manifest.json',
   './assets/css/portal.css',
   './assets/css/navi-shared.css',
@@ -31,7 +30,6 @@ const CORE_ASSETS = [
   './assets/js/announcements-recovered.js',
   './assets/js/push-notifications-v3.js',
   './assets/js/push-center.js',
-  './assets/js/ponteradio.js',
   './v2/assets/pb.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
