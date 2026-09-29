@@ -95,7 +95,7 @@
     if(!profile){location.replace("index.html");}
     const profileName=profile?.name||profile?.cognome||"Agente";
     const startKey='navisuite.startPage.'+String(profile?.id||'');const startSelect=document.getElementById('navisuite-start-page');if(startSelect){
-      const labels={index:'Home',oggi:'☀ Oggi',naviturni:'NaviTurni',cambi_turno:'Cambio turno',navidiaria:'Distinta',documenti:'Documenti',Orario:'Orario',impostazioni:'Impostazioni',segnalazioni:'Segnalazioni',aggiornamenti:'Aggiornamenti',agenti:'Agenti',gestione_navi:'Navi'};
+      const labels={index:'Home',oggi:'☀ Oggi',naviturni:'NaviTurni',cambi_turno:'Cambio turno',navidiaria:'Distinta',documenti:'Documenti',impostazioni:'Impostazioni',aggiornamenti:'Aggiornamenti',agenti:'Agenti'};
       const known=new Set(['index.html']);
       const navLinks=[...document.querySelectorAll('#settings-sidebar nav a[href]')].filter(link=>!link.hidden).filter(link=>/^[A-Za-z0-9_-]+\.html$/.test(link.getAttribute('href')||''));
       navLinks.forEach(link=>{const value=link.getAttribute('href');if(known.has(value))return;known.add(value);const option=document.createElement('option');option.value=value;option.textContent=labels[value.replace(/\.html$/,'')]||link.textContent.trim();startSelect.appendChild(option);});

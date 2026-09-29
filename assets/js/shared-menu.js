@@ -121,9 +121,8 @@
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
 
   // Menu principale: un solo ordine, identico su ogni pagina e per ogni ruolo.
-  // Home · Oggi · NaviTurni · Distinta · Ponte Radio · Documenti · Impostazioni
-  // · Cambio turno · Orario · Segnalazioni, e infine (solo admin) Aggiornamenti
-  // · Agenti · Navi. Cambia soltanto quale voce e' attiva.
+  // Home · Oggi · NaviTurni · Distinta · Documenti · Impostazioni · Cambio turno,
+  // e infine (solo admin) Aggiornamenti · Agenti. Cambia soltanto quale voce e' attiva.
   common=(()=>{
     const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',settings:'impostazioni.html',ponteradio:'ponteradio.html',tickets:'segnalazioni.html',orario:'Orario.html','orario-data':'Orario.html'}[page]||'';
     // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
@@ -133,12 +132,9 @@
       ['oggi.html','☀','Oggi','oggiNav'],
       ['naviturni.html','▦','NaviTurni',''],
       ['navidiaria.html','≈','Distinta','diariaNavLink'],
-      ['ponteradio.html','📻','Ponte Radio','ponteRadioNav'],
       ['documenti.html','▤','Documenti','archiveNavLink'],
       ['impostazioni.html','⚙','Impostazioni',''],
       ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
-      ['Orario.html','◴','Orario','orarioNavLink'],
-      ['segnalazioni.html','✉','Segnalazioni',''],
     ].map(([href,icon,label,id])=>{
       const active=href===activeHref;
       return item(active&&selfAnchor[href]?selfAnchor[href]:href,icon,label,active,id);
@@ -186,7 +182,6 @@
     common+=item('aggiornamenti.html','↻','Aggiornamenti');
     common+=item('agenti.html','♙','Agenti');
   }
-  if(isAdminAgent(sessionAgent))common+=item('gestione_navi.html','▤','Navi',isNaviPage,'naviAdminNav');
 
   const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='orario'?'NaviSuite Orario':page==='orario-data'?'NaviSuite Orari':page==='ponteradio'?'NaviSuite Ponte Radio':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='tickets'?'NaviSuite Segnalazioni':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
@@ -536,8 +531,7 @@
     nav.setAttribute('aria-label','Navigazione Hiba');
     nav.innerHTML=[
       ['naviturni.html','▦','Turni','turni'],
-      ['aggiornamenti.html','↻','Aggiornamenti','aggiornamenti'],
-      ['segnalazioni.html','✉','Segnalazioni','tickets']
+      ['aggiornamenti.html','↻','Aggiornamenti','aggiornamenti']
     ].map(([href,icon,label,key])=>`<a href="${href}" class="${page===key?'active':''}"><span>${icon}</span><b>${label}</b></a>`).join('');
     document.body.appendChild(nav);
     if(document.getElementById('hiba-mobile-nav-style'))return;
@@ -609,12 +603,9 @@
     if(canUseDiaria(sessionAgent))links.push('<a href="navidiaria.html"><span>≈</span>NaviDiaria</a>');
     if(!isBaristaSession){
       links.push('<a href="index.html"><span>⌂</span>Home</a>');
-      links.push('<a href="Orario.html"><span>◴</span>Orario</a>');
       links.push('<a href="impostazioni.html"><span>⚙</span>Impostazioni</a>');
-      links.push('<a href="segnalazioni.html"><span>✉</span>Segnalazioni</a>');
     }
     if(isAdminAgent(sessionAgent)){
-      links.push('<a href="gestione_navi.html" class="admin-mobile-action"><span>▤</span>Navi</a>');
       links.push('<a href="aggiornamenti.html" class="admin-mobile-action"><span>↻</span>Aggiornamenti</a>');
       links.push('<a href="agenti.html" class="admin-mobile-action"><span>♙</span>Agenti</a>');
     }
