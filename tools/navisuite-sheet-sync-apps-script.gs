@@ -130,7 +130,7 @@ function isoDate_(value) {
 }
 
 function normalizeShift_(value) {
-  const raw = String(value == null ? '' : value).trim().toUpperCase().replace(/[‐‑–—]/g, '-');
+  const raw = String(value == null ? '' : value).trim().toUpperCase().replace(/[\u2010\u2011\u2013\u2014]/g, '-');
   if (!raw || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw)) return 'RIP';
   if (/^(?:CONG?\.?|CON[;/]|CONC\.?|C\.)$/.test(raw)) return 'CON';
   if (/^LAV[.;]?$/.test(raw)) return 'LAV';
@@ -141,7 +141,7 @@ function normalizeShift_(value) {
 
 function stableAgentUid_(value) {
   const key = String(value || '').trim().toUpperCase().normalize('NFD')
-    .replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+    .replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
   return key ? 'AG_' + key : '';
 }
 
