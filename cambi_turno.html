@@ -2150,10 +2150,10 @@
       let txt = v.toUpperCase().trim().replace(/\*/g, "").replace(/--/g, "");
       if (txt === "" || txt === "RIP" || txt === "RIP." || txt === "----" || txt === "---" || txt === "===") return "";
 
-      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|POND?|PONM|AGB|AGM|AGT|T1|M1|DT|T2|CAR|CAP|SR1)(?:C|$)/i);
+      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|PO(?:ND?|D)|PONM|AGB|AGM|AGT|T1|M1|DT|T2|CAR|CAP|SR1)(?:C|$)/i);
       if (match && match[1]) {
-        // "CPONC" e' la forma abbreviata di "CPONDC" (pontile Desenzano).
-        return match[1].toUpperCase().replace(/^PON$/, "POND");
+        // "CPODC" e "CPONC" sono forme abbreviate di "CPONDC" (pontile Desenzano).
+        return match[1].toUpperCase().replace(/^PO[ND]$/, "POND");
       }
       return txt;
     }
