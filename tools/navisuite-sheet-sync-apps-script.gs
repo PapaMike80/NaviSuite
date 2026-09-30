@@ -270,6 +270,21 @@ function estendiFoglio() {
     sheet.getRange(lastRow + 1, 1, rows.length, width).setValues(rows);
   }
 
+  // Il controllo dei codici turno (convalida dati sulle celle) viene esteso
+  // alle nuove colonne e alle nuove righe copiandolo dall'ultima data e
+  // dall'ultima riga gia' presenti.
+  if (lastRow > 1) {
+    const paste = SpreadsheetApp.CopyPasteType.PASTE_DATA_VALIDATION;
+    sheet.getRange(2, lastDateIndex + 1, lastRow - 1, 1)
+      .copyTo(sheet.getRange(2, firstNew, lastRow - 1, newDates.length), paste, false);
+    if (missing.length) {
+      const firstDate = dateIndexes[0] + 1;
+      const width = firstNew + newDates.length - firstDate;
+      sheet.getRange(lastRow, firstDate, 1, width)
+        .copyTo(sheet.getRange(lastRow + 1, firstDate, missing.length, width), paste, false);
+    }
+  }
+
   // Le modifiche fatte da script non fanno scattare i trigger: si pubblica
   // e si ricolora qui.
   try { coloraGradi(); } catch (error) { Logger.log('coloraGradi: ' + error); coloraTurni(); }
