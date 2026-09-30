@@ -95,15 +95,17 @@ const GRADE_INFO={
 function formatAgentName(name){return String(name||'').trim().split(/\s+/).map(part=>/^[A-ZÀ-ÖØ-Ý]+[.,]?$/.test(part)&&part.replace(/[.,]/g,'').length>1?part.charAt(0)+part.slice(1).toLowerCase():part).join(' ')}
 function updateWelcome(){if(!activeAgent)return;const name=formatAgentName(activeAgent.name);$('welcomeName').textContent='NaviSuite Distinta';$('sidebarAgentName').textContent=name.toLocaleUpperCase('it')}
 function scheduleAssignment(raw){
+  // L'asterisco del foglio turni indica il sovrannumero.
+  const supernumerary=/\*/.test(String(raw||''));
   const cleaned=String(raw||'').trim().replace(/\*/g,'').replace(/--/g,'');
-  if(/^(?:lav\.?|terra)$/i.test(cleaned))return {shift:'LAV',travel:false};
-  if(/^rip\.?$/i.test(cleaned)||cleaned==='----'||!cleaned)return {shift:'Riposo',travel:false};
-  if(/^mal/i.test(cleaned))return {shift:'Malattia',travel:false};
+  if(/^(?:lav\.?|terra)$/i.test(cleaned))return {shift:'LAV',travel:false,supernumerary};
+  if(/^rip\.?$/i.test(cleaned)||cleaned==='----'||!cleaned)return {shift:'Riposo',travel:false,supernumerary};
+  if(/^mal/i.test(cleaned))return {shift:'Malattia',travel:false,supernumerary};
   const canonical=value=>SHIFTS.find(item=>item.code.toUpperCase()===String(value).toUpperCase())?.code||null;
-  const direct=canonical(cleaned);if(direct)return {shift:direct,travel:false};
+  const direct=canonical(cleaned);if(direct)return {shift:direct,travel:false,supernumerary};
   const candidates=[cleaned.slice(1),cleaned.slice(0,-1),cleaned.slice(1,-1)];
-  for(const candidate of candidates){const shift=canonical(candidate);if(shift)return {shift,travel:true}}
-  return {shift:cleaned,travel:false};
+  for(const candidate of candidates){const shift=canonical(candidate);if(shift)return {shift,travel:true,supernumerary}}
+  return {shift:cleaned,travel:false,supernumerary};
 }
 function normalizeScheduleShift(raw){return scheduleAssignment(raw).shift}
 function shortShiftLabel(code){return code==='Riposo'?'Rip':code==='Malattia'?'Mal':String(code||'')}
@@ -203,9 +205,9 @@ async function syncCurrentAgent(force=false){
     if(!agent)throw new Error('Agente non trovato');const variations=variationsForAgent(data);let added=0,updated=0;
     activeAgent={...activeAgent,name:agent.agente||activeAgent.name,qualifica:agent.qualifica||'marinaio'};localStorage.setItem(SESSION_KEY,JSON.stringify(activeAgent));updateWelcome();
     Object.entries(agent.turni||{}).forEach(([date,raw])=>{
-      const baseAssignment=scheduleAssignment(raw),odsRaw=variations.get(date),assignment=odsRaw?scheduleAssignment(odsRaw):baseAssignment,baseShift=baseAssignment.shift,shift=assignment.shift,travel=baseAssignment.travel||assignment.travel,variationFrom=odsRaw&&shift!==baseShift?baseShift:null,cashDuty=cashHandlingDuty(data,date,shift),existing=entries.find(e=>e.date===date);
-      if(existing){if(!existing.manualOverride){const changed=existing.shift!==shift||!!existing.travel!==travel;if(changed)updated++;if(existing.imported){const competence=shiftFor(shift,date);existing.embark=!!competence.embark;existing.mealUsed=!!competence.meal;existing.allowanceRate=competence.allowance?competence.allowanceRate:null}if(!existing.cashHandlingManual)existing.cashHandling=cashDuty;existing.shift=shift;existing.travel=travel;existing.manualFrom=null;existing.manualTo=null;existing.manualModified=false;existing.variationFrom=variationFrom;existing.variationTo=variationFrom?shift:null}else{if(travel)existing.travel=true;existing.manualFrom=existing.manualFrom||shift;existing.manualTo=existing.shift;existing.manualModified=existing.manualFrom!==existing.manualTo;existing.variationFrom=variationFrom;existing.variationTo=variationFrom?shift:null}}
-      else{const competence=shiftFor(shift,date);entries.push({id:`naviturni-${date}`,date,shift,travel,variationFrom,variationTo:variationFrom?shift:null,delay:0,overtimeComponents:window.NaviDiariaOvertime.create(),bank:0,rf:false,embark:!!competence.embark,cashHandling:cashDuty,cashHandlingManual:false,mealUsed:!!competence.meal,allowanceRate:competence.allowance?competence.allowanceRate:null,note:'',imported:true});added++}
+      const baseAssignment=scheduleAssignment(raw),odsRaw=variations.get(date),assignment=odsRaw?scheduleAssignment(odsRaw):baseAssignment,baseShift=baseAssignment.shift,shift=assignment.shift,travel=baseAssignment.travel||assignment.travel,supernumerary=odsRaw?assignment.supernumerary:baseAssignment.supernumerary,variationFrom=odsRaw&&shift!==baseShift?baseShift:null,cashDuty=cashHandlingDuty(data,date,shift),existing=entries.find(e=>e.date===date);
+      if(existing){if(!existing.manualOverride){const changed=existing.shift!==shift||!!existing.travel!==travel||!!existing.supernumerary!==supernumerary;if(changed)updated++;if(existing.imported){const competence=shiftFor(shift,date);existing.embark=!!competence.embark;existing.mealUsed=!!competence.meal;existing.allowanceRate=competence.allowance?competence.allowanceRate:null}if(!existing.cashHandlingManual)existing.cashHandling=cashDuty;existing.shift=shift;existing.travel=travel;existing.supernumerary=supernumerary;existing.manualFrom=null;existing.manualTo=null;existing.manualModified=false;existing.variationFrom=variationFrom;existing.variationTo=variationFrom?shift:null}else{if(travel)existing.travel=true;existing.manualFrom=existing.manualFrom||shift;existing.manualTo=existing.shift;existing.manualModified=existing.manualFrom!==existing.manualTo;existing.variationFrom=variationFrom;existing.variationTo=variationFrom?shift:null}}
+      else{const competence=shiftFor(shift,date);entries.push({id:`naviturni-${date}`,date,shift,travel,supernumerary,variationFrom,variationTo:variationFrom?shift:null,delay:0,overtimeComponents:window.NaviDiariaOvertime.create(),bank:0,rf:false,embark:!!competence.embark,cashHandling:cashDuty,cashHandlingManual:false,mealUsed:!!competence.meal,allowanceRate:competence.allowance?competence.allowanceRate:null,note:'',imported:true});added++}
     });
     localStorage.setItem(`navidiaria.lastSync.${activeAgent.id}`,new Date().toISOString());if(JSON.stringify(entries)!==previousEntries)persist();else render();$('syncStatus').textContent=NaviSharedData.source()==='network'?'Aggiornato':'Locale';
   }catch(error){console.error(error);$('syncStatus').textContent='Sincronizzazione non riuscita';notify('Impossibile leggere NaviTurni')}
