@@ -176,7 +176,7 @@ function stableAgentUid_(value) {
 // foglio non viene piu' sovrascritta finche' nell'app non cambia di nuovo.
 
 const APPLIED_PREFIX = 'NAVISUITE_APP_APPLIED_';
-const NO_VARIANT_CODES = ['RIP', 'CON', 'LAV', 'L.D.', 'F.P.', 'RF', 'MALATTIA', 'CORSO', 'PROVE', '#'];
+const NO_VARIANT_CODES = ['RIP', 'CON', 'LAV', 'L.D.', 'F.P.', 'RF', 'MAL', 'MALATTIA', 'CORSO', 'PROVE', '#'];
 
 function applicaModificheApp() {
   const ss = SpreadsheetApp.getActive();
@@ -344,7 +344,7 @@ function parseSheetCode_(code) {
     base = base.slice(1, -1);
     travel = true;
   }
-  const aliases = { '': 'Riposo', RIP: 'Riposo', 'L.D.': 'LD', 'I.E.': 'IE', AGB: 'AgB', POND: 'PonD', AGM: 'AgM', AGT: 'AgT', PONM: 'PonM' };
+  const aliases = { '': 'Riposo', RIP: 'Riposo', MAL: 'Malattia', 'L.D.': 'LD', 'I.E.': 'IE', AGB: 'AgB', POND: 'PonD', AGM: 'AgM', AGT: 'AgT', PONM: 'PonM' };
   return { shift: aliases[base] !== undefined ? aliases[base] : base, travel, supernumerary };
 }
 
@@ -376,7 +376,7 @@ function agentsById_() {
 function appSheetCode_(entry) {
   const raw = String(entry && entry.shift || '').trim().toUpperCase();
   if (!raw) return '';
-  const aliases = { RIPOSO: 'RIP', LD: 'L.D.', IE: 'I.E.', CAR1: 'CAR', CAP1: 'CAP', FP: 'F.P.', SS: 'S.S.' };
+  const aliases = { RIPOSO: 'RIP', MALATTIA: 'MAL', LD: 'L.D.', IE: 'I.E.', CAR1: 'CAR', CAP1: 'CAP', FP: 'F.P.', SS: 'S.S.' };
   const base = aliases[raw] || raw;
   if (NO_VARIANT_CODES.indexOf(base) >= 0) return base;
   return (entry.travel === true ? 'C' + base + 'C' : base) + (entry.supernumerary === true ? '*' : '');

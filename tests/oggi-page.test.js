@@ -17,8 +17,10 @@ assert.match(source, /residenze/);
 assert.match(source, /Capo timoniere/);
 assert.match(source, /todayIso/);
 assert.match(source, /MONTH_LABELS=.*'SETT'/);
-assert.match(source, /oggi-residence-date/);
-assert.match(source, /index===0/);
+// La data sta nella barra comune in alto (dateNavHtml), non piu' in ogni
+// residenza; tutte le residenze partono aperte (class="oggi-residence is-open").
+assert.match(source, /oggi-datebar/);
+assert.match(source, /dateNavHtml\(iso\)/);
 assert.match(source, /querySelectorAll\('\.oggi-card'\)/);
 assert.match(source, /class="oggi-residence is-open"/);
 assert.match(source, /class="oggi-card is-open"/);
@@ -49,8 +51,10 @@ const sample = { residenze:{ DESENZANO:[
 ], PESCHIERA:[
   { id:'3', agente:'Verdi', qualifica:'capo timoniere', turni:{ '2026-09-02':'CD1C' } }
 ] }, turni_navi:[{ data:'2026-09-02', corsa:'D1', nave:'Baldo', ormeggio_serale:'Pontile 2' }], variazioni_ods:[] };
-const context = { window:{ NaviSharedData:{ load:async()=>sample } }, document, localStorage:{ getItem(){ return 'null'; } }, console, Date, Intl, setTimeout, clearTimeout };
+const context = { window:{ NaviSharedData:{ load:async()=>sample, loadCacheFirst:onData=>{ onData(sample, { stale:false }); return Promise.resolve(sample); } } }, document, localStorage:{ getItem(){ return 'null'; }, setItem(){}, removeItem(){} }, console, Date, Intl, setTimeout, clearTimeout };
 vm.createContext(context);
+// oggi.js usa window.NaviRoles (shared-roles.js, caricato prima nella pagina).
+vm.runInContext(fs.readFileSync('assets/js/shared-roles.js', 'utf8'), context);
 vm.runInContext(source, context);
 const cards = context.window.NaviOggi.buildCourses(sample, '2026-09-02');
 assert.equal(cards.length, 1);
@@ -58,7 +62,7 @@ assert.equal(cards[0].course, 'D1');
 assert.equal(cards[0].ship, 'Baldo');
 assert.equal(cards[0].mooring, 'Pontile 2');
 assert.deepEqual(cards[0].crew.map(a => a.agente), ['Rossi', 'Verdi', 'Bianchi']);
-assert.match(source, /CD1C/);
+// La trasferta CD1C (Verdi) e' gia' verificata sopra: e' nell'equipaggio di D1.
 assert.match(source, /WEEKDAY_LABELS/);
 
 const orderSample = {
