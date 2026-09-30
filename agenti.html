@@ -99,15 +99,18 @@
     };
     function card(agent,user,online=false){
       const override=overrideFor(agent.id),role=override.role??agent.role??'',grade=override.qualifica||agent.qualifica||'marinaio';
-      const initialPin=!user?String(initialPins[String(agent.id)]||''):'';
+      // PIN iniziale da comunicare: per i non registrati e per chi ha appena
+      // ricevuto un PIN nuovo (reset), finche' non sceglie quello personale.
+      const initialPin=String(initialPins[String(agent.id)]||'');
       const isUffici=String(override.residence||agent.residence||'').trim().toLowerCase()==='uffici';
       const roles=[...new Set([...roleOptions,role].filter((v,i,a)=>a.indexOf(v)===i))],grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),String(grade||'').toLowerCase()].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));
       const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${initialPin?`<button class="copy-initial-pin" type="button" data-pin="${esc(initialPin)}">Copia PIN</button>`:''}<button class="generate-pin" type="button">${initialPin?'Rigenera PIN':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
       return `<article class="agent-row${online?' latest':''}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}</article>`;
     }
     function refreshInitialPins(authRecords={}){
-      const registeredIds=new Set(registry.map(item=>String(item.id)));
-      const rows=directory.filter(agent=>!registeredIds.has(String(agent.id))).map(agent=>{
+      const ids=new Map(directory.map(agent=>[String(agent.id),agent]));
+      registry.forEach(user=>{if(!ids.has(String(user.id)))ids.set(String(user.id),{id:String(user.id)})});
+      const rows=[...ids.values()].map(agent=>{
         const auth=authRecords[String(agent.id)]||Object.values(authRecords).find(item=>String(item?.id)===String(agent.id))||null;
         const pin=auth?.mustChangePin&&/^\d{4}$/.test(String(auth.initialPin||''))?String(auth.initialPin):'';
         return [String(agent.id),pin];
