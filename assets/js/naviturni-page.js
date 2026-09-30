@@ -136,13 +136,13 @@
       return String(agent?.id || "") === String(loggedAgentProfile?.id || "");
     }
 
-    // La giornata si modifica solo in NaviDistinta: un solo editor e un solo
+    // La giornata si modifica solo in NaviDiaria: un solo editor e un solo
     // salvataggio (prima NaviTurni aveva un popup con logica e archivio propri).
     function openCrewDayEditor(agentId, date) {
       if (String(agentId || "") !== String(loggedAgentProfile?.id || "")) return;
       const dateIso = String(date || "").slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return;
-      location.href = `navidistinta.html?editDate=${encodeURIComponent(dateIso)}`;
+      location.href = `navidiaria.html?editDate=${encodeURIComponent(dateIso)}`;
     }
 
     function getLoggedBaristaSchedule() {

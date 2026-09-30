@@ -1,7 +1,7 @@
 // NaviDistinta: fork di app.js con un solo backend, PocketBase, sempre attivo
 // (non dipende dal toggle "Sorgente dati" di Impostazioni). shared-data.js
-// legge il flag qui sotto per servire i turni dalla stessa fonte.
-try{localStorage.setItem('navisuite.dataSource','pocketbase')}catch(_){}
+// riconosce questa pagina e serve i turni dalla stessa fonte, senza toccare
+// la scelta delle altre pagine.
 const hm=(hours,minutes=0)=>hours+minutes/60;
 // Ore/pasto/imbarco/diaria: unica sorgente in assets/js/shift-competence.js
 // (con decorrenze per data, es. il turno 05/10/2026), condivisa con NaviTurni.
