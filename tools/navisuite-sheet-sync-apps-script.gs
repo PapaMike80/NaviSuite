@@ -118,6 +118,13 @@ function batchFromSheet_() {
       residenza: info ? residenzaIl_(info, today) : (residenceIndex >= 0 ? String(values[residenceIndex] || '').trim().toUpperCase() : ''),
       turni: dateColumns.map(column => normalizeShift_(values[column.index]))
     };
+    // Agente dell'anagrafica non ancora presente in NaviSuite (es. un neo
+    // assunto): NaviSuite lo crea nella sua residenza con il grado del foglio.
+    // Se esiste gia', "nuovo" viene ignorato.
+    if (info && OPERATIVE_RESIDENCES.indexOf(info.residenza) >= 0) {
+      row.nuovo = true;
+      if (info.grado) row.qualifica = info.grado;
+    }
     // Cambio di residenza dal tab "Anzianita e gradi": NaviSuite sposta
     // l'agente dalla data indicata (prima resta nella residenza precedente).
     if (info && info.nuova && info.dal) {
@@ -413,6 +420,8 @@ function codiciValidiFoglio_() {
 // Dalla data "Dal" l'agente passa alla nuova residenza: il tab dei turni si
 // aggiorna da solo e NaviSuite lo sposta dalla stessa data.
 
+const OPERATIVE_RESIDENCES = ['DESENZANO', 'MADERNO', 'RIVA', 'PESCHIERA'];
+
 function anagraficaAgenti_() {
   const tab = SpreadsheetApp.getActive().getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
   if (!tab || tab.getLastRow() < 2) return {};
@@ -422,6 +431,7 @@ function anagraficaAgenti_() {
   const residenceCol = col('RESIDENZA');
   const agentCol = col('AGENTE');
   const newCol = col('NUOVARESIDENZA');
+  const gradeCol = col('GRADO');
   const fromCol = col('DAL');
   if (agentCol < 0) return {};
   const registry = {};
@@ -431,7 +441,8 @@ function anagraficaAgenti_() {
     registry[normalizeHeader_(name)] = {
       residenza: residenceCol >= 0 ? String(row[residenceCol] || '').trim().toUpperCase() : '',
       nuova: newCol >= 0 ? String(row[newCol] || '').trim().toUpperCase() : '',
-      dal: fromCol >= 0 ? isoDate_(row[fromCol]) : ''
+      dal: fromCol >= 0 ? isoDate_(row[fromCol]) : '',
+      grado: gradeCol >= 0 ? String(row[gradeCol] || '').trim().toLowerCase() : ''
     };
   });
   return registry;
