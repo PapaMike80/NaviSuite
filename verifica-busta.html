@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NaviSuite">
+  <meta name="theme-color" content="#0d1a1c">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Verifica busta paga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--vb-bg:#0d1a1c;--vb-card:#13262a;--vb-line:#1f3a3e;--vb-ink:#e6efed;--vb-muted:#9fb5b1;--vb-accent:#7ce0c3;--vb-chip:#183a36;--vb-edge:#2d5a52;--vb-field:#0f2023;--vb-ok:#7ce0c3;--vb-ok-bg:rgba(124,224,195,.12);--vb-diff:#ff9b9b;--vb-diff-bg:rgba(255,120,120,.12);--vb-check:#f5c86b;--vb-check-bg:rgba(245,200,107,.13);color-scheme:dark}
+    html.navisuite-light{--vb-bg:#f3f6f5;--vb-card:#ffffff;--vb-line:#d6e2df;--vb-ink:#10282b;--vb-muted:#4d6461;--vb-accent:#0f6b5c;--vb-chip:#e2efe9;--vb-edge:#b9d3cc;--vb-field:#f7faf9;--vb-ok:#0f6b5c;--vb-ok-bg:#e2f3ee;--vb-diff:#b42318;--vb-diff-bg:#fdecea;--vb-check:#8a5a00;--vb-check-bg:#fdf3dc;color-scheme:light}
+    *{box-sizing:border-box}
+    body.verifica-busta-page{margin:0;min-height:100vh;background:var(--vb-bg);color:var(--vb-ink);font:400 15px/1.5 'IBM Plex Sans',system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+    .verifica-busta-page .app-sidebar{display:none}
+    .verifica-busta-page>header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(20px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--vb-line)}
+    .verifica-busta-page>header small{display:block;color:var(--vb-accent);font-size:12px;font-weight:600;letter-spacing:.18em}
+    .verifica-busta-page>header h1{margin:6px 0 0;font:700 22px/1.2 Sora,system-ui,sans-serif}
+    .verifica-busta-page>header h1 span{color:var(--vb-muted);font-weight:500}
+    .verifica-busta-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--vb-edge)!important;border-radius:14px!important;background:var(--vb-card)!important;color:var(--vb-accent)!important;font-size:22px!important;font-weight:400!important}
+    main{display:flex;flex-direction:column;gap:20px;width:min(900px,calc(100% - 32px));margin:24px auto 40px}
+    .vb-intro{margin:0;color:var(--vb-muted)}
+    .vb-intro a{color:var(--vb-accent)}
+    .vb-login{margin:0;padding:18px;border:1px solid var(--vb-edge);border-radius:16px;background:var(--vb-chip)}
+    .vb-login a{color:var(--vb-accent);font-weight:600}
+    .vb-card{display:flex;flex-direction:column;gap:16px;padding:22px 18px;border:1px solid var(--vb-line);border-radius:22px;background:var(--vb-card)}
+    .vb-card.is-disabled{opacity:.5}
+    .vb-head{display:flex;gap:14px;align-items:flex-start}
+    .vb-num{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--vb-chip);color:var(--vb-accent);font:600 14px Sora,system-ui,sans-serif}
+    .vb-head h2{margin:0 0 4px;font:600 18px/1.3 Sora,system-ui,sans-serif}
+    .vb-head p{margin:0;color:var(--vb-muted);font-size:14px}
+    .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+    .vb-file{display:flex;align-items:center;gap:14px;min-height:64px;padding:14px 18px;border:2px dashed var(--vb-edge);border-radius:16px;background:var(--vb-field);color:var(--vb-ink);font-weight:600;cursor:pointer}
+    .vb-file svg{flex-shrink:0;color:var(--vb-accent)}
+    .vb-file small{display:block;color:var(--vb-muted);font-weight:400;font-size:13px}
+    .vb-file:hover{border-color:var(--vb-accent)}
+    input:focus-visible+.vb-file,.vb-file:focus-within{outline:3px solid var(--vb-accent);outline-offset:3px}
+    .vb-file.is-busy{opacity:.6;cursor:progress}
+    .vb-private{display:flex;gap:8px;align-items:center;margin:0;color:var(--vb-muted);font-size:13px}
+    .vb-info{margin:0;font-size:14px}
+    .vb-field{display:grid;gap:6px;max-width:260px}
+    .vb-field label{font-size:13px;font-weight:600;color:var(--vb-muted)}
+    .vb-field input{min-height:48px;padding:0 14px;border:1px solid var(--vb-edge);border-radius:12px;background:var(--vb-field);color:var(--vb-ink);font:inherit}
+    .vb-field input:focus-visible{outline:3px solid var(--vb-accent);outline-offset:2px}
+    .vb-meta{margin:0;color:var(--vb-muted);font-size:13px}
+    #vbAlerts:empty{display:none}
+    #vbAlerts{display:grid;gap:10px}
+    .vb-alert{margin:0;padding:12px 14px;border-radius:12px;border:1px solid var(--vb-check);background:var(--vb-check-bg);color:var(--vb-ink);font-size:14px}
+    .vb-alert.error{border-color:var(--vb-diff);background:var(--vb-diff-bg)}
+    .vb-chips{display:flex;flex-wrap:wrap;gap:8px}
+    .vb-chip{display:inline-flex;gap:6px;align-items:center;min-height:36px;padding:0 14px;border-radius:18px;font-size:14px;background:var(--vb-chip)}
+    .vb-chip.is-ok{background:var(--vb-ok-bg);color:var(--vb-ok)}.vb-chip.is-diff{background:var(--vb-diff-bg);color:var(--vb-diff)}.vb-chip.is-check{background:var(--vb-check-bg);color:var(--vb-check)}.vb-chip.is-muted{color:var(--vb-muted)}
+    .vb-rows{display:grid;gap:12px}
+    .vb-row{padding:16px;border:1px solid var(--vb-line);border-left-width:1px;border-radius:16px;background:var(--vb-field)}
+    .vb-row.is-diff{border-color:var(--vb-diff)}.vb-row.is-check{border-color:var(--vb-check)}
+    .vb-row-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .vb-row h3{margin:0;font:600 16px/1.3 Sora,system-ui,sans-serif}
+    .vb-row-head p{margin:2px 0 0;color:var(--vb-muted);font-size:13px}
+    .vb-badge{flex-shrink:0;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+    .is-ok .vb-badge{background:var(--vb-ok-bg);color:var(--vb-ok)}.is-diff .vb-badge{background:var(--vb-diff-bg);color:var(--vb-diff)}.is-check .vb-badge{background:var(--vb-check-bg);color:var(--vb-check)}
+    .vb-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0}
+    .vb-values div{padding:8px 10px;border-radius:10px;background:var(--vb-card)}
+    .vb-values dt{color:var(--vb-muted);font-size:12px}
+    .vb-values dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+    .vb-euro{margin:10px 0 0;font-weight:600}
+    .is-diff .vb-euro{color:var(--vb-diff)}.is-check .vb-euro{color:var(--vb-check)}
+    .vb-euro small{color:var(--vb-muted);font-weight:400}
+    .vb-note{margin:8px 0 0;color:var(--vb-muted);font-size:13px}
+    .vb-details{border:1px solid var(--vb-line);border-radius:16px;background:var(--vb-field)}
+    .vb-details summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:0 16px;font-weight:600;cursor:pointer;list-style:none}
+    .vb-details summary::-webkit-details-marker{display:none}
+    .vb-details summary::after{content:'⌄';color:var(--vb-accent);font-size:20px;transition:transform .15s}
+    .vb-details[open] summary::after{transform:rotate(180deg)}
+    .vb-details summary:focus-visible{outline:3px solid var(--vb-accent);outline-offset:2px;border-radius:16px}
+    .vb-details-body{padding:0 16px 16px;overflow-x:auto}
+    .vb-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+    .vb-table th,.vb-table td{padding:8px 6px;border-bottom:1px solid var(--vb-line);text-align:left;white-space:nowrap}
+    .vb-table thead th{color:var(--vb-muted);font-size:12px;font-weight:600}
+    .vb-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+    .vb-list li{padding:10px 12px;border-radius:10px;background:var(--vb-card);font-size:14px}
+    .vb-list li small{display:block;color:var(--vb-muted);font-size:12px}
+    .vb-list li.is-diff{color:var(--vb-diff)}.vb-list li.is-check{color:var(--vb-check)}
+    .vb-muted,.vb-empty{margin:8px 0 0;color:var(--vb-muted);font-size:13px}
+    @media(min-width:700px){
+      .verifica-busta-page>header{padding:28px 48px}
+      .verifica-busta-page>header h1{font-size:28px}
+      main{margin-top:40px}
+      .vb-card{padding:32px}
+    }
+    @media(max-width:420px){.vb-values{grid-template-columns:1fr 1fr}.vb-values div:last-child{grid-column:1/-1}}
+  </style>
+</head>
+<body class="verifica-busta-page">
+  <aside class="app-sidebar" aria-hidden="true"></aside>
+  <header class="page-header"><div><small>DISTINTA</small><h1>Verifica <span>busta paga</span></h1></div></header>
+  <main>
+    <p class="vb-intro">Carica la tua busta paga in PDF: la confronto con la <a href="navidiaria.html">Distinta</a> e ti segnalo le differenze voce per voce. I dati variabili della busta si riferiscono al mese precedente: la busta di settembre si confronta con la Distinta di agosto.</p>
+    <p class="vb-login" id="vbLogin" hidden>Accedi prima a NaviSuite: <a href="index.html">vai all’accesso</a>.</p>
+
+    <section class="vb-card" aria-labelledby="vbFileTitle">
+      <div class="vb-head"><span class="vb-num" aria-hidden="true">01</span><div><h2 id="vbFileTitle">Busta paga</h2><p>PDF della busta INAZ.</p></div></div>
+      <input class="sr-only" type="file" id="vbFileInput" accept="application/pdf,.pdf">
+      <label class="vb-file" id="vbFileLabel" for="vbFileInput">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6M9 15l3-3 3 3"/></svg>
+        <span>Scegli il PDF della busta<small>Tocca qui per selezionare il file</small></span>
+      </label>
+      <p class="vb-private"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Il file resta su questo dispositivo: viene letto qui e non viene caricato da nessuna parte.</p>
+      <p class="vb-info" id="vbFileInfo" aria-live="polite"></p>
+    </section>
+
+    <section class="vb-card" aria-labelledby="vbMonthTitle">
+      <div class="vb-head"><span class="vb-num" aria-hidden="true">02</span><div><h2 id="vbMonthTitle">Mese della Distinta</h2><p>Proposto dal mese della busta, puoi cambiarlo.</p></div></div>
+      <div class="vb-field"><label for="vbMonth">Distinta di</label><input type="month" id="vbMonth"></div>
+      <p class="vb-meta" id="vbPeriod"></p>
+      <p class="vb-meta" id="vbSource"></p>
+    </section>
+
+    <div id="vbAlerts" role="status" aria-live="polite"></div>
+
+    <section class="vb-card" id="vbResult" aria-labelledby="vbResultTitle" hidden>
+      <div class="vb-head"><span class="vb-num" aria-hidden="true">03</span><div><h2 id="vbResultTitle">Risultato</h2><p>Differenza = Distinta − busta. L’importo è stimato con il dato base della busta.</p></div></div>
+      <div class="vb-chips" id="vbChips"></div>
+      <div class="vb-rows" id="vbRows"></div>
+      <details class="vb-details"><summary><span>Dettaglio settimane della Distinta</span></summary><div class="vb-details-body" id="vbWeeks"></div></details>
+      <details class="vb-details"><summary><span>Voci non confrontate (<span id="vbNotComparedCount">0</span>)</span></summary><div class="vb-details-body" id="vbNotCompared"></div></details>
+      <details class="vb-details"><summary><span>Controlli sulla busta</span></summary><div class="vb-details-body" id="vbChecks"></div></details>
+    </section>
+  </main>
+  <script src="assets/js/shared-roles.js?v=1"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=38"></script>
+  <script src="assets/js/shared-menu.js?v=1.58"></script>
+  <script src="assets/js/overtime-components.js?v=5"></script>
+  <script src="assets/js/shift-competence.js?v=1"></script>
+  <script src="vendor/pdfjs/pdf.min.js"></script>
+  <script src="assets/js/busta-parser.js?v=1"></script>
+  <script src="assets/js/distinta-totals.js?v=1"></script>
+  <script src="assets/js/busta-compare.js?v=1"></script>
+  <script src="assets/js/verifica-busta.js?v=1"></script>
+</body>
+</html>
