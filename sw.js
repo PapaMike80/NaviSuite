@@ -8,14 +8,14 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v241-spazio-locale';
+const CACHE_VERSION = 'navisuite-v242-cambio-trasferta';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
 const PAGE_ASSETS = [
   './assets/css/naviturni-page.css?v=1',
   './assets/css/naviturni-page-fixes.css?v=1',
-  './assets/js/naviturni-page.js?v=3',
+  './assets/js/naviturni-page.js?v=4',
   './assets/js/naviturni-change-requests.js?v=1',
   './assets/css/cambi-turno-page.css?v=1',
   './assets/css/cambi-turno-page-fixes.css?v=1',
