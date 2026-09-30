@@ -269,7 +269,7 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
 }
 
 // --- Confronto busta <-> Distinta ---
-const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 5, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
+const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 5, cashHandlingGround: 5, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
 const outcome = compareModule.compare(busta, compareTotals);
 const row = id => outcome.rows.find(entry => entry.id === id);
 assert.equal(row('overtime').status, 'ok');
@@ -297,10 +297,48 @@ const noEmbark = compareModule.compare({ voci: busta.voci.filter(voce => voce.co
 assert.equal(noEmbark.rows.find(entry => entry.id === 'embark').missing, 'busta');
 assert.equal(noEmbark.rows.find(entry => entry.id === 'embark').status, 'diff');
 assert.match(noEmbark.rows.find(entry => entry.id === 'embark').notes.join(' '), /assente in busta/);
-const noCash = compareModule.compare(busta, { ...compareTotals, cashHandling: 0 });
+const noCash = compareModule.compare(busta, { ...compareTotals, cashHandlingGround: 0 });
 assert.equal(noCash.rows.find(entry => entry.id === 'cash').missing, 'distinta');
-const neither = compareModule.compare({ voci: busta.voci.filter(voce => voce.code !== 'FC0') }, { ...compareTotals, cashHandling: 0 });
+const neither = compareModule.compare({ voci: busta.voci.filter(voce => voce.code !== 'FC0') }, { ...compareTotals, cashHandlingGround: 0 });
 assert.equal(neither.rows.find(entry => entry.id === 'cash'), undefined);
+
+// --- Maneggio denaro: parametro 139 da imbarcato, FC0 a terra ---
+assert.equal(t.cashHandlingGround, 0, 'il 30/07 il maneggio e\' da imbarcato');
+assert.equal(t.cashHandlingEmbark, 1);
+assert.equal(t.cashEmbarkServiceMinutes, 13 * 60, 'ore del turno, senza straordinario');
+assert.equal(t.overtime139Minutes, 0, 'settimana mista: non si sa quale parte e\' a 139');
+assert.equal(t.overtimeMixedWeeks, 1);
+{
+  const cashWeek = ['2026-08-10', '2026-08-11', '2026-08-12', '2026-08-13'].map(date => day(date, 'D1', { cashHandling: true, embark: true }));
+  const ground = day('2026-08-18', 'LAV', { cashHandling: true, embark: false });
+  const week = calc.compute([...cashWeek, ground], '2026-08').totals;
+  assert.equal(week.overtime139Minutes, 13 * 60, 'settimana tutta con maneggio da imbarcato: straordinario a 139');
+  assert.equal(week.overtimeMixedWeeks, 0);
+  assert.equal(week.cashEmbarkServiceMinutes, 4 * 13 * 60);
+  assert.equal(week.cashHandlingGround, 1);
+  assert.equal(calc.compute(cashWeek, '2026-08').period.weeks[2].cash139Days, 4);
+}
+{
+  const extra = [
+    { code: '01Y', description: 'D.P.lav.str. Qu.139B', quantity: 13, base: 1.5, figurative: null, amount: 19.5 },
+    { code: '55Y', description: 'D.P. Ore diff.paga 139B', quantity: 52, base: 0.5, figurative: null, amount: 26 },
+    { code: '56Y', description: 'Ore diff.paga altra', quantity: 3, base: 1, figurative: null, amount: 3 }
+  ];
+  const totals139 = { ...compareTotals, overtime139Minutes: 12 * 60, cashEmbarkServiceMinutes: 52 * 60 };
+  const with139 = compareModule.compare({ voci: [...busta.voci, ...extra] }, totals139);
+  const find = id => with139.rows.find(entry => entry.id === id);
+  assert.equal(find('overtime').busta, 10.5, '01Y non si somma a 334: sono le stesse ore');
+  assert.equal(find('overtime').status, 'ok');
+  assert.equal(find('overtime139').busta, 13);
+  assert.equal(find('overtime139').status, 'diff');
+  assert.equal(find('overtime139').euro, -1.5, 'differenza x dato base della differenza paga');
+  assert.equal(find('cashEmbark').busta, 52, 'solo le ore differenza paga a 139');
+  assert.equal(find('cashEmbark').status, 'ok');
+  assert.deepEqual(with139.notCompared.map(voce => voce.code).sort(), ['013', '49X', '56Y', 'FD0']);
+  const mixed = compareModule.compare({ voci: [...busta.voci, ...extra] }, { ...totals139, overtimeMixedWeeks: 1 });
+  assert.equal(mixed.rows.find(entry => entry.id === 'overtime139').status, 'check', 'settimane miste: solo da verificare');
+  assert.match(mixed.rows.find(entry => entry.id === 'overtime139').notes.join(' '), /giorni con e senza maneggio/);
+}
 
 // --- Coerenza interna ---
 const coherence = outcome.coherence;

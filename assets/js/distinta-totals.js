@@ -76,6 +76,21 @@
       const worked = weekGroups.flat().filter(isWorking);
       const dateOf = e => new Date(`${e.date}T12:00:00`);
       const due = worked.filter(ticketDue).length;
+      // Maneggio denaro da imbarcato = parametro 139 (differenza paga sulle ore
+      // del turno e sullo straordinario); a terra = indennita' FC0. Lo
+      // straordinario e' settimanale: e' a 139 solo nelle settimane in cui
+      // tutte le giornate lavorate hanno maneggio e imbarco.
+      const cash139 = e => !!(e.cashHandling && e.embark);
+      let overtime139Minutes = 0;
+      let overtimeMixedWeeks = 0;
+      weekGroups.forEach(group => {
+        const working = group.filter(isWorking);
+        const extra = Math.max(0, working.reduce((total, e) => total + workedMinutes(e), 0) - 39 * 60);
+        if (!extra) return;
+        const cashDays = working.filter(cash139).length;
+        if (cashDays === working.length) overtime139Minutes += extra;
+        else if (cashDays) overtimeMixedWeeks += 1;
+      });
       const used = worked.filter(e => ticketDue(e) && ticketValue(e)).length;
       return {
         workedDays: worked.length,
@@ -95,6 +110,11 @@
         secondMeal: worked.filter(e => e.secondMeal).length,
         embark: worked.filter(e => e.embark).length,
         cashHandling: worked.filter(e => e.cashHandling).length,
+        cashHandlingGround: worked.filter(e => e.cashHandling && !e.embark).length,
+        cashHandlingEmbark: worked.filter(cash139).length,
+        cashEmbarkServiceMinutes: worked.filter(cash139).reduce((total, e) => total + serviceMinutes(e), 0),
+        overtime139Minutes,
+        overtimeMixedWeeks,
         hydrofoil: worked.filter(e => String(e.shift).toUpperCase() === 'SR1').length,
         rf: worked.filter(e => e.rf).length
       };
@@ -110,7 +130,7 @@
       const weeks = period.weeks.map(({ start, end }, index) => {
         const group = groups[index];
         const worked = group.filter(isWorking).reduce((sum, e) => sum + workedMinutes(e), 0);
-        return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, workedMinutes: worked, overtimeMinutes: Math.max(0, worked - 39 * 60) };
+        return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, cash139Days: group.filter(e => isWorking(e) && e.cashHandling && e.embark).length, workedMinutes: worked, overtimeMinutes: Math.max(0, worked - 39 * 60) };
       });
       return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals: summarize(groups) };
     }
