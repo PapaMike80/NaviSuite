@@ -1,13 +1,30 @@
 (function () {
-  const DATA_KEY = 'navi.sharedData.v1';
-  const TIME_KEY = 'navi.sharedDataTime.v1';
+  const DATA_KEY_BASE = 'navi.sharedData.v1';
+  const TIME_KEY_BASE = 'navi.sharedDataTime.v1';
   const DIRECTORY_KEY = 'navi.agentDirectory.v2';
   const MAX_AGE = 10 * 60 * 1000;
   const FIREBASE_SCHEDULE_URL = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/schedule.json';
   // Sorgente dati commutabile (test admin). Firebase resta il default.
   const PB_DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT_BASE).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT_BASE; } };
-  const dataSource = () => { try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
+  // NaviDistinta usa sempre PocketBase, ma solo per se': prima scriveva il
+  // flag in localStorage e cosi' anche NaviTurni/Oggi passavano a PocketBase
+  // (turni incompleti). Il flag resta per il toggle di test in Impostazioni.
+  const isDistintaPage = () => /(^|\/)navidistinta\.html$/.test(location.pathname);
+  try {
+    // Una sola volta: azzera il flag lasciato dalle vecchie versioni di NaviDistinta.
+    if (!localStorage.getItem('navisuite.dataSourceReset.v1')) {
+      localStorage.removeItem('navisuite.dataSource');
+      // e la copia dei turni che potrebbe venire da PocketBase.
+      localStorage.removeItem(DATA_KEY_BASE);
+      localStorage.removeItem(TIME_KEY_BASE);
+      localStorage.setItem('navisuite.dataSourceReset.v1', '1');
+    }
+  } catch (_) {}
+  const dataSource = () => { if (isDistintaPage()) return 'pocketbase'; try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
+  // Copie locali separate per sorgente: i turni PocketBase di NaviDistinta
+  // non devono comparire in NaviTurni/Oggi (e viceversa).
+  const cacheSuffix = () => (dataSource() === 'pocketbase' ? '.pb' : '');
   const scheduleUrl = () => (dataSource() === 'pocketbase' ? `${pbBase()}/api/navisuite-v2/schedule` : FIREBASE_SCHEDULE_URL);
   let pending = null;
   let lastSource = 'local';
@@ -154,8 +171,8 @@
     const serialized = JSON.stringify(data);
     const directory = JSON.stringify(directoryFrom(data));
     try {
-      localStorage.setItem(DATA_KEY, serialized);
-      localStorage.setItem(TIME_KEY, String(Date.now()));
+      localStorage.setItem(DATA_KEY_BASE + cacheSuffix(), serialized);
+      localStorage.setItem(TIME_KEY_BASE + cacheSuffix(), String(Date.now()));
       localStorage.setItem(DIRECTORY_KEY, directory);
     } catch (error) {
       // La cache è un'accelerazione, non un requisito: Safari/Chrome possono
@@ -163,8 +180,8 @@
       // utilizzabili in memoria e la pagina non deve fermarsi al turno base.
       console.warn('Cache turni non disponibile; continuo senza cache locale', error);
       try {
-        localStorage.removeItem(DATA_KEY);
-        localStorage.removeItem(TIME_KEY);
+        localStorage.removeItem(DATA_KEY_BASE + cacheSuffix());
+        localStorage.removeItem(TIME_KEY_BASE + cacheSuffix());
         localStorage.removeItem(DIRECTORY_KEY);
         localStorage.setItem(DIRECTORY_KEY, directory);
       } catch (_) {}
@@ -466,8 +483,8 @@
   }
 
   function cached(allowStale = false) {
-    const data = read(DATA_KEY);
-    const age = Date.now() - Number(localStorage.getItem(TIME_KEY) || 0);
+    const data = read(DATA_KEY_BASE + cacheSuffix());
+    const age = Date.now() - Number(localStorage.getItem(TIME_KEY_BASE + cacheSuffix()) || 0);
     return data && (allowStale || age < MAX_AGE) ? normalizeScheduleAgents(normalizeScheduleShifts(data)) : null;
   }
 
@@ -562,8 +579,8 @@
   }
 
   function clear() {
-    localStorage.removeItem(DATA_KEY);
-    localStorage.removeItem(TIME_KEY);
+    localStorage.removeItem(DATA_KEY_BASE + cacheSuffix());
+    localStorage.removeItem(TIME_KEY_BASE + cacheSuffix());
     localStorage.removeItem(DIRECTORY_KEY);
     localStorage.removeItem('navi.agentDirectory.v1');
   }
