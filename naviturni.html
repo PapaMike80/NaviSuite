@@ -3669,7 +3669,10 @@
           // Solo LAV/TERRA generici restano legati alla residenza d'origine.
           const isExplicitGroundService = Object.values(serviziTerraPerResidenza)
             .some(shifts => shifts.includes(String(hisShiftPuro).toUpperCase()));
-          if (isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds &&
+          // Chi e' di LAV/TERRA generico non compare nel turno terra, in
+          // nessuna residenza: restano solo i servizi a terra espliciti.
+          const isGenericGroundShift = /^(?:LAV|TERRA)[;,.]*$/i.test(String(hisShiftPuro).trim());
+          if (!isGenericGroundShift && isSameCrewShift(hisShiftPuro, cleanShift) && !movedAwayByOds &&
             (!isGroundCrewShiftKey(cleanShift) || originResidence === crewResidence || isExplicitGroundService)) {
             let rawUpper = hisShiftRaw.toUpperCase();
             let isTrasfertaFlag = rawUpper.startsWith("C") || rawUpper.endsWith("C") || originResidence !==
