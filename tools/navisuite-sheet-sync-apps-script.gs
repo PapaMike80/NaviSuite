@@ -11,7 +11,9 @@
  * premere Esegui e autorizzare. Da quel momento ogni modifica al foglio
  * arriva su NaviSuite in pochi secondi (basta riaprire/aggiornare la pagina).
  * Nel verso opposto, ogni 5 minuti applicaModificheApp() scrive nel foglio i
- * turni modificati a mano da NaviDiaria, NaviDistinta e NaviTurni.
+ * turni modificati a mano da NaviDiaria e NaviTurni (archivio diaria su
+ * Firebase). Comanda comunque il foglio: una cella cambiata dall'ufficio
+ * annulla la modifica manuale delle app per quel giorno.
  * sincronizzaOra() forza una pubblicazione manuale; estendiFoglio() aggiunge
  * le date che NaviSuite ha gia' (es. un nuovo turno da PDF) ma il foglio no.
  */
@@ -39,7 +41,10 @@ function installaTrigger() {
   sincronizzaOra();
 }
 
-function alModificaFoglio() {
+function alModificaFoglio(e) {
+  // Il foglio comanda: un turno cambiato qui dall'ufficio annulla la modifica
+  // manuale fatta nelle app per quell'agente e quel giorno.
+  try { applicaModificheUfficio_(e); } catch (error) { Logger.log('applicaModificheUfficio_: ' + error); }
   sync_(false);
   // Il colore dei turni non deve mai bloccare la sincronizzazione.
   try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
@@ -216,11 +221,7 @@ function applicaModificheApp() {
     rowByKey['U:' + uid] = index + 2;
     rowByKey['N:' + normalizeHeader_(name)] = index + 2;
   });
-  const agentsById = {};
-  const schedule = firebase_('GET', 'public/schedule') || {};
-  Object.keys(schedule.residenze || {}).forEach(residence => asArray_(schedule.residenze[residence]).forEach(agent => {
-    if (agent && agent.id !== undefined) agentsById[String(agent.id)] = agent;
-  }));
+  const agentsById = agentsById_();
   const valid = codiciValidiFoglio_();
 
   const touched = {};
@@ -246,6 +247,127 @@ function applicaModificheApp() {
   Object.keys(touched).forEach(key => props.setProperty(key, JSON.stringify(touched[key])));
   Logger.log(JSON.stringify(result));
   return result;
+}
+
+// Chiamata dal trigger di modifica (solo modifiche fatte a mano nel foglio:
+// le scritture dello script non lo fanno scattare). Per ogni cella turno
+// cambiata, se l'agente aveva modificato quel giorno nelle app, la voce della
+// sua diaria torna a seguire il foglio: via il segno "modificato a mano",
+// turno del foglio, ore/ticket/diaria da ricalcolare al prossimo caricamento.
+function applicaModificheUfficio_(e) {
+  const range = e && e.range;
+  if (!range) return { annullate: 0 };
+  const sheet = range.getSheet();
+  if (normalizeHeader_(sheet.getRange(1, 1).getDisplayValue()) !== 'AGENTUID') return { annullate: 0 };
+  const lastColumn = sheet.getLastColumn();
+  const header = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
+  const normalized = header.map(normalizeHeader_);
+  const uidIndex = normalized.indexOf('AGENTUID');
+  const nameIndex = normalized.indexOf('AGENTE');
+  const firstRow = Math.max(2, range.getRow());
+  const lastRow = range.getRow() + range.getNumRows() - 1;
+  if (lastRow < firstRow || nameIndex < 0) return { annullate: 0 };
+  const firstCol = range.getColumn();
+  const lastCol = firstCol + range.getNumColumns() - 1;
+  const dateCols = [];
+  for (let col = firstCol; col <= lastCol; col++) { const iso = isoDate_(header[col - 1]); if (iso) dateCols.push({ col, iso }); }
+  if (!dateCols.length) return { annullate: 0 };
+
+  const rows = sheet.getRange(firstRow, 1, lastRow - firstRow + 1, lastColumn).getDisplayValues();
+  const idByUid = {};
+  const idByName = {};
+  const agentsById = agentsById_();
+  Object.keys(agentsById).forEach(id => {
+    const agent = agentsById[id];
+    idByUid[String(agent.agent_uid || stableAgentUid_(agent.agente))] = id;
+    idByName[normalizeHeader_(agent.agente)] = id;
+  });
+
+  const props = PropertiesService.getScriptProperties();
+  const result = { annullate: 0 };
+  rows.forEach(row => {
+    const name = String(row[nameIndex] || '').trim();
+    const uid = (uidIndex >= 0 && String(row[uidIndex] || '').trim()) || stableAgentUid_(name);
+    const agentId = idByUid[uid] || idByName[normalizeHeader_(name)];
+    if (!agentId) return;
+    const path = 'private/adminUpdates/diaria/' + agentId.replace(/[.#$\[\]\/]/g, '_');
+    const record = firebase_('GET', path);
+    if (!record || !record.entries) return;
+    const entries = asArray_(record.entries);
+    const key = APPLIED_PREFIX + agentId.replace(/[^A-Za-z0-9_]/g, '_');
+    let applied = {};
+    try { applied = JSON.parse(props.getProperty(key) || '{}'); } catch (_) {}
+    let changed = false;
+    dateCols.forEach(({ col, iso }) => {
+      const code = normalizeShift_(row[col - 1]);
+      const entry = entries.find(item => String(item && item.date || '').slice(0, 10) === iso);
+      if (!entry || entry.manualOverride !== true) return;
+      // Da qui la voce segue il foglio: non va piu' riportata nella cella.
+      applied[iso] = code;
+      const parsed = parseSheetCode_(code);
+      entry.shift = parsed.shift;
+      entry.travel = parsed.travel;
+      entry.supernumerary = parsed.supernumerary;
+      entry.manualOverride = false;
+      entry.manualModified = false;
+      entry.manualFrom = null;
+      entry.manualTo = null;
+      entry.imported = true;
+      delete entry.workedMinutes;
+      delete entry.serviceMinutes;
+      entry.sheetOverrideAt = new Date().toISOString();
+      changed = true;
+      result.annullate++;
+    });
+    if (!changed) return;
+    props.setProperty(key, JSON.stringify(applied));
+    firebase_('PATCH', path, {
+      entries: entries,
+      entryCount: entries.length,
+      checksum: diariaChecksum_(entries),
+      version: Number(record.version || 0) + 1,
+      updatedAt: new Date().toISOString(),
+      updatedBy: 'foglio-google'
+    });
+  });
+  if (result.annullate) Logger.log(JSON.stringify(result));
+  return result;
+}
+
+// Codice del foglio -> turno delle app (inverso di appSheetCode_).
+function parseSheetCode_(code) {
+  const raw = String(code || '').trim().toUpperCase();
+  const supernumerary = /\*$/.test(raw);
+  let base = raw.replace(/\*+$/, '');
+  let travel = false;
+  if (base.length > 2 && NO_VARIANT_CODES.indexOf(base) < 0 && /^C.+C$/.test(base) && ['CAR', 'CAP'].indexOf(base) < 0) {
+    base = base.slice(1, -1);
+    travel = true;
+  }
+  const aliases = { '': 'Riposo', RIP: 'Riposo', 'L.D.': 'LD', 'I.E.': 'IE', AGB: 'AgB', POND: 'PonD', AGM: 'AgM', AGT: 'AgT', PONM: 'PonM' };
+  return { shift: aliases[base] !== undefined ? aliases[base] : base, travel, supernumerary };
+}
+
+// Stesso checksum di diariaChecksum() in assets/js/admin-firebase-rest.js.
+function diariaChecksum_(entries) {
+  const source = JSON.stringify(entries || []);
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) { hash ^= source.charCodeAt(index); hash = Math.imul(hash, 16777619); }
+  return 'd' + (hash >>> 0).toString(36);
+}
+
+// id agente delle app -> agente del calendario pubblico (cache 10 minuti).
+function agentsById_() {
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get('NAVISUITE_AGENTS_BY_ID');
+  if (cached) { try { return JSON.parse(cached); } catch (_) {} }
+  const agentsById = {};
+  const schedule = firebase_('GET', 'public/schedule') || {};
+  Object.keys(schedule.residenze || {}).forEach(residence => asArray_(schedule.residenze[residence]).forEach(agent => {
+    if (agent && agent.id !== undefined) agentsById[String(agent.id)] = { id: agent.id, agente: agent.agente, agent_uid: agent.agent_uid || '' };
+  }));
+  try { cache.put('NAVISUITE_AGENTS_BY_ID', JSON.stringify(agentsById), 600); } catch (_) {}
+  return agentsById;
 }
 
 // Codice del foglio per una giornata delle app: i codici delle app (Riposo,
