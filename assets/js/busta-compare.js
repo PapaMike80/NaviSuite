@@ -9,21 +9,31 @@
   const COUNT_TOLERANCE = 0.001;
   const EURO_TOLERANCE = 0.02;
 
-  // certainty 'certa': una differenza e' un errore; 'confermare': da verificare.
+  // certainty 'certa': una differenza e' un errore; 'confermare': da verificare
+  // (puo' anche essere una funzione dei totali della Distinta).
   // source: 'quantity' (colonna Ore/Giorni/Num.) oppure 'quantityOrFigurative'.
+  // filter: condizione in piu' sulla voce (oltre al codice).
+  // Parametro 139 = bigliettaio con maneggio denaro (altrimenti 121): da
+  // imbarcato il maneggio si paga come differenza paga 121->139 sulle ore del
+  // turno (D.P. Ore diff.paga 139B) e sullo straordinario (01Y D.P.lav.str.
+  // Qu.139B, stesse ore di 334, non ore in piu'); a terra con FC0.
   const RULES = [
-    // 01Y "D.P.lav.str. Qu.139B" e' una parte dello straordinario: si somma a 334.
-    { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60 },
+    { id: 'overtime', codes: ['334'], label: 'Straordinari', distintaLabel: 'Straordinari', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60 },
+    { id: 'overtime139', codes: ['01Y'], label: 'Straordinario a parametro 139', distintaLabel: 'Straordinario nelle settimane con maneggio denaro', unit: 'ore', certainty: t => (t.overtimeMixedWeeks ? 'confermare' : 'certa'), source: 'quantity', distinta: t => t.overtime139Minutes / 60, notes: t => (t.overtimeMixedWeeks ? [`${t.overtimeMixedWeeks === 1 ? 'Una settimana' : `${t.overtimeMixedWeeks} settimane`} con straordinario ha giorni con e senza maneggio denaro: non si può sapere quale parte è a parametro 139.`] : []) },
+    { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore del turno nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.cashEmbarkServiceMinutes / 60 },
     { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.embark },
     { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.sundayShift },
-    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandling },
+    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandlingGround },
     { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.overnight40 },
     { id: 'bank', codes: ['594'], label: 'Banca ore maturata', distintaLabel: 'Banca ore', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.bankMinutes / 60 },
     { id: 'allowance24', codes: ['18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.allowance24 },
     { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => t.ticketCredit }
   ];
 
+  const ruleMatches = (rule, voce) => rule.codes.includes(voce.code) && (!rule.filter || rule.filter(voce));
+
   const NOT_COMPARED_REASON = 'La Distinta non ha una riga equivalente.';
+  // Le voci gia' usate da una regola (es. 55Y con "139") non compaiono qui.
   const NOT_COMPARED = [
     { codes: ['013'], label: 'Lavoro in FI-FN' },
     { codes: ['55Y', '56Y'], label: 'Ore differenza paga' },
@@ -38,7 +48,7 @@
   const sum = values => values.reduce((total, value) => total + value, 0);
 
   function bustaValue(rule, voci) {
-    const matching = voci.filter(voce => rule.codes.includes(voce.code));
+    const matching = voci.filter(voce => ruleMatches(rule, voce));
     if (!matching.length) return { present: false, value: null, base: null, voci: [] };
     const values = matching.map(voce => {
       if (voce.quantity !== null && voce.quantity !== undefined) return voce.quantity;
@@ -81,20 +91,22 @@
       const tolerance = rule.unit === 'ore' ? HOURS_TOLERANCE : COUNT_TOLERANCE;
       const diff = round2(distintaValue - bustaNumber);
       const equal = Math.abs(diff) <= tolerance + 1e-9;
-      const status = equal ? 'ok' : (rule.certainty === 'certa' ? 'diff' : 'check');
+      const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
+      const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
       const euro = !equal && fromBusta.base !== null ? round2(diff * fromBusta.base) : null;
       const notes = [];
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
+      if (typeof rule.notes === 'function') notes.push(...rule.notes(totals));
       rows.push({
         id: rule.id,
         codes: rule.codes.slice(),
         label: rule.label,
         distintaLabel: rule.distintaLabel,
         unit: rule.unit,
-        certainty: rule.certainty,
+        certainty,
         busta: fromBusta.present ? fromBusta.value : null,
         distinta: distintaValue,
         diff,
@@ -111,7 +123,7 @@
 
     const notCompared = [];
     NOT_COMPARED.forEach(item => {
-      voci.filter(voce => item.codes.includes(voce.code)).forEach(voce => notCompared.push({ ...voce, label: item.label, reason: NOT_COMPARED_REASON }));
+      voci.filter(voce => item.codes.includes(voce.code) && !RULES.some(rule => ruleMatches(rule, voce))).forEach(voce => notCompared.push({ ...voce, label: item.label, reason: NOT_COMPARED_REASON }));
     });
 
     const summary = {

@@ -129,7 +129,7 @@
     const weeks = distinta.period.weeks;
     const totalWorked = weeks.reduce((sum, week) => sum + week.workedMinutes, 0);
     const totalOvertime = weeks.reduce((sum, week) => sum + week.overtimeMinutes, 0);
-    els.weeks.innerHTML = `<table class="vb-table"><thead><tr><th>Settimana</th><th>Giorni</th><th>Ore lavorate</th><th>Straord. (oltre 39h)</th></tr></thead><tbody>${weeks.map(week => `<tr><td>${dateText(week.startIso)} – ${dateText(week.endIso)}</td><td>${week.workedDays}</td><td>${clock(week.workedMinutes)}</td><td>${week.overtimeMinutes ? clock(week.overtimeMinutes) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><th>Totale</th><th>${distinta.totals.workedDays}</th><th>${clock(totalWorked)}</th><th>${clock(totalOvertime)} (${number(totalOvertime / 60, 2)} h)</th></tr></tfoot></table>`;
+    els.weeks.innerHTML = `<table class="vb-table"><thead><tr><th>Settimana</th><th>Giorni</th><th>Ore lavorate</th><th>Straord. (oltre 39h)</th></tr></thead><tbody>${weeks.map(week => `<tr><td>${dateText(week.startIso)} – ${dateText(week.endIso)}</td><td>${week.workedDays}${week.cash139Days ? ` <small>(${week.cash139Days} con maneggio)</small>` : ''}</td><td>${clock(week.workedMinutes)}</td><td>${week.overtimeMinutes ? clock(week.overtimeMinutes) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><th>Totale</th><th>${distinta.totals.workedDays}</th><th>${clock(totalWorked)}</th><th>${clock(totalOvertime)} (${number(totalOvertime / 60, 2)} h)</th></tr></tfoot></table>`;
   }
 
   function renderNotCompared(list) {
