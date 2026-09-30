@@ -320,6 +320,26 @@
     'END:VTIMEZONE',
   ];
 
+  // Orario di Roma -> UTC (suffisso Z), con l'offset CET/CEST di quella data:
+  // formato letto allo stesso modo da iPhone, Google e Outlook.
+  const romeOffsetMinutes = date => {
+    try {
+      const name = new Intl.DateTimeFormat('en-US', {timeZone:'Europe/Rome', timeZoneName:'longOffset'})
+        .formatToParts(date).find(part => part.type === 'timeZoneName')?.value || '';
+      const match = /GMT([+-])(\d{2}):(\d{2})/.exec(name);
+      if (match) return (match[1] === '-' ? -1 : 1) * (Number(match[2]) * 60 + Number(match[3]));
+    } catch (_) {}
+    const month = date.getUTCMonth() + 1;
+    return month > 3 && month < 11 ? 120 : 60;
+  };
+  const romeToUtc = (iso, hhmm) => {
+    const [year, month, day] = iso.split('-').map(Number);
+    const [hours, minutes] = hhmm.split(':').map(Number);
+    const guess = Date.UTC(year, month - 1, day, hours, minutes);
+    const utc = new Date(guess - romeOffsetMinutes(new Date(guess)) * 60000);
+    return utc.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+  };
+
   async function buildIcs(data) {
     const events = buildEvents(data);
     const agentId = String(profile.id).replace(/[^A-Za-z0-9_-]/g, '_');
@@ -331,10 +351,10 @@
       ...VTIMEZONE_ROME,
     ];
     events.forEach(event => {
-      const summary = `NaviSuite · ${event.shift}${event.vessel ? ` · ${event.vessel}` : ''}`;
       const times = SHIFT_TIMES[shiftTimeKey(event.shift)];
-      const start = times ? `DTSTART;TZID=Europe/Rome:${icsDate(event.iso)}T${times.start.replace(':','')}00` : `DTSTART;VALUE=DATE:${icsDate(event.iso)}`;
-      const end = times ? `DTEND;TZID=Europe/Rome:${icsDate(event.iso)}T${times.end.replace(':','')}00` : `DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`;
+      const summary = `${times ? `${times.start} ` : 'NaviSuite · '}${event.shift}${event.vessel ? ` · ${event.vessel}` : ''}`;
+      const start = times ? `DTSTART:${romeToUtc(event.iso, times.start)}` : `DTSTART;VALUE=DATE:${icsDate(event.iso)}`;
+      const end = times ? `DTEND:${romeToUtc(event.iso, times.end)}` : `DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`;
       lines.push('BEGIN:VEVENT',`UID:${agentId}-${event.iso}@navisuite`,`DTSTAMP:${stamp}`,start,end,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(event.description)}`,'STATUS:CONFIRMED','TRANSP:TRANSPARENT','END:VEVENT');
     });
     lines.push('END:VCALENDAR');
