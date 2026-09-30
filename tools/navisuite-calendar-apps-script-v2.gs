@@ -12,10 +12,11 @@ const NAVI=Object.freeze({databaseUrl:'https://navisuite-f116f-default-rtdb.euro
 // usata dal generatore .ics lato client (assets/js/calendar-settings-v2.js).
 // BIS/DT/POND non sono nella tabella corse attuale: orari storici, tenuti
 // cosi' come sono finche' non si conferma il codice corrispondente aggiornato.
+// T1/T2: orari dall'ufficio (prima partenza 08:10/08:45 - 60').
 // I servizi senza un orario verificato restano volutamente "tutto il giorno".
 const SERVICE_TIMES=Object.freeze({
   D1:['07:55','20:15'],D2:['07:20','18:25'],D3:['07:00','19:20'],D4:['07:15','19:45'],
-  M1:['07:20','19:50'],R1:['07:50','20:05'],R2:['07:00','19:30'],R3:['07:40','19:20'],R4:['08:20','20:30'],
+  M1:['07:20','19:50'],T1:['07:10','18:30'],T2:['07:45','16:10'],R1:['07:50','20:05'],R2:['07:00','19:30'],R3:['07:40','19:20'],R4:['08:20','20:30'],
   CAR1:['07:20','19:40'],CAP1:['07:30','19:35'],SR1:['07:50','19:30'],
   P1:['08:10','20:10'],P2:['07:00','19:20'],P3:['07:35','19:00'],
   BIS:['08:00','19:15'],DT:['06:55','17:15'],POND:['09:10','20:25']

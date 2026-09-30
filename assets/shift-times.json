@@ -1,9 +1,6 @@
 {
   "_fonte": "Ricavato da assets/js/orario-main.js (tabella corse ufficiale) — inizio = partenza prima corsa - 60' di presentazione, fine = arrivo ultima corsa. Vedi tools/generate-shift-times.py",
-  "_mancanti": [
-    "T1",
-    "T2"
-  ],
+  "_mancanti": [],
   "turni": {
     "D1": {
       "start": "07:55",
@@ -64,6 +61,14 @@
     "SR1": {
       "start": "07:50",
       "end": "19:30"
+    },
+    "T1": {
+      "start": "07:10",
+      "end": "18:30"
+    },
+    "T2": {
+      "start": "07:45",
+      "end": "16:10"
     }
   }
 }

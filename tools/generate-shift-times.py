@@ -42,6 +42,19 @@ def update_inline_js(result):
     CALENDAR_JS.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
 
 
+# Turni senza corse nella tabella ufficiale: orari comunicati dall'ufficio
+# (prima partenza / ultimo arrivo), a cui si applica la stessa presentazione.
+MANUAL_SHIFTS = {
+    "T1": ("08:10", "18:30"),
+    "T2": ("08:45", "16:10"),
+}
+
+
+def hhmm_to_minute(value):
+    hours, minutes = value.split(":")
+    return int(hours) * 60 + int(minutes)
+
+
 def minute_to_hhmm(minute):
     h, m = divmod(int(minute) % 1440, 60)
     return f"{h:02d}:{m:02d}"
@@ -75,6 +88,12 @@ def main():
             "start": minute_to_hhmm(min(starts) - PRESENTAZIONE_MINUTI),
             "end": minute_to_hhmm(max(ends)),
         }
+
+    for code, (first, last) in MANUAL_SHIFTS.items():
+        result.setdefault(code, {
+            "start": minute_to_hhmm(hhmm_to_minute(first) - PRESENTAZIONE_MINUTI),
+            "end": last,
+        })
 
     missing = sorted(set(shifts.keys()) - set(result.keys()))
     out = {
