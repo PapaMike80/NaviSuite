@@ -1,0 +1,387 @@
+/* ex <style id="trova-turno-unbounded-table-v3"> */
+  html,
+  body {
+    width:auto !important;
+    min-width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    min-height:100% !important;
+    overflow:visible !important;
+  }
+
+  body {
+    overflow-x:auto !important;
+    overflow-y:auto !important;
+  }
+
+  #matrix-scroll-wrap {
+    position:static !important;
+    display:block !important;
+    width:max-content !important;
+    min-width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+    overscroll-behavior:auto !important;
+    contain:none !important;
+    -webkit-overflow-scrolling:auto !important;
+  }
+
+  #matrix-scroll-wrap > table {
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin:0 !important;
+    overflow:visible !important;
+    table-layout:fixed !important;
+  }
+
+  #matrix-scroll-wrap > #cambio-info {
+    position:sticky !important;
+    top:0 !important;
+    left:0 !important;
+    z-index:90 !important;
+    width:100vw !important;
+    min-width:100vw !important;
+    max-width:100vw !important;
+    box-sizing:border-box !important;
+  }
+
+  #matrix-scroll-wrap .date-header th {
+    position:sticky !important;
+    top:var(--cambio-bar-height,0px) !important;
+    z-index:70 !important;
+  }
+
+  #matrix-scroll-wrap .date-header th:first-child {
+    left:0 !important;
+    z-index:85 !important;
+  }
+
+  #matrix-scroll-wrap #tbody td:first-child {
+    position:sticky !important;
+    left:0 !important;
+    z-index:45 !important;
+  }
+
+  #tbody tr.cambio-altra-residenza,
+  #tbody tr.temporary-transfer-row,
+  #tbody tr.cambio-altra-residenza > td,
+  #tbody tr.temporary-transfer-row > td {
+    outline:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
+  #tbody .transfer-table-label {
+    display:none !important;
+  }
+
+  @media (max-width:800px) {
+    #matrix-scroll-wrap {
+      width:max-content !important;
+      min-width:100% !important;
+      max-height:none !important;
+      overflow:visible !important;
+    }
+
+    #matrix-scroll-wrap > #cambio-info {
+      width:100vw !important;
+      min-width:100vw !important;
+      max-width:100vw !important;
+    }
+  }
+
+/* ex <style id="trova-turno-original-column-widths"> */
+  #matrix-scroll-wrap .date-header th:first-child,
+  #matrix-scroll-wrap #tbody td:first-child {
+    width:104px !important;
+    min-width:104px !important;
+    max-width:104px !important;
+  }
+
+  #matrix-scroll-wrap .date-header th[data-col],
+  #matrix-scroll-wrap #tbody td[data-col] {
+    width:40px !important;
+    min-width:40px !important;
+    max-width:40px !important;
+  }
+
+  @media (max-width:640px) {
+    #matrix-scroll-wrap .date-header th:first-child,
+    #matrix-scroll-wrap #tbody td:first-child {
+      width:92px !important;
+      min-width:92px !important;
+      max-width:92px !important;
+    }
+
+    #matrix-scroll-wrap .date-header th[data-col],
+    #matrix-scroll-wrap #tbody td[data-col] {
+      width:34px !important;
+      min-width:34px !important;
+      max-width:34px !important;
+    }
+  }
+
+/* ex <style id="cambio-exchange-summary-v2"> */
+  #cambio-hours-summary {
+    padding:10px 12px !important;
+  }
+
+  .cambio-exchange-list {
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+
+  .cambio-exchange-row {
+    display:grid;
+    grid-template-columns:minmax(74px,auto) minmax(0,1fr) auto;
+    align-items:center;
+    gap:9px;
+    padding:8px 9px;
+    border:1px solid rgba(124,173,189,.18);
+    border-radius:10px;
+    background:rgba(5,25,33,.42);
+  }
+
+  .cambio-exchange-agent {
+    color:var(--ink);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.025em;
+  }
+
+  .cambio-exchange-detail {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:5px;
+    min-width:0;
+  }
+
+  .cambio-exchange-date {
+    color:var(--ink-dim);
+    font-size:8px;
+    font-weight:850;
+    letter-spacing:.045em;
+    white-space:nowrap;
+  }
+
+  .cambio-shift-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:38px;
+    min-height:25px;
+    padding:4px 9px;
+    border:1px solid color-mix(in srgb,var(--cambio-shift-color) 72%,transparent);
+    border-radius:999px;
+    background:color-mix(in srgb,var(--cambio-shift-color) 17%,rgba(6,23,30,.92));
+    color:var(--cambio-shift-color);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cambio-shift-color) 10%,transparent);
+    font-size:11px;
+    font-weight:950;
+    line-height:1;
+    white-space:nowrap;
+  }
+
+  .cambio-exchange-arrow {
+    color:#facc15;
+    font-size:15px;
+    font-weight:900;
+    line-height:1;
+  }
+
+  .cambio-exchange-delta {
+    min-width:72px;
+    padding:5px 7px;
+    border-radius:8px;
+    text-align:center;
+    font-size:11px;
+    font-weight:950;
+    white-space:nowrap;
+  }
+
+  .cambio-exchange-delta.delta-plus {
+    color:#86efac;
+    background:rgba(34,197,94,.10);
+    border:1px solid rgba(34,197,94,.25);
+  }
+
+  .cambio-exchange-delta.delta-minus {
+    color:#fca5a5;
+    background:rgba(239,68,68,.10);
+    border:1px solid rgba(239,68,68,.25);
+  }
+
+  .cambio-exchange-delta.delta-zero {
+    color:var(--ink-dim);
+    background:rgba(148,163,184,.08);
+    border:1px solid rgba(148,163,184,.18);
+  }
+
+  @media (max-width:640px) {
+    .cambio-exchange-row {
+      grid-template-columns:68px minmax(0,1fr);
+      gap:6px 8px;
+    }
+
+    .cambio-exchange-delta {
+      grid-column:2;
+      justify-self:start;
+      min-width:68px;
+    }
+
+    .cambio-exchange-date {
+      font-size:7px;
+    }
+
+    .cambio-shift-badge {
+      min-width:34px;
+      min-height:23px;
+      padding:4px 7px;
+      font-size:10px;
+    }
+  }
+
+/* ex <style id="cambio-summary-table-v3"> */
+  .cambio-summary-table-wrap {
+    width:100%;
+    overflow-x:auto;
+    margin-top:8px;
+  }
+
+  .cambio-summary-table {
+    width:100%;
+    min-width:560px;
+    border-collapse:separate;
+    border-spacing:0;
+    table-layout:fixed;
+    overflow:hidden;
+    border:1px solid rgba(124,173,189,.22);
+    border-radius:10px;
+    background:rgba(5,25,33,.38);
+  }
+
+  .cambio-summary-table th,
+  .cambio-summary-table td {
+    padding:9px 8px;
+    border-right:1px solid rgba(124,173,189,.15);
+    border-bottom:1px solid rgba(124,173,189,.15);
+    text-align:center;
+    vertical-align:middle;
+  }
+
+  .cambio-summary-table tr:last-child th,
+  .cambio-summary-table tr:last-child td {
+    border-bottom:0;
+  }
+
+  .cambio-summary-table th:last-child,
+  .cambio-summary-table td:last-child {
+    border-right:0;
+  }
+
+  .cambio-summary-table thead th {
+    color:var(--ink-dim);
+    background:rgba(10,35,45,.78);
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.055em;
+    text-transform:uppercase;
+  }
+
+  .cambio-summary-table thead th:first-child {
+    width:110px;
+  }
+
+  .cambio-summary-table thead th:last-child {
+    width:92px;
+  }
+
+  .cambio-summary-table tbody th {
+    color:var(--ink);
+    background:rgba(10,35,45,.52);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.025em;
+    text-align:left;
+    white-space:nowrap;
+  }
+
+  .cambio-cell-shifts {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-width:0;
+  }
+
+  .cambio-cell-arrow {
+    color:#facc15;
+    font-size:14px;
+    font-weight:900;
+    line-height:1;
+  }
+
+  .cambio-summary-table .cambio-shift-badge {
+    min-width:36px;
+    padding:4px 8px;
+  }
+
+  .cambio-summary-table .cambio-exchange-delta {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:70px;
+  }
+
+  @media (max-width:640px) {
+    .cambio-summary-table {
+      min-width:500px;
+    }
+
+    .cambio-summary-table th,
+    .cambio-summary-table td {
+      padding:8px 6px;
+    }
+
+    .cambio-summary-table thead th:first-child {
+      width:92px;
+    }
+
+    .cambio-summary-table thead th:last-child {
+      width:82px;
+    }
+
+    .cambio-summary-table tbody th {
+      font-size:10px;
+    }
+
+    .cambio-cell-shifts {
+      gap:4px;
+    }
+
+    .cambio-summary-table .cambio-shift-badge {
+      min-width:32px;
+      padding:4px 6px;
+      font-size:10px;
+    }
+  }
+
+/* ex <style id="trova-turno-solo-cambi-v2"> */
+  #tbody tr.cambio-candidato td.td-name::after {
+    content:'CAMBIO' !important;
+    color:#fde68a !important;
+    border-color:rgba(250,204,21,.75) !important;
+    background:rgba(250,204,21,.10);
+  }
+
+  #tbody tr.cambio-candidato td.td-name {
+    box-shadow:inset 4px 0 0 #facc15,2px 0 0 var(--line) !important;
+  }
