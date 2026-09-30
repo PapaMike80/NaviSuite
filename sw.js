@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v236-rimozione-pagine';
+const CACHE_VERSION = 'navisuite-v237-google-analytics';
 const CORE_ASSETS = [
   './',
   './index.html',
