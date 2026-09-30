@@ -136,36 +136,13 @@
       return String(agent?.id || "") === String(loggedAgentProfile?.id || "");
     }
 
-    let crewDayContext = null;
-    const crewDayArchiveCache = new Map();
-    let crewDayConfigurationsCache = null;
-    let crewDayConfigurationsPending = null;
-    const CREW_DAY_CACHE_MS = 60 * 1000;
-    const crewDayDefaultHours = {D1:13,D2:11+25/60,D3:13+20/60,D4:13+15/60,T1:13+35/60,T2:12+29/60,M1:13.5,R1:13.25,R2:13.25,R3:12+20/60,R4:12+40/60,CAR1:12+10/60,P1:12.75,P2:13+5/60,P3:12+55/60,CAP:12+55/60,CAP1:12+55/60,SR1:12.25,BIS:12.25,AGB:10+25/60,POND:9+25/60,DT:9+25/60,PT:9.5,AGM:9.75,AGT:11+10/60,PONM:10+25/60,LD:8,LAV:8,'F.P.':8};
-    function crewDayShiftFor(code, date) {
-      const key = String(code || '').trim().toUpperCase();
-      const cached = crewDayContext?.shiftMap?.get(key);
-      if (cached) return cached;
-      // Ore con decorrenza (es. turno 05/10/2026): stessa tabella di NaviDiaria.
-      const shared = window.NaviShiftCompetence?.shiftsFor(date)?.find(s => String(s.code).trim().toUpperCase() === key);
-      return {
-        code: code || 'Riposo',
-        hours: shared ? shared.hours : (crewDayDefaultHours[key] || 0),
-        allowance: false, allowanceRate: 24,
-        meal: !['RIP','RIPOSO','MALATTIA'].includes(key),
-        embark: !['AGB','POND','DT','PT','AGM','AGT','PONM','LD','LAV','F.P.','RIP','RIPOSO','MALATTIA'].includes(key),
-        refuelRules: {}
-      };
-    }
-    function crewDayRefuelMinutes(date,shift) { const rules=crewDayShiftFor(shift).refuelRules||{},items=rules[String(new Date(`${date}T12:00:00`).getDay())]||[],grade=String(loggedAgentProfile?.qualifica||'').trim().toUpperCase().replace(/[_-]+/g,' '),service=String(shift||'').trim().toUpperCase(); return Math.max(0,...items.filter(item=>{const component=String(item.component||'').trim().toUpperCase().replace(/[_-]+/g,' ');return component===grade||component===service}).map(item=>Number(item.minutes)||0)); }
-    // Trasferta come nel foglio: C + turno + C (es. CP2C, CD1C*), non CAR/CAP.
-    function crewDayTravel(value) { const raw=String(value||'').trim().toUpperCase().replace(/\*+$/,''); return raw.length>2&&/^C.+C$/.test(raw)&&!['CAR','CAP'].includes(raw)&&(ottieniTurnoPulito(raw)!==raw||['S.S.','I.E.','PT'].includes(raw.slice(1,-1))); }
+    // La giornata si modifica solo in NaviDistinta: un solo editor e un solo
+    // salvataggio (prima NaviTurni aveva un popup con logica e archivio propri).
     function openCrewDayEditor(agentId, date) {
-      if (String(agentId || "") !== String(loggedAgentProfile?.id || "") || !window.NaviDayModal) return;
-      const dateIso=String(date||'').slice(0,10),initialShift=ottieniTurnoPulito(selectedShiftValue)||'Riposo',residence=String(loggedAgentProfile?.residence||currentResidence||'').toUpperCase();let editorContext=null;
-      NaviDayModal.open({date:dateIso,showDiariaButton:true,shiftFor:crewDayShiftFor,refuelSuggestionMinutes:crewDayRefuelMinutes,shipForService:(targetDate,targetShift)=>getShipDayInfo(dateCalendario.find(item=>item.iso===targetDate),targetShift)?.nave||'',get shifts(){return crewDayContext?.shifts||[]},
-        loadEntry:async()=>{await NaviAdminFirebase.ready;const cacheKey=String(agentId),cached=crewDayArchiveCache.get(cacheKey),archivePromise=cached&&Date.now()-cached.loadedAt<CREW_DAY_CACHE_MS?Promise.resolve({entries:cached.entries}):NaviAdminFirebase.loadDiaria(cacheKey);if(!crewDayConfigurationsCache&&!crewDayConfigurationsPending)crewDayConfigurationsPending=Promise.resolve(NaviAdminFirebase.getServiceConfigurations?.()||{}).then(value=>(crewDayConfigurationsCache=value||{})).finally(()=>{crewDayConfigurationsPending=null});const [archive,configs]=await Promise.all([archivePromise,crewDayConfigurationsCache||crewDayConfigurationsPending||{}]);const archiveEntries=Array.isArray(archive.entries)?archive.entries:[];crewDayArchiveCache.set(cacheKey,{entries:archiveEntries,loadedAt:Date.now()});const configured=configs?.[residence]||{},codes=new Set([...Object.keys(crewDayDefaultHours),...Object.keys(configured),'Riposo','Malattia']),shifts=[...codes].map(code=>{const upper=String(code).toUpperCase(),saved=configured[code]||configured[upper]||{};return {code,...crewDayShiftFor(upper),...saved,hours:Number.isFinite(Number(saved.hours))?Number(saved.hours):(crewDayDefaultHours[upper]||0)}});editorContext=crewDayContext={entries:archiveEntries,shifts,shiftMap:new Map(shifts.map(item=>[String(item.code).toUpperCase(),item]))};const existing=editorContext.entries.find(item=>String(item.date).slice(0,10)===dateIso),competence=crewDayShiftFor(initialShift),active=!['RIP','RIPOSO','MALATTIA'].includes(String(initialShift).toUpperCase());return existing?{...existing}:{date:dateIso,shift:initialShift,serviceMinutes:active?Math.round((Number(competence.hours)||0)*60):0,delay:0,bank:0,allowanceRate:active&&competence.allowance?Number(competence.allowanceRate||24):null,overnight40:false,holidayWorked:false,ticketPresence:active&&!!competence.meal,mealUsed:active&&!!competence.meal,secondMeal:0,embark:active&&!!competence.embark,hydrofoil:0,refuel:false,travel:crewDayTravel(selectedShiftValue),supernumerary:/\*/.test(String(selectedShiftValue||'')),note:'',manualOverride:true,imported:false};},
-        saveEntry:async draft=>{const context=editorContext;if(!context)throw new Error('Editor giornata non disponibile');const previous=context.entries.find(item=>item.id===draft.id)||context.entries.find(item=>item.date===draft.date),shiftChanged=!previous||String(previous.shift)!==String(draft.shift);if(!draft.id){draft.id=crypto.randomUUID();draft.manualOverride=true;context.entries.push(draft)}else if(previous)Object.assign(previous,draft);crewDayArchiveCache.set(String(agentId),{entries:context.entries,loadedAt:Date.now()});await NaviAdminFirebase.saveDiaria(String(agentId),context.entries);if(shiftChanged){const overrideKey=`${String(agentId)}|${dateIso}`;if(draft.manualOverride===true&&draft.manualModified===true)diariaShiftOverrides.set(overrideKey,{shift:String(draft.shift),from:String(draft.manualFrom||''),updatedAt:new Date().toISOString()});else diariaShiftOverrides.delete(overrideKey);requestAnimationFrame(()=>{renderTable();renderCoverageTable();const cal=dateCalendario.find(item=>item.iso===dateIso),focus=Object.values(globalData?.residenze||{}).flat().find(agent=>String(agent.id||'')===String(agentId))||selectedCrewAgent;if(cal){selectedCol=null;selectedShiftValue=draft.shift;selectDay(cal.col,cal.labelEstesa,draft.shift,focus)}})}return draft;},onSaveError:error=>console.warn('Giornata non sincronizzata da Turni',error),onClose:()=>{if(crewDayContext===editorContext)crewDayContext=null}});
+      if (String(agentId || "") !== String(loggedAgentProfile?.id || "")) return;
+      const dateIso = String(date || "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return;
+      location.href = `navidistinta.html?editDate=${encodeURIComponent(dateIso)}`;
     }
 
     function getLoggedBaristaSchedule() {
