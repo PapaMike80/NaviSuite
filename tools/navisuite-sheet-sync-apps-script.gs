@@ -496,6 +496,22 @@ function coloraTurni() {
   range.setBackgrounds(backgrounds);
   range.setFontColors(fonts);
   range.setFontWeights(weights);
+  bordiSettimane_(sheet, header, dateIndexes);
+}
+
+// Bordo spesso a sinistra di ogni lunedi' (e ai due estremi delle date), su
+// tutta l'altezza della tabella, cosi' le settimane si leggono a colpo d'occhio.
+function bordiSettimane_(sheet, header, dateIndexes) {
+  const rows = sheet.getLastRow();
+  const thick = SpreadsheetApp.BorderStyle.SOLID_THICK;
+  const color = '#111827';
+  dateIndexes.forEach((index, position) => {
+    const iso = isoDate_(header[index]);
+    const monday = new Date(iso + 'T12:00:00Z').getUTCDay() === 1;
+    const column = sheet.getRange(1, index + 1, rows, 1);
+    if (position === 0 || monday) column.setBorder(null, true, null, null, null, null, color, thick);
+    if (position === dateIndexes.length - 1) column.setBorder(null, null, null, true, null, null, color, thick);
+  });
 }
 
 // Scurisce un po' i colori di NaviTurni (pensati per lo sfondo scuro) cosi'
