@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v251-impostazioni-tessere';
+const CACHE_VERSION = 'navisuite-v252-verifica-busta';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -33,6 +33,7 @@ const CORE_ASSETS = [
   './cambi_turno.html',
   './navidiaria.html',
   './navidistinta.html',
+  './verifica-busta.html',
   './manifest.json',
   './assets/css/portal.css',
   './assets/css/navi-shared.css',
@@ -49,6 +50,10 @@ const CORE_ASSETS = [
   './assets/js/announcements-recovered.js',
   './assets/js/push-notifications-v3.js',
   './assets/js/push-center.js',
+  './assets/js/busta-parser.js',
+  './assets/js/distinta-totals.js',
+  './assets/js/busta-compare.js',
+  './assets/js/verifica-busta.js',
   './v2/assets/pb.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
