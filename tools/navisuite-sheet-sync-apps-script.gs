@@ -181,11 +181,23 @@ function firebaseAuth_() {
       return auth;
     }
   }
-  const response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
-    method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
-  });
-  const data = JSON.parse(response.getContentText() || '{}');
-  if (response.getResponseCode() >= 300 || !data.idToken) throw new Error('Autenticazione Firebase non riuscita');
+  // Il signUp anonimo da Apps Script puo' essere respinto per limiti
+  // temporanei sugli IP condivisi di Google: si riprova qualche volta e, se
+  // fallisce, l'errore riporta il messaggio esatto di Google.
+  let response = null;
+  let data = {};
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) Utilities.sleep(2000 * attempt);
+    response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
+      method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
+    });
+    data = JSON.parse(response.getContentText() || '{}');
+    if (response.getResponseCode() < 300 && data.idToken) break;
+  }
+  if (response.getResponseCode() >= 300 || !data.idToken) {
+    const reason = (data.error && data.error.message) || response.getContentText().slice(0, 200);
+    throw new Error('Autenticazione Firebase non riuscita (HTTP ' + response.getResponseCode() + '): ' + reason);
+  }
   auth = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   props.setProperty(SHEET_SYNC.authProperty, JSON.stringify(auth));
   return auth;
