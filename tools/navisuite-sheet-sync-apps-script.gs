@@ -36,7 +36,11 @@ function installaTrigger() {
   sincronizzaOra();
 }
 
-function alModificaFoglio() { sync_(false); }
+function alModificaFoglio() {
+  sync_(false);
+  // Il colore dei turni non deve mai bloccare la sincronizzazione.
+  try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
+}
 function controlloPeriodico() { sync_(false); }
 function sincronizzaOra() { const result = sync_(true); Logger.log(JSON.stringify(result)); return result; }
 
@@ -264,4 +268,87 @@ function mixWithWhite_(hex, amount) {
   const n = parseInt(hex.slice(1), 16);
   const channel = shift => Math.round(((n >> shift) & 255) * (1 - amount) + 255 * amount);
   return '#' + [16, 8, 0].map(shift => channel(shift).toString(16).padStart(2, '0')).join('');
+}
+
+// ---- Colori dei turni ------------------------------------------------------
+// Stessi colori delle pillole turno di NaviTurni (classify() in naviturni.html
+// e variabili --d1, --d2... in assets/css/navi-shared.css), per tutte le
+// residenze: il turno N di ogni residenza ha il colore di D<N>. Colora solo le
+// colonne data del foglio turni; si aggiorna da solo a ogni modifica oppure
+// eseguendo coloraTurni() a mano.
+
+const SHIFT_COLORS = Object.freeze({
+  D1: '#3b6bcc',
+  D2: '#2d9e6b',
+  D3: '#e07b3a',
+  D4: '#c45cba',
+  DT: '#e6d44a',
+  BIS: '#5ec4d4',
+  POND: '#f08080',
+  AGB: '#60a5fa',
+  CONG: '#a78bfa',
+  FP: '#94a3b8',
+  RF: '#84cc16',
+  RIP: '#6b7280',
+  OTHER: '#94a3b8'
+});
+
+// Turno (gia' ripulito da trasferta "C..C" e "*") → chiave colore.
+const SHIFT_COLOR_KEYS = Object.freeze({
+  // Desenzano
+  D1: 'D1', D2: 'D2', D3: 'D3', D4: 'D4', BIS: 'BIS', DT: 'DT', AGB: 'AGB', POND: 'POND',
+  // Maderno
+  T1: 'D1', T2: 'D2', M1: 'D3', AGT: 'DT', AGM: 'AGB', PONM: 'POND',
+  // Riva
+  R1: 'D1', R2: 'D2', R3: 'D3', R4: 'D4', CAR: 'BIS',
+  // Peschiera
+  P1: 'D1', P2: 'D2', P3: 'D3', P4: 'D4', CAP: 'BIS', SR1: 'BIS'
+});
+
+function coloraTurni() {
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+  if (lastRow < 2) return;
+  const header = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
+  const dateIndexes = header.map((value, index) => isoDate_(value) ? index : -1).filter(index => index >= 0);
+  if (!dateIndexes.length) return;
+
+  // Le colonne data sono contigue: si colora il blocco dalla prima all'ultima.
+  const first = dateIndexes[0];
+  const width = dateIndexes[dateIndexes.length - 1] - first + 1;
+  const range = sheet.getRange(2, first + 1, lastRow - 1, width);
+  const values = range.getDisplayValues();
+  const backgrounds = [];
+  const fonts = [];
+  values.forEach(row => {
+    const rowBackgrounds = [];
+    const rowFonts = [];
+    row.forEach((value, offset) => {
+      const color = dateIndexes.indexOf(first + offset) >= 0 ? shiftColor_(value) : null;
+      rowBackgrounds.push(color ? mixWithWhite_(color, 0.65) : null);
+      rowFonts.push(color ? '#111827' : null);
+    });
+    backgrounds.push(rowBackgrounds);
+    fonts.push(rowFonts);
+  });
+  range.setBackgrounds(backgrounds);
+  range.setFontColors(fonts);
+}
+
+function shiftColor_(value) {
+  if (!String(value == null ? '' : value).trim()) return null;
+  const shift = normalizeShift_(value);
+  if (shift === 'RIP') return SHIFT_COLORS.RIP;
+  if (shift === 'CON' || /^CONG/.test(shift)) return SHIFT_COLORS.CONG;
+  if (shift === 'F.P.' || shift === 'CORSO') return SHIFT_COLORS.FP;
+  if (shift === 'RF') return SHIFT_COLORS.RF;
+  const clean = shift.replace(/\*/g, '');
+  const match = clean.match(/^C?(D[1-4]|BIS|DT|AGB|PO(?:ND?|D)|T[12]|M1|AGT|AGM|PONM|R[1-4]|CAR|P[1-4]|CAP|SR1)C?$/);
+  if (!match) return SHIFT_COLORS.OTHER;
+  // "CPODC"/"CPONC" sono forme abbreviate di "CPONDC" (pontile Desenzano).
+  const key = match[1].replace(/^PO[ND]$/, 'POND');
+  return SHIFT_COLORS[SHIFT_COLOR_KEYS[key]] || SHIFT_COLORS.OTHER;
 }
