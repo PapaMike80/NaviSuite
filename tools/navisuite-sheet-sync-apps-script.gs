@@ -181,11 +181,23 @@ function firebaseAuth_() {
       return auth;
     }
   }
-  const response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
-    method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
-  });
-  const data = JSON.parse(response.getContentText() || '{}');
-  if (response.getResponseCode() >= 300 || !data.idToken) throw new Error('Autenticazione Firebase non riuscita');
+  // Il signUp anonimo da Apps Script puo' essere respinto per limiti
+  // temporanei sugli IP condivisi di Google: si riprova qualche volta e, se
+  // fallisce, l'errore riporta il messaggio esatto di Google.
+  let response = null;
+  let data = {};
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) Utilities.sleep(2000 * attempt);
+    response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
+      method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
+    });
+    data = JSON.parse(response.getContentText() || '{}');
+    if (response.getResponseCode() < 300 && data.idToken) break;
+  }
+  if (response.getResponseCode() >= 300 || !data.idToken) {
+    const reason = (data.error && data.error.message) || response.getContentText().slice(0, 200);
+    throw new Error('Autenticazione Firebase non riuscita (HTTP ' + response.getResponseCode() + '): ' + reason);
+  }
   auth = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   props.setProperty(SHEET_SYNC.authProperty, JSON.stringify(auth));
   return auth;
@@ -322,4 +334,58 @@ function coloraTurni() {
 function coloraTutto() {
   coloraGradi();
   coloraTurni();
+}
+
+// ---- Ordinamento agenti ----------------------------------------------------
+// Ordina le righe del foglio turni per residenza, grado e anzianita' (numero
+// piu' basso = piu' anziano), leggendo grado e anzianita' dal foglio
+// "Anzianita e gradi". Usa l'ordinamento nativo del foglio, quindi colori,
+// note e formattazioni restano attaccati alla propria riga.
+
+const RESIDENCE_ORDER = ['DESENZANO', 'MADERNO', 'RIVA', 'PESCHIERA'];
+const GRADE_ORDER = ['CAPITANO', 'CAPO_TIMONIERE', 'MOTORISTA', 'TIMONIERE', 'AIUTO_MOTORISTA', 'MARINAIO', 'OPERAIO', 'BARISTA'];
+
+function ordinaAgenti() {
+  const ss = SpreadsheetApp.getActive();
+  const turni = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  const gradi = ss.getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
+  if (!turni) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  if (!gradi) throw new Error('Nessun foglio "Anzianita e gradi"');
+
+  const gradeMatrix = gradi.getDataRange().getDisplayValues();
+  const gradeHeader = gradeMatrix.shift().map(normalizeHeader_);
+  const agentCol = gradeHeader.indexOf('AGENTE');
+  const gradeCol = gradeHeader.indexOf('GRADO');
+  const seniorityCol = gradeHeader.findIndex(value => value.indexOf('ANZIAN') === 0);
+  if (agentCol < 0 || gradeCol < 0) throw new Error('Nel foglio gradi servono le colonne Agente e Grado');
+  const infoByAgent = {};
+  gradeMatrix.forEach(row => {
+    const seniority = parseInt(seniorityCol >= 0 ? row[seniorityCol] : '', 10);
+    infoByAgent[normalizeHeader_(row[agentCol])] = {
+      grade: gradeKey_(row[gradeCol]),
+      seniority: Number.isFinite(seniority) ? seniority : 9999
+    };
+  });
+
+  const lastRow = turni.getLastRow();
+  const lastCol = turni.getLastColumn();
+  if (lastRow < 3) return;
+  const header = turni.getRange(1, 1, 1, lastCol).getDisplayValues()[0].map(normalizeHeader_);
+  const nameIndex = header.indexOf('AGENTE');
+  const residenceIndex = header.indexOf('RESIDENZA');
+  const rows = turni.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+  const keys = rows.map(row => {
+    const residence = String(residenceIndex >= 0 ? row[residenceIndex] : '').trim().toUpperCase();
+    const info = infoByAgent[normalizeHeader_(row[nameIndex])] || { grade: '', seniority: 9999 };
+    const residenceRank = RESIDENCE_ORDER.indexOf(residence) >= 0 ? RESIDENCE_ORDER.indexOf(residence) : RESIDENCE_ORDER.length;
+    const gradeRank = GRADE_ORDER.indexOf(info.grade) >= 0 ? GRADE_ORDER.indexOf(info.grade) : GRADE_ORDER.length;
+    return [residenceRank * 1e6 + gradeRank * 1e4 + Math.min(info.seniority, 9999)];
+  });
+
+  // Colonna chiave temporanea: ordina e poi la rimuove.
+  turni.insertColumnAfter(lastCol);
+  const keyCol = lastCol + 1;
+  turni.getRange(2, keyCol, keys.length, 1).setValues(keys);
+  turni.getRange(2, 1, keys.length, keyCol).sort({ column: keyCol, ascending: true });
+  turni.deleteColumn(keyCol);
 }
