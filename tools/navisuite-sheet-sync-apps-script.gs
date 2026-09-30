@@ -181,11 +181,23 @@ function firebaseAuth_() {
       return auth;
     }
   }
-  const response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
-    method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
-  });
-  const data = JSON.parse(response.getContentText() || '{}');
-  if (response.getResponseCode() >= 300 || !data.idToken) throw new Error('Autenticazione Firebase non riuscita');
+  // Il signUp anonimo da Apps Script puo' essere respinto per limiti
+  // temporanei sugli IP condivisi di Google: si riprova qualche volta e, se
+  // fallisce, l'errore riporta il messaggio esatto di Google.
+  let response = null;
+  let data = {};
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) Utilities.sleep(2000 * attempt);
+    response = UrlFetchApp.fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(SHEET_SYNC.apiKey), {
+      method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
+    });
+    data = JSON.parse(response.getContentText() || '{}');
+    if (response.getResponseCode() < 300 && data.idToken) break;
+  }
+  if (response.getResponseCode() >= 300 || !data.idToken) {
+    const reason = (data.error && data.error.message) || response.getContentText().slice(0, 200);
+    throw new Error('Autenticazione Firebase non riuscita (HTTP ' + response.getResponseCode() + '): ' + reason);
+  }
   auth = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   props.setProperty(SHEET_SYNC.authProperty, JSON.stringify(auth));
   return auth;
@@ -260,4 +272,66 @@ function mixWithWhite_(hex, amount) {
   const n = parseInt(hex.slice(1), 16);
   const channel = shift => Math.round(((n >> shift) & 255) * (1 - amount) + 255 * amount);
   return '#' + [16, 8, 0].map(shift => channel(shift).toString(16).padStart(2, '0')).join('');
+}
+
+// ---- Colori dei turni ------------------------------------------------------
+// Formattazione condizionale sulle celle turno: i colori seguono il valore,
+// quindi si aggiornano da soli quando un turno viene modificato. Gruppi e
+// colori come in NaviTurni (D1=R1=P1=T1, D2=R2=P2=T2, D3=R3=P3=M1, ...).
+// Riconosce anche trasferte (C...C) e istruttore (*), es. CDTC, CPODC, D2*.
+// Eseguire coloraTurni() una volta (o dopo aver aggiunto colonne/righe).
+
+const SHIFT_COLOR_RULES = [
+  { codes: 'D1|R1|P1|T1', color: '#2563eb' },
+  { codes: 'D2|R2|P2|T2', color: '#059669' },
+  { codes: 'D3|R3|P3|M1', color: '#ea580c' },
+  { codes: 'D4|R4|P4', color: '#c026d3' },
+  { codes: 'BIS', color: '#0891b2' },
+  { codes: 'DT', color: '#a16207' },
+  { codes: 'POND?|POD|PONM', color: '#dc2626' },
+  { codes: 'AG[BMT]\\d?', color: '#0369a1' },
+  { codes: 'CAR\\d?|CAP\\d?', color: '#db2777' },
+  { codes: 'SR1', color: '#7c3aed' },
+  { codes: 'LAV\\.?|TERRA|L\\.?D\\.?|F\\.?P\\.?|CON[G.;]?|S\\.S\\.|PROVE|#', color: '#64748b', plain: true }
+];
+const SHIFT_RULE_MARKER = 'N("navisuite-turni")';
+
+function coloraTurni() {
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+  const firstDate = header.findIndex(value => isoDate_(value)) + 1;
+  if (firstDate < 1 || sheet.getLastRow() < 2) return;
+  const range = sheet.getRange(2, firstDate, sheet.getMaxRows() - 1, sheet.getLastColumn() - firstDate + 1);
+  const cell = range.getCell(1, 1).getA1Notation();
+
+  const rules = SHIFT_COLOR_RULES.map(item => {
+    const regex = '^C?(?:' + item.codes + ')C?\\*?$';
+    const builder = SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=REGEXMATCH(UPPER(TRIM(' + cell + ')),"' + regex + '")+' + SHIFT_RULE_MARKER)
+      .setFontColor(item.color)
+      .setRanges([range]);
+    if (!item.plain) builder.setBackground(mixWithWhite_(item.color, 0.82)).setBold(true);
+    return builder.build();
+  });
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=REGEXMATCH(UPPER(TRIM(' + cell + ')),"^(RIP\\.?|RIPOSO|-+)$")+' + SHIFT_RULE_MARKER)
+    .setFontColor('#b6bcc6')
+    .setRanges([range])
+    .build());
+
+  // Sostituisce solo le regole create da questo script, lascia le altre.
+  const others = sheet.getConditionalFormatRules().filter(rule => {
+    const condition = rule.getBooleanCondition();
+    const values = condition ? condition.getCriteriaValues() : [];
+    return !values.some(value => String(value).indexOf(SHIFT_RULE_MARKER) >= 0);
+  });
+  sheet.setConditionalFormatRules(others.concat(rules));
+  range.setHorizontalAlignment('center');
+}
+
+function coloraTutto() {
+  coloraGradi();
+  coloraTurni();
 }

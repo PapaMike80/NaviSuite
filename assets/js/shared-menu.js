@@ -25,6 +25,36 @@
   if(initialLightTheme)document.documentElement.dataset.theme='light';
   const sessionValue=localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null';
   let sessionAgent=null;try{sessionAgent=JSON.parse(sessionValue)}catch{}
+  // Google Analytics: caricato una sola volta per tutte le pagine. Si invia solo
+  // la categoria di ruolo, mai nome, ID agente o PIN. Senza sessione (login) la
+  // pagina viene tracciata comunque, senza ruolo.
+  const installAnalytics=()=>{
+    const GA_ID='G-R59ZS3YB4Q';
+    if(window.__naviGaInstalled)return;
+    window.__naviGaInstalled=true;
+    window.dataLayer=window.dataLayer||[];
+    if(typeof window.gtag!=='function')window.gtag=function(){window.dataLayer.push(arguments);};
+    if(!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')){
+      const script=document.createElement('script');
+      script.async=true;
+      script.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID;
+      document.head.appendChild(script);
+    }
+    const roles=window.NaviRoles;
+    const roleOf=agent=>{
+      if(!agent?.id||!roles)return '';
+      if(roles.isAdminAgent(agent))return 'admin';
+      if(String(agent?.qualifica||agent?.office||'').toLowerCase().includes('movimento'))return 'movimento';
+      if(roles.isBaristaAgent(agent))return 'barista';
+      return 'agente';
+    };
+    const ruolo=roleOf(sessionAgent);
+    window.gtag('js',new Date());
+    if(ruolo)window.gtag('set','user_properties',{ruolo});
+    window.gtag('config',GA_ID,{send_page_view:false});
+    window.gtag('event','page_view',{page_title:document.title,page_location:location.origin+location.pathname,page_path:location.pathname});
+  };
+  try{installAnalytics()}catch{}
   // Registra un solo dato di attività: pagina corrente e ora. Il tentativo viene
   // ripetuto perché in alcune pagine Firebase è caricato dopo questo script.
   const trackPageView=attempt=>{
