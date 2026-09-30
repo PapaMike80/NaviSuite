@@ -303,7 +303,9 @@
   // (es. "D3*" per una variazione ODS, vedi naviturni.html): la cerchiamo
   // per la ricerca dell'orario ma lasciamo il testo originale nel titolo.
   const shiftTimeKey = code => {
-    const base = String(code || '').replace(/[^A-Z0-9]+$/i, '').toUpperCase();
+    let base = String(code || '').replace(/[^A-Z0-9]+$/i, '').toUpperCase();
+    // Trasferta CxxC: stesso orario del turno base (CD1C -> D1).
+    if (!SHIFT_TIMES[base] && base.length > 2 && /^C.+C$/.test(base)) base = base.slice(1, -1);
     return (base === 'CAR' || base === 'CAP') ? `${base}1` : base;
   };
 
