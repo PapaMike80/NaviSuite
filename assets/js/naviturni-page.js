@@ -835,7 +835,9 @@
       if (String(v || "") === BARISTA_PRIVATE_SHIFT) {
         return '<span class="cell-pill c-rip private-shift" aria-label="Turno non condiviso"></span>';
       }
-      if (!v || v.trim() === "" || v.trim() === "----" || v.trim().toLowerCase() === "rip" || v.trim().toLowerCase() === "rip.") {
+      // Anche "Riposo"/"RIPOSO" (es. giornata modificata a mano dalla diaria)
+      // e' un riposo: pillola "rip", non il testo intero che non ci sta.
+      if (!v || isRiposoShift(v)) {
         return '<span class="cell-pill c-rip">rip</span>';
       }
       const cls = classify(v);
