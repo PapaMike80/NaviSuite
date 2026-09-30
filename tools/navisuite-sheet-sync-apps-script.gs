@@ -10,6 +10,8 @@
  * Installazione: dall'editor Apps Script selezionare installaTrigger,
  * premere Esegui e autorizzare. Da quel momento ogni modifica al foglio
  * arriva su NaviSuite in pochi secondi (basta riaprire/aggiornare la pagina).
+ * Nel verso opposto, ogni 5 minuti applicaModificheApp() scrive nel foglio i
+ * turni modificati a mano da NaviDiaria, NaviDistinta e NaviTurni.
  * sincronizzaOra() forza una pubblicazione manuale; estendiFoglio() aggiunge
  * le date che NaviSuite ha gia' (es. un nuovo turno da PDF) ma il foglio no.
  */
@@ -43,11 +45,16 @@ function alModificaFoglio() {
   try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
 }
 function controlloPeriodico() {
+  // Prima porta nel foglio le modifiche fatte nelle app, poi pubblica.
+  try { applicaModificheApp(); } catch (error) { Logger.log('applicaModificheApp: ' + error); }
   sync_(false);
   // Il trigger ogni 5 minuti tiene nascoste anche le giornate appena passate.
   try { nascondiGiorniPassati(); } catch (error) { Logger.log('nascondiGiorniPassati: ' + error); }
 }
-function sincronizzaOra() { const result = sync_(true); Logger.log(JSON.stringify(result)); return result; }
+function sincronizzaOra() {
+  try { applicaModificheApp(); } catch (error) { Logger.log('applicaModificheApp: ' + error); }
+  const result = sync_(true); Logger.log(JSON.stringify(result)); return result;
+}
 
 // ---- Sincronizzazione ----------------------------------------------------
 
@@ -152,6 +159,116 @@ function stableAgentUid_(value) {
   const key = String(value || '').trim().toUpperCase().normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
   return key ? 'AG_' + key : '';
+}
+
+// ---- Modifiche dalle app (NaviSuite -> foglio) ----------------------------
+// Il popup giornata di NaviDiaria/NaviDistinta/NaviTurni salva il turno
+// modificato a mano nell'archivio diaria dell'agente
+// (private/adminUpdates/diaria/<id>, voci con manualOverride). Qui quelle
+// voci vengono scritte nella cella del foglio, con trasferta (CxxC) e
+// sovrannumero (*). Per ogni agente/giorno si ricorda l'ultimo codice
+// applicato (Script Properties): una modifica fatta dopo direttamente nel
+// foglio non viene piu' sovrascritta finche' nell'app non cambia di nuovo.
+
+const APPLIED_PREFIX = 'NAVISUITE_APP_APPLIED_';
+const NO_VARIANT_CODES = ['RIP', 'CON', 'LAV', 'L.D.', 'F.P.', 'RF', 'MALATTIA', 'CORSO', 'PROVE', '#'];
+
+function applicaModificheApp() {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { scritte: 0 };
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+  const normalized = header.map(normalizeHeader_);
+  const uidIndex = normalized.indexOf('AGENTUID');
+  const nameIndex = normalized.indexOf('AGENTE');
+  const columnByDate = {};
+  header.forEach((value, index) => { const iso = isoDate_(value); if (iso) columnByDate[iso] = index + 1; });
+
+  const props = PropertiesService.getScriptProperties();
+  const pending = [];
+  asArray_(firebase_('GET', 'private/adminUpdates/diaria')).forEach(record => {
+    const agentId = String(record.agentId || '').trim();
+    if (!agentId) return;
+    const key = APPLIED_PREFIX + agentId.replace(/[^A-Za-z0-9_]/g, '_');
+    let applied = {};
+    try { applied = JSON.parse(props.getProperty(key) || '{}'); } catch (_) {}
+    asArray_(record.entries).forEach(entry => {
+      const iso = String(entry.date || '').slice(0, 10);
+      if (!columnByDate[iso]) return;
+      // Anche una voce riportata al turno originale va riscritta, se in
+      // passato avevamo applicato una modifica per quel giorno.
+      if (entry.manualOverride !== true && !(iso in applied)) return;
+      const code = appSheetCode_(entry);
+      if (!code || applied[iso] === code) return;
+      pending.push({ agentId, key, applied, iso, code });
+    });
+  });
+  if (!pending.length) return { scritte: 0 };
+
+  // agentId delle app -> riga del foglio (per agent_uid o nome).
+  const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getDisplayValues();
+  const rowByKey = {};
+  rows.forEach((row, index) => {
+    const name = String(row[nameIndex] || '').trim();
+    const uid = (uidIndex >= 0 && String(row[uidIndex] || '').trim()) || stableAgentUid_(name);
+    rowByKey['U:' + uid] = index + 2;
+    rowByKey['N:' + normalizeHeader_(name)] = index + 2;
+  });
+  const agentsById = {};
+  const schedule = firebase_('GET', 'public/schedule') || {};
+  Object.keys(schedule.residenze || {}).forEach(residence => asArray_(schedule.residenze[residence]).forEach(agent => {
+    if (agent && agent.id !== undefined) agentsById[String(agent.id)] = agent;
+  }));
+  const valid = codiciValidiFoglio_();
+
+  const touched = {};
+  const result = { scritte: 0, gia_uguali: 0, non_validi: [], agenti_non_trovati: [] };
+  pending.forEach(item => {
+    const agent = agentsById[item.agentId];
+    const row = agent && (rowByKey['U:' + String(agent.agent_uid || stableAgentUid_(agent.agente))] ||
+      rowByKey['N:' + normalizeHeader_(agent.agente)]);
+    if (!row) {
+      if (result.agenti_non_trovati.indexOf(item.agentId) < 0) result.agenti_non_trovati.push(item.agentId);
+      return;
+    }
+    if (valid && !valid[item.code]) {
+      result.non_validi.push(item.agentId + ' ' + item.iso + ' ' + item.code);
+      return;
+    }
+    const cell = sheet.getRange(row, columnByDate[item.iso]);
+    if (String(cell.getDisplayValue()).trim().toUpperCase() === item.code) result.gia_uguali++;
+    else { cell.setValue(item.code); result.scritte++; }
+    item.applied[item.iso] = item.code;
+    touched[item.key] = item.applied;
+  });
+  Object.keys(touched).forEach(key => props.setProperty(key, JSON.stringify(touched[key])));
+  Logger.log(JSON.stringify(result));
+  return result;
+}
+
+// Codice del foglio per una giornata delle app: i codici delle app (Riposo,
+// AgB, LD, IE, CAR1...) diventano quelli del foglio, piu' trasferta e
+// sovrannumero quando il turno li ammette.
+function appSheetCode_(entry) {
+  const raw = String(entry && entry.shift || '').trim().toUpperCase();
+  if (!raw) return '';
+  const aliases = { RIPOSO: 'RIP', LD: 'L.D.', IE: 'I.E.', CAR1: 'CAR', CAP1: 'CAP', FP: 'F.P.', SS: 'S.S.' };
+  const base = aliases[raw] || raw;
+  if (NO_VARIANT_CODES.indexOf(base) >= 0) return base;
+  return (entry.travel === true ? 'C' + base + 'C' : base) + (entry.supernumerary === true ? '*' : '');
+}
+
+// Elenco dei codici ammessi nel foglio (colonna E del tab "Codici validi");
+// null se il tab non c'e', e allora non si filtra.
+function codiciValidiFoglio_() {
+  const tab = SpreadsheetApp.getActive().getSheetByName('Codici validi');
+  if (!tab || tab.getLastRow() < 2) return null;
+  const valid = {};
+  tab.getRange(2, 5, tab.getLastRow() - 1, 1).getDisplayValues()
+    .forEach(([value]) => { const code = String(value || '').trim().toUpperCase(); if (code) valid[code] = true; });
+  return Object.keys(valid).length ? valid : null;
 }
 
 // ---- Giornate passate ------------------------------------------------------
