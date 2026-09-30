@@ -441,8 +441,17 @@ function residenzaIl_(info, iso) {
   return info.nuova && info.dal && iso >= info.dal ? info.nuova : info.residenza;
 }
 
+// Fuso orario del foglio; se non e' disponibile (puo' capitare), quello dello
+// script o l'Italia.
+function timeZone_() {
+  let zone = '';
+  try { zone = SpreadsheetApp.getActive().getSpreadsheetTimeZone(); } catch (_) {}
+  if (!zone) { try { zone = Session.getScriptTimeZone(); } catch (_) {} }
+  return zone || 'Europe/Rome';
+}
+
 function todayIso_() {
-  return Utilities.formatDate(new Date(), SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  return Utilities.formatDate(new Date(), timeZone_(), 'yyyy-MM-dd');
 }
 
 // Scrive nel tab dei turni la residenza di oggi di ogni agente (solo le celle
@@ -486,7 +495,7 @@ function nascondiGiorniPassati() {
   const sheet = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
   if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
   const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
-  const firstVisible = Utilities.formatDate(new Date(Date.now() - GIORNI_PASSATI_VISIBILI * 86400000), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const firstVisible = Utilities.formatDate(new Date(Date.now() - GIORNI_PASSATI_VISIBILI * 86400000), timeZone_(), 'yyyy-MM-dd');
   const dates = header.map((value, index) => ({ iso: isoDate_(value), column: index + 1 })).filter(item => item.iso);
   const past = dates.filter(item => item.iso < firstVisible);
   const upcoming = dates.filter(item => item.iso >= firstVisible);
@@ -887,7 +896,7 @@ const TODAY_PROPERTY = 'NAVISUITE_SHEET_TODAY_COLUMN';
 
 function evidenziaOggi_(sheet, header, dateIndexes) {
   const props = PropertiesService.getScriptProperties();
-  const today = Utilities.formatDate(new Date(), SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const today = Utilities.formatDate(new Date(), timeZone_(), 'yyyy-MM-dd');
   const rows = sheet.getLastRow();
   const columnOf = iso => {
     const index = dateIndexes.find(item => isoDate_(header[item]) === iso);
