@@ -40,15 +40,15 @@ assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft
 // La cella STRAORDINARI e il popup giornata convergono: l'editor Straordinari
 // ridisegna la Distinta anche alla chiusura (onClose), come fa il popup giornata.
 assert.match(popup,/document\.body\.classList\.toggle\('weekly-dialog-open',!modal\(\)\.hidden\);options\.onClose\?\.\(\)\};m\.querySelectorAll\('\[data-overtime-close\]'\)/);
-assert.match(monthly,/onSave:\(\)=>commitOvertime\('onSave'\),onClose:\(\)=>commitOvertime\('onClose'\)/);
+// La cella STRAORDINARI apre direttamente il popup giornata.
+assert.match(monthly,/row\.key==='overtime'\|\|row\.kind==='worked'\)\{openDayBubbleEditor\(dateIso\);return\}/);
 assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=130/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=18/);
-assert.match(turni,/assets\/js\/day-popup\.js\?v=18/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=\d+/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
-assert.ok(turni.indexOf('assets/js/overtime-components.js')<turni.indexOf('assets/js/day-popup.js'));
+// NaviTurni non ha piu' un popup proprio: il turno si modifica in NaviDiaria.
+assert.doesNotMatch(turni,/assets\/js\/day-popup\.js/);
+assert.match(fs.readFileSync('assets/js/naviturni-page.js','utf8'),/location\.href = `navidiaria\.html\?editDate=\$\{encodeURIComponent\(dateIso\)\}`/);
 assert.ok(diaria.indexOf('assets/js/overtime-components.js')<diaria.indexOf('assets/js/day-popup.js'));
-assert.match(turni,/assets\/js\/day-popup\.js\?v=18/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=18/);
 
 console.log('Shared day popup regression test passed');
