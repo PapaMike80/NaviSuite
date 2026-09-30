@@ -1,0 +1,73 @@
+/* ex <style id="trova-turno-sticky-date-row-final"> */
+  /* La riga delle date resta sempre agganciata sotto la scheda gialla. */
+  #matrix-scroll-wrap thead {
+    position: relative !important;
+    z-index: 60 !important;
+  }
+
+  #matrix-scroll-wrap .date-header {
+    position: sticky !important;
+    top: var(--cambio-bar-height, 0px) !important;
+    z-index: 80 !important;
+  }
+
+  #matrix-scroll-wrap .date-header > th {
+    position: relative !important;
+    top: auto !important;
+    z-index: 80 !important;
+    background: var(--bg-card) !important;
+    box-shadow: 0 2px 0 var(--line) !important;
+  }
+
+  #matrix-scroll-wrap .date-header > th:first-child {
+    position: sticky !important;
+    left: 0 !important;
+    top: auto !important;
+    z-index: 95 !important;
+    box-shadow: 0 2px 0 var(--line), 2px 0 0 var(--line) !important;
+  }
+
+/* ex <style id="change-request-cloud-style"> */
+#cambio-request-sent{border-color:#22c55e!important;background:rgba(34,197,94,.16)!important;color:#bbf7d0!important;font-weight:900!important}
+#change-request-register{margin:14px 0;padding:14px;border:1px solid #28505a;border-radius:12px;background:#0d202b;color:#edf6f7}
+#change-request-register h2{margin:0 0 10px;color:#5eead4;font-size:15px}.change-register-wrap{overflow:auto}.change-register-wrap table{width:100%;border-collapse:collapse}.change-register-wrap th,.change-register-wrap td{padding:9px;border-bottom:1px solid #234452;text-align:left;font-size:12px}.change-register-wrap td strong{color:#fde68a}.change-empty{color:#9bb4bc}
+
+#change-request-register .change-actions{display:flex;gap:6px;flex-wrap:wrap}
+#change-request-register .change-action-btn{border:1px solid #3a6470;border-radius:8px;background:#16313d;color:#e7f6f7;padding:7px 10px;font:inherit;font-weight:800;cursor:pointer}
+#change-request-register .change-action-btn:hover{filter:brightness(1.15)}
+#change-request-register .change-action-send{border-color:#2dd4bf;color:#99f6e4;background:rgba(45,212,191,.12)}
+#change-request-register .change-action-delete{border-color:#ef4444;color:#fecaca;background:rgba(239,68,68,.12)}
+@media(max-width:700px){
+  #change-request-register{margin:12px 10px;padding:12px}
+  .change-register-wrap{overflow:visible}
+  .change-register-wrap table,.change-register-wrap tbody,.change-register-wrap tr,.change-register-wrap td{display:block;width:100%}
+  .change-register-wrap table{min-width:0}
+  .change-register-wrap thead{display:none}
+  .change-register-wrap tr{margin:0 0 12px;padding:12px;border:1px solid #28505a;border-radius:11px;background:#102a35}
+  .change-register-wrap tr:last-child{margin-bottom:0}
+  .change-register-wrap td{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;padding:7px 0;border:0;font-size:13px;overflow-wrap:anywhere}
+  .change-register-wrap td::before{content:attr(data-label);color:#8fb1bb;font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  .change-register-wrap td.change-summary-cell{display:block;padding:10px 0;border-top:1px solid #234452;border-bottom:1px solid #234452}
+  .change-register-wrap td.change-summary-cell::before{display:block;margin-bottom:8px}
+  .change-register-wrap .change-day-block{grid-template-columns:1fr;gap:3px}
+  .change-register-wrap .change-day-date{grid-row:auto;margin-bottom:3px;white-space:normal}
+  .change-register-wrap .change-agent-line{white-space:normal}
+  .change-register-wrap td.change-actions-cell{display:block;padding:10px 0 0}
+  #change-request-register .change-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #change-request-register .change-action-btn{min-height:42px;width:100%}
+}
+.change-send-modal{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,8,12,.78);backdrop-filter:blur(5px)}
+.change-send-modal.open{display:flex}.change-send-dialog{width:min(520px,100%);border:1px solid #315866;border-radius:16px;background:#0c202a;color:#eefafa;box-shadow:0 25px 80px rgba(0,0,0,.55);padding:18px}
+.change-send-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.change-send-head h3{margin:0;color:#5eead4;font-size:18px}.change-send-close{border:0;background:transparent;color:#bdd1d6;font-size:26px;line-height:1;cursor:pointer}
+.change-send-summary{padding:10px;border-radius:10px;background:rgba(255,255,255,.045);font-size:13px;line-height:1.5;margin-bottom:14px;white-space:pre-wrap}.change-send-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.change-send-buttons a,.change-send-buttons button{display:flex;align-items:center;justify-content:center;min-height:48px;border:0;border-radius:11px;text-decoration:none;font:900 13px inherit;cursor:pointer}
+.change-send-copy{background:#164153;color:#d5fffa}.change-send-mail{background:#2563eb;color:white}.change-send-whatsapp{background:#16a34a;color:white}@media(max-width:520px){.change-send-buttons{grid-template-columns:1fr}}
+
+/* ex <style id="change-register-both-agents-style"> */
+.change-day-block{display:grid;grid-template-columns:minmax(82px,auto) minmax(0,1fr);gap:2px 12px;align-items:start}.change-day-date{grid-row:1 / span 2;color:#5eead4;font-weight:900;text-transform:capitalize;white-space:nowrap}.change-agent-line{display:block;line-height:1.45;white-space:nowrap}.change-agent-line+ .change-agent-line{margin-top:2px;color:#fdba74}.change-day-separator{border:0;border-top:1px solid rgba(255,255,255,.12);margin:8px 0}
+
+/* ex <style id="crew-panel-close-control"> */
+  #day-panel .panel-controls-top{display:flex;align-items:flex-start;gap:8px;width:100%}
+  #day-panel .panel-controls-top .panel-shift-selector{flex:1 1 auto;min-width:0}
+  #day-panel .panel-close{display:grid;place-items:center;flex:0 0 42px;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;margin:0!important;padding:0!important;border:2px solid rgba(255,255,255,.45)!important;border-radius:50%!important;background:#dc2626!important;color:#fff!important;font:1000 21px/1 system-ui,sans-serif!important;box-shadow:0 4px 13px rgba(127,29,29,.42)!important;cursor:pointer}
+  #day-panel .panel-close:hover,#day-panel .panel-close:focus-visible{background:#ef4444!important;outline:2px solid #fecaca;outline-offset:2px}
+  @media(max-width:520px){#day-panel .panel-controls-top{gap:6px}#day-panel .panel-close{flex-basis:40px;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}}

@@ -1,0 +1,346 @@
+/* ex <style id="cambi-turno-style"> */
+  /* Cambi turno: stessa tabella di NaviTurni, senza indicatori degli equipaggi. */
+  #crew-drawer,
+  #crew-drawer-toggle,
+  #coverage-board,
+  .coverage-board,
+  .coverage-section,
+  .future-shared-dot,
+  .shared-crew-change-label { display:none !important; }
+
+  #tbody tr.cambio-hidden,
+  #tbody tr.cambio-non-parigrado { display:none !important; }
+
+  /* In questa pagina non mostriamo mai turni o giornate in comune. */
+  #tbody tr.has-shared-crew td.td-name .agent-name-text::before { display:none !important; }
+  #tbody td.shared-crew-day .cell-pill,
+  #tbody td.pinned-shared-crew-day .cell-pill,
+  #tbody td.selected-shared-crew-day .cell-pill,
+  #tbody td.hover-common-cell .cell-pill,
+  #tbody tr.shared-crew-focus td.shared-crew-day .cell-pill {
+    animation:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    filter:none !important;
+  }
+
+  /* Il bordo giallo appartiene soltanto alla bolla del servizio. */
+  #tbody td.cambio-possibile { cursor:pointer; }
+  #tbody td.cambio-possibile .cell-pill {
+    position:relative;
+    outline:3px solid #facc15 !important;
+    outline-offset:2px;
+    box-shadow:0 0 10px rgba(250,204,21,.55) !important;
+    filter:brightness(1.14);
+    cursor:pointer;
+  }
+  #tbody td.cambio-possibile .cell-pill:hover {
+    transform:translateY(-1px);
+    box-shadow:0 0 16px rgba(250,204,21,.8) !important;
+  }
+
+  #tbody tr.cambio-candidato td.td-name {
+    box-shadow:inset 4px 0 0 #22c55e,2px 0 0 var(--line) !important;
+  }
+  #tbody tr.cambio-candidato td.td-name::after {
+    content:'CAMBIO';
+    margin-left:6px;
+    padding:1px 5px;
+    border:1px solid rgba(34,197,94,.65);
+    border-radius:999px;
+    color:#86efac;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.06em;
+  }
+  .date-header th.cambio-data-selezionata {
+    background:#facc15 !important;
+    color:#241a00 !important;
+    box-shadow:inset 0 0 0 2px #fde68a,0 2px 0 var(--line) !important;
+  }
+
+  #cambio-info,
+  #cambio-mail-box {
+    display:none;
+    margin:0 0 12px;
+    padding:10px 14px;
+    border:1px solid rgba(250,204,21,.55);
+    border-radius:10px;
+    background:rgba(250,204,21,.09);
+    color:var(--ink);
+    font-size:12px;
+    font-weight:750;
+  }
+  #cambio-info.open,
+  #cambio-mail-box.open { display:block; }
+  #cambio-info strong,
+  #cambio-mail-box strong { color:#fde047; }
+  #cambio-info button,
+  #cambio-mail-box button,
+  #cambio-mail-box a {
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:var(--bg-card);
+    color:var(--ink);
+    padding:5px 10px;
+    cursor:pointer;
+    text-decoration:none;
+    font:inherit;
+  }
+  #cambio-info > button { float:right; margin:-3px 0 -3px 12px; }
+  .cambio-mail-head {
+    margin-bottom:6px;
+  }
+  .cambio-mail-actions { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  #cambio-mail-text {
+    width:100%;
+    min-height:190px;
+    resize:vertical;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--bg);
+    color:var(--ink);
+    font:500 15px/1.35 'Times New Roman',Times,serif;
+  }
+  #cambio-mail-status { min-height:16px; margin-top:6px; color:#86efac; font-size:11px; }
+  #cambio-whatsapp-text {
+    width:100%; min-height:165px; resize:vertical; margin-top:8px; padding:10px 12px;
+    border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);
+    font:500 15px/1.35 'Times New Roman',Times,serif;
+  }
+  .cambio-whatsapp-block { margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
+  .cambio-whatsapp-title { font-weight:900; color:#86efac; margin-bottom:6px; }
+  .cambio-whatsapp-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  #cambio-hours-summary {
+    display:none;
+    margin:0 0 10px;
+    padding:10px 12px;
+    border:1px solid rgba(45,212,191,.45);
+    border-radius:8px;
+    background:rgba(45,212,191,.08);
+  }
+  #cambio-hours-summary.open { display:block; }
+  .cambio-hours-title {
+    margin-bottom:7px;
+    color:#99f6e4;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .cambio-hours-grid {
+    display:grid;
+    grid-template-columns:minmax(90px,1.25fr) repeat(3,minmax(70px,1fr));
+    gap:5px 8px;
+    align-items:center;
+    font-size:11px;
+  }
+  .cambio-hours-grid .head { color:var(--ink-dim); font-size:9px; font-weight:800; text-transform:uppercase; }
+  .cambio-hours-grid .agent { font-weight:900; }
+  .cambio-hours-grid .delta-plus { color:#86efac; font-weight:900; }
+  .cambio-hours-grid .delta-minus { color:#fca5a5; font-weight:900; }
+  .cambio-hours-grid .delta-zero { color:var(--ink-dim); font-weight:800; }
+  .cambio-hours-note { margin-top:7px; color:var(--ink-dim); font-size:10px; line-height:1.35; }
+  @media(max-width:640px) {
+    .cambio-hours-grid { grid-template-columns:minmax(78px,1.15fr) repeat(3,minmax(58px,1fr)); gap:5px 4px; font-size:10px; }
+  }
+
+
+  /* Nasconde tutte le date già trascorse, mantenendo perfettamente allineati
+     intestazione e corpo della tabella. */
+  .date-header th.cambio-data-passata,
+  #tbody td.cambio-data-passata { display:none !important; }
+
+  /* Anche il servizio scelto dall'agente viene marcato sulla bolla,
+     compresi DT, PonD, BIS e gli altri servizi di terra. */
+  #tbody td.cambio-turno-selezionato .cell-pill {
+    position:relative;
+    outline:3px solid #facc15 !important;
+    outline-offset:2px;
+    box-shadow:0 0 12px rgba(250,204,21,.72) !important;
+    filter:brightness(1.16);
+  }
+
+  /* Forza la stessa geometria tra la riga date e tutte le righe agenti. */
+  #matrix-scroll-wrap table { table-layout:fixed !important; }
+  #matrix-scroll-wrap .date-header th:first-child,
+  #matrix-scroll-wrap #tbody td:first-child {
+    width:104px !important;
+    min-width:104px !important;
+    max-width:104px !important;
+  }
+  #matrix-scroll-wrap .date-header th[data-col],
+  #matrix-scroll-wrap #tbody td[data-col] {
+    width:40px !important;
+    min-width:40px !important;
+    max-width:40px !important;
+  }
+  @media(max-width:640px) {
+    #matrix-scroll-wrap .date-header th:first-child,
+    #matrix-scroll-wrap #tbody td:first-child {
+      width:92px !important;
+      min-width:92px !important;
+      max-width:92px !important;
+    }
+    #matrix-scroll-wrap .date-header th[data-col],
+    #matrix-scroll-wrap #tbody td[data-col] {
+      width:34px !important;
+      min-width:34px !important;
+      max-width:34px !important;
+    }
+  }
+  .date-header th[data-col],
+  #tbody tr.logged-agent-row td[data-col] { cursor:pointer; }
+  .date-header th.cambio-data-selezionata { position:relative; z-index:3; }
+
+  /* La scheda gialla resta sempre raggiungibile mentre si consulta la tabella. */
+  #cambio-info.open {
+    position:sticky;
+    top:0;
+    z-index:45;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    background:#4a3a06;
+    border-color:#facc15;
+    box-shadow:0 5px 18px rgba(0,0,0,.35);
+  }
+  #cambio-info > button { float:none; margin:0; flex:0 0 auto; }
+  #cambio-info > span { flex:1 1 280px; }
+  #cambio-info .cambio-residence-toggle {
+    border-color:#fde047;
+    color:#fde68a;
+    background:#2b250d;
+  }
+  #tbody tr.cambio-altra-residenza td.td-name::after {
+    content:attr(data-residence-label);
+  }
+  #tbody tr.cambio-altra-residenza td.td-name {
+    border-left:3px solid #facc15 !important;
+  }
+  #tbody tr.cambio-altra-residenza .transfer-table-label {
+    display:block !important;
+    color:#fde047 !important;
+    font-size:8px !important;
+    font-weight:900 !important;
+    text-transform:uppercase;
+  }
+  @media(max-width:640px) {
+    #cambio-info.open { top:0; padding:8px 9px; font-size:11px; }
+    #cambio-info > span { flex-basis:100%; order:3; }
+  }
+
+
+  /* Trova turno: tutte le righe mantengono la stessa altezza, anche quando
+     vengono caricate residenze diverse. La residenza resta visibile senza
+     allargare verticalmente la cella del nome. */
+  #tbody tr,
+  #tbody tr.cambio-altra-residenza {
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+  }
+  #tbody tr > td {
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    box-sizing:border-box !important;
+    overflow:hidden;
+  }
+  #tbody td.td-name {
+    position:relative;
+    padding-top:5px !important;
+    padding-bottom:11px !important;
+    vertical-align:middle;
+  }
+  #tbody tr.cambio-altra-residenza .transfer-table-label {
+    display:block !important;
+    position:absolute;
+    left:8px;
+    right:4px;
+    bottom:2px;
+    margin:0 !important;
+    line-height:9px !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    pointer-events:none;
+  }
+
+  /* In Trova turno non servono i pallini di completezza, trasferta,
+     variazione ODS o rifornimento: evitano le piccole bolle sparse. */
+  #tbody .upper-cell-indicators,
+  #tbody .upper-cell-refuel,
+  #tbody .future-shared-dot {
+    display:none !important;
+  }
+
+
+  /* Altre residenze: righe semplici, senza riquadri o decorazioni aggiuntive. */
+  #tbody tr.cambio-altra-residenza,
+  #tbody tr.cambio-altra-residenza > td {
+    border-left:0 !important;
+    border-right:0 !important;
+    box-shadow:none !important;
+  }
+  #tbody tr.cambio-altra-residenza td.td-name {
+    border-left:0 !important;
+    padding-top:5px !important;
+    padding-bottom:5px !important;
+  }
+  #tbody tr.cambio-altra-residenza td.td-name::after,
+  #tbody tr.cambio-altra-residenza .transfer-table-label {
+    display:none !important;
+    content:none !important;
+  }
+  /* Nessun contenitore secondario o barra laterale per le righe importate. */
+  #tbody tr.cambio-altra-residenza {
+    overflow:visible !important;
+  }
+
+/* ex <style id="trova-turno-mobile-liquid-modal-style"> */
+  @media(max-width:800px) {
+    body.trova-turno-page .turni-menu-button,
+    body.trova-turno-page .menu-button {
+      display:none !important;
+    }
+  }
+  body.trova-turno-page .liquid-modal-overlay {
+    position:fixed;
+    inset:0;
+    z-index:100000;
+    display:flex;
+    align-items:flex-end;
+    background:rgba(3,10,16,.35);
+    backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s;
+  }
+  body.trova-turno-page .liquid-modal-overlay.open { opacity:1; pointer-events:auto; }
+  body.trova-turno-page .liquid-modal-content {
+    position:relative;
+    width:100%;
+    background:rgba(16,34,45,.55);
+    backdrop-filter:blur(40px) saturate(180%);
+    -webkit-backdrop-filter:blur(40px) saturate(180%);
+    border-top:1px solid rgba(255,255,255,.18);
+    border-radius:24px 24px 0 0;
+    padding:16px 24px 40px;
+    box-shadow:0 -18px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);
+    transform:translateY(100%);
+    transition:transform .3s;
+  }
+  body.trova-turno-page .liquid-modal-overlay.open .liquid-modal-content { transform:translateY(0); }
+  body.trova-turno-page .liquid-modal-header { display:flex; justify-content:flex-end; margin-bottom:12px; }
+  body.trova-turno-page .liquid-modal-header button { background:transparent; border:none; color:#9fb8c2; font-size:20px; font-weight:bold; cursor:pointer; }
+  body.trova-turno-page .filter-section { margin-bottom:28px; }
+  body.trova-turno-page .filter-section span { display:block; color:#9fb8c2; font-size:13px; font-weight:800; text-align:center; margin-bottom:16px; letter-spacing:.2em; }
+  body.trova-turno-page .modal-buttons-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
+  body.trova-turno-page .modal-buttons-grid button { height:44px; background:transparent; border:2px solid var(--btn-color, #9fb8c2); border-radius:999px; color:var(--btn-color, #9fb8c2); font-weight:800; cursor:pointer; }
+  body.trova-turno-page .modal-buttons-grid button[data-res="MENU"] { --btn-color: #3b82f6; grid-column: 1 / -1; }
+  body.trova-turno-page .modal-buttons-grid button[data-res="TUTTE"] { --btn-color: #f8fafc; }
+  body.trova-turno-page .modal-buttons-grid button.active { background:var(--btn-color); color:#06201c; box-shadow:0 0 16px color-mix(in srgb, var(--btn-color) 60%, transparent); }

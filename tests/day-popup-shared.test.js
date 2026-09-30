@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const {readPage}=require('./read-page');
 const {execFileSync}=require('node:child_process');
 
 const popup=fs.readFileSync('assets/js/day-popup.js','utf8');
-const turni=fs.readFileSync('naviturni.html','utf8');
+const turni=readPage('naviturni.html');
 const diaria=fs.readFileSync('navidiaria.html','utf8');
 const monthly=fs.readFileSync('assets/js/navidiaria-monthly.js','utf8');
 const app=fs.readFileSync('assets/js/app.js','utf8');
@@ -40,14 +41,14 @@ assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft
 // ridisegna la Distinta anche alla chiusura (onClose), come fa il popup giornata.
 assert.match(popup,/document\.body\.classList\.toggle\('weekly-dialog-open',!modal\(\)\.hidden\);options\.onClose\?\.\(\)\};m\.querySelectorAll\('\[data-overtime-close\]'\)/);
 assert.match(monthly,/onSave:\(\)=>commitOvertime\('onSave'\),onClose:\(\)=>commitOvertime\('onClose'\)/);
-assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=129/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=17/);
-assert.match(turni,/assets\/js\/day-popup\.js\?v=17/);
+assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=130/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=18/);
+assert.match(turni,/assets\/js\/day-popup\.js\?v=18/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
 assert.ok(turni.indexOf('assets/js/overtime-components.js')<turni.indexOf('assets/js/day-popup.js'));
 assert.ok(diaria.indexOf('assets/js/overtime-components.js')<diaria.indexOf('assets/js/day-popup.js'));
-assert.match(turni,/assets\/js\/day-popup\.js\?v=17/);
-assert.match(diaria,/assets\/js\/day-popup\.js\?v=17/);
+assert.match(turni,/assets\/js\/day-popup\.js\?v=18/);
+assert.match(diaria,/assets\/js\/day-popup\.js\?v=18/);
 
 console.log('Shared day popup regression test passed');

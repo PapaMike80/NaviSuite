@@ -8,12 +8,31 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v237-trasferta-sovrannumero';
+const CACHE_VERSION = 'navisuite-v239-trasferta-sovrannumero';
+// JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
+// della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
+// nell'HTML, altrimenti il precache non viene usato.
+const PAGE_ASSETS = [
+  './assets/css/naviturni-page.css?v=1',
+  './assets/css/naviturni-page-fixes.css?v=1',
+  './assets/js/naviturni-page.js?v=2',
+  './assets/js/naviturni-change-requests.js?v=1',
+  './assets/css/cambi-turno-page.css?v=1',
+  './assets/css/cambi-turno-page-fixes.css?v=1',
+  './assets/js/cambi-turno-page.js?v=1',
+  './assets/css/cambi-turno-logic.css?v=1',
+  './assets/js/cambi-turno-logic.js?v=1',
+  './assets/css/cambi-turno-layout.css?v=1'
+];
+const PAGE_ASSET_PATHS = PAGE_ASSETS.map(asset => asset.slice(1).replace(/\?.*$/, ''));
 const CORE_ASSETS = [
   './',
   './index.html',
   './oggi.html',
   './naviturni.html',
+  './cambi_turno.html',
+  './navidiaria.html',
+  './navidistinta.html',
   './manifest.json',
   './assets/css/portal.css',
   './assets/css/navi-shared.css',
@@ -34,7 +53,8 @@ const CORE_ASSETS = [
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
   './assets/images/icona_512.png',
-  './assets/images/icona_apple_180.png'
+  './assets/images/icona_apple_180.png',
+  ...PAGE_ASSETS
 ];
 
 async function cachePut(request, response) {
@@ -86,6 +106,22 @@ async function staleWhileRevalidate(event) {
   const fresh = await refresh;
   if (fresh) return fresh;
   throw new Error('Risorsa non disponibile offline');
+}
+
+// File versionati (?v=) estratti dalle pagine: la copia locale si usa solo se
+// ha esattamente la stessa versione richiesta dall'HTML. Senza rete si ripiega
+// su qualsiasi versione salvata, come per gli altri asset.
+async function versionedCacheFirst(request) {
+  const cache = await caches.open(CACHE_VERSION);
+  const exact = await cache.match(request);
+  if (exact) return exact;
+  try {
+    return await fetchAndCache(request);
+  } catch (error) {
+    const any = await cache.match(request, { ignoreSearch:true });
+    if (any) return any;
+    throw error;
+  }
 }
 
 self.addEventListener('install', event => {
@@ -143,11 +179,6 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname.endsWith('/assets/css/shared-menu.css')) {
-    event.respondWith(networkFirst(event.request));
-    return;
-  }
-
-  if (url.pathname.endsWith('/assets/js/orario-lucide-init.js')) {
     event.respondWith(networkFirst(event.request));
     return;
   }
@@ -318,6 +349,11 @@ self.addEventListener('fetch', event => {
 `;
       return text;
     }));
+    return;
+  }
+
+  if (PAGE_ASSET_PATHS.some(path => url.pathname.endsWith(path))) {
+    event.respondWith(versionedCacheFirst(event.request));
     return;
   }
 

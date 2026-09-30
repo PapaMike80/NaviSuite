@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const {readPage}=require('./read-page');
 const {execFileSync}=require('node:child_process');
 
-const html=fs.readFileSync('cambi_turno.html','utf8');
+const html=readPage('cambi_turno.html');
 
 assert.ok(html.startsWith('<!DOCTYPE html>'), 'cambi_turno.html deve iniziare con il doctype');
 assert.doesNotMatch(html,/Warning:\s*truncated output/i);

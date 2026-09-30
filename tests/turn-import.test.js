@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const {readPage}=require('./read-page');
 const vm=require('node:vm');
 const Turn=require('../assets/js/turn-import-helpers.js');
 
@@ -110,13 +111,13 @@ const agg=fs.readFileSync('aggiornamenti.html','utf8');
 assert.match(agg,/assets\/js\/turn-import-helpers\.js/);
 assert.match(agg,/data-field="sposta"/);
 assert.match(agg,/planResidenceMove/);
-const turni=fs.readFileSync('naviturni.html','utf8');
+const turni=readPage('naviturni.html');
 assert.match(turni,/residenzaDal/);
 console.log('turn-import ok');
 
 // ---- naviturni: agente spostato, prima e dopo la decorrenza ---------------
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const src=scripts.find(text=>text.includes('function adattaFormatoNaviturni'));
   const start=src.indexOf('function adattaFormatoNaviturni(');
@@ -203,7 +204,7 @@ console.log('naviturni residence ok');
 // ---- naviturni: agenti che hanno terminato il servizio vengono nascosti ----
 // (finche' non si carica/mostra il passato, dove riappaiono se avevano turni veri)
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const src=scripts.find(text=>text.includes('function hasFinishedService'));
   function grabFn(name){
@@ -238,7 +239,7 @@ console.log('finished-service hide ok');
 // mostra un altro agente al posto del proprio, solo quando qualcuno prima in
 // ordine di anzianita' e' nascosto).
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const src=scripts.find(text=>text.includes('function hasFinishedService'));
   assert.doesNotMatch(src,/currentAgentsList\s*=\s*\([^)]*\)\.filter\(agent => !hasFinishedService/,
@@ -252,7 +253,7 @@ console.log('finished-service index alignment ok');
 
 // ---- naviturni: giorni "altrove" consecutivi in un'unica cella (colspan) --
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const src=scripts.find(text=>text.includes('function elsewhereSpanLength'));
   function grabFn(name){
@@ -292,7 +293,7 @@ console.log('elsewhere span merge ok');
 // ---- naviturni: la cella unita "A <residenza>" non deve avere larghezza fissa
 // (altrimenti si schiaccia e le celle successive della riga si disallineano) --
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   assert.match(html,/tdClasses\.push\("elsewhere-span"\)/);
   assert.match(html,/td\.elsewhere-span\s*\{\s*width:auto!important;\s*min-width:0!important;\s*max-width:none!important;\s*\}/);
 }
@@ -301,7 +302,7 @@ console.log('elsewhere span width override ok');
 // ---- naviturni: una correzione manuale non deve far sparire l'etichetta
 // "A <residenza>" su un giorno in cui l'agente non e' fisicamente li' ------
 {
-  const html=fs.readFileSync('naviturni.html','utf8');
+  const html=readPage('naviturni.html');
   const scripts=[...html.matchAll(/<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   const src=scripts.find(text=>text.includes('function getAgentShiftOnDate'));
   const i=src.indexOf('function getAgentShiftOnDate(');
@@ -321,7 +322,7 @@ console.log('manual override does not leak through elsewhere label ok');
 // ---- cambi_turno: un QuotaExceededError nella cache locale non deve far
 // fallire il caricamento (i dati da Firebase erano comunque arrivati bene) --
 {
-  const html=fs.readFileSync('cambi_turno.html','utf8');
+  const html=readPage('cambi_turno.html');
   const i=html.indexOf('const networkSignature = JSON.stringify(datiJson);');
   const chunk=html.slice(i,i+600);
   assert.match(chunk,/try\s*\{\s*localStorage\.setItem\("turno_finali_data",\s*networkSignature\)/,
@@ -338,7 +339,7 @@ console.log('cambi_turno quota-safe cache ok');
 // ---- cambi_turno: clearSelection/selectResidence/processJSONData non devono
 // crashare se un elemento opzionale del DOM non e' (ancora) presente --------
 {
-  const html=fs.readFileSync('cambi_turno.html','utf8');
+  const html=readPage('cambi_turno.html');
   assert.match(html,/document\.getElementById\("day-panel"\)\?\.classList\.remove\("open"\)/,
     'clearSelection deve usare optional chaining su day-panel');
   assert.match(html,/document\.getElementById\("tbody"\)\?\.classList\.remove\("has-selection"\)/,
