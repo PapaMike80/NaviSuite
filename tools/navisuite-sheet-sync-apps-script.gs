@@ -42,7 +42,11 @@ function alModificaFoglio() {
   // Il colore dei turni non deve mai bloccare la sincronizzazione.
   try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
 }
-function controlloPeriodico() { sync_(false); }
+function controlloPeriodico() {
+  sync_(false);
+  // Il trigger ogni 5 minuti tiene nascoste anche le giornate appena passate.
+  try { nascondiGiorniPassati(); } catch (error) { Logger.log('nascondiGiorniPassati: ' + error); }
+}
 function sincronizzaOra() { const result = sync_(true); Logger.log(JSON.stringify(result)); return result; }
 
 // ---- Sincronizzazione ----------------------------------------------------
@@ -150,6 +154,32 @@ function stableAgentUid_(value) {
   return key ? 'AG_' + key : '';
 }
 
+// ---- Giornate passate ------------------------------------------------------
+// Nasconde le colonne delle date precedenti a oggi (restano nel foglio e
+// continuano a essere sincronizzate) e mostra quelle da oggi in avanti.
+// mostraTutteLeDate() le rende di nuovo visibili tutte.
+
+function nascondiGiorniPassati() {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+  const today = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const dates = header.map((value, index) => ({ iso: isoDate_(value), column: index + 1 })).filter(item => item.iso);
+  const past = dates.filter(item => item.iso < today);
+  const upcoming = dates.filter(item => item.iso >= today);
+  if (past.length) sheet.hideColumns(past[0].column, past[past.length - 1].column - past[0].column + 1);
+  if (upcoming.length) sheet.showColumns(upcoming[0].column, upcoming[upcoming.length - 1].column - upcoming[0].column + 1);
+  return { nascoste: past.length, visibili: upcoming.length };
+}
+
+function mostraTutteLeDate() {
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  sheet.showColumns(1, sheet.getLastColumn());
+}
+
 // ---- Estensione del foglio con i turni gia' su NaviSuite -------------------
 // Aggiunge in fondo al foglio le date che NaviSuite conosce ma il foglio non
 // ha ancora (es. un nuovo turno caricato da PDF), riempiendole con i turni
@@ -238,6 +268,7 @@ function estendiFoglio() {
   // Le modifiche fatte da script non fanno scattare i trigger: si pubblica
   // e si ricolora qui.
   try { coloraGradi(); } catch (error) { Logger.log('coloraGradi: ' + error); coloraTurni(); }
+  try { nascondiGiorniPassati(); } catch (error) { Logger.log('nascondiGiorniPassati: ' + error); }
   const result = { aggiunte: newDates.length, dal: newDates[0], al: newDates[newDates.length - 1], nuoviAgenti: missing.length, sync: sync_(true) };
   Logger.log(JSON.stringify(result));
   return result;
