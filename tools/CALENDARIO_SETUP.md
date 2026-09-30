@@ -54,7 +54,7 @@ Esempio configurazione:
 
 ## Test finale
 
-1. Apri direttamente l'URL `/exec` senza token: deve apparire `Calendario NaviSuite: link non valido.`. Se compare una richiesta di accesso Google, la distribuzione non è pubblica e va impostata su **Chiunque**.
+1. Apri direttamente l'URL `/exec` senza token: deve apparire `Calendario NaviSuite: link non valido. Versione feed: …`, con la stessa `FEED_VERSION` dello script nel repository (se manca la versione, è attivo un deployment vecchio: **Gestisci deployment → matita → Nuova versione**). Se compare una richiesta di accesso Google, la distribuzione non è pubblica e va impostata su **Chiunque**.
 2. Apri NaviSuite e accedi normalmente.
 3. Vai in **Impostazioni → Calendario personale**.
 4. Premi **Attiva sincronizzazione**.
