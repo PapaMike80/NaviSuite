@@ -185,7 +185,11 @@ function firebaseAuth_() {
     method: 'post', muteHttpExceptions: true, contentType: 'application/json', payload: JSON.stringify({ returnSecureToken: true })
   });
   const data = JSON.parse(response.getContentText() || '{}');
-  if (response.getResponseCode() >= 300 || !data.idToken) throw new Error('Autenticazione Firebase non riuscita');
+  if (response.getResponseCode() >= 300 || !data.idToken) {
+    const reason = (data.error && data.error.message) || response.getContentText().slice(0, 200);
+    throw new Error('Autenticazione Firebase non riuscita (HTTP ' + response.getResponseCode() + '): ' + reason +
+      '. Controllare che SHEET_SYNC.apiKey sia identica a quella di assets/js/admin-firebase-rest.js.');
+  }
   auth = { idToken: data.idToken, refreshToken: data.refreshToken, expiresAt: Date.now() + Number(data.expiresIn || 3600) * 1000 };
   props.setProperty(SHEET_SYNC.authProperty, JSON.stringify(auth));
   return auth;
