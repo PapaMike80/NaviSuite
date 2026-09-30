@@ -219,36 +219,53 @@ const GRADE_COLORS = Object.freeze({
 function coloraGradi() {
   const ss = SpreadsheetApp.getActive();
   const turni = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
-  const gradi = ss.getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
   if (!turni) throw new Error('Nessun foglio con la colonna agent_uid in A1');
-  if (!gradi) throw new Error('Nessun foglio "Anzianita e gradi"');
-
-  const gradeMatrix = gradi.getDataRange().getDisplayValues();
-  const gradeHeader = gradeMatrix.shift().map(normalizeHeader_);
-  const agentCol = gradeHeader.indexOf('AGENTE');
-  const gradeCol = gradeHeader.indexOf('GRADO');
-  if (agentCol < 0 || gradeCol < 0) throw new Error('Nel foglio gradi servono le colonne Agente e Grado');
-  const gradeByAgent = {};
-  gradeMatrix.forEach(row => { gradeByAgent[normalizeHeader_(row[agentCol])] = gradeKey_(row[gradeCol]); });
 
   const header = turni.getRange(1, 1, 1, turni.getLastColumn()).getDisplayValues()[0].map(normalizeHeader_);
   const nameIndex = header.indexOf('AGENTE');
   const infoColumns = Math.max(nameIndex, header.indexOf('RESIDENZA'), header.indexOf('AGENTUID')) + 1;
   const lastRow = turni.getLastRow();
   if (nameIndex < 0 || lastRow < 2) return;
-  const names = turni.getRange(2, nameIndex + 1, lastRow - 1, 1).getDisplayValues();
-  const backgrounds = [];
-  const fonts = [];
-  names.forEach(([name]) => {
-    const color = GRADE_COLORS[gradeByAgent[normalizeHeader_(name)]] || null;
-    const tint = color ? mixWithWhite_(color, 0.7) : null;
-    backgrounds.push(new Array(infoColumns).fill(tint));
-    fonts.push(new Array(infoColumns).fill(color ? '#111827' : null));
-  });
+  const tints = gradeTintsByRow_(turni, true);
+  const backgrounds = tints.map(tint => new Array(infoColumns).fill(tint));
+  const fonts = tints.map(tint => new Array(infoColumns).fill(tint ? '#111827' : null));
   const range = turni.getRange(2, 1, lastRow - 1, infoColumns);
   range.setBackgrounds(backgrounds);
   range.setFontColors(fonts);
   turni.getRange(2, nameIndex + 1, lastRow - 1, 1).setFontWeight('bold');
+  // Lo stesso sfondo del grado va anche sotto i turni della riga.
+  coloraTurni();
+}
+
+// Per ogni riga dati del foglio turni, lo sfondo chiaro del grado
+// dell'agente (null se il grado non e' noto). Con strict=false un foglio
+// gradi mancante non e' un errore: si ottengono solo righe senza sfondo.
+function gradeTintsByRow_(turni, strict) {
+  const lastRow = turni.getLastRow();
+  if (lastRow < 2) return [];
+  const header = turni.getRange(1, 1, 1, turni.getLastColumn()).getDisplayValues()[0].map(normalizeHeader_);
+  const nameIndex = header.indexOf('AGENTE');
+  const gradi = SpreadsheetApp.getActive().getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
+  if (!gradi || nameIndex < 0) {
+    if (strict && !gradi) throw new Error('Nessun foglio "Anzianita e gradi"');
+    return new Array(lastRow - 1).fill(null);
+  }
+
+  const gradeMatrix = gradi.getDataRange().getDisplayValues();
+  const gradeHeader = gradeMatrix.shift().map(normalizeHeader_);
+  const agentCol = gradeHeader.indexOf('AGENTE');
+  const gradeCol = gradeHeader.indexOf('GRADO');
+  if (agentCol < 0 || gradeCol < 0) {
+    if (strict) throw new Error('Nel foglio gradi servono le colonne Agente e Grado');
+    return new Array(lastRow - 1).fill(null);
+  }
+  const gradeByAgent = {};
+  gradeMatrix.forEach(row => { gradeByAgent[normalizeHeader_(row[agentCol])] = gradeKey_(row[gradeCol]); });
+
+  return turni.getRange(2, nameIndex + 1, lastRow - 1, 1).getDisplayValues().map(([name]) => {
+    const color = GRADE_COLORS[gradeByAgent[normalizeHeader_(name)]];
+    return color ? mixWithWhite_(color, 0.7) : null;
+  });
 }
 
 function gradeKey_(value) {
@@ -273,8 +290,8 @@ function mixWithWhite_(hex, amount) {
 // ---- Colori dei turni ------------------------------------------------------
 // Stessi colori delle pillole turno di NaviTurni (classify() in naviturni.html
 // e variabili --d1, --d2... in assets/css/navi-shared.css), per tutte le
-// residenze: il turno N di ogni residenza ha il colore di D<N>. Colora solo le
-// colonne data del foglio turni; si aggiorna da solo a ogni modifica oppure
+// residenze: il turno N di ogni residenza ha il colore di D<N>. Colora il
+// testo delle colonne data (lo sfondo e' quello del grado dell'agente) del foglio turni; si aggiorna da solo a ogni modifica oppure
 // eseguendo coloraTurni() a mano.
 
 const SHIFT_COLORS = Object.freeze({
@@ -321,21 +338,35 @@ function coloraTurni() {
   const width = dateIndexes[dateIndexes.length - 1] - first + 1;
   const range = sheet.getRange(2, first + 1, lastRow - 1, width);
   const values = range.getDisplayValues();
+  // Testo nel colore del turno, sfondo nel colore del grado dell'agente
+  // (lo stesso delle colonne agente/residenza).
+  const tints = gradeTintsByRow_(sheet, false);
   const backgrounds = [];
   const fonts = [];
-  values.forEach(row => {
-    const rowBackgrounds = [];
+  const weights = [];
+  values.forEach((row, rowIndex) => {
+    backgrounds.push(new Array(row.length).fill(tints[rowIndex] || null));
     const rowFonts = [];
+    const rowWeights = [];
     row.forEach((value, offset) => {
       const color = dateIndexes.indexOf(first + offset) >= 0 ? shiftColor_(value) : null;
-      rowBackgrounds.push(color ? mixWithWhite_(color, 0.65) : null);
-      rowFonts.push(color ? '#111827' : null);
+      rowFonts.push(color ? mixWithBlack_(color, 0.25) : null);
+      rowWeights.push(color ? 'bold' : 'normal');
     });
-    backgrounds.push(rowBackgrounds);
     fonts.push(rowFonts);
+    weights.push(rowWeights);
   });
   range.setBackgrounds(backgrounds);
   range.setFontColors(fonts);
+  range.setFontWeights(weights);
+}
+
+// Scurisce un po' i colori di NaviTurni (pensati per lo sfondo scuro) cosi'
+// restano leggibili come testo sugli sfondi chiari del foglio.
+function mixWithBlack_(hex, amount) {
+  const n = parseInt(hex.slice(1), 16);
+  const channel = shift => Math.round(((n >> shift) & 255) * (1 - amount));
+  return '#' + [16, 8, 0].map(shift => channel(shift).toString(16).padStart(2, '0')).join('');
 }
 
 function shiftColor_(value) {
