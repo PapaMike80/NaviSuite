@@ -290,13 +290,14 @@
   // dispositivi reali un fetch in piu' durante il download del calendario
   // ha piu' occasioni di fallire (service worker, cache, rete lenta) e il
   // fallback silenzioso lo rendeva impossibile da diagnosticare da remoto.
-  // T1/T2 non sono nella tabella corse ufficiale: restano a giornata intera.
+  // T1/T2 non sono nella tabella corse: orari dall'ufficio (MANUAL_SHIFTS nel generatore).
   /* SHIFT_TIMES:START (rigenerato da tools/generate-shift-times.py, non modificare a mano) */
   const SHIFT_TIMES = {
     D1:{start:'07:55',end:'20:15'}, D2:{start:'07:20',end:'18:25'}, D3:{start:'07:00',end:'19:20'}, D4:{start:'07:15',end:'19:45'},
     M1:{start:'07:20',end:'19:50'}, R1:{start:'07:50',end:'20:05'}, R2:{start:'07:00',end:'19:30'}, R3:{start:'07:40',end:'19:20'},
     R4:{start:'08:20',end:'20:30'}, CAR1:{start:'07:20',end:'19:40'}, P1:{start:'08:10',end:'20:10'}, P2:{start:'07:00',end:'19:20'},
-    P3:{start:'07:35',end:'19:00'}, CAP1:{start:'07:30',end:'19:35'}, SR1:{start:'07:50',end:'19:30'},
+    P3:{start:'07:35',end:'19:00'}, CAP1:{start:'07:30',end:'19:35'}, SR1:{start:'07:50',end:'19:30'}, T1:{start:'07:10',end:'18:30'},
+    T2:{start:'07:45',end:'16:10'},
   };
   /* SHIFT_TIMES:END */
   // Il codice turno puo' arrivare con un asterisco o altro segno di nota
