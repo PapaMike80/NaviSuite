@@ -56,7 +56,7 @@ async function processJob(job) {
   const payload = JSON.stringify({
     title: job.title || 'Ponte Radio',
     body: job.body || '',
-    url: job.url || 'ponteradio.html',
+    url: job.url || 'index.html',
     tag: `navisuite-ponteradio-${job.id}`,
     renotify: true,
     data: { kind: job.kind || 'ponteradio', messageId:job.id, ...(job.meta || {}) }
