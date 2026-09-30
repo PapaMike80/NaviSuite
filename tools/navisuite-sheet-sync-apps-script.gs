@@ -155,19 +155,22 @@ function stableAgentUid_(value) {
 }
 
 // ---- Giornate passate ------------------------------------------------------
-// Nasconde le colonne delle date precedenti a oggi (restano nel foglio e
-// continuano a essere sincronizzate) e mostra quelle da oggi in avanti.
+// Nasconde le colonne delle date piu' vecchie di GIORNI_PASSATI_VISIBILI
+// giorni (restano nel foglio e continuano a essere sincronizzate) e mostra
+// l'ultima settimana passata e tutte le date da oggi in avanti.
 // mostraTutteLeDate() le rende di nuovo visibili tutte.
+
+const GIORNI_PASSATI_VISIBILI = 7;
 
 function nascondiGiorniPassati() {
   const ss = SpreadsheetApp.getActive();
   const sheet = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
   if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
   const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
-  const today = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const firstVisible = Utilities.formatDate(new Date(Date.now() - GIORNI_PASSATI_VISIBILI * 86400000), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
   const dates = header.map((value, index) => ({ iso: isoDate_(value), column: index + 1 })).filter(item => item.iso);
-  const past = dates.filter(item => item.iso < today);
-  const upcoming = dates.filter(item => item.iso >= today);
+  const past = dates.filter(item => item.iso < firstVisible);
+  const upcoming = dates.filter(item => item.iso >= firstVisible);
   if (past.length) sheet.hideColumns(past[0].column, past[past.length - 1].column - past[0].column + 1);
   if (upcoming.length) sheet.showColumns(upcoming[0].column, upcoming[upcoming.length - 1].column - upcoming[0].column + 1);
   return { nascoste: past.length, visibili: upcoming.length };
