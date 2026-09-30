@@ -52,6 +52,8 @@ function alModificaFoglio(e) {
 function controlloPeriodico() {
   // Prima porta nel foglio le modifiche fatte nelle app, poi pubblica.
   try { applicaModificheApp(); } catch (error) { Logger.log('applicaModificheApp: ' + error); }
+  // Residenze del tab turni allineate al tab "Anzianita e gradi" (cambi con data).
+  try { aggiornaResidenze(); } catch (error) { Logger.log('aggiornaResidenze: ' + error); }
   sync_(false);
   // Il trigger ogni 5 minuti tiene nascoste anche le giornate appena passate.
   try { nascondiGiorniPassati(); } catch (error) { Logger.log('nascondiGiorniPassati: ' + error); }
@@ -101,18 +103,37 @@ function batchFromSheet_() {
   const dateColumns = header.map((value, index) => ({ date: isoDate_(value), index })).filter(item => item.date);
   if (nameIndex < 0 || !dateColumns.length) throw new Error('Servono le colonne agent_uid, agente, residenza e almeno una data');
 
+  const registry = anagraficaAgenti_();
+  const today = todayIso_();
   const rows = [];
   matrix.forEach(values => {
     const name = String(values[nameIndex] || '').trim();
     const uid = String((uidIndex >= 0 && values[uidIndex]) || '').trim() || stableAgentUid_(name);
     if (!name && !uid) return;
-    rows.push({
+    const info = registry[normalizeHeader_(name)];
+    const row = {
       id_agente: '',
       agent_uid: uid,
       agente: name,
-      residenza: residenceIndex >= 0 ? String(values[residenceIndex] || '').trim().toUpperCase() : '',
+      residenza: info ? residenzaIl_(info, today) : (residenceIndex >= 0 ? String(values[residenceIndex] || '').trim().toUpperCase() : ''),
       turni: dateColumns.map(column => normalizeShift_(values[column.index]))
-    });
+    };
+    // Agente dell'anagrafica non ancora presente in NaviSuite (es. un neo
+    // assunto): NaviSuite lo crea nella sua residenza con il grado del foglio.
+    // Se esiste gia', "nuovo" viene ignorato.
+    if (info && OPERATIVE_RESIDENCES.indexOf(info.residenza) >= 0) {
+      row.nuovo = true;
+      if (info.grado) row.qualifica = info.grado;
+    }
+    // Cambio di residenza dal tab "Anzianita e gradi": NaviSuite sposta
+    // l'agente dalla data indicata (prima resta nella residenza precedente).
+    if (info && info.nuova && info.dal) {
+      row.residenzaPrecedente = info.residenza;
+      row.residenzaNuova = info.nuova;
+      row.residenzaDal = info.dal;
+      row.sposta = true;
+    }
+    rows.push(row);
   });
   if (!rows.length) throw new Error('Il foglio non contiene righe turno');
 
@@ -393,6 +414,85 @@ function codiciValidiFoglio_() {
   return Object.keys(valid).length ? valid : null;
 }
 
+// ---- Anagrafica: residenze e cambi di residenza ----------------------------
+// Il tab "Anzianita e gradi" e' l'anagrafica degli agenti: Residenza, Agente,
+// Grado, Anzianita e, per spostare un agente, "Nuova residenza" + "Dal".
+// Dalla data "Dal" l'agente passa alla nuova residenza: il tab dei turni si
+// aggiorna da solo e NaviSuite lo sposta dalla stessa data.
+
+const OPERATIVE_RESIDENCES = ['DESENZANO', 'MADERNO', 'RIVA', 'PESCHIERA'];
+
+function anagraficaAgenti_() {
+  const tab = SpreadsheetApp.getActive().getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
+  if (!tab || tab.getLastRow() < 2) return {};
+  const matrix = tab.getDataRange().getDisplayValues();
+  const header = matrix.shift().map(normalizeHeader_);
+  const col = name => header.indexOf(name);
+  const residenceCol = col('RESIDENZA');
+  const agentCol = col('AGENTE');
+  const newCol = col('NUOVARESIDENZA');
+  const gradeCol = col('GRADO');
+  const fromCol = col('DAL');
+  if (agentCol < 0) return {};
+  const registry = {};
+  matrix.forEach(row => {
+    const name = String(row[agentCol] || '').trim();
+    if (!name) return;
+    registry[normalizeHeader_(name)] = {
+      residenza: residenceCol >= 0 ? String(row[residenceCol] || '').trim().toUpperCase() : '',
+      nuova: newCol >= 0 ? String(row[newCol] || '').trim().toUpperCase() : '',
+      dal: fromCol >= 0 ? isoDate_(row[fromCol]) : '',
+      grado: gradeCol >= 0 ? String(row[gradeCol] || '').trim().toLowerCase() : ''
+    };
+  });
+  return registry;
+}
+
+function residenzaIl_(info, iso) {
+  return info.nuova && info.dal && iso >= info.dal ? info.nuova : info.residenza;
+}
+
+// Fuso orario del foglio; se non e' disponibile (puo' capitare), quello dello
+// script o l'Italia.
+function timeZone_() {
+  let zone = '';
+  try { zone = SpreadsheetApp.getActive().getSpreadsheetTimeZone(); } catch (_) {}
+  if (!zone) { try { zone = Session.getScriptTimeZone(); } catch (_) {} }
+  return zone || 'Europe/Rome';
+}
+
+function todayIso_() {
+  return Utilities.formatDate(new Date(), timeZone_(), 'yyyy-MM-dd');
+}
+
+// Scrive nel tab dei turni la residenza di oggi di ogni agente (solo le celle
+// che cambiano). Eseguita ogni 5 minuti e da ordinaAgenti().
+function aggiornaResidenze() {
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet || sheet.getLastRow() < 2) return { aggiornate: 0 };
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].map(normalizeHeader_);
+  const nameIndex = header.indexOf('AGENTE');
+  const residenceIndex = header.indexOf('RESIDENZA');
+  if (nameIndex < 0 || residenceIndex < 0) return { aggiornate: 0 };
+  const registry = anagraficaAgenti_();
+  const today = todayIso_();
+  const count = sheet.getLastRow() - 1;
+  const names = sheet.getRange(2, nameIndex + 1, count, 1).getDisplayValues();
+  const range = sheet.getRange(2, residenceIndex + 1, count, 1);
+  const current = range.getDisplayValues();
+  let changed = 0;
+  const next = current.map(([value], index) => {
+    const info = registry[normalizeHeader_(names[index][0])];
+    const wanted = info ? residenzaIl_(info, today) : '';
+    if (!wanted || String(value).trim().toUpperCase() === wanted) return [value];
+    changed++;
+    return [wanted];
+  });
+  if (changed) range.setValues(next);
+  return { aggiornate: changed };
+}
+
 // ---- Giornate passate ------------------------------------------------------
 // Nasconde le colonne delle date piu' vecchie di GIORNI_PASSATI_VISIBILI
 // giorni (restano nel foglio e continuano a essere sincronizzate) e mostra
@@ -406,7 +506,7 @@ function nascondiGiorniPassati() {
   const sheet = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
   if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
   const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
-  const firstVisible = Utilities.formatDate(new Date(Date.now() - GIORNI_PASSATI_VISIBILI * 86400000), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const firstVisible = Utilities.formatDate(new Date(Date.now() - GIORNI_PASSATI_VISIBILI * 86400000), timeZone_(), 'yyyy-MM-dd');
   const dates = header.map((value, index) => ({ iso: isoDate_(value), column: index + 1 })).filter(item => item.iso);
   const past = dates.filter(item => item.iso < firstVisible);
   const upcoming = dates.filter(item => item.iso >= firstVisible);
@@ -807,7 +907,7 @@ const TODAY_PROPERTY = 'NAVISUITE_SHEET_TODAY_COLUMN';
 
 function evidenziaOggi_(sheet, header, dateIndexes) {
   const props = PropertiesService.getScriptProperties();
-  const today = Utilities.formatDate(new Date(), SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const today = Utilities.formatDate(new Date(), timeZone_(), 'yyyy-MM-dd');
   const rows = sheet.getLastRow();
   const columnOf = iso => {
     const index = dateIndexes.find(item => isoDate_(header[item]) === iso);
@@ -880,6 +980,7 @@ const RESIDENCE_ORDER = ['DESENZANO', 'MADERNO', 'RIVA', 'PESCHIERA'];
 const GRADE_ORDER = ['CAPITANO', 'CAPO_TIMONIERE', 'MOTORISTA', 'TIMONIERE', 'AIUTO_MOTORISTA', 'MARINAIO', 'OPERAIO', 'BARISTA'];
 
 function ordinaAgenti() {
+  aggiornaResidenze();
   const ss = SpreadsheetApp.getActive();
   const turni = ss.getSheets().find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
   const gradi = ss.getSheets().find(s => normalizeHeader_(s.getName()).indexOf('GRADI') >= 0);
