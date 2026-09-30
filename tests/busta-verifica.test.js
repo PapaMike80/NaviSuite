@@ -288,6 +288,20 @@ assert.deepEqual(outcome.rows.map(entry => entry.status), [...outcome.rows.map(e
 assert.deepEqual(outcome.summary, { ok: 6, diff: 1, check: 1, notCompared: 3 });
 assert.deepEqual(outcome.notCompared.map(voce => voce.code).sort(), ['013', '49X', 'FD0']);
 assert.ok(outcome.notCompared.every(voce => voce.reason === 'La Distinta non ha una riga equivalente.'));
+// 01Y (D.P.lav.str. Qu.139B) e' una parte dello straordinario: si somma a 334.
+{
+  const withPart = compareModule.compare({ voci: [...busta.voci, { code: '01Y', description: 'D.P.lav.str. Qu.139B', quantity: 2, base: 5, figurative: null, amount: 10 }] }, { ...compareTotals, overtimeMinutes: 12 * 60 + 30 });
+  const overtimeRow = withPart.rows.find(entry => entry.id === 'overtime');
+  assert.deepEqual(overtimeRow.codes, ['334', '01Y']);
+  assert.equal(overtimeRow.busta, 12.5);
+  assert.equal(overtimeRow.status, 'ok');
+  assert.ok(!withPart.notCompared.some(voce => voce.code === '01Y'), '01Y non e\' piu\' tra le voci non confrontate');
+  const short = compareModule.compare({ voci: [...busta.voci, { code: '01Y', description: 'D.P.lav.str. Qu.139B', quantity: 2, base: 5, figurative: null, amount: 10 }] }, { ...compareTotals, overtimeMinutes: 13 * 60 + 30 });
+  const shortRow = short.rows.find(entry => entry.id === 'overtime');
+  assert.equal(shortRow.diff, 1);
+  assert.equal(shortRow.base, (10.5 * 15 + 2 * 5) / 12.5, 'dato base medio pesato sulle ore');
+  assert.match(shortRow.notes.join(' '), /Dato base medio/);
+}
 // Straordinario in piu' in busta: importo negativo.
 const overpaid = compareModule.compare(busta, { ...compareTotals, overtimeMinutes: 10 * 60 });
 assert.equal(overpaid.rows.find(entry => entry.id === 'overtime').euro, -7.5);

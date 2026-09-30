@@ -12,7 +12,8 @@
   // certainty 'certa': una differenza e' un errore; 'confermare': da verificare.
   // source: 'quantity' (colonna Ore/Giorni/Num.) oppure 'quantityOrFigurative'.
   const RULES = [
-    { id: 'overtime', codes: ['334'], label: 'Straordinari', distintaLabel: 'Straordinari', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60 },
+    // 01Y "D.P.lav.str. Qu.139B" e' una parte dello straordinario: si somma a 334.
+    { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60 },
     { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.embark },
     { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.sundayShift },
     { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandling },
@@ -25,7 +26,6 @@
   const NOT_COMPARED_REASON = 'La Distinta non ha una riga equivalente.';
   const NOT_COMPARED = [
     { codes: ['013'], label: 'Lavoro in FI-FN' },
-    { codes: ['01Y'], label: 'Straordinari con parametro 139' },
     { codes: ['55Y', '56Y'], label: 'Ore differenza paga' },
     { codes: ['49X'], label: 'Indennità prestazione giornaliera' },
     { codes: ['FD0'], label: 'Indennità di rendimento' }
