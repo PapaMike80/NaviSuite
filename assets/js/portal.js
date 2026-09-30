@@ -100,7 +100,7 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
-  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','impostazioni.html','aggiornamenti.html','agenti.html']);
+  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','quiz.html','impostazioni.html','aggiornamenti.html','agenti.html']);
   const savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));
   const preferred=allowedStartPages.has(savedStartPage||'')?savedStartPage:'index.html';
   if(preferred&&preferred!=='index.html'){location.href=preferred;return;}
