@@ -25,6 +25,16 @@
     .settings-foldable>.section-head{position:relative;cursor:pointer;user-select:none}.settings-foldable>.section-head:focus{outline:2px solid #2dd4bf;outline-offset:4px;border-radius:8px}.settings-foldable .settings-chevron{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:8px;border:1px solid #31535e;border-radius:50%;color:var(--accent);font-size:16px;transition:transform .2s}.settings-foldable[data-collapsed="true"] .settings-chevron{transform:rotate(-90deg)}.settings-foldable[data-collapsed="true"]>:not(.section-head){display:none!important}.settings-foldable>.section-head p{padding-right:42px}
     .calendar-url{display:grid;gap:8px;margin-top:18px}.calendar-url input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #31535e;border-radius:9px;background:#071b23;color:#9fded6;font:600 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}.calendar-help{margin:12px 0 0;padding:12px 14px;border:1px solid #294b56;border-radius:9px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5}.calendar-help strong{color:#d8e8ea}.calendar-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.calendar-actions[hidden],.calendar-url[hidden]{display:none!important}.calendar-login{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-top:16px;padding:14px;border:1px solid #31535e;border-radius:10px;background:#0b2029}.calendar-login[hidden]{display:none!important}
     @media(max-width:800px){.grid,.calendar-login{grid-template-columns:1fr}.week-row{grid-template-columns:1fr}.week-state{display:grid;grid-template-columns:repeat(3,1fr)}.week-state button{padding:8px 4px}body.impostazioni-page .mobile-liquid-nav .nav-item{width:64px}body.impostazioni-page .mobile-liquid-nav .nav-item span:last-child{width:auto;font-size:9px;white-space:nowrap}}
+    /* Utenti normali: solo Prima pagina di apertura e Ticket, sempre aperte. */
+    body.settings-simple main{display:flex;flex-direction:column}
+    body.settings-simple main>.intro{order:0}
+    body.settings-simple main>#pagina-iniziale{order:1}
+    body.settings-simple main>#ticket-preference{order:2}
+    body.settings-simple main>section:not(#pagina-iniziale):not(#ticket-preference){display:none!important}
+    body.settings-simple .section-head .badge,body.settings-simple .settings-chevron{display:none!important}
+    body.settings-simple .section-head{cursor:default}
+    body.settings-simple .section-head p{padding-right:0;max-width:none}
+    body.settings-simple #navisuite-start-page{max-width:none}
   </style>
 </head>
 <body class="impostazioni-page turni-page">
@@ -88,7 +98,7 @@
   <script src="assets/js/draft-period.js?v=1"></script>
   <script src="assets/js/shared-menu.js?v=1.58"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
-  <script src="assets/js/calendar-settings-v2.js?v=3"></script>
+  <script src="assets/js/calendar-settings-v2.js?v=4"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -107,6 +117,8 @@
     if(profileNameElement)profileNameElement.textContent=String(profileName).toLocaleUpperCase("it");
     const preferenceKey=`naviturni_settings_${profile?.id||profileName}`;
     const isAdmin=window.NaviRoles.isAdminAgent(profile);
+    document.body.classList.toggle('settings-simple',!isAdmin);
+    if(!isAdmin){const intro=document.querySelector('main>.intro');if(intro)intro.textContent='Scegli dove aprire NaviSuite e come impostare il Ticket. Le preferenze sono associate al tuo profilo.';}
     const isPedroThemeTest=['91','AG_PEDRONI_M'].includes(String(profile?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(profile?.name||profile?.agente||profile?.cognome||''));
     const themeTestSection=document.getElementById('theme-test-setting');
     const themeSelect=document.getElementById('navisuite-theme-select');
@@ -261,7 +273,7 @@
         head.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle();}});
       });
     }
-    installSettingsAccordion();
+    if(isAdmin)installSettingsAccordion();
     loadWeeks();
     loadDraftPeriod();
   </script>
