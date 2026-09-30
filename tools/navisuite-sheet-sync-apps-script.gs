@@ -10,7 +10,8 @@
  * Installazione: dall'editor Apps Script selezionare installaTrigger,
  * premere Esegui e autorizzare. Da quel momento ogni modifica al foglio
  * arriva su NaviSuite in pochi secondi (basta riaprire/aggiornare la pagina).
- * sincronizzaOra() forza una pubblicazione manuale.
+ * sincronizzaOra() forza una pubblicazione manuale; estendiFoglio() aggiunge
+ * le date che NaviSuite ha gia' (es. un nuovo turno da PDF) ma il foglio no.
  */
 const SHEET_SYNC = Object.freeze({
   databaseUrl: 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app',
@@ -147,6 +148,142 @@ function stableAgentUid_(value) {
   const key = String(value || '').trim().toUpperCase().normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
   return key ? 'AG_' + key : '';
+}
+
+// ---- Estensione del foglio con i turni gia' su NaviSuite -------------------
+// Aggiunge in fondo al foglio le date che NaviSuite conosce ma il foglio non
+// ha ancora (es. un nuovo turno caricato da PDF), riempiendole con i turni
+// attuali di ogni agente. Gli agenti presenti su NaviSuite ma non nel foglio
+// (es. neo assunti) vengono aggiunti come nuove righe. Eseguire a mano.
+
+function estendiFoglio() {
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const lastColumn = sheet.getLastColumn();
+  const headerRange = sheet.getRange(1, 1, 1, lastColumn);
+  const headerDisplay = headerRange.getDisplayValues()[0];
+  const headerValues = headerRange.getValues()[0];
+  const normalized = headerDisplay.map(normalizeHeader_);
+  const uidIndex = normalized.indexOf('AGENTUID');
+  const nameIndex = normalized.indexOf('AGENTE');
+  const residenceIndex = normalized.indexOf('RESIDENZA');
+  const dateIndexes = headerDisplay.map((value, index) => isoDate_(value) ? index : -1).filter(index => index >= 0);
+  if (nameIndex < 0 || !dateIndexes.length) throw new Error('Servono le colonne agente e almeno una data');
+  const lastDateIndex = dateIndexes[dateIndexes.length - 1];
+  const lastIso = dateIndexes.map(index => isoDate_(headerDisplay[index])).sort().pop();
+
+  const shiftsByAgent = naviSuiteShifts_();
+  const newDates = [];
+  Object.keys(shiftsByAgent).forEach(key => Object.keys(shiftsByAgent[key].turni).forEach(iso => {
+    if (iso > lastIso && newDates.indexOf(iso) < 0) newDates.push(iso);
+  }));
+  newDates.sort();
+  if (!newDates.length) {
+    Logger.log('Il foglio arriva gia\' all\'ultima data di NaviSuite (' + lastIso + ').');
+    return { aggiunte: 0 };
+  }
+
+  // Righe agente: quelle del foglio piu' gli agenti mancanti.
+  const lastRow = sheet.getLastRow();
+  const matrix = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, lastColumn).getDisplayValues() : [];
+  const rowKeys = matrix.map(row => {
+    const name = String(row[nameIndex] || '').trim();
+    return (uidIndex >= 0 && String(row[uidIndex] || '').trim()) || stableAgentUid_(name);
+  });
+  const byName = {};
+  Object.keys(shiftsByAgent).forEach(key => { byName[normalizeHeader_(shiftsByAgent[key].agente)] = key; });
+  const resolve = (key, name) => shiftsByAgent[key] ? key : byName[normalizeHeader_(name)];
+  const used = {};
+  matrix.forEach((row, index) => {
+    const key = resolve(rowKeys[index], row[nameIndex]);
+    if (key) used[key] = true;
+  });
+  const missing = Object.keys(shiftsByAgent).filter(key => !used[key] &&
+    newDates.some(iso => shiftsByAgent[key].turni[iso]));
+
+  // Nuove colonne subito dopo l'ultima data, con lo stesso formato.
+  sheet.insertColumnsAfter(lastDateIndex + 1, newDates.length);
+  const firstNew = lastDateIndex + 2;
+  const sample = headerValues[lastDateIndex];
+  const headerCells = newDates.map(iso => {
+    if (sample instanceof Date) return new Date(iso + 'T12:00:00');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(headerDisplay[lastDateIndex]).trim())) return iso;
+    return iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
+  });
+  const totalRows = Math.max(lastRow, 1) + missing.length;
+  sheet.getRange(1, lastDateIndex + 1, totalRows, 1)
+    .copyFormatToRange(sheet, firstNew, firstNew + newDates.length - 1, 1, totalRows);
+  if (sample instanceof Date) sheet.getRange(1, firstNew, 1, newDates.length).setNumberFormat(sheet.getRange(1, lastDateIndex + 1).getNumberFormat());
+  sheet.getRange(1, firstNew, 1, newDates.length).setValues([headerCells]);
+
+  const valuesFor = key => newDates.map(iso => sheetShift_(key && shiftsByAgent[key].turni[iso]));
+  if (matrix.length) {
+    sheet.getRange(2, firstNew, matrix.length, newDates.length)
+      .setValues(matrix.map((row, index) => valuesFor(resolve(rowKeys[index], row[nameIndex]))));
+  }
+  if (missing.length) {
+    const width = sheet.getLastColumn();
+    const rows = missing.map(key => {
+      const row = new Array(width).fill('');
+      if (uidIndex >= 0) row[uidIndex] = key;
+      row[nameIndex] = shiftsByAgent[key].agente;
+      if (residenceIndex >= 0) row[residenceIndex] = shiftsByAgent[key].residenza;
+      valuesFor(key).forEach((value, offset) => { row[firstNew - 1 + offset] = value; });
+      return row;
+    });
+    sheet.getRange(lastRow + 1, 1, rows.length, width).setValues(rows);
+  }
+
+  // Le modifiche fatte da script non fanno scattare i trigger: si pubblica
+  // e si ricolora qui.
+  try { coloraGradi(); } catch (error) { Logger.log('coloraGradi: ' + error); coloraTurni(); }
+  const result = { aggiunte: newDates.length, dal: newDates[0], al: newDates[newDates.length - 1], nuoviAgenti: missing.length, sync: sync_(true) };
+  Logger.log(JSON.stringify(result));
+  return result;
+}
+
+// Turni di ogni agente come li vede NaviSuite: calendario base piu' le
+// importazioni attive (turni PDF e foglio) in ordine di caricamento, come
+// applyScheduleImports() in assets/js/shared-data.js.
+function naviSuiteShifts_() {
+  const agents = {};
+  const ensure = (key, name, residence) => {
+    if (!agents[key]) agents[key] = { agente: String(name || '').trim(), residenza: String(residence || '').toUpperCase(), turni: {} };
+    return agents[key];
+  };
+  const schedule = firebase_('GET', 'public/schedule') || {};
+  Object.keys(schedule.residenze || {}).forEach(residence => {
+    asArray_(schedule.residenze[residence]).forEach(agent => {
+      const key = String(agent.agent_uid || stableAgentUid_(agent.agente));
+      if (!key) return;
+      const entry = ensure(key, agent.agente, residence);
+      Object.keys(agent.turni || {}).forEach(iso => {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) entry.turni[iso] = agent.turni[iso];
+      });
+    });
+  });
+  asArray_(firebase_('GET', SHEET_SYNC.importsPath))
+    .filter(batch => batch.attiva !== false)
+    .sort((a, b) => String(a.importedAt || '').localeCompare(String(b.importedAt || '')))
+    .forEach(batch => {
+      const dates = asArray_(batch.dates);
+      asArray_(batch.rows).forEach(row => {
+        const key = String(row.agent_uid || stableAgentUid_(row.agente));
+        if (!key) return;
+        const entry = ensure(key, row.agente, row.residenzaNuova || row.residenza);
+        if (row.residenzaNuova) entry.residenza = String(row.residenzaNuova).toUpperCase();
+        const shifts = row.turni || [];
+        dates.forEach((iso, index) => { entry.turni[iso] = shifts[index]; });
+      });
+    });
+  return agents;
+}
+
+function sheetShift_(value) {
+  if (value == null || value === '') return '';
+  const shift = normalizeShift_(value);
+  return shift === 'TERRA' ? 'LAV' : shift;
 }
 
 // ---- Firebase REST (utente anonimo, come il frontend) ----------------------
