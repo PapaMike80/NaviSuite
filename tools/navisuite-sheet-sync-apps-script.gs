@@ -173,6 +173,8 @@ function nascondiGiorniPassati() {
   const upcoming = dates.filter(item => item.iso >= firstVisible);
   if (past.length) sheet.hideColumns(past[0].column, past[past.length - 1].column - past[0].column + 1);
   if (upcoming.length) sheet.showColumns(upcoming[0].column, upcoming[upcoming.length - 1].column - upcoming[0].column + 1);
+  // Anche il cambio di giorno sposta il bordo colorato sulla nuova colonna.
+  evidenziaOggi_(sheet, header, dates.map(item => item.column - 1));
   return { nascoste: past.length, visibili: upcoming.length };
 }
 
@@ -531,6 +533,35 @@ function coloraTurni() {
   range.setFontColors(fonts);
   range.setFontWeights(weights);
   bordiSettimane_(sheet, header, dateIndexes);
+  evidenziaOggi_(sheet, header, dateIndexes);
+}
+
+// Bordo colorato tutto attorno alla colonna di oggi. Quando cambia il giorno
+// la colonna evidenziata in precedenza torna normale (con il suo eventuale
+// bordo di inizio settimana).
+const TODAY_BORDER_COLOR = '#dc2626';
+const TODAY_PROPERTY = 'NAVISUITE_SHEET_TODAY_COLUMN';
+
+function evidenziaOggi_(sheet, header, dateIndexes) {
+  const props = PropertiesService.getScriptProperties();
+  const today = Utilities.formatDate(new Date(), SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  const rows = sheet.getLastRow();
+  const columnOf = iso => {
+    const index = dateIndexes.find(item => isoDate_(header[item]) === iso);
+    return index === undefined ? null : sheet.getRange(1, index + 1, rows, 1);
+  };
+  const previous = props.getProperty(TODAY_PROPERTY);
+  if (previous && previous !== today) {
+    const old = columnOf(previous);
+    if (old) {
+      old.setBorder(false, false, false, false, null, null);
+      bordiSettimane_(sheet, header, dateIndexes);
+    }
+  }
+  const column = columnOf(today);
+  if (!column) return;
+  column.setBorder(true, true, true, true, null, null, TODAY_BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID_THICK);
+  props.setProperty(TODAY_PROPERTY, today);
 }
 
 // Bordo spesso a sinistra di ogni lunedi' (e ai due estremi delle date), su
