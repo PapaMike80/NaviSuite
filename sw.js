@@ -183,11 +183,6 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (url.pathname.endsWith('/assets/js/orario-lucide-init.js')) {
-    event.respondWith(networkFirst(event.request));
-    return;
-  }
-
   // oggi.js: sempre rete-prima, cosi' il selettore giornata e le altre
   // modifiche arrivano subito senza aspettare la rotazione della cache.
   if (url.pathname.endsWith('/assets/js/oggi.js')) {
