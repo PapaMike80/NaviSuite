@@ -82,15 +82,24 @@ const page2 = [
   item('AZIENDA ESEMPIO S.P.A.', 40, 810),
   ...header(640),
   ...voceRow(620, { code: '49X', description: 'Ind. prest. giornaliera', quantity: '3', base: '5,00', amount: '15,00' }),
-  item('Totale Competenze', 300, 200), item('Totale Ritenute', 400, 200), item('Netto a pagare', 480, 200),
-  right('1.977,54', 376, 188), right('387,85', 466, 188), right('1.589,69', 556, 188),
+  // Percentuale nella colonna Ore/Giorni/Num./%: 0,1% di 1.000,00 = 1,00.
+  ...voceRow(611, { flag: 'C', code: 'X5128', description: 'Ctr Solid. esempio', quantity: '0,1000', base: '1.000,00', amount: '1,00-' }),
+  // Numero dentro la descrizione vicino alla colonna delle ore.
+  item('V11', 48, 602), item('INAIL Azienda V.T.:', 82, 602), item('9130', 201, 602), right('6,8400', COL.quantity, 602), right('2855,00', COL.base, 602),
+  // "Totale ritenute sociali" e' una voce (minuscole), non il totale: dopo c'e' ancora l'IRPEF.
+  ...voceRow(593, { code: '900', description: 'Totale ritenute sociali', base: '137,85' }),
+  ...voceRow(584, { code: 'I21', description: 'Irpef cod.1001', amount: '50,00-' }),
+  // Riquadro finale come sulla busta reale: etichette sopra, valori sotto; NETTO / A PAGARE su due righe.
+  item('Totale Ritenute', 400, 200), item('Totale Competenze', 480, 200),
+  right('438,85', 466, 190), right('1.977,54', 556, 190),
+  item('NETTO', 400, 178), item('A PAGARE', 400, 170), right('1.538,69', 556, 170),
   item('I dati variabili si riferiscono al mese precedente (D.M. 9-07-08)', 40, 120)
 ];
 const busta = parser.parseItems([{ items: page1 }, { items: page2 }]);
 const byCode = code => busta.voci.find(voce => voce.code === code);
 
 assert.deepEqual(busta.period, { month: 9, year: 2026, label: '09.26' });
-assert.equal(busta.voci.length, 15, 'voci di entrambe le pagine, niente testata');
+assert.equal(busta.voci.length, 19, 'voci di entrambe le pagine, niente testata');
 assert.ok(!byCode('XYZ99'), 'testata azienda ignorata');
 assert.ok(!byCode('ZZZ'), 'righe dopo *** SEGUE *** ignorate');
 assert.deepEqual(
@@ -109,13 +118,17 @@ assert.equal(byCode('FD0').quantity, null);
 assert.equal(byCode('1TK').figurative, 12);
 assert.equal(byCode('1TK').quantity, null);
 assert.equal(byCode('49X').page, 2);
-assert.deepEqual(busta.totals, { competenze: 1977.54, ritenute: 387.85, netto: 1589.69 });
+assert.deepEqual(busta.totals, { competenze: 1977.54, ritenute: 438.85, netto: 1538.69 });
 assert.equal(busta.check.sumCompetenze, 1977.54);
-assert.equal(busta.check.sumRitenute, 387.85);
+assert.equal(busta.check.sumRitenute, 438.85, 'anche l\'IRPEF dopo "Totale ritenute sociali"');
+assert.equal(byCode('900').base, 137.85);
+assert.equal(byCode('I21').amount, -50);
+assert.equal(byCode('V11').description, 'INAIL Azienda V.T.: 9130', 'numero nella descrizione vicino alla colonna ore');
+assert.equal(byCode('V11').quantity, 6.84);
 assert.equal(busta.check.completa, true);
 
 // Una riga persa: la lettura non e' completa e lo si dice.
-const partial = parser.parseItems([{ items: page1 }, { items: page2.filter(entry => entry.str !== '49X') }]);
+const partial = parser.parseItems([{ items: page1 }, { items: page2.filter(entry => entry.str !== 'I21') }]);
 assert.equal(partial.check.completa, false);
 assert.match(partial.check.message, /qualche riga potrebbe non essere stata letta/);
 const noTotals = parser.parseItems([{ items: page1 }]);
@@ -345,6 +358,7 @@ const coherence = outcome.coherence;
 assert.ok(coherence.length >= 8);
 assert.ok(coherence.every(entry => entry.ok), 'busta sintetica coerente');
 assert.ok(!coherence.some(entry => entry.code === 'C01'), 'contributi esclusi');
+assert.equal(coherence.find(entry => entry.code === 'X5128').percent, true, 'voce in percentuale');
 const wrong = compareModule.coherence([{ code: 'X01', description: 'Voce errata', quantity: 3, base: 10, amount: 31 }, { code: 'X02', description: 'Voce entro tolleranza', quantity: 3, base: 3.333, amount: 10 }, { code: 'IR2', description: 'IRPEF', quantity: 1, base: 1, amount: -99 }]);
 assert.equal(wrong.length, 2);
 assert.equal(wrong[0].ok, false);

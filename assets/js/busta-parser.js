@@ -19,8 +19,9 @@
     baseMaxX: 392,
     figurativeMaxX: 470,
     amountMaxX: 566,
-    // Un numero che finisce prima di questa x fa parte della descrizione.
-    numbersMinX: 230,
+    // Un numero che finisce prima di questa x fa parte della descrizione
+    // (es. "V.T.: 9130"): i valori sono allineati a destra sotto le colonne.
+    numbersMinX: 240,
     rowTolerance: 2.5,
     periodMinY: 600
   };
@@ -113,7 +114,7 @@
       baseMaxX: between(base, figurative, fallback.baseMaxX),
       figurativeMaxX: between(figurative, amount, fallback.figurativeMaxX),
       amountMaxX: fallback.amountMaxX,
-      numbersMinX: quantity ? Math.min(quantity.x - 30, fallback.numbersMinX + 40) : fallback.numbersMinX,
+      numbersMinX: quantity ? Math.max(200, quantity.x - 5) : fallback.numbersMinX,
       fromHeader: Boolean(quantity || base || figurative || amount)
     };
   }
@@ -153,16 +154,19 @@
     return voce;
   }
 
+  // Maiuscole come stampate nel riquadro finale: "900 Totale ritenute
+  // sociali" e' una voce, non il totale. "NETTO A PAGARE" puo' andare a capo.
   const TOTAL_LABELS = [
-    { key: 'ritenute', re: /^Totale\s+Ritenute/i },
-    { key: 'competenze', re: /^Totale\s+Competenze/i },
-    { key: 'netto', re: /^Netto\s+a\s+pagare/i }
+    { key: 'ritenute', re: /^Totale\s+Ritenute/ },
+    { key: 'competenze', re: /^Totale\s+Competenze/ },
+    { key: 'netto', re: /^(?:Netto\s+a\s+pagare|NETTO\s+A\s+PAGARE|A\s+PAGARE)/ }
   ];
 
   // Il valore di un totale e' il numero a destra dell'etichetta sulla stessa
   // riga oppure, se l'etichetta fa da intestazione, quello subito sotto.
-  function findTotals(rows) {
+  function findTotals(rows, skip = () => false) {
     const totals = { competenze: null, ritenute: null, netto: null };
+    rows = rows.filter(row => !skip(row));
     const numbers = [];
     rows.forEach(row => row.words.forEach(word => {
       const value = parseAmount(word.text);
@@ -207,32 +211,38 @@
   }
 
   const isHeaderRow = row => row.words.some(word => /^Voce$/i.test(word.text));
-  const isEndRow = row => /\*\*\*\s*SEGUE|Totale\s+(?:Competenze|Ritenute)|Netto\s+a\s+pagare/i.test(rowText(row));
+  const isEndRow = row => /\*\*\*\s*SEGUE|Totale\s+(?:Competenze|Ritenute)|Netto\s+a\s+pagare|NETTO\s+A\s+PAGARE/.test(rowText(row));
 
   // pages: [{items:[...]}] (item pdf.js o normalizzati). Restituisce
   // {period, voci, totals, check}.
   function parseItems(pages) {
     const voci = [];
-    const allRows = [];
+    const pageRows = [];
     let period = null;
     let headerFound = false;
     (pages || []).forEach((page, pageIndex) => {
       const words = (page.items || []).map(normalizeItem).filter(Boolean).flatMap(splitWords);
       const rows = groupRows(words);
-      allRows.push(...rows);
+      pageRows.push({ rows, bounds: null });
       if (!period) period = findPeriod(rows);
       const headerIndex = rows.findIndex(isHeaderRow);
       if (headerIndex < 0) return;
       headerFound = true;
       const bounds = columnBounds(rows[headerIndex]);
+      pageRows[pageRows.length - 1].bounds = bounds;
       for (let index = headerIndex + 1; index < rows.length; index += 1) {
         const row = rows[index];
-        if (isEndRow(row)) break;
         const voce = parseVoceRow(row, bounds);
-        if (voce) voci.push({ ...voce, page: pageIndex + 1 });
+        if (voce) { voci.push({ ...voce, page: pageIndex + 1 }); continue; }
+        if (isEndRow(row)) break;
       }
     });
-    const totals = findTotals(allRows);
+    // Totali dell'ultima pagina che li riporta (le precedenti dicono SEGUE).
+    const totals = { competenze: null, ritenute: null, netto: null };
+    pageRows.forEach(({ rows, bounds }) => {
+      const found = findTotals(rows, row => Boolean(parseVoceRow(row, bounds || columnBounds(null))));
+      Object.keys(totals).forEach(key => { if (found[key] !== null) totals[key] = found[key]; });
+    });
     const sumCompetenze = round2(voci.reduce((sum, voce) => sum + (voce.amount > 0 ? voce.amount : 0), 0));
     const sumRitenute = round2(voci.reduce((sum, voce) => sum + (voce.amount < 0 ? -voce.amount : 0), 0));
     const totalsFound = totals.competenze !== null && totals.ritenute !== null;

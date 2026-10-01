@@ -141,10 +141,13 @@
       .filter(voce => Number.isFinite(voce.quantity) && Number.isFinite(voce.base) && Number.isFinite(voce.amount))
       .filter(voce => !COHERENCE_EXCLUDED.test(voce.description || ''))
       .map(voce => {
-        const expected = round2(voce.quantity * voce.base);
         const actual = Math.abs(voce.amount);
+        // La colonna Ore/Giorni/Num./% puo' essere una percentuale.
+        const plain = round2(voce.quantity * voce.base);
+        const percent = round2(voce.quantity * voce.base / 100);
+        const expected = Math.abs(actual - percent) < Math.abs(actual - plain) ? percent : plain;
         const difference = round2(actual - expected);
-        return { code: voce.code, description: voce.description, quantity: voce.quantity, base: voce.base, amount: voce.amount, expected, difference, ok: Math.abs(difference) <= EURO_TOLERANCE + 1e-9 };
+        return { code: voce.code, description: voce.description, quantity: voce.quantity, base: voce.base, amount: voce.amount, expected, percent: expected === percent && expected !== plain, difference, ok: Math.abs(difference) <= EURO_TOLERANCE + 1e-9 };
       });
   }
 
