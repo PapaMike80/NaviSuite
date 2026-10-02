@@ -233,6 +233,27 @@
     return { ...item, currentUid:auth.uid };
   }
 
+  // Richiesta di allineamento del Foglio Google al turno caricato: la scrive
+  // la pagina Aggiornamenti (solo admin), la esegue lo script del foglio
+  // (controlloPeriodico, ogni 5 minuti) che poi scrive "result".
+  async function getSheetSync() {
+    const result = await databaseRequest("private/adminUpdates/sheetSync");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return { request:value.request || null, result:value.result || null };
+  }
+
+  async function requestSheetSync(agent = {}) {
+    const auth = await ensureAuth();
+    const request = {
+      id:`SYNC_${Date.now()}`,
+      requestedAt:new Date().toISOString(),
+      requestedBy:String(agent.name || agent.agente || agent.id || ""),
+      ownerUid:auth.uid
+    };
+    await databaseRequest("private/adminUpdates/sheetSync/request", { method:"PUT", body:JSON.stringify(request) });
+    return request;
+  }
+
   async function getShipConfigurations() {
     let direct = {};
     try {
@@ -754,6 +775,8 @@
     deleteChangeRequest,
     getAdminUpdates,
     saveAdminUpdates,
+    getSheetSync,
+    requestSheetSync,
     getShipConfigurations,
     saveShipConfigurations,
     getBaristaUpdates,
