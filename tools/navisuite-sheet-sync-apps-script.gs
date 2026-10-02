@@ -739,7 +739,31 @@ function anagraficaAgenti_() {
       grado: gradeCol >= 0 ? String(row[gradeCol] || '').trim().toLowerCase() : ''
     };
   });
+  cambiResidenzaDaAgenti_(registry);
   return registry;
+}
+
+// I cambi di residenza impostati nella pagina Agenti di NaviSuite
+// (private/adminUpdates/agentProfiles) valgono piu' delle colonne
+// "Nuova residenza"/"Dal" di questo tab. Se Firebase non risponde restano
+// valide quelle del tab.
+function cambiResidenzaDaAgenti_(registry) {
+  let profiles = {};
+  try { profiles = firebase_('GET', 'private/adminUpdates/agentProfiles') || {}; }
+  catch (error) { console.warn('Profili agenti non disponibili: ' + error.message); return; }
+  Object.keys(profiles).forEach(key => {
+    const profile = profiles[key] || {};
+    const nuova = String(profile.residenzaNuova || '').trim().toUpperCase();
+    const dal = String(profile.residenzaDal || '').slice(0, 10);
+    const name = normalizeHeader_(profile.name || '');
+    if (!nuova || !/^\d{4}-\d{2}-\d{2}$/.test(dal) || !name) return;
+    const info = registry[name] || { residenza: '', grado: '' };
+    registry[name] = Object.assign({}, info, {
+      residenza: String(profile.residenzaPrecedente || info.residenza || '').trim().toUpperCase(),
+      nuova: nuova,
+      dal: dal
+    });
+  });
 }
 
 function residenzaIl_(info, iso) {

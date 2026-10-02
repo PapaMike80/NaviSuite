@@ -555,7 +555,22 @@
       qualifica: String(values.qualifica || "").trim().toLowerCase(),
       updatedAt: new Date().toISOString()
     };
-    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PUT", body:JSON.stringify(item) });
+    // PATCH: un eventuale cambio di residenza salvato sullo stesso profilo resta.
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify(item) });
+    return item;
+  }
+
+  // Cambio di residenza dalla data indicata (vuoto = annulla il cambio).
+  async function saveAgentResidenceMove(agentId, values = {}) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const after = String(values.residenzaNuova || "").trim().toUpperCase();
+    const dal = String(values.residenzaDal || "").slice(0, 10);
+    if (after && !/^\d{4}-\d{2}-\d{2}$/.test(dal)) throw new Error("Data di decorrenza non valida");
+    const item = after
+      ? { id, name:String(values.name || "").trim(), residenzaPrecedente:String(values.residenzaPrecedente || "").trim().toUpperCase(), residenzaNuova:after, residenzaDal:dal, residenzaAggiornata:new Date().toISOString() }
+      : { id, residenzaPrecedente:null, residenzaNuova:null, residenzaDal:null, residenzaAggiornata:new Date().toISOString() };
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify(item) });
     return item;
   }
 
@@ -804,6 +819,7 @@
     getAgentAdminData,
     importLegacyUsers,
     saveAgentProfile,
+    saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,
     listUserPresence,
