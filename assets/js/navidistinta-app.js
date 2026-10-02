@@ -53,7 +53,7 @@ function dataPill(value,className=''){return `<span class="data-pill ${className
 function bpSummary(used,credit){const parts=[];if(used)parts.push(`${used} USATI`);if(credit)parts.push(`${credit} DA ACCR.`);return parts.join(' · ')||'—'}
 function bpValueText(used,credit){const count=(Number(used)||0)+(Number(credit)||0);return count?(count*8).toLocaleString('it-IT',{style:'currency',currency:'EUR'}):'—'}
 function shiftFor(code,dateIso){return window.NaviShiftCompetence.shiftForCode(code,dateIso,SHIFTS)}
-const CHANGE_SERVICE_RESIDENCES={D1:'DESENZANO',D2:'DESENZANO',D3:'DESENZANO',D4:'DESENZANO',BIS:'DESENZANO',AGB:'DESENZANO',DT:'DESENZANO',POND:'DESENZANO',PT:'DESENZANO',T1:'MADERNO',T2:'MADERNO',M1:'MADERNO',AGM:'MADERNO',AGT:'MADERNO',PONM:'MADERNO',R1:'RIVA',R2:'RIVA',R3:'RIVA',R4:'RIVA',CAR1:'RIVA',P1:'PESCHIERA',P2:'PESCHIERA',P3:'PESCHIERA',CAP:'PESCHIERA',CAP1:'PESCHIERA',SR1:'PESCHIERA',IE:'PESCHIERA'};
+const CHANGE_SERVICE_RESIDENCES={D1:'DESENZANO',D2:'DESENZANO',D3:'DESENZANO',D4:'DESENZANO',BIS:'DESENZANO',AGB:'DESENZANO',DT:'DESENZANO',POND:'DESENZANO',PT:'DESENZANO',T1:'MADERNO',T2:'MADERNO',M1:'MADERNO',AGM:'MADERNO',AGT:'MADERNO',AGT1:'MADERNO',AGT2:'MADERNO',PONM:'MADERNO',R1:'RIVA',R2:'RIVA',R3:'RIVA',R4:'RIVA',CAR1:'RIVA',P1:'PESCHIERA',P2:'PESCHIERA',P3:'PESCHIERA',CAP:'PESCHIERA',CAP1:'PESCHIERA',SR1:'PESCHIERA',SR2:'PESCHIERA',IE:'PESCHIERA'};
 function residenceKey(value=activeAgent?.residence){return String(value||'').trim().toUpperCase()}
 const overtimeComponents=window.NaviOvertimeComponents;
 function changeMinutes(entry){return overtimeComponents?.changes(entry)??Math.max(0,Math.round(Number(entry?.changeMinutes)||0))}
