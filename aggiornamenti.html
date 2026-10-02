@@ -708,8 +708,11 @@
       return datesBetween(`${match[4]}-${month}-${match[1].padStart(2,'0')}`,`${match[4]}-${month}-${match[2].padStart(2,'0')}`);
     }
     function parseOdsNaviPdf(pages,ods){
-      const courseRe=/^(D[1-4]|BIS2?|T[12]|M1|R[1-4]|CAR1|P[1-3]|CAP1|SR1)$/i;
-      const shipRe=/\b(PARINI\s*\+\s*D['’]ANNUNZIO|D['’]ANNUNZIO|SOLFERINO|AGONE|TONALE|BALDO|S\.?\s*MARCO|CATULLO|S\.?\s*VIGILIO|MINCIO|MANTOVA|TRENTO|BRENNERO|S\.?\s*MARTINO|PELER|PARINI|BRESCIA|ANDROMEDA|ANDER|VIRGILIO|GOETHE|RIVIERE|VERGA)\b/i;
+      // Etichette di riga della tabella navi. "CAR/SR2" vale per entrambe le
+      // corse, "SRI" e' un refuso di SR1 presente in alcuni allegati.
+      const courseRe=/^(D[1-4]|BIS2?|T[12]|M1|R[1-4]|CAR1?|P[1-3]|CAP1?|SR[12I]|CAR1?\s*\/\s*SR2|S\.\s*S\.?)$/i;
+      const courseCodes=label=>label.toUpperCase().replace(/\s+/g,'').split('/').map(code=>code==='SRI'?'SR1':code==='S.S'?'S.S.':code);
+      const shipRe=/\b(PARINI\s*\+\s*D['’]ANNUNZIO|D['’]ANNUNZIO|SOLFERINO|AGONE|TONALE|BALDO|S\.?\s*MARCO|CATULLO|S\.?\s*VIGILIO|MINCIO|MANTOVA|TRENTO|BRENNERO|S\.?\s*MARTINO|PELER|PARINI|BRESCIA|ANDROMEDA|ANDER|VIRGILIO|GOETHE|RIVIERE|VERGA|VERONA|ITALIA|ADAMELLO|GALILEI|ZANARDELLI|FRECCIA\s+D\.?\s*G\.?)(?![A-Z])/i;
       const mooringRe=/\b(PONT\.?|PONTILE|PONTE|PORT\.?|PORTO|ORMEGGIO|MOLO|RIVA|BOA|LUNGOLAGO|DESENZANO|SIRMIONE|MADERNO|GARGNANO|MALCESINE|LIMONE)\b/i;
       const records=[];
       pages.forEach(items=>{
@@ -727,18 +730,23 @@
           centers.forEach((center,column)=>{
             const cell=items.filter(item=>{
               const itemCenter=item.x+(item.width||0)/2;
-              return Math.abs(itemCenter-center)<spacing*.46&&item.y<=high&&item.y>=low;
+              // Le note sotto la tabella sono righe lunghe: non sono celle.
+              return Math.abs(itemCenter-center)<spacing*.46&&(item.width||0)<=spacing*1.3&&item.y<=high&&item.y>=low;
             });
             if(!cell.length)return;
             const lines=groupedPdfLines(cell).map(line=>line.items.map(item=>item.text).join(' ').replace(/\s+/g,' ').trim());
             const text=lines.join(' ');
-            const ship=text.match(shipRe)?.[1]?.replace(/\s+/g,' ').replace(/^S\s+/i,'S. ')||'';
+            const shipName=value=>value.replace(/\s+/g,' ').replace(/^S\s+/i,'S. ');
+            const first=text.match(shipRe);
+            // Due navi abbinate ("VERONA + AGONE"): si tengono entrambe.
+            const second=first&&text.slice(first.index+first[0].length).match(new RegExp('^\\s*\\+\\s*'+shipRe.source,'i'));
+            const ship=first?(second&&!/\+/.test(first[1])?`${shipName(first[1])} + ${shipName(second[1])}`:shipName(first[1])):'';
             const mooringLine=lines.find(line=>mooringRe.test(line)&&!shipRe.test(line))||'';
             const refuel=/\bRIFORNIMENTO\b/i.test(text)?'Sì':'';
             // Salviamo solo celle realmente descritte nell'allegato; le celle
             // vuote non devono cancellare turni nave già registrati.
             if(!ship&&!mooringLine&&!refuel)return;
-            records.push({attiva:true,data:dates[column],corsa:course.text.toUpperCase(),nave:ship,rifornimento_mattina:refuel,ormeggio_serale:mooringLine.replace(/^(?:ORMEGGIO\s*(?:SERALE)?\s*[:\-]?\s*)/i,'').trim(),ods:`ODS ${ods||'da definire'}`,inserita_il:new Date().toISOString()});
+            courseCodes(course.text.trim()).forEach(corsa=>records.push({attiva:true,data:dates[column],corsa,nave:ship,rifornimento_mattina:refuel,ormeggio_serale:mooringLine.replace(/^(?:ORMEGGIO\s*(?:SERALE)?\s*[:\-]?\s*)/i,'').trim(),ods:`ODS ${ods||'da definire'}`,inserita_il:new Date().toISOString()}));
           });
         });
       });
@@ -1121,7 +1129,12 @@
       const rows=collectPending('ods'),navi=collectOdsNavi();if(!rows.length&&!navi.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
       const selectedKeys=rows.map(row=>`${row.data}|${row.id_agente}`);if(new Set(selectedKeys).size!==selectedKeys.length)return setStatus('Conflitto ODS: per lo stesso agente e giorno seleziona una sola variazione.','bad');
       if(rows.length)state.odsVariations=merge(state.odsVariations,rows,variationKey);
-      if(navi.length)state.turniNavi=merge(state.turniNavi,navi,turnoNaveKey);
+      if(navi.length){
+        // Una nuova lettura della stessa corsa e giornata sostituisce la
+        // precedente (anche se la nave e' diversa, es. una lettura errata).
+        const replaced=new Set(navi.map(v=>`${v.data}|${v.corsa}`)),now=new Date().toISOString();
+        state.turniNavi=merge(state.turniNavi.map(v=>v.attiva!==false&&replaced.has(`${v.data}|${v.corsa}`)?{...v,attiva:false,sostituita_il:now}:v),navi,turnoNaveKey);
+      }
       const touchesRequest=request=>rows.some(variation=>odsVariationMatchesRequest(variation,request));
       state.dismissedOdsApprovals=(state.dismissedOdsApprovals||[]).filter(item=>{
         const request=changeRequests.find(entry=>String(entry.id)===String(item.requestId));
