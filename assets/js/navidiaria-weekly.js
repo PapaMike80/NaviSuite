@@ -23,7 +23,7 @@
   ];
   const primaryKeys=['delay','bank','ticket','allowance'];
   const otherKeys=['overnight40','holiday','secondMeal','embark','cashHandling','hydrofoil'];
-  const shiftColors={D1:'#2563eb',D2:'#059669',D3:'#ea580c',D4:'#c026d3',BIS:'#0891b2',POND:'#dc2626',PONM:'#dc2626',DT:'#d4a900',AGB:'#2563eb',LD:'#64748b',PT:'#64748b',AGM:'#64748b',AGT:'#64748b',SR1:'#7c3aed',P1:'#2563eb',P2:'#059669',P3:'#ea580c',R1:'#2563eb',R2:'#059669',R3:'#ea580c',R4:'#c026d3',M1:'#0891b2',CAR1:'#d4a900',CAP1:'#7c3aed'};
+  const shiftColors={D1:'#2563eb',D2:'#059669',D3:'#ea580c',D4:'#c026d3',BIS:'#0891b2',BIS2:'#0891b2',DT:'#d4a900',AGB:'#2563eb',AGB2:'#2563eb',POND:'#dc2626',T1:'#2563eb',T2:'#059669',M1:'#ea580c',AGM:'#2563eb',AGT:'#d4a900',AGT1:'#d4a900',AGT2:'#d4a900',PONM:'#dc2626',R1:'#2563eb',R2:'#059669',R3:'#ea580c',R4:'#c026d3',CAR:'#0891b2',CAR1:'#0891b2',P1:'#2563eb',P2:'#059669',P3:'#ea580c',CAP:'#0891b2',CAP1:'#0891b2',SR1:'#7c3aed',SR2:'#c026d3',IE:'#64748b',PT:'#64748b',LD:'#64748b',LAV:'#64748b'};
   function monday(value){const d=new Date(value);d.setHours(12,0,0,0);const day=d.getDay()||7;d.setDate(d.getDate()-day+1);return d}
   function addDays(value,n){const d=new Date(value);d.setDate(d.getDate()+n);return d}
   function weekNumber(value){const d=new Date(Date.UTC(value.getFullYear(),value.getMonth(),value.getDate())),day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-yearStart)/86400000)+1)/7)}
