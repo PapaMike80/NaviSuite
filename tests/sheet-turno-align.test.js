@@ -23,8 +23,10 @@ assert.deepEqual(codes(['T2*', 'RIP', 'Riposo', 'Malattia', 'L.D.', 'LAV']), ['T
 assert.deepEqual(codes(['L.D/']), ['L.D.'], '"l.d/" e\' L.D.');
 assert.deepEqual(codes(['AgT1']), ['AGT1']);
 assert.deepEqual(codes(['', 'D1']), ['', 'D1'], 'cella vuota nel turno: il foglio non si tocca');
+// Abbreviazioni del PDF del turno.
+assert.deepEqual(codes(['C.C.', 'C', 'C---', 'CRIP', 'CRIP--', 'CRIP.', 'C.RIP.', 'CF.P.', 'L.D/C']), ['CON', 'CON', 'CON', 'RIP', 'RIP', 'RIP', 'RIP', 'F.P.', 'L.D.']);
 // Casi non chiari: non vengono scritti e finiscono in "da verificare".
-['C', 'CRIP', 'C.RIP.', 'C.C.', 'CF.P.', 'L.D/C', 'A RIVA'].forEach(value => {
+['A RIVA', 'XYZ'].forEach(value => {
   const [decoded] = turnoSheetCodes_([value], valid);
   assert.equal(decoded.code, null, value);
   assert.equal(decoded.raw, value);

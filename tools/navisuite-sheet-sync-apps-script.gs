@@ -211,6 +211,10 @@ function ultimoTurnoCaricato_() {
 // "cP1c" / "D1c": tutti i giorni della trasferta diventano CxxC. "c." e' il
 // congedo (CON). Un codice non riconosciuto non viene scritto: resta la cella
 // del foglio e il caso finisce in "da_verificare".
+// "c.c.", "c---", "c--" = congedo; "crip--", "crip.", "c.rip." = riposo;
+// "cF.P." = F.P.; "l.d/C" = L.D. (gia' normalizzati: maiuscoli, senza "-" finali).
+const TURNO_PDF_CODES = Object.freeze({ 'C.C.': 'CON', 'C': 'CON', 'CRIP': 'RIP', 'CRIP.': 'RIP', 'C.RIP.': 'RIP', 'C.RIP': 'RIP', 'CF.P.': 'F.P.', 'CF.P': 'F.P.', 'L.D/C': 'L.D.', 'L.D./C': 'L.D.' });
+
 function turnoSheetCodes_(shifts, valid) {
   const aliases = { RIPOSO: 'RIP', MALATTIA: 'MAL', IE: 'I.E.', SS: 'S.S.', FP: 'F.P.', CAR1: 'CAR', CAP1: 'CAP' };
   const isValid = code => Boolean(code) && (!valid || valid[code] === true);
@@ -223,6 +227,8 @@ function turnoSheetCodes_(shifts, valid) {
     raw = raw.replace(/\*+$/, '');
     let code = sheetShift_(raw);
     code = aliases[code] || code;
+    // Abbreviazioni del PDF del turno (indicazioni dell'ufficio, 02/10/2026).
+    code = TURNO_PDF_CODES[code] || code;
     // Giorno successivo di una trasferta con lo stesso servizio.
     if (travel && code === travel) return { code: 'C' + code + 'C' + star };
     if (isValid(code)) { travel = null; return { code: code + star }; }

@@ -790,6 +790,11 @@
       if(/^LAV[.;]?$/.test(raw))return 'LAV';
       if(/^L\.?D[.;]?$/.test(raw))return 'L.D.';
       if(/^F\.?P\.?-*$/.test(raw))return 'F.P.';
+      // Abbreviazioni del turno PDF: c.c./c--- = congedo, crip--/crip./c.rip. = riposo, cF.P. = F.P., l.d/C = L.D.
+      if(/^(?:C\.C\.|C-+)$/.test(raw))return 'CON';
+      if(/^(?:CRIP[.-]*|C\.RIP\.?)$/.test(raw))return 'RIP';
+      if(/^CF\.?P\.?-*$/.test(raw))return 'F.P.';
+      if(/^L\.?D\.?\/C$/.test(raw))return 'L.D.';
       return raw.replace(/\.{2,}$/g,'.').replace(/-+$/g,'');
     }
     function datesBetween(start,end){
