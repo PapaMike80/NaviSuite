@@ -42,7 +42,7 @@ assert.match(monthly,/Object\.assign\(existing,draft\);else entries\.push\(draft
 assert.match(popup,/document\.body\.classList\.toggle\('weekly-dialog-open',!modal\(\)\.hidden\);options\.onClose\?\.\(\)\};m\.querySelectorAll\('\[data-overtime-close\]'\)/);
 // La cella STRAORDINARI apre direttamente il popup giornata.
 assert.match(monthly,/row\.key==='overtime'\|\|row\.kind==='worked'\)\{openDayBubbleEditor\(dateIso\);return\}/);
-assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=130/);
+assert.match(diaria,/assets\/js\/navidiaria-monthly\.js\?v=131/);
 assert.match(diaria,/assets\/js\/day-popup\.js\?v=\d+/);
 assert.match(app,/saveNow:saveEntriesNow/);
 assert.ok(!popup.includes("onSave:value=>{overtime.setChanges(draft,value,service(draft));draft.changeDecision=value>0?'confirmed':'rejected';return save()}"));
