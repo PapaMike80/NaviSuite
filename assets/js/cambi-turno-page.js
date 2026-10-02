@@ -1803,8 +1803,8 @@
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)
           ? '<span class="future-shared-dot" title="Avete turni in comune da oggi in avanti" aria-label="Turni in comune da oggi in avanti"></span>'
           : "";
-        card.innerHTML = `<span class="c-num">${r.id || "—"}</span>
-          <span class="c-name">${r.agente}${odsBadge}${groundService}${instructorMark} ${infoResidenza}</span>
+        card.innerHTML = `<span class="c-num">${escapeAttribute(r.id || "—")}</span>
+          <span class="c-name">${escapeAttribute(r.agente)}${odsBadge}${groundService}${instructorMark} ${infoResidenza}</span>
           ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>`;
           if (!r.isBarista) {
             card.classList.add("pinnable-colleague");

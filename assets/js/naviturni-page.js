@@ -1995,8 +1995,8 @@
           : "";
         const manualDay = diariaShiftOverrides.get(`${String(r.id || "")}|${calInfo.iso}`);
         const manualBadge = manualDay ? `<span class="c-res" title="Turno previsto: ${escapeAttribute(manualDay.from || "—")}">MODIFICATO</span>` : "";
-        card.innerHTML = `<span class="c-num">${r.id || "—"}</span>
-          <span class="c-name">${r.agente}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
+        card.innerHTML = `<span class="c-num">${escapeAttribute(r.id || "—")}</span>
+          <span class="c-name">${escapeAttribute(r.agente)}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
           ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>`;
           if (!r.isBarista) {
             card.classList.add("pinnable-colleague");
