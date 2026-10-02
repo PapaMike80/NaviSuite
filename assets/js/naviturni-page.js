@@ -513,15 +513,15 @@
       "desenzano": ["D1", "D2", "D3", "D4", "BIS", "TERRA"],
       "maderno": ["T1", "T2", "M1", "TERRA"],
       "riva": ["R1", "R2", "R3", "R4", "CAR", "TERRA"],
-      "peschiera": ["P1", "P2", "P3", "CAP", "SR1", "TERRA"]
+      "peschiera": ["P1", "P2", "P3", "CAP", "SR1", "SR2", "TERRA"]
     };
 
     const serviziTerraPerResidenza = {
       DESENZANO: ["AGB", "DT", "POND"],
-      MADERNO: ["AGM", "AGT", "PONM"]
+      MADERNO: ["AGM", "AGT", "AGT1", "AGT2", "PONM"]
     };
-    const ordineServiziTerra = { DT: 1, AGB: 2, POND: 3, AGM: 1, AGT: 2, PONM: 3 };
-    const etichetteServiziTerra = { AGB: "AgB", DT: "DT", POND: "PonD", AGM: "AgM", AGT: "AgT", PONM: "PonM" };
+    const ordineServiziTerra = { DT: 1, AGB: 2, POND: 3, AGM: 1, AGT: 2, AGT1: 3, AGT2: 4, PONM: 5 };
+    const etichetteServiziTerra = { AGB: "AgB", DT: "DT", POND: "PonD", AGM: "AgM", AGT: "AgT", AGT1: "AgT1", AGT2: "AgT2", PONM: "PonM" };
 
     function getCrewShiftKey(shiftValue) {
       const cleanShift = ottieniTurnoPulito(shiftValue).toUpperCase();
@@ -775,7 +775,7 @@
       if (isRiposoShift(v)) return "";
       let txt = String(v).toUpperCase().trim().replace(/\*/g, "").replace(/--/g, "");
 
-      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|PO(?:ND?|D)|PONM|AGB|AGM|AGT|T1|M1|DT|T2|CAR|CAP|SR1)(?:C|$)/i);
+      let match = txt.match(/(?:^C)?([DRMP]\d|BIS|PO(?:ND?|D)|PONM|AGB|AGM|AGT[12]?|T1|M1|DT|T2|CAR|CAP|SR[12])(?:C|$)/i);
       if (match && match[1]) {
         // "CPODC" e "CPONC" sono forme abbreviate di "CPONDC" (pontile Desenzano).
         return match[1].toUpperCase().replace(/^PO[ND]$/, "POND");

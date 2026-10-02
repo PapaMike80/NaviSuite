@@ -365,7 +365,7 @@ function parseSheetCode_(code) {
     base = base.slice(1, -1);
     travel = true;
   }
-  const aliases = { '': 'Riposo', RIP: 'Riposo', MAL: 'Malattia', 'L.D.': 'LD', 'I.E.': 'IE', AGB: 'AgB', POND: 'PonD', AGM: 'AgM', AGT: 'AgT', PONM: 'PonM' };
+  const aliases = { '': 'Riposo', RIP: 'Riposo', MAL: 'Malattia', 'L.D.': 'LD', 'I.E.': 'IE', AGB: 'AgB', POND: 'PonD', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT1', AGT2: 'AgT2', PONM: 'PonM' };
   return { shift: aliases[base] !== undefined ? aliases[base] : base, travel, supernumerary };
 }
 
@@ -851,11 +851,11 @@ const SHIFT_COLOR_KEYS = Object.freeze({
   // Desenzano
   D1: 'D1', D2: 'D2', D3: 'D3', D4: 'D4', BIS: 'BIS', DT: 'DT', AGB: 'AGB', POND: 'POND',
   // Maderno
-  T1: 'D1', T2: 'D2', M1: 'D3', AGT: 'DT', AGM: 'AGB', PONM: 'POND',
+  T1: 'D1', T2: 'D2', M1: 'D3', AGT: 'DT', AGT1: 'DT', AGT2: 'DT', AGM: 'AGB', PONM: 'POND',
   // Riva
   R1: 'D1', R2: 'D2', R3: 'D3', R4: 'D4', CAR: 'BIS',
   // Peschiera
-  P1: 'D1', P2: 'D2', P3: 'D3', P4: 'D4', CAP: 'BIS', SR1: 'BIS'
+  P1: 'D1', P2: 'D2', P3: 'D3', P4: 'D4', CAP: 'BIS', SR1: 'BIS', SR2: 'D4'
 });
 
 function coloraTurni() {
@@ -958,7 +958,7 @@ function shiftColor_(value) {
   if (shift === 'F.P.' || shift === 'CORSO') return SHIFT_COLORS.FP;
   if (shift === 'RF') return SHIFT_COLORS.RF;
   const clean = shift.replace(/\*/g, '');
-  const match = clean.match(/^C?(D[1-4]|BIS|DT|AGB|PO(?:ND?|D)|T[12]|M1|AGT|AGM|PONM|R[1-4]|CAR|P[1-4]|CAP|SR1)C?$/);
+  const match = clean.match(/^C?(D[1-4]|BIS|DT|AGB|PO(?:ND?|D)|T[12]|M1|AGT[12]?|AGM|PONM|R[1-4]|CAR|P[1-4]|CAP|SR[12])C?$/);
   if (!match) return SHIFT_COLORS.OTHER;
   // "CPODC"/"CPONC" sono forme abbreviate di "CPONDC" (pontile Desenzano).
   const key = match[1].replace(/^PO[ND]$/, 'POND');

@@ -8,7 +8,7 @@ const html = fs.readFileSync('oggi.html', 'utf8');
 const source = fs.readFileSync('assets/js/oggi.js', 'utf8');
 assert.match(html, /class="turni-page oggi-page"/);
 assert.match(html, /assets\/js\/shared-data\.js/);
-assert.match(html, /assets\/js\/oggi\.js\?v=16/);
+assert.match(html, /assets\/js\/oggi\.js\?v=17/);
 assert.match(html, /\.oggi-grid\[hidden\]/);
 assert.match(html, /\.oggi-trip-numbers/);
 assert.match(source, /turni_navi/);
@@ -32,9 +32,13 @@ assert.match(source, /readSnapshot/);
 assert.match(source, /writeSnapshot/);
 assert.match(source, /controllo aggiornamenti/);
 assert.doesNotMatch(source, /class="oggi-grid" hidden/);
-assert.match(source, /PESCHIERA:\['P1','P2','P3','SR1','CAP'\]/);
+assert.match(source, /PESCHIERA:\['P1','P2','P3','SR1','SR2','CAP'\]/);
 assert.match(source, /COURSE_TRIPS=.*R1:'5–6'.*R2:'61–70'.*R3:'71–78'.*R4:'81–90'/);
-assert.match(source, /tripNumbers\(card\.course\)/);
+assert.match(source, /tripNumbers\(card\.course,iso\)/);
+// Orario invernale (ODS 39/2026) dal 5/10/2026.
+assert.match(source, /WINTER_FROM='2026-10-05'/);
+assert.match(source, /COURSE_TRIPS_WINTER=\{D1:'14–19',D2:'20–27'.*M1:'91–94'.*R1:'7–8'.*P2:'30–39'/);
+assert.match(source, /COURSE_TIMES_WINTER=\{D1:\['09:15','19:40'\]/);
 
 const nodes = new Map();
 const document = {

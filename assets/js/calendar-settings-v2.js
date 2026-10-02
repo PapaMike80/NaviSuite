@@ -300,13 +300,26 @@
     T2:{start:'07:45',end:'16:10'},
   };
   /* SHIFT_TIMES:END */
+  // Orario invernale (O.d.S. n. 39/2026): stessi set con decorrenza dello
+  // script del feed (tools/navisuite-calendar-apps-script-v2.gs).
+  const SHIFT_TIMES_SETS = [
+    { from: '2026-10-05', times: {
+      D1:{start:'08:15',end:'19:40'}, D2:{start:'07:50',end:'19:00'}, BIS:{start:'07:30',end:'18:40'}, T1:{start:'07:10',end:'18:30'},
+      T2:{start:'07:45',end:'19:10'}, M1:{start:'08:15',end:'19:25'}, R1:{start:'07:45',end:'19:25'}, R2:{start:'07:10',end:'18:50'},
+      R3:{start:'08:40',end:'17:40'}, P1:{start:'08:10',end:'19:30'}, P2:{start:'07:25',end:'18:35'}, SR1:{start:'08:00',end:'18:30'},
+      SR2:{start:'07:40',end:'18:55'}, AGB:{start:'08:00',end:'17:30'}, POND:{start:'09:30',end:'19:50'}, AGM:{start:'09:00',end:'19:30'},
+      AGT:{start:'07:50',end:'18:20'}, AGT1:{start:'07:50',end:'18:20'}, AGT2:{start:'07:50',end:'18:20'} } },
+    { from: '2026-11-02', times: { AGT:{start:'07:55',end:'18:50'}, AGT1:{start:'07:55',end:'18:50'}, AGT2:{start:'07:55',end:'18:50'} } },
+    { from: '2027-03-13', times: { AGT:{start:'07:50',end:'18:20'}, AGT1:{start:'07:50',end:'18:20'}, AGT2:{start:'07:50',end:'18:20'} } },
+  ];
+  const shiftTimesFor = iso => SHIFT_TIMES_SETS.reduce((table, set) => (String(iso || '') >= set.from ? { ...table, ...set.times } : table), { ...SHIFT_TIMES });
   // Il codice turno puo' arrivare con un asterisco o altro segno di nota
   // (es. "D3*" per una variazione ODS, vedi naviturni.html): la cerchiamo
   // per la ricerca dell'orario ma lasciamo il testo originale nel titolo.
-  const shiftTimeKey = code => {
+  const shiftTimeKey = (code, table = SHIFT_TIMES) => {
     let base = String(code || '').replace(/[^A-Z0-9]+$/i, '').toUpperCase();
     // Trasferta CxxC: stesso orario del turno base (CD1C -> D1).
-    if (!SHIFT_TIMES[base] && base.length > 2 && /^C.+C$/.test(base)) base = base.slice(1, -1);
+    if (!table[base] && base.length > 2 && /^C.+C$/.test(base)) base = base.slice(1, -1);
     return (base === 'CAR' || base === 'CAP') ? `${base}1` : base;
   };
 
@@ -351,7 +364,8 @@
       ...VTIMEZONE_ROME,
     ];
     events.forEach(event => {
-      const times = SHIFT_TIMES[shiftTimeKey(event.shift)];
+      const table = shiftTimesFor(event.iso);
+      const times = table[shiftTimeKey(event.shift, table)];
       const summary = `${times ? `${times.start} ` : 'NaviSuite · '}${event.shift}${event.vessel ? ` · ${event.vessel}` : ''}`;
       const start = times ? `DTSTART:${romeToUtc(event.iso, times.start)}` : `DTSTART;VALUE=DATE:${icsDate(event.iso)}`;
       const end = times ? `DTEND:${romeToUtc(event.iso, times.end)}` : `DTEND;VALUE=DATE:${icsDate(addDays(event.iso, 1))}`;
