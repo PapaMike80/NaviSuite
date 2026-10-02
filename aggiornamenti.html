@@ -99,7 +99,7 @@
             <div id="turn-sheet-preview" class="preview" hidden></div>
             <div id="sheet-sync-box" class="sheet-sync" hidden>
               <h3>Allinea il foglio al turno di NaviSuite</h3>
-              <p>Scrive nel Foglio Google i turni dell’ultimo turno caricato in NaviSuite: per quel periodo le celle del foglio vengono sostituite. Trasferte scritte CxxC; i codici non chiari restano come sono e vengono elencati. Lo script del foglio esegue la richiesta entro circa 5 minuti.</p>
+              <p>Il foglio si aggiorna già da solo (entro 5 minuti) quando carichi un turno o un ODS. Questo pulsante riscrive comunque nel foglio l’ultimo turno caricato e le variazioni ODS: per quel periodo le celle del foglio vengono sostituite. Trasferte scritte CxxC; i codici non chiari restano come sono e vengono elencati. Lo script del foglio esegue la richiesta entro circa 5 minuti.</p>
               <div class="actions"><button id="request-sheet-sync" class="primary" type="button">Sincronizza il foglio con NaviSuite</button></div>
               <div id="sheet-sync-status" class="preview" aria-live="polite"></div>
             </div>
@@ -1083,7 +1083,7 @@
       if(!result.ok){box.innerHTML=`⚠️ Sincronizzazione del ${esc(when(result.doneAt))} non riuscita: ${esc(result.errore||'errore sconosciuto')}`;return true}
       const list=(title,items)=>items?.length?`<p><strong>${esc(title)} (${items.length})</strong></p><ul>${items.slice(0,40).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`:'';
       box.innerHTML=`✓ Foglio allineato il ${esc(when(result.doneAt))} al turno <strong>${esc(result.turno||'—')}</strong>${result.dal?` (${esc(result.dal)} → ${esc(result.al)})`:''}: ${Number(result.celle_cambiate)||0} celle cambiate per ${Number(result.agenti_cambiati)||0} agenti.`+
-        list('Da verificare a mano',result.da_verificare)+list('Agenti del turno non presenti nel foglio',result.agenti_non_nel_foglio)+list('Celle cambiate',result.dettaglio);
+        (result.variazioni&&!result.variazioni.errore?`<p>Variazioni ODS: ${Number(result.variazioni.scritte)||0} scritte nel foglio.</p>`:'')+list('Da verificare a mano',result.da_verificare)+list('Variazioni ODS da verificare',result.variazioni?.da_verificare)+list('Agenti del turno non presenti nel foglio',result.agenti_non_nel_foglio)+list('Celle cambiate',result.dettaglio);
       return true;
     }
     async function refreshSheetSync(waitingId){
@@ -1128,7 +1128,7 @@
         return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
       });
       await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;pendingOdsNavi=[];
-      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave.`, 'ok');
+      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave. Il Foglio Google si aggiornerà da solo entro 5 minuti.`, 'ok');
     });
     $('save-new-bariste').addEventListener('click',async()=>{
       const rows=collectPending('barista');if(!rows.length)return setStatus('Nessun turno barista valido da salvare.','bad');
@@ -1153,7 +1153,7 @@
         renderUploadedDocuments();
         renderResidenceMoveDebug();
         $('new-turn-file').value='';pendingTurnImport=null;$('turn-import-preview').hidden=true;$('parse-new-turn').disabled=true;
-        setStatus(`✓ ${batch.rows.length} agenti aggiornati per ${batch.dates.length} giorni. Il PDF di prova può essere eliminato dalla riga qui sopra.`,'ok');
+        setStatus(`✓ ${batch.rows.length} agenti aggiornati per ${batch.dates.length} giorni. Il Foglio Google si aggiornerà da solo entro 5 minuti. Il PDF di prova può essere eliminato dalla riga qui sopra.`,'ok');
       }catch(error){
         setStatus(`Errore caricamento documento: ${error.message}`,'bad');
         $('save-new-turn').disabled=false;

@@ -55,6 +55,8 @@ function controlloPeriodico() {
   // Richiesta dal pulsante "Sincronizza il foglio con NaviSuite" (Aggiornamenti).
   try { eseguiRichiestaSincronizzazione_(); } catch (error) { Logger.log('eseguiRichiestaSincronizzazione_: ' + error); }
   try { allineaNuovoTurno_(false); } catch (error) { Logger.log('allineaNuovoTurno_: ' + error); }
+  // Variazioni turno da ODS (e manuali di Aggiornamenti) sopra il turno.
+  try { applicaVariazioniOds_(); } catch (error) { Logger.log('applicaVariazioniOds_: ' + error); }
   // Prima porta nel foglio le modifiche fatte nelle app, poi pubblica.
   try { applicaModificheApp(); } catch (error) { Logger.log('applicaModificheApp: ' + error); }
   // Residenze del tab turni allineate al tab "Anzianita e gradi" (cambi con data).
@@ -177,6 +179,105 @@ function allineaFoglioAlTurno() {
   return result;
 }
 
+// ---- Variazioni turno da ODS -> foglio -------------------------------------
+// Le variazioni dell'ODS (e quelle manuali) salvate da Aggiornamenti vengono
+// scritte nella cella del foglio, una volta sola per agente/giorno/turno: se
+// poi l'ufficio corregge la cella nel foglio, la correzione resta. Come in
+// shared-data.js, per lo stesso agente e giorno vince l'ODS piu' recente e le
+// variazioni manuali stanno sopra.
+const VARIATION_APPLIED_PREFIX = 'NAVISUITE_VAR_APPLIED_';
+// Variazioni piu' vecchie di cosi' non vengono riscritte (storico gia' chiuso).
+const VARIAZIONI_GIORNI_INDIETRO = 14;
+
+function applicaVariazioniOds() {
+  const result = applicaVariazioniOds_();
+  if (result && result.scritte) {
+    sync_(true);
+    try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
+  }
+  Logger.log(JSON.stringify(result));
+  return result;
+}
+
+function variationPriority_(item) {
+  if (String(item && item.tipo || '').toUpperCase() === 'MANUALE') return item.requestId ? -1 : 1000000;
+  const match = String(item && item.ods || '').match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+}
+
+function dimenticaVariazioni_(isoList) {
+  const days = {};
+  asArray_(isoList).forEach(iso => { days[iso] = true; });
+  const props = PropertiesService.getScriptProperties();
+  Object.keys(props.getProperties()).forEach(key => {
+    if (key.indexOf(VARIATION_APPLIED_PREFIX) !== 0) return;
+    if (days[key.slice(VARIATION_APPLIED_PREFIX.length, VARIATION_APPLIED_PREFIX.length + 10)]) props.deleteProperty(key);
+  });
+}
+
+function applicaVariazioniOds_(force) {
+  const variations = asArray_(firebase_('GET', 'private/adminUpdates/odsVariations'))
+    .concat(asArray_(firebase_('GET', 'private/adminUpdates/manualVariations')))
+    .filter(item => item && item.attiva !== false && /^\d{4}-\d{2}-\d{2}$/.test(String(item.data || '')) && String(item.turno_nuovo || '').trim());
+  if (!variations.length) return { variazioni: 0 };
+  const sheet = SpreadsheetApp.getActive().getSheets()
+    .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+  if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+  const header = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
+  const normalized = header.map(normalizeHeader_);
+  const uidIndex = normalized.indexOf('AGENTUID');
+  const nameIndex = normalized.indexOf('AGENTE');
+  const columnByDate = {};
+  header.forEach((value, index) => { const iso = isoDate_(value); if (iso) columnByDate[iso] = index; });
+  const rows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getDisplayValues();
+  const rowByKey = {};
+  rows.forEach((row, index) => {
+    const name = String(row[nameIndex] || '').trim();
+    const uid = (uidIndex >= 0 && String(row[uidIndex] || '').trim()) || stableAgentUid_(name);
+    rowByKey['U:' + uid] = index;
+    rowByKey['N:' + normalizeHeader_(name)] = index;
+  });
+  const agentsById = agentsById_();
+  const from = (() => { const d = new Date(todayIso_() + 'T12:00:00'); d.setDate(d.getDate() - VARIAZIONI_GIORNI_INDIETRO); return Utilities.formatDate(d, timeZone_(), 'yyyy-MM-dd'); })();
+
+  // Per agente e giorno vince la variazione con priorita' piu' alta.
+  const winners = {};
+  variations.slice().sort((a, b) => variationPriority_(a) - variationPriority_(b)).forEach(item => {
+    if (item.data < from || columnByDate[item.data] === undefined) return;
+    const agent = agentsById[String(item.id_agente || '')];
+    const name = String(item.agente || (agent && agent.agente) || '').trim();
+    const uid = agent ? String(agent.agent_uid || stableAgentUid_(agent.agente)) : stableAgentUid_(name);
+    const row = rowByKey['U:' + uid] !== undefined ? rowByKey['U:' + uid] : rowByKey['N:' + normalizeHeader_(name)];
+    winners[item.data + '|' + (row !== undefined ? 'R' + row : 'N' + normalizeHeader_(name))] = { item, row, name };
+  });
+
+  const valid = codiciValidiFoglio_();
+  const props = PropertiesService.getScriptProperties();
+  const applied = props.getProperties();
+  const result = { scritte: 0, gia_uguali: 0, gia_applicate: 0, da_verificare: [], agenti_non_trovati: [], dettaglio: [] };
+  Object.keys(winners).forEach(key => {
+    const { item, row, name } = winners[key];
+    if (row === undefined) { if (result.agenti_non_trovati.indexOf(name) < 0) result.agenti_non_trovati.push(name); return; }
+    const decoded = turnoSheetCodes_([item.turno_nuovo], valid)[0];
+    if (!decoded || decoded.code === null) { result.da_verificare.push(name + ' ' + item.data + ': "' + item.turno_nuovo + '"'); return; }
+    const code = decoded.code;
+    const propKey = VARIATION_APPLIED_PREFIX + item.data + '|' + (rows[row][uidIndex] || normalizeHeader_(name));
+    if (!force && applied[propKey] === code) { result.gia_applicate += 1; return; }
+    const cell = sheet.getRange(row + 2, columnByDate[item.data] + 1);
+    const current = String(rows[row][columnByDate[item.data]] || '').trim().toUpperCase();
+    if (current === code) result.gia_uguali += 1;
+    else {
+      cell.setValue(code);
+      result.scritte += 1;
+      if (result.dettaglio.length < 100) result.dettaglio.push(name + ' ' + item.data + ': ' + (current || '—') + ' -> ' + code + (item.ods ? ' (ODS ' + item.ods + ')' : ''));
+    }
+    props.setProperty(propKey, code);
+  });
+  return result;
+}
+
 const SHEET_SYNC_REQUEST_PATH = 'private/adminUpdates/sheetSync';
 
 function eseguiRichiestaSincronizzazione_() {
@@ -187,6 +288,7 @@ function eseguiRichiestaSincronizzazione_() {
   try {
     const result = allineaNuovoTurno_(true);
     if (result && result.skipped) return null; // foglio occupato: si riprova al prossimo giro
+    try { result.variazioni = applicaVariazioniOds_(true); } catch (error) { result.variazioni = { errore: String(error && error.message || error) }; }
     outcome = Object.assign({ ok: true }, result, { dettaglio: asArray_(result.dettaglio).slice(0, 60) });
     delete outcome.sync;
     delete outcome.estensione;
@@ -321,6 +423,9 @@ function allineaNuovoTurno_(force) {
       .filter(row => !used[String(row.agent_uid || stableAgentUid_(row.agente))])
       .map(row => row.agente);
     props.setProperty(TURNO_ALLINEATO_PROPERTY, signature);
+    // Il turno ha riscritto le celle del periodo: le variazioni ODS di quei
+    // giorni vanno riapplicate sopra (applicaVariazioniOds_).
+    if (changed) dimenticaVariazioni_(wanted.map(item => item.iso));
     result = {
       turno: turno.titolo || turno.filename || turno.id,
       dal: turno.inizio || dates[0], al: turno.fine || dates[dates.length - 1],
