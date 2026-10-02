@@ -2853,12 +2853,18 @@
       
       renderResidenceButtons();
       populateLoginSurnameOptions();
+      const previousLoggedResidence = String(loggedAgentProfile?.residence || "").toUpperCase();
       loggedAgentProfile = readLoggedAgentProfile();
+      reconcileLoggedResidence();
       updateLoginUserPanel();
+      // La copia locale era di prima di un cambio di residenza dell'agente:
+      // i dati nuovi lo mettono altrove, quindi si riapre la sua residenza.
+      const loggedResidenceChanged = !!previousLoggedResidence &&
+        String(loggedAgentProfile?.residence || "").toUpperCase() !== previousLoggedResidence;
 
       // Aggiornamento in background: rinfresca i dati della vista corrente
       // senza toccare la residenza, il filtro turno e lo scroll dell'utente.
-      if (soft && loggedAgentProfile && currentResidence && globalData?.residenze) {
+      if (soft && !loggedResidenceChanged && loggedAgentProfile && currentResidence && globalData?.residenze) {
         const scrollLeft = window.scrollX, scrollTop = window.scrollY;
         refreshCurrentResidenceData();
         renderTable();
