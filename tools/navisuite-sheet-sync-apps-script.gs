@@ -50,6 +50,11 @@ function alModificaFoglio(e) {
   try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
 }
 function controlloPeriodico() {
+  // Un turno nuovo caricato in NaviSuite (Aggiornamenti) entra nel foglio una
+  // volta sola, appena compare: da li' in poi il foglio torna a comandare.
+  // Richiesta dal pulsante "Sincronizza il foglio con NaviSuite" (Aggiornamenti).
+  try { eseguiRichiestaSincronizzazione_(); } catch (error) { Logger.log('eseguiRichiestaSincronizzazione_: ' + error); }
+  try { allineaNuovoTurno_(false); } catch (error) { Logger.log('allineaNuovoTurno_: ' + error); }
   // Prima porta nel foglio le modifiche fatte nelle app, poi pubblica.
   try { applicaModificheApp(); } catch (error) { Logger.log('applicaModificheApp: ' + error); }
   // Residenze del tab turni allineate al tab "Anzianita e gradi" (cambi con data).
@@ -154,6 +159,184 @@ function batchFromSheet_() {
     identityVersion: 2,
     attiva: true
   };
+}
+
+// ---- Turno caricato in NaviSuite -> foglio ----------------------------------
+// Il turno (PDF) importato da Aggiornamenti e' un caricamento in
+// scheduleImports diverso da quello del foglio. NaviSuite applica i
+// caricamenti in ordine di data: alla prossima modifica del foglio la bozza
+// ripubblicata coprirebbe di nuovo il turno nuovo. Per questo, quando compare
+// un turno nuovo, le sue giornate vengono scritte nel foglio (una volta sola
+// per turno: le correzioni fatte dopo nel foglio restano).
+const TURNO_ALLINEATO_PROPERTY = 'NAVISUITE_SHEET_TURNO_ALLINEATO';
+
+// Da eseguire a mano per riallineare il foglio all'ultimo turno caricato.
+function allineaFoglioAlTurno() {
+  const result = allineaNuovoTurno_(true);
+  Logger.log(JSON.stringify(result));
+  return result;
+}
+
+const SHEET_SYNC_REQUEST_PATH = 'private/adminUpdates/sheetSync';
+
+function eseguiRichiestaSincronizzazione_() {
+  const state = firebase_('GET', SHEET_SYNC_REQUEST_PATH) || {};
+  const request = state.request;
+  if (!request || !request.id || (state.result && state.result.requestId === request.id)) return null;
+  let outcome;
+  try {
+    const result = allineaNuovoTurno_(true);
+    if (result && result.skipped) return null; // foglio occupato: si riprova al prossimo giro
+    outcome = Object.assign({ ok: true }, result, { dettaglio: asArray_(result.dettaglio).slice(0, 60) });
+    delete outcome.sync;
+    delete outcome.estensione;
+  } catch (error) {
+    outcome = { ok: false, errore: String(error && error.message || error) };
+  }
+  outcome.requestId = request.id;
+  outcome.doneAt = new Date().toISOString();
+  firebase_('PUT', SHEET_SYNC_REQUEST_PATH + '/result', outcome);
+  return outcome;
+}
+
+function ultimoTurnoCaricato_() {
+  return asArray_(firebase_('GET', SHEET_SYNC.importsPath))
+    .filter(batch => batch && batch.attiva !== false && batch.source !== 'google_sheet' &&
+      asArray_(batch.dates).length && asArray_(batch.rows).length)
+    .sort((a, b) => String(b.importedAt || '').localeCompare(String(a.importedAt || '')))[0] || null;
+}
+
+// Codici del foglio per la riga di un agente nel turno caricato. Le trasferte
+// del PDF sono scritte "cM1" (andata) e poi "M1" nei giorni seguenti, oppure
+// "cP1c" / "D1c": tutti i giorni della trasferta diventano CxxC. "c." e' il
+// congedo (CON). Un codice non riconosciuto non viene scritto: resta la cella
+// del foglio e il caso finisce in "da_verificare".
+function turnoSheetCodes_(shifts, valid) {
+  const aliases = { RIPOSO: 'RIP', MALATTIA: 'MAL', IE: 'I.E.', SS: 'S.S.', FP: 'F.P.', CAR1: 'CAR', CAP1: 'CAP' };
+  const isValid = code => Boolean(code) && (!valid || valid[code] === true);
+  const isTravelBase = code => isValid(code) && NO_VARIANT_CODES.indexOf(code) < 0 && isValid('C' + code + 'C');
+  let travel = null;
+  return positional_(shifts).map(value => {
+    if (value == null || String(value).trim() === '') { travel = null; return { code: '' }; }
+    let raw = String(value).trim().toUpperCase().replace(/[\/;]+$/, '');
+    const star = /\*$/.test(raw) ? '*' : '';
+    raw = raw.replace(/\*+$/, '');
+    let code = sheetShift_(raw);
+    code = aliases[code] || code;
+    // Giorno successivo di una trasferta con lo stesso servizio.
+    if (travel && code === travel) return { code: 'C' + code + 'C' + star };
+    if (isValid(code)) { travel = null; return { code: code + star }; }
+    // Andata: "CM1" (o "CM1C").
+    const inner = /^C(.+?)C?$/.exec(code);
+    if (inner && isTravelBase(inner[1])) { travel = inner[1]; return { code: 'C' + inner[1] + 'C' + star }; }
+    if (/^C.+C$/.test(code) && isTravelBase(code.slice(1, -1))) { travel = code.slice(1, -1); return { code: code + star }; }
+    // Rientro: "D1C".
+    if (/C$/.test(code) && isTravelBase(code.slice(0, -1))) { travel = null; return { code: 'C' + code + star }; }
+    travel = null;
+    return { code: null, raw: String(value).trim() };
+  });
+}
+
+function allineaNuovoTurno_(force) {
+  const turno = ultimoTurnoCaricato_();
+  if (!turno) return { turno: null };
+  const props = PropertiesService.getScriptProperties();
+  const signature = String(turno.id || '') + '|' + String(turno.importedAt || '');
+  if (!force && props.getProperty(TURNO_ALLINEATO_PROPERTY) === signature) return { turno: turno.id, gia_allineato: true };
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { skipped: 'lock' };
+  let result;
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheets()
+      .find(s => normalizeHeader_(s.getRange(1, 1).getDisplayValue()) === 'AGENTUID');
+    if (!sheet) throw new Error('Nessun foglio con la colonna agent_uid in A1');
+    const lastRow = sheet.getLastRow();
+    const lastColumn = sheet.getLastColumn();
+    if (lastRow < 2) throw new Error('Il foglio non contiene righe turno');
+    const header = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
+    const normalized = header.map(normalizeHeader_);
+    const uidIndex = normalized.indexOf('AGENTUID');
+    const nameIndex = normalized.indexOf('AGENTE');
+    const columnByDate = {};
+    header.forEach((value, index) => { const iso = isoDate_(value); if (iso) columnByDate[iso] = index; });
+
+    // Giornate del turno presenti nel foglio.
+    const dates = asArray_(turno.dates);
+    const wanted = dates.map((iso, position) => ({ iso, position, column: columnByDate[iso] }))
+      .filter(item => item.column !== undefined);
+    const missingDates = dates.filter(iso => columnByDate[iso] === undefined);
+
+    // Righe del turno per agent_uid e per nome.
+    const byUid = {}, byName = {};
+    asArray_(turno.rows).forEach(row => {
+      const uid = String(row.agent_uid || stableAgentUid_(row.agente));
+      if (uid) byUid[uid] = row;
+      if (row.agente) byName[normalizeHeader_(row.agente)] = row;
+    });
+
+    const matrix = sheet.getRange(2, 1, lastRow - 1, lastColumn).getDisplayValues();
+    const used = {};
+    const valid = codiciValidiFoglio_();
+    const review = [];
+    let changed = 0, rowsTouched = 0;
+    const details = [];
+    if (wanted.length) {
+      const first = Math.min.apply(null, wanted.map(item => item.column));
+      const last = Math.max.apply(null, wanted.map(item => item.column));
+      const block = matrix.map((values, index) => {
+        const name = String(values[nameIndex] || '').trim();
+        const uid = (uidIndex >= 0 && String(values[uidIndex] || '').trim()) || stableAgentUid_(name);
+        const row = byUid[uid] || byName[normalizeHeader_(name)];
+        const out = values.slice(first, last + 1);
+        if (!row) return out;
+        used[String(row.agent_uid || stableAgentUid_(row.agente))] = true;
+        const codes = turnoSheetCodes_(row.turni, valid);
+        let rowChanged = false;
+        wanted.forEach(item => {
+          const decoded = codes[item.position] || { code: '' };
+          if (decoded.code === null) { review.push(name + ' ' + item.iso + ': "' + decoded.raw + '"'); return; }
+          const code = decoded.code;
+          if (!code) return;
+          const offset = item.column - first;
+          if (String(out[offset] || '').trim().toUpperCase() !== code) {
+            if (details.length < 200) details.push(name + ' ' + item.iso + ': ' + (out[offset] || '—') + ' -> ' + code);
+            out[offset] = code;
+            changed += 1;
+            rowChanged = true;
+          }
+        });
+        if (rowChanged) rowsTouched += 1;
+        return out;
+      });
+      if (changed) sheet.getRange(2, first + 1, block.length, last - first + 1).setValues(block);
+    }
+    const notInSheet = asArray_(turno.rows)
+      .filter(row => !used[String(row.agent_uid || stableAgentUid_(row.agente))])
+      .map(row => row.agente);
+    props.setProperty(TURNO_ALLINEATO_PROPERTY, signature);
+    result = {
+      turno: turno.titolo || turno.filename || turno.id,
+      dal: turno.inizio || dates[0], al: turno.fine || dates[dates.length - 1],
+      celle_cambiate: changed, agenti_cambiati: rowsTouched,
+      agenti_non_nel_foglio: notInSheet, date_non_nel_foglio: missingDates.length,
+      da_verificare: review,
+      dettaglio: details
+    };
+  } finally {
+    lock.releaseLock();
+  }
+  // Date del turno oltre la fine del foglio: nuove colonne dai turni NaviSuite.
+  if (result.date_non_nel_foglio) {
+    try { result.estensione = estendiFoglio(); } catch (error) { Logger.log('estendiFoglio: ' + error); }
+  }
+  // Le modifiche fatte da script non fanno scattare i trigger: si pubblica
+  // il foglio (ora uguale al turno) e si ricolora.
+  if (result.celle_cambiate) {
+    result.sync = sync_(true);
+    try { coloraTurni(); } catch (error) { Logger.log('coloraTurni: ' + error); }
+  }
+  return result;
 }
 
 // ---- Normalizzazione (stesse regole di aggiornamenti.html) -----------------
@@ -677,6 +860,16 @@ function sheetShift_(value) {
 }
 
 // ---- Firebase REST (utente anonimo, come il frontend) ----------------------
+
+// Come asArray_, ma senza togliere le celle vuote: per i turni conta la
+// posizione (giorno), e Firebase salva gli array con buchi come oggetti.
+function positional_(value) {
+  if (Array.isArray(value)) return value.slice();
+  if (!value || typeof value !== 'object') return [];
+  const out = [];
+  Object.keys(value).forEach(key => { if (/^\d+$/.test(key)) out[Number(key)] = value[key]; });
+  return Array.from(out, item => item);
+}
 
 function asArray_(value) {
   if (Array.isArray(value)) return value.filter(Boolean);

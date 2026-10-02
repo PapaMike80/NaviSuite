@@ -43,6 +43,7 @@
     @media(max-width:420px){main{padding-inline:9px}.card{padding:12px}.hero h1{font-size:23px}.admin-mobile-nav{width:calc(100% - 16px)}}
     .card.foldable{padding:0;overflow:hidden}.card.foldable>.card-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px;cursor:pointer}.card.foldable>.card-heading>div{min-width:0}.card.foldable>.card-heading h2{margin:0 0 6px}.card.foldable>.card-heading p{margin:0}.card-fold-toggle{flex:0 0 auto;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;padding:0;background:var(--card);color:var(--accent);font-size:18px}.card.foldable>.card-body{padding:0 18px 18px}.card.foldable[data-collapsed="true"]>.card-body{display:none}
     html.navisuite-light body.aggiornamenti-page{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .hero p,html.navisuite-light .card p,html.navisuite-light .owner,html.navisuite-light .empty{color:#547078!important}html.navisuite-light .status{background:#fff!important;border-color:#9fc8ce!important;color:#17323a!important}html.navisuite-light .card,html.navisuite-light .import-box,html.navisuite-light .change-approval{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important;box-shadow:0 7px 20px rgba(22,56,66,.08)!important}html.navisuite-light .card h2,html.navisuite-light .import-box h3,html.navisuite-light .change-lines,html.navisuite-light td strong{color:#17323a!important}html.navisuite-light .field label{color:#547078!important}html.navisuite-light .field input,html.navisuite-light .field select,html.navisuite-light .field textarea,html.navisuite-light .current,html.navisuite-light .preview,html.navisuite-light .uploaded-document,html.navisuite-light .pending-table select,html.navisuite-light .pending-table input{background:#f8fcfc!important;border-color:#b8d5da!important;color:#17323a!important}html.navisuite-light .import-box input[type=file]{background:#f8fcfc!important;border-color:#9fc8ce!important;color:#31545c!important}html.navisuite-light button,html.navisuite-light .button{background:#fff!important;border-color:#a9cbd1!important;color:#31545c!important}html.navisuite-light button.primary{background:#d9f4ef!important;border-color:#3bb9aa!important;color:#075b52!important}html.navisuite-light th{background:#e9f5f5!important;color:#17323a!important}html.navisuite-light td,html.navisuite-light th,html.navisuite-light .table-wrap{border-color:#c4dde1!important}html.navisuite-light .ods-group-row td{background:#e5f5f2!important;color:#17323a!important}html.navisuite-light .approved-badge{background:#e2f6ea!important;color:#16734e!important}.card-fold-toggle{transition:transform .18s ease}.card.foldable[data-collapsed="false"] .card-fold-toggle{transform:rotate(180deg)}
+      .sheet-sync{margin-top:16px;padding-top:14px;border-top:1px solid rgba(120,170,180,.3)}.sheet-sync h3{margin:0 0 6px}.sheet-sync ul{margin:6px 0 0;padding-left:18px}
   </style>
 </head>
 <body class="aggiornamenti-page">
@@ -96,6 +97,12 @@
             <div class="field"><label for="turn-sheet-url">Collegamento Foglio Google</label><input id="turn-sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=0"></div>
             <div class="actions"><button id="download-turn-sheet" type="button">Scarica CSV attuale</button><button id="parse-turn-sheet" type="button">Leggi e confronta</button><button id="save-turn-sheet" class="primary" type="button" disabled>Applica a Firebase</button></div>
             <div id="turn-sheet-preview" class="preview" hidden></div>
+            <div id="sheet-sync-box" class="sheet-sync" hidden>
+              <h3>Allinea il foglio al turno di NaviSuite</h3>
+              <p>Scrive nel Foglio Google i turni dell’ultimo turno caricato in NaviSuite: per quel periodo le celle del foglio vengono sostituite. Trasferte scritte CxxC; i codici non chiari restano come sono e vengono elencati. Lo script del foglio esegue la richiesta entro circa 5 minuti.</p>
+              <div class="actions"><button id="request-sheet-sync" class="primary" type="button">Sincronizza il foglio con NaviSuite</button></div>
+              <div id="sheet-sync-status" class="preview" aria-live="polite"></div>
+            </div>
           </div></details>
         </div>
         <div id="import-result" class="preview" hidden></div>
@@ -143,7 +150,7 @@
   </nav>
   <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/turni-shared.js?v=1"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=36"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=43"></script>
   <script src="assets/js/shared-menu.js?v=1.58"></script>
   <script src="assets/js/shared-data.js?v=122"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
@@ -1060,6 +1067,39 @@
     $('parse-new-ods').addEventListener('click',()=>parseImport('ods').catch(error=>setStatus(`Errore importazione ODS: ${error.message}`,'bad')));
     $('parse-new-bariste').addEventListener('click',()=>parseImport('barista').catch(error=>setStatus(`Errore importazione turni: ${error.message}`,'bad')));
     $('parse-new-turn').addEventListener('click',()=>parseTurnImport().catch(error=>setStatus(`Errore lettura turno: ${error.message}`,'bad')));
+    // Pulsante admin: chiede allo script del Foglio Google di allinearsi
+    // all'ultimo turno caricato (private/adminUpdates/sheetSync).
+    let sheetSyncPoll=null;
+    function renderSheetSync(state,waitingId){
+      const box=$('sheet-sync-status');const result=state?.result,request=state?.request;
+      const when=value=>value?new Date(value).toLocaleString('it-IT'):'';
+      if(waitingId&&(!result||result.requestId!==waitingId)){box.innerHTML=`⏳ Richiesta inviata ${esc(when(request?.requestedAt))}: lo script del foglio la eseguirà entro circa 5 minuti.`;return false}
+      if(!result){box.innerHTML='Nessuna sincronizzazione richiesta finora.';return true}
+      if(!result.ok){box.innerHTML=`⚠️ Sincronizzazione del ${esc(when(result.doneAt))} non riuscita: ${esc(result.errore||'errore sconosciuto')}`;return true}
+      const list=(title,items)=>items?.length?`<p><strong>${esc(title)} (${items.length})</strong></p><ul>${items.slice(0,40).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`:'';
+      box.innerHTML=`✓ Foglio allineato il ${esc(when(result.doneAt))} al turno <strong>${esc(result.turno||'—')}</strong>${result.dal?` (${esc(result.dal)} → ${esc(result.al)})`:''}: ${Number(result.celle_cambiate)||0} celle cambiate per ${Number(result.agenti_cambiati)||0} agenti.`+
+        list('Da verificare a mano',result.da_verificare)+list('Agenti del turno non presenti nel foglio',result.agenti_non_nel_foglio)+list('Celle cambiate',result.dettaglio);
+      return true;
+    }
+    async function refreshSheetSync(waitingId){
+      try{const state=await window.NaviAdminFirebase.getSheetSync();const done=renderSheetSync(state,waitingId);if(done&&sheetSyncPoll){clearInterval(sheetSyncPoll);sheetSyncPoll=null;$('request-sheet-sync').disabled=false}}
+      catch(error){$('sheet-sync-status').textContent=`Stato non disponibile: ${error.message}`}
+    }
+    function installSheetSync(){
+      if(!isAdmin(profile())||!window.NaviAdminFirebase?.getSheetSync)return;
+      $('sheet-sync-box').hidden=false;refreshSheetSync();
+      $('request-sheet-sync').addEventListener('click',async()=>{
+        if(!confirm('Sincronizzare il Foglio Google con l’ultimo turno caricato in NaviSuite? Per il periodo del turno le celle del foglio verranno sostituite.'))return;
+        $('request-sheet-sync').disabled=true;
+        try{
+          const request=await window.NaviAdminFirebase.requestSheetSync(profile()||{});
+          renderSheetSync({request},request.id);
+          if(sheetSyncPoll)clearInterval(sheetSyncPoll);
+          let rounds=0;sheetSyncPoll=setInterval(()=>{rounds+=1;refreshSheetSync(request.id);if(rounds>=30&&sheetSyncPoll){clearInterval(sheetSyncPoll);sheetSyncPoll=null;$('request-sheet-sync').disabled=false}},20000);
+        }catch(error){$('request-sheet-sync').disabled=false;$('sheet-sync-status').textContent=`Richiesta non inviata: ${error.message}`}
+      });
+    }
+    installSheetSync();
     $('download-turn-sheet').addEventListener('click',exportScheduleCsv);
     $('parse-turn-sheet').addEventListener('click',async()=>{
       const url=$('turn-sheet-url').value.trim();if(!url)return setStatus('Inserisci il collegamento del Foglio Google.','bad');
