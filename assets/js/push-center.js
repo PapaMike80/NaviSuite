@@ -12,68 +12,12 @@
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const $=id=>document.getElementById(id);
 
-  const MONTHS=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-  const WEEKDAYS=['dom','lun','mar','mer','gio','ven','sab'];
-  const NON_WORKING=/^(?:RIP|RIPOSO|CON|CONG|CONGEDO|FERIE|MAL|MALATTIA|F\.?P\.?|===|--+)$/i;
-  const norm=value=>String(value||'').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').trim();
   const todayRome=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Rome'});
 
-  function displayShift(value){
-    const raw=String(value??'').trim().toUpperCase().replace(/[‐‑–—]/g,'-').replace(/\s+/g,'');
-    if(!raw||/^(?:RIP|RIPOSO|===|--+)$/.test(raw))return 'RIP';
-    if(/^(?:CON|CONG\.?|CONGEDO)$/.test(raw))return 'CON';
-    if(/^(?:LAV\.?|TERRA)$/.test(raw))return 'TERRA';
-    if(/^F\.?P\.?$/.test(raw))return 'F.P.';
-    return raw;
-  }
-  function courseShift(value){
-    const raw=displayShift(value);
-    const direct=raw.match(/^C?(D[1-4]|BIS|T[12]|M1|R[1-4]|CAR\d*|P[1-3]|CAP\d*|SR1)C?$/)?.[1];
-    if(!direct)return '';
-    const code=direct.replace(/\d+$/,'');
-    return code==='CAR'||code==='CAP'?code:direct;
-  }
-  function dateLabel(iso){const [y,m,d]=String(iso).split('-').map(Number);const date=new Date(Date.UTC(y,m-1,d,12));return `${WEEKDAYS[date.getUTCDay()]} ${d} ${MONTHS[m-1]}`;}
-  function roleRank(agent){
-    const value=String(agent?.qualifica||agent?.grado||agent?.role||'');
-    if(/capitano|comandante/i.test(value))return 1;if(/capo\s*timoniere|capotimoniere/i.test(value))return 2;
-    if(/motorista/i.test(value)&&!/aiuto/i.test(value))return 3;if(/timoniere/i.test(value))return 4;
-    if(/aiuto\s*motorista|aiutomotorista/i.test(value))return 5;if(/marinaio/i.test(value))return 6;if(/barista/i.test(value))return 7;return 99;
-  }
-  function flattenAgents(data){
-    const result=[],seen=new Set();
-    Object.entries(data?.residenze||{}).forEach(([residence,list])=>(list||[]).forEach(agent=>{
-      const key=String(agent?.id||agent?.agent_uid||norm(agent?.agente||agent?.name));if(!key||seen.has(key))return;
-      seen.add(key);result.push({...agent,__residence:residence});
-    }));
-    return result;
-  }
-  function findAgent(data,id){return flattenAgents(data).find(agent=>String(agent?.id||agent?.agent_uid||'')===String(id))||null;}
-  function shipInfoFor(data,iso,shift){
-    const course=courseShift(shift);if(!course)return null;
-    return (data?.turni_navi||[]).filter(item=>item?.attiva!==false&&String(item?.data||'').slice(0,10)===iso)
-      .find(item=>courseShift(item?.corsa||item?.turno)===course)||null;
-  }
-  function crewFor(data,iso,shift){
-    const course=courseShift(shift);if(!course)return [];
-    return flattenAgents(data).filter(agent=>courseShift(agent?.turni?.[iso])===course)
-      .sort((a,b)=>roleRank(a)-roleRank(b)||String(a.agente||a.name).localeCompare(String(b.agente||b.name),'it'));
-  }
-  function refuelLabel(ship){
-    const value=ship?.rifornimento_mattina??ship?.rifornimento??ship?.rifornimentoMattina??'';
-    if(value===true)return 'Sì';if(value===false||value===null||value===undefined)return '';
-    const text=String(value).trim();if(!text)return '';if(/^(?:1|true|si|sì|yes)$/i.test(text))return 'Sì';if(/^(?:0|false|no)$/i.test(text))return '';return text;
-  }
-  function buildSummary(data,targetAgentId,iso){
-    const agent=findAgent(data,targetAgentId);if(!agent)throw new Error('Agente non trovato nel turno corrente.');
-    const shift=displayShift(agent?.turni?.[iso]);const label=dateLabel(iso);const title=`NaviSuite · ${label} · ${shift||'N/D'}`;
-    if(!shift||NON_WORKING.test(shift))return {title,body:shift||'Nessun servizio assegnato.',shift:shift||'',iso};
-    const ship=shipInfoFor(data,iso,shift),vessel=String(ship?.nave||ship?.nome_nave||'').trim(),berth=String(ship?.ormeggio_serale||ship?.ormeggio||ship?.ormeggioSera||'').trim(),refuel=refuelLabel(ship);
-    const names=crewFor(data,iso,shift).map(item=>String(item?.agente||item?.name||'').trim()).filter(Boolean);
-    const lines=[vessel?`${shift} · ${vessel}`:shift];
-    if(names.length)lines.push(`Equipaggio: ${names.join(', ')}`);if(berth)lines.push(`Ormeggio serale: ${berth}`);if(refuel)lines.push(`Rifornimento: ${refuel}`);
-    return {title,body:lines.join('\n').slice(0,500),shift,iso};
-  }
+  // Testo del riepilogo: modulo condiviso con il push-worker (push-summary.js).
+  // I dati di NaviSharedData hanno gia' turni caricati e residenze: qui si
+  // applicano anche le variazioni ODS/manuali, come fa il worker.
+  function buildSummary(data,targetAgentId,iso){return NaviPushSummary.buildSummary(NaviPushSummary.effectiveData(data,{odsVariations:data?.variazioni_ods}),targetAgentId,iso);}
   async function loadSchedule(){
     for(let i=0;i<80&&!window.NaviSharedData?.load;i++)await sleep(50);
     if(!window.NaviSharedData?.load)throw new Error('Dati turni non disponibili.');
