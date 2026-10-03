@@ -65,10 +65,18 @@ http.createServer(async (req, res) => {
     res.writeHead(405, {'Content-Type':'text/plain; charset=utf-8'}).end('Method not allowed');
     return;
   }
-  const requested = decodeURIComponent(req.url.split('?')[0]);
+  let requested;
+  try {
+    requested = decodeURIComponent(req.url.split('?')[0]);
+  } catch (_) {
+    res.writeHead(400, {'Content-Type':'text/plain; charset=utf-8'}).end('Bad request');
+    return;
+  }
   const relative = requested === '/' ? 'index.html' : requested.replace(/^\/+/, '');
   const file = path.resolve(root, relative);
-  if (!file.startsWith(root + path.sep)) {
+  // Niente byte nulli e niente cartelle/file nascosti (.git, .env, ...).
+  const hidden = path.relative(root, file).split(path.sep).some(part => part.startsWith('.'));
+  if (relative.includes('\0') || !file.startsWith(root + path.sep) || hidden) {
     res.writeHead(403).end('Forbidden');
     return;
   }

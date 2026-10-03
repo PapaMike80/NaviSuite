@@ -238,7 +238,7 @@ function render(){
   $('entriesBody').querySelectorAll('tr').forEach(row=>{const editable=row.querySelector('[data-entry-id]'),entry=editable&&entries.find(item=>String(item.id)===editable.dataset.entryId);if(entry){row.dataset.week=isoWeek(entry.date);row.dataset.date=entry.date}else if(row.classList.contains('week-summary-table')){row.dataset.week=row.previousElementSibling?.dataset.week||'';row.classList.add('registry-week-link');row.title='Torna a questa settimana nel Consultivo'}});
   document.dispatchEvent(new CustomEvent('navidiaria:render'));
 }
-function escapeHtml(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function hoursToClock(hours){const mins=Math.round((Number(hours)||0)*60);return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`}
 function clockToHours(value){const [h,m]=String(value||'0:0').split(':').map(Number);return (h||0)+(m||0)/60}
 function renderShiftSettings(){
