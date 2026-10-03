@@ -384,6 +384,7 @@ h1 em{
 .app-card.settings{--app:148,163,184}
 .app-card.updates{--app:74,222,128}
 .app-card.agents{--app:251,113,133}
+.app-card.movimento{--app:56,189,248}
 
 .app-card .app-icon{
   background:rgba(var(--app),.16);

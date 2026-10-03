@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#002b5e">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Movimento</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <link rel="stylesheet" href="assets/css/movimento.css?v=1">
+</head>
+<body class="movimento-page">
+  <aside class="app-sidebar" id="admin-sidebar"></aside>
+  <main>
+    <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Movimento · Navi ed equipaggi</h1><p>Equipaggio minimo di ogni nave, per ruolo e per periodo di validità. Le navi si assegnano poi alle corse.</p></header>
+    <div id="status" class="status">Caricamento anagrafica navi da Firebase…</div>
+
+    <section class="section">
+      <div class="section-head"><div><h2>Anagrafica navi</h2><p>Per ogni nave indica quante persone servono per ruolo. Un nuovo periodo (es. orario invernale) vale dalla data indicata e sostituisce il precedente; il periodo in vigore alla data di riferimento è evidenziato.</p></div><span id="fleet-count" class="count">0</span></div>
+      <div class="toolbar">
+        <label>Data di riferimento<input id="ref-date" type="date"></label>
+        <label>Nuova nave<input id="new-ship-name" type="text" placeholder="Es. Solferino" autocomplete="off"></label>
+        <button id="add-ship" class="btn" type="button">+ Aggiungi nave</button>
+        <button id="import-ships" class="btn ghost" type="button" title="Legge i nomi già usati nelle assegnazioni nave/corsa">Importa nomi dai turni</button>
+        <span class="spacer"></span>
+        <button id="save-fleet" class="btn primary" type="button" disabled>Salva</button>
+      </div>
+      <div class="table-wrap"><table class="fleet-table" id="fleet-table"></table></div>
+      <p id="fleet-empty" class="empty hidden">Nessuna nave in anagrafica. Aggiungi la prima con il campo «Nuova nave».</p>
+    </section>
+  </main>
+  <script src="assets/js/shared-roles.js?v=1"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=45"></script>
+  <script src="assets/js/shared-menu.js?v=1.59"></script>
+  <script src="assets/js/movimento.js?v=1"></script>
+</body>
+</html>
