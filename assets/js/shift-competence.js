@@ -43,6 +43,8 @@
     { code: 'LD', hours: hm(8), allowance: false, allowanceRate: 24, meal: false },
     { code: 'F.P.', hours: hm(8), allowance: false, allowanceRate: 24, meal: false },
     { code: 'LAV', hours: hm(8), allowance: false, allowanceRate: 24, meal: true },
+    // Congedo: 0 ore fino al 4/10/2026, poi come Lavori e L.D. (set sotto).
+    { code: 'CON', hours: 0, allowance: false, allowanceRate: 24, meal: false, embark: false },
     { code: 'RF', hours: 0, allowance: false, allowanceRate: 24, meal: false },
     { code: 'Malattia', hours: 0, allowance: false, allowanceRate: 24, meal: false },
     { code: 'Riposo', hours: 0, allowance: false, allowanceRate: 24, meal: false }
@@ -51,7 +53,7 @@
   // Orario invernale dal 05/10/2026 al 25/03/2027: tassazione dell'O.d.S.
   // n. 39/2026 (ods/O.d.S. n. 39-2026 INVERNO.pdf, pag. 18-19). D3, D4, R4,
   // CAR, P3 e CAP non sono piu' in servizio; SR1 e SR2 solo fino all'11/10 e
-  // dal 20/03/2027. Lavori e L.D.: 8 ore, 7 il venerdi' feriale.
+  // dal 20/03/2027. Lavori, L.D. e congedo: 8 ore, 7 il venerdi' feriale.
   const SHIFTS_FROM_2026_10_05 = [
     // Desenzano
     { code: 'D1', hours: hm(12, 5) },
@@ -76,9 +78,10 @@
     { code: 'P2', hours: hm(11, 40) },
     { code: 'SR1', hours: hm(11, 10), allowanceRate: 9 },
     { code: 'SR2', hours: hm(11, 15) },
-    // Lavori / L.D.
+    // Lavori / L.D. / congedo
     { code: 'LAV', fridayHours: hm(7) },
-    { code: 'LD', fridayHours: hm(7) }
+    { code: 'LD', fridayHours: hm(7) },
+    { code: 'CON', hours: hm(8), fridayHours: hm(7) }
   ];
 
   // Dal 02/11/2026 al 12/03/2027 gira solo il traghetto T1 Maderno-Torri:
@@ -137,19 +140,31 @@
         merged.set(override.code, { ...(merged.get(override.code) || {}), ...override });
       });
     });
-    // Venerdi' feriale: i turni con fridayHours (Lavori, L.D.) durano meno.
+    // Venerdi' feriale: i turni con fridayHours (Lavori, L.D., congedo) durano meno.
     if (isWeekdayFriday(date)) {
       merged.forEach(shift => { if (Number.isFinite(Number(shift.fridayHours))) shift.hours = Number(shift.fridayHours); });
     }
     return [...merged.values()];
   }
 
-  function shiftForCode(code, dateIso, baseShifts) {
-    const list = shiftsFor(dateIso, baseShifts);
-    return list.find(shift => shift.code === code) || list.at(-1);
+  // Il foglio turni scrive Lavori, L.D. e congedo in piu' modi (TERRA, L.D.,
+  // CONG., CON;...): li riporta al codice della tabella.
+  function canonicalCode(code) {
+    const raw = String(code ?? '').trim();
+    const upper = raw.toUpperCase();
+    if (/^(?:LAV[.;]?|TERRA)$/.test(upper)) return 'LAV';
+    if (/^L\.?D[.;]?$/.test(upper)) return 'LD';
+    if (/^(?:CONG?\.?|CON[;/]|CONC\.?|CONGEDO)$/.test(upper)) return 'CON';
+    return raw;
   }
 
-  const api = { DEFAULT_SHIFTS, COMPETENCE_SETS, shiftsFor, shiftForCode, todayIsoLocal, isWeekdayFriday };
+  function shiftForCode(code, dateIso, baseShifts) {
+    const list = shiftsFor(dateIso, baseShifts);
+    const wanted = canonicalCode(code);
+    return list.find(shift => shift.code === code) || list.find(shift => shift.code === wanted) || list.at(-1);
+  }
+
+  const api = { DEFAULT_SHIFTS, COMPETENCE_SETS, shiftsFor, shiftForCode, canonicalCode, todayIsoLocal, isWeekdayFriday };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.NaviShiftCompetence = api;
 })(typeof window !== 'undefined' ? window : globalThis);

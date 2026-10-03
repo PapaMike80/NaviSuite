@@ -35,6 +35,25 @@ assert.equal(minutesOf('LAV', '2026-12-25'), 8 * 60, 'venerdi\' festivo (Natale 
 assert.equal(minutesOf('LAV', '2026-10-02'), 8 * 60, 'prima del 5/10 nessuna riduzione');
 assert.equal(NaviShiftCompetence.isWeekdayFriday('2027-01-01'), false, 'Capodanno 2027 e\' venerdi\' festivo');
 
+// Congedo: dal 5/10/2026 come Lavori e L.D. (8 ore lun-gio, 7 il venerdi' feriale).
+assert.equal(minutesOf('CON', '2026-10-05'), 8 * 60, 'congedo lunedi\'');
+assert.equal(minutesOf('CON', '2026-10-08'), 8 * 60, 'congedo giovedi\'');
+assert.equal(minutesOf('CON', '2026-10-09'), 7 * 60, 'congedo venerdi\'');
+assert.equal(minutesOf('CON', '2026-12-25'), 8 * 60, 'congedo venerdi\' festivo');
+assert.equal(minutesOf('CON', '2026-10-02'), 0, 'congedo prima del 5/10: invariato');
+const conShift = NaviShiftCompetence.shiftForCode('CON', '2026-10-05');
+assert.equal(conShift.meal, false, 'niente buono pasto in congedo');
+assert.equal(conShift.allowance, false, 'niente diaria in congedo');
+assert.equal(conShift.embark, false);
+
+// Le varianti scritte nel foglio turni trovano la riga giusta.
+[['TERRA', 'LAV'], ['LAV.', 'LAV'], ['L.D.', 'LD'], ['LD', 'LD'], ['CONG', 'CON'], ['CONG.', 'CON'], ['CON;', 'CON'], ['con', 'CON']].forEach(([raw, code]) => {
+  assert.equal(NaviShiftCompetence.canonicalCode(raw), code, raw);
+  assert.equal(NaviShiftCompetence.shiftForCode(raw, '2026-10-09').code, code, `${raw} -> ${code}`);
+  assert.equal(minutesOf(raw, '2026-10-09'), 7 * 60, `${raw} il venerdi' vale 7 ore`);
+});
+assert.equal(NaviShiftCompetence.canonicalCode('D1'), 'D1', 'gli altri codici restano invariati');
+
 // Un valore personalizzato dall'utente (localStorage SHIFTS) resta la base:
 // solo "hours" viene sovrascritto dal set datato, il resto (es. meal) resta.
 const customBase = NaviShiftCompetence.DEFAULT_SHIFTS.map(s => s.code === 'D2' ? { ...s, meal: false, note: 'custom' } : s);
@@ -62,6 +81,13 @@ assert.match(navidistinta, /SHIFTS\.find\(s=>s\.code===card\.dataset\.shift\)/);
 const dayPopup = fs.readFileSync('assets/js/day-popup.js', 'utf8');
 assert.doesNotMatch(dayPopup, /opts\.shiftFor\(e\.shift\)/, 'day-popup deve passare la data della giornata a shiftFor');
 assert.doesNotMatch(dayPopup, /opts\.shiftFor\(draft\.shift\)/);
+
+const naviturniPage = fs.readFileSync('assets/js/naviturni-page.js', 'utf8');
+assert.match(naviturniPage, /canonicalCode/, 'NaviTurni riconosce TERRA, L.D. e CONG');
+const cambiPage = fs.readFileSync('assets/js/cambi-turno-page.js', 'utf8');
+assert.match(cambiPage, /canonicalCode/, 'Cambi turno riconosce TERRA, L.D. e CONG');
+const cambiLogic = fs.readFileSync('assets/js/cambi-turno-logic.js', 'utf8');
+assert.doesNotMatch(cambiLogic, /\|CONG\|CON;\|/, 'nei cambi turno il congedo non vale piu\' 0 ore');
 
 const navidiariaHtml = fs.readFileSync('navidiaria.html', 'utf8');
 assert.match(navidiariaHtml, /assets\/js\/shift-competence\.js/);
