@@ -33,7 +33,9 @@
 
   // Nessun battello viaggia con meno di 3 persone.
   const MIN_EQUIPAGGIO = 3;
-  // Sopra questa stazza (tonnellate) il comando deve essere un Capitano.
+  // Sopra questa STAZZA LORDA (tonnellate) il comando deve essere un Capitano.
+  // Non e' il dislocamento delle schede tecniche della flotta: la stazza va
+  // inserita a mano per nave, dal certificato.
   const SOGLIA_CAPITANO_TON = 350;
 
   // Equipaggi minimi ricavati dai turni estivi 2026 (giu-set), confrontando le
@@ -42,15 +44,19 @@
   // salvato finche' non si preme Salva. Stazza non nota: da inserire a mano.
   const EQ3 = { capo_timoniere:1, motorista:1, marinaio:1 };
   const EQ4 = { capo_timoniere:1, motorista:1, marinaio:2 };
+  // Aliscafi: sempre un Capitano al comando.
+  const EQ4_ALISCAFO = { capitano:1, motorista:1, marinaio:2 };
   const EQ5A = { capitano:1, timoniere:1, motorista:1, marinaio:2 };
   const EQ5B = { capitano:1, timoniere:1, motorista:1, aiuto_motorista:1, marinaio:1 };
   const PROPOSTA_NAVI = [
     ['Mantova', EQ3], ['Catullo', EQ3], ['Solferino', EQ3], ["D'Annunzio", EQ3], ['S. Marco', EQ3], ['Virgilio', EQ3],
+    ['S. Martino', EQ3, 'come la Solferino (stessa serie); l\'equipaggio a 5 nei turni segue la corsa R3'], ['S. Martino (A)', EQ3, 'come la Solferino (stessa serie)'],
     ['Parini', EQ3, 'provvisorio: pochi giorni nei turni'], ['Freccia D.G.', EQ3, 'provvisorio: pochi giorni nei turni'],
-    ['Agone', EQ4], ['Peler', EQ4], ['Trento', EQ4], ['Riviere', EQ4], ['Goethe', EQ4], ['Ander', EQ4],
-    ['Galilei', EQ4, 'provvisorio: pochi giorni nei turni'],
+    ['Agone', EQ4], ['Peler', EQ4], ['Trento', EQ4], ['Ander', EQ4],
+    ['Riviere', EQ4_ALISCAFO, 'aliscafo: sempre Capitano'], ['Goethe', EQ4_ALISCAFO, 'aliscafo: sempre Capitano'],
+    ['Galilei', EQ4_ALISCAFO, 'aliscafo: sempre Capitano; pochi giorni nei turni'],
     ['Adamello', EQ5A], ['Andromeda', EQ5A], ['Baldo', EQ5A], ['Brescia', EQ5A], ['Italia', EQ5A], ['Mincio', EQ5A],
-    ['S. Vigilio', EQ5A], ['S. Martino', EQ5A], ['S. Martino (A)', EQ5A, 'provvisorio: pochi giorni nei turni'],
+    ['S. Vigilio', EQ5A],
     ['Brennero', EQ5B], ['Tonale', EQ5B]
     // Verona non inclusa: nei turni compare solo 5 giorni, con equipaggi incoerenti.
   ];
