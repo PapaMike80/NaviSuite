@@ -66,3 +66,7 @@ html.navisuite-light .btn.danger{background:#fff3f4!important;color:#b53c4c!impo
 html.navisuite-light .fleet-table td{border-color:#d0e1e4!important}
 html.navisuite-light .fleet-table td.total{color:#087b6e!important}
 html.navisuite-light .fleet-table tr.current td:not(.ship-name){background:#e6f7f4!important}
+
+.fleet-table td.ship-name label.stazza{display:grid;gap:4px;margin-top:8px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.fleet-table td.ship-name label.stazza input{width:80px}
+html.navisuite-light .fleet-table td.ship-name label.stazza{color:#547078!important}
