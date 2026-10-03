@@ -27,20 +27,21 @@ const agt1 = NaviShiftCompetence.shiftForCode('AgT1', '2026-10-05');
 assert.equal(agt1.code, 'AgT1');
 assert.equal(agt1.meal, true);
 assert.equal(agt1.embark, false);
-// Lavori e L.D.: 7 ore il venerdi' feriale, 8 negli altri giorni e nei venerdi' festivi.
+// Lavori e L.D.: 7 ore tutti i venerdi' (festivi compresi), 8 negli altri giorni.
 assert.equal(minutesOf('LAV', '2026-10-09'), 7 * 60, 'venerdi\' 9/10/2026');
 assert.equal(minutesOf('LD', '2026-10-09'), 7 * 60);
 assert.equal(minutesOf('LAV', '2026-10-08'), 8 * 60, 'giovedi\'');
-assert.equal(minutesOf('LAV', '2026-12-25'), 8 * 60, 'venerdi\' festivo (Natale 2026)');
+assert.equal(minutesOf('LAV', '2026-12-25'), 7 * 60, 'venerdi\' festivo (Natale 2026): 7 ore');
+assert.equal(minutesOf('LD', '2027-01-01'), 7 * 60, 'Capodanno 2027 e\' venerdi\': 7 ore');
 assert.equal(minutesOf('LAV', '2026-10-02'), 8 * 60, 'prima del 5/10 nessuna riduzione');
-assert.equal(NaviShiftCompetence.isWeekdayFriday('2027-01-01'), false, 'Capodanno 2027 e\' venerdi\' festivo');
 
-// Congedo: dal 5/10/2026 come Lavori e L.D. (8 ore lun-gio, 7 il venerdi' feriale).
+// Congedo: come Lavori e L.D. (8 ore, dal 5/10/2026 7 tutti i venerdi').
 assert.equal(minutesOf('CON', '2026-10-05'), 8 * 60, 'congedo lunedi\'');
 assert.equal(minutesOf('CON', '2026-10-08'), 8 * 60, 'congedo giovedi\'');
 assert.equal(minutesOf('CON', '2026-10-09'), 7 * 60, 'congedo venerdi\'');
-assert.equal(minutesOf('CON', '2026-12-25'), 8 * 60, 'congedo venerdi\' festivo');
-assert.equal(minutesOf('CON', '2026-10-02'), 0, 'congedo prima del 5/10: invariato');
+assert.equal(minutesOf('CON', '2026-12-25'), 7 * 60, 'congedo venerdi\' festivo');
+assert.equal(minutesOf('CON', '2026-10-01'), 8 * 60, 'congedo anche prima del 5/10: 8 ore');
+assert.equal(minutesOf('CON', '2026-03-10'), 8 * 60, 'congedo nel passato: 8 ore');
 const conShift = NaviShiftCompetence.shiftForCode('CON', '2026-10-05');
 assert.equal(conShift.meal, false, 'niente buono pasto in congedo');
 assert.equal(conShift.allowance, false, 'niente diaria in congedo');
