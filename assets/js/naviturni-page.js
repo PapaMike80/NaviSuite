@@ -654,7 +654,8 @@
       if (code === "DT" && calInfo && calInfo.giornoSett === "Sab") return "9 ore 55 min";
       // Ore con decorrenza (es. turno 05/10/2026): stessa tabella di NaviDiaria,
       // cosi' non resta una copia ferma ai valori vecchi.
-      const wanted = code === "CAR" ? "CAR1" : code;
+      // TERRA, L.D., CONG. ecc. -> LAV, LD, CON come nella tabella.
+      const wanted = code === "CAR" ? "CAR1" : (window.NaviShiftCompetence?.canonicalCode?.(code) || code).toUpperCase();
       const shared = window.NaviShiftCompetence?.shiftsFor(calInfo?.iso)?.find(s => String(s.code).toUpperCase() === wanted);
       if (shared) return formatShiftDurationText(shared.hours);
       return shiftDurations[code] || "";

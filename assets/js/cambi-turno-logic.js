@@ -454,8 +454,9 @@
     const code = ottieniTurnoPulito(raw);
     if (!code) return {minutes:0, unknown:false, code:'RIP'};
     const upper = code.toUpperCase().replace(/\s+/g, '');
-    // Riposi, ferie, permessi, congedi, malattia e altre assenze non producono ore lavorate.
-    if (/^(RIP|===|---|----|CONG|CON;|FP|F\.P\.|FER|FERIE|MAL|MALATTIA|PERM|PERMESSO|REC|RECUPERO|ASP|ASPETTATIVA)$/.test(upper)) {
+    // Riposi, ferie, permessi, malattia e altre assenze non producono ore lavorate.
+    // Il congedo invece conta (8 ore, 7 il venerdi'): la durata arriva dalla tabella.
+    if (/^(RIP|===|---|----|FP|F\.P\.|FER|FERIE|MAL|MALATTIA|PERM|PERMESSO|REC|RECUPERO|ASP|ASPETTATIVA)$/.test(upper)) {
       return {minutes:0, unknown:false, code:upper};
     }
     const duration = getShiftDuration(code, cal);
