@@ -293,6 +293,30 @@
     return item;
   }
 
+  // Anagrafica navi dell'ufficio movimento: equipaggio minimo per nave, con
+  // periodi di validita' (es. estate/inverno). Nodo dedicato, separato dal
+  // vecchio shipConfigurations di Gestione navi.
+  async function getFleet() {
+    const result = await databaseRequest("private/adminUpdates/movimentoFlotta");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return {
+      navi:value.navi && typeof value.navi === "object" ? value.navi : {},
+      updatedAt:String(value.updatedAt || ""),
+      updatedBy:String(value.updatedBy || "")
+    };
+  }
+
+  async function saveFleet(navi = {}, updatedByName = "") {
+    const auth = await ensureAuth();
+    const item = {
+      navi:navi && typeof navi === "object" ? navi : {},
+      updatedAt:new Date().toISOString(),
+      updatedBy:String(updatedByName || auth.uid)
+    };
+    await databaseRequest("private/adminUpdates/movimentoFlotta", { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
   async function getAnnouncements() {
     const result = await databaseRequest("private/adminUpdates/announcements");
     return result.data && typeof result.data === "object" ? result.data : {};
@@ -794,6 +818,8 @@
     requestSheetSync,
     getShipConfigurations,
     saveShipConfigurations,
+    getFleet,
+    saveFleet,
     getBaristaUpdates,
     saveBaristaUpdates,
     getAnnouncements,
