@@ -43,7 +43,7 @@
     { code: 'LD', hours: hm(8), allowance: false, allowanceRate: 24, meal: false },
     { code: 'F.P.', hours: hm(8), allowance: false, allowanceRate: 24, meal: false },
     { code: 'LAV', hours: hm(8), allowance: false, allowanceRate: 24, meal: true },
-    // Congedo: 8 ore come Lavori e L.D. (dal 5/10/2026 anche 7 il venerdi').
+    // Congedo: come Lavori e L.D. (8 ore, 7 il venerdi': FRIDAY_HOURS).
     { code: 'CON', hours: hm(8), allowance: false, allowanceRate: 24, meal: false, embark: false },
     { code: 'RF', hours: 0, allowance: false, allowanceRate: 24, meal: false },
     { code: 'Malattia', hours: 0, allowance: false, allowanceRate: 24, meal: false },
@@ -53,8 +53,8 @@
   // Orario invernale dal 05/10/2026 al 25/03/2027: tassazione dell'O.d.S.
   // n. 39/2026 (ods/O.d.S. n. 39-2026 INVERNO.pdf, pag. 18-19). D3, D4, R4,
   // CAR, P3 e CAP non sono piu' in servizio; SR1 e SR2 solo fino all'11/10 e
-  // dal 20/03/2027. Lavori, L.D. e congedo: 8 ore, 7 il venerdi'
-  // (festivi compresi).
+  // dal 20/03/2027. Lavori, L.D. e congedo
+  // non cambiano (FRIDAY_HOURS).
   const SHIFTS_FROM_2026_10_05 = [
     // Desenzano
     { code: 'D1', hours: hm(12, 5) },
@@ -78,11 +78,7 @@
     { code: 'P1', hours: hm(12, 20) },
     { code: 'P2', hours: hm(11, 40) },
     { code: 'SR1', hours: hm(11, 10), allowanceRate: 9 },
-    { code: 'SR2', hours: hm(11, 15) },
-    // Lavori / L.D. / congedo
-    { code: 'LAV', fridayHours: hm(7) },
-    { code: 'LD', fridayHours: hm(7) },
-    { code: 'CON', fridayHours: hm(7) }
+    { code: 'SR2', hours: hm(11, 15) }
   ];
 
   // Dal 02/11/2026 al 12/03/2027 gira solo il traghetto T1 Maderno-Torri:
@@ -113,6 +109,11 @@
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }
 
+  // Lavori, L.D. e congedo: 8 ore, 7 tutti i venerdi' (festivi compresi), da
+  // sempre e in ogni orario. Fuori dalla tabella di base perche' questa puo'
+  // essere la copia personalizzata salvata sul dispositivo.
+  const FRIDAY_HOURS = { LAV: hm(7), LD: hm(7), CON: hm(7) };
+
   function isFriday(dateIso) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateIso || ''));
     if (!match) return false;
@@ -132,10 +133,8 @@
         merged.set(override.code, { ...(merged.get(override.code) || {}), ...override });
       });
     });
-    // Venerdi', festivi compresi: i turni con fridayHours (Lavori, L.D.,
-    // congedo) durano meno.
     if (isFriday(date)) {
-      merged.forEach(shift => { if (Number.isFinite(Number(shift.fridayHours))) shift.hours = Number(shift.fridayHours); });
+      merged.forEach(shift => { if (shift.code in FRIDAY_HOURS) shift.hours = FRIDAY_HOURS[shift.code]; });
     }
     return [...merged.values()];
   }
