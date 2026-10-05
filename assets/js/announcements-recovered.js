@@ -20,8 +20,10 @@
   if(/(?:^|\/)impostazioni\.html$/i.test(location.pathname)){
     // Impostazioni non caricava shared-data.js: senza questo il riepilogo manuale
     // non poteva leggere il turno e mostrava "Dati turni non disponibili".
-    load('assets/js/shared-data.js?v=121');
+    load('assets/js/shared-data.js?v=123');
+    load('assets/js/course-info.js?v=1');
+    load('assets/js/push-summary.js?v=1');
     load('assets/js/push-notifications-v3.js?v=20260906-1');
-    load('assets/js/push-center.js?v=20260909-2');
+    load('assets/js/push-center.js?v=20261002-1');
   }
 })();

@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v263-documenti';
+const CACHE_VERSION = 'navisuite-v264-riepilogo-push';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -47,9 +47,11 @@ const CORE_ASSETS = [
   './assets/js/portal.js',
   './assets/js/shared-menu.js',
   './assets/js/oggi.js',
+  './assets/js/course-info.js',
   './assets/js/announcements-recovered.js',
   './assets/js/push-notifications-v3.js',
   './assets/js/push-center.js',
+  './assets/js/push-summary.js',
   './assets/js/busta-parser.js',
   './assets/js/distinta-totals.js',
   './assets/js/busta-compare.js',
