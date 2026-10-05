@@ -5,8 +5,8 @@ const CONFIG = {
   repo: 'NaviSuite',
   branch: 'main',
   folders: ['turni', 'ods'],
-  metadataFile: 'assets/js/documenti.json',
-  version: 'v1.08'
+  metadataFile: 'documenti.json',
+  version: 'v1.09'
 };
 
 const state = {
@@ -230,7 +230,15 @@ function fileToDocument(file, folder) {
 async function scanGitHub() {
   const folderResults = await Promise.all(
     CONFIG.folders.map(async folder => {
-      const entries = await fetchJson(githubApiUrl(folder));
+      // Una cartella vuota o rimossa (es. turni/ dopo la pulizia) risponde
+      // 404: vale come cartella senza documenti, non come errore di lettura.
+      let entries;
+      try {
+        entries = await fetchJson(githubApiUrl(folder));
+      } catch (error) {
+        if (/^404\b/.test(error.message)) return [];
+        throw error;
+      }
 
       if (!Array.isArray(entries)) return [];
 
@@ -642,7 +650,7 @@ async function loadDocuments() {
       elements.notice.hidden = false;
       elements.notice.textContent =
         `Non riesco a leggere ora le cartelle GitHub (${error.message}). ` +
-        'Mostro i documenti registrati in assets/js/documenti.json.';
+        'Mostro i documenti registrati in documenti.json.';
     }
   }
 

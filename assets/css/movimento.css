@@ -1,0 +1,68 @@
+:root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--red:#fb7185}
+*{box-sizing:border-box}
+body.movimento-page{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}
+.movimento-page main{margin-left:230px;padding:30px;max-width:1500px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}
+.hero h1{margin:7px 0 5px;font-size:30px}
+.hero p{margin:0;color:var(--muted)}
+.status{margin:20px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:#0b222c;color:#b9d2d8}
+.status.ok{border-color:#1d8f7f;color:#99f6e4}
+.status.bad{border-color:#9f3044;color:#fecdd3}
+.section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px}
+.section-head>div{flex:1;min-width:0}
+.section h2{margin:0;font-size:18px}
+.section p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.count{padding:4px 9px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px;font-weight:900}
+.hidden{display:none!important}
+.empty{padding:20px;color:#86aab3;text-align:center}
+
+.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-bottom:14px}
+.toolbar .spacer{flex:1}
+.toolbar label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.toolbar input,.fleet-table input{padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
+.btn{min-height:38px;padding:8px 12px;border:1px solid #3b707c;border-radius:8px;background:#102d37;color:#d4e8eb;font:900 11px inherit;cursor:pointer}
+.btn.primary{border-color:var(--accent);background:rgba(45,212,191,.15);color:#99f6e4}
+.btn.ghost{border-style:dashed}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.danger{border-color:#e11d48;background:#3b1721;color:#fecdd3}
+
+.table-wrap{overflow-x:auto}
+.fleet-table{width:100%;border-collapse:collapse;font-size:12px}
+.fleet-table th{padding:8px 6px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-align:center;white-space:nowrap}
+.fleet-table th:first-child{text-align:left}
+.fleet-table td{padding:6px;border-top:1px solid #1d4350;text-align:center;vertical-align:middle}
+.fleet-table tbody.ship{border-top:2px solid var(--line)}
+.fleet-table tbody.ship.inactive{opacity:.55}
+.fleet-table td.ship-name{min-width:150px;text-align:left;vertical-align:top;border-left:4px solid var(--accent)}
+.fleet-table td.ship-name input{width:100%;font-size:14px}
+.fleet-table td.ship-name small{display:block;margin-top:6px;color:#86aab3}
+.fleet-table input[type=number]{width:54px;text-align:center}
+.fleet-table input[type=date]{width:140px}
+.fleet-table input.note{width:100%;min-width:130px}
+.fleet-table tr.current td:not(.ship-name){background:rgba(45,212,191,.1)}
+.fleet-table td.total{font-weight:900;color:#99f6e4}
+.fleet-table tr.actions td{border-top:0;text-align:left}
+.fleet-table .badge{display:inline-block;margin-top:4px;padding:2px 7px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:9px;font-weight:900;text-transform:uppercase}
+.fleet-table input.invalid{border-color:var(--red)}
+
+@media(max-width:850px){
+  body.movimento-page{padding-bottom:100px}
+  .movimento-page main{margin:0;padding:18px 12px}
+  .hero h1{font-size:25px}
+  .section{padding:13px}
+  .toolbar label,.toolbar .btn{flex:1 1 140px}
+}
+
+html.navisuite-light body.movimento-page{background:#edf5f6!important;color:#17323a!important}
+html.navisuite-light .movimento-page .hero p,html.navisuite-light .movimento-page .section p,html.navisuite-light .movimento-page .empty,html.navisuite-light .fleet-table td.ship-name small{color:#547078!important}
+html.navisuite-light .movimento-page .status,html.navisuite-light .movimento-page .section{background:#fff!important;border-color:#bdd8dc!important;color:#17323a!important;box-shadow:0 7px 20px rgba(22,56,66,.08)!important}
+html.navisuite-light .toolbar input,html.navisuite-light .fleet-table input{background:#f8fcfc!important;color:#17323a!important;border-color:#b6d4d9!important}
+html.navisuite-light .toolbar label,html.navisuite-light .fleet-table th{color:#547078!important}
+html.navisuite-light .count,html.navisuite-light .fleet-table .badge{background:#e2f5f2!important;color:#087b6e!important}
+html.navisuite-light .btn{background:#f4fafb!important;color:#17596a!important;border-color:#9fc5cc!important}
+html.navisuite-light .btn.primary{background:#e3f7f3!important;color:#087b6e!important}
+html.navisuite-light .btn.danger{background:#fff3f4!important;color:#b53c4c!important}
+html.navisuite-light .fleet-table td{border-color:#d0e1e4!important}
+html.navisuite-light .fleet-table td.total{color:#087b6e!important}
+html.navisuite-light .fleet-table tr.current td:not(.ship-name){background:#e6f7f4!important}

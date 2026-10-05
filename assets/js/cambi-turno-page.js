@@ -437,7 +437,8 @@
       const code = (shiftCode || "").toUpperCase().trim();
       // Ore con decorrenza (es. turno 05/10/2026): stessa tabella di NaviDiaria,
       // cosi' non resta una copia ferma ai valori vecchi.
-      const wanted = code === "CAR" ? "CAR1" : code;
+      // TERRA, L.D., CONG. ecc. -> LAV, LD, CON come nella tabella.
+      const wanted = code === "CAR" ? "CAR1" : (window.NaviShiftCompetence?.canonicalCode?.(code) || code).toUpperCase();
       const shared = window.NaviShiftCompetence?.shiftsFor(calInfo?.iso)?.find(s => String(s.code).toUpperCase() === wanted);
       if (shared) return formatShiftDurationText(shared.hours);
       return shiftDurations[code] || "";
@@ -1803,8 +1804,8 @@
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)
           ? '<span class="future-shared-dot" title="Avete turni in comune da oggi in avanti" aria-label="Turni in comune da oggi in avanti"></span>'
           : "";
-        card.innerHTML = `<span class="c-num">${r.id || "—"}</span>
-          <span class="c-name">${r.agente}${odsBadge}${groundService}${instructorMark} ${infoResidenza}</span>
+        card.innerHTML = `<span class="c-num">${escapeAttribute(r.id || "—")}</span>
+          <span class="c-name">${escapeAttribute(r.agente)}${odsBadge}${groundService}${instructorMark} ${infoResidenza}</span>
           ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>`;
           if (!r.isBarista) {
             card.classList.add("pinnable-colleague");

@@ -85,7 +85,7 @@
       ['cambi_turno.html','⇄','Cambio'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
-      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti']]:[])
+      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[])
     ];
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
     const linkHtml=([href,icon,label])=>{
@@ -171,7 +171,7 @@
       }).catch(()=>null);
     }
   }
-  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':sidebar.id==='archive-sidebar'?'archive':'turni';
+  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':sidebar.id==='archive-sidebar'?'archive':'turni';
   const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab'};
   if(page==='archive')document.body.classList.add('archive-page');
   // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
@@ -223,7 +223,7 @@
     return;
   }
   // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
-  if((page==='agenti'||page==='aggiornamenti')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
+  if((page==='agenti'||page==='aggiornamenti'||page==='movimento')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
@@ -283,9 +283,9 @@
   }else if(page==='settings'){
     specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
-  }else if(page==='agenti'||page==='aggiornamenti'){
-    const isAgenti=page==='agenti';
-    specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',!isAgenti,'aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}`;
+  }else if(page==='agenti'||page==='aggiornamenti'||page==='movimento'){
+    const isAgenti=page==='agenti',isMovimento=page==='movimento';
+    specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',page==='aggiornamenti','aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}${item('movimento.html','⚓','Movimento',isMovimento,'movimentoNav')}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else{
     specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
@@ -295,12 +295,13 @@
   // Collegamenti amministrativi: solo per gli amministratori e, in coda, dopo le
   // voci comuni. Su Impostazioni/Agenti/Aggiornamenti sono gia' nella sezione
   // dedicata, quindi li' non vengono ripetuti.
-  if(isAdminAgent(sessionAgent)&&page!=='settings'&&page!=='agenti'&&page!=='aggiornamenti'){
+  if(isAdminAgent(sessionAgent)&&page!=='settings'&&page!=='agenti'&&page!=='aggiornamenti'&&page!=='movimento'){
     common+=item('aggiornamenti.html','↻','Aggiornamenti');
     common+=item('agenti.html','♙','Agenti');
+    common+=item('movimento.html','⚓','Movimento');
   }
 
-  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
