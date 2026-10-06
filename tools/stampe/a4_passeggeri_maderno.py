@@ -92,6 +92,8 @@ RITORNI_SUD = [
                             ("Desenzano", "15.35", cambio("Sirmione", "15.55", "16.03", "114"))]),
     ("19.25", "", "94", [("Garda", "18.00"), ("Portese", "18.45"), ("Salò", "18.55"), ("Gardone", "19.10")]),
 ]
+# sigla dello scalo dove si cambia nave, accanto all'orario raggiungibile con il cambio
+SIGLA = {"Garda": "Ga", "Sirmione": "Si", "Salò": "Sa", "Malcesine": "Ma", "Riva": "Ri"}
 # localita' nell'ordine in cui le tocca la nave
 NORD = ["Gargnano", "Brenzone", "Malcesine", "Limone", "Torbole", "Riva"]
 SUD = ["Gardone", "Salò", "Portese", "Garda", "Bardolino", "Lazise", "Sirmione", "Peschiera", "Desenzano"]
@@ -135,13 +137,15 @@ def header(c, L, R, langs):
 def matrix(c, L, R, y, rows, places, ritorno):
     """Tabella a colonne. Andata: partenza da Maderno a sinistra e orario di arrivo in ogni localita'.
     Ritorno: orario di partenza da ogni localita' e arrivo a Maderno a destra. '–' = non ferma;
-    lettera = orario raggiungibile con cambio di nave (nota sotto la tabella)."""
-    letters = {}
+    sigla dello scalo (Ga, Si...) = orario raggiungibile cambiando nave in quello scalo; sotto la tabella
+    una riga per scalo con le corse in coincidenza."""
+    changes = {}  # scalo -> {(ripartenza, corsa)}
     for _, _, _, stops in rows:
         for st in stops:
             assert st[0] in places, st
-            if len(st) == 3 and st[2] not in letters:
-                letters[st[2]] = "abcdefghij"[len(letters)]
+            if len(st) == 3:
+                assert st[2][0] in SIGLA, st
+                changes.setdefault(st[2][0], set()).add((st[2][2], st[2][3]))
         direct = [minutes(t) for p in places for s in stops if s[0] == p and len(s) == 2 for t in [s[1]]]
         assert direct == sorted(direct), stops  # senza cambi gli orari crescono da sinistra a destra
     key_w = 34 * mm
@@ -185,9 +189,11 @@ def matrix(c, L, R, y, rows, places, ritorno):
                 continue
             c.setFillColor(black)
             if len(st) == 3:
-                tw = pdfmetrics.stringWidth(st[1], "DV", 12)
-                c.setFont("DV", 12); c.drawCentredString(cx - 1 * mm, y - 7.2 * mm, st[1])
-                c.setFont("DVB", 9); c.drawString(cx - 1 * mm + tw / 2 + 0.4 * mm, y - 5.4 * mm, letters[st[2]])
+                tw = pdfmetrics.stringWidth(st[1], "DV", 11)
+                sw = pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", 7.2)
+                c.setFont("DV", 11); c.drawCentredString(cx - sw / 2 - 0.2 * mm, y - 7.2 * mm, st[1])
+                c.setFont("DVB", 7.2); c.drawString(cx - sw / 2 + tw / 2, y - 5.3 * mm, SIGLA[st[2][0]])
+                assert tw + sw + 0.2 * mm < cw - 0.6 * mm, (st, cw / mm)
             else:
                 c.setFont("DV", 13); c.drawCentredString(cx, y - 7.2 * mm, st[1])
         y -= rh
@@ -195,21 +201,26 @@ def matrix(c, L, R, y, rows, places, ritorno):
     for i in range(len(places) + 1):
         x = x_places + cw * i
         c.line(x, y, x, y + rh * len(rows) + head)
-    # note dei cambi: lettera, scalo, arrivo › ripartenza, corsa
-    if letters:
+    # coincidenze raggruppate per scalo di cambio: sigla, scalo e corse in partenza da li'
+    if changes:
         y -= 5 * mm
         c.setFont("DV", 8.6); c.setFillColor(GREY)
-        c.drawString(L, y, "con cambio  ·  with change  ·  mit Umsteigen:")
-        col_w = (R - L) / 3
-        for n, ((scalo, arr, dep, run), letter) in enumerate(letters.items()):
-            x = L + (n % 3) * col_w
-            yy = y - 4.6 * mm * (n // 3 + 1)
-            text = f"{scalo} {arr} › {dep}"
-            c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(x, yy, letter)
-            c.setFont("DV", 9.5); c.drawString(x + 4 * mm, yy, text)
-            c.setFillColor(GREY); c.setFont("DV", 8)
-            c.drawString(x + 4 * mm + pdfmetrics.stringWidth(text + " ", "DV", 9.5), yy, f"corsa {run}")
-        y -= 4.6 * mm * ((len(letters) - 1) // 3 + 1)
+        c.drawString(L, y, "cambio nave  ·  change ship  ·  Umsteigen")
+        col_w = R - L
+        for n, (scalo, conns) in enumerate(sorted(changes.items(), key=lambda kv: min(minutes(d) for d, _ in kv[1]))):
+            x = L
+            yy = y - 4.6 * mm * (n + 1)
+            c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(x, yy, SIGLA[scalo])
+            c.drawString(x + 6.5 * mm, yy, scalo)
+            xx = x + 6.5 * mm + pdfmetrics.stringWidth(scalo + "  ", "DVB", 9.5)
+            for k, (dep, run) in enumerate(sorted(conns, key=lambda dr: minutes(dr[0]))):
+                piece = ("  ·  " if k else "") + dep
+                c.setFillColor(black); c.setFont("DV", 9.5); c.drawString(xx, yy, piece)
+                xx += pdfmetrics.stringWidth(piece + " ", "DV", 9.5)
+                c.setFillColor(GREY); c.setFont("DV", 7.8); c.drawString(xx, yy, f"corsa {run}")
+                xx += pdfmetrics.stringWidth(f"corsa {run}", "DV", 7.8)
+            assert xx < x + col_w, (scalo, conns)
+        y -= 4.6 * mm * len(changes)
     return y
 
 
