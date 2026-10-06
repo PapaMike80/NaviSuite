@@ -199,6 +199,12 @@
     };
   }
 
+  // Solo i turni nave (nave, ormeggio serale, rifornimento) degli O.d.S.: per la pagina Servizi a terra.
+  async function getTurniNavi() {
+    const result = await databaseRequest("private/adminUpdates/turniNavi");
+    return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
+  }
+
   async function getBaristaUpdates() {
     const result = await databaseRequest("private/adminUpdates/baristas");
     return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
@@ -831,6 +837,7 @@
     savePushSettings,
     clearPendingConnectionAlerts,
     getAdminDocuments,
+    getTurniNavi,
     getAdminDocumentFile,
     saveAdminDocument,
     deleteAdminDocument,

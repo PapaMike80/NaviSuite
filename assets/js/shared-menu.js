@@ -1,5 +1,5 @@
 (function(){
-  const APP_VERSION='v1.45';
+  const APP_VERSION='v1.46';
   const NAVISUITE_PAYPAL_URL='https://www.paypal.com/pool/9sbGlr5lE9?sr=wccr';
   function installSupportFooter(){
     if(document.getElementById('navisuite-support-footer'))return;
@@ -82,6 +82,7 @@
       ['naviturni.html','▦','Turni'],
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
+      ...(isBarista&&!isHiba?[]:[['servizi-terra.html','⛴','Servizi a terra']]),
       ['cambi_turno.html','⇄','Cambio'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
@@ -171,7 +172,7 @@
       }).catch(()=>null);
     }
   }
-  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':sidebar.id==='archive-sidebar'?'archive':'turni';
+  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':document.body.classList.contains('servizi-terra-page')?'terra':sidebar.id==='archive-sidebar'?'archive':'turni';
   const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab'};
   if(page==='archive')document.body.classList.add('archive-page');
   // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
@@ -250,7 +251,7 @@
   // Home · Oggi · NaviTurni · Distinta · Documenti · Impostazioni · Cambio turno,
   // e infine (solo admin) Aggiornamenti · Agenti. Cambia soltanto quale voce e' attiva.
   common=(()=>{
-    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',settings:'impostazioni.html'}[page]||'';
+    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',terra:'servizi-terra.html',settings:'impostazioni.html'}[page]||'';
     // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
     const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
     return [
@@ -259,6 +260,7 @@
       ['naviturni.html','▦','NaviTurni',''],
       ['navidiaria.html','≈','Distinta','diariaNavLink'],
       ['documenti.html','▤','Documenti','archiveNavLink'],
+      ['servizi-terra.html','⛴','Servizi a terra','terraNavLink'],
       ['impostazioni.html','⚙','Impostazioni',''],
       ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
     ].map(([href,icon,label,id])=>{
@@ -280,6 +282,8 @@
   }else if(page==='turni'){
     specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button><div class="shifts-filter-block" id="shift-filter-container"><div class="top-filter-controls"><div class="top-residence-controls"><a class="today-residence-link" href="oggi.html">☀ Oggi</a><span class="filter-label">Residenze</span><div class="coverage-residence-buttons" id="top-residence-buttons"></div></div><div class="top-filter-group"><span class="filter-label">Corse</span><div class="shift-buttons-grid" id="shift-buttons-wrapper"></div></div></div></div>`;
     user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><small id="turniMenuStatus" class="sidebar-data-status">Locale</small><button class="sidebar-agent-name login-user-name" id="login-user-name" type="button" onclick="repinLoggedAgent()"></button><button id="login-exit-button" class="sidebar-action sidebar-exit" type="button" onclick="logoutAgent()">Esci</button><button id="login-change-button" class="sidebar-action" type="button" onclick="location.href='navidiaria.html?pin=1'">Cambia PIN</button></div>`;
+  }else if(page==='terra'){
+    user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else if(page==='settings'){
     specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:'';
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
@@ -288,7 +292,7 @@
     specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',page==='aggiornamenti','aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}${item('movimento.html','⚓','Movimento',isMovimento,'movimentoNav')}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else{
-    specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
+    specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#terra-docs','⛴','Servizi a terra')}${item('#ods-docs','≡','ODS 2026')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
     user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><small id="archiveMenuStatus" class="sidebar-data-status">Locale</small><strong id="archiveSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="archiveLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="archiveChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }
 
@@ -301,7 +305,7 @@
     common+=item('movimento.html','⚓','Movimento');
   }
 
-  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':page==='terra'?'NaviSuite Servizi a terra':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
@@ -530,6 +534,7 @@
 
   const diariaNavLink=sidebar.querySelector('#diariaNavLink');if(diariaNavLink)diariaNavLink.hidden=!canUseDiaria(sessionAgent);
   const archiveNavLink=sidebar.querySelector('#archiveNavLink');if(archiveNavLink)archiveNavLink.hidden=isBaristaAgent(sessionAgent);
+  const terraNavLink=sidebar.querySelector('#terraNavLink');if(terraNavLink)terraNavLink.hidden=isBaristaSession&&!isHibaBarista(sessionAgent);
   sidebar.classList.add('menu-ready');
 
   sidebar.addEventListener('click',event=>{
