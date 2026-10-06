@@ -10,23 +10,23 @@
   <link rel="manifest" href="manifest.json">
   <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
-  <title>NaviSuite Servizi a terra</title>
+  <title>NaviSuite Il mio turno</title>
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=12">
+  <link rel="stylesheet" href="assets/css/mio-turno.css?v=2">
 </head>
-<body class="servizi-terra-page">
-  <aside class="app-sidebar" id="terra-sidebar"></aside>
+<body class="servizi-terra-page mio-turno-page">
+  <aside class="app-sidebar" id="mio-turno-sidebar"></aside>
 
   <header class="page-header">
-    <p class="terra-label">SERVIZI A TERRA</p>
-    <h1 class="terra-title" id="terra-title">Servizi a terra</h1>
-    <p class="terra-context" id="terra-context">Caricamento…</p>
+    <p class="terra-label">IL MIO TURNO</p>
+    <h1 class="terra-title" id="turno-title">Il mio turno</h1>
+    <p class="terra-context" id="turno-context">Caricamento…</p>
   </header>
 
-  <main id="servizi-terra">
+  <main id="mio-turno">
     <div class="terra-bar">
-      <div class="quick-residence-selector" id="terra-residences" aria-label="Cambia residenza"></div>
       <span class="terra-day">
         <button type="button" class="terra-day-nav" id="terra-day-prev" aria-label="Giorno precedente">‹</button>
         <span class="terra-day-current"><span class="terra-day-label" id="terra-day-label"></span>
@@ -34,10 +34,9 @@
         <button type="button" class="terra-day-nav" id="terra-day-next" aria-label="Giorno successivo">›</button>
         <button type="button" class="terra-day-today" id="terra-day-today" hidden>Oggi</button>
       </span>
-      <button type="button" class="terra-print" id="terra-print">⎙ Stampa A4</button>
     </div>
     <div class="terra-notice" id="terra-notice" hidden></div>
-    <div class="terra-grid" id="terra-content"></div>
+    <div class="terra-grid" id="turno-content"></div>
   </main>
 
   <script src="assets/js/shared-roles.js?v=1"></script>
@@ -45,8 +44,10 @@
   <script src="assets/js/shared-data.js?v=123"></script>
   <script src="assets/js/firebase-auth.js?v=2"></script>
   <script src="assets/js/shared-menu.js?v=1.61"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/turni-giorno.js?v=1"></script>
   <script src="assets/js/servizi-terra-a4.js?v=10"></script>
-  <script src="assets/js/servizi-terra-page.js?v=15"></script>
+  <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/mio-turno.js?v=2"></script>
 </body>
 </html>

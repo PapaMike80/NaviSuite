@@ -1,0 +1,38 @@
+/* Il mio turno: stesse schede di Servizi a terra (servizi-terra.css) piu' questi elementi. */
+.mio-turno-page .terra-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mio-turno-page .terra-title .chip{font-size:16px;padding:6px 12px}
+.mt-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mt-fact,.mt-mooring{display:grid;gap:3px;padding:10px 12px;border:1px solid #244653;border-radius:12px;background:rgba(255,255,255,.025)}
+.mt-fact span,.mt-mooring span{color:#86a5af;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mt-fact b{font:900 20px Manrope,sans-serif}
+.mt-fact small,.mt-mooring small{color:#86a5af;font-size:11px}
+.mt-moorings{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.mt-mooring{grid-template-columns:auto auto 1fr;align-items:center;column-gap:8px}
+.mt-mooring span,.mt-mooring small{grid-column:1/-1}
+.mt-mooring b{font:900 20px Manrope,sans-serif;color:#a7fff0}
+.mt-mooring .rifornimento{justify-self:start}
+.mt-crew{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.mt-crew li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.025)}
+.mt-crew li b{font-size:14px}
+.mt-crew li small{color:#86a5af;font-size:11px;font-weight:700}
+.mt-crew li.me{outline:1px solid #2dd4bf;background:rgba(45,212,191,.10)}
+.mt-crew li.me b::after{content:" (tu)";color:#2dd4bf;font-weight:700}
+.mt-corse-card .terra-card-body{display:grid;gap:8px}
+.mt-corsa{border:1px solid #1c3b47;border-radius:12px;background:rgba(255,255,255,.02);overflow:hidden}
+.mt-corsa.past{opacity:.45}
+.mt-corsa.next{border-color:#2dd4bf;box-shadow:0 0 0 1px rgba(45,212,191,.25)}
+.mt-corsa-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;padding:8px 11px;background:rgba(45,212,191,.06)}
+.mt-corsa-head span{color:#2dd4bf;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.mt-corsa-head b{font-size:13px}
+.mt-scali{margin:0;padding:6px 11px 9px;list-style:none;display:grid;gap:2px}
+.mt-scali li{display:grid;grid-template-columns:48px 1fr;align-items:center;font-size:13px}
+.mt-scali li span{font:900 14px Manrope,sans-serif;text-align:right;padding-right:10px}
+.mt-bis{margin:0 0 10px;font-size:14px;line-height:1.45;color:#c6d7db}
+.mt-link{display:inline-flex;align-items:center;text-decoration:none;margin:0}
+@media(max-width:520px){
+  .mt-facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .mt-fact{padding:8px}
+  .mt-fact b,.mt-mooring b{font-size:17px}
+}
+#mio-turno{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
+@media(max-width:520px){#mio-turno{padding:12px 10px 26px}}

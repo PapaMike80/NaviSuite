@@ -43,66 +43,15 @@
 
   const state = { residence: initialResidence(), monday: T.defaultMonday(), turniNavi: readCache() || [],
     firebaseNavi: readCache() || [], schedule: null, showPast: false, pontili: {}, day: '' };
+  // Giorno passato da Il mio turno (?day=AAAA-MM-GG): si apre su quel giorno.
+  {
+    const asked = new URLSearchParams(location.search).get('day');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(asked || '') && asked !== iso(new Date())) state.day = asked;
+  }
   try { state.pontili = JSON.parse(localStorage.getItem('navisuite.serviziTerra.pontili') || '{}') || {}; } catch { state.pontili = {}; }
 
-  // Turni a terra negli orari degli agenti (AGB, POND, AGT...) e sigla del servizio.
-  // AGT e AGT1 sono lo stesso servizio: AgT.
-  const SIGLE_TERRA = { AGB: 'AgB', POND: 'PonD', DT: 'DT', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT', AGT2: 'AgT2', PONM: 'PonM' };
-  const TERRA_RESIDENZA = { DESENZANO: ['AgB', 'PonD', 'DT'], MADERNO: ['AgM', 'AgT', 'AgT2', 'PonM'] };
-  const norm = value => String(value || '').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, ' ').trim();
-  function terraCode(value) {
-    const raw = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const code = raw.match(/^C?(AGB|POND|DT|AGM|AGT[12]?|PONM)C?$/)?.[1];
-    return code ? SIGLE_TERRA[code] : '';
-  }
-
-  // Turno nave di un agente (D1, P2, M1, T1, R1, SR1...): come in Oggi, CxxC (trasferta) vale xx.
-  function naveCode(value) {
-    const raw = String(value || '').trim().toUpperCase().replace(/[‐‑–—]/g, '-').replace(/\s+/g, '');
-    const code = raw.match(/^C?(D[1-4]|BIS|T[12]|M1|R[1-4]|P[1-3]|SR[12])C?$/)?.[1];
-    return code || '';
-  }
-  // Grado per ordinare e colorare l'equipaggio, come nel popup di NaviTurni.
-  const GRADI = [
-    [/capitano|comandante/i, 'Comandante', '#facc15', 1],
-    [/capo\s*tim|capotim/i, 'Capo timoniere', '#fb923c', 1],
-    [/aiuto\s*motorista|aiutomotorista/i, 'Aiuto motorista', '#3b82f6', 4],
-    [/motorista/i, 'Motorista', '#a855f7', 2],
-    [/timoniere/i, 'Timoniere', '#22c55e', 3],
-    [/marinaio/i, 'Marinaio', '#ffffff', 5]
-  ];
-  // Comandante della nave: il capitano/comandante o, se manca, il capo timoniere (a bordo fa da capitano).
-  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Comandante')?.name ||
-    (crew || []).find(member => member.grado[0] === 'Capo timoniere')?.name || '';
-  const gradoOf = agent => GRADI.find(([pattern]) => pattern.test(String(agent?.qualifica || agent?.grado || '')))?.slice(1) || ['', '#e8f3f6', 9];
-
-  // Turni del giorno: {terra: {AgB: ['ROSSI']}, navi: {D1: [agente, ...]}}. Le variazioni ODS vincono sul turno.
-  function equipaggi(data, day) {
-    const variations = new Map();
-    (data?.variazioni_ods || []).forEach(item => {
-      if (String(item?.data || '').slice(0, 10) !== day) return;
-      const shift = item?.turno_nuovo ?? item?.turno;
-      if (shift === undefined) return;
-      if (item?.id_agente) variations.set(`id:${item.id_agente}`, shift);
-      if (item?.agente) variations.set(`name:${norm(item.agente)}`, shift);
-    });
-    const terra = {}, navi = {}, seen = new Set();
-    Object.values(data?.residenze || {}).forEach(list => (list || []).forEach(agent => {
-      const key = String(agent?.id || norm(agent?.agente));
-      if (!key || seen.has(key) || window.NaviRoles?.isBaristaAgent?.(agent)) return;
-      seen.add(key);
-      const variation = variations.get(`id:${agent?.id}`) ?? variations.get(`name:${norm(agent?.agente)}`);
-      const shift = variation !== undefined ? variation : agent?.turni?.[day];
-      const name = String(agent.agente || agent.name || '').trim();
-      const ground = terraCode(shift);
-      if (ground) (terra[ground] = terra[ground] || []).push(name);
-      const ship = naveCode(shift);
-      if (ship) (navi[ship] = navi[ship] || []).push({ name, grado: gradoOf(agent) });
-    }));
-    Object.values(terra).forEach(list => list.sort((a, b) => a.localeCompare(b, 'it')));
-    Object.values(navi).forEach(list => list.sort((a, b) => a.grado[2] - b.grado[2] || a.name.localeCompare(b.name, 'it')));
-    return { terra, navi };
-  }
+  // Turni, equipaggi e comandante: assets/js/turni-giorno.js (in comune con Il mio turno).
+  const { TERRA_RESIDENZA, norm, equipaggi, comandante } = window.NaviTurniGiorno;
   const agentiATerra = (data, day) => equipaggi(data, day).terra;
 
   // Ora attuale in minuti, solo se oggi vale l'orario; altrimenti null (niente passate/prossima).
@@ -311,6 +260,7 @@
     $('terra-content').innerHTML = `<div class="terra-col">${left.join('')}</div><div class="terra-col">${right.join('')}</div>`;
     const url = new URL(location.href);
     url.searchParams.set('res', state.residence.toLowerCase());
+    if (state.day) url.searchParams.set('day', state.day); else url.searchParams.delete('day');
     history.replaceState(null, '', url);
   }
 
