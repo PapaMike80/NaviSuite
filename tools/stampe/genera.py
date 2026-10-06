@@ -13,7 +13,6 @@ Scrive in stampe/:
   Maderno_tascabile_A4.pdf              tascabile: A4 orizzontale, scali al centro, partenze | ritorni
   Desenzano_passeggeri_A4.pdf, Desenzano_prossima_partenza_A4.pdf, Desenzano_tascabile_A4.pdf
                                         gli stessi fogli per i passeggeri di Desenzano
-  Desenzano_calendario_ormeggi_serali.pdf  un mese per pagina, da tutti i "Turno navi" degli O.d.S.
   Cover_*.pdf                           cover iPhone 15 (orario invernale)
   ormeggi.json                          dati estratti dagli O.d.S.
 
@@ -27,7 +26,7 @@ QUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, QUI)
 RADICE = os.path.dirname(os.path.dirname(QUI))
 
-import ormeggi, a4_desenzano, a4_maderno, a4_passeggeri_maderno, a4_passeggeri_desenzano, calendario, cover  # noqa: E402
+import ormeggi, a4_desenzano, a4_maderno, a4_passeggeri_maderno, a4_passeggeri_desenzano, cover  # noqa: E402
 
 
 def main():
@@ -56,7 +55,6 @@ def main():
     a4_passeggeri_desenzano.main(os.path.join(a.out, "Desenzano_passeggeri_A4.pdf"))
     a4_passeggeri_desenzano.main_destinazioni(os.path.join(a.out, "Desenzano_prossima_partenza_A4.pdf"))
     a4_passeggeri_desenzano.main_tascabile(os.path.join(a.out, "Desenzano_tascabile_A4.pdf"))
-    calendario.main(dati, os.path.join(a.out, "Desenzano_calendario_ormeggi_serali.pdf"))
     if not cover.genera(a.out):
         sys.exit("Cover: qualche testo finisce sotto MagSafe o fotocamera")
     print("Stampe aggiornate in", a.out)
