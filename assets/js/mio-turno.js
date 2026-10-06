@@ -271,5 +271,10 @@
       if (state.schedule) render();
     } catch (error) { console.warn('Il mio turno: turni nave non disponibili', error); }
   })();
-  setInterval(() => { if (state.schedule && $('turno-terra').hidden) render(); }, 60000);
+  // Turni modificati in NaviDiaria/NaviTurni: all'apertura, ogni minuto e quando si torna sulla pagina.
+  const aggiornaModifiche = () => G.caricaModifiche(profile()).then(() => { if (state.schedule) render(); });
+  aggiornaModifiche();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiornaModifiche(); });
+  window.addEventListener('storage', event => { if (String(event.key || '').startsWith('navidiaria.entries.v1.')) aggiornaModifiche(); });
+  setInterval(() => { if (state.schedule && $('turno-terra').hidden) aggiornaModifiche(); }, 60000);
 })();

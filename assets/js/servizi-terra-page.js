@@ -420,6 +420,15 @@
   loadTurniNavi();
   loadSchedule();
   loadPontili();
+  // Turni modificati in NaviDiaria/NaviTurni (agenti di turno ed equipaggi). Incorporata in Il mio
+  // turno le carica gia' la pagina che la ospita.
+  if (!EMBED) {
+    const profilo = () => { try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; } };
+    const aggiornaModifiche = () => window.NaviTurniGiorno.caricaModifiche(profilo()).then(() => { if (state.schedule) render(); });
+    aggiornaModifiche();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiornaModifiche(); });
+    setInterval(aggiornaModifiche, 300000);
+  }
   // Navi passate e prossima: aggiornate ogni minuto.
   // (non mentre si sta scegliendo un pontile, per non chiudere il selettore)
   // I pontili scelti dai colleghi arrivano con la rilettura da Firebase ogni minuto.
