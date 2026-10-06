@@ -21,7 +21,7 @@
   const chip = code => `<span class="chip" data-code="${esc(code)}">${esc(code)}</span>`;
   const pontLabel = value => String(value || '').replace(/^pontile\s+/i, '');
   const ora = value => String(value || '–').replace(':', '.').replace(/^0(\d)/, '$1');
-  const oreMinuti = hours => { const total = Math.round((Number(hours) || 0) * 60); return `${Math.floor(total / 60)}h${String(total % 60).padStart(2, '0')}`; };
+  const oreMinuti = hours => { const total = Math.round((Number(hours) || 0) * 60); return `${Math.floor(total / 60)}h${String(total % 60).padStart(2, '0')}min`; };
 
   // Turni selezionabili per le prove.
   const TURNI_PROVA = [
@@ -110,12 +110,13 @@
   };
 
   // Scheda Turno: ore del servizio, inizio e fine e sotto l'equipaggio.
-  function turnoCard(code, day, { inizio = '', fine = '', crewHtml = '' } = {}) {
+  function turnoCard(code, day, { inizio = '', fine = '', crewHtml = '', nave = '' } = {}) {
     const comp = C?.shiftForCode(code === 'RIP' ? 'Riposo' : code, day) || {};
     const lavoro = code !== 'RIP' && Number(comp.hours) > 0;
+    const orario = inizio && fine ? `<span class="mt-orario">${esc(ora(inizio))} → ${esc(ora(fine))}</span>` : '';
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
-      `${lavoro ? `<b class="mt-ore">${oreMinuti(comp.hours)}</b>` : ''}` +
-      `${inizio ? `<span>Inizio <b>${esc(ora(inizio))}</b></span>` : ''}${fine ? `<span>Fine <b>${esc(ora(fine))}</b></span>` : ''}</div>`;
+      `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
+      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>`;
     return card('Turno', '', head + crewHtml);
   }
 
@@ -180,7 +181,7 @@
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
-    const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio });
+    const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
     $('turno-content').innerHTML = `<div class="terra-col">${left}</div><div class="terra-col">${right}</div>`;
   }
