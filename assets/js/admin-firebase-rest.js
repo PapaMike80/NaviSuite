@@ -205,6 +205,22 @@
     return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
   }
 
+  // Pontile scelto per ogni corsa nella pagina Servizi a terra:
+  // private/adminUpdates/pontiliCorse/{residenza}/{corsa}/{data} = "1".."6" oppure "-" (nessuno).
+  const pontileKey = value => String(value || "").replace(/[.#$\[\]/]/g, "-");
+  async function getPontiliCorse(residence) {
+    const result = await databaseRequest(`private/adminUpdates/pontiliCorse/${pontileKey(residence)}`);
+    return result.data && typeof result.data === "object" ? result.data : {};
+  }
+
+  async function savePontileCorsa(residence, course, date, value) {
+    await databaseRequest(`private/adminUpdates/pontiliCorse/${pontileKey(residence)}/${pontileKey(course)}/${pontileKey(date)}`, {
+      method:"PUT",
+      body:JSON.stringify(String(value || "-"))
+    });
+    return true;
+  }
+
   async function getBaristaUpdates() {
     const result = await databaseRequest("private/adminUpdates/baristas");
     return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
@@ -838,6 +854,8 @@
     clearPendingConnectionAlerts,
     getAdminDocuments,
     getTurniNavi,
+    getPontiliCorse,
+    savePontileCorsa,
     getAdminDocumentFile,
     saveAdminDocument,
     deleteAdminDocument,

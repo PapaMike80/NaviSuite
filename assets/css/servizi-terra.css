@@ -6,7 +6,6 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .terra-context{margin:5px 0 0;color:#9bc8d5;font-size:13px}
 #servizi-terra{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
 .terra-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.terra-clock{color:#9bc8d5;font-size:13px;font-weight:700}
 .terra-print{margin-left:auto;min-height:36px;padding:0 14px;border:1px solid #2dd4bf;border-radius:11px;background:#103a3d;color:#a7fff0;font:800 13px DM Sans,sans-serif;cursor:pointer}
 .terra-notice{margin:12px 0 0;padding:10px 14px;border:1px solid #90641f;border-radius:12px;background:#2c2415;color:#ffd48a;font-size:13px}
 .terra-notice[hidden]{display:none}
@@ -118,3 +117,44 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .nave.ferry{background:rgba(70,130,220,.13);border-left:3px solid rgba(91,140,255,.65)}
 .nave.ferry.next{background:rgba(45,212,191,.12)}
 .crew-hover-tooltip .crew-hover-where{margin:-2px 0 4px;color:#9bc8d5;font-size:11px}
+/* Selettore del pontile (Desenzano): ancora + numero, come un badge */
+.pontile-sel{display:inline-flex;align-items:center;gap:2px;padding:2px 5px 2px 8px;border:1px solid #2dd4bf;border-radius:8px;background:rgba(45,212,191,.16);color:#a7fff0;font-size:12px;font-weight:900;cursor:pointer}
+.pontile-sel select{appearance:none;-webkit-appearance:none;min-width:18px;padding:2px 3px;border:0;border-radius:6px;background:transparent;color:#fff;font:900 14px Manrope,sans-serif;text-align:center;text-align-last:center;cursor:pointer}
+.pontile-sel select:focus-visible{outline:2px solid #2dd4bf}
+.pontile-sel select option{background:#0d1f27;color:#e8f3f6}
+.pontile-sel.empty{border-style:dashed;border-color:#2d6570;background:transparent;color:#57737d}
+.pontile-sel.empty select{color:#86a5af}
+.pontile-sel.ods{box-shadow:0 0 0 1px rgba(45,212,191,.35)}
+.rifornimento{min-width:22px;padding:4px 7px;text-align:center;font-size:13px}
+/* R e B: quadratini a sinistra del pontile; pontili allineati a destra anche sul telefono */
+.nave .bolgetta{min-width:22px;padding:4px 7px;border-radius:8px;text-align:center;font-size:13px;letter-spacing:0}
+.nave .badges{flex-wrap:nowrap;align-items:center;justify-content:flex-end;margin-left:auto}
+@media(max-width:520px){
+  .nave .dove{flex-direction:row;align-items:center;gap:6px}
+  .nave .dove .ship-line{flex:1;min-width:0}
+  .nave .badges{flex:none;justify-content:flex-end}
+}
+.nave .ship-line .ship-name,.nave .ship-line .cte{white-space:nowrap}
+.nave .ship-line .ship-name+.cte::before{content:" · "}
+@media(max-width:520px){
+  .nave .ship-line .ship-name,.nave .ship-line .cte{display:block;overflow:hidden;text-overflow:ellipsis}
+  .nave .ship-line .ship-name+.cte::before{content:none}
+  .nave .ship-line .cte{color:#9bc8d5;font-size:11px}
+}
+@media(max-width:520px){
+  .nave{grid-template-columns:46px 58px 38px 1fr;gap:5px;padding:5px 6px}
+  .nave .tipo{font-size:9px;letter-spacing:.04em}
+  .nave .chip{min-width:34px;padding:4px 5px;font-size:11px}
+  .nave .rifornimento,.nave .bolgetta{min-width:20px;padding:4px 5px;font-size:12px}
+  .pontile-sel{padding:2px 4px 2px 6px}
+  .nave .ship-line .ship-name{font-size:13px}
+}
+/* Scorrimento dei giorni, come nella pagina Oggi */
+.terra-day{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.terra-day-nav{flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;border:1px solid #2f5661;border-radius:9px;background:#0d202b;color:#8fd7cb;font-size:19px;font-weight:900;line-height:1;cursor:pointer}
+.terra-day-nav:active{background:#12303a}
+.terra-day-current{position:relative;display:inline-flex;align-items:center;min-height:32px;padding:0 10px;border:1px solid #2f5661;border-radius:9px;background:#0d202b}
+.terra-day-label{color:#cfe6e9;font-size:12px;font-weight:850;letter-spacing:.04em;white-space:nowrap;pointer-events:none}
+.terra-day-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.terra-day-today{flex:0 0 auto;min-height:32px;padding:0 10px;border:1px solid #47cbb9;border-radius:9px;background:#123c3c;color:#a4fff1;font-size:11px;font-weight:850;cursor:pointer}
+.terra-day-today[hidden]{display:none}

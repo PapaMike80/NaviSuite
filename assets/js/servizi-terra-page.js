@@ -13,6 +13,7 @@
   const PERIODI = [['2026-10-05', '2026-11-01'], ['2027-03-13', '2027-03-25']];
   const FINE_SR = '2026-10-11';
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+  const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   const CACHE_KEY = 'navisuite.serviziTerra.turniNavi';
   const $ = id => document.getElementById(id);
 
@@ -41,7 +42,8 @@
   }
 
   const state = { residence: initialResidence(), monday: T.defaultMonday(), turniNavi: readCache() || [],
-    firebaseNavi: readCache() || [], schedule: null, showPast: false };
+    firebaseNavi: readCache() || [], schedule: null, showPast: false, pontili: {}, day: '' };
+  try { state.pontili = JSON.parse(localStorage.getItem('navisuite.serviziTerra.pontili') || '{}') || {}; } catch { state.pontili = {}; }
 
   // Turni a terra negli orari degli agenti (AGB, POND, AGT...) e sigla del servizio.
   // AGT e AGT1 sono lo stesso servizio: AgT.
@@ -104,11 +106,19 @@
   const agentiATerra = (data, day) => equipaggi(data, day).terra;
 
   // Ora attuale in minuti, solo se oggi vale l'orario; altrimenti null (niente passate/prossima).
+  // Giorno mostrato (si scorre come nella pagina Oggi). Navi passate e prossima solo per oggi.
   function nowInfo() {
     const now = new Date();
-    const today = iso(now);
-    const active = PERIODI.some(([from, to]) => today >= from && today <= to);
-    return { today, minutes: active ? now.getHours() * 60 + now.getMinutes() : null, srOff: today > FINE_SR };
+    const realToday = iso(now);
+    const day = state.day || realToday;
+    const inService = PERIODI.some(([from, to]) => day >= from && day <= to);
+    return {
+      today: day,
+      isToday: day === realToday,
+      inService,
+      minutes: inService && day === realToday ? now.getHours() * 60 + now.getMinutes() : null,
+      srOff: day > FINE_SR
+    };
   }
 
   function renderButtons() {
@@ -143,6 +153,58 @@
     return card('Servizi a terra', 'agente di turno oggi', `<div class="servizi">${items}</div>`);
   }
 
+  // ---- Pontile di ogni corsa (Desenzano) ----
+  const PONTILI = ['1', '2', '3', '4', '5', '6'];
+  const PONTILI_CACHE = 'navisuite.serviziTerra.pontili';
+  const pontLabel = value => String(value || '').replace(/^pontile\s+/i, '');
+  const courseKey = (time, code, run) => `${time.replace('.', '-')}_${code}_${run || 'x'}`;
+  // Valore del giorno: scelta di oggi, poi l'O.d.S. (ormeggio del mattino/sera), poi l'ultima scelta dei giorni prima.
+  function pontileFor(key, day, odsMooring) {
+    const history = state.pontili[key] || {};
+    if (history[day] != null) return { value: history[day] === '-' ? '' : history[day], source: 'oggi' };
+    if (odsMooring) return { value: pontLabel(odsMooring), source: 'ods' };
+    const previous = Object.keys(history).filter(date => date < day).sort().pop();
+    return previous && history[previous] !== '-' ? { value: history[previous], source: 'ieri' } : { value: '', source: '' };
+  }
+  function pontileSelect(key, day, odsMooring, when, follow = '') {
+    const { value, source } = pontileFor(key, day, odsMooring);
+    const options = ['', ...PONTILI];
+    if (value && !options.includes(value)) options.push(value);
+    const ods = pontLabel(odsMooring);
+    if (ods && !options.includes(ods)) options.push(ods);
+    const title = `Pontile${when ? ` ${when}` : ''}${source === 'ods' ? ' (dall\'O.d.S.)' : source === 'ieri' ? ' (come il giorno prima)' : ''}`;
+    return `<label class="pontile-sel${value ? '' : ' empty'}${source === 'ods' ? ' ods' : ''}" title="${esc(title)}">⚓` +
+      `<select data-pontile="${esc(key)}"${follow ? ` data-follow="${esc(follow)}"` : ''} aria-label="${esc(title)}">${options.map(option =>
+        `<option value="${esc(option)}"${option === value ? ' selected' : ''}>${option ? esc(option) : '–'}</option>`).join('')}</select></label>`;
+  }
+  // Salva il pontile di una o piu' corse (un arrivo e la partenza che lo segue).
+  async function savePontile(keys, value) {
+    const day = nowInfo().today; // il giorno mostrato
+    keys.forEach(key => { (state.pontili[key] = state.pontili[key] || {})[day] = value || '-'; });
+    try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
+    render();
+    try {
+      const provider = window.NaviAdminFirebase;
+      if (!provider?.savePontileCorsa) throw new Error('Firebase non disponibile');
+      await provider.ready;
+      for (const key of keys) await provider.savePontileCorsa('DESENZANO', key, day, value || '-');
+    } catch (error) {
+      notice(`Pontile salvato solo su questo dispositivo (${error.message}).`);
+    }
+  }
+  async function loadPontili() {
+    try {
+      const provider = window.NaviAdminFirebase;
+      if (!provider?.getPontiliCorse) return;
+      await provider.ready;
+      state.pontili = await provider.getPontiliCorse('DESENZANO');
+      try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
+      if (!document.activeElement?.matches?.('select[data-pontile]')) render();
+    } catch (error) {
+      console.warn('Servizi a terra: pontili non disponibili', error);
+    }
+  }
+
   function naviCard(now) {
     const desenzano = state.residence === 'DESENZANO';
     const bolgette = D.BOLGETTE[state.residence];
@@ -160,11 +222,24 @@
       const morning = kind === 'P' && firstIndex[code] === index;
       // Sera: l'ultimo movimento del turno e' un arrivo, la nave resta qui per la notte.
       const evening = kind === 'A' && lastIndex[code] === index;
+      // R (rifornimento) e B (bolgetta) a sinistra, il pontile sempre ultimo a destra.
       const badges = [];
-      if (morning && ieri[code]?.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio del mattino (dalla sera prima)">⚓ ${esc(ieri[code].ormeggio.toUpperCase())}</b>`);
-      if (morning && turni[code]?.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa">⛽ RIFORNIMENTO</b>');
-      if (evening && turni[code]?.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio serale">⚓ ${esc(turni[code].ormeggio.toUpperCase())}</b>`);
-      if (bolgette[run]) badges.push(`<b class="bolgetta">${esc(bolgette[run])}</b>`);
+      if (morning && turni[code]?.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
+      if (bolgette[run]) {
+        const label = bolgette[run].replace('BOLGETTA · ', 'Bolgetta: ').toLowerCase().replace(/^b/, 'B');
+        badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
+      }
+      const odsMooring = morning ? ieri[code]?.ormeggio : evening ? turni[code]?.ormeggio : '';
+      if (desenzano) {
+        // Desenzano: selettore del pontile su ogni corsa (proposto dall'O.d.S. o dal giorno prima).
+        // Un arrivo seguito da una partenza della stessa nave: la nave riparte dallo stesso pontile.
+        const after = kind === 'A' ? navi.slice(index + 1).find(row => row[2] === code) : null;
+        const follow = after && after[1] === 'P' ? courseKey(after[0], after[2], after[3]) : '';
+        badges.push(pontileSelect(courseKey(time, code, run), now.today, odsMooring, morning ? 'del mattino' : evening ? 'serale' : '', follow));
+      } else if (odsMooring) {
+        // Maderno: solo l'ormeggio del mattino e della sera dagli O.d.S.
+        badges.push(`<b class="ormeggio" title="Ormeggio ${morning ? 'del mattino (dalla sera prima)' : 'serale'}">⚓ ${esc(pontLabel(odsMooring))}</b>`);
+      }
       let state_ = '';
       if (now.srOff && where.includes('*')) state_ = 'off';
       else if (now.minutes != null) {
@@ -173,10 +248,10 @@
       }
       const ship = turni[code]?.nave;
       const captain = comandante(crews[code]);
-      const info = [ship, captain].filter(Boolean).join(' · ');
+      const info = [ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
       const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span class="ship-line">${info ? esc(info) : '<span class="muted">nave non indicata</span>'}</span>` +
+        `<span class="dove"><span class="ship-line">${info || '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
       return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code) };
     });
@@ -195,8 +270,8 @@
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi le navi già partite' : `▾ Mostra le navi già partite (${hidden})`}</button>` : '';
     const legend = desenzano
-      ? '⚓ ormeggio del mattino (dalla sera prima) e della sera · ⛽ rifornimento · nave di oggi dagli O.d.S.'
-      : `SCALO = nave in transito a Maderno · T1/T2 = traghetto Torri · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · nave di oggi dagli O.d.S.`;
+      ? '⚓ pontile di ogni corsa: proposto dall\'O.d.S. (mattino e sera) o dalla scelta del giorno prima, si può cambiare · R = rifornimento · B = bolgetta · nave di oggi dagli O.d.S.'
+      : `SCALO = nave in transito a Maderno · T1/T2 = traghetto Torri · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · R = rifornimento · B = bolgetta · nave di oggi dagli O.d.S.`;
     return card(desenzano ? 'Navi a Desenzano' : 'Navi e traghetto a Maderno', 'in ordine di orario',
       `${toggle}<div class="navi-list">${rows}</div><p class="legend">${esc(legend)}</p>`);
   }
@@ -223,10 +298,13 @@
     hideCrew();
     $('terra-title').textContent = info.title;
     $('terra-context').textContent = desenzano ? 'Pontile e AgB · navi, ormeggi e rifornimenti' : 'AgM e AgT · navi di linea e traghetto Torri';
-    const clock = new Date();
-    $('terra-clock').textContent = now.minutes != null
-      ? `${GIORNI[clock.getDay()]} ${short(now.today)} · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}`
-      : 'Orario in vigore dal 5/10 all\'1/11/2026 e dal 13 al 25/3/2027';
+    const clock = new Date(), shown = parseIso(now.today);
+    $('terra-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
+      (now.isToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
+    $('terra-day-input').value = now.today;
+    $('terra-day-today').hidden = now.isToday;
+    state.dayMessage = now.inService ? '' : 'Orario non in vigore in questo giorno: in vigore dal 5/10 all\'1/11/2026 e dal 13 al 25/3/2027.';
+    showNotice();
     // Prima l'orario delle navi, poi i servizi a terra con l'agente di turno.
     const left = [naviCard(now)];
     const right = [serviziCard(now), noteCard()];
@@ -236,9 +314,15 @@
     history.replaceState(null, '', url);
   }
 
-  function notice(text) {
+  // Avvisi: giorno fuori orario e problemi di connessione, uno sotto l'altro.
+  function showNotice() {
+    const text = [state.dayMessage, state.errorMessage].filter(Boolean).join(' · ');
     $('terra-notice').hidden = !text;
-    $('terra-notice').textContent = text || '';
+    $('terra-notice').textContent = text;
+  }
+  function notice(text) {
+    state.errorMessage = text || '';
+    showNotice();
   }
 
   // Turni nave: quelli dei dati condivisi (come in Oggi) piu' quelli letti da Firebase.
@@ -286,13 +370,27 @@
     state.showPast = false;
     render();
   });
+  $('terra-content').addEventListener('change', event => {
+    const select = event.target.closest('select[data-pontile]');
+    if (select) savePontile([select.dataset.pontile, select.dataset.follow].filter(Boolean), select.value);
+  });
   $('terra-content').addEventListener('click', event => {
     if (!event.target.closest('[data-past]')) return;
     state.showPast = !state.showPast;
     render();
   });
+  // Scorrimento dei giorni come nella pagina Oggi: frecce, calendario e ritorno a oggi.
+  const goToDay = day => { state.day = day === iso(new Date()) ? '' : day; state.showPast = false; render(); };
+  $('terra-day-prev').addEventListener('click', () => goToDay(addDays(nowInfo().today, -1)));
+  $('terra-day-next').addEventListener('click', () => goToDay(addDays(nowInfo().today, 1)));
+  $('terra-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  $('terra-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('terra-print').addEventListener('click', () => {
-    try { T.openResidence(state.residence, state.turniNavi, state.monday); } catch (error) { notice(error.message); }
+    // A4 della settimana del giorno mostrato (oggi: settimana proposta come in Aggiornamenti).
+    const day = nowInfo();
+    const shown = parseIso(day.today);
+    const monday = day.isToday ? state.monday : addDays(day.today, -((shown.getDay() + 6) % 7));
+    try { T.openResidence(state.residence, state.turniNavi, monday); } catch (error) { notice(error.message); }
   });
 
   // Popup dell'equipaggio come in NaviTurni: passando col mouse su una corsa, con il tasto Tab
@@ -320,7 +418,8 @@
     box.style.left = `${Math.max(8, left)}px`;
     box.style.top = `${Math.max(8, top)}px`;
   }
-  const crewRow = target => target?.closest?.('#terra-content .nave[data-crew]');
+  // Il selettore del pontile non apre il popup dell'equipaggio.
+  const crewRow = target => target?.closest?.('.pontile-sel') ? null : target?.closest?.('#terra-content .nave[data-crew]');
   const hoverable = window.matchMedia?.('(hover: hover)')?.matches;
   document.addEventListener('mouseover', event => {
     const row = crewRow(event.target);
@@ -354,6 +453,12 @@
   render();
   loadTurniNavi();
   loadSchedule();
+  loadPontili();
   // Navi passate e prossima: aggiornate ogni minuto.
-  setInterval(render, 60000);
+  // (non mentre si sta scegliendo un pontile, per non chiudere il selettore)
+  // I pontili scelti dai colleghi arrivano con la rilettura da Firebase ogni minuto.
+  setInterval(() => {
+    if (document.activeElement?.matches?.('select[data-pontile]')) return;
+    if (state.residence === 'DESENZANO') loadPontili(); else render();
+  }, 60000);
 })();

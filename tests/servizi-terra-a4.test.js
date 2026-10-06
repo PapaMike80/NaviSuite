@@ -77,7 +77,7 @@ const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
 assert.match(terraPage, /servizi-terra-a4\.js\?v=9/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=10/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=14/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
@@ -87,6 +87,14 @@ assert.match(pageJs, /crew-hover-tooltip/); // popup equipaggio come NaviTurni
 assert.match(pageJs, /grado\[0\] === 'Capo timoniere'\)\?\.name/); // capo timoniere a bordo fa da comandante
 assert.doesNotMatch(pageJs, /Cte\./); // solo il nome, senza Cte.
 assert.match(pageJs, /ferry: \/\^T\[12\]\$\/\.test\(code\)/); // traghetti con sfondo diverso
+assert.match(pageJs, /select data-pontile/); // selettore del pontile per ogni corsa (Desenzano)
+assert.match(pageJs, /data-follow/);
+assert.match(terraPage, /id="terra-day-prev"/); // scorrimento dei giorni come Oggi
+assert.match(pageJs, /goToDay\(addDays\(nowInfo\(\)\.today, 1\)\)/); // l'arrivo porta il pontile alla partenza successiva della stessa nave
+assert.match(pageJs, /savePontileCorsa\('DESENZANO'/);
+const firebaseJs = fs.readFileSync('assets/js/admin-firebase-rest.js', 'utf8');
+assert.match(firebaseJs, /private\/adminUpdates\/pontiliCorse\//);
+assert.match(fs.readFileSync('servizi-terra.html', 'utf8'), /admin-firebase-rest\.js\?v=40/);
 // Impostazioni: Servizi a terra selezionabile come prima pagina, Quiz no.
 const settings = fs.readFileSync('impostazioni.html', 'utf8');
 assert.match(settings, /data-start-page="servizi-terra\.html"/);
