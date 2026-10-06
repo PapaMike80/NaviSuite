@@ -69,6 +69,9 @@
     [/timoniere/i, 'Timoniere', '#22c55e', 3],
     [/marinaio/i, 'Marinaio', '#ffffff', 5]
   ];
+  // Comandante della nave: il capitano/comandante o, se manca, il capo timoniere (a bordo fa da capitano).
+  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Comandante')?.name ||
+    (crew || []).find(member => member.grado[0] === 'Capo timoniere')?.name || '';
   const gradoOf = agent => GRADI.find(([pattern]) => pattern.test(String(agent?.qualifica || agent?.grado || '')))?.slice(1) || ['', '#e8f3f6', 9];
 
   // Turni del giorno: {terra: {AgB: ['ROSSI']}, navi: {D1: [agente, ...]}}. Le variazioni ODS vincono sul turno.
@@ -169,7 +172,7 @@
         else if (!nextFound) { state_ = 'next'; nextFound = true; }
       }
       const ship = turni[code]?.nave;
-      const captain = (crews[code] || []).find(member => member.grado[0] === 'Comandante')?.name;
+      const captain = comandante(crews[code]);
       const info = [ship, captain ? `Cte.\u00a0${captain}` : ''].filter(Boolean).join(' · ');
       const html = `<span class="ora">${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
@@ -220,7 +223,7 @@
         const dep = row.kind === 'ultima' ? '<span class="muted" style="text-align:right">fine servizio</span>' : time(row.dep);
         return `<div class="ferry-row${cls}">${arr}${sosta}${dep}</div>`;
       }).join('');
-      const captain = (state.crews?.[code] || []).find(member => member.grado[0] === 'Comandante')?.name;
+      const captain = comandante(state.crews?.[code]);
       return `<div class="ferry"><h3>${chip(code)} ${ships[code] ? `<span class="ferry-ship">${esc(ships[code])}</span>` : 'Traghetto'}` +
         `${captain ? `<small class="ferry-cte">Cte. ${esc(captain)}</small>` : ''}</h3><div class="ferry-head"><span>ARRIVO</span><span>SOSTA</span><span>PARTENZA</span></div>${rows}</div>`;
     };
@@ -327,6 +330,7 @@
   function showCrew(row, x, y) {
     hideCrew();
     const code = row.dataset.crew, crew = state.crews?.[code] || [];
+    const cte = comandante(crew);
     let me = '';
     try { me = norm(JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null')?.name); } catch { me = ''; }
     const box = document.createElement('div');
@@ -335,7 +339,7 @@
     const head = `<div class="crew-hover-head">${esc(code)}${row.dataset.ship ? ` · ${esc(row.dataset.ship)}` : ''}</div>`;
     box.innerHTML = head + (crew.length
       ? crew.map(member => `<div class="crew-hover-name${norm(member.name) === me ? ' is-logged' : ''}" style="color:${member.grado[1]}">` +
-        `${esc(member.name)}${member.grado[0] ? `<small>${esc(member.grado[0])}</small>` : ''}</div>`).join('')
+        `${esc(member.name)}${member.grado[0] ? `<small>${esc(member.grado[0])}${member.grado[0] === 'Capo timoniere' && member.name === cte ? ' · Cte.' : ''}</small>` : ''}</div>`).join('')
       : `<div class="crew-hover-name muted">${state.schedule ? 'Equipaggio non disponibile' : 'Caricamento equipaggio…'}</div>`);
     document.body.appendChild(box);
     const gap = 12, rect = box.getBoundingClientRect();

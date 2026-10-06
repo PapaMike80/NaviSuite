@@ -77,13 +77,14 @@ const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
 assert.match(terraPage, /servizi-terra-a4\.js\?v=8/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=6/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=7/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
 assert.doesNotMatch(pageJs, /ormeggiCard/); // niente tabella ormeggi: sono nell'orario
 assert.match(pageJs, /past-toggle/); // freccia per le navi gia' partite
 assert.match(pageJs, /crew-hover-tooltip/); // popup equipaggio come NaviTurni
+assert.match(pageJs, /grado\[0\] === 'Capo timoniere'\)\?\.name/); // capo timoniere a bordo fa da comandante
 assert.match(pageJs, /addDays\(now\.today, -1\)/); // ormeggio del mattino dalla sera prima
 // Dati condivisi tra pagina web e foglio A4.
 assert.deepStrictEqual([...T.DATA.SERVIZI.MADERNO.map(s => s[0])], ['AgM', 'AgT']);
