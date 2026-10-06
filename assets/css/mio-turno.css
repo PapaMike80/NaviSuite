@@ -36,3 +36,10 @@
 }
 #mio-turno{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
 @media(max-width:520px){#mio-turno{padding:12px 10px 26px}}
+/* Prova turno: selettore per vedere la pagina con un altro turno */
+.mt-test{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:3px 4px 3px 10px;border:1px dashed #2d6570;border-radius:10px;color:#86a5af;font-size:11px;font-weight:800;letter-spacing:.04em}
+.mt-test select{min-height:30px;padding:0 6px;border:1px solid #2f5661;border-radius:8px;background:#0d202b;color:#e8f7f7;font:800 13px DM Sans,sans-serif}
+.mt-test.active{border-style:solid;border-color:#f59e0b;color:#fcd34d}
+.mt-facts{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+#turno-terra{margin-top:14px}
+@media(max-width:520px){.mt-test{margin-left:0}.mt-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}

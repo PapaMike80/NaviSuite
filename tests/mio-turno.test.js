@@ -57,5 +57,14 @@ assert.match(fs.readFileSync('index.html', 'utf8'), /href="mio-turno\.html"/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="mio-turno\.html"/);
 assert.match(fs.readFileSync('assets/js/portal.js', 'utf8'), /'mio-turno\.html'/);
 const js = fs.readFileSync('assets/js/mio-turno.js', 'utf8');
-assert.match(js, /location\.replace\(link\)/); // a terra: Servizi a terra
+assert.match(js, /NaviServiziTerraPage\?\.show\(\{ residence: residenza, day \}\)/); // a terra: Servizi a terra incorporata
+assert.doesNotMatch(js, /location\.replace/);
+assert.match(page, /window\.NaviServiziTerraEmbed = true/);
+assert.match(page, /id="terra-content"/);
+assert.match(page, /id="turno-test"/); // prova con un altro turno
+assert.match(js, /shiftForCode\(/); // competenze: ore, diaria, buono pasto, imbarco
+assert.match(js, /past-toggle/); // corse gia' fatte nascoste
+const terraJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
+assert.match(terraJs, /window\.NaviServiziTerraPage = \{/);
+assert.match(terraJs, /if \(EMBED\) return;/);
 console.log('mio-turno ok');

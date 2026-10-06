@@ -15,7 +15,12 @@
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   const CACHE_KEY = 'navisuite.serviziTerra.turniNavi';
-  const $ = id => document.getElementById(id);
+  // Incorporata in Il mio turno (window.NaviServiziTerraEmbed = true): la pagina che la ospita
+  // ha solo #terra-content e decide residenza e giorno con NaviServiziTerraPage.show().
+  // Gli elementi che mancano (pulsanti, giorni, titolo) diventano elementi fuori pagina.
+  const EMBED = !!window.NaviServiziTerraEmbed;
+  const offPage = {};
+  const $ = id => document.getElementById(id) || (offPage[id] = offPage[id] || document.createElement('div'));
 
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const parseIso = value => { const [y, m, d] = String(value).split('-').map(Number); return new Date(y, m - 1, d); };
@@ -258,6 +263,7 @@
     const left = [naviCard(now)];
     const right = [serviziCard(now), noteCard()];
     $('terra-content').innerHTML = `<div class="terra-col">${left.join('')}</div><div class="terra-col">${right.join('')}</div>`;
+    if (EMBED) return;
     const url = new URL(location.href);
     url.searchParams.set('res', state.residence.toLowerCase());
     if (state.day) url.searchParams.set('day', state.day); else url.searchParams.delete('day');
@@ -399,6 +405,16 @@
     if (box) box.dataset.for = row.dataset.crew + row.querySelector('.ora')?.textContent;
   });
   window.addEventListener('scroll', hideCrew, { passive: true });
+
+  // Per Il mio turno: mostra la residenza e il giorno indicati.
+  window.NaviServiziTerraPage = {
+    show({ residence, day } = {}) {
+      if (residence && RESIDENZE.some(item => item.name === residence)) state.residence = residence;
+      state.day = day && day !== iso(new Date()) ? day : '';
+      state.showPast = false;
+      render();
+    }
+  };
 
   render();
   loadTurniNavi();

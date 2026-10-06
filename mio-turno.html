@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=12">
-  <link rel="stylesheet" href="assets/css/mio-turno.css?v=2">
+  <link rel="stylesheet" href="assets/css/mio-turno.css?v=3">
 </head>
 <body class="servizi-terra-page mio-turno-page">
   <aside class="app-sidebar" id="mio-turno-sidebar"></aside>
@@ -28,15 +28,24 @@
   <main id="mio-turno">
     <div class="terra-bar">
       <span class="terra-day">
-        <button type="button" class="terra-day-nav" id="terra-day-prev" aria-label="Giorno precedente">‹</button>
-        <span class="terra-day-current"><span class="terra-day-label" id="terra-day-label"></span>
-          <input type="date" class="terra-day-input" id="terra-day-input" aria-label="Scegli la giornata"></span>
-        <button type="button" class="terra-day-nav" id="terra-day-next" aria-label="Giorno successivo">›</button>
-        <button type="button" class="terra-day-today" id="terra-day-today" hidden>Oggi</button>
+        <button type="button" class="terra-day-nav" id="turno-day-prev" aria-label="Giorno precedente">‹</button>
+        <span class="terra-day-current"><span class="terra-day-label" id="turno-day-label"></span>
+          <input type="date" class="terra-day-input" id="turno-day-input" aria-label="Scegli la giornata"></span>
+        <button type="button" class="terra-day-nav" id="turno-day-next" aria-label="Giorno successivo">›</button>
+        <button type="button" class="terra-day-today" id="turno-day-today" hidden>Oggi</button>
       </span>
+      <label class="mt-test" title="Per provare la pagina con un altro turno (non cambia i dati)">
+        <span>Prova turno</span>
+        <select id="turno-test" aria-label="Prova con un altro turno"></select>
+      </label>
     </div>
-    <div class="terra-notice" id="terra-notice" hidden></div>
+    <div class="terra-notice" id="turno-notice" hidden></div>
     <div class="terra-grid" id="turno-content"></div>
+    <!-- A terra: la pagina Servizi a terra incorporata (assets/js/servizi-terra-page.js) -->
+    <section id="turno-terra" hidden>
+      <div class="terra-notice" id="terra-notice" hidden></div>
+      <div class="terra-grid" id="terra-content"></div>
+    </section>
   </main>
 
   <script src="assets/js/shared-roles.js?v=1"></script>
@@ -48,6 +57,9 @@
   <script src="assets/js/turni-giorno.js?v=1"></script>
   <script src="assets/js/servizi-terra-a4.js?v=10"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
-  <script src="assets/js/mio-turno.js?v=2"></script>
+  <script>window.NaviServiziTerraEmbed = true;</script>
+  <script src="assets/js/servizi-terra-page.js?v=16"></script>
+  <script src="assets/js/shift-competence.js?v=3"></script>
+  <script src="assets/js/mio-turno.js?v=3"></script>
 </body>
 </html>
