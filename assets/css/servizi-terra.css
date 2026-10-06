@@ -56,6 +56,8 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .nave .tipo.P{color:#2dd4bf}.nave .tipo.A{color:#7cc4ff}.nave .tipo.S{color:#fbbf24}
 .nave .dove{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:14px}
 .nave .dove span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nave .dove .ship{display:block;margin-top:2px;overflow:hidden;color:#9bc8d5;font-size:11px;font-weight:800;letter-spacing:.04em;text-overflow:ellipsis}
+.ferry h3 .ferry-ship{color:#e8f7f7;letter-spacing:.04em}
 .bolgetta{flex:none;padding:3px 7px;border-radius:7px;background:#f59e0b;color:#1d1300;font-size:9.5px;font-weight:900;letter-spacing:.04em;white-space:nowrap}
 .nave.split{margin-top:7px}
 .nave.past{opacity:.42}

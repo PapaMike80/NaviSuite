@@ -75,6 +75,7 @@
     const desenzano = state.residence === 'DESENZANO';
     const bolgette = D.BOLGETTE[state.residence];
     const split = desenzano ? '14.30' : '14.00';
+    const ships = T.naviDelGiorno(state.turniNavi, now.today);
     let nextFound = false;
     const rows = D.NAVI[state.residence].map(([time, kind, code, run, where]) => {
       const off = now.srOff && where.includes('*');
@@ -87,11 +88,12 @@
       const label = D.KIND[kind];
       return `<div class="nave${cls}"><span class="ora">${time}</span>` +
         `<span class="tipo ${kind}">${label}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span>${esc(where)}</span>${bolgette[run] ? `<b class="bolgetta">${esc(bolgette[run])}</b>` : ''}</span></div>`;
+        `<span class="dove"><span>${esc(where)}${ships[code] ? `<small class="ship">${esc(ships[code])}</small>` : ''}</span>` +
+        `${bolgette[run] ? `<b class="bolgetta">${esc(bolgette[run])}</b>` : ''}</span></div>`;
     }).join('');
     const legend = desenzano
-      ? 'In grigio le navi già passate, evidenziata la prossima.'
-      : `SCALO = nave in transito a Maderno · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''}.`;
+      ? 'In grigio le navi già passate, evidenziata la prossima. Nave di oggi dagli O.d.S.'
+      : `SCALO = nave in transito a Maderno · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · nave di oggi dagli O.d.S.`;
     return card(desenzano ? 'Navi a Desenzano' : 'Navi di linea a Maderno', 'in ordine di orario',
       `<div class="navi-list">${rows}</div><p class="legend">${esc(legend)}</p>`);
   }
@@ -118,6 +120,7 @@
   }
 
   function traghettoCard(now) {
+    const ships = T.naviDelGiorno(state.turniNavi, now.today);
     const ferry = code => {
       let nextFound = false;
       const time = value => value ? `<span class="t">${value[0]}<small>c. ${esc(value[1])}</small></span>` : '';
@@ -138,7 +141,7 @@
         const dep = row.kind === 'ultima' ? '<span class="muted" style="text-align:right">fine servizio</span>' : time(row.dep);
         return `<div class="ferry-row${cls}">${arr}${sosta}${dep}</div>`;
       }).join('');
-      return `<div class="ferry"><h3>${chip(code)} Traghetto</h3><div class="ferry-head"><span>ARRIVO</span><span>SOSTA</span><span>PARTENZA</span></div>${rows}</div>`;
+      return `<div class="ferry"><h3>${chip(code)} ${ships[code] ? `<span class="ferry-ship">${esc(ships[code])}</span>` : 'Traghetto'}</h3><div class="ferry-head"><span>ARRIVO</span><span>SOSTA</span><span>PARTENZA</span></div>${rows}</div>`;
     };
     return card('Traghetto Maderno – Torri', 'arrivo da Torri · sosta · partenza per Torri', `<div class="ferries">${ferry('T1')}${ferry('T2')}</div>`);
   }

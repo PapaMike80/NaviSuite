@@ -312,6 +312,21 @@ ${FIT}</body></html>`;
     const sheet = sheetFor(residenza, turniNavi, monday);
     return page([sheet], sheet.title, options.printButton !== false);
   }
+  // Nave assegnata a ogni turno (D1, P2, M1, R1, T1, SR1, BIS...) in un giorno: {turno: nave}.
+  // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
+  function naviDelGiorno(rows, day) {
+    const out = {};
+    [...(rows || [])].sort(newer).forEach(row => {
+      if (!row || row.attiva === false || row.data !== day) return;
+      const nave = String(row.nave || '').replace(/\s*(\([A-Z]\)|©)/g, '').trim();
+      if (!nave) return;
+      String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
+        out[code.replace(/^BIS2$/, 'BIS')] = nave;
+      });
+    });
+    return out;
+  }
+
   function buildHtml(turniNavi, monday) { return buildResidenceHtml('DESENZANO', turniNavi, monday); }
   function buildMadernoHtml() { return buildResidenceHtml('MADERNO'); }
   function buildAllHtml(turniNavi, monday) {
@@ -375,7 +390,7 @@ ${FIT}</body></html>`;
   }
 
   window.NaviServiziTerra = {
-    RESIDENZE, DATA, defaultMonday, indexTurniNavi, ormeggiSettimana, ferryRows, minutes, openResidence,
+    RESIDENZE, DATA, defaultMonday, indexTurniNavi, naviDelGiorno, ormeggiSettimana, ferryRows, minutes, openResidence,
     buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open
   };
 })();
