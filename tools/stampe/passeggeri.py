@@ -428,16 +428,17 @@ TASCA = dict(name=11, sub=6.6, dep=11.5, arr=8.6, via=6.4, run=6.0, sr=5.6, row=
              name_w=34, line=8.0, gap=3.2, per_ferry=5, arr_dy=3.3, via_dy=6.0, top_dy=4.4)
 
 
-def celle(c, x, width, y, entries, per_line, f):
+def celle(c, x, width, y, entries, per_line, f, verso_sinistra=False):
     """Orari di una riga: partenza in grassetto con la corsa accanto (e SR in apice), arrivo sotto,
-    eventuale 'via <scalo>' per il cambio."""
+    eventuale 'via <scalo>' per il cambio. Con verso_sinistra il primo orario sta a destra (vicino alla
+    colonna centrale del tascabile) e i successivi vanno verso il bordo sinistro."""
     slot = width / per_line
     for li in range(0, len(entries), per_line):
         for j, (dep, arr, via, sr, run) in enumerate(entries[li:li + per_line]):
             dw = pdfmetrics.stringWidth(dep, "DVB", f["dep"])
             rw = pdfmetrics.stringWidth(run, "DV", f["run"])
             assert dw + rw + 0.5 * mm < slot - 0.3 * mm, (dep, run, slot / mm)
-            cx = x + slot * (j + 0.5)
+            cx = x + width - slot * (j + 0.5) if verso_sinistra else x + slot * (j + 0.5)
             x0 = cx - (dw + rw + 0.5 * mm) / 2
             yy = y - f["top_dy"] * mm - (li // per_line) * f["line"] * mm
             c.setFillColor(black); c.setFont("DVB", f["dep"]); c.drawString(x0, yy, dep)
@@ -515,7 +516,7 @@ def main_tascabile(S, out):
         c.drawCentredString(xn + name_w / 2, y - h / 2 - size * 0.12 * mm + (size * 0.2 * mm if sub else 0), label)
         if sub:
             c.setFont("DV", f["sub"]); c.drawCentredString(xn + name_w / 2, y - h / 2 - f["sub"] * 0.55 * mm, sub)
-        celle(c, xl, side, y, sx, per_line, f)
+        celle(c, xl, side, y, sx, per_line, f, verso_sinistra=True)  # dal centro verso il bordo
         celle(c, xr, side, y, dx, per_line, f)
         c.setStrokeColor(black); c.setLineWidth(0.4)
         c.line(xn, y, xn, y - h); c.line(xr, y, xr, y - h)
