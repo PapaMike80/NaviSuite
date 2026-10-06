@@ -130,12 +130,13 @@ def bar(c, L, R, y, left, right=""):
     return y - 3 * mm
 
 
-def header(c, L, R, langs):
+def header(c, L, R, langs, ritorno=False):
+    """MADERNO in grande e il titolo in tre lingue; nei ritorni invertiti (Maderno a destra, all'arrivo)."""
     c.setFillColor(black); c.setFont("DVB", 40)
-    c.drawString(L, H - 28 * mm, "MADERNO")
+    (c.drawRightString if ritorno else c.drawString)(R if ritorno else L, H - 28 * mm, "MADERNO")
     c.setFont("DVB", 15)
     for k, s in enumerate(langs):
-        c.drawRightString(R, H - 18 * mm - k * 6 * mm, s)
+        (c.drawString if ritorno else c.drawRightString)(L if ritorno else R, H - 18 * mm - k * 6 * mm, s)
 
 
 def matrix(c, L, R, y, rows, places, ritorno, tsize, hsize):
@@ -281,7 +282,7 @@ def main(out):
     c.showPage()
 
     # pagina 2: ritorni
-    header(c, L, R, ("Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"))
+    header(c, L, R, ("Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"), ritorno=True)
     y = H - 40 * mm
     y = bar(c, L, R, y, "▼  DA RIVA DEL GARDA", "da nord  ·  from north  ·  aus Norden")
     y = matrix(c, L, R, y, ritorni_possibili(RITORNI_NORD), list(reversed(NORD)), True, tsize, hsize) - 12 * mm
@@ -484,11 +485,12 @@ def legenda(c, L, R, y, bsize, size, step, bottom=4 * mm):
 
 def tascabile(c, L, R, top, bottom, data, titolo, legend):
     """Una meta' (A5 verticale) del foglio tascabile, tra L e R e tra top e bottom."""
+    ritorno = titolo[0].startswith("›")  # ritorno: titolo a sinistra, MADERNO a destra
     c.setFillColor(black); c.setFont("DVB", 20)
-    c.drawString(L, top - 7.5 * mm, titolo[0])
+    (c.drawRightString if ritorno else c.drawString)(R if ritorno else L, top - 7.5 * mm, titolo[0])
     c.setFont("DVB", 8.6)
     for k, s in enumerate(titolo[1:]):
-        c.drawRightString(R, top - 3 * mm - k * 3.5 * mm, s)
+        (c.drawString if ritorno else c.drawRightString)(L if ritorno else R, top - 3 * mm - k * 3.5 * mm, s)
     c.setFont("DVB", 8.6); c.drawString(L, top - 14 * mm, legend[0])
     c.setFillColor(GREY); c.setFont("DV", 6.2)
     c.drawString(L + pdfmetrics.stringWidth(legend[0] + " ", "DVB", 8.6), top - 14 * mm, "corsa · trip · Fahrt")
