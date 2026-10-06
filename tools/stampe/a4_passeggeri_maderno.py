@@ -348,8 +348,9 @@ def per_destinazione():
 
 
 def main_destinazioni(out):
-    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (ordine dell'orario ufficiale) con le
-    partenze da Maderno in grande, l'arrivo sotto e il cambio di nave scritto per esteso (via Garda)."""
+    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (ordine dell'orario ufficiale, Torri
+    in fondo a parte) con le partenze da Maderno in grassetto, l'arrivo sotto e il cambio di nave
+    scritto per esteso (via Garda)."""
     dest = per_destinazione()
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle("Maderno - per / to / nach")
@@ -360,50 +361,53 @@ def main_destinazioni(out):
     c.drawRightString(R, H - 12 * mm, "Prossima partenza per …")
     c.drawRightString(R, H - 17.5 * mm, "Next boat to …")
     c.drawRightString(R, H - 23 * mm, "Nächstes Schiff nach …")
-    c.setFont("DV", 9.5); c.setFillColor(GREY)
-    c.drawString(L, H - 29 * mm, "partenza  ›  arrivo     ·     departure  ›  arrival     ·     Abfahrt  ›  Ankunft")
+    # legenda come negli orari: partenza in grassetto sopra, arrivo sotto
+    c.setFont("DVB", 12); c.drawString(L, H - 29.5 * mm, "Partenza  ·  Departure  ·  Abfahrt")
+    c.setFont("DV", 10); c.drawString(L, H - 34 * mm, "Arrivo  ·  Arrival  ·  Ankunft")
 
-    places = [p for p in ORDINE_ORARIO if p in dest]  # come nell'orario ufficiale, da Desenzano a Riva
-    assert set(places) == set(dest), set(dest) - set(places)
-    name_w = 40 * mm
-    rh, gap = 14.4 * mm, 0.6 * mm
-    y = H - 32 * mm
-    for i, p in enumerate(places):
-        ferry = p == "Torri del Benaco"
-        entries = dest[p]
-        lines = [entries[:7], entries[7:]] if ferry else [entries]
-        h = rh if not ferry else 22 * mm
-        if i % 2:
-            c.setFillColor(STRIPE); c.rect(L + name_w, y - h, R - L - name_w, h, stroke=0, fill=1)
-        c.setFillColor(black); c.rect(L, y - h, name_w - 1.5 * mm, h, stroke=0, fill=1)
-        c.setFillColor(white)
-        label = "TORRI" if ferry else p.upper()
+    places = [p for p in ORDINE_ORARIO if p in dest and p != "Torri del Benaco"]  # da Desenzano a Riva
+    assert set(places) | {"Torri del Benaco"} == set(dest), set(dest) - set(places)
+    name_w = 38 * mm
+    y = H - 37 * mm
+
+    def row(label, sub, entries, per_line, h, stripe):
+        nonlocal y
+        if stripe:
+            c.setFillColor(STRIPE); c.rect(L, y - h, R - L, h, stroke=0, fill=1)
+        c.setFillColor(black)
         size = 13
-        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 5 * mm:
+        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 3 * mm:
             size -= 0.2
-        c.setFont("DVB", size); c.drawString(L + 2.5 * mm, y - h / 2 - 1.6 * mm + (2.2 * mm if ferry else 0), label)
-        if ferry:
-            c.setFont("DV", 8.5)
-            c.drawString(L + 2.5 * mm, y - h / 2 - 5 * mm, "del Benaco · traghetto")
-        n = 7 if ferry else 6
-        slot = (R - L - name_w) / n
-        for li, line in enumerate(lines):
-            for j, (dep, arr, via, sr) in enumerate(line):
+        c.setFont("DVB", size)
+        c.drawString(L + 1.5 * mm, y - h / 2 - 1.6 * mm + (2.4 * mm if sub else 0), label)
+        if sub:
+            c.setFont("DV", 8.5); c.drawString(L + 1.5 * mm, y - h / 2 - 4.6 * mm, sub)
+        slot = (R - L - name_w) / per_line
+        for li in range(0, len(entries), per_line):
+            for j, (dep, arr, via, sr) in enumerate(entries[li:li + per_line]):
                 cx = L + name_w + slot * (j + 0.5)
-                yy = y - 6.2 * mm - li * 10.5 * mm
-                c.setFillColor(black); c.setFont("DVB", 15 if not ferry else 13)
+                yy = y - 6 * mm - (li // per_line) * 10 * mm
+                c.setFillColor(black); c.setFont("DVB", 15)
                 c.drawCentredString(cx, yy, dep)
                 if sr:
                     c.setFont("DVB", 6.5)
                     c.drawString(cx + pdfmetrics.stringWidth(dep, "DVB", 15) / 2 + 0.4 * mm, yy + 2.6 * mm, "SR")
-                c.setFont("DV", 9)
-                c.drawCentredString(cx, yy - 4.1 * mm, f"› {arr}")
+                c.setFont("DV", 10)
+                c.drawCentredString(cx, yy - 4.2 * mm, arr)
                 if via:
                     c.setFont("DVB", 7.4); c.setFillColor(GREY)
                     c.drawCentredString(cx, yy - 7.1 * mm, f"via {via}")
-        y -= h + gap
+        y -= h
+
+    for i, p in enumerate(places):
+        assert len(dest[p]) <= 6, p
+        row(p.upper(), "", dest[p], 6, 13.6 * mm, i % 2 == 1)
+    # Torri del Benaco: traghetto, in fondo e staccato
+    y -= 5 * mm
+    row("TORRI", "del Benaco · traghetto", dest["Torri del Benaco"], 7, 21 * mm, True)
+
     # legenda: solo cambio di nave e SR
-    y -= 4 * mm
+    y -= 5.5 * mm
     c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(L, y, "via …")
     c.setFont("DV", 9)
     c.drawString(L + 12 * mm, y, "cambio nave a …  ·  change boat in …  ·  in … umsteigen")
