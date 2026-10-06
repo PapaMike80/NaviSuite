@@ -159,9 +159,13 @@
     });
     const pastIdx = items.map((item, i) => item.stato === 'past' ? i : -1).filter(i => i >= 0);
     const lastPast = pastIdx[pastIdx.length - 1];
+    // Nella corsa in corso: scali gia' fatti nascosti tranne l'ultimo (da dove e' partita la nave).
+    const current = items.find(item => item.stato === 'next');
+    const doneStops = current && realToday ? current.corsa.scali.filter(s => minutes(s[1]) < nowMin).length : 0;
+    const hiddenStops = Math.max(0, doneStops - 1);
     const hidden = pastIdx.length - (lastPast == null ? 0 : 1);
-    const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
-      `${state.showPast ? '▴ Nascondi le corse già fatte' : `▾ Mostra le corse già fatte (${hidden})`}</button>` : '';
+    const toggle = hidden || hiddenStops ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
+      `${state.showPast ? '▴ Nascondi corse e scali già fatti' : `▾ Mostra ${[hidden ? `le corse già fatte (${hidden})` : '', hiddenStops ? `gli scali già fatti (${hiddenStops})` : ''].filter(Boolean).join(' e ')}`}</button>` : '';
     const listaCorse = code === 'BIS'
       ? `<p class="mt-bis">A disposizione dell'Ufficio Movimento: pronti a muovere alle 8.30 verso Garda, rientro alle 18.40.</p>`
       : corse.length ? toggle + items.map(({ corsa, stato }, i) => {
@@ -169,7 +173,14 @@
         const first = corsa.scali[0], last = corsa.scali[corsa.scali.length - 1];
         return `<div class="mt-corsa${stato ? ` ${stato}` : ''}"><div class="mt-corsa-head"><span>Corsa ${esc(corsa.numero)}</span>` +
           `<b>${esc(first[0])} ${esc(first[1])} → ${esc(last[0])} ${esc(last[1])}</b></div>` +
-          `<ol class="mt-scali">${corsa.scali.map(([scalo, orario]) => `<li><span>${esc(orario)}</span>${esc(scalo)}</li>`).join('')}</ol></div>`;
+          `<ol class="mt-scali">${corsa.scali.map(([scalo, orario], j) => {
+            if (stato !== 'next' || !realToday) return `<li><span>${esc(orario)}</span>${esc(scalo)}</li>`;
+            const done = minutes(orario) < nowMin;
+            if (done && j < doneStops - 1 && !state.showPast) return '';
+            const cls = done ? (j === doneStops - 1 ? 'left' : 'done') : j === doneStops ? 'coming' : '';
+            const tag = cls === 'left' ? (j === 0 ? 'partita' : 'partita da qui') : cls === 'coming' ? (j === 0 ? 'prossima partenza' : 'in arrivo') : '';
+            return `<li class="${cls}"><span>${esc(orario)}</span>${esc(scalo)}${tag ? `<em>${tag}</em>` : ''}</li>`;
+          }).join('')}</ol></div>`;
       }).join('') : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
     const left = giornata + card('Equipaggio', `${crew.length} in turno`, equipaggio);

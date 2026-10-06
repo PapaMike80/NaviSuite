@@ -64,6 +64,8 @@ assert.match(page, /id="terra-content"/);
 assert.match(page, /id="turno-test"/); // prova con un altro turno
 assert.match(js, /shiftForCode\(/); // competenze: ore, diaria, buono pasto, imbarco
 assert.match(js, /past-toggle/); // corse gia' fatte nascoste
+assert.match(js, /partita da qui/); // nella corsa in corso scali fatti nascosti tranne l'ultimo
+assert.match(js, /in arrivo/);
 const terraJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
 assert.match(terraJs, /window\.NaviServiziTerraPage = \{/);
 assert.match(terraJs, /if \(EMBED\) return;/);
