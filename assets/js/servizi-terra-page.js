@@ -43,9 +43,10 @@
   const state = { residence: initialResidence(), monday: T.defaultMonday(), turniNavi: readCache() || [],
     firebaseNavi: readCache() || [], schedule: null, showPast: false };
 
-  // Turni a terra negli orari degli agenti (AGB, POND, AGT1...) e sigla come nell'O.d.S.
-  const SIGLE_TERRA = { AGB: 'AgB', POND: 'PonD', DT: 'DT', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT1', AGT2: 'AgT2', PONM: 'PonM' };
-  const TERRA_RESIDENZA = { DESENZANO: ['AgB', 'PonD', 'DT'], MADERNO: ['AgM', 'AgT', 'AgT1', 'AgT2', 'PonM'] };
+  // Turni a terra negli orari degli agenti (AGB, POND, AGT...) e sigla del servizio.
+  // AGT e AGT1 sono lo stesso servizio: AgT.
+  const SIGLE_TERRA = { AGB: 'AgB', POND: 'PonD', DT: 'DT', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT', AGT2: 'AgT2', PONM: 'PonM' };
+  const TERRA_RESIDENZA = { DESENZANO: ['AgB', 'PonD', 'DT'], MADERNO: ['AgM', 'AgT', 'AgT2', 'PonM'] };
   const norm = value => String(value || '').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/g, ' ').trim();
   function terraCode(value) {
     const raw = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -247,7 +248,7 @@
     renderButtons();
     hideCrew();
     $('terra-title').textContent = info.title;
-    $('terra-context').textContent = desenzano ? 'Pontile e AgB · navi, ormeggi e rifornimenti' : 'AgM e AgT1 · navi di linea e traghetto Torri';
+    $('terra-context').textContent = desenzano ? 'Pontile e AgB · navi, ormeggi e rifornimenti' : 'AgM e AgT · navi di linea e traghetto Torri';
     const clock = new Date();
     $('terra-clock').textContent = now.minutes != null
       ? `${GIORNI[clock.getDay()]} ${short(now.today)} · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}`

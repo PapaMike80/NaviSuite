@@ -35,7 +35,7 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .chip[data-code="D4"]{--c:#dc74d2}
 .chip[data-code="BIS"]{--c:#67d7e6}
 .chip[data-code="SR1"],.chip[data-code="SR2"]{--c:#a78bfa}
-.chip[data-code="AgB"],.chip[data-code="AgM"],.chip[data-code="AgT1"]{--c:#6eb1ff}
+.chip[data-code="AgB"],.chip[data-code="AgM"],.chip[data-code="AgT"],.chip[data-code="AgT2"]{--c:#6eb1ff}
 .chip[data-code="PonD"]{--c:#fb9292}
 
 /* Servizi a terra */

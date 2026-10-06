@@ -204,7 +204,7 @@ def maderno_page(c):
     txt(c, 56.5, 18.4, "e dal 13 al 25/3/2027", "DV", 5.2, align="c")
     y = 24.0
     for code, a, b in (("AgM", "9.00 – 11.50", "12.50 – 19.30"),
-                       ("AgT1", "7.50 – 13.00", "14.00 – 18.20")):
+                       ("AgT", "7.50 – 13.00", "14.00 – 18.20")):
         txt(c, 56.5, y, code, "DVB", 7, align="c")
         txt(c, 56.5, y + 3.4, a, "DV", 6.2, align="c")
         txt(c, 56.5, y + 6.6, b, "DV", 6.2, align="c")

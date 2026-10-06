@@ -5,7 +5,7 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | File in `stampe/` | Contenuto |
 |---|---|
 | `Desenzano_pontile_AgB_A4.pdf` | AgB e PonD, navi in ordine di orario, ormeggi serali lun–dom con rifornimenti (R) |
-| `Maderno_servizio_terra_A4.pdf` | AgM e AgT1, navi di linea e traghetto Torri in ordine di orario |
+| `Maderno_servizio_terra_A4.pdf` | AgM e AgT, navi di linea e traghetto Torri in ordine di orario |
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
 | `Maderno_prossima_partenza_A4.pdf` | per la biglietteria: "Prossima partenza per … / Next boat to … / Nächstes Schiff nach …", una riga per località, da Desenzano a Riva come nell'orario ufficiale |
@@ -58,6 +58,6 @@ Il calendario mensile degli ormeggi serali di Desenzano non fa parte delle stamp
 - **Dagli O.d.S. settimanali** (allegato "TURNO NAVI"): nave, pontile di ormeggio serale e
   rifornimenti dei gruppi D1–D4 e BIS (più S.S. quando ormeggia a un pontile).
 - **Scritti negli script** (orario invernale, O.d.S. n. 39/2026): orari delle navi, servizi a
-  terra (AgB, PonD, AgM, AgT1) e regole dei rifornimenti. Vanno aggiornati con il nuovo orario
+  terra (AgB, PonD, AgM, AgT) e regole dei rifornimenti. Vanno aggiornati con il nuovo orario
   stagionale (`a4_desenzano.py`, `a4_maderno.py`, `cover.py`, e per i passeggeri
   `a4_passeggeri_maderno.py` / `a4_passeggeri_desenzano.py`; l'impaginazione è in `passeggeri.py`).

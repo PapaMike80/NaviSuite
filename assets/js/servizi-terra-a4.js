@@ -1,7 +1,7 @@
 // A4 "Servizi a terra" da stampare su laser bianco/nero (orario invernale, O.d.S. n. 39/2026).
 // Desenzano (pontile e AgB): navi in ordine di orario e ormeggi serali della settimana lun-dom
 // con i rifornimenti, presi dai turni nave letti dagli O.d.S. (come tools/stampe/a4_desenzano.py).
-// Maderno (AgM e AgT1): navi di linea e passaggi del traghetto Torri (come tools/stampe/a4_maderno.py).
+// Maderno (AgM e AgT): navi di linea e passaggi del traghetto Torri (come tools/stampe/a4_maderno.py).
 (function () {
   'use strict';
 
@@ -69,7 +69,7 @@
     DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', 'dalle 7.45 con rifornimento D2 · assistenza alla c. 8'],
       ['PonD', '9.30 – 13.35', '15.00 – 19.50', "8 ore 55'"]],
     MADERNO: [['AgM', '9.00 – 11.50', '12.50 – 19.30', 'compresa assistenza alle c. 16-17 · coadiuva AgT'],
-      ['AgT1', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
+      ['AgT', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
   };
   const RIFORNIMENTI = {
     titolo: 'R = rifornimento a Desenzano prima delle corse, per quanto possibile a cura di AgB o PonD:',

@@ -69,7 +69,7 @@ def main(out):
     bw = (R - L - 6 * mm) / 2
     for i, (code, a, b, note) in enumerate((
             ("AgM", "9.00 – 11.50", "12.50 – 19.30", "compresa assistenza alle c. 16-17 · coadiuva AgT"),
-            ("AgT1", "7.50 – 13.00", "14.00 – 18.20", "9 ore 30'"))):
+            ("AgT", "7.50 – 13.00", "14.00 – 18.20", "9 ore 30'"))):
         x = L + i * (bw + 6 * mm)
         c.setStrokeColor(BLUE); c.setLineWidth(1)
         c.roundRect(x, box_top - box_h, bw, box_h, 3 * mm, stroke=1, fill=0)
