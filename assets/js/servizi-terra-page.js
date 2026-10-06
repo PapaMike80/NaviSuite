@@ -157,7 +157,7 @@
     const previous = Object.keys(history).filter(date => date < day).sort().pop();
     return previous && history[previous] !== '-' ? { value: history[previous], source: 'ieri' } : { value: '', source: '' };
   }
-  function pontileSelect(key, day, odsMooring, when) {
+  function pontileSelect(key, day, odsMooring, when, follow = '') {
     const { value, source } = pontileFor(key, day, odsMooring);
     const options = ['', ...PONTILI];
     if (value && !options.includes(value)) options.push(value);
@@ -165,19 +165,20 @@
     if (ods && !options.includes(ods)) options.push(ods);
     const title = `Pontile${when ? ` ${when}` : ''}${source === 'ods' ? ' (dall\'O.d.S.)' : source === 'ieri' ? ' (come il giorno prima)' : ''}`;
     return `<label class="pontile-sel${value ? '' : ' empty'}${source === 'ods' ? ' ods' : ''}" title="${esc(title)}">⚓` +
-      `<select data-pontile="${esc(key)}" aria-label="${esc(title)}">${options.map(option =>
+      `<select data-pontile="${esc(key)}"${follow ? ` data-follow="${esc(follow)}"` : ''} aria-label="${esc(title)}">${options.map(option =>
         `<option value="${esc(option)}"${option === value ? ' selected' : ''}>${option ? esc(option) : '–'}</option>`).join('')}</select></label>`;
   }
-  async function savePontile(key, value) {
+  // Salva il pontile di una o piu' corse (un arrivo e la partenza che lo segue).
+  async function savePontile(keys, value) {
     const day = nowInfo().today;
-    (state.pontili[key] = state.pontili[key] || {})[day] = value || '-';
+    keys.forEach(key => { (state.pontili[key] = state.pontili[key] || {})[day] = value || '-'; });
     try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
     render();
     try {
       const provider = window.NaviAdminFirebase;
       if (!provider?.savePontileCorsa) throw new Error('Firebase non disponibile');
       await provider.ready;
-      await provider.savePontileCorsa('DESENZANO', key, day, value || '-');
+      for (const key of keys) await provider.savePontileCorsa('DESENZANO', key, day, value || '-');
     } catch (error) {
       notice(`Pontile salvato solo su questo dispositivo (${error.message}).`);
     }
@@ -216,7 +217,10 @@
       const odsMooring = morning ? ieri[code]?.ormeggio : evening ? turni[code]?.ormeggio : '';
       if (desenzano) {
         // Desenzano: selettore del pontile su ogni corsa (proposto dall'O.d.S. o dal giorno prima).
-        badges.push(pontileSelect(courseKey(time, code, run), now.today, odsMooring, morning ? 'del mattino' : evening ? 'serale' : ''));
+        // Un arrivo seguito da una partenza della stessa nave: la nave riparte dallo stesso pontile.
+        const after = kind === 'A' ? navi.slice(index + 1).find(row => row[2] === code) : null;
+        const follow = after && after[1] === 'P' ? courseKey(after[0], after[2], after[3]) : '';
+        badges.push(pontileSelect(courseKey(time, code, run), now.today, odsMooring, morning ? 'del mattino' : evening ? 'serale' : '', follow));
       } else if (odsMooring) {
         // Maderno: solo l'ormeggio del mattino e della sera dagli O.d.S.
         badges.push(`<b class="ormeggio" title="Ormeggio ${morning ? 'del mattino (dalla sera prima)' : 'serale'}">⚓ ${esc(pontLabel(odsMooring))}</b>`);
@@ -346,7 +350,7 @@
   });
   $('terra-content').addEventListener('change', event => {
     const select = event.target.closest('select[data-pontile]');
-    if (select) savePontile(select.dataset.pontile, select.value);
+    if (select) savePontile([select.dataset.pontile, select.dataset.follow].filter(Boolean), select.value);
   });
   $('terra-content').addEventListener('click', event => {
     if (!event.target.closest('[data-past]')) return;
