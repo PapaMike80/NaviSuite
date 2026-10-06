@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=1/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=2/);
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
 

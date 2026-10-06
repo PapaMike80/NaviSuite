@@ -114,6 +114,12 @@ def main(out):
         c.setFont("DV", 12)
         c.drawString(cols[3][1], y, run)
         c.drawString(cols[4][1], y, where)
+        if run in BOLGETTE:  # etichetta in negativo, visibile anche in bianco e nero
+            label = BOLGETTE[run]
+            lw = pdfmetrics.stringWidth(label, "DVB", 9) + 5 * mm
+            c.setFillColor(BLUE); c.roundRect(R - lw - 1 * mm, y - 1.6 * mm, lw, 5.4 * mm, 1.5 * mm, stroke=0, fill=1)
+            c.setFillColor(white); c.setFont("DVB", 9); c.drawCentredString(R - 1 * mm - lw / 2, y, label)
+            assert cols[4][1] + pdfmetrics.stringWidth(where, "DV", 12) + 2 * mm < R - lw - 1 * mm, where
 
     # ---- traghetto: per T1 e T2 ogni riga e' un passaggio a Maderno ----
     y -= 12 * mm
@@ -174,6 +180,10 @@ def main(out):
     # note
     y = lowest - 10 * mm
     c.setFillColor(GREY); c.setFont("DV", 8.5)
+    c.setFillColor(BLUE); c.setFont("DVB", 9)
+    c.drawString(L, y, "Bolgette: partono con la R1 corsa 7 delle 11.03 e rientrano con la R1 corsa 8 delle 16.58.")
+    y -= 5.5 * mm
+    c.setFillColor(GREY); c.setFont("DV", 8.5)
     for s in ("T1 non effettuato il 25 dicembre 2026. T2 e navi di linea: fino all'1 novembre 2026 e dal 13 marzo 2027.",
               "Dal 2 novembre 2026 al 12 marzo 2027 solo traghetto T1 - AgT 7.55 – 12.15 / 13.15 – 18.50 (9 ore 55')."):
         assert pdfmetrics.stringWidth(s, "DV", 8.5) <= R - L, s
@@ -183,6 +193,10 @@ def main(out):
     c.showPage()
     c.save()
     return y
+
+
+# bolgetta Maderno - Direzione (Desenzano): R1 all'andata e al ritorno (corsa: etichetta)
+BOLGETTE = {"7": "BOLGETTA · PARTE", "8": "BOLGETTA · RIENTRA"}
 
 
 def minutes(t):
