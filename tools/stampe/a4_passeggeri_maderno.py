@@ -284,9 +284,9 @@ def main(out):
     header(c, L, R, ("Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"))
     y = H - 40 * mm
     y = bar(c, L, R, y, "▼  DA RIVA DEL GARDA", "da nord  ·  from north  ·  aus Norden")
-    y = matrix(c, L, R, y, RITORNI_NORD, list(reversed(NORD)), True, tsize, hsize) - 12 * mm
+    y = matrix(c, L, R, y, ritorni_possibili(RITORNI_NORD), list(reversed(NORD)), True, tsize, hsize) - 12 * mm
     y = bar(c, L, R, y, "▲  DA DESENZANO  ·  PESCHIERA", "da sud  ·  from south  ·  aus Süden")
-    y = matrix(c, L, R, y, RITORNI_SUD, SUD_RITORNO, True, tsize, hsize) - 9 * mm
+    y = matrix(c, L, R, y, ritorni_possibili(RITORNI_SUD), SUD_RITORNO, True, tsize, hsize) - 9 * mm
     y = note_sr(c, L, R, y)
     assert y > 5 * mm, ("pagina 2", y / mm)
     c.showPage()
@@ -331,7 +331,7 @@ def main_traghetto(out):
     y = bar(c, L, R, y, "MADERNO  ›  TORRI DEL BENACO")
     y = ferry_block(c, L, R, y, TRAGHETTO_ANDATA) - 12 * mm
     y = bar(c, L, R, y, "TORRI DEL BENACO  ›  MADERNO")
-    y = ferry_block(c, L, R, y, TRAGHETTO_RITORNO)
+    y = ferry_block(c, L, R, y, [r for r in TRAGHETTO_RITORNO if possibile("Torri del Benaco", r[0])])
     assert y > 10 * mm, y / mm
     c.showPage()
     c.save()
@@ -354,14 +354,35 @@ def per_destinazione():
     return {p: sorted(v, key=lambda e: minutes(e[0])) for p, v in out.items()}
 
 
+def primo_arrivo():
+    """{localita': minuti del primo arrivo possibile partendo da Maderno (anche con cambio)}."""
+    return {p: min(minutes(e[1]) for e in v) for p, v in per_destinazione().items()}
+
+
+def possibile(place, dep):
+    """Un ritorno da `place` alle `dep` ha senso solo se da Maderno ci si arriva prima."""
+    return minutes(dep) > primo_arrivo()[place]
+
+
+def ritorni_possibili(rows):
+    """Tabelle dei ritorni senza le partenze irraggiungibili da Maderno; via le righe rimaste vuote."""
+    out = []
+    for arr, note, run, stops in rows:
+        ok = [st for st in stops if possibile(st[0], st[1])]
+        if ok:
+            out.append((arr, note, run, ok))
+    return out
+
+
 def per_origine():
     """{localita': [(partenza da li', arrivo a Maderno, scalo di cambio o '', SR, corsa su cui si sale)]}."""
     out = {}
-    for arr, note, run, stops in RITORNI_NORD + RITORNI_SUD:
+    for arr, note, run, stops in ritorni_possibili(RITORNI_NORD + RITORNI_SUD):
         for st in stops:
             first = PRIMA_CORSA[(st[0], st[1])] if len(st) == 3 else run
             out.setdefault(st[0], []).append((st[1], arr, st[2][0] if len(st) == 3 else "", note == "SR", first))
-    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False, run) for t, run in TRAGHETTO_RITORNO]
+    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False, run) for t, run in TRAGHETTO_RITORNO
+                               if possibile("Torri del Benaco", t)]
     return {p: sorted(v, key=lambda e: (minutes(e[0]), minutes(e[1]))) for p, v in out.items()}
 
 
