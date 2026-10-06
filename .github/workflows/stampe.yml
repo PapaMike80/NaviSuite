@@ -23,13 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Python e font
+      - name: Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: |
-          sudo apt-get install -y --no-install-recommends fonts-dejavu-core
-          pip install -r tools/stampe/requirements.txt
+      - run: pip install -r tools/stampe/requirements.txt
 
       - name: Genera le stampe
         # data italiana: dal venerdi' l'A4 di Desenzano mostra gli ormeggi della settimana successiva

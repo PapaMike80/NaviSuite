@@ -29,11 +29,23 @@ Se due O.d.S. coprono lo stesso giorno vale quello con il numero più alto.
 
 ## A mano
 
+**Da GitHub** (dopo il merge su `main`): scheda *Actions* → **Stampe da O.d.S.** →
+*Run workflow* → *Run workflow*. Dopo un paio di minuti i PDF aggiornati sono in `stampe/`.
+
+**Dal PC Windows**: serve [Python](https://www.python.org/downloads/) (all'installazione
+spunta "Add python.exe to PATH") e una copia del repository (GitHub Desktop o *Code → Download ZIP*).
+Poi doppio clic su `tools/stampe/Genera stampe.bat`: la prima volta installa le librerie,
+poi crea i PDF nella cartella `stampe/`.
+
+**Da terminale** (Windows, Mac o Linux):
+
 ```
 pip install -r tools/stampe/requirements.txt
 python3 tools/stampe/genera.py                    # settimana in corso; da venerdì la successiva
 python3 tools/stampe/genera.py --oggi 2026-10-09  # come se fosse quel giorno
 ```
+
+I font DejaVu Sans sono inclusi in `tools/stampe/fonts/`: non serve installarli.
 
 ## Cosa arriva dagli O.d.S. e cosa no
 
