@@ -1,4 +1,5 @@
-"""Foglio A4 Maderno - servizio di terra, orario dal 05/10/2026 (O.d.S. 39/2026, pag. 15-19)."""
+"""Foglio A4 Maderno - servizio di terra, orario dal 05/10/2026 (O.d.S. 39/2026, pag. 15-19):
+navi di linea in ordine di orario e, a parte, i passaggi del traghetto Torri per T1 e T2."""
 import sys
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -60,7 +61,7 @@ def main(out):
     c.setFont("DVB", 26)
     c.drawString(L, H - 27 * mm, "MADERNO")
     c.setFont("DV", 12)
-    c.drawString(L, H - 34 * mm, "Servizio di terra - navi di linea e traghetto Torri in ordine di orario")
+    c.drawString(L, H - 34 * mm, "Servizio di terra - navi di linea e traghetto Torri")
     c.setFont("DV", 9.5); c.setFillColor(GREY)
     c.drawString(L, H - 40 * mm, "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027  ·  O.d.S. n. 39/2026")
 
@@ -80,55 +81,141 @@ def main(out):
         c.setFont("DV", 7.5); c.setFillColor(GREY)
         c.drawString(x + 5 * mm, box_top - 17.5 * mm, note)
 
-    cw = (R - L - 6 * mm) / 2
-    row_h = 8.0 * mm
-    top = box_top - box_h - 9 * mm
-    lowest = top
-    for ci, (head, col) in enumerate((("MATTINA", [r for r in rows if float(r[0]) < 14]),
-                                      ("POMERIGGIO", [r for r in rows if float(r[0]) >= 14]))):
-        x = L + ci * (cw + 6 * mm)
-        y = top
-        c.setFillColor(BLUE)
-        c.rect(x, y - 2.4 * mm, cw, 7.5 * mm, stroke=0, fill=1)
-        c.setFillColor(white); c.setFont("DVB", 9)
-        c.drawString(x + 2.5 * mm, y, head)
-        c.drawString(x + 32 * mm, y, "TURNO")
-        c.drawString(x + 46 * mm, y, "CORSA · DA / PER")
-        for i, (t, k, code, run, where, line) in enumerate(col):
-            y -= row_h
-            if line or i % 2 == 0:
-                c.setFillColor(LINE_BG if line else STRIPE)
-                c.rect(x, y - 2.7 * mm, cw, row_h, stroke=0, fill=1)
-            label, color = KIND[k]
-            c.setFillColor(BLUE); c.setFont("DVB", 12)
-            c.drawRightString(x + 15.5 * mm, y, t)
-            c.setFillColor(color); c.setFont("DVB", 6.6)
-            c.drawString(x + 17 * mm, y + 0.5 * mm, label)
-            c.setFillColor(BLUE); c.setFont("DVB", 12)
-            c.drawString(x + 32 * mm, y, code)
-            c.setFont("DV", 7.4); c.setFillColor(GREY)
-            c.drawString(x + 46 * mm, y + 0.3 * mm, run)
-            c.setFillColor(BLUE); c.setFont("DVB" if line else "DV", 8.6)
-            c.drawString(x + 53 * mm, y, where)
-            assert pdfmetrics.stringWidth(label, "DVB", 6.6) < 14.5 * mm and pdfmetrics.stringWidth(t, "DVB", 12) < 15 * mm
-            assert x + 53 * mm + pdfmetrics.stringWidth(where, "DVB", 8.6) < x + cw, where
-        lowest = min(lowest, y)
+    # ---- navi di linea: una riga per passaggio, in ordine di orario ----
+    y = box_top - box_h - 10 * mm
+    c.setFillColor(BLUE); c.setFont("DVB", 12)
+    c.drawString(L, y, "NAVI DI LINEA")
+    c.setFont("DV", 8.5); c.setFillColor(GREY)
+    c.drawString(L + pdfmetrics.stringWidth("NAVI DI LINEA", "DVB", 12) + 4 * mm, y,
+                 "SCALO = nave in transito a Maderno  ·  * corsa SR solo fino all'11 ottobre 2026")
+    cols = [("ORA", L + 3 * mm), ("", L + 26 * mm), ("TURNO", L + 52 * mm),
+            ("CORSA", L + 72 * mm), ("DA / PER", L + 92 * mm)]
+    y -= 8 * mm
+    c.setFillColor(BLUE)
+    c.rect(L, y - 2.4 * mm, R - L, 7.5 * mm, stroke=0, fill=1)
+    c.setFillColor(white); c.setFont("DVB", 9)
+    for label, x in cols:
+        c.drawString(x, y, label)
+    row_h = 6.6 * mm
+    for i, (t, k, code, run, where) in enumerate(LINE):
+        y -= row_h
+        if i % 2 == 0:
+            c.setFillColor(STRIPE); c.rect(L, y - 2.2 * mm, R - L, row_h, stroke=0, fill=1)
+        if t == "14.00":  # stacco tra mattina e pomeriggio
+            c.setStrokeColor(BLUE); c.setLineWidth(1.2)
+            c.line(L, y + row_h - 2.2 * mm, R, y + row_h - 2.2 * mm)
+        label, color = KIND[k]
+        c.setFillColor(BLUE); c.setFont("DVB", 15)
+        c.drawRightString(L + 20 * mm, y, t)
+        c.setFillColor(color); c.setFont("DVB", 10)
+        c.drawString(cols[1][1], y + 0.4 * mm, label)
+        c.setFillColor(BLUE); c.setFont("DVB", 15)
+        c.drawString(cols[2][1], y, code)
+        c.setFont("DV", 12)
+        c.drawString(cols[3][1], y, run)
+        c.drawString(cols[4][1], y, where)
 
-    # legenda e note
+    # ---- traghetto: per T1 e T2 ogni riga e' un passaggio a Maderno ----
+    y -= 12 * mm
+    c.setFillColor(BLUE); c.setFont("DVB", 12)
+    c.drawString(L, y, "TRAGHETTO MADERNO – TORRI")
+    c.setFont("DV", 8.5); c.setFillColor(GREY)
+    c.drawString(L + pdfmetrics.stringWidth("TRAGHETTO MADERNO – TORRI", "DVB", 12) + 4 * mm, y,
+                 "arrivo da Torri, sosta a Maderno, partenza per Torri")
+    cw = (R - L - 8 * mm) / 2
+    AX, SX, DX = 23 * mm, 45.5 * mm, 66 * mm  # centri delle colonne arrivo / sosta / partenza
+    top = y - 7.5 * mm
+    lowest = top
+    for ci, code in enumerate(("T1", "T2")):
+        x = L + ci * (cw + 8 * mm)
+        yy = top
+        c.setFillColor(BLUE)
+        c.rect(x, yy - 2.6 * mm, cw, 8 * mm, stroke=0, fill=1)
+        c.setFillColor(white); c.setFont("DVB", 13)
+        c.drawString(x + 2.5 * mm, yy - 0.2 * mm, code)
+        c.setFont("DVB", 8.4)
+        c.drawCentredString(x + AX, yy, "ARRIVO")
+        c.drawCentredString(x + SX, yy, "SOSTA")
+        c.drawCentredString(x + DX, yy, "PARTENZA")
+        for i, (arr, dep, kind) in enumerate(ferry_rows(code)):
+            yy -= 7.4 * mm
+            if kind == "pausa-torri":
+                c.setFillColor(GREY); c.setFont("DVB", 8.2)
+                c.drawCentredString(x + cw / 2, yy + 0.4 * mm, f"pausa a Torri {arr} – {dep}")
+                c.setStrokeColor(BLUE); c.setLineWidth(0.4); c.setDash(1.2, 1.2)
+                c.line(x, yy + 3.8 * mm, x + cw, yy + 3.8 * mm); c.line(x, yy - 2.4 * mm, x + cw, yy - 2.4 * mm)
+                c.setDash()
+                continue
+            if i % 2 == 0:
+                c.setFillColor(STRIPE); c.rect(x, yy - 2.6 * mm, cw, 7.4 * mm, stroke=0, fill=1)
+            for t, xc in ((arr, x + AX), (dep, x + DX)):
+                if t:
+                    c.setFillColor(BLUE); c.setFont("DVB", 14)
+                    c.drawCentredString(xc, yy, t[0])
+                    c.setFont("DV", 7); c.setFillColor(GREY)
+                    c.drawString(xc + pdfmetrics.stringWidth(t[0], "DVB", 14) / 2 + 1.2 * mm, yy, t[1])
+            c.setFillColor(GREY); c.setFont("DV", 8.6)
+            if kind == "prima":
+                c.drawCentredString(x + AX, yy + 0.3 * mm, "1ª partenza")
+            elif kind == "ultima":
+                c.drawCentredString(x + DX, yy + 0.3 * mm, "fine servizio")
+            if arr and dep:
+                sosta = minutes(dep[0]) - minutes(arr[0])
+                c.setFillColor(BLUE)
+                if sosta >= 45:  # pausa pranzo a Maderno
+                    c.setFont("DV", 7); c.drawCentredString(x + SX, yy + 2.0 * mm, "pausa")
+                    c.setFont("DVB", 11); c.drawCentredString(x + SX, yy - 1.6 * mm, f"{sosta}'")
+                else:
+                    c.setFont("DV", 11); c.drawCentredString(x + SX, yy, f"{sosta}'")
+        c.setStrokeColor(BLUE); c.setLineWidth(0.6)
+        c.rect(x, yy - 2.4 * mm, cw, top - yy + 8 * mm - 0.2 * mm + 0.2 * mm, stroke=1, fill=0)
+        lowest = min(lowest, yy)
+
+    # note
     y = lowest - 10 * mm
-    c.setFillColor(LINE_BG); c.rect(L, y - 1.2 * mm, 5 * mm, 4 * mm, stroke=0, fill=1)
     c.setFillColor(GREY); c.setFont("DV", 8.5)
-    c.drawString(L + 7 * mm, y, "nave di linea   ·   SCALO = nave in transito a Maderno   ·   "
-                                "* corsa SR solo fino all'11 ottobre 2026")
     for s in ("T1 non effettuato il 25 dicembre 2026. T2 e navi di linea: fino all'1 novembre 2026 e dal 13 marzo 2027.",
-              "Dal 2 novembre 2026 al 12 marzo 2027 solo traghetto T1 - AgT 7.55 – 12.15 / 13.15 – 18.50 (9 ore 55').",
-              "Gli orari potranno subire variazioni in relazione alle condizioni di traffico agli scali."):
-        y -= 5 * mm
+              "Dal 2 novembre 2026 al 12 marzo 2027 solo traghetto T1 - AgT 7.55 – 12.15 / 13.15 – 18.50 (9 ore 55')."):
         assert pdfmetrics.stringWidth(s, "DV", 8.5) <= R - L, s
         c.drawString(L, y, s)
+        y -= 4.8 * mm
+    assert y > 10 * mm, y / mm
     c.showPage()
     c.save()
     return y
+
+
+def minutes(t):
+    h, m = t.split(".")
+    return int(h) * 60 + int(m)
+
+
+def hhmm(n):
+    return f"{n // 60}.{n % 60:02d}"
+
+
+def ferry_rows(code):
+    """Passaggi a Maderno di un turno traghetto: [(arrivo, partenza, tipo)], con arrivo/partenza
+    = (ora, corsa) o None. tipo: prima, ultima, pausa-torri (riga di sola nota) o ''."""
+    ev = sorted(((minutes(t), k, run) for t, k, c_, run in FERRY if c_ == code))
+    rows, i = [], 0
+    while i < len(ev):
+        t, k, run = ev[i]
+        if k == "P":  # partenza senza arrivo prima: inizio servizio
+            rows.append((None, (hhmm(t), run), "prima"))
+            i += 1
+        elif i + 1 < len(ev) and ev[i + 1][1] == "P":
+            rows.append(((hhmm(t), run), (hhmm(ev[i + 1][0]), ev[i + 1][2]), ""))
+            i += 2
+        else:
+            rows.append(((hhmm(t), run), None, "ultima" if i == len(ev) - 1 else ""))
+            i += 1
+        # partenza seguita da un arrivo molto dopo: la nave ha fatto pausa a Torri
+        if rows[-1][1] and i < len(ev) and ev[i][1] == "A":
+            dep = minutes(rows[-1][1][0])
+            if (ev[i][0] - 30) - (dep + 30) >= 45:  # sosta a Torri da pausa (traversata di 30')
+                rows.append((hhmm(dep + 30), hhmm(ev[i][0] - 30), "pausa-torri"))
+    return rows
 
 
 if __name__ == "__main__":
