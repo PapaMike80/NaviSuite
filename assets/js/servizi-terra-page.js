@@ -213,7 +213,13 @@
       const morning = kind === 'P' && firstIndex[code] === index;
       // Sera: l'ultimo movimento del turno e' un arrivo, la nave resta qui per la notte.
       const evening = kind === 'A' && lastIndex[code] === index;
+      // R (rifornimento) e B (bolgetta) a sinistra, il pontile sempre ultimo a destra.
       const badges = [];
+      if (morning && turni[code]?.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
+      if (bolgette[run]) {
+        const label = bolgette[run].replace('BOLGETTA · ', 'Bolgetta: ').toLowerCase().replace(/^b/, 'B');
+        badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
+      }
       const odsMooring = morning ? ieri[code]?.ormeggio : evening ? turni[code]?.ormeggio : '';
       if (desenzano) {
         // Desenzano: selettore del pontile su ogni corsa (proposto dall'O.d.S. o dal giorno prima).
@@ -225,8 +231,6 @@
         // Maderno: solo l'ormeggio del mattino e della sera dagli O.d.S.
         badges.push(`<b class="ormeggio" title="Ormeggio ${morning ? 'del mattino (dalla sera prima)' : 'serale'}">⚓ ${esc(pontLabel(odsMooring))}</b>`);
       }
-      if (morning && turni[code]?.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
-      if (bolgette[run]) badges.push(`<b class="bolgetta">${esc(bolgette[run])}</b>`);
       let state_ = '';
       if (now.srOff && where.includes('*')) state_ = 'off';
       else if (now.minutes != null) {
@@ -235,10 +239,10 @@
       }
       const ship = turni[code]?.nave;
       const captain = comandante(crews[code]);
-      const info = [ship, captain].filter(Boolean).join(' · ');
+      const info = [ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
       const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span class="ship-line">${info ? esc(info) : '<span class="muted">nave non indicata</span>'}</span>` +
+        `<span class="dove"><span class="ship-line">${info || '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
       return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code) };
     });
@@ -257,8 +261,8 @@
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi le navi già partite' : `▾ Mostra le navi già partite (${hidden})`}</button>` : '';
     const legend = desenzano
-      ? '⚓ pontile di ogni corsa: proposto dall\'O.d.S. (mattino e sera) o dalla scelta del giorno prima, si può cambiare · R = rifornimento · nave di oggi dagli O.d.S.'
-      : `SCALO = nave in transito a Maderno · T1/T2 = traghetto Torri · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · nave di oggi dagli O.d.S.`;
+      ? '⚓ pontile di ogni corsa: proposto dall\'O.d.S. (mattino e sera) o dalla scelta del giorno prima, si può cambiare · R = rifornimento · B = bolgetta · nave di oggi dagli O.d.S.'
+      : `SCALO = nave in transito a Maderno · T1/T2 = traghetto Torri · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · R = rifornimento · B = bolgetta · nave di oggi dagli O.d.S.`;
     return card(desenzano ? 'Navi a Desenzano' : 'Navi e traghetto a Maderno', 'in ordine di orario',
       `${toggle}<div class="navi-list">${rows}</div><p class="legend">${esc(legend)}</p>`);
   }

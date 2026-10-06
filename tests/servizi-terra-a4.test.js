@@ -77,7 +77,7 @@ const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
 assert.match(terraPage, /servizi-terra-a4\.js\?v=9/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=12/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=13/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
