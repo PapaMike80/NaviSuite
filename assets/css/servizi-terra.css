@@ -118,3 +118,12 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .nave.ferry{background:rgba(70,130,220,.13);border-left:3px solid rgba(91,140,255,.65)}
 .nave.ferry.next{background:rgba(45,212,191,.12)}
 .crew-hover-tooltip .crew-hover-where{margin:-2px 0 4px;color:#9bc8d5;font-size:11px}
+/* Selettore del pontile (Desenzano): ancora + numero, come un badge */
+.pontile-sel{display:inline-flex;align-items:center;gap:3px;padding:2px 4px 2px 8px;border:1px solid #2dd4bf;border-radius:8px;background:rgba(45,212,191,.16);color:#a7fff0;font-size:12px;font-weight:900;cursor:pointer}
+.pontile-sel select{appearance:none;-webkit-appearance:none;min-width:30px;padding:2px 14px 2px 4px;border:0;border-radius:6px;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23a7fff0'/%3E%3C/svg%3E") no-repeat right 3px center;color:#fff;font:900 14px Manrope,sans-serif;cursor:pointer}
+.pontile-sel select:focus-visible{outline:2px solid #2dd4bf}
+.pontile-sel select option{background:#0d1f27;color:#e8f3f6}
+.pontile-sel.empty{border-style:dashed;border-color:#2d6570;background:transparent;color:#57737d}
+.pontile-sel.empty select{color:#86a5af}
+.pontile-sel.ods{box-shadow:0 0 0 1px rgba(45,212,191,.35)}
+.rifornimento{min-width:22px;padding:4px 7px;text-align:center;font-size:13px}
