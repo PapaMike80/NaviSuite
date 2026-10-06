@@ -183,14 +183,17 @@
 
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
-    $('turno-content').innerHTML = `<div class="terra-col">${left}</div><div class="terra-col">${right}</div>`;
+    // Prima corse e scali, poi la scheda Turno.
+    $('turno-content').innerHTML = `<div class="terra-col">${right}</div><div class="terra-col">${left}</div>`;
   }
 
   function renderTerra(code, residenza, day) {
     $('turno-title').innerHTML = `${chip(code)} A terra`;
     $('turno-context').textContent = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
-    $('turno-content').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
+    // A terra: prima l'orario delle navi (Servizi a terra), poi la scheda Turno.
+    $('turno-content').innerHTML = '';
+    $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-terra').hidden = false;
     window.NaviServiziTerraPage?.show({ residence: residenza, day });
   }
@@ -219,6 +222,7 @@
     $('turno-day-input').value = day;
     $('turno-day-today').hidden = realToday;
     $('turno-terra').hidden = true;
+    $('turno-after').innerHTML = '';
     const me = profile();
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
     renderTestSelect(found ? (G.naveCode(found.turno) || G.terraCode(found.turno) || found.turno) : '');
