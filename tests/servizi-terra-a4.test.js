@@ -84,5 +84,13 @@ assert.match(menu, /\['servizi-terra\.html','⛴','Servizi a terra'/);
 assert.match(menu, /servizi-terra-page'\)\?'terra'/);
 const documenti = fs.readFileSync('assets/js/documenti.js', 'utf8');
 assert.match(documenti, /folders: \['turni', 'ods', 'stampe'\]/);
-assert.match(fs.readFileSync('documenti.html', 'utf8'), /id="terraGrid"/);
+const documentiHtml = fs.readFileSync('documenti.html', 'utf8');
+assert.match(documentiHtml, /id="terraGrid"/);
+// Servizi a terra dopo gli ODS; sezioni chiuse all'apertura.
+assert.ok(documentiHtml.indexOf('id="terra-docs"') > documentiHtml.indexOf('id="odsGrid"'));
+assert.match(documenti, /SECTIONS = \[\['turni-docs', 'turniGrid'\], \['ods-docs', 'odsGrid'\], \['terra-docs', 'terraGrid'\]\]/);
+assert.match(documenti, /setSectionOpen\(headingId, false\)/);
+const titleFromFilename = new Function(`${documenti.match(/function titleFromFilename[\s\S]*?\n}\n/)[0]}; return titleFromFilename;`)();
+assert.strictEqual(titleFromFilename('O.d.S. n. 39-2026 INVERNO.pdf', 'ods', 39), 'Ordine di servizio n. 39 — Inverno');
+assert.strictEqual(titleFromFilename('O.d.S. n. 38-2026.pdf', 'ods', 38), 'Ordine di servizio n. 38');
 console.log('servizi-terra-a4 ok');

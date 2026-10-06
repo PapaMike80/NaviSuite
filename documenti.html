@@ -54,6 +54,55 @@
       cursor: pointer;
     }
 
+    /* Sezioni richiudibili: all'apertura sono tutte chiuse. */
+    .section-heading.collapsible {
+      cursor: pointer;
+      user-select: none;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(124, 173, 189, .20);
+    }
+
+    .section-heading.collapsible:focus-visible {
+      outline: 2px solid #19e3c1;
+      outline-offset: 4px;
+    }
+
+    .section-heading .section-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-heading .section-toggle .count {
+      white-space: nowrap;
+      margin-top: 0;
+    }
+
+    .section-heading.collapsible.ods-heading {
+      margin-top: 36px;
+    }
+
+    .section-heading .section-chevron {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid #2d6570;
+      border-radius: 50%;
+      background: #12313b;
+      color: #a7fff0;
+      font-size: 16px;
+      transition: transform .18s;
+    }
+
+    .section-heading.is-collapsed .section-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .document-grid.is-collapsed {
+      display: none;
+    }
+
     .document p a {
       color: #5eead4;
     }
@@ -311,8 +360,8 @@
 
       <span class="turni-menu-label">DOCUMENTI</span>
       <a href="#turni-docs"><span>▦</span> Turni e bozze</a>
-      <a href="#terra-docs"><span>⛴</span> Servizi a terra</a>
       <a href="#ods-docs"><span>≡</span> ODS 2026</a>
+      <a href="#terra-docs"><span>⛴</span> Servizi a terra</a>
     </nav>
 
     <div class="archive-status">
@@ -343,16 +392,6 @@
 
     <div id="turniGrid" class="document-grid"></div>
 
-    <section id="terra-docs" class="section-heading">
-      <div>
-        <p>SERVIZI A TERRA</p>
-        <h2>Servizi a terra e stampe</h2>
-      </div>
-      <span id="terraCount" class="count">0 documenti</span>
-    </section>
-
-    <div id="terraGrid" class="document-grid"></div>
-
     <section id="ods-docs" class="section-heading ods-heading">
       <div>
         <p>ORDINI DI SERVIZIO</p>
@@ -362,6 +401,16 @@
     </section>
 
     <div id="odsGrid" class="document-grid"></div>
+
+    <section id="terra-docs" class="section-heading ods-heading">
+      <div>
+        <p>SERVIZI A TERRA</p>
+        <h2>Servizi a terra e stampe</h2>
+      </div>
+      <span id="terraCount" class="count">0 documenti</span>
+    </section>
+
+    <div id="terraGrid" class="document-grid"></div>
 
     <div id="emptyState" class="archive-empty">
       <strong>Nessun documento trovato</strong>
@@ -383,7 +432,7 @@
   <script src="assets/js/shared-menu.js?v=1.60"></script>
   <script src="assets/js/admin-firebase-rest.js?v=33"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
-  <script src="assets/js/documenti.js?v=1.10"></script>
+  <script src="assets/js/documenti.js?v=1.11"></script>
 
   <!-- Navigazione Mobile Liquid Glass -->
 
