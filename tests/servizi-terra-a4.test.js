@@ -5,7 +5,8 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=2/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=3/);
+assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
 
@@ -44,4 +45,44 @@ assert.match(page, /ORMEGGI SERALI 5\/10 – 11\/10/);
 assert.match(page, /<span class="pont">2<\/span><span class="rif">R<\/span>/);
 assert.match(page, /nel prossimo<br>O\.d\.S\./);
 assert.strictEqual((page.match(/class="time"/g) || []).length, 22);
+assert.match(page, /BOLGETTA · ARRIVA/);
+
+// Maderno: navi di linea + traghetto, con le bolgette sulla R1.
+const maderno = T.buildMadernoHtml();
+assert.match(maderno, /<h1>MADERNO<\/h1>/);
+assert.match(maderno, /BOLGETTA · PARTE/);
+assert.match(maderno, /BOLGETTA · RIENTRA/);
+assert.strictEqual((maderno.match(/class="time"/g) || []).length, 12);
+assert.match(maderno, /pausa a Torri 13\.20 – 14\.20/);
+const t1 = JSON.parse(JSON.stringify(T.ferryRows('T1')));
+assert.deepStrictEqual(t1[0], { arr: null, dep: ['8.10', '201'], kind: 'prima' });
+assert.deepStrictEqual(t1[t1.length - 1], { arr: ['18.30', '214'], dep: null, kind: 'ultima' });
+assert.ok(!t1.some(row => row.kind === 'pausa-torri'));
+assert.strictEqual(T.buildResidenceHtml('maderno', [], '2026-10-05'), maderno);
+assert.doesNotMatch(T.buildResidenceHtml('MADERNO', [], '2026-10-05', { printButton: false }), /print-actions"><button/);
+
+// Stampa unica con i due fogli e documenti per la pagina Documenti (uno per residenza, id fissi).
+const all = T.buildAllHtml(rows, '2026-10-05');
+assert.strictEqual((all.match(/<div class="sheet /g) || []).length, 2);
+const docs = T.documents(rows, '2026-10-05');
+assert.deepStrictEqual([...docs.map(doc => doc.metadata.id)], ['SERVIZI_TERRA_DESENZANO', 'SERVIZI_TERRA_MADERNO']);
+assert.strictEqual(docs[0].metadata.settimana, '5/10 – 11/10');
+assert.strictEqual(docs[0].metadata.fine, '2026-10-11');
+assert.strictEqual(docs[1].metadata.inizio, '');
+assert.ok(docs.every(doc => doc.metadata.tipo === 'servizi_terra' && doc.metadata.mimeType === 'text/html'));
+assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;charset=utf-8,', '')), maderno);
+
+// Pagina Servizi a terra: pulsantini delle residenze come NaviTurni, nel menu e in Documenti.
+const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
+assert.match(terraPage, /class="servizi-terra-page"/);
+assert.match(terraPage, /quick-residence-btn\[data-res="MADERNO"\]/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=3/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=1/);
+execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-page.js'], { stdio: 'pipe' });
+const menu = fs.readFileSync('assets/js/shared-menu.js', 'utf8');
+assert.match(menu, /\['servizi-terra\.html','⛴','Servizi a terra'/);
+assert.match(menu, /servizi-terra-page'\)\?'terra'/);
+const documenti = fs.readFileSync('assets/js/documenti.js', 'utf8');
+assert.match(documenti, /folders: \['turni', 'ods', 'stampe'\]/);
+assert.match(fs.readFileSync('documenti.html', 'utf8'), /id="terraGrid"/);
 console.log('servizi-terra-a4 ok');

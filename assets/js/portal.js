@@ -100,13 +100,14 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
-  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','quiz.html','impostazioni.html','aggiornamenti.html','agenti.html']);
+  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','servizi-terra.html','quiz.html','impostazioni.html','aggiornamenti.html','agenti.html']);
   const savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));
   const preferred=allowedStartPages.has(savedStartPage||'')?savedStartPage:'index.html';
   if(preferred&&preferred!=='index.html'){location.href=preferred;return;}
   const diaria = document.querySelector('.app-card.diaria');
   const oggi = document.querySelector('.app-card.oggi');
   const docs = document.querySelector('.app-card.docs');
+  const terra = document.querySelector('.app-card.terra');
   const trova = document.querySelector('.app-card.trova');
   const orario = document.querySelector('.app-card.orario');
   const orariTabella = document.querySelector('.app-card.orari-tabella');
@@ -118,6 +119,7 @@ function showChoice(agent) {
   if (diaria) diaria.hidden = !canUseDiaria(agent);
   if (oggi) oggi.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
   if (docs) docs.hidden = isBaristaAgent(agent);
+  if (terra) terra.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
   if (trova) trova.hidden = isBaristaAgent(agent);
   // Orario visibile solo agli admin (nascosto alle bariste)
   if (orario) orario.hidden = isBaristaAgent(agent);

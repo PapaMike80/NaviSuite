@@ -66,8 +66,9 @@
             <div class="field"><label for="new-ods-number">Numero ODS</label><input id="new-ods-number" placeholder="es. 30/2026"></div>
             <input id="new-ods-file" type="file" accept=".pdf,.json,.csv,application/pdf">
             <div class="actions"><button id="parse-new-ods">Leggi e prepara ODS</button><button id="save-new-ods" class="primary" disabled>Salva righe confermate</button></div>
-            <div class="field"><label for="servizi-terra-week">Servizi a terra Desenzano · settimana dal</label><input id="servizi-terra-week" type="date"></div>
+            <div class="field"><label for="servizi-terra-week">Servizi a terra Desenzano e Maderno · settimana dal</label><input id="servizi-terra-week" type="date"></div>
             <div class="actions"><button id="generate-servizi-terra" type="button">Genera Servizi a terra</button></div>
+            <p style="font-size:12px">Apre gli A4 da stampare e li salva in Documenti (sostituisce la versione precedente). Si aggiornano da soli anche quando salvi un ODS.</p>
           </div></details>
           <details class="import-box full-upload foldable">
             <summary><h3>Nuovi turni bariste</h3></summary><div class="import-inner">
@@ -153,10 +154,10 @@
   <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/turni-shared.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=43"></script>
-  <script src="assets/js/shared-menu.js?v=1.59"></script>
+  <script src="assets/js/shared-menu.js?v=1.60"></script>
   <script src="assets/js/shared-data.js?v=123"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
-  <script src="assets/js/servizi-terra-a4.js?v=2"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=3"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -592,7 +593,7 @@
     function renderUploadedDocuments(){
       const box=$('uploaded-documents');if(!box)return;
       const rows=[...adminDocuments].sort((a,b)=>String(b.uploadedAt||'').localeCompare(String(a.uploadedAt||'')));
-      box.innerHTML=rows.length?rows.map(doc=>{const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc.id)&&item.attiva!==false);return `<div class="uploaded-document"><div><strong>${esc(doc.titolo||doc.filename)}</strong><small>${esc(doc.tipo==='bozza'?'Bozza':'Turno')} · ${esc(doc.inizio||'')} → ${esc(doc.fine||'')} · ${esc(doc.filename||'')}${imported?` · ${imported.rows?.length||0} agenti applicati`:''}</small></div><button class="danger" data-delete-document="${esc(doc.id)}">Elimina${imported?' dati e PDF':''}</button></div>`}).join(''):'<div class="empty">Nessun turno o bozza caricato da Firebase.</div>';
+      box.innerHTML=rows.length?rows.map(doc=>{const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc.id)&&item.attiva!==false);return `<div class="uploaded-document"><div><strong>${esc(doc.titolo||doc.filename)}</strong><small>${esc(doc.tipo==='servizi_terra'?'Servizi a terra':doc.tipo==='bozza'?'Bozza':'Turno')} · ${esc(doc.tipo==='servizi_terra'&&!doc.inizio?'orario invernale':`${doc.inizio||''} → ${doc.fine||''}`)} · ${esc(doc.filename||'')}${imported?` · ${imported.rows?.length||0} agenti applicati`:''}</small></div><button class="danger" data-delete-document="${esc(doc.id)}">Elimina${imported?' dati e PDF':''}</button></div>`}).join(''):'<div class="empty">Nessun turno o bozza caricato da Firebase.</div>';
       box.querySelectorAll('[data-delete-document]').forEach(button=>button.addEventListener('click',async()=>{
         const doc=adminDocuments.find(item=>String(item.id)===String(button.dataset.deleteDocument));
         const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc?.id)&&item.attiva!==false);
@@ -1130,18 +1131,30 @@
       $('parse-new-turn').disabled=false;
     });
     $('parse-new-ods').addEventListener('click',()=>parseImport('ods').catch(error=>setStatus(`Errore importazione ODS: ${error.message}`,'bad')));
-    // A4 Servizi a terra di Desenzano: turni nave salvati + quelli dell'ODS appena letto (non ancora salvato).
+    // A4 Servizi a terra (Desenzano settimanale + Maderno): turni nave salvati + quelli dell'ODS
+    // appena letto (non ancora salvato). Ogni generazione sostituisce i due documenti in Documenti.
     $('servizi-terra-week').value=NaviServiziTerra.defaultMonday();
-    $('generate-servizi-terra').addEventListener('click',()=>{
+    function serviziTerraMonday(){
+      const picked=$('servizi-terra-week').value||NaviServiziTerra.defaultMonday();
+      const [y,m,d]=picked.split('-').map(Number),date=new Date(y,m-1,d);
+      date.setDate(date.getDate()-(date.getDay()+6)%7);
+      const monday=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      $('servizi-terra-week').value=monday;
+      return monday;
+    }
+    async function saveServiziTerraDocuments(navi,monday){
+      for(const doc of NaviServiziTerra.documents(navi,monday))await window.NaviAdminFirebase.saveAdminDocument(doc.metadata,doc.dataUrl);
+      adminDocuments=await window.NaviAdminFirebase.getAdminDocuments();
+      renderUploadedDocuments();
+    }
+    $('generate-servizi-terra').addEventListener('click',async()=>{
       try{
-        const picked=$('servizi-terra-week').value||NaviServiziTerra.defaultMonday();
-        const [y,m,d]=picked.split('-').map(Number),date=new Date(y,m-1,d);
-        date.setDate(date.getDate()-(date.getDay()+6)%7);
-        const monday=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-        $('servizi-terra-week').value=monday;
+        const monday=serviziTerraMonday();
         const navi=[...(state.turniNavi||[]),...(pendingOdsNavi.length?collectOdsNavi():[]).map(row=>({...row,_pending:true}))];
         const days=NaviServiziTerra.open(navi,monday);
-        setStatus(days?`✓ Servizi a terra: ormeggi di ${days} giorni su 7 negli ODS. Usa “Stampa / PDF”.`:'Servizi a terra generato, ma nessun turno nave per questa settimana: carica l’ODS che la copre.',days?'ok':'bad');
+        setStatus('Salvataggio dei Servizi a terra in Documenti…');
+        await saveServiziTerraDocuments(navi,monday);
+        setStatus(days?`✓ Servizi a terra di Desenzano e Maderno salvati in Documenti: ormeggi di ${days} giorni su 7 negli ODS. Usa “Stampa / PDF”.`:'Servizi a terra salvati in Documenti, ma nessun turno nave per questa settimana: carica l’ODS che la copre.',days?'ok':'bad');
       }catch(error){setStatus(`Errore Servizi a terra: ${error.message}`,'bad')}
     });
     $('parse-new-bariste').addEventListener('click',()=>parseImport('barista').catch(error=>setStatus(`Errore importazione turni: ${error.message}`,'bad')));
@@ -1207,7 +1220,10 @@
         return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
       });
       await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;pendingOdsNavi=[];
-      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave. Il Foglio Google si aggiornerà da solo entro 5 minuti.`, 'ok');
+      // Nuovi ormeggi serali: rigenera i Servizi a terra in Documenti.
+      let terra='';
+      if(navi.length){try{await saveServiziTerraDocuments(state.turniNavi,serviziTerraMonday());terra=' Servizi a terra aggiornati in Documenti.'}catch(error){terra=` Servizi a terra non aggiornati (${error.message}).`}}
+      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave.${terra} Il Foglio Google si aggiornerà da solo entro 5 minuti.`, 'ok');
     });
     $('save-new-bariste').addEventListener('click',async()=>{
       const rows=collectPending('barista');if(!rows.length)return setStatus('Nessun turno barista valido da salvare.','bad');

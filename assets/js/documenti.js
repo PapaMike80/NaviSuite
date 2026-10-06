@@ -4,9 +4,9 @@ const CONFIG = {
   owner: 'PapaMike80',
   repo: 'NaviSuite',
   branch: 'main',
-  folders: ['turni', 'ods'],
+  folders: ['turni', 'ods', 'stampe'],
   metadataFile: 'documenti.json',
-  version: 'v1.09'
+  version: 'v1.10'
 };
 
 const state = {
@@ -16,6 +16,8 @@ const state = {
 
 const elements = {
   turniGrid: document.getElementById('turniGrid'),
+  terraGrid: document.getElementById('terraGrid'),
+  terraCount: document.getElementById('terraCount'),
   odsGrid: document.getElementById('odsGrid'),
   turniCount: document.getElementById('turniCount'),
   odsCount: document.getElementById('odsCount'),
@@ -199,7 +201,37 @@ function pagesPdfUrl(path) {
   return encodeURI(path);
 }
 
+// Stampe generate da tools/stampe (cartella stampe/): titolo leggibile dal nome del file.
+const STAMPE_TITOLI = [
+  [/^Desenzano_pontile/i, 'Servizi a terra Desenzano · pontile e AgB'],
+  [/^Maderno_servizio_terra/i, 'Servizi a terra Maderno · AgM e AgT1'],
+  [/_passeggeri_/i, 'Partenze e ritorni per i passeggeri'],
+  [/_prossima_partenza_/i, 'Prossima partenza per… (passeggeri)'],
+  [/_tascabile_/i, 'Orario tascabile per i passeggeri'],
+  [/_traghetto_Torri/i, 'Traghetto Maderno – Torri (passeggeri)'],
+  [/^Cover_/i, 'Cover iPhone 15 da ritagliare']
+];
+
+function stampaDocument(file) {
+  const filename = file.name;
+  const residence = /(Desenzano|Maderno)/i.exec(filename)?.[1] || '';
+  const title = STAMPE_TITOLI.find(([pattern]) => pattern.test(filename))?.[1] || titleFromFilename(filename, 'stampa');
+  const servizio = /^(Desenzano_pontile|Maderno_servizio_terra)/i.test(filename);
+  return {
+    id: file.sha || file.path,
+    tipo: 'stampa',
+    servizio,
+    residenza: residence.toUpperCase(),
+    titolo: residence && !title.includes(residence) ? `${residence} · ${title}` : title,
+    file: pagesPdfUrl(file.path || `stampe/${filename}`),
+    path: file.path || `stampe/${filename}`,
+    filename,
+    source: 'github'
+  };
+}
+
 function fileToDocument(file, folder) {
+  if (folder === 'stampe') return stampaDocument(file);
   const filename = file.name;
   const path = file.path || `${folder}/${filename}`;
   const metadata = metadataFor(path, filename);
@@ -356,6 +388,31 @@ function turnCard(documentItem) {
   `;
 }
 
+function isHtmlDocument(documentItem) {
+  return /html/i.test(documentItem?.mimeType || '') || /\.html?$/i.test(documentItem?.filename || '');
+}
+
+function terraCard(documentItem) {
+  const weekly = documentItem.tipo === 'servizi_terra';
+  const label = weekly
+    ? (documentItem.settimana ? `SERVIZI A TERRA · SETTIMANA ${documentItem.settimana}` : 'SERVIZI A TERRA · ORARIO INVERNALE')
+    : documentItem.servizio ? 'SERVIZI A TERRA · PDF DA STAMPARE' : 'STAMPA · PDF';
+  const description = weekly
+    ? `Generato il ${formatDate(documentItem.data) || '—'} da Aggiornamenti · si apre anche dalla pagina <a href="servizi-terra.html?res=${escapeHtml(String(documentItem.residenza || '').toLowerCase())}">Servizi a terra</a>`
+    : 'Rigenerato automaticamente a ogni nuovo ODS';
+  return `
+    <article class="document${weekly ? ' published-document' : ''}" data-document-id="${escapeHtml(documentItem.id)}">
+      <span class="pdf-icon">${isHtmlDocument(documentItem) ? 'A4' : 'PDF'}</span>
+      <div>
+        <small>${label}</small>
+        <strong>${escapeHtml(documentItem.titolo)}</strong>
+        <p>${description}</p>
+      </div>
+      ${documentActions(documentItem)}
+    </article>
+  `;
+}
+
 function odsCard(documentItem) {
   return `
     <article class="document" data-document-id="${escapeHtml(documentItem.id)}">
@@ -414,7 +471,26 @@ async function openDocument(documentId) {
   elements.viewer.hidden = false;
   document.body.classList.add('document-viewer-open');
   elements.viewerClose?.focus();
+  if (isHtmlDocument(documentItem)) {
+    await renderHtmlDocument(url);
+    return;
+  }
   await renderPdfDocument(url);
+}
+
+// Fogli A4 in HTML (Servizi a terra generati da Aggiornamenti): si adattano da soli alla larghezza.
+async function renderHtmlDocument(url) {
+  viewerRenderToken += 1;
+  const blob = dataUrlBlob(url);
+  const html = blob ? await blob.text() : await (await fetch(url, { cache: 'no-store' })).text();
+  if (elements.viewerPages) {
+    elements.viewerPages.replaceChildren();
+    elements.viewerPages.style.display = 'none';
+  }
+  if (elements.viewerFrame) {
+    elements.viewerFrame.style.display = 'block';
+    elements.viewerFrame.srcdoc = html;
+  }
 }
 
 async function renderPdfDocument(url) {
@@ -497,14 +573,18 @@ async function downloadDocument(documentId) {
     if (!response.ok) throw new Error(`Download non disponibile (${response.status})`);
     sourceBlob = await response.blob();
   }
-  const blob = sourceBlob.type === 'application/pdf'
+  const html = isHtmlDocument(documentItem);
+  const type = html ? 'text/html' : 'application/pdf';
+  const blob = sourceBlob.type === type
     ? sourceBlob
-    : new Blob([sourceBlob], { type: 'application/pdf' });
+    : new Blob([sourceBlob], { type });
   const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  const rawFilename = documentItem.filename || documentItem.titolo || 'documento.pdf';
+  const rawFilename = documentItem.filename || documentItem.titolo || (html ? 'documento.html' : 'documento.pdf');
   link.href = objectUrl;
-  link.download = /\.pdf$/i.test(rawFilename) ? rawFilename : `${rawFilename}.pdf`;
+  link.download = html
+    ? (/\.html?$/i.test(rawFilename) ? rawFilename : `${rawFilename}.html`)
+    : (/\.pdf$/i.test(rawFilename) ? rawFilename : `${rawFilename}.pdf`);
   link.hidden = true;
   document.body.appendChild(link);
   link.click();
@@ -533,6 +613,7 @@ function closeDocument() {
     elements.viewerPages.style.display = '';
   }
   if (elements.viewerFrame) {
+    elements.viewerFrame.removeAttribute('srcdoc');
     elements.viewerFrame.src = 'about:blank';
     elements.viewerFrame.style.display = 'none';
   }
@@ -554,10 +635,34 @@ function countLabel(number) {
   return `${number} document${number === 1 ? 'o' : 'i'}`;
 }
 
+// Residenza dell'agente collegato: i suoi Servizi a terra compaiono per primi.
+function ownResidence() {
+  try {
+    const agent = JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null');
+    return String(agent?.residence || agent?.residenza || '').trim().toUpperCase();
+  } catch {
+    return '';
+  }
+}
+
+function terraScore(documentItem) {
+  const own = documentItem.residenza && documentItem.residenza === ownResidence() ? 0 : 1;
+  const kind = documentItem.tipo === 'servizi_terra' ? 0 : documentItem.servizio ? 1 : 2;
+  return [kind, own, String(documentItem.titolo || '')];
+}
+
 function renderDocuments() {
+  const isTerra = item => item.tipo === 'servizi_terra' || item.tipo === 'stampa';
   const turni = state.documents
-    .filter(item => item.tipo !== 'ods')
+    .filter(item => item.tipo !== 'ods' && !isTerra(item))
     .sort((a, b) => documentScore(b) - documentScore(a));
+
+  const terra = state.documents
+    .filter(isTerra)
+    .sort((a, b) => {
+      const x = terraScore(a), y = terraScore(b);
+      return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2], 'it');
+    });
 
   const ods = state.documents
     .filter(item => item.tipo === 'ods')
@@ -570,8 +675,16 @@ function renderDocuments() {
     elements.turniGrid.innerHTML = turni.map(turnCard).join('');
   }
 
+  if (elements.terraGrid) {
+    elements.terraGrid.innerHTML = terra.map(terraCard).join('');
+  }
+
   if (elements.odsGrid) {
     elements.odsGrid.innerHTML = ods.map(odsCard).join('');
+  }
+
+  if (elements.terraCount) {
+    elements.terraCount.textContent = countLabel(terra.length);
   }
 
   if (elements.turniCount) {
@@ -615,7 +728,7 @@ function renderDocuments() {
   });
   document.querySelectorAll('[data-document-id]').forEach(card => {
     card.addEventListener('click', event => {
-      if (event.target.closest('.document-actions')) return;
+      if (event.target.closest('.document-actions') || event.target.closest('a[href]')) return;
       openDocument(card.dataset.documentId).catch(error => {
         if(elements.notice){elements.notice.hidden=false;elements.notice.textContent=`Non riesco ad aprire il documento: ${error.message}`}
       });

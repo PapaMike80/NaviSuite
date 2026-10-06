@@ -54,6 +54,10 @@
       cursor: pointer;
     }
 
+    .document p a {
+      color: #5eead4;
+    }
+
     .document:focus-visible {
       outline: 2px solid #19e3c1;
       outline-offset: 3px;
@@ -307,13 +311,14 @@
 
       <span class="turni-menu-label">DOCUMENTI</span>
       <a href="#turni-docs"><span>▦</span> Turni e bozze</a>
+      <a href="#terra-docs"><span>⛴</span> Servizi a terra</a>
       <a href="#ods-docs"><span>≡</span> ODS 2026</a>
     </nav>
 
     <div class="archive-status">
       <strong id="sourceLabel">Archivio GitHub</strong>
       <span id="lastUpdate">Caricamento…</span>
-      <span class="version">Versione v1.02</span>
+      <span class="version">Versione v1.03</span>
     </div>
   </aside>
 
@@ -337,6 +342,16 @@
     </section>
 
     <div id="turniGrid" class="document-grid"></div>
+
+    <section id="terra-docs" class="section-heading">
+      <div>
+        <p>SERVIZI A TERRA</p>
+        <h2>Servizi a terra e stampe</h2>
+      </div>
+      <span id="terraCount" class="count">0 documenti</span>
+    </section>
+
+    <div id="terraGrid" class="document-grid"></div>
 
     <section id="ods-docs" class="section-heading ods-heading">
       <div>
@@ -365,10 +380,10 @@
   </section>
 
   <script src="assets/js/shared-roles.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.59"></script>
+  <script src="assets/js/shared-menu.js?v=1.60"></script>
   <script src="assets/js/admin-firebase-rest.js?v=33"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
-  <script src="assets/js/documenti.js?v=1.09"></script>
+  <script src="assets/js/documenti.js?v=1.10"></script>
 
   <!-- Navigazione Mobile Liquid Glass -->
 
