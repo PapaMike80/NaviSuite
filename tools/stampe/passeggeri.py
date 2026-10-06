@@ -14,6 +14,7 @@ I dati di ogni scalo stanno in un modulo (a4_passeggeri_maderno.py, a4_passegger
   ORDINATI                    True se in ogni riga gli orari diretti crescono lungo le colonne
   PRIMA_CORSA                 ritorni con cambio: {(localita', partenza): corsa su cui si sale}
   ORDINE                      localita' nell'ordine dell'orario ufficiale (Desenzano - Riva)
+  PER_RIGA (facoltativo)      partenze per riga nelle liste (6; oltre si va a capo)
   TRAGHETTO                   None oppure dict(nome, etichetta, sotto, andata, ritorno)"""
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4, landscape
@@ -375,10 +376,11 @@ def lista(c, S, x, y, width, data, f):
                     c.drawCentredString(cx, yy - f["via_dy"] * mm, f"via {via}")
         y -= h
 
+    per_riga = getattr(S, "PER_RIGA", 6)
     for i, p in enumerate(places):
-        lines = -(-len(data[p]) // 6)                  # oltre 6 partenze si va a capo
+        lines = -(-len(data[p]) // per_riga)           # oltre PER_RIGA partenze si va a capo
         h = (f["row_via"] if any(e[2] for e in data[p]) else f["row"]) * mm + (lines - 1) * f["line"] * mm
-        row(p.upper(), "", data[p], 6, h, i % 2 == 1)
+        row(p.upper(), "", data[p], per_riga, h, i % 2 == 1)
     if T:
         y -= f["gap"] * mm
         row(T["etichetta"], T["sotto"], data[staccato], f["per_ferry"], f["ferry_row"] * mm, True)
@@ -489,7 +491,8 @@ def main_tascabile(S, out):
     T = S.TRAGHETTO
     staccato = T["nome"] if T else None
     places = [p for p in S.ORDINE if p in andata and p != staccato]
-    righe = [(p.upper(), "", andata.get(p, []), ritorno.get(p, []), 6, i % 2 == 1) for i, p in enumerate(places)]
+    per_riga = getattr(S, "PER_RIGA", 6)
+    righe = [(p.upper(), "", andata.get(p, []), ritorno.get(p, []), per_riga, i % 2 == 1) for i, p in enumerate(places)]
     if T:
         righe.append(None)  # stacco prima del traghetto
         righe.append((T["etichetta"], T["sotto"], andata[staccato], ritorno[staccato], f["per_ferry"], True))

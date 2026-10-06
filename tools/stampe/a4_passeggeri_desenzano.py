@@ -78,6 +78,7 @@ BLOCCHI_RITORNI = [("◀  DA SIRMIONE  ·  GARDA", "basso lago  ·  lower lake  
 # la 20, la 31 e la 27 fanno il giro di Garda, Bardolino e Lazise: orari non crescenti lungo le colonne
 ORDINATI = False
 RIGA_MM = 9.5   # righe piu' basse: da Desenzano partono 10 navi
+PER_RIGA = 7    # Garda ha 7 partenze: tutte su una riga
 ORDINE = ["Desenzano", "Peschiera", "Sirmione", "Lazise", "Bardolino", "Garda", "Torri del Benaco", "Portese",
           "Salò", "Gardone", "Maderno", "Gargnano", "Brenzone", "Malcesine", "Limone", "Torbole", "Riva"]
 TRAGHETTO = None
