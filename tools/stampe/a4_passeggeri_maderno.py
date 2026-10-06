@@ -36,10 +36,13 @@ SUD = [
     ("17.08", "", [("Gardone", "17.21"), ("Salò", "17.35"), ("Portese", "17.46"), ("Garda", "18.30"),
                    ("Bardolino", "18.45"), ("Lazise", "19.02"), ("Peschiera", "19.30")]),
 ]
-# Traghetto per Torri del Benaco (30'): (partenza, solo fino all'1/11 e dal 13/3 = corse T2 "(•)")
-TRAGHETTO = [("8.10", False), ("8.45", True), ("9.25", False), ("10.10", True), ("10.50", False),
-             ("11.30", True), ("12.10", False), ("12.50", True), ("14.20", False), ("15.05", True),
-             ("15.50", False), ("16.40", True), ("17.20", False), ("18.00", True)]
+# numero di corsa per ora di partenza da Maderno (O.d.S. 39/2026 pag. 15-16)
+CORSA = {"10.41": "102", "11.31": "2", "16.58": "8", "17.24": "114",
+         "9.15": "91", "10.09": "111", "11.03": "7", "14.00": "17", "16.30": "107", "17.08": "3"}
+# Traghetto per Torri del Benaco (30'): (partenza, corsa) - pag. 17
+TRAGHETTO = [("8.10", "201"), ("8.45", "231"), ("9.25", "203"), ("10.10", "233"), ("10.50", "205"),
+             ("11.30", "235"), ("12.10", "207"), ("12.50", "237"), ("14.20", "209"), ("15.05", "239"),
+             ("15.50", "211"), ("16.40", "241"), ("17.20", "213"), ("18.00", "243")]
 
 
 def bar(c, L, R, y, left, right=""):
@@ -63,12 +66,12 @@ def matrix(c, L, R, y, rows, places):
     for _, _, st in rows:  # in ogni riga gli orari devono crescere da sinistra a destra
         ts = [float(t) for t in sorted(st, key=lambda s_: places.index(s_[0])) for t in [t[1]]]
         assert ts == sorted(ts), st
-    first = 27 * mm
+    first = 31 * mm
     cw = (R - L - first) / len(places)
     head = 11 * mm
     c.setFillColor(STRIPE); c.rect(L, y - head, R - L, head, stroke=0, fill=1)
     c.setFillColor(GREY); c.setFont("DV", 7.4)
-    for k, s in enumerate(("Partenza", "Departure", "Abfahrt")):
+    for k, s in enumerate(("Partenza · corsa", "Departure · trip", "Abfahrt · Fahrt")):
         c.drawString(L + 2 * mm, y - 3.4 * mm - k * 2.9 * mm, s)
     c.setFillColor(black)
     for i, p in enumerate(places):
@@ -86,6 +89,8 @@ def matrix(c, L, R, y, rows, places):
         c.drawRightString(L + 22 * mm, y - 7.8 * mm, dep)
         if note:
             c.setFont("DVB", 9); c.drawString(L + 23 * mm, y - 4.4 * mm, note)
+        c.setFont("DV", 8.5); c.setFillColor(GREY)
+        c.drawString(L + 23 * mm, y - 7.8 * mm, CORSA[dep])
         times = dict(stops)
         for i, p in enumerate(places):
             cx = L + first + cw * (i + 0.5)
@@ -112,8 +117,6 @@ def main(out):
     c.drawRightString(R, H - 18 * mm, "Partenze")
     c.drawRightString(R, H - 24 * mm, "Departures")
     c.drawRightString(R, H - 30 * mm, "Abfahrten")
-    c.setFont("DV", 9.5); c.setFillColor(GREY)
-    c.drawString(L, H - 36 * mm, "5.10 – 1.11.2026      orario di arrivo  ·  arrival time  ·  Ankunftszeit")
 
     y = H - 46 * mm
     y = bar(c, L, R, y, "▲  RIVA DEL GARDA", "nord  ·  north  ·  Norden")
@@ -125,19 +128,20 @@ def main(out):
     # traghetto
     y -= 10 * mm
     y = bar(c, L, R, y, "⇄  TORRI DEL BENACO", "traghetto  ·  ferry  ·  Fähre   30'")
-    cols = 7
+    cols = 5
     cw = (R - L) / cols
-    for i, (t, t2) in enumerate(TRAGHETTO):
+    for i, (t, run) in enumerate(TRAGHETTO):
         r, k = divmod(i, cols)
         x = L + k * cw
         yy = y - 8.6 * mm - r * 11.5 * mm
         if r % 2 == 1:
             c.setFillColor(STRIPE); c.rect(x, yy - 3.4 * mm, cw, 11.5 * mm, stroke=0, fill=1)
+        tw = pdfmetrics.stringWidth(t, "DVB", 18)
+        x0 = x + cw / 2 - (tw + 1 * mm + pdfmetrics.stringWidth(run, "DV", 8.5)) / 2
         c.setFillColor(black); c.setFont("DVB", 18)
-        c.drawCentredString(x + cw / 2 - 1 * mm, yy, t)
-        if t2:
-            c.setFont("DVB", 12)
-            c.drawString(x + cw / 2 - 1 * mm + pdfmetrics.stringWidth(t, "DVB", 18) / 2 + 0.6 * mm, yy + 2.8 * mm, "•")
+        c.drawString(x0, yy, t)
+        c.setFont("DV", 8.5); c.setFillColor(GREY)
+        c.drawString(x0 + tw + 1 * mm, yy, run)
     y = y - 8.6 * mm - 11.5 * mm * ((len(TRAGHETTO) - 1) // cols) - 12 * mm
 
     # note, una riga per lingua
@@ -145,10 +149,6 @@ def main(out):
         ("SR", ("servizio rapido con supplemento, fino all'11 ottobre 2026",
                 "fast service with extra charge, until 11 October 2026",
                 "Schnelldienst mit Zuschlag, bis zum 11. Oktober 2026")),
-        ("•", ("fino all'1 novembre 2026", "until 1 November 2026", "bis zum 1. November 2026")),
-        ("", ("dal 2 novembre 2026 al 12 marzo 2027 solo traghetto Torri - Maderno",
-              "from 2 November 2026 to 12 March 2027 only the ferry Torri - Maderno",
-              "vom 2. November 2026 bis zum 12. März 2027 nur Fähre Torri - Maderno")),
     ]
     for mark, texts in notes:
         c.setFillColor(black); c.setFont("DVB", 11); c.drawString(L, y, mark)
