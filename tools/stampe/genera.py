@@ -7,6 +7,7 @@
 Scrive in stampe/:
   Desenzano_pontile_AgB_A4.pdf          navi in ordine di orario + ormeggi serali lun-dom con rifornimenti
   Maderno_servizio_terra_A4.pdf         navi di linea + traghetto Torri
+  Maderno_partenze_passeggeri_A4.pdf    per il pubblico: partenze e arrivi (IT/EN/DE)
   Desenzano_calendario_ormeggi_serali.pdf  un mese per pagina, da tutti i "Turno navi" degli O.d.S.
   Cover_*.pdf                           cover iPhone 15 (orario invernale)
   ormeggi.json                          dati estratti dagli O.d.S.
@@ -21,7 +22,7 @@ QUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, QUI)
 RADICE = os.path.dirname(os.path.dirname(QUI))
 
-import ormeggi, a4_desenzano, a4_maderno, calendario, cover  # noqa: E402
+import ormeggi, a4_desenzano, a4_maderno, a4_passeggeri_maderno, calendario, cover  # noqa: E402
 
 
 def main():
@@ -43,6 +44,7 @@ def main():
     coperti = sum((lunedi + datetime.timedelta(days=i)).isoformat() in dati for i in range(7))
     print(f"A4 Desenzano: ormeggi settimana dal {lunedi} ({coperti}/7 giorni negli O.d.S.)")
     a4_maderno.main(os.path.join(a.out, "Maderno_servizio_terra_A4.pdf"))
+    a4_passeggeri_maderno.main(os.path.join(a.out, "Maderno_partenze_passeggeri_A4.pdf"))
     calendario.main(dati, os.path.join(a.out, "Desenzano_calendario_ormeggi_serali.pdf"))
     if not cover.genera(a.out):
         sys.exit("Cover: qualche testo finisce sotto MagSafe o fotocamera")
