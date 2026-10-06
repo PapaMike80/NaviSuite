@@ -365,11 +365,11 @@ def per_origine():
     return {p: sorted(v, key=lambda e: (minutes(e[0]), minutes(e[1]))) for p, v in out.items()}
 
 
-# misure della lista "per localita'": foglio A4 e cartoncino tascabile A6
+# misure della lista "per localita'": foglio A4 e meta' A5 del tascabile
 A4_LISTA = dict(name=13, sub=8.5, dep=15, arr=10, via=7.4, run=7.2, sr=6.5, row=13.6, row_via=13.6,
                 name_w=38, line=10, ferry_row=31, gap=5, per_ferry=5, arr_dy=4.2, via_dy=7.1, top_dy=6)
-A6_LISTA = dict(name=7.2, sub=4.6, dep=8.0, arr=6.2, via=4.8, run=4.4, sr=4.0, row=5.5, row_via=8.0,
-                name_w=19, line=5.3, ferry_row=16.6, gap=2.2, per_ferry=5, arr_dy=2.2, via_dy=4.0, top_dy=2.9)
+A5_LISTA = dict(name=9.6, sub=6.2, dep=11, arr=8.2, via=6.2, run=5.8, sr=5.4, row=8.4, row_via=10.6,
+                name_w=26, line=7.4, ferry_row=23.5, gap=3.5, per_ferry=5, arr_dy=3.1, via_dy=5.6, top_dy=4.2)
 
 
 def lista(c, x, y, width, data, f):
@@ -461,46 +461,43 @@ def legenda(c, L, R, y, bsize, size, step, bottom=4 * mm):
     return y - step * mm
 
 
-def tascabile(c, x, y, w, h, data, titolo, legend):
-    """Un cartoncino A6 nel riquadro (x, y = angolo in basso a sinistra): 5 mm di margine verso il
-    bordo del foglio (dove la stampante non arriva), 3,5 mm verso le linee di taglio."""
-    outer, inner = 5 * mm, 3.5 * mm
-    left = x == 0
-    lower = y == 0
-    L, R = x + (outer if left else inner), x + w - (inner if left else outer)
-    top, bottom = y + h - (inner if lower else outer), y + (outer if lower else inner)
-    c.setFillColor(black); c.setFont("DVB", 14)
-    c.drawString(L, top - 5.2 * mm, titolo[0])
-    c.setFont("DVB", 6.2)
+def tascabile(c, L, R, top, bottom, data, titolo, legend):
+    """Una meta' (A5 verticale) del foglio tascabile, tra L e R e tra top e bottom."""
+    c.setFillColor(black); c.setFont("DVB", 20)
+    c.drawString(L, top - 7.5 * mm, titolo[0])
+    c.setFont("DVB", 8.6)
     for k, s in enumerate(titolo[1:]):
-        c.drawRightString(R, top - 2.2 * mm - k * 2.5 * mm, s)
-    c.setFont("DVB", 6.2); c.drawString(L, top - 9.6 * mm, legend[0])
-    c.setFillColor(GREY); c.setFont("DV", 4.6)
-    c.drawString(L + pdfmetrics.stringWidth(legend[0] + " ", "DVB", 6.2), top - 9.6 * mm, "corsa · trip · Fahrt")
-    c.setFillColor(black); c.setFont("DV", 5.4); c.drawString(L, top - 12 * mm, legend[1])
-    yy = lista(c, L, top - 13.2 * mm, R - L, data, A6_LISTA)
-    legenda(c, L, R, yy - 3 * mm, 5.4, 4.8, 2.4, bottom=bottom)
+        c.drawRightString(R, top - 3 * mm - k * 3.5 * mm, s)
+    c.setFont("DVB", 8.6); c.drawString(L, top - 14 * mm, legend[0])
+    c.setFillColor(GREY); c.setFont("DV", 6.2)
+    c.drawString(L + pdfmetrics.stringWidth(legend[0] + " ", "DVB", 8.6), top - 14 * mm, "corsa · trip · Fahrt")
+    c.setFillColor(black); c.setFont("DV", 7.6); c.drawString(L, top - 17.6 * mm, legend[1])
+    yy = lista(c, L, top - 19.4 * mm, R - L, data, A5_LISTA)
+    legenda(c, L, R, yy - 4 * mm, 7.4, 6.6, 3.3, bottom=bottom)
 
 
 def main_tascabile(out):
-    """Versione tascabile: cartoncini A6, 4 per foglio A4 con linee di taglio.
-    Fronte: prossima partenza da Maderno; retro: ritorno a Maderno (le 4 copie sono uguali, quindi
-    il fronte/retro combacia comunque giri la stampante il foglio)."""
-    c = canvas.Canvas(out, pagesize=A4)
+    """Versione tascabile: A4 orizzontale diviso in due meta' A5 da piegare.
+    A sinistra le partenze da Maderno ("Prossima partenza per ..."), a destra gli arrivi a Maderno
+    ("Ritorno a Maderno")."""
+    from reportlab.lib.pagesizes import landscape
+    PW, PH = landscape(A4)
+    c = canvas.Canvas(out, pagesize=(PW, PH))
     c.setTitle("Maderno - tascabile / pocket / Taschenfahrplan")
-    pagine = [
+    m = 7 * mm  # margine verso il bordo del foglio e verso la piega
+    meta = [
         (per_destinazione(), ("MADERNO ›", "Prossima partenza per …", "Next boat to …", "Nächstes Schiff nach …"),
          ("Partenza  ·  Departure  ·  Abfahrt", "Arrivo  ·  Arrival  ·  Ankunft")),
         (per_origine(), ("› MADERNO", "Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"),
          ("Partenza da …  ·  Departure from …  ·  Abfahrt ab …", "Arrivo a Maderno  ·  Arrival  ·  Ankunft")),
     ]
-    for data, titolo, legend in pagine:
-        for k in range(4):
-            tascabile(c, (k % 2) * W / 2, (k // 2) * H / 2, W / 2, H / 2, data, titolo, legend)
-        c.setStrokeColor(GREY); c.setLineWidth(0.3); c.setDash(2, 2)
-        c.line(W / 2, 0, W / 2, H); c.line(0, H / 2, W, H / 2)
-        c.setDash()
-        c.showPage()
+    for k, (data, titolo, legend) in enumerate(meta):
+        x = k * PW / 2
+        tascabile(c, x + m, x + PW / 2 - m, PH - m, m, data, titolo, legend)
+    c.setStrokeColor(GREY); c.setLineWidth(0.3); c.setDash(2, 2)
+    c.line(PW / 2, 0, PW / 2, PH)  # piega
+    c.setDash()
+    c.showPage()
     c.save()
 
 
