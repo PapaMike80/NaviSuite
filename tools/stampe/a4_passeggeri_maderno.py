@@ -1,6 +1,7 @@
-"""A4 per i passeggeri di Maderno, in italiano, inglese e tedesco (2 pagine):
-1. partenze da Maderno e orario di arrivo nelle localita';
+"""A4 per i passeggeri di Maderno, in italiano, inglese e tedesco.
+Navi di linea (2 pagine): 1. partenze da Maderno e orario di arrivo nelle localita';
 2. ritorno a Maderno: da dove e a che ora si parte, e quando si arriva.
+Traghetto Maderno - Torri del Benaco: foglio a parte (main_traghetto).
 Con le coincidenze dell'O.d.S. (cambio di nave): l'orario raggiungibile cambiando e' segnato con
 una lettera che rimanda alla nota del cambio.
 Orario invernale 2026/27, O.d.S. n. 39/2026 (orari pag. 15-17, coincidenze "ai fini tariffari")."""
@@ -134,7 +135,7 @@ def header(c, L, R, langs):
         c.drawRightString(R, H - 18 * mm - k * 6 * mm, s)
 
 
-def matrix(c, L, R, y, rows, places, ritorno):
+def matrix(c, L, R, y, rows, places, ritorno, tsize, hsize):
     """Tabella a colonne. Andata: partenza da Maderno a sinistra e orario di arrivo in ogni localita'.
     Ritorno: orario di partenza da ogni localita' e arrivo a Maderno a destra. '–' = non ferma;
     sigla dello scalo (Ga, Si...) = orario raggiungibile cambiando nave in quello scalo; sotto la tabella
@@ -148,54 +149,56 @@ def matrix(c, L, R, y, rows, places, ritorno):
                 changes.setdefault(st[2][0], set()).add((st[2][2], st[2][3]))
         direct = [minutes(t) for p in places for s in stops if s[0] == p and len(s) == 2 for t in [s[1]]]
         assert direct == sorted(direct), stops  # senza cambi gli orari crescono da sinistra a destra
-    key_w = 34 * mm
+    key_w = KEY_W
     cw = (R - L - key_w) / len(places)
     x_places = L if ritorno else L + key_w
     x_key = R - key_w if ritorno else L
     head = 11 * mm
     c.setFillColor(STRIPE); c.rect(L, y - head, R - L, head, stroke=0, fill=1)
     c.setFillColor(black)
+    size, scale = hsize
     for i, p in enumerate(places):
-        size = 10
-        while pdfmetrics.stringWidth(p, "DVB", size) > cw - 1.5 * mm:
-            size -= 0.2
-        c.setFont("DVB", size)
-        c.drawCentredString(x_places + cw * (i + 0.5), y - 6.8 * mm, p)
+        w = pdfmetrics.stringWidth(p, "DVB", size) * scale / 100
+        t = c.beginText(x_places + cw * (i + 0.5) - w / 2, y - 6.8 * mm)
+        t.setFont("DVB", size); t.setHorizScale(scale); t.textOut(p)
+        t.setHorizScale(100)  # la compressione resta attiva nel PDF finche' non si azzera
+        c.drawText(t)
     c.setFillColor(GREY); c.setFont("DV", 7.4)
     labels = (("Arrivo · corsa", "Arrival · trip", "Ankunft · Fahrt") if ritorno
               else ("Partenza · corsa", "Departure · trip", "Abfahrt · Fahrt"))
     for k, s in enumerate(labels):
         c.drawString(x_key + 2 * mm, y - 3.4 * mm - k * 2.9 * mm, s)
     y -= head
-    rh = 10.5 * mm
+    rh = 11.5 * mm
     for r, (key, note, run, stops) in enumerate(rows):
         if r % 2:
             c.setFillColor(STRIPE); c.rect(L, y - rh, R - L, rh, stroke=0, fill=1)
         kx = x_key + 26 * mm
         c.setFillColor(black); c.setFont("DVB", 21)
         assert pdfmetrics.stringWidth(key, "DVB", 21) < 25 * mm, key
-        c.drawRightString(kx, y - 7.8 * mm, key)
+        c.drawRightString(kx, y - 8.2 * mm, key)
         if note:
-            c.setFont("DVB", 9); c.drawString(kx + 1 * mm, y - 4.4 * mm, note)
+            c.setFont("DVB", 9); c.drawString(kx + 1 * mm, y - 4.8 * mm, note)
         c.setFont("DV", 8.5); c.setFillColor(GREY)
-        c.drawString(kx + 1 * mm, y - 7.8 * mm, run)
+        c.drawString(kx + 1 * mm, y - 8.2 * mm, run)
         times = {s[0]: s for s in stops}
         for i, p in enumerate(places):
             cx = x_places + cw * (i + 0.5)
             st = times.get(p)
+            ty = y - 7.6 * mm
             if not st:
-                c.setFont("DV", 11); c.setFillColor(GREY)
-                c.drawCentredString(cx, y - 7.2 * mm, "–")
+                c.setFont("DV", tsize); c.setFillColor(GREY)
+                c.drawCentredString(cx, ty, "–")
                 continue
-            c.setFillColor(black)
-            if len(st) == 3:
-                tw = pdfmetrics.stringWidth(st[1], "DV", 11)
-                sw = pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", 7.2)
-                c.setFont("DV", 11); c.drawCentredString(cx - sw / 2 - 0.2 * mm, y - 7.2 * mm, st[1])
-                c.setFont("DVB", 7.2); c.drawString(cx - sw / 2 + tw / 2, y - 5.3 * mm, SIGLA[st[2][0]])
-                assert tw + sw + 0.2 * mm < cw - 0.6 * mm, (st, cw / mm)
+            c.setFillColor(black); c.setFont("DV", tsize)
+            if len(st) == 3:  # stessa misura degli altri orari, sigla del cambio in apice
+                ssize = round(tsize * 0.6, 1)
+                tw = pdfmetrics.stringWidth(st[1], "DV", tsize)
+                sw = pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", ssize)
+                c.drawCentredString(cx - sw / 2, ty, st[1])
+                c.setFont("DVB", ssize); c.drawString(cx - sw / 2 + tw / 2 + 0.2 * mm, ty + tsize * 0.13 * mm, SIGLA[st[2][0]])
             else:
-                c.setFont("DV", 13); c.drawCentredString(cx, y - 7.2 * mm, st[1])
+                c.drawCentredString(cx, ty, st[1])
         y -= rh
     c.setStrokeColor(black); c.setLineWidth(0.3)
     for i in range(len(places) + 1):
@@ -224,27 +227,24 @@ def matrix(c, L, R, y, rows, places, ritorno):
     return y
 
 
-def ferry(c, L, R, y, rows, ritorno):
-    """Partenze del traghetto; al ritorno anche l'arrivo a Maderno (traversata di 30')."""
-    cols = 4 if ritorno else 5
-    cw = (R - L) / cols
-    for i, (t, run) in enumerate(rows):
-        r, k = divmod(i, cols)
-        x = L + k * cw
-        yy = y - 8.6 * mm - r * 11.5 * mm
-        if r % 2 == 1:
-            c.setFillColor(STRIPE); c.rect(x, yy - 3.4 * mm, cw, 11.5 * mm, stroke=0, fill=1)
-        extra = f"› {hhmm(minutes(t) + 30)}" if ritorno else ""
-        tw = pdfmetrics.stringWidth(t, "DVB", 18)
-        ew = pdfmetrics.stringWidth(extra + " ", "DV", 10.5) if extra else 0
-        x0 = x + cw / 2 - (tw + 1 * mm + ew + pdfmetrics.stringWidth(run, "DV", 8.5)) / 2
-        c.setFillColor(black); c.setFont("DVB", 18)
-        c.drawString(x0, yy, t)
-        if extra:
-            c.setFont("DV", 10.5); c.drawString(x0 + tw + 1 * mm, yy, extra)
-        c.setFont("DV", 8.5); c.setFillColor(GREY)
-        c.drawString(x0 + tw + 1 * mm + ew, yy, run)
-    return y - 8.6 * mm - 11.5 * mm * ((len(rows) - 1) // cols) - 6 * mm
+KEY_W = 34 * mm
+
+
+def uniform_sizes(tables, L, R):
+    """Un'unica misura per tutti gli orari e una per tutti i nomi delle localita', la piu' grande che
+    sta in ogni colonna di tutte le tabelle (orari con sigla del cambio compresi)."""
+    tsize, hsize, hscale = 14.0, 9.5, 100.0
+    for rows, places in tables:
+        cw = (R - L - KEY_W) / len(places)
+        widest = max(pdfmetrics.stringWidth(p, "DVB", hsize) for p in places)
+        hscale = min(hscale, 100.0 * (cw - 1.6 * mm) / widest)  # nomi lunghi compressi in larghezza
+        cells = [s for _, _, _, stops in rows for s in stops]
+        def width(st, size):
+            w = pdfmetrics.stringWidth(st[1], "DV", size)
+            return w + (pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", round(size * 0.6, 1)) + 0.2 * mm if len(st) == 3 else 0)
+        while max(width(st, tsize) for st in cells) > cw - 1.2 * mm:
+            tsize -= 0.1
+    return round(tsize, 1), (hsize, int(hscale))
 
 
 def note_sr(c, L, R, y):
@@ -262,17 +262,17 @@ def note_sr(c, L, R, y):
 def main(out):
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle("Maderno - partenze e ritorni / departures and return / Abfahrten und Rückfahrt")
-    L, R = 12 * mm, W - 12 * mm
+    L, R = 10 * mm, W - 10 * mm
+    tsize, hsize = uniform_sizes([(PARTENZE_NORD, NORD), (PARTENZE_SUD, SUD),
+                                  (RITORNI_NORD, NORD), (RITORNI_SUD, SUD_RITORNO)], L, R)
 
     # pagina 1: partenze
     header(c, L, R, ("Partenze", "Departures", "Abfahrten"))
     y = H - 40 * mm
     y = bar(c, L, R, y, "▲  RIVA DEL GARDA", "nord  ·  north  ·  Norden")
-    y = matrix(c, L, R, y, PARTENZE_NORD, NORD, ritorno=False) - 11 * mm
+    y = matrix(c, L, R, y, PARTENZE_NORD, NORD, False, tsize, hsize) - 12 * mm
     y = bar(c, L, R, y, "▼  DESENZANO  ·  PESCHIERA", "sud  ·  south  ·  Süden")
-    y = matrix(c, L, R, y, PARTENZE_SUD, SUD, ritorno=False) - 11 * mm
-    y = bar(c, L, R, y, "⇄  TORRI DEL BENACO", "traghetto  ·  ferry  ·  Fähre   30'")
-    y = ferry(c, L, R, y, TRAGHETTO_ANDATA, ritorno=False)
+    y = matrix(c, L, R, y, PARTENZE_SUD, SUD, False, tsize, hsize) - 9 * mm
     y = note_sr(c, L, R, y)
     assert y > 5 * mm, ("pagina 1", y / mm)
     c.showPage()
@@ -281,17 +281,60 @@ def main(out):
     header(c, L, R, ("Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"))
     y = H - 40 * mm
     y = bar(c, L, R, y, "▼  DA RIVA DEL GARDA", "da nord  ·  from north  ·  aus Norden")
-    y = matrix(c, L, R, y, RITORNI_NORD, list(reversed(NORD)), ritorno=True) - 11 * mm
+    y = matrix(c, L, R, y, RITORNI_NORD, list(reversed(NORD)), True, tsize, hsize) - 12 * mm
     y = bar(c, L, R, y, "▲  DA DESENZANO  ·  PESCHIERA", "da sud  ·  from south  ·  aus Süden")
-    y = matrix(c, L, R, y, RITORNI_SUD, SUD_RITORNO, ritorno=True) - 11 * mm
-    y = bar(c, L, R, y, "⇄  DA TORRI DEL BENACO", "partenza › arrivo  ·  departure › arrival   30'")
-    y = ferry(c, L, R, y, TRAGHETTO_RITORNO, ritorno=True)
+    y = matrix(c, L, R, y, RITORNI_SUD, SUD_RITORNO, True, tsize, hsize) - 9 * mm
     y = note_sr(c, L, R, y)
     assert y > 5 * mm, ("pagina 2", y / mm)
     c.showPage()
     c.save()
-    return y
+    return tsize, hsize
+
+
+def ferry_block(c, L, R, y, rows):
+    """Partenze del traghetto in due colonne (mattina | pomeriggio): partenza, arrivo, corsa."""
+    cols = [[r for r in rows if minutes(r[0]) < 13 * 60 + 30], [r for r in rows if minutes(r[0]) >= 13 * 60 + 30]]
+    cw = (R - L) / 2
+    rh = 12 * mm
+    for k, col in enumerate(cols):
+        x = L + k * cw
+        for i, (t, run) in enumerate(col):
+            yy = y - 9 * mm - i * rh
+            if i % 2 == 1:
+                c.setFillColor(STRIPE); c.rect(x, yy - 3.8 * mm, cw, rh, stroke=0, fill=1)
+            c.setFillColor(black); c.setFont("DVB", 26)
+            c.drawRightString(x + 36 * mm, yy, t)
+            c.setFont("DV", 15)
+            c.drawString(x + 40 * mm, yy, f"›  {hhmm(minutes(t) + 30)}")
+            c.setFont("DV", 9.5); c.setFillColor(GREY)
+            c.drawString(x + 66 * mm, yy, run)
+    c.setStrokeColor(black); c.setLineWidth(0.3)
+    c.line(L + cw, y - 3 * mm, L + cw, y - 5 * mm - rh * max(map(len, cols)))
+    return y - 5 * mm - rh * max(map(len, cols))
+
+
+def main_traghetto(out):
+    """Foglio a parte per il traghetto Maderno - Torri del Benaco (andata e ritorno)."""
+    c = canvas.Canvas(out, pagesize=A4)
+    c.setTitle("Traghetto Maderno - Torri del Benaco / Ferry / Fähre")
+    L, R = 12 * mm, W - 12 * mm
+    c.setFillColor(black); c.setFont("DVB", 34)
+    c.drawString(L, H - 25 * mm, "MADERNO ⇄ TORRI")
+    c.setFont("DVB", 15)
+    c.drawString(L, H - 34 * mm, "Traghetto  ·  Ferry  ·  Fähre")
+    c.setFont("DV", 11); c.setFillColor(GREY)
+    c.drawString(L, H - 41 * mm, "partenza › arrivo  ·  departure › arrival  ·  Abfahrt › Ankunft   (30')")
+    y = H - 52 * mm
+    y = bar(c, L, R, y, "MADERNO  ›  TORRI DEL BENACO")
+    y = ferry_block(c, L, R, y, TRAGHETTO_ANDATA) - 12 * mm
+    y = bar(c, L, R, y, "TORRI DEL BENACO  ›  MADERNO")
+    y = ferry_block(c, L, R, y, TRAGHETTO_RITORNO)
+    assert y > 10 * mm, y / mm
+    c.showPage()
+    c.save()
 
 
 if __name__ == "__main__":
-    print("ultima riga a", round(main(sys.argv[1]) / mm, 1), "mm dal basso")
+    # uso: a4_passeggeri_maderno.py navi.pdf traghetto.pdf
+    print("misura orari / localita':", main(sys.argv[1]))
+    main_traghetto(sys.argv[2])
