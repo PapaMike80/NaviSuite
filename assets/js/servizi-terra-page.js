@@ -13,6 +13,7 @@
   const PERIODI = [['2026-10-05', '2026-11-01'], ['2027-03-13', '2027-03-25']];
   const FINE_SR = '2026-10-11';
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+  const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   const CACHE_KEY = 'navisuite.serviziTerra.turniNavi';
   const $ = id => document.getElementById(id);
 
@@ -41,7 +42,7 @@
   }
 
   const state = { residence: initialResidence(), monday: T.defaultMonday(), turniNavi: readCache() || [],
-    firebaseNavi: readCache() || [], schedule: null, showPast: false, pontili: {} };
+    firebaseNavi: readCache() || [], schedule: null, showPast: false, pontili: {}, day: '' };
   try { state.pontili = JSON.parse(localStorage.getItem('navisuite.serviziTerra.pontili') || '{}') || {}; } catch { state.pontili = {}; }
 
   // Turni a terra negli orari degli agenti (AGB, POND, AGT...) e sigla del servizio.
@@ -105,11 +106,19 @@
   const agentiATerra = (data, day) => equipaggi(data, day).terra;
 
   // Ora attuale in minuti, solo se oggi vale l'orario; altrimenti null (niente passate/prossima).
+  // Giorno mostrato (si scorre come nella pagina Oggi). Navi passate e prossima solo per oggi.
   function nowInfo() {
     const now = new Date();
-    const today = iso(now);
-    const active = PERIODI.some(([from, to]) => today >= from && today <= to);
-    return { today, minutes: active ? now.getHours() * 60 + now.getMinutes() : null, srOff: today > FINE_SR };
+    const realToday = iso(now);
+    const day = state.day || realToday;
+    const inService = PERIODI.some(([from, to]) => day >= from && day <= to);
+    return {
+      today: day,
+      isToday: day === realToday,
+      inService,
+      minutes: inService && day === realToday ? now.getHours() * 60 + now.getMinutes() : null,
+      srOff: day > FINE_SR
+    };
   }
 
   function renderButtons() {
@@ -170,7 +179,7 @@
   }
   // Salva il pontile di una o piu' corse (un arrivo e la partenza che lo segue).
   async function savePontile(keys, value) {
-    const day = nowInfo().today;
+    const day = nowInfo().today; // il giorno mostrato
     keys.forEach(key => { (state.pontili[key] = state.pontili[key] || {})[day] = value || '-'; });
     try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
     render();
@@ -289,10 +298,13 @@
     hideCrew();
     $('terra-title').textContent = info.title;
     $('terra-context').textContent = desenzano ? 'Pontile e AgB · navi, ormeggi e rifornimenti' : 'AgM e AgT · navi di linea e traghetto Torri';
-    const clock = new Date();
-    $('terra-clock').textContent = now.minutes != null
-      ? `${GIORNI[clock.getDay()]} ${short(now.today)} · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}`
-      : 'Orario in vigore dal 5/10 all\'1/11/2026 e dal 13 al 25/3/2027';
+    const clock = new Date(), shown = parseIso(now.today);
+    $('terra-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
+      (now.isToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
+    $('terra-day-input').value = now.today;
+    $('terra-day-today').hidden = now.isToday;
+    state.dayMessage = now.inService ? '' : 'Orario non in vigore in questo giorno: in vigore dal 5/10 all\'1/11/2026 e dal 13 al 25/3/2027.';
+    showNotice();
     // Prima l'orario delle navi, poi i servizi a terra con l'agente di turno.
     const left = [naviCard(now)];
     const right = [serviziCard(now), noteCard()];
@@ -302,9 +314,15 @@
     history.replaceState(null, '', url);
   }
 
-  function notice(text) {
+  // Avvisi: giorno fuori orario e problemi di connessione, uno sotto l'altro.
+  function showNotice() {
+    const text = [state.dayMessage, state.errorMessage].filter(Boolean).join(' · ');
     $('terra-notice').hidden = !text;
-    $('terra-notice').textContent = text || '';
+    $('terra-notice').textContent = text;
+  }
+  function notice(text) {
+    state.errorMessage = text || '';
+    showNotice();
   }
 
   // Turni nave: quelli dei dati condivisi (come in Oggi) piu' quelli letti da Firebase.
@@ -361,8 +379,18 @@
     state.showPast = !state.showPast;
     render();
   });
+  // Scorrimento dei giorni come nella pagina Oggi: frecce, calendario e ritorno a oggi.
+  const goToDay = day => { state.day = day === iso(new Date()) ? '' : day; state.showPast = false; render(); };
+  $('terra-day-prev').addEventListener('click', () => goToDay(addDays(nowInfo().today, -1)));
+  $('terra-day-next').addEventListener('click', () => goToDay(addDays(nowInfo().today, 1)));
+  $('terra-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  $('terra-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('terra-print').addEventListener('click', () => {
-    try { T.openResidence(state.residence, state.turniNavi, state.monday); } catch (error) { notice(error.message); }
+    // A4 della settimana del giorno mostrato (oggi: settimana proposta come in Aggiornamenti).
+    const day = nowInfo();
+    const shown = parseIso(day.today);
+    const monday = day.isToday ? state.monday : addDays(day.today, -((shown.getDay() + 6) % 7));
+    try { T.openResidence(state.residence, state.turniNavi, monday); } catch (error) { notice(error.message); }
   });
 
   // Popup dell'equipaggio come in NaviTurni: passando col mouse su una corsa, con il tasto Tab

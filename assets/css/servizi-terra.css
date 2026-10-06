@@ -6,7 +6,6 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .terra-context{margin:5px 0 0;color:#9bc8d5;font-size:13px}
 #servizi-terra{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
 .terra-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.terra-clock{color:#9bc8d5;font-size:13px;font-weight:700}
 .terra-print{margin-left:auto;min-height:36px;padding:0 14px;border:1px solid #2dd4bf;border-radius:11px;background:#103a3d;color:#a7fff0;font:800 13px DM Sans,sans-serif;cursor:pointer}
 .terra-notice{margin:12px 0 0;padding:10px 14px;border:1px solid #90641f;border-radius:12px;background:#2c2415;color:#ffd48a;font-size:13px}
 .terra-notice[hidden]{display:none}
@@ -150,3 +149,12 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
   .pontile-sel{padding:2px 4px 2px 6px}
   .nave .ship-line .ship-name{font-size:13px}
 }
+/* Scorrimento dei giorni, come nella pagina Oggi */
+.terra-day{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.terra-day-nav{flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;border:1px solid #2f5661;border-radius:9px;background:#0d202b;color:#8fd7cb;font-size:19px;font-weight:900;line-height:1;cursor:pointer}
+.terra-day-nav:active{background:#12303a}
+.terra-day-current{position:relative;display:inline-flex;align-items:center;min-height:32px;padding:0 10px;border:1px solid #2f5661;border-radius:9px;background:#0d202b}
+.terra-day-label{color:#cfe6e9;font-size:12px;font-weight:850;letter-spacing:.04em;white-space:nowrap;pointer-events:none}
+.terra-day-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.terra-day-today{flex:0 0 auto;min-height:32px;padding:0 10px;border:1px solid #47cbb9;border-radius:9px;background:#123c3c;color:#a4fff1;font-size:11px;font-weight:850;cursor:pointer}
+.terra-day-today[hidden]{display:none}
