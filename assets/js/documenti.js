@@ -6,7 +6,7 @@ const CONFIG = {
   branch: 'main',
   folders: ['turni', 'ods', 'stampe'],
   metadataFile: 'documenti.json',
-  version: 'v1.10'
+  version: 'v1.11'
 };
 
 const state = {
@@ -148,7 +148,10 @@ function titleFromFilename(filename, type, number) {
     .trim();
 
   if (type === 'ods') {
-    return `Ordine di servizio n. ${number || cleanName}`;
+    // Orario stagionale nel nome del file (es. "O.d.S. n. 39-2026 INVERNO.pdf"): "— Inverno".
+    const season = /\b(estate|inverno)\b/i.exec(cleanName)?.[1];
+    const suffix = season ? ` — ${season[0].toUpperCase()}${season.slice(1).toLowerCase()}` : '';
+    return `Ordine di servizio n. ${number || cleanName}${suffix}`;
   }
 
   return cleanName
@@ -782,6 +785,58 @@ async function loadDocuments() {
 
   if (elements.refreshButton) elements.refreshButton.disabled = false;
 }
+
+// Sezioni Turni, ODS e Servizi a terra: chiuse all'apertura, si aprono toccando il titolo
+// (o dal menu, che porta all'ancora della sezione).
+const SECTIONS = [['turni-docs', 'turniGrid'], ['ods-docs', 'odsGrid'], ['terra-docs', 'terraGrid']];
+
+function setSectionOpen(headingId, open) {
+  const pair = SECTIONS.find(([id]) => id === headingId);
+  const heading = pair && document.getElementById(pair[0]);
+  const grid = pair && document.getElementById(pair[1]);
+  if (!heading || !grid) return;
+  heading.classList.toggle('is-collapsed', !open);
+  heading.setAttribute('aria-expanded', String(open));
+  grid.classList.toggle('is-collapsed', !open);
+}
+
+function installCollapsibleSections() {
+  SECTIONS.forEach(([headingId]) => {
+    const heading = document.getElementById(headingId);
+    if (!heading || heading.classList.contains('collapsible')) return;
+    heading.classList.add('collapsible');
+    heading.setAttribute('role', 'button');
+    heading.setAttribute('tabindex', '0');
+    const chevron = document.createElement('span');
+    chevron.className = 'section-chevron';
+    chevron.setAttribute('aria-hidden', 'true');
+    chevron.textContent = '⌄';
+    const toggle = document.createElement('span');
+    toggle.className = 'section-toggle';
+    const count = heading.querySelector('.count');
+    if (count) toggle.appendChild(count);
+    toggle.appendChild(chevron);
+    heading.appendChild(toggle);
+    const flip = () => setSectionOpen(headingId, heading.classList.contains('is-collapsed'));
+    heading.addEventListener('click', flip);
+    heading.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flip(); }
+    });
+    setSectionOpen(headingId, false);
+  });
+}
+
+function openSectionFromHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (SECTIONS.some(([headingId]) => headingId === id)) setSectionOpen(id, true);
+}
+
+installCollapsibleSections();
+window.addEventListener('hashchange', openSectionFromHash);
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href^="#"]');
+  if (link) setTimeout(openSectionFromHash, 0);
+});
 
 if (elements.refreshButton) {
   elements.refreshButton.addEventListener('click', loadDocuments);
