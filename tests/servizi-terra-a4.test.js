@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=5/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=6/);
 assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
@@ -76,8 +76,8 @@ assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;ch
 const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
-assert.match(terraPage, /servizi-terra-a4\.js\?v=5/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=3/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=6/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=4/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 // Dati condivisi tra pagina web e foglio A4.
 assert.deepStrictEqual([...T.DATA.SERVIZI.MADERNO.map(s => s[0])], ['AgM', 'AgT1']);
@@ -105,4 +105,7 @@ assert.strictEqual(titleFromFilename('O.d.S. n. 38-2026.pdf', 'ods', 38), 'Ordin
 const ships = T.naviDelGiorno([...rows, { data: '2026-10-09', corsa: 'P2', nave: 'BALDO (B)', ods: 'ODS 39/2026' },
   { data: '2026-10-09', corsa: 'CAR/SR2', nave: 'MINCIO', ods: 'ODS 39/2026' }], '2026-10-09');
 assert.deepStrictEqual(JSON.parse(JSON.stringify(ships)), { D1: 'AGONE', BIS: "D'ANNUNZIO", T1: 'BRESCIA', P2: 'BALDO', CAR: 'MINCIO', SR2: 'MINCIO' });
+const turni = JSON.parse(JSON.stringify(T.turniDelGiorno(rows, '2026-10-09')));
+assert.deepStrictEqual(turni.D1, { nave: 'AGONE', ormeggio: 'pontile 5' });
+assert.deepStrictEqual(turni.T1, { nave: 'BRESCIA', ormeggio: 'porto esterno' });
 console.log('servizi-terra-a4 ok');

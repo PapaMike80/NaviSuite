@@ -76,8 +76,14 @@
     const bolgette = D.BOLGETTE[state.residence];
     const split = desenzano ? '14.30' : '14.00';
     const ships = T.naviDelGiorno(state.turniNavi, now.today);
+    const turni = T.turniDelGiorno(state.turniNavi, now.today);
+    // Arrivo serale: l'ultimo movimento del turno e' un arrivo, la nave resta qui per la notte.
+    const navi = D.NAVI[state.residence];
+    const lastIndex = {};
+    navi.forEach(([, , code], i) => { lastIndex[code] = i; });
     let nextFound = false;
-    const rows = D.NAVI[state.residence].map(([time, kind, code, run, where]) => {
+    const rows = navi.map(([time, kind, code, run, where], index) => {
+      const ormeggio = kind === 'A' && lastIndex[code] === index ? turni[code]?.ormeggio : '';
       const off = now.srOff && where.includes('*');
       let cls = time === split ? ' split' : '';
       if (off) cls += ' past';
@@ -89,7 +95,8 @@
       return `<div class="nave${cls}"><span class="ora">${time}</span>` +
         `<span class="tipo ${kind}">${label}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span>${esc(where)}${ships[code] ? `<small class="ship">${esc(ships[code])}</small>` : ''}</span>` +
-        `${bolgette[run] ? `<b class="bolgetta">${esc(bolgette[run])}</b>` : ''}</span></div>`;
+        `${bolgette[run] ? `<b class="bolgetta">${esc(bolgette[run])}</b>` : ''}` +
+        `${ormeggio ? `<b class="ormeggio" title="Ormeggio serale">⚓ ${esc(ormeggio.toUpperCase())}</b>` : ''}</span></div>`;
     }).join('');
     const legend = desenzano
       ? 'In grigio le navi già passate, evidenziata la prossima. Nave di oggi dagli O.d.S.'
