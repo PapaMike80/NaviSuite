@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=6/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=7/);
 assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
@@ -76,9 +76,15 @@ assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;ch
 const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
-assert.match(terraPage, /servizi-terra-a4\.js\?v=6/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=4/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=7/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=5/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
+assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
+const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
+assert.doesNotMatch(pageJs, /ormeggiCard/); // niente tabella ormeggi: sono nell'orario
+assert.match(pageJs, /past-toggle/); // freccia per le navi gia' partite
+assert.match(pageJs, /crew-hover-tooltip/); // popup equipaggio come NaviTurni
+assert.match(pageJs, /addDays\(now\.today, -1\)/); // ormeggio del mattino dalla sera prima
 // Dati condivisi tra pagina web e foglio A4.
 assert.deepStrictEqual([...T.DATA.SERVIZI.MADERNO.map(s => s[0])], ['AgM', 'AgT1']);
 assert.strictEqual(T.DATA.NAVI.DESENZANO.length, 22);
@@ -106,6 +112,7 @@ const ships = T.naviDelGiorno([...rows, { data: '2026-10-09', corsa: 'P2', nave:
   { data: '2026-10-09', corsa: 'CAR/SR2', nave: 'MINCIO', ods: 'ODS 39/2026' }], '2026-10-09');
 assert.deepStrictEqual(JSON.parse(JSON.stringify(ships)), { D1: 'AGONE', BIS: "D'ANNUNZIO", T1: 'BRESCIA', P2: 'BALDO', CAR: 'MINCIO', SR2: 'MINCIO' });
 const turni = JSON.parse(JSON.stringify(T.turniDelGiorno(rows, '2026-10-09')));
-assert.deepStrictEqual(turni.D1, { nave: 'AGONE', ormeggio: 'pontile 5' });
-assert.deepStrictEqual(turni.T1, { nave: 'BRESCIA', ormeggio: 'porto esterno' });
+assert.deepStrictEqual(turni.D1, { nave: 'AGONE', ormeggio: 'pontile 5', rif: false });
+assert.deepStrictEqual(turni.T1, { nave: 'BRESCIA', ormeggio: 'porto esterno', rif: false });
+assert.strictEqual(T.turniDelGiorno([rows[0]], '2026-10-09').D1.rif, true);
 console.log('servizi-terra-a4 ok');

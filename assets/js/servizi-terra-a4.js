@@ -313,7 +313,8 @@ ${FIT}</body></html>`;
     return page([sheet], sheet.title, options.printButton !== false);
   }
   // Turni nave di un giorno per ogni turno (D1, P2, M1, R1, T1, SR1, BIS...):
-  // {turno: {nave, ormeggio}} con ormeggio = "pontile 5", "porto esterno"... o ''.
+  // {turno: {nave, ormeggio, rif}} con ormeggio = "pontile 5", "porto esterno"... o '' e
+  // rif = rifornimento la mattina.
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -323,9 +324,11 @@ ${FIT}</body></html>`;
       const mooring = String(row.ormeggio_serale || '').trim();
       const number = mooring.match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1];
       const ormeggio = number ? `pontile ${number}` : mooring.toLowerCase();
-      if (!nave && !ormeggio) return;
+      const refuel = String(row.rifornimento_mattina || '').trim();
+      const rif = /^s[iì]$/i.test(refuel) || /riforn/i.test(refuel);
+      if (!nave && !ormeggio && !rif) return;
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
-        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio };
+        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif };
       });
     });
     return out;
