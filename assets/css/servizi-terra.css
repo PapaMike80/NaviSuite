@@ -112,3 +112,9 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 }
 .nave .dove>span:first-child{white-space:normal}
 .nave .ora .arr{display:block;margin-bottom:1px;color:#86a5af;font-size:10px;font-weight:800;letter-spacing:0}
+.nave .ship-line{font-weight:800;letter-spacing:.03em}
+.nave .ship-line .muted{color:#57737d;font-weight:600;font-size:12px;letter-spacing:0}
+/* Traghetto Torri: sfondo diverso per distinguerlo subito dalle navi di linea */
+.nave.ferry{background:rgba(70,130,220,.13);border-left:3px solid rgba(91,140,255,.65)}
+.nave.ferry.next{background:rgba(45,212,191,.12)}
+.crew-hover-tooltip .crew-hover-where{margin:-2px 0 4px;color:#9bc8d5;font-size:11px}

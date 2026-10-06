@@ -176,9 +176,9 @@
       const info = [ship, captain].filter(Boolean).join(' · ');
       const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span>${esc(where)}${info ? `<small class="ship">${esc(info)}</small>` : ''}</span>` +
+        `<span class="dove"><span class="ship-line">${info ? esc(info) : '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
-      return { html, state: state_, split: time === split, code, ship };
+      return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code) };
     });
     // Navi gia' partite: nascoste tranne l'ultima (spenta); la freccia le mostra tutte.
     const pastIdx = items.map((item, i) => item.state === 'past' ? i : -1).filter(i => i >= 0);
@@ -189,8 +189,8 @@
       const hide = !state.showPast && item.state === 'past' && i !== lastPast;
       const hideOff = !state.showPast && item.state === 'off' && lastPast != null && i < lastPast;
       if (hide || hideOff) return '';
-      const cls = `nave${item.split ? ' split' : ''}${isPast ? ' past' : ''}${item.state === 'next' ? ' next' : ''}`;
-      return `<div class="${cls}" tabindex="0" data-crew="${esc(item.code)}" data-ship="${esc(item.ship || '')}">${item.html}</div>`;
+      const cls = `nave${item.ferry ? ' ferry' : ''}${item.split ? ' split' : ''}${isPast ? ' past' : ''}${item.state === 'next' ? ' next' : ''}`;
+      return `<div class="${cls}" tabindex="0" data-crew="${esc(item.code)}" data-ship="${esc(item.ship || '')}" data-where="${esc(item.where)}">${item.html}</div>`;
     }).join('');
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi le navi già partite' : `▾ Mostra le navi già partite (${hidden})`}</button>` : '';
@@ -306,7 +306,8 @@
     const box = document.createElement('div');
     box.className = 'crew-hover-tooltip';
     box.setAttribute('role', 'tooltip');
-    const head = `<div class="crew-hover-head">${esc(code)}${row.dataset.ship ? ` · ${esc(row.dataset.ship)}` : ''}</div>`;
+    const head = `<div class="crew-hover-head">${esc(code)}${row.dataset.ship ? ` · ${esc(row.dataset.ship)}` : ''}</div>` +
+      (row.dataset.where ? `<div class="crew-hover-where">${esc(row.dataset.where)}</div>` : '');
     box.innerHTML = head + (crew.length
       ? crew.map(member => `<div class="crew-hover-name${norm(member.name) === me ? ' is-logged' : ''}" style="color:${member.grado[1]}">` +
         `${esc(member.name)}${member.grado[0] ? `<small>${esc(member.grado[0])}</small>` : ''}</div>`).join('')
