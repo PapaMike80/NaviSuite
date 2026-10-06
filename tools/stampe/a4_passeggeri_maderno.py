@@ -334,7 +334,88 @@ def main_traghetto(out):
     c.save()
 
 
+def per_destinazione():
+    """{localita': [(partenza da Maderno, arrivo, scalo di cambio o '', SR)]} ordinato per partenza."""
+    out = {}
+    for dep, note, _, stops in PARTENZE_NORD + PARTENZE_SUD:
+        for st in stops:
+            out.setdefault(st[0], []).append((dep, st[1], st[2][0] if len(st) == 3 else "", note == "SR"))
+    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False) for t, _ in TRAGHETTO_ANDATA]
+    return {p: sorted(v, key=lambda e: minutes(e[0])) for p, v in out.items()}
+
+
+def main_destinazioni(out):
+    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (in ordine alfabetico) con le
+    partenze da Maderno in grande, l'arrivo sotto e il cambio di nave scritto per esteso (via Garda)."""
+    dest = per_destinazione()
+    c = canvas.Canvas(out, pagesize=A4)
+    c.setTitle("Maderno - per / to / nach")
+    L, R = 10 * mm, W - 10 * mm
+    c.setFillColor(black); c.setFont("DVB", 30)
+    c.drawString(L, H - 20 * mm, "MADERNO  ›")
+    c.setFont("DVB", 13.5)
+    c.drawRightString(R, H - 12 * mm, "Prossima partenza per …")
+    c.drawRightString(R, H - 17.5 * mm, "Next boat to …")
+    c.drawRightString(R, H - 23 * mm, "Nächstes Schiff nach …")
+    c.setFont("DV", 9.5); c.setFillColor(GREY)
+    c.drawString(L, H - 29 * mm, "partenza  ›  arrivo     ·     departure  ›  arrival     ·     Abfahrt  ›  Ankunft")
+
+    places = sorted(dest, key=lambda p: p.replace("ò", "o"))
+    name_w = 40 * mm
+    rh, gap = 14.4 * mm, 0.6 * mm
+    y = H - 32 * mm
+    for i, p in enumerate(places):
+        ferry = p == "Torri del Benaco"
+        entries = dest[p]
+        lines = [entries[:7], entries[7:]] if ferry else [entries]
+        h = rh if not ferry else 22 * mm
+        if i % 2:
+            c.setFillColor(STRIPE); c.rect(L + name_w, y - h, R - L - name_w, h, stroke=0, fill=1)
+        c.setFillColor(black); c.rect(L, y - h, name_w - 1.5 * mm, h, stroke=0, fill=1)
+        c.setFillColor(white)
+        label = "TORRI" if ferry else p.upper()
+        size = 13
+        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 5 * mm:
+            size -= 0.2
+        c.setFont("DVB", size); c.drawString(L + 2.5 * mm, y - h / 2 - 1.6 * mm + (2.2 * mm if ferry else 0), label)
+        if ferry:
+            c.setFont("DV", 8.5)
+            c.drawString(L + 2.5 * mm, y - h / 2 - 5 * mm, "del Benaco · traghetto")
+        n = 7 if ferry else 6
+        slot = (R - L - name_w) / n
+        for li, line in enumerate(lines):
+            for j, (dep, arr, via, sr) in enumerate(line):
+                cx = L + name_w + slot * (j + 0.5)
+                yy = y - 6.2 * mm - li * 10.5 * mm
+                c.setFillColor(black); c.setFont("DVB", 15 if not ferry else 13)
+                c.drawCentredString(cx, yy, dep)
+                if sr:
+                    c.setFont("DVB", 6.5)
+                    c.drawString(cx + pdfmetrics.stringWidth(dep, "DVB", 15) / 2 + 0.4 * mm, yy + 2.6 * mm, "SR")
+                c.setFont("DV", 9)
+                c.drawCentredString(cx, yy - 4.1 * mm, f"› {arr}")
+                if via:
+                    c.setFont("DVB", 7.4); c.setFillColor(GREY)
+                    c.drawCentredString(cx, yy - 7.1 * mm, f"via {via}")
+        y -= h + gap
+    # legenda: solo cambio di nave e SR
+    y -= 4 * mm
+    c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(L, y, "via …")
+    c.setFont("DV", 9)
+    c.drawString(L + 12 * mm, y, "cambio nave a …  ·  change boat in …  ·  in … umsteigen")
+    c.setFont("DVB", 9.5); c.drawString(L, y - 4.4 * mm, "SR")
+    c.setFont("DV", 9)
+    sr = "con supplemento, fino all'11/10  ·  extra charge, until 11/10  ·  mit Zuschlag, bis 11.10."
+    assert pdfmetrics.stringWidth(sr, "DV", 9) < R - L - 12 * mm
+    c.drawString(L + 12 * mm, y - 4.4 * mm, sr)
+    assert y - 4.4 * mm > 5 * mm, y / mm
+    c.showPage()
+    c.save()
+
+
 if __name__ == "__main__":
     # uso: a4_passeggeri_maderno.py navi.pdf traghetto.pdf
     print("misura orari / localita':", main(sys.argv[1]))
     main_traghetto(sys.argv[2])
+    if len(sys.argv) > 3:
+        main_destinazioni(sys.argv[3])
