@@ -1,8 +1,8 @@
 // Pagina "Servizi a terra": la giornata a terra della residenza dell'agente (Desenzano o Maderno),
 // con i pulsantini di NaviTurni per passare all'altra residenza. Pagina web, non il foglio A4:
 // navi in ordine di orario (le gia' partite nascoste tranne l'ultima, prossima evidenziata, ormeggio
-// del mattino con il rifornimento e della sera), servizi a terra con l'agente di turno, traghetto
-// Torri (Maderno) e note. Il foglio A4 resta in "Stampa A4".
+// del mattino con il rifornimento e della sera; a Maderno anche il traghetto Torri), servizi a
+// terra con l'agente di turno e note. Il foglio A4 resta in "Stampa A4".
 (function () {
   'use strict';
 
@@ -151,11 +151,11 @@
     const ieri = T.turniDelGiorno(state.turniNavi, addDays(now.today, -1));
     const crews = state.schedule ? equipaggi(state.schedule, now.today).navi : {};
     state.crews = crews;
-    const navi = D.NAVI[state.residence];
+    const navi = D.NAVI_CON_TRAGHETTO[state.residence];
     const firstIndex = {}, lastIndex = {};
     navi.forEach(([, , code], i) => { if (!(code in firstIndex)) firstIndex[code] = i; lastIndex[code] = i; });
     let nextFound = false;
-    const items = navi.map(([time, kind, code, run, where], index) => {
+    const items = navi.map(([time, kind, code, run, where, arrival], index) => {
       // Mattino: prima partenza del turno, la nave e' ormeggiata dalla sera prima (eventuale rifornimento).
       const morning = kind === 'P' && firstIndex[code] === index;
       // Sera: l'ultimo movimento del turno e' un arrivo, la nave resta qui per la notte.
@@ -174,7 +174,7 @@
       const ship = turni[code]?.nave;
       const captain = comandante(crews[code]);
       const info = [ship, captain].filter(Boolean).join(' · ');
-      const html = `<span class="ora">${time}</span>` +
+      const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span>${esc(where)}${info ? `<small class="ship">${esc(info)}</small>` : ''}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
@@ -196,38 +196,9 @@
       `${state.showPast ? '▴ Nascondi le navi già partite' : `▾ Mostra le navi già partite (${hidden})`}</button>` : '';
     const legend = desenzano
       ? '⚓ ormeggio del mattino (dalla sera prima) e della sera · ⛽ rifornimento · nave di oggi dagli O.d.S.'
-      : `SCALO = nave in transito a Maderno · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · nave di oggi dagli O.d.S.`;
-    return card(desenzano ? 'Navi a Desenzano' : 'Navi di linea a Maderno', 'in ordine di orario',
+      : `SCALO = nave in transito a Maderno · T1/T2 = traghetto Torri · * corsa SR solo fino all'11 ottobre 2026${now.srOff ? ' (ora non più effettuata)' : ''} · ⚓ ormeggio · nave di oggi dagli O.d.S.`;
+    return card(desenzano ? 'Navi a Desenzano' : 'Navi e traghetto a Maderno', 'in ordine di orario',
       `${toggle}<div class="navi-list">${rows}</div><p class="legend">${esc(legend)}</p>`);
-  }
-
-  function traghettoCard(now) {
-    const ships = T.naviDelGiorno(state.turniNavi, now.today);
-    const ferry = code => {
-      let nextFound = false;
-      const time = value => value ? `<span class="t">${value[0]}<small>c. ${esc(value[1])}</small></span>` : '';
-      const rows = T.ferryRows(code).map(row => {
-        if (row.kind === 'pausa-torri') return `<div class="ferry-row torri">pausa a Torri ${row.arr} – ${row.dep}</div>`;
-        let cls = '';
-        const last = (row.dep || row.arr)[0];
-        if (now.minutes != null) {
-          if (T.minutes(last) < now.minutes) cls = ' past';
-          else if (!nextFound) { cls = ' next'; nextFound = true; }
-        }
-        let sosta = '';
-        if (row.arr && row.dep) {
-          const min = T.minutes(row.dep[0]) - T.minutes(row.arr[0]);
-          sosta = `<span class="sosta${min >= 45 ? ' lunch' : ''}">${min >= 45 ? 'pausa ' : ''}${min}'</span>`;
-        } else sosta = '<span class="sosta"></span>';
-        const arr = row.kind === 'prima' ? '<span class="muted">1ª partenza</span>' : time(row.arr);
-        const dep = row.kind === 'ultima' ? '<span class="muted" style="text-align:right">fine servizio</span>' : time(row.dep);
-        return `<div class="ferry-row${cls}">${arr}${sosta}${dep}</div>`;
-      }).join('');
-      const captain = comandante(state.crews?.[code]);
-      return `<div class="ferry"><h3>${chip(code)} ${ships[code] ? `<span class="ferry-ship">${esc(ships[code])}</span>` : 'Traghetto'}` +
-        `${captain ? `<small class="ferry-cte">${esc(captain)}</small>` : ''}</h3><div class="ferry-head"><span>ARRIVO</span><span>SOSTA</span><span>PARTENZA</span></div>${rows}</div>`;
-    };
-    return card('Traghetto Maderno – Torri', 'arrivo da Torri · sosta · partenza per Torri', `<div class="ferries">${ferry('T1')}${ferry('T2')}</div>`);
   }
 
   function noteCard() {
@@ -258,7 +229,7 @@
       : 'Orario in vigore dal 5/10 all\'1/11/2026 e dal 13 al 25/3/2027';
     // Prima l'orario delle navi, poi i servizi a terra con l'agente di turno.
     const left = [naviCard(now)];
-    const right = [serviziCard(now), ...(desenzano ? [] : [traghettoCard(now)]), noteCard()];
+    const right = [serviziCard(now), noteCard()];
     $('terra-content').innerHTML = `<div class="terra-col">${left.join('')}</div><div class="terra-col">${right.join('')}</div>`;
     const url = new URL(location.href);
     url.searchParams.set('res', state.residence.toLowerCase());

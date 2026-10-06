@@ -389,6 +389,17 @@ ${FIT}</body></html>`;
   const DATA = {
     VALIDITA, KIND, SERVIZI, RIFORNIMENTI, NOTE,
     NAVI: { DESENZANO: NAVI, MADERNO: MADERNO_LINEA },
+    // Maderno con il traghetto Torri nella stessa tabella, in ordine di orario (a parita' di ora
+    // prima la nave di linea). Del traghetto solo le partenze per Torri, con l'arrivo da Torri
+    // che le precede come sesto campo; resta come arrivo solo quello di fine servizio.
+    NAVI_CON_TRAGHETTO: {
+      DESENZANO: NAVI,
+      MADERNO: [...MADERNO_LINEA.map(row => [...row, '', 0]),
+        ...['T1', 'T2'].flatMap(code => ferryRows(code).filter(row => row.kind !== 'pausa-torri').map(row => row.dep
+          ? [row.dep[0], 'P', code, row.dep[1], 'per Torri', row.arr ? row.arr[0] : '', 1]
+          : [row.arr[0], 'A', code, row.arr[1], 'da Torri', '', 1]))]
+        .sort((a, b) => minutes(a[0]) - minutes(b[0]) || a[6] - b[6]).map(row => row.slice(0, 6))
+    },
     BOLGETTE: { DESENZANO: BOLGETTE, MADERNO: MADERNO_BOLGETTE }
   };
 

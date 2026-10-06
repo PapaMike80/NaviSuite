@@ -66,23 +66,6 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
 .nave.next .ora:after{content:"PROSSIMA";display:block;margin-top:1px;color:#2dd4bf;font-size:8px;letter-spacing:.08em;text-align:right}
 .legend{margin:8px 2px 0;color:#86a5af;font-size:11px}
 
-/* Traghetto */
-.ferries{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ferry h3{display:flex;align-items:center;gap:8px;margin:0 0 6px;font:800 13px Manrope,sans-serif;color:#9bc8d5}
-.ferry-row{display:grid;grid-template-columns:1fr 48px 1fr;align-items:center;min-height:34px;padding:2px 6px;border-radius:9px}
-.ferry-row:nth-child(odd){background:rgba(255,255,255,.03)}
-.ferry-row .t{font:900 15px Manrope,sans-serif}
-.ferry-row .t small{margin-left:3px;color:#86a5af;font-size:10px;font-weight:700}
-.ferry-row .t:last-child{text-align:right}
-.ferry-row .sosta{text-align:center;color:#9bc8d5;font-size:12px;font-weight:800}
-.ferry-row .sosta.lunch{color:#fbbf24}
-.ferry-row .muted{color:#86a5af;font-size:11px}
-.ferry-row.torri{grid-template-columns:1fr;min-height:24px;border:1px dashed #2d6570;background:none;color:#9bc8d5;font-size:11px;font-weight:800;text-align:center}
-.ferry-row.past{opacity:.42}
-.ferry-row.next{outline:1px solid #2dd4bf;background:rgba(45,212,191,.10)}
-.ferry-head{display:grid;grid-template-columns:1fr 48px 1fr;padding:0 6px 4px;color:#86a5af;font-size:9px;font-weight:900;letter-spacing:.1em}
-.ferry-head span:nth-child(2){text-align:center}.ferry-head span:last-child{text-align:right}
-
 /* Note */
 .note-list{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:13px;line-height:1.4;color:#c6d7db}
 .note-list li{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.025)}
@@ -106,7 +89,6 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
   .nave .dove span{white-space:normal}
   .bolgetta{font-size:8.5px;padding:3px 5px}
   .ormeggio{font-size:10px;padding:3px 6px}
-  .ferries{grid-template-columns:1fr}
 }
 
 /* Badge di ormeggio, rifornimento e bolgetta; navi gia' partite; popup equipaggio come NaviTurni */
@@ -128,5 +110,5 @@ body.servizi-terra-page{min-height:100vh;margin:0;background:radial-gradient(900
   .nave .badges{justify-content:flex-start}
   .rifornimento{font-size:10px;padding:3px 6px}
 }
-.ferry h3 .ferry-cte{margin-left:auto;color:#9bc8d5;font-size:11px;font-weight:800}
 .nave .dove>span:first-child{white-space:normal}
+.nave .ora .arr{display:block;margin-bottom:1px;color:#86a5af;font-size:10px;font-weight:800;letter-spacing:0}

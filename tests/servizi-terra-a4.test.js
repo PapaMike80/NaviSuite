@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=8/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=9/);
 assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
@@ -76,8 +76,8 @@ assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;ch
 const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
-assert.match(terraPage, /servizi-terra-a4\.js\?v=8/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=8/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=9/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=9/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
@@ -90,6 +90,15 @@ assert.match(pageJs, /addDays\(now\.today, -1\)/); // ormeggio del mattino dalla
 // Dati condivisi tra pagina web e foglio A4.
 assert.deepStrictEqual([...T.DATA.SERVIZI.MADERNO.map(s => s[0])], ['AgM', 'AgT']);
 assert.strictEqual(T.DATA.NAVI.DESENZANO.length, 22);
+// Maderno: navi di linea e traghetto nella stessa tabella, in ordine di orario.
+const maderno2 = T.DATA.NAVI_CON_TRAGHETTO.MADERNO;
+assert.strictEqual(maderno2.length, 12 + 16); // 14 partenze del traghetto + 2 arrivi di fine servizio
+assert.deepStrictEqual([...maderno2[0]], ['8.10', 'P', 'T1', '201', 'per Torri', '']);
+assert.ok(maderno2.some(row => row.join('|') === '9.25|P|T1|203|per Torri|9.15'));
+assert.ok(maderno2.some(row => row.join('|') === '14.20|P|T1|209|per Torri|13.20'));
+assert.ok(maderno2.some(row => row.join('|') === '18.30|A|T1|214|da Torri|'));
+assert.ok(maderno2.every((row, i) => i === 0 || T.minutes(maderno2[i - 1][0]) <= T.minutes(row[0])));
+assert.doesNotMatch(fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8'), /traghettoCard/);
 assert.strictEqual(T.DATA.BOLGETTE.MADERNO[8], 'BOLGETTA · RIENTRA');
 const week = T.ormeggiSettimana(rows, '2026-10-05');
 assert.deepStrictEqual([...week.groups], ['D1']);
