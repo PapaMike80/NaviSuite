@@ -10,6 +10,13 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
 
+## Dall'app: tasto "Genera Servizi a terra"
+
+In *Aggiornamenti → Nuovo ODS* il tasto **Genera Servizi a terra** apre l'A4 di Desenzano
+(`assets/js/servizi-terra-a4.js`, stessa impaginazione di `a4_desenzano.py`) con gli ormeggi
+della settimana scelta, presi dai turni nave salvati e da quelli dell'ODS appena letto.
+Da lì "Stampa / PDF".
+
 ## Ogni venerdì, con il nuovo O.d.S.
 
 Basta caricare il PDF in `ods/` sul branch `main` (anche da "Add files via upload").
