@@ -337,21 +337,95 @@ def main_traghetto(out):
     c.save()
 
 
+# Ritorni con cambio: corsa su cui si sale nello scalo di partenza (coincidenze O.d.S. 39/2026)
+PRIMA_CORSA = {("Desenzano", "8.50"): "20", ("Sirmione", "9.10"): "20", ("Lazise", "8.53"): "30",
+               ("Bardolino", "9.10"): "30", ("Peschiera", "14.30"): "24", ("Lazise", "14.58"): "24",
+               ("Bardolino", "15.15"): "24", ("Desenzano", "15.35"): "36", ("Torbole", "8.25"): "51",
+               ("Torbole", "15.00"): "64", ("Torbole", "14.40"): "57"}
+
+
 def per_destinazione():
-    """{localita': [(partenza da Maderno, arrivo, scalo di cambio o '', SR)]} ordinato per partenza."""
+    """{localita': [(partenza da Maderno, arrivo, scalo di cambio o '', SR, corsa)]} ordinato per partenza."""
     out = {}
-    for dep, note, _, stops in PARTENZE_NORD + PARTENZE_SUD:
+    for dep, note, run, stops in PARTENZE_NORD + PARTENZE_SUD:
         for st in stops:
-            out.setdefault(st[0], []).append((dep, st[1], st[2][0] if len(st) == 3 else "", note == "SR"))
-    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False) for t, _ in TRAGHETTO_ANDATA]
+            out.setdefault(st[0], []).append((dep, st[1], st[2][0] if len(st) == 3 else "", note == "SR", run))
+    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False, run) for t, run in TRAGHETTO_ANDATA]
     return {p: sorted(v, key=lambda e: minutes(e[0])) for p, v in out.items()}
 
 
+def per_origine():
+    """{localita': [(partenza da li', arrivo a Maderno, scalo di cambio o '', SR, corsa su cui si sale)]}."""
+    out = {}
+    for arr, note, run, stops in RITORNI_NORD + RITORNI_SUD:
+        for st in stops:
+            first = PRIMA_CORSA[(st[0], st[1])] if len(st) == 3 else run
+            out.setdefault(st[0], []).append((st[1], arr, st[2][0] if len(st) == 3 else "", note == "SR", first))
+    out["Torri del Benaco"] = [(t, hhmm(minutes(t) + 30), "", False, run) for t, run in TRAGHETTO_RITORNO]
+    return {p: sorted(v, key=lambda e: (minutes(e[0]), minutes(e[1]))) for p, v in out.items()}
+
+
+# misure della lista "per localita'": foglio A4 e cartoncino tascabile A6
+A4_LISTA = dict(name=13, sub=8.5, dep=15, arr=10, via=7.4, run=7.2, sr=6.5, row=13.6, row_via=13.6,
+                name_w=38, line=10, ferry_row=31, gap=5, per_ferry=5, arr_dy=4.2, via_dy=7.1, top_dy=6)
+A6_LISTA = dict(name=7.2, sub=4.6, dep=8.0, arr=6.2, via=4.8, run=4.4, sr=4.0, row=5.5, row_via=8.0,
+                name_w=19, line=5.3, ferry_row=16.6, gap=2.2, per_ferry=5, arr_dy=2.2, via_dy=4.0, top_dy=2.9)
+
+
+def lista(c, x, y, width, data, f):
+    """Una riga per localita' (ordine dell'orario ufficiale, Torri in fondo e staccato): partenza in
+    grassetto con la corsa accanto, arrivo sotto, eventuale 'via <scalo>' per il cambio. Restituisce la y finale."""
+    places = [p for p in ORDINE_ORARIO if p in data and p != "Torri del Benaco"]
+    assert set(places) | {"Torri del Benaco"} == set(data), set(data) - set(places)
+    name_w = f["name_w"] * mm
+
+    def row(label, sub, entries, per_line, h, stripe):
+        nonlocal y
+        if stripe:
+            c.setFillColor(STRIPE); c.rect(x, y - h, width, h, stroke=0, fill=1)
+        c.setFillColor(black)
+        size = f["name"]
+        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 2 * mm:
+            size -= 0.1
+        c.setFont("DVB", size)
+        c.drawString(x + 1 * mm, y - h / 2 - size * 0.12 * mm + (size * 0.2 * mm if sub else 0), label)
+        if sub:
+            c.setFont("DV", f["sub"]); c.drawString(x + 1 * mm, y - h / 2 - f["sub"] * 0.5 * mm, sub)
+        slot = (width - name_w) / per_line
+        for li in range(0, len(entries), per_line):
+            for j, (dep, arr, via, sr, run) in enumerate(entries[li:li + per_line]):
+                dw = pdfmetrics.stringWidth(dep, "DVB", f["dep"])
+                rw = pdfmetrics.stringWidth(run, "DV", f["run"])
+                cx = x + name_w + slot * (j + 0.5)
+                x0 = cx - dw / 2 - (rw + 0.5 * mm) / 2       # partenza + corsa centrati nella casella
+                yy = y - f["top_dy"] * mm - (li // per_line) * f["line"] * mm
+                c.setFillColor(black); c.setFont("DVB", f["dep"]); c.drawString(x0, yy, dep)
+                if sr:
+                    c.setFont("DVB", f["sr"]); c.drawString(x0 + dw + 0.4 * mm, yy + f["dep"] * 0.17 * mm, "SR")
+                c.setFillColor(GREY); c.setFont("DV", f["run"]); c.drawString(x0 + dw + 0.5 * mm, yy, run)
+                assert dw + rw + 0.5 * mm < slot - 0.4 * mm, (dep, run, slot / mm)
+                c.setFillColor(black); c.setFont("DV", f["arr"])
+                c.drawCentredString(cx, yy - f["arr_dy"] * mm, arr)
+                if via:
+                    vs = f["via"]
+                    while pdfmetrics.stringWidth(f"via {via}", "DVB", vs) > slot - 0.6 * mm:
+                        vs -= 0.1
+                    assert vs >= 4, via
+                    c.setFont("DVB", vs); c.setFillColor(GREY)
+                    c.drawCentredString(cx, yy - f["via_dy"] * mm, f"via {via}")
+        y -= h
+
+    for i, p in enumerate(places):
+        assert len(data[p]) <= 6, p
+        h = (f["row_via"] if any(e[2] for e in data[p]) else f["row"]) * mm
+        row(p.upper(), "", data[p], 6, h, i % 2 == 1)
+    y -= f["gap"] * mm
+    row("TORRI", "del Benaco · traghetto", data["Torri del Benaco"], f["per_ferry"], f["ferry_row"] * mm, True)
+    return y
+
+
 def main_destinazioni(out):
-    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (ordine dell'orario ufficiale, Torri
-    in fondo a parte) con le partenze da Maderno in grassetto, l'arrivo sotto e il cambio di nave
-    scritto per esteso (via Garda)."""
-    dest = per_destinazione()
+    """Foglio A4 "Per ... / To ... / Nach ...": per ogni localita' le partenze da Maderno."""
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle("Maderno - per / to / nach")
     L, R = 10 * mm, W - 10 * mm
@@ -361,63 +435,72 @@ def main_destinazioni(out):
     c.drawRightString(R, H - 12 * mm, "Prossima partenza per …")
     c.drawRightString(R, H - 17.5 * mm, "Next boat to …")
     c.drawRightString(R, H - 23 * mm, "Nächstes Schiff nach …")
-    # legenda come negli orari: partenza in grassetto sopra, arrivo sotto
+    # legenda come negli orari: partenza in grassetto sopra (con la corsa), arrivo sotto
     c.setFont("DVB", 12); c.drawString(L, H - 29.5 * mm, "Partenza  ·  Departure  ·  Abfahrt")
-    c.setFont("DV", 10); c.drawString(L, H - 34 * mm, "Arrivo  ·  Arrival  ·  Ankunft")
-
-    places = [p for p in ORDINE_ORARIO if p in dest and p != "Torri del Benaco"]  # da Desenzano a Riva
-    assert set(places) | {"Torri del Benaco"} == set(dest), set(dest) - set(places)
-    name_w = 38 * mm
-    y = H - 37 * mm
-
-    def row(label, sub, entries, per_line, h, stripe):
-        nonlocal y
-        if stripe:
-            c.setFillColor(STRIPE); c.rect(L, y - h, R - L, h, stroke=0, fill=1)
-        c.setFillColor(black)
-        size = 13
-        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 3 * mm:
-            size -= 0.2
-        c.setFont("DVB", size)
-        c.drawString(L + 1.5 * mm, y - h / 2 - 1.6 * mm + (2.4 * mm if sub else 0), label)
-        if sub:
-            c.setFont("DV", 8.5); c.drawString(L + 1.5 * mm, y - h / 2 - 4.6 * mm, sub)
-        slot = (R - L - name_w) / per_line
-        for li in range(0, len(entries), per_line):
-            for j, (dep, arr, via, sr) in enumerate(entries[li:li + per_line]):
-                cx = L + name_w + slot * (j + 0.5)
-                yy = y - 6 * mm - (li // per_line) * 10 * mm
-                c.setFillColor(black); c.setFont("DVB", 15)
-                c.drawCentredString(cx, yy, dep)
-                if sr:
-                    c.setFont("DVB", 6.5)
-                    c.drawString(cx + pdfmetrics.stringWidth(dep, "DVB", 15) / 2 + 0.4 * mm, yy + 2.6 * mm, "SR")
-                c.setFont("DV", 10)
-                c.drawCentredString(cx, yy - 4.2 * mm, arr)
-                if via:
-                    c.setFont("DVB", 7.4); c.setFillColor(GREY)
-                    c.drawCentredString(cx, yy - 7.1 * mm, f"via {via}")
-        y -= h
-
-    for i, p in enumerate(places):
-        assert len(dest[p]) <= 6, p
-        row(p.upper(), "", dest[p], 6, 13.6 * mm, i % 2 == 1)
-    # Torri del Benaco: traghetto, in fondo e staccato
-    y -= 5 * mm
-    row("TORRI", "del Benaco · traghetto", dest["Torri del Benaco"], 7, 21 * mm, True)
-
-    # legenda: solo cambio di nave e SR
-    y -= 5.5 * mm
-    c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(L, y, "via …")
-    c.setFont("DV", 9)
-    c.drawString(L + 12 * mm, y, "cambio nave a …  ·  change boat in …  ·  in … umsteigen")
-    c.setFont("DVB", 9.5); c.drawString(L, y - 4.4 * mm, "SR")
-    c.setFont("DV", 9)
-    sr = "con supplemento, fino all'11/10  ·  extra charge, until 11/10  ·  mit Zuschlag, bis 11.10."
-    assert pdfmetrics.stringWidth(sr, "DV", 9) < R - L - 12 * mm
-    c.drawString(L + 12 * mm, y - 4.4 * mm, sr)
-    assert y - 4.4 * mm > 5 * mm, y / mm
+    c.setFont("DV", 8.5); c.setFillColor(GREY)
+    c.drawString(L + pdfmetrics.stringWidth("Partenza  ·  Departure  ·  Abfahrt ", "DVB", 12), H - 29.5 * mm,
+                 "corsa · trip · Fahrt")
+    c.setFillColor(black); c.setFont("DV", 10); c.drawString(L, H - 34 * mm, "Arrivo  ·  Arrival  ·  Ankunft")
+    y = lista(c, L, H - 37 * mm, R - L, per_destinazione(), A4_LISTA)
+    legenda(c, L, R, y - 5.5 * mm, 9.5, 9, 4.4)
     c.showPage()
+    c.save()
+
+
+def legenda(c, L, R, y, bsize, size, step, bottom=4 * mm):
+    c.setFillColor(black); c.setFont("DVB", bsize); c.drawString(L, y, "via …")
+    tab = pdfmetrics.stringWidth("via … ", "DVB", bsize) + 2 * mm
+    c.setFont("DV", size)
+    c.drawString(L + tab, y, "cambio nave a …  ·  change boat in …  ·  in … umsteigen")
+    c.setFont("DVB", bsize); c.drawString(L, y - step * mm, "SR")
+    c.setFont("DV", size)
+    sr = "con supplemento, fino all'11/10  ·  extra charge, until 11/10  ·  mit Zuschlag, bis 11.10."
+    assert pdfmetrics.stringWidth(sr, "DV", size) < R - L - tab
+    c.drawString(L + tab, y - step * mm, sr)
+    assert y - step * mm > bottom, ((y - step * mm - bottom) / mm)
+    return y - step * mm
+
+
+def tascabile(c, x, y, w, h, data, titolo, legend):
+    """Un cartoncino A6 nel riquadro (x, y = angolo in basso a sinistra): 5 mm di margine verso il
+    bordo del foglio (dove la stampante non arriva), 3,5 mm verso le linee di taglio."""
+    outer, inner = 5 * mm, 3.5 * mm
+    left = x == 0
+    lower = y == 0
+    L, R = x + (outer if left else inner), x + w - (inner if left else outer)
+    top, bottom = y + h - (inner if lower else outer), y + (outer if lower else inner)
+    c.setFillColor(black); c.setFont("DVB", 14)
+    c.drawString(L, top - 5.2 * mm, titolo[0])
+    c.setFont("DVB", 6.2)
+    for k, s in enumerate(titolo[1:]):
+        c.drawRightString(R, top - 2.2 * mm - k * 2.5 * mm, s)
+    c.setFont("DVB", 6.2); c.drawString(L, top - 9.6 * mm, legend[0])
+    c.setFillColor(GREY); c.setFont("DV", 4.6)
+    c.drawString(L + pdfmetrics.stringWidth(legend[0] + " ", "DVB", 6.2), top - 9.6 * mm, "corsa · trip · Fahrt")
+    c.setFillColor(black); c.setFont("DV", 5.4); c.drawString(L, top - 12 * mm, legend[1])
+    yy = lista(c, L, top - 13.2 * mm, R - L, data, A6_LISTA)
+    legenda(c, L, R, yy - 3 * mm, 5.4, 4.8, 2.4, bottom=bottom)
+
+
+def main_tascabile(out):
+    """Versione tascabile: cartoncini A6, 4 per foglio A4 con linee di taglio.
+    Fronte: prossima partenza da Maderno; retro: ritorno a Maderno (le 4 copie sono uguali, quindi
+    il fronte/retro combacia comunque giri la stampante il foglio)."""
+    c = canvas.Canvas(out, pagesize=A4)
+    c.setTitle("Maderno - tascabile / pocket / Taschenfahrplan")
+    pagine = [
+        (per_destinazione(), ("MADERNO ›", "Prossima partenza per …", "Next boat to …", "Nächstes Schiff nach …"),
+         ("Partenza  ·  Departure  ·  Abfahrt", "Arrivo  ·  Arrival  ·  Ankunft")),
+        (per_origine(), ("› MADERNO", "Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"),
+         ("Partenza da …  ·  Departure from …  ·  Abfahrt ab …", "Arrivo a Maderno  ·  Arrival  ·  Ankunft")),
+    ]
+    for data, titolo, legend in pagine:
+        for k in range(4):
+            tascabile(c, (k % 2) * W / 2, (k // 2) * H / 2, W / 2, H / 2, data, titolo, legend)
+        c.setStrokeColor(GREY); c.setLineWidth(0.3); c.setDash(2, 2)
+        c.line(W / 2, 0, W / 2, H); c.line(0, H / 2, W, H / 2)
+        c.setDash()
+        c.showPage()
     c.save()
 
 
@@ -427,3 +510,5 @@ if __name__ == "__main__":
     main_traghetto(sys.argv[2])
     if len(sys.argv) > 3:
         main_destinazioni(sys.argv[3])
+    if len(sys.argv) > 4:
+        main_tascabile(sys.argv[4])

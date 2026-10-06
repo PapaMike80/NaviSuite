@@ -10,6 +10,7 @@ Scrive in stampe/:
   Maderno_passeggeri_A4.pdf             per il pubblico: navi di linea, partenze e ritorni con coincidenze
   Maderno_traghetto_Torri_A4.pdf        per il pubblico: traghetto Maderno - Torri, andata e ritorno
   Maderno_prossima_partenza_A4.pdf      per il pubblico: per ogni localita' le partenze da Maderno
+  Maderno_tascabile_4xA6.pdf            tascabile A6 (4 per A4): partenze sul fronte, ritorni sul retro
   Desenzano_calendario_ormeggi_serali.pdf  un mese per pagina, da tutti i "Turno navi" degli O.d.S.
   Cover_*.pdf                           cover iPhone 15 (orario invernale)
   ormeggi.json                          dati estratti dagli O.d.S.
@@ -49,6 +50,7 @@ def main():
     a4_passeggeri_maderno.main(os.path.join(a.out, "Maderno_passeggeri_A4.pdf"))
     a4_passeggeri_maderno.main_traghetto(os.path.join(a.out, "Maderno_traghetto_Torri_A4.pdf"))
     a4_passeggeri_maderno.main_destinazioni(os.path.join(a.out, "Maderno_prossima_partenza_A4.pdf"))
+    a4_passeggeri_maderno.main_tascabile(os.path.join(a.out, "Maderno_tascabile_4xA6.pdf"))
     calendario.main(dati, os.path.join(a.out, "Desenzano_calendario_ormeggi_serali.pdf"))
     if not cover.genera(a.out):
         sys.exit("Cover: qualche testo finisce sotto MagSafe o fotocamera")
