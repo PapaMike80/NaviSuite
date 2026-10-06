@@ -10,7 +10,7 @@ Scrive in stampe/:
   Maderno_passeggeri_A4.pdf             per il pubblico: navi di linea, partenze e ritorni con coincidenze
   Maderno_traghetto_Torri_A4.pdf        per il pubblico: traghetto Maderno - Torri, andata e ritorno
   Maderno_prossima_partenza_A4.pdf      per il pubblico: per ogni localita' le partenze da Maderno
-  Maderno_tascabile_A4.pdf              tascabile: A4 orizzontale da piegare, partenze | arrivi a Maderno
+  Maderno_tascabile_A4.pdf              tascabile: A4 orizzontale, scali al centro, partenze | ritorni
   Desenzano_calendario_ormeggi_serali.pdf  un mese per pagina, da tutti i "Turno navi" degli O.d.S.
   Cover_*.pdf                           cover iPhone 15 (orario invernale)
   ormeggi.json                          dati estratti dagli O.d.S.

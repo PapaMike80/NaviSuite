@@ -387,11 +387,9 @@ def per_origine():
     return {p: sorted(v, key=lambda e: (minutes(e[0]), minutes(e[1]))) for p, v in out.items()}
 
 
-# misure della lista "per localita'": foglio A4 e meta' A5 del tascabile
+# misure della lista "per localita'" del foglio A4
 A4_LISTA = dict(name=13, sub=8.5, dep=15, arr=10, via=7.4, run=7.2, sr=6.5, row=13.6, row_via=13.6,
                 name_w=38, line=10, ferry_row=31, gap=5, per_ferry=5, arr_dy=4.2, via_dy=7.1, top_dy=6)
-A5_LISTA = dict(name=9.6, sub=6.2, dep=11, arr=8.2, via=6.2, run=5.8, sr=5.4, row=8.4, row_via=10.6,
-                name_w=26, line=7.4, ferry_row=23.5, gap=3.5, per_ferry=5, arr_dy=3.1, via_dy=5.6, top_dy=4.2)
 
 
 def lista(c, x, y, width, data, f):
@@ -483,43 +481,100 @@ def legenda(c, L, R, y, bsize, size, step, bottom=4 * mm):
     return y - step * mm
 
 
-def tascabile(c, L, R, top, bottom, data, titolo, legend):
-    """Una meta' (A5 verticale) del foglio tascabile, tra L e R e tra top e bottom."""
-    ritorno = titolo[0].startswith("›")  # ritorno: titolo a sinistra, MADERNO a destra
-    c.setFillColor(black); c.setFont("DVB", 20)
-    (c.drawRightString if ritorno else c.drawString)(R if ritorno else L, top - 7.5 * mm, titolo[0])
-    c.setFont("DVB", 8.6)
-    for k, s in enumerate(titolo[1:]):
-        (c.drawString if ritorno else c.drawRightString)(L if ritorno else R, top - 3 * mm - k * 3.5 * mm, s)
-    c.setFont("DVB", 8.6); c.drawString(L, top - 14 * mm, legend[0])
-    c.setFillColor(GREY); c.setFont("DV", 6.2)
-    c.drawString(L + pdfmetrics.stringWidth(legend[0] + " ", "DVB", 8.6), top - 14 * mm, "corsa · trip · Fahrt")
-    c.setFillColor(black); c.setFont("DV", 7.6); c.drawString(L, top - 17.6 * mm, legend[1])
-    yy = lista(c, L, top - 19.4 * mm, R - L, data, A5_LISTA)
-    legenda(c, L, R, yy - 4 * mm, 7.4, 6.6, 3.3, bottom=bottom)
+TASCA = dict(name=11, sub=6.6, dep=11.5, arr=8.6, via=6.4, run=6.0, sr=5.6, row=8.0, row_via=11.0,
+             name_w=34, line=8.0, gap=3.2, per_ferry=5, arr_dy=3.3, via_dy=6.0, top_dy=4.4)
+
+
+def celle(c, x, width, y, entries, per_line, f):
+    """Orari di una riga: partenza in grassetto con la corsa accanto (e SR in apice), arrivo sotto,
+    eventuale 'via <scalo>' per il cambio."""
+    slot = width / per_line
+    for li in range(0, len(entries), per_line):
+        for j, (dep, arr, via, sr, run) in enumerate(entries[li:li + per_line]):
+            dw = pdfmetrics.stringWidth(dep, "DVB", f["dep"])
+            rw = pdfmetrics.stringWidth(run, "DV", f["run"])
+            assert dw + rw + 0.5 * mm < slot - 0.3 * mm, (dep, run, slot / mm)
+            cx = x + slot * (j + 0.5)
+            x0 = cx - (dw + rw + 0.5 * mm) / 2
+            yy = y - f["top_dy"] * mm - (li // per_line) * f["line"] * mm
+            c.setFillColor(black); c.setFont("DVB", f["dep"]); c.drawString(x0, yy, dep)
+            if sr:
+                c.setFont("DVB", f["sr"]); c.drawString(x0 + dw + 0.4 * mm, yy + f["dep"] * 0.17 * mm, "SR")
+            c.setFillColor(GREY); c.setFont("DV", f["run"]); c.drawString(x0 + dw + 0.5 * mm, yy, run)
+            c.setFillColor(black); c.setFont("DV", f["arr"]); c.drawCentredString(cx, yy - f["arr_dy"] * mm, arr)
+            if via:
+                vs = f["via"]
+                while pdfmetrics.stringWidth(f"via {via}", "DVB", vs) > slot - 0.6 * mm:
+                    vs -= 0.1
+                c.setFont("DVB", vs); c.setFillColor(GREY)
+                c.drawCentredString(cx, yy - f["via_dy"] * mm, f"via {via}")
 
 
 def main_tascabile(out):
-    """Versione tascabile: A4 orizzontale diviso in due meta' A5 da piegare.
-    A sinistra le partenze da Maderno ("Prossima partenza per ..."), a destra gli arrivi a Maderno
-    ("Ritorno a Maderno")."""
+    """Versione tascabile: A4 orizzontale da piegare. Una sola tabella con gli scali al centro (scritti
+    una volta, da Desenzano a Riva come nell'orario, Torri in fondo): a sinistra le partenze da Maderno
+    per quello scalo, a destra i ritorni da quello scalo a Maderno (solo quelli raggiungibili)."""
     from reportlab.lib.pagesizes import landscape
     PW, PH = landscape(A4)
+    f = TASCA
     c = canvas.Canvas(out, pagesize=(PW, PH))
     c.setTitle("Maderno - tascabile / pocket / Taschenfahrplan")
-    m = 7 * mm  # margine verso il bordo del foglio e verso la piega
-    meta = [
-        (per_destinazione(), ("MADERNO ›", "Prossima partenza per …", "Next boat to …", "Nächstes Schiff nach …"),
-         ("Partenza  ·  Departure  ·  Abfahrt", "Arrivo  ·  Arrival  ·  Ankunft")),
-        (per_origine(), ("› MADERNO", "Ritorno a Maderno", "Return to Maderno", "Rückfahrt nach Maderno"),
-         ("Partenza da …  ·  Departure from …  ·  Abfahrt ab …", "Arrivo a Maderno  ·  Arrival  ·  Ankunft")),
-    ]
-    for k, (data, titolo, legend) in enumerate(meta):
-        x = k * PW / 2
-        tascabile(c, x + m, x + PW / 2 - m, PH - m, m, data, titolo, legend)
-    c.setStrokeColor(GREY); c.setLineWidth(0.3); c.setDash(2, 2)
-    c.line(PW / 2, 0, PW / 2, PH)  # piega
-    c.setDash()
+    m = 7 * mm
+    L, R, top = m, PW - m, PH - m
+    name_w = f["name_w"] * mm
+    side = (R - L - name_w) / 2
+    xl, xn, xr = L, L + side, L + side + name_w      # partenze | scali | ritorni
+    andata, ritorno = per_destinazione(), per_origine()
+
+    # intestazione: andata a sinistra, ritorno a destra, Maderno verso l'esterno
+    c.setFillColor(black); c.setFont("DVB", 22)
+    c.drawString(L, top - 8 * mm, "MADERNO ›")
+    c.drawRightString(R, top - 8 * mm, "› MADERNO")
+    c.setFont("DVB", 9)
+    for k, (a_, r_) in enumerate((("Prossima partenza per …", "Ritorno a Maderno"),
+                                  ("Next boat to …", "Return to Maderno"),
+                                  ("Nächstes Schiff nach …", "Rückfahrt nach Maderno"))):
+        c.drawRightString(xn - 3 * mm, top - 3 * mm - k * 3.6 * mm, a_)
+        c.drawString(xr + 3 * mm, top - 3 * mm - k * 3.6 * mm, r_)
+    for x0, (l1, l2) in ((xl, ("Partenza  ·  Departure  ·  Abfahrt", "Arrivo  ·  Arrival  ·  Ankunft")),
+                         (xr, ("Partenza da …  ·  Departure from …  ·  Abfahrt ab …",
+                               "Arrivo a Maderno  ·  Arrival  ·  Ankunft"))):
+        c.setFillColor(black); c.setFont("DVB", 8.6); c.drawString(x0 + 1 * mm, top - 15 * mm, l1)
+        c.setFillColor(GREY); c.setFont("DV", 6.2)
+        c.drawString(x0 + 1 * mm + pdfmetrics.stringWidth(l1 + " ", "DVB", 8.6), top - 15 * mm, "corsa · trip · Fahrt")
+        c.setFillColor(black); c.setFont("DV", 7.8); c.drawString(x0 + 1 * mm, top - 18.6 * mm, l2)
+
+    y = top - 20.5 * mm
+    places = [p for p in ORDINE_ORARIO if p in andata and p != "Torri del Benaco"]
+    righe = [(p.upper(), "", andata.get(p, []), ritorno.get(p, []), 6, i % 2 == 1) for i, p in enumerate(places)]
+    righe.append(None)  # stacco prima di Torri
+    righe.append(("TORRI", "del Benaco · traghetto", andata["Torri del Benaco"], ritorno["Torri del Benaco"],
+                  f["per_ferry"], True))
+    for r in righe:
+        if r is None:
+            y -= f["gap"] * mm
+            continue
+        label, sub, sx, dx, per_line, stripe = r
+        assert len(sx) <= per_line * 3 and len(dx) <= per_line * 3, label
+        lines = max(1, -(-len(sx) // per_line), -(-len(dx) // per_line))
+        via = any(e[2] for e in sx + dx)
+        h = (f["row_via"] if via else f["row"]) * mm + (lines - 1) * f["line"] * mm
+        if stripe:
+            c.setFillColor(STRIPE); c.rect(L, y - h, R - L, h, stroke=0, fill=1)
+        c.setFillColor(black)
+        size = f["name"]
+        while pdfmetrics.stringWidth(label, "DVB", size) > name_w - 3 * mm:
+            size -= 0.1
+        c.setFont("DVB", size)
+        c.drawCentredString(xn + name_w / 2, y - h / 2 - size * 0.12 * mm + (size * 0.2 * mm if sub else 0), label)
+        if sub:
+            c.setFont("DV", f["sub"]); c.drawCentredString(xn + name_w / 2, y - h / 2 - f["sub"] * 0.55 * mm, sub)
+        celle(c, xl, side, y, sx, per_line, f)
+        celle(c, xr, side, y, dx, per_line, f)
+        c.setStrokeColor(black); c.setLineWidth(0.4)
+        c.line(xn, y, xn, y - h); c.line(xr, y, xr, y - h)
+        y -= h
+    legenda(c, L, R, y - 4.2 * mm, 7.4, 6.8, 3.3, bottom=m - 2 * mm)
     c.showPage()
     c.save()
 
