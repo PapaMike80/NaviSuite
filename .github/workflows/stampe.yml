@@ -1,0 +1,56 @@
+# Rigenera le stampe (A4 Desenzano e Maderno, calendario ormeggi, cover) quando arriva un nuovo O.d.S.
+# in ods/, le salva in stampe/ e ripubblica il sito, cosi' i PDF sono subito scaricabili.
+name: Stampe da O.d.S.
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["ods/**.pdf", "tools/stampe/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # commit dei PDF in stampe/
+  actions: write    # avvio del deploy di GitHub Pages
+
+concurrency:
+  group: stampe
+  cancel-in-progress: false
+
+jobs:
+  stampe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r tools/stampe/requirements.txt
+
+      - name: Genera le stampe
+        # data italiana: dal venerdi' l'A4 di Desenzano mostra gli ormeggi della settimana successiva
+        run: python3 tools/stampe/genera.py --oggi "$(TZ=Europe/Rome date +%F)"
+
+      - name: Salva in stampe/
+        id: commit
+        run: |
+          git add stampe
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica alle stampe"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Stampe aggiornate dagli O.d.S."
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Ripubblica il sito
+        # un push fatto con GITHUB_TOKEN non avvia altri workflow: il deploy va lanciato a mano
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run static.yml --ref main

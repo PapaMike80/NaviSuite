@@ -66,6 +66,8 @@
             <div class="field"><label for="new-ods-number">Numero ODS</label><input id="new-ods-number" placeholder="es. 30/2026"></div>
             <input id="new-ods-file" type="file" accept=".pdf,.json,.csv,application/pdf">
             <div class="actions"><button id="parse-new-ods">Leggi e prepara ODS</button><button id="save-new-ods" class="primary" disabled>Salva righe confermate</button></div>
+            <div class="field"><label for="servizi-terra-week">Servizi a terra Desenzano · settimana dal</label><input id="servizi-terra-week" type="date"></div>
+            <div class="actions"><button id="generate-servizi-terra" type="button">Genera Servizi a terra</button></div>
           </div></details>
           <details class="import-box full-upload foldable">
             <summary><h3>Nuovi turni bariste</h3></summary><div class="import-inner">
@@ -154,6 +156,7 @@
   <script src="assets/js/shared-menu.js?v=1.59"></script>
   <script src="assets/js/shared-data.js?v=123"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=1"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -1127,6 +1130,20 @@
       $('parse-new-turn').disabled=false;
     });
     $('parse-new-ods').addEventListener('click',()=>parseImport('ods').catch(error=>setStatus(`Errore importazione ODS: ${error.message}`,'bad')));
+    // A4 Servizi a terra di Desenzano: turni nave salvati + quelli dell'ODS appena letto (non ancora salvato).
+    $('servizi-terra-week').value=NaviServiziTerra.defaultMonday();
+    $('generate-servizi-terra').addEventListener('click',()=>{
+      try{
+        const picked=$('servizi-terra-week').value||NaviServiziTerra.defaultMonday();
+        const [y,m,d]=picked.split('-').map(Number),date=new Date(y,m-1,d);
+        date.setDate(date.getDate()-(date.getDay()+6)%7);
+        const monday=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        $('servizi-terra-week').value=monday;
+        const navi=[...(state.turniNavi||[]),...(pendingOdsNavi.length?collectOdsNavi():[]).map(row=>({...row,_pending:true}))];
+        const days=NaviServiziTerra.open(navi,monday);
+        setStatus(days?`✓ Servizi a terra: ormeggi di ${days} giorni su 7 negli ODS. Usa “Stampa / PDF”.`:'Servizi a terra generato, ma nessun turno nave per questa settimana: carica l’ODS che la copre.',days?'ok':'bad');
+      }catch(error){setStatus(`Errore Servizi a terra: ${error.message}`,'bad')}
+    });
     $('parse-new-bariste').addEventListener('click',()=>parseImport('barista').catch(error=>setStatus(`Errore importazione turni: ${error.message}`,'bad')));
     $('parse-new-turn').addEventListener('click',()=>parseTurnImport().catch(error=>setStatus(`Errore lettura turno: ${error.message}`,'bad')));
     // Pulsante admin: chiede allo script del Foglio Google di allinearsi
