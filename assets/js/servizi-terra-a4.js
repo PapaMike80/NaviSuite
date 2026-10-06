@@ -63,6 +63,29 @@
   // Bolgetta Maderno - Direzione: R1 all'andata e al ritorno
   const MADERNO_BOLGETTE = { 7: 'BOLGETTA · PARTE', 8: 'BOLGETTA · RIENTRA' };
   const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
+  const VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027 · O.d.S. n. 39/2026";
+  // Servizi a terra: (sigla, mattina, pomeriggio, nota)
+  const SERVIZI = {
+    DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', 'dalle 7.45 con rifornimento D2 · assistenza alla c. 8'],
+      ['PonD', '9.30 – 13.35', '15.00 – 19.50', "8 ore 55'"]],
+    MADERNO: [['AgM', '9.00 – 11.50', '12.50 – 19.30', 'compresa assistenza alle c. 16-17 · coadiuva AgT'],
+      ['AgT1', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
+  };
+  const RIFORNIMENTI = {
+    titolo: 'R = rifornimento a Desenzano prima delle corse, per quanto possibile a cura di AgB o PonD:',
+    righe: ['D1 martedì e venerdì · D2 lunedì e giovedì (eventuale rabbocco il mercoledì avvisando la Direzione)',
+      "D1 e D2: motorista mezz'ora prima del normale orario · BIS tutti i giorni, liberato il pontile 5 o 3"]
+  };
+  // Note: [in grassetto?, testo]
+  const NOTE = {
+    DESENZANO: [[true, 'Bolgette Maderno e Riva: arrivano con la R1 c. 7 alle 13.30, ripartono con la R1 c. 8 alle 14.30.'],
+      [true, 'Bolgetta Cantiere Peschiera: arriva con le c. 30 e 31 alle 10.30, riparte con le c. 38 e 39 alle 16.20.'],
+      [false, "BIS: pronti a muovere alle 8.30 verso Garda, a disposizione dell'Ufficio Movimento, rientro alle 18.40."],
+      [false, 'Dal 2 novembre 2026 al 12 marzo 2027 nessuna corsa di linea a Desenzano.']],
+    MADERNO: [[true, 'Bolgette: partono con la R1 corsa 7 delle 11.03 e rientrano con la R1 corsa 8 delle 16.58.'],
+      [false, "T1 non effettuato il 25 dicembre 2026. T2 e navi di linea: fino all'1 novembre 2026 e dal 13 marzo 2027."],
+      [false, "Dal 2 novembre 2026 al 12 marzo 2027 solo traghetto T1 - AgT 7.55 – 12.15 / 13.15 – 18.50 (9 ore 55')."]]
+  };
   const RESIDENZE = ['DESENZANO', 'MADERNO'];
   const GRUPPI = ['D1', 'D2', 'D3', 'D4', 'BIS'];
   const GIORNI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
@@ -175,13 +198,23 @@ table{border-collapse:collapse;width:100%}
   const FIT = `<script>(function(){function fit(){var w=document.documentElement.clientWidth,s=Math.min(1,(w-16)/793.7);` +
     `document.querySelectorAll('.sheet').forEach(function(el){el.style.zoom=s<1?s:''})}fit();addEventListener('resize',fit)})()<\/script>`;
 
-  function sheetDesenzano(turniNavi, monday) {
+  // Ormeggi serali della settimana: giorni (Date), gruppi da mostrare, dati per giorno, O.d.S. usati.
+  function ormeggiSettimana(turniNavi, monday) {
     const data = indexTurniNavi(turniNavi);
     const days = Array.from({ length: 7 }, (_, i) => addDays(parseIso(monday), i));
     const known = days.map(iso).filter(day => data[day]);
     let groups = GRUPPI.filter(g => known.some(day => data[day][g] && data[day][g].pontile));
     if (!groups.length) groups = ['D1', 'D2', 'BIS'];
     const ods = [...new Set(known.flatMap(day => Object.values(data[day]).map(v => v.ods)).filter(Boolean))].sort();
+    return { data, days, known, groups, ods };
+  }
+
+  const boxes = res => SERVIZI[res].map(([code, a, b, note]) =>
+    `<div class="box"><b>${code}</b><span class="h">${a}<br>${b}</span><small>${esc(note)}</small></div>`).join('\n');
+  const notes = res => NOTE[res].map(([bold, text]) => bold ? `<b>${esc(text)}</b>` : esc(text)).join('<br>\n');
+
+  function sheetDesenzano(turniNavi, monday) {
+    const { data, days, known, groups, ods } = ormeggiSettimana(turniNavi, monday);
     const fmt = d => `${d.getDate()}/${d.getMonth() + 1}`;
 
     const naviRows = NAVI.map(([time, kind, code, run, where], i) =>
@@ -206,21 +239,16 @@ table{border-collapse:collapse;width:100%}
       html: `<div class="sheet desenzano">
 <h1>DESENZANO</h1>
 <p class="sub">Pontile e AgB - navi in ordine di orario e ormeggi serali</p>
-<p class="src">Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027 · O.d.S. n. 39/2026</p>
+<p class="src">${esc(VALIDITA)}</p>
 <div class="boxes">
-<div class="box"><b>AgB</b><span class="h">8.00 – 11.50<br>12.50 – 17.30</span><small>dalle 7.45 con rifornimento D2 · assistenza alla c. 8</small></div>
-<div class="box"><b>PonD</b><span class="h">9.30 – 13.35<br>15.00 – 19.50</span><small>8 ore 55'</small></div>
+${boxes('DESENZANO')}
 </div>
 <table class="navi"><thead><tr><th>ORA</th><th></th><th>TURNO</th><th>CORSA</th><th>DA / PER</th></tr></thead><tbody>${naviRows}</tbody></table>
 <div class="orm-title">ORMEGGI SERALI ${fmt(days[0])} – ${fmt(days[6])}<span>nave e pontile della sera · R = rifornimento · turno navi O.d.S. ${esc(ods.join(', ') || '–')}</span></div>
 <table class="orm"><thead><tr><th></th>${head}</tr></thead><tbody>${body}</tbody></table>
-<div class="rules"><b>R = rifornimento a Desenzano prima delle corse, per quanto possibile a cura di AgB o PonD:</b><br>
-D1 martedì e venerdì · D2 lunedì e giovedì (eventuale rabbocco il mercoledì avvisando la Direzione)<br>
-D1 e D2: motorista mezz'ora prima del normale orario · BIS tutti i giorni, liberato il pontile 5 o 3</div>
-<div class="notes"><b>Bolgette Maderno e Riva: arrivano con la R1 c. 7 alle 13.30, ripartono con la R1 c. 8 alle 14.30.</b><br>
-<b>Bolgetta Cantiere Peschiera: arriva con le c. 30 e 31 alle 10.30, riparte con le c. 38 e 39 alle 16.20.</b><br>
-BIS: pronti a muovere alle 8.30 verso Garda, a disposizione dell'Ufficio Movimento, rientro alle 18.40.<br>
-Dal 2 novembre 2026 al 12 marzo 2027 nessuna corsa di linea a Desenzano.</div>
+<div class="rules"><b>${esc(RIFORNIMENTI.titolo)}</b><br>
+${RIFORNIMENTI.righe.map(esc).join('<br>\n')}</div>
+<div class="notes">${notes('DESENZANO')}</div>
 </div>`
     };
   }
@@ -252,18 +280,15 @@ Dal 2 novembre 2026 al 12 marzo 2027 nessuna corsa di linea a Desenzano.</div>
       html: `<div class="sheet maderno">
 <h1>MADERNO</h1>
 <p class="sub">Servizio di terra - navi di linea e traghetto Torri</p>
-<p class="src">Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027 · O.d.S. n. 39/2026</p>
+<p class="src">${esc(VALIDITA)}</p>
 <div class="boxes">
-<div class="box"><b>AgM</b><span class="h">9.00 – 11.50<br>12.50 – 19.30</span><small>compresa assistenza alle c. 16-17 · coadiuva AgT</small></div>
-<div class="box"><b>AgT1</b><span class="h">7.50 – 13.00<br>14.00 – 18.20</span><small>9 ore 30'</small></div>
+${boxes('MADERNO')}
 </div>
 <div class="orm-title">NAVI DI LINEA<span>SCALO = nave in transito a Maderno · * corsa SR solo fino all'11 ottobre 2026</span></div>
 <table class="navi"><thead><tr><th>ORA</th><th></th><th>TURNO</th><th>CORSA</th><th>DA / PER</th></tr></thead><tbody>${lineRows}</tbody></table>
 <div class="orm-title">TRAGHETTO MADERNO – TORRI<span>arrivo da Torri, sosta a Maderno, partenza per Torri</span></div>
 <div class="ferries">${ferry('T1')}${ferry('T2')}</div>
-<div class="notes"><b>Bolgette: partono con la R1 corsa 7 delle 11.03 e rientrano con la R1 corsa 8 delle 16.58.</b><br>
-T1 non effettuato il 25 dicembre 2026. T2 e navi di linea: fino all'1 novembre 2026 e dal 13 marzo 2027.<br>
-Dal 2 novembre 2026 al 12 marzo 2027 solo traghetto T1 - AgT 7.55 – 12.15 / 13.15 – 18.50 (9 ore 55').</div>
+<div class="notes">${notes('MADERNO')}</div>
 </div>`
     };
   }
@@ -332,8 +357,25 @@ ${FIT}</body></html>`;
     return sheetDesenzano(turniNavi, monday).days;
   }
 
+  // Dati per la pagina web Servizi a terra (stessi del foglio A4).
+  const DATA = {
+    VALIDITA, KIND, SERVIZI, RIFORNIMENTI, NOTE,
+    NAVI: { DESENZANO: NAVI, MADERNO: MADERNO_LINEA },
+    BOLGETTE: { DESENZANO: BOLGETTE, MADERNO: MADERNO_BOLGETTE }
+  };
+
+  // Apre l'A4 di una residenza in una nuova finestra, pronto da stampare.
+  function openResidence(residenza, turniNavi, monday) {
+    const popup = window.open('', '_blank');
+    if (!popup) throw new Error('Il browser ha bloccato la nuova finestra: consenti i popup per NaviSuite.');
+    popup.document.open();
+    popup.document.write(buildResidenceHtml(residenza, turniNavi, monday));
+    popup.document.close();
+    popup.focus();
+  }
+
   window.NaviServiziTerra = {
-    RESIDENZE, defaultMonday, indexTurniNavi, ferryRows,
+    RESIDENZE, DATA, defaultMonday, indexTurniNavi, ormeggiSettimana, ferryRows, minutes, openResidence,
     buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open
   };
 })();
