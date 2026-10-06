@@ -6,7 +6,7 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 |---|---|
 | `Desenzano_pontile_AgB_A4.pdf` | AgB e PonD, navi in ordine di orario, ormeggi serali lun–dom con rifornimenti (R) |
 | `Maderno_servizio_terra_A4.pdf` | AgM e AgT1, navi di linea e traghetto Torri in ordine di orario |
-| `Maderno_partenze_passeggeri_A4.pdf` | per la biglietteria: partenze da Maderno e orari di arrivo, in italiano, inglese e tedesco |
+| `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Desenzano_calendario_ormeggi_serali.pdf` | calendario mensile degli ormeggi serali da tutti i "Turno navi" |
 | `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
