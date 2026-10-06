@@ -98,6 +98,9 @@ SIGLA = {"Garda": "Ga", "Sirmione": "Si", "Salò": "Sa", "Malcesine": "Ma", "Riv
 # localita' nell'ordine in cui le tocca la nave
 NORD = ["Gargnano", "Brenzone", "Malcesine", "Limone", "Torbole", "Riva"]
 SUD = ["Gardone", "Salò", "Portese", "Garda", "Bardolino", "Lazise", "Sirmione", "Peschiera", "Desenzano"]
+# ordine degli scali dell'orario ufficiale (Desenzano - Riva)
+ORDINE_ORARIO = ["Desenzano", "Peschiera", "Sirmione", "Lazise", "Bardolino", "Garda", "Torri del Benaco", "Portese",
+                 "Salò", "Gardone", "Gargnano", "Brenzone", "Malcesine", "Limone", "Torbole", "Riva"]
 SUD_RITORNO = ["Desenzano", "Peschiera", "Sirmione", "Lazise", "Bardolino", "Garda", "Portese", "Salò", "Gardone"]
 # Traghetto Torri del Benaco - Maderno (30'): (partenza, corsa) - pag. 17
 TRAGHETTO_ANDATA = [("8.10", "201"), ("8.45", "231"), ("9.25", "203"), ("10.10", "233"), ("10.50", "205"),
@@ -345,7 +348,7 @@ def per_destinazione():
 
 
 def main_destinazioni(out):
-    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (in ordine alfabetico) con le
+    """Foglio "Per ... / To ... / Nach ...": una riga per localita' (ordine dell'orario ufficiale) con le
     partenze da Maderno in grande, l'arrivo sotto e il cambio di nave scritto per esteso (via Garda)."""
     dest = per_destinazione()
     c = canvas.Canvas(out, pagesize=A4)
@@ -360,7 +363,8 @@ def main_destinazioni(out):
     c.setFont("DV", 9.5); c.setFillColor(GREY)
     c.drawString(L, H - 29 * mm, "partenza  ›  arrivo     ·     departure  ›  arrival     ·     Abfahrt  ›  Ankunft")
 
-    places = sorted(dest, key=lambda p: p.replace("ò", "o"))
+    places = [p for p in ORDINE_ORARIO if p in dest]  # come nell'orario ufficiale, da Desenzano a Riva
+    assert set(places) == set(dest), set(dest) - set(places)
     name_w = 40 * mm
     rh, gap = 14.4 * mm, 0.6 * mm
     y = H - 32 * mm
