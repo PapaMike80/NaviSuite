@@ -233,6 +233,27 @@
     return { ...item, currentUid:auth.uid };
   }
 
+  // Richiesta di allineamento del Foglio Google al turno caricato: la scrive
+  // la pagina Aggiornamenti (solo admin), la esegue lo script del foglio
+  // (controlloPeriodico, ogni 5 minuti) che poi scrive "result".
+  async function getSheetSync() {
+    const result = await databaseRequest("private/adminUpdates/sheetSync");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return { request:value.request || null, result:value.result || null };
+  }
+
+  async function requestSheetSync(agent = {}) {
+    const auth = await ensureAuth();
+    const request = {
+      id:`SYNC_${Date.now()}`,
+      requestedAt:new Date().toISOString(),
+      requestedBy:String(agent.name || agent.agente || agent.id || ""),
+      ownerUid:auth.uid
+    };
+    await databaseRequest("private/adminUpdates/sheetSync/request", { method:"PUT", body:JSON.stringify(request) });
+    return request;
+  }
+
   async function getShipConfigurations() {
     let direct = {};
     try {
@@ -269,6 +290,30 @@
         body:JSON.stringify({ ownerUid:auth.uid, updatedAt:item.updatedAt, gestioneNaviConfig:item.configurations })
       });
     }
+    return item;
+  }
+
+  // Anagrafica navi dell'ufficio movimento: equipaggio minimo per nave, con
+  // periodi di validita' (es. estate/inverno). Nodo dedicato, separato dal
+  // vecchio shipConfigurations di Gestione navi.
+  async function getFleet() {
+    const result = await databaseRequest("private/adminUpdates/movimentoFlotta");
+    const value = result.data && typeof result.data === "object" ? result.data : {};
+    return {
+      navi:value.navi && typeof value.navi === "object" ? value.navi : {},
+      updatedAt:String(value.updatedAt || ""),
+      updatedBy:String(value.updatedBy || "")
+    };
+  }
+
+  async function saveFleet(navi = {}, updatedByName = "") {
+    const auth = await ensureAuth();
+    const item = {
+      navi:navi && typeof navi === "object" ? navi : {},
+      updatedAt:new Date().toISOString(),
+      updatedBy:String(updatedByName || auth.uid)
+    };
+    await databaseRequest("private/adminUpdates/movimentoFlotta", { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
 
@@ -534,7 +579,22 @@
       qualifica: String(values.qualifica || "").trim().toLowerCase(),
       updatedAt: new Date().toISOString()
     };
-    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PUT", body:JSON.stringify(item) });
+    // PATCH: un eventuale cambio di residenza salvato sullo stesso profilo resta.
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify(item) });
+    return item;
+  }
+
+  // Cambio di residenza dalla data indicata (vuoto = annulla il cambio).
+  async function saveAgentResidenceMove(agentId, values = {}) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const after = String(values.residenzaNuova || "").trim().toUpperCase();
+    const dal = String(values.residenzaDal || "").slice(0, 10);
+    if (after && !/^\d{4}-\d{2}-\d{2}$/.test(dal)) throw new Error("Data di decorrenza non valida");
+    const item = after
+      ? { id, name:String(values.name || "").trim(), residenzaPrecedente:String(values.residenzaPrecedente || "").trim().toUpperCase(), residenzaNuova:after, residenzaDal:dal, residenzaAggiornata:new Date().toISOString() }
+      : { id, residenzaPrecedente:null, residenzaNuova:null, residenzaDal:null, residenzaAggiornata:new Date().toISOString() };
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify(item) });
     return item;
   }
 
@@ -754,8 +814,12 @@
     deleteChangeRequest,
     getAdminUpdates,
     saveAdminUpdates,
+    getSheetSync,
+    requestSheetSync,
     getShipConfigurations,
     saveShipConfigurations,
+    getFleet,
+    saveFleet,
     getBaristaUpdates,
     saveBaristaUpdates,
     getAnnouncements,
@@ -781,6 +845,7 @@
     getAgentAdminData,
     importLegacyUsers,
     saveAgentProfile,
+    saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,
     listUserPresence,

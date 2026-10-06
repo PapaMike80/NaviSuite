@@ -3,14 +3,18 @@
   if(!document.body.classList.contains('aggiornamenti-page'))return;
 
   const MONTHS={GENNAIO:1,FEBBRAIO:2,MARZO:3,APRILE:4,MAGGIO:5,GIUGNO:6,LUGLIO:7,AGOSTO:8,SETTEMBRE:9,OTTOBRE:10,NOVEMBRE:11,DICEMBRE:12};
-  const COURSE_RE=/^(D[1-4]|BIS2?|T[12]|M1|R[1-4]|CAR1|P[1-3]|CAP1|SR1)$/i;
+  // Come in aggiornamenti.html: anche CAR, CAP, SR2, "CAR/SR2" (vale per
+  // entrambe) e S.S. sono righe della tabella, altrimenti la riga vicina ne
+  // prende i dati.
+  const COURSE_RE=/^(D[1-4]|BIS2?|T[12]|M1|R[1-4]|CAR1?|P[1-3]|CAP1?|SR[12I]|CAR1?\s*\/\s*SR2|S\.\s*S\.?)$/i;
   const PESCHIERA_COURSE_RE=/^(P[1-3]|CAP|SR[I1]|BIS2)$/i;
   const WEEKDAY_RE=/^(?:LUN(?:EDI)?|MAR(?:TEDI)?|MER(?:COLEDI)?|GIO(?:VEDI)?|VEN(?:ERDI)?|SAB(?:ATO)?|DOM(?:ENICA)?)'?$/i;
   const MOORING_RE=/^(?:PONT\.?|PONTILE|PONTILETTO|PORTO|LIDO|DARSENA|BANCHINA|BACINO|MOLO|ORMEGGIO|BOA|LUNGOLAGO)\b/i;
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const canonCourse=value=>{
-    const raw=String(value||'').trim().toUpperCase();
+    const raw=String(value||'').trim().toUpperCase().replace(/\s+/g,'');
+    if(raw==='S.S')return 'S.S.';
     if(raw==='CAP')return 'CAP1';
     if(raw==='SRI')return 'SR1';
     return raw;
@@ -103,17 +107,18 @@
       const ay=visualY(anchor);
       const top=index?((visualY(anchors[index-1])+ay)/2):ay-15;
       const bottom=index+1<anchors.length?((ay+visualY(anchors[index+1]))/2):ay+15;
-      const course=canonCourse(anchor.text);
+      const courses=String(anchor.text).split('/').map(canonCourse);
       centers.forEach((center,dayIndex)=>{
         const {left,right}=cellBounds(centers,dayIndex);
         const cell=items.filter(item=>{
           const cx=item.x+(item.width||0)/2,vy=visualY(item);
-          return cx>=left&&cx<right&&vy>=top&&vy<bottom&&item.x>90;
+          // Le note sotto la tabella sono righe lunghe: non sono celle.
+          return cx>=left&&cx<right&&vy>=top&&vy<bottom&&item.x>90&&(item.width||0)<=(right-left)*1.3;
         });
         const parsed=parseCell(lineGroups(cell));
-        if(parsed.ship||parsed.mooring||parsed.refuel)records.push({
+        if(parsed.ship||parsed.mooring||parsed.refuel)courses.forEach(course=>records.push({
           data:dates[dayIndex],corsa:course,nave:parsed.ship,rifornimento_mattina:parsed.refuel?'Sì':'',ormeggio_serale:parsed.mooring
-        });
+        }));
       });
     });
     return records;

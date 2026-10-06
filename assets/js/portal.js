@@ -113,6 +113,7 @@ function showChoice(agent) {
   const settings = document.querySelector('.app-card.settings');
   const updates = document.querySelector('.app-card.updates');
   const agentAdmin = document.querySelector('.app-card.agents');
+  const movimento = document.querySelector('.app-card.movimento');
   const shipManagement = document.querySelector('[data-navi-tab="NaviGestioneNaviTab"]');
   if (diaria) diaria.hidden = !canUseDiaria(agent);
   if (oggi) oggi.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
@@ -124,6 +125,7 @@ function showChoice(agent) {
   if (settings) settings.hidden = isBaristaAgent(agent);
   if (updates) updates.hidden = !(isAdminAgent(agent) || isHibaBarista(agent));
   if (agentAdmin) agentAdmin.hidden = !isAdminAgent(agent);
+  if (movimento) movimento.hidden = !isAdminAgent(agent);
   if (shipManagement) shipManagement.hidden = !isAdminAgent(agent);
 }
 

@@ -654,7 +654,8 @@
       if (code === "DT" && calInfo && calInfo.giornoSett === "Sab") return "9 ore 55 min";
       // Ore con decorrenza (es. turno 05/10/2026): stessa tabella di NaviDiaria,
       // cosi' non resta una copia ferma ai valori vecchi.
-      const wanted = code === "CAR" ? "CAR1" : code;
+      // TERRA, L.D., CONG. ecc. -> LAV, LD, CON come nella tabella.
+      const wanted = code === "CAR" ? "CAR1" : (window.NaviShiftCompetence?.canonicalCode?.(code) || code).toUpperCase();
       const shared = window.NaviShiftCompetence?.shiftsFor(calInfo?.iso)?.find(s => String(s.code).toUpperCase() === wanted);
       if (shared) return formatShiftDurationText(shared.hours);
       return shiftDurations[code] || "";
@@ -1995,8 +1996,8 @@
           : "";
         const manualDay = diariaShiftOverrides.get(`${String(r.id || "")}|${calInfo.iso}`);
         const manualBadge = manualDay ? `<span class="c-res" title="Turno previsto: ${escapeAttribute(manualDay.from || "—")}">MODIFICATO</span>` : "";
-        card.innerHTML = `<span class="c-num">${r.id || "—"}</span>
-          <span class="c-name">${r.agente}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
+        card.innerHTML = `<span class="c-num">${escapeAttribute(r.id || "—")}</span>
+          <span class="c-name">${escapeAttribute(r.agente)}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
           ${futureSharedDot}<span class="c-grade" style="color:${grade.color}; background:${grade.color}22; border:1px solid ${grade.color}44;">${grade.label}</span>`;
           if (!r.isBarista) {
             card.classList.add("pinnable-colleague");
@@ -2853,12 +2854,18 @@
       
       renderResidenceButtons();
       populateLoginSurnameOptions();
+      const previousLoggedResidence = String(loggedAgentProfile?.residence || "").toUpperCase();
       loggedAgentProfile = readLoggedAgentProfile();
+      reconcileLoggedResidence();
       updateLoginUserPanel();
+      // La copia locale era di prima di un cambio di residenza dell'agente:
+      // i dati nuovi lo mettono altrove, quindi si riapre la sua residenza.
+      const loggedResidenceChanged = !!previousLoggedResidence &&
+        String(loggedAgentProfile?.residence || "").toUpperCase() !== previousLoggedResidence;
 
       // Aggiornamento in background: rinfresca i dati della vista corrente
       // senza toccare la residenza, il filtro turno e lo scroll dell'utente.
-      if (soft && loggedAgentProfile && currentResidence && globalData?.residenze) {
+      if (soft && !loggedResidenceChanged && loggedAgentProfile && currentResidence && globalData?.residenze) {
         const scrollLeft = window.scrollX, scrollTop = window.scrollY;
         refreshCurrentResidenceData();
         renderTable();

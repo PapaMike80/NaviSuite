@@ -117,6 +117,7 @@
           residence,
           role:String(agent.role || '').trim().toLowerCase() || (qualifica.toLowerCase() === 'barista' ? 'barista' : '')
         };
+        if (agent.residenzaNuova && agent.residenzaDal) Object.assign(item, { residenzaPrecedente:String(agent.residenzaPrecedente || ''), residenzaNuova:String(agent.residenzaNuova), residenzaDal:String(agent.residenzaDal) });
         if (item.agent_uid && item.name) byId.set(item.agent_uid, item);
       });
     });
@@ -164,12 +165,34 @@
     });
   }
 
+  // L'agente collegato conserva la residenza che aveva al login: dopo un cambio
+  // di residenza (turno caricato o pagina Agenti) la sessione salvata si
+  // allinea a quella in vigore oggi, cosi' Turni e Cambi aprono quella giusta.
+  const LOGGED_AGENT_KEYS = ['naviturni_logged_agent', 'navidiaria.activeAgent'];
+  function syncLoggedResidence(list) {
+    const fixed = ['uffici', 'bariste'];
+    LOGGED_AGENT_KEYS.forEach(key => {
+      try {
+        const profile = JSON.parse(localStorage.getItem(key) || 'null');
+        const id = String(profile?.id || '').trim();
+        if (!id) return;
+        const agent = list.find(item => String(item.id) === id);
+        const wanted = String(agent?.residence || '').trim();
+        const current = String(profile.residence || '').trim();
+        if (!wanted || wanted === current || fixed.includes(wanted.toLowerCase()) || fixed.includes(current.toLowerCase())) return;
+        localStorage.setItem(key, JSON.stringify({ ...profile, residence: wanted }));
+      } catch (_) {}
+    });
+  }
+
   function save(data) {
     normalizeScheduleAgents(data);
     normalizeScheduleShifts(data);
     injectProfileAgents(data);
     const serialized = JSON.stringify(data);
-    const directory = JSON.stringify(directoryFrom(data));
+    const directoryList = directoryFrom(data);
+    const directory = JSON.stringify(directoryList);
+    syncLoggedResidence(directoryList);
     try {
       localStorage.setItem(DATA_KEY_BASE + cacheSuffix(), serialized);
       localStorage.setItem(TIME_KEY_BASE + cacheSuffix(), String(Date.now()));
@@ -429,6 +452,34 @@
     return data;
   }
 
+  // Cambio di residenza deciso dalla pagina Agenti (profilo Firebase con
+  // residenzaNuova/residenzaDal): stessa logica degli import del turno e, per
+  // lo stesso agente, ha la precedenza su di essi.
+  function applyProfileResidenceMoves(data, overrides, options = {}) {
+    const todayIso = options.today || localTodayIso();
+    const agents = Object.values(data?.residenze || {}).flat();
+    let moved = false;
+    Object.values(overrides || {}).forEach(override => {
+      const after = String(override?.residenzaNuova || '').trim().toUpperCase();
+      const dal = String(override?.residenzaDal || '').slice(0, 10);
+      if (!after || !/^\d{4}-\d{2}-\d{2}$/.test(dal)) return;
+      const id = String(override.id || '').trim();
+      const name = normalizeAgentName(override.name);
+      const target = (id && agents.find(agent => String(agent.id || '') === id)) ||
+        (name ? agents.find(agent => normalizeAgentName(agent.agente) === name) : null);
+      if (!target) return;
+      const before = String(override.residenzaPrecedente || residenceKeyOf(data, target) || '').trim().toUpperCase();
+      if (!before || before === after) return;
+      target.residenzaPrecedente = before;
+      target.residenzaNuova = after;
+      target.residenzaDal = dal;
+      moveAgentToResidence(data, target, todayIso < dal ? before : after);
+      moved = true;
+    });
+    if (moved) sortResidencesBySeniority(data, todayIso);
+    return data;
+  }
+
   async function mergeAdminUpdates(data) {
     const providers = [window.NaviFirebase, window.NaviAdminFirebase]
       .filter((provider, index, list) => provider?.getAdminUpdates && list.indexOf(provider) === index);
@@ -441,6 +492,7 @@
       applyScheduleImports(data, updates.scheduleImports);
       const profileOverrides = updates.agentProfiles || {};
       data.agentProfileOverrides = profileOverrides;
+      applyProfileResidenceMoves(data, profileOverrides);
       Object.values(data.residenze || {}).forEach(list => (list || []).forEach(agent => {
         const override = profileOverrides[String(agent.id)] || Object.values(profileOverrides).find(item => String(item?.id) === String(agent.id));
         if (!override) return;
@@ -595,6 +647,7 @@
     source:() => lastSource,
     dataSource,
     provider:() => lastSource === 'pocketbase' ? 'PocketBase' : lastSource === 'firebase' ? 'NaviSuite Database' : 'Memoria locale',
+    applyProfileResidenceMoves,
     seniorityRank:name => pdfSeniorityRank({ agente: name }),
     applyScheduleImports
   };
