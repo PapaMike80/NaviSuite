@@ -62,10 +62,13 @@ assert.doesNotMatch(js, /location\.replace/);
 assert.match(page, /window\.NaviServiziTerraEmbed = true/);
 assert.match(page, /id="terra-content"/);
 assert.match(page, /id="turno-test"/); // prova con un altro turno
-assert.match(js, /shiftForCode\(/); // competenze: ore, diaria, buono pasto, imbarco
+assert.match(js, /shiftForCode\(/); // ore del servizio
+assert.doesNotMatch(js, /Buono pasto|Diaria|Imbarco/);
+assert.match(js, /7: \{ Riva: 'carica', Maderno: 'carica', Desenzano: 'consegna' \}/); // B della bolgetta sugli scali
+assert.doesNotMatch(js, /giornataCard/);
 assert.match(js, /past-toggle/); // corse gia' fatte nascoste
-assert.match(js, /j < doneStops - 1 && !state\.showPast/); // nella corsa in corso scali fatti nascosti tranne l'ultimo
-assert.match(js, /const lastPast = current \? null/); // corse gia' fatte tutte nascoste
+assert.match(js, /class="navi-list"/); // corse e scali come l'orario di Servizi a terra
+assert.match(js, /i !== lastPast && !state\.showPast/); // scali gia' fatti nascosti tranne l'ultimo
 const terraJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
 assert.match(terraJs, /window\.NaviServiziTerraPage = \{/);
 assert.match(terraJs, /if \(EMBED\) return;/);

@@ -1,16 +1,6 @@
 /* Il mio turno: stesse schede di Servizi a terra (servizi-terra.css) piu' questi elementi. */
 .mio-turno-page .terra-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mio-turno-page .terra-title .chip{font-size:16px;padding:6px 12px}
-.mt-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.mt-fact,.mt-mooring{display:grid;gap:3px;padding:10px 12px;border:1px solid #244653;border-radius:12px;background:rgba(255,255,255,.025)}
-.mt-fact span,.mt-mooring span{color:#86a5af;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
-.mt-fact b{font:900 20px Manrope,sans-serif}
-.mt-fact small,.mt-mooring small{color:#86a5af;font-size:11px}
-.mt-moorings{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.mt-mooring{grid-template-columns:auto auto 1fr;align-items:center;column-gap:8px}
-.mt-mooring span,.mt-mooring small{grid-column:1/-1}
-.mt-mooring b{font:900 20px Manrope,sans-serif;color:#a7fff0}
-.mt-mooring .rifornimento{justify-self:start}
 .mt-crew{margin:0;padding:0;list-style:none;display:grid;gap:5px}
 .mt-crew li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.025)}
 .mt-crew li b{font-size:14px}
@@ -29,23 +19,26 @@
 .mt-scali li span{font:900 14px Manrope,sans-serif;text-align:right;padding-right:10px}
 .mt-bis{margin:0 0 10px;font-size:14px;line-height:1.45;color:#c6d7db}
 .mt-link{display:inline-flex;align-items:center;text-decoration:none;margin:0}
-@media(max-width:520px){
-  .mt-facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-  .mt-fact{padding:8px}
-  .mt-fact b,.mt-mooring b{font-size:17px}
-}
 #mio-turno{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
 @media(max-width:520px){#mio-turno{padding:12px 10px 26px}}
 /* Prova turno: selettore per vedere la pagina con un altro turno */
 .mt-test{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:3px 4px 3px 10px;border:1px dashed #2d6570;border-radius:10px;color:#86a5af;font-size:11px;font-weight:800;letter-spacing:.04em}
 .mt-test select{min-height:30px;padding:0 6px;border:1px solid #2f5661;border-radius:8px;background:#0d202b;color:#e8f7f7;font:800 13px DM Sans,sans-serif}
 .mt-test.active{border-style:solid;border-color:#f59e0b;color:#fcd34d}
-.mt-facts{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
 #turno-terra{margin-top:14px}
-@media(max-width:520px){.mt-test{margin-left:0}.mt-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.mt-scali li.done,.mt-scali li.left{opacity:.45}
+@media(max-width:520px){.mt-test{margin-left:0}.mt-scali li.done,.mt-scali li.left{opacity:.45}
 .mt-scali li.coming{color:#a7fff0;font-weight:800}
 .mt-scali li em{margin-left:8px;color:#2dd4bf;font-size:10px;font-style:normal;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .mt-scali li.left em{color:#86a5af}
 .mt-scali li{grid-template-columns:48px 1fr auto}
 .mt-scali li em{white-space:nowrap}
+/* Scheda Turno: ore, inizio e fine su una riga */
+.mt-turno{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-bottom:8px}
+.mt-turno .chip{font-size:14px;padding:5px 10px}
+.mt-turno .mt-ore{font:900 20px Manrope,sans-serif}
+.mt-turno span{color:#86a5af;font-size:12px;font-weight:700}
+.mt-turno span b{color:#e8f7f7;font:900 16px Manrope,sans-serif;margin-left:3px}
+/* Ormeggi e R sulla corsa, B sugli scali della bolgetta */
+.mt-corsa-head .badges{display:inline-flex;gap:4px;margin-left:auto}
+.mt-corsa-head .ormeggio,.mt-corsa-head .rifornimento{padding:2px 7px;font-size:12px}
+.mt-scali li .bolgetta{justify-self:end;min-width:18px;padding:1px 5px;border-radius:6px;background:#f59e0b;color:#1d1300;font-size:11px;font-weight:900;text-align:center}
