@@ -1,0 +1,4366 @@
+{
+ "2026-05-15": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "VERONA + AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-05-16": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 16,
+   "ormeggio": "",
+   "rif": false
+  }
+ },
+ "2026-05-17": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-05-18": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-05-19": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-05-20": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-05-21": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-05-22": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 16,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 16,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 16,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 16,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 16,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-05-29": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-05-30": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-05-31": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-01": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-02": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-03": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-04": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 18,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 18,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 18,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 18,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 18,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-05": {
+  "BIS": {
+   "nave": "VIRGILIO",
+   "ods": 19,
+   "ormeggio": "",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  }
+ },
+ "2026-06-06": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-06-07": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-08": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ITALIA",
+   "ods": 19,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-06-09": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-10": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-11": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 19,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 19,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 19,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 19,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 19,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-12": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-13": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-06-14": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-15": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-16": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-17": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-18": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 20,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 20,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 20,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 20,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 20,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-19": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-20": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-06-21": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-22": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-23": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-24": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-25": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 21,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 21,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 21,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 21,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 21,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-26": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-06-27": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-06-28": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-29": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-06-30": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-01": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-02": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 23,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 23,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 23,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 23,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 23,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-03": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-04": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-07-05": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-06": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-07": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-08": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-09": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 25,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 25,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 25,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 25,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 25,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-10": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 26,
+   "ormeggio": "",
+   "rif": false
+  }
+ },
+ "2026-07-11": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-07-12": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-13": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-14": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-15": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-16": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 26,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 26,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 26,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 26,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 26,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-17": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-18": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-07-19": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-20": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-21": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-22": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-23": {
+  "BIS": {
+   "nave": "PARINI",
+   "ods": 27,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 27,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 27,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 27,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 27,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-24": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-25": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-07-26": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "S. MARTINO",
+   "ods": 28,
+   "ormeggio": "",
+   "rif": false
+  }
+ },
+ "2026-07-27": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-28": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-07-29": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-30": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 28,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 28,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 28,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 28,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 28,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-07-31": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-01": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-08-02": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-03": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-04": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-05": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-06": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 29,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 29,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 29,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 29,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 29,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-07": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-08": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-08-09": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-10": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-11": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-12": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-13": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 30,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 30,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 30,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 30,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 30,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-14": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-15": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-08-16": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-17": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-18": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-19": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "SOLFERINO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-20": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 31,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 31,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 31,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 31,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 31,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-21": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-22": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-08-23": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-24": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-25": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-08-26": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-27": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-08-28": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 32,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 32,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 32,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 32,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 32,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-04": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-05": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-09-06": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-07": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-08": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-09": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-10": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 35,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 35,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 35,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 35,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 35,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-11": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-12": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 36,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-09-13": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-14": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-15": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-16": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-17": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 36,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 36,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 36,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 36,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 36,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-18": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": true
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 37,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-09-19": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": false
+  }
+ },
+ "2026-09-20": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-21": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-22": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-23": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-24": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 37,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 37,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 37,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 37,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "S. MARCO",
+   "ods": 37,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 37,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-09-25": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-26": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ITALIA",
+   "ods": 38,
+   "ormeggio": "",
+   "rif": false
+  }
+ },
+ "2026-09-27": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 38,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-09-28": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-09-29": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": true
+  }
+ },
+ "2026-09-30": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-10-01": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 38,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "AGONE",
+   "ods": 38,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 38,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 38,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 38,
+   "ormeggio": "pont. 5",
+   "rif": false
+  }
+ },
+ "2026-10-02": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 6",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO",
+   "ods": 39,
+   "ormeggio": "pont. 5",
+   "rif": true
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 39,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-10-03": {
+  "BIS": {
+   "nave": "D'ANNUNZIO (B)",
+   "ods": 39,
+   "ormeggio": "",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D2": {
+   "nave": "SOLFERINO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D4": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 6",
+   "rif": false
+  },
+  "S.S.": {
+   "nave": "TONALE",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-04": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "TONALE",
+   "ods": 39,
+   "ormeggio": "pont. 5",
+   "rif": false
+  },
+  "D3": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D4": {
+   "nave": "SOLFERINO ©",
+   "ods": 39,
+   "ormeggio": "",
+   "rif": false
+  }
+ },
+ "2026-10-05": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "S.S.": {
+   "nave": "ZANARDELLI",
+   "ods": 39,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-10-06": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-07": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-08": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  }
+ },
+ "2026-10-09": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 39,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 39,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 39,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ }
+}
