@@ -157,10 +157,11 @@
       }
       return { corsa, stato };
     });
-    const pastIdx = items.map((item, i) => item.stato === 'past' ? i : -1).filter(i => i >= 0);
-    const lastPast = pastIdx[pastIdx.length - 1];
     // Nella corsa in corso: scali gia' fatti nascosti tranne l'ultimo (da dove e' partita la nave).
     const current = items.find(item => item.stato === 'next');
+    // Corse gia' fatte tutte nascoste; a fine giornata (nessuna corsa in corso) resta l'ultima.
+    const pastIdx = items.map((item, i) => item.stato === 'past' ? i : -1).filter(i => i >= 0);
+    const lastPast = current ? null : pastIdx[pastIdx.length - 1];
     const doneStops = current && realToday ? current.corsa.scali.filter(s => minutes(s[1]) < nowMin).length : 0;
     const hiddenStops = Math.max(0, doneStops - 1);
     const hidden = pastIdx.length - (lastPast == null ? 0 : 1);
@@ -178,8 +179,7 @@
             const done = minutes(orario) < nowMin;
             if (done && j < doneStops - 1 && !state.showPast) return '';
             const cls = done ? (j === doneStops - 1 ? 'left' : 'done') : j === doneStops ? 'coming' : '';
-            const tag = cls === 'left' ? (j === 0 ? 'partita' : 'partita da qui') : cls === 'coming' ? (j === 0 ? 'prossima partenza' : 'in arrivo') : '';
-            return `<li class="${cls}"><span>${esc(orario)}</span>${esc(scalo)}${tag ? `<em>${tag}</em>` : ''}</li>`;
+            return `<li class="${cls}"><span>${esc(orario)}</span>${esc(scalo)}</li>`;
           }).join('')}</ol></div>`;
       }).join('') : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
