@@ -6,7 +6,7 @@ const CONFIG = {
   branch: 'main',
   folders: ['turni', 'ods', 'stampe'],
   metadataFile: 'documenti.json',
-  version: 'v1.11'
+  version: 'v1.12'
 };
 
 const state = {
@@ -207,7 +207,7 @@ function pagesPdfUrl(path) {
 // Stampe generate da tools/stampe (cartella stampe/): titolo leggibile dal nome del file.
 const STAMPE_TITOLI = [
   [/^Desenzano_pontile/i, 'Servizi a terra Desenzano · pontile e AgB'],
-  [/^Maderno_servizio_terra/i, 'Servizi a terra Maderno · AgM e AgT1'],
+  [/^Maderno_servizio_terra/i, 'Servizi a terra Maderno · AgM e AgT'],
   [/_passeggeri_/i, 'Partenze e ritorni per i passeggeri'],
   [/_prossima_partenza_/i, 'Prossima partenza per… (passeggeri)'],
   [/_tascabile_/i, 'Orario tascabile per i passeggeri'],

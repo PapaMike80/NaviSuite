@@ -1,7 +1,7 @@
 // A4 "Servizi a terra" da stampare su laser bianco/nero (orario invernale, O.d.S. n. 39/2026).
 // Desenzano (pontile e AgB): navi in ordine di orario e ormeggi serali della settimana lun-dom
 // con i rifornimenti, presi dai turni nave letti dagli O.d.S. (come tools/stampe/a4_desenzano.py).
-// Maderno (AgM e AgT1): navi di linea e passaggi del traghetto Torri (come tools/stampe/a4_maderno.py).
+// Maderno (AgM e AgT): navi di linea e passaggi del traghetto Torri (come tools/stampe/a4_maderno.py).
 (function () {
   'use strict';
 
@@ -69,7 +69,7 @@
     DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', 'dalle 7.45 con rifornimento D2 · assistenza alla c. 8'],
       ['PonD', '9.30 – 13.35', '15.00 – 19.50', "8 ore 55'"]],
     MADERNO: [['AgM', '9.00 – 11.50', '12.50 – 19.30', 'compresa assistenza alle c. 16-17 · coadiuva AgT'],
-      ['AgT1', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
+      ['AgT', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
   };
   const RIFORNIMENTI = {
     titolo: 'R = rifornimento a Desenzano prima delle corse, per quanto possibile a cura di AgB o PonD:',
@@ -313,7 +313,8 @@ ${FIT}</body></html>`;
     return page([sheet], sheet.title, options.printButton !== false);
   }
   // Turni nave di un giorno per ogni turno (D1, P2, M1, R1, T1, SR1, BIS...):
-  // {turno: {nave, ormeggio}} con ormeggio = "pontile 5", "porto esterno"... o ''.
+  // {turno: {nave, ormeggio, rif}} con ormeggio = "pontile 5", "porto esterno"... o '' e
+  // rif = rifornimento la mattina.
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -323,9 +324,11 @@ ${FIT}</body></html>`;
       const mooring = String(row.ormeggio_serale || '').trim();
       const number = mooring.match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1];
       const ormeggio = number ? `pontile ${number}` : mooring.toLowerCase();
-      if (!nave && !ormeggio) return;
+      const refuel = String(row.rifornimento_mattina || '').trim();
+      const rif = /^s[iì]$/i.test(refuel) || /riforn/i.test(refuel);
+      if (!nave && !ormeggio && !rif) return;
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
-        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio };
+        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif };
       });
     });
     return out;
@@ -386,6 +389,17 @@ ${FIT}</body></html>`;
   const DATA = {
     VALIDITA, KIND, SERVIZI, RIFORNIMENTI, NOTE,
     NAVI: { DESENZANO: NAVI, MADERNO: MADERNO_LINEA },
+    // Maderno con il traghetto Torri nella stessa tabella, in ordine di orario (a parita' di ora
+    // prima la nave di linea). Del traghetto solo le partenze per Torri, con l'arrivo da Torri
+    // che le precede come sesto campo; resta come arrivo solo quello di fine servizio.
+    NAVI_CON_TRAGHETTO: {
+      DESENZANO: NAVI,
+      MADERNO: [...MADERNO_LINEA.map(row => [...row, '', 0]),
+        ...['T1', 'T2'].flatMap(code => ferryRows(code).filter(row => row.kind !== 'pausa-torri').map(row => row.dep
+          ? [row.dep[0], 'P', code, row.dep[1], 'per Torri', row.arr ? row.arr[0] : '', 1]
+          : [row.arr[0], 'A', code, row.arr[1], 'da Torri', '', 1]))]
+        .sort((a, b) => minutes(a[0]) - minutes(b[0]) || a[6] - b[6]).map(row => row.slice(0, 6))
+    },
     BOLGETTE: { DESENZANO: BOLGETTE, MADERNO: MADERNO_BOLGETTE }
   };
 
