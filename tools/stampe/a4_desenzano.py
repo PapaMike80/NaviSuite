@@ -102,6 +102,12 @@ def main(out, ormeggi, lunedi):
         c.setFont("DV", 12)
         c.drawString(cols[3][1], y, run or "–")
         c.drawString(cols[4][1], y, where)
+        if run in BOLGETTE:  # etichetta in negativo, visibile anche in bianco e nero
+            label = BOLGETTE[run]
+            lw = pdfmetrics.stringWidth(label, "DVB", 9) + 5 * mm
+            c.setFillColor(BLUE); c.roundRect(R - lw - 1 * mm, y - 1.6 * mm, lw, 5.4 * mm, 1.5 * mm, stroke=0, fill=1)
+            c.setFillColor(white); c.setFont("DVB", 9); c.drawCentredString(R - 1 * mm - lw / 2, y, label)
+            assert cols[4][1] + pdfmetrics.stringWidth(where, "DV", 12) + 2 * mm < R - lw - 1 * mm, where
 
     # ormeggi serali della settimana (lun-dom) dagli allegati "Turno navi" degli O.d.S.;
     # R accanto al pontile = rifornimento quella mattina, prima delle corse
@@ -119,7 +125,7 @@ def main(out, ormeggi, lunedi):
               if any(g in ormeggi[d] and ormeggi[d][g]["ormeggio"] for d in known)] or ["D1", "D2", "BIS"]
     lab_w = 12 * mm
     dw = (R - L - lab_w) / 7
-    rh = 9.2 * mm
+    rh = 8.6 * mm
     y -= 8 * mm
     c.setFillColor(BLUE)
     c.rect(L, y - 2.3 * mm, R - L, 7 * mm, stroke=0, fill=1)
@@ -169,7 +175,7 @@ def main(out, ormeggi, lunedi):
         c.line(x0, y - 3.4 * mm, x0, table_top)
 
     # regole rifornimenti (O.d.S. 39, "Rifornimenti") e note
-    y -= 9.5 * mm
+    y -= 8 * mm
     c.setFillColor(BLUE); c.setFont("DVB", 8.6)
     c.drawString(L, y, "R = rifornimento a Desenzano prima dell'inizio delle corse, per quanto possibile a cura di AgB o PonD:")
     c.setFont("DV", 8.4)
@@ -178,17 +184,31 @@ def main(out, ormeggi, lunedi):
         y -= 4.3 * mm
         assert pdfmetrics.stringWidth(s, "DV", 8.4) <= R - L, s
         c.drawString(L, y, s)
+    y -= 5.6 * mm
+    c.setFillColor(BLUE); c.setFont("DVB", 8.6)
+    for s in ("Bolgette Maderno e Riva: arrivano con la R1 c. 7 alle 13.30, ripartono con la R1 c. 8 alle 14.30.",
+              "Bolgetta Cantiere Peschiera: arriva con le c. 30 e 31 alle 10.30, riparte con le c. 38 e 39 alle 16.20."):
+        assert pdfmetrics.stringWidth(s, "DVB", 8.6) <= R - L, s
+        c.drawString(L, y, s)
+        y -= 4.3 * mm
+    y += 4.3 * mm
     c.setFillColor(GREY); c.setFont("DV", 8.2)
-    y -= 1.8 * mm
+    y -= 0.6 * mm
     for s in ("BIS: pronti a muovere alle 8.30 verso Garda, a disposizione dell'Ufficio Movimento, rientro alle 18.40.",
               "Dal 2 novembre 2026 al 12 marzo 2027 nessuna corsa di linea a Desenzano."):
         y -= 4.3 * mm
         assert pdfmetrics.stringWidth(s, "DV", 8.2) <= R - L, s
         c.drawString(L, y, s)
-    assert y > 10 * mm, y / mm
+    assert y > 7 * mm, y / mm
     c.showPage()
     c.save()
     return y
+
+
+# bolgette: arrivano con la R1 della mattina e ripartono con la R1 del pomeriggio (corsa: etichetta)
+# Maderno e Riva - Direzione: R1 all'andata e al ritorno (corse 7 e 8);
+# Cantiere di Peschiera - Direzione: andata corse 30 e 31, ritorno corse 38 e 39
+BOLGETTE = {"7": "BOLGETTA · ARRIVA", "8": "BOLGETTA · PARTE", "31": "BOLGETTA · ARRIVA", "38": "BOLGETTA · PARTE"}
 
 
 def settimana(oggi):

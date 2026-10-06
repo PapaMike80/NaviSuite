@@ -9,7 +9,8 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
 | `Maderno_prossima_partenza_A4.pdf` | per la biglietteria: "Prossima partenza per … / Next boat to … / Nächstes Schiff nach …", una riga per località, da Desenzano a Riva come nell'orario ufficiale |
-| `Desenzano_calendario_ormeggi_serali.pdf` | calendario mensile degli ormeggi serali da tutti i "Turno navi" |
+| `Maderno_tascabile_A4.pdf` | tascabile: A4 orizzontale, scali al centro, a sinistra le partenze da Maderno e a destra i ritorni a Maderno |
+| `Desenzano_passeggeri_A4.pdf`, `Desenzano_prossima_partenza_A4.pdf`, `Desenzano_tascabile_A4.pdf` | gli stessi fogli per i passeggeri di Desenzano |
 | `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
 
@@ -49,10 +50,14 @@ python3 tools/stampe/genera.py --oggi 2026-10-09  # come se fosse quel giorno
 
 I font DejaVu Sans sono inclusi in `tools/stampe/fonts/`: non serve installarli.
 
+Il calendario mensile degli ormeggi serali di Desenzano non fa parte delle stampe; se serve si crea a mano:
+`python3 tools/stampe/calendario.py stampe/ormeggi.json calendario.pdf`.
+
 ## Cosa arriva dagli O.d.S. e cosa no
 
 - **Dagli O.d.S. settimanali** (allegato "TURNO NAVI"): nave, pontile di ormeggio serale e
   rifornimenti dei gruppi D1–D4 e BIS (più S.S. quando ormeggia a un pontile).
 - **Scritti negli script** (orario invernale, O.d.S. n. 39/2026): orari delle navi, servizi a
   terra (AgB, PonD, AgM, AgT1) e regole dei rifornimenti. Vanno aggiornati con il nuovo orario
-  stagionale (`a4_desenzano.py`, `a4_maderno.py`, `cover.py`).
+  stagionale (`a4_desenzano.py`, `a4_maderno.py`, `cover.py`, e per i passeggeri
+  `a4_passeggeri_maderno.py` / `a4_passeggeri_desenzano.py`; l'impaginazione è in `passeggeri.py`).

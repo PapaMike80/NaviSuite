@@ -30,6 +30,8 @@
     ['19.00', 'A', 'D2', '27', 'da Lazise'],
     ['19.40', 'A', 'D1', '19', 'da Garda']
   ];
+  // Bolgette (per corsa): Maderno e Riva con la R1 (7 e 8), Cantiere di Peschiera con le corse 30-31 / 38-39
+  const BOLGETTE = { 7: 'BOLGETTA · ARRIVA', 8: 'BOLGETTA · PARTE', 31: 'BOLGETTA · ARRIVA', 38: 'BOLGETTA · PARTE' };
   const GRUPPI = ['D1', 'D2', 'D3', 'D4', 'BIS'];
   const GIORNI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
 
@@ -81,7 +83,8 @@
     const naviRows = NAVI.map(([time, kind, code, run, where], i) =>
       `<tr class="${i % 2 ? '' : 'stripe'}${time === '14.30' ? ' split' : ''}"><td class="time">${time}</td>` +
       `<td class="kind">${kind === 'P' ? 'PARTENZA' : 'ARRIVO'}</td><td class="code">${code}</td>` +
-      `<td class="run">${run || '–'}</td><td class="where">${esc(where)}</td></tr>`).join('');
+      `<td class="run">${run || '–'}</td><td class="where">${esc(where)}` +
+      `${BOLGETTE[run] ? `<span class="bolg">${BOLGETTE[run]}</span>` : ''}</td></tr>`).join('');
 
     const head = days.map((d, i) => `<th>${GIORNI[i]} ${fmt(d)}</th>`).join('');
     const body = groups.map((g, gi) => `<tr class="${gi % 2 ? '' : 'stripe'}"><th>${g}</th>` + days.map(d => {
@@ -100,7 +103,7 @@
 @page{size:A4 portrait;margin:0}
 *{box-sizing:border-box}
 html,body{margin:0;background:#d8dde2;color:#000;font-family:"DejaVu Sans",Verdana,Arial,sans-serif}
-.sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:13mm 18mm 10mm;overflow:hidden}
+.sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:11mm 18mm 9mm;overflow:hidden}
 h1{font-size:26pt;margin:0;line-height:1}
 .sub{font-size:12pt;margin:2mm 0 0}.src{font-size:9pt;color:#333;margin:1.5mm 0 0}
 .boxes{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:4mm}
@@ -108,20 +111,21 @@ h1{font-size:26pt;margin:0;line-height:1}
 .box b{font-size:16pt}.box .h{text-align:right;font-size:13pt;line-height:1.25}.box small{grid-column:1/-1;font-size:7.5pt;color:#333}
 table{border-collapse:collapse;width:100%}
 .navi{margin-top:6mm}.navi th{background:#000;color:#fff;font-size:9pt;text-align:left;padding:1.4mm 2mm}
-.navi td{height:6.1mm;padding:0 2mm;font-size:12pt;white-space:nowrap}
+.navi td{height:5.9mm;line-height:1;padding:0 2mm;font-size:12pt;white-space:nowrap}
 .navi .time{font-weight:700;font-size:15pt;text-align:right;width:20mm}.navi .kind{font-weight:700;font-size:10.5pt;width:30mm}
 .navi .code{font-weight:700;font-size:15pt;width:22mm}.navi .run{width:22mm}
+.navi .bolg{float:right;background:#000;color:#fff;font-weight:700;font-size:8.5pt;border-radius:1.5mm;padding:.5mm 2.5mm;margin-top:.6mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .stripe td,.stripe th{background:#ededed}.navi tr.split td{border-top:1.4px solid #000}
 .orm-title{margin:5mm 0 2mm;font-size:12pt;font-weight:700;white-space:nowrap}.orm-title span{font-weight:400;font-size:8.5pt;color:#333;margin-left:3mm}
 .orm{table-layout:fixed}.orm thead th{background:#000;color:#fff;font-size:9pt;padding:1.3mm 0}
 .orm thead th:first-child{width:12mm}
 .orm tbody th{text-align:left;font-size:12pt;padding-left:1.5mm}
-.orm td{height:9.2mm;text-align:center;border-left:.4px solid #000;line-height:1.05}
+.orm td{height:8.6mm;text-align:center;border-left:.4px solid #000;line-height:1.05}
 .orm .pont{font-weight:700;font-size:14pt}.orm .rif{font-weight:700;font-size:9pt;margin-left:1.2mm;vertical-align:2pt}
 .orm .ship{display:block;font-size:7pt;white-space:nowrap;overflow:hidden}
 .orm .next{font-size:6.5pt;color:#333;background:#fff}.orm .none{font-size:10pt}
 .rules{margin-top:4mm;font-size:8.4pt;line-height:1.45}.rules b{font-size:8.6pt}
-.notes{margin-top:1.5mm;font-size:8.2pt;color:#333;line-height:1.45}
+.notes{margin-top:1.5mm;font-size:8.2pt;color:#333;line-height:1.45}.notes b{color:#000;font-size:8.6pt}
 .print-actions{position:fixed;top:8px;right:8px;display:flex;gap:6px}
 .print-actions button{font:700 13px sans-serif;padding:8px 12px;border-radius:8px;border:1px solid #000;background:#fff;cursor:pointer}
 @media print{html,body{background:#fff}.sheet{margin:0}.print-actions{display:none}}
@@ -141,7 +145,9 @@ table{border-collapse:collapse;width:100%}
 <div class="rules"><b>R = rifornimento a Desenzano prima delle corse, per quanto possibile a cura di AgB o PonD:</b><br>
 D1 martedì e venerdì · D2 lunedì e giovedì (eventuale rabbocco il mercoledì avvisando la Direzione)<br>
 D1 e D2: motorista mezz'ora prima del normale orario · BIS tutti i giorni, liberato il pontile 5 o 3</div>
-<div class="notes">BIS: pronti a muovere alle 8.30 verso Garda, a disposizione dell'Ufficio Movimento, rientro alle 18.40.<br>
+<div class="notes"><b>Bolgette Maderno e Riva: arrivano con la R1 c. 7 alle 13.30, ripartono con la R1 c. 8 alle 14.30.</b><br>
+<b>Bolgetta Cantiere Peschiera: arriva con le c. 30 e 31 alle 10.30, riparte con le c. 38 e 39 alle 16.20.</b><br>
+BIS: pronti a muovere alle 8.30 verso Garda, a disposizione dell'Ufficio Movimento, rientro alle 18.40.<br>
 Dal 2 novembre 2026 al 12 marzo 2027 nessuna corsa di linea a Desenzano.</div>
 </div></body></html>`;
   }
