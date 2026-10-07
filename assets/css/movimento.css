@@ -146,3 +146,14 @@ html.navisuite-light .mov-day-current{color:#17323a!important}
 .mov-bis-form label span{color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 @media(max-width:560px){.mov-bis li{grid-template-columns:auto 1fr}.mov-bis li .mov-crew-act{grid-column:1/-1;flex-wrap:wrap}.mov-bis-form label{flex:1 1 140px}.mov-bis-form select{width:100%}}
 html.navisuite-light .mov-bis select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
+/* Ritardi delle corse */
+.mov-ritardi{padding:2px 12px 4px;border-top:1px solid #1d4350}
+.mov-ritardi ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:5px;margin:0 0 6px;padding:0;list-style:none}
+.mov-ritardi li{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.03);font-size:12px}
+.mov-ritardi li b{font-size:12px}
+.mov-ritardi li.late{background:rgba(245,158,11,.10)}
+.mov-ritardi select{padding:6px 8px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#e8f7f7;font:700 12px inherit}
+.mov-ritardi li.late select{border-color:#b45309;color:#fcd34d}
+.mov-rit-prop{grid-column:1/-1;color:#fcd34d;font-size:11px}
+@media(max-width:560px){.mov-ritardi ul{grid-template-columns:1fr}}
+html.navisuite-light .mov-ritardi select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}

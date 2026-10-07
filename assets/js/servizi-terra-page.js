@@ -166,13 +166,23 @@
     const aiuti = OG ? incarichi.filter(inc => inc.tipo === 'aiuto').flatMap(inc => {
       const numeri = new Set(OG.corseIncarico(inc, now.today).map(c => c.numero));
       return D.NAVI_CON_TRAGHETTO[state.residence].filter(row => row[2] === inc.turno && numeri.has(String(row[3])))
-        .map(row => [row[0], row[1], 'BIS', row[3], `${row[4]} · in aiuto alla ${inc.turno}`, row[5]]);
+        .map(row => [row[0], row[1], 'BIS', row[3], `${row[4]} · in aiuto alla ${inc.turno}`, row[5], inc.turno]);
     }) : [];
     const navi = [...D.NAVI_CON_TRAGHETTO[state.residence], ...aiuti].sort((a, b) => T.minutes(a[0]) - T.minutes(b[0]));
     const firstIndex = {}, lastIndex = {};
     navi.forEach(([, , code], i) => { if (!(code in firstIndex)) firstIndex[code] = i; lastIndex[code] = i; });
     let nextFound = false;
-    const items = navi.map(([time, kind, code, run, where, arrival], index) => {
+    // Ritardi del Movimento (anche quelli passati alle corse dopo): orario spostato e "+15'".
+    const ritardi = OG ? OG.ritardiDelGiorno(turni) : {};
+    const effettive = {};
+    const ritardoCorsa = (turno, run) => {
+      if (!OG || !run || !ritardi[turno]) return null;
+      effettive[turno] = effettive[turno] || OG.corseDelTurno(turno, now.today, ritardi[turno]);
+      return effettive[turno].find(c => c.numero === String(run))?.ritardo || null;
+    };
+    const items = navi.map(([scheduled, kind, code, run, where, arrival, per], index) => {
+      const ritardo = ritardoCorsa(per || code, run);
+      const time = ritardo ? OG.hhmm(T.minutes(scheduled) + ritardo.minuti) : scheduled;
       // Mattino: prima partenza del turno, la nave e' ormeggiata dalla sera prima (eventuale rifornimento).
       const morning = kind === 'P' && firstIndex[code] === index;
       // Sera: l'ultimo movimento del turno e' un arrivo, la nave resta qui per la notte.
@@ -190,7 +200,7 @@
         // Un arrivo seguito da una partenza della stessa nave: la nave riparte dallo stesso pontile.
         const after = kind === 'A' ? navi.slice(index + 1).find(row => row[2] === code) : null;
         const follow = after && after[1] === 'P' ? courseKey(after[0], after[2], after[3]) : '';
-        badges.push(pontileSelect(courseKey(time, code, run), now.today, odsMooring, morning ? 'del mattino' : evening ? 'serale' : '', follow));
+        badges.push(pontileSelect(courseKey(scheduled, code, run), now.today, odsMooring, morning ? 'del mattino' : evening ? 'serale' : '', follow));
       } else if (odsMooring) {
         // Maderno: solo l'ormeggio del mattino e della sera dagli O.d.S.
         badges.push(`<b class="ormeggio" title="Ormeggio ${morning ? 'del mattino (dalla sera prima)' : 'serale'}">⚓ ${esc(pontLabel(odsMooring))}</b>`);
@@ -210,11 +220,11 @@
       // Corse sospese dall'Ufficio Movimento (lago mosso, guasto...)
       const sospesa = turni[code]?.sospesa ? `<b class="sospesa" title="${esc(turni[code].motivo || 'Corse sospese dal Movimento')}">SOSPESA</b>` : '';
       const info = [sospesa, bis, ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
-      const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
+      const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}${ritardo ? `<small class="rit" title="Ritardo · in orario ${esc(scheduled)}">${esc(OG.testoRitardo(ritardo))}</small>` : ''}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line">${info || '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
-      return { html, state: state_, split: time === split, code, crewCode, ship, where, ferry: /^T[12]$/.test(code), sospesa: !!sospesa };
+      return { html, state: state_, split: scheduled === split, code, crewCode, ship, where, ferry: /^T[12]$/.test(code), sospesa: !!sospesa };
     });
     // Navi gia' partite: nascoste tranne l'ultima (spenta); la freccia le mostra tutte.
     const pastIdx = items.map((item, i) => item.state === 'past' ? i : -1).filter(i => i >= 0);

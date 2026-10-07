@@ -230,6 +230,10 @@
       sospesa:values.sospesa === true,
       sospesa_motivo:values.sospesa ? String(values.sospesa_motivo || "").trim() : "",
       sospesa_il:values.sospesa ? String(values.sospesa_il || new Date().toISOString()) : "",
+      // ritardi per corsa (a scatti di 5 minuti fino a 2 ore, oppure oltre 2 ore)
+      ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => ({
+        corsa:String(r.corsa), minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true
+      })),
       // BIS: incarichi del giorno (sostituisce un turno nave o fa corse in aiuto)
       incarichi:(Array.isArray(values.incarichi) ? values.incarichi : []).filter(inc => inc && inc.turno && inc.dalla).map(inc => ({
         tipo:inc.tipo === "aiuto" ? "aiuto" : "sostituzione", turno:String(inc.turno).toUpperCase(),

@@ -131,7 +131,7 @@
     } else {
       azioni = `<button class="btn danger" type="button" data-act="suspend" data-code="${code}">Sospendi corse</button>`;
     }
-    if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione${code === 'BIS' ? ' (gli incarichi del BIS restano)' : ''}">↺ O.d.S.</button>`;
+    if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione (ritardi${code === 'BIS' ? ' e incarichi del BIS' : ''} restano)">↺ O.d.S.</button>`;
     if (code !== 'BIS' && O.inServizio('BIS', day)) azioni += `<button class="btn ghost" type="button" data-act="bis-form" data-code="${code}" title="Il BIS sostituisce questa nave o fa corse in aiuto">⇄ BIS</button>`;
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
     const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
@@ -143,13 +143,34 @@
         ${field('ormeggio_serale', 'Ormeggio sera', r.ormeggio || '', 'list="mov-ormeggi" placeholder="—"')}
         <label class="mov-rif" title="Rifornimento la mattina"><input type="checkbox" data-code="${code}" data-f="rif"${r.rif ? ' checked' : ''}> R</label>
         <button class="mov-crew-btn${avviso ? ' warn' : ''}" type="button" data-act="open" data-code="${code}" aria-expanded="${open}">
-          👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''} <span>${open ? '▴' : '▾'}</span></button>
+          👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''} <span>${open ? '▴' : '▾'}</span></button>
         <div class="mov-actions">${azioni}</div>
       </div>
       ${code === 'BIS' ? bisPanel(day, r) : ''}
-      ${open ? equipaggio(code, day, r, crew, tutti, min) : ''}
+      ${open ? ritardiPanel(code, day, r) + equipaggio(code, day, r, crew, tutti, min) : ''}
     </article>`;
   }
+
+  // Ritardi: per ogni corsa del turno in orario, +5' ... +2h a scatti di 5 minuti, oltre 2 ore. Il
+  // ritardo passa da solo alle corse successive se la nave arriva dopo la loro partenza.
+  const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
+  const ritardoValore = r => (!r ? '' : r.oltre ? 'oltre' : String(r.minuti));
+  function ritardiPanel(code, day, r) {
+    const corse = O.corseDelTurno(code, day);
+    if (!corse.length) return '';
+    const effettive = O.corseDelTurno(code, day, r.ritardi);
+    const righe = corse.map((c, i) => {
+      const proprio = r.ritardi?.[c.numero];
+      const eff = effettive[i];
+      const opzioni = `<option value="">in orario</option>${RITARDI.map(v => `<option value="${v}"${v === ritardoValore(proprio) ? ' selected' : ''}>${v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) })}</option>`).join('')}`;
+      const nota = eff.ritardo?.propagato ? `<small class="mov-rit-prop">${esc(O.testoRitardo(eff.ritardo))} dalla corsa prima · parte ${esc(eff.scali[0][1])}</small>`
+        : proprio ? `<small class="mov-rit-prop">parte ${esc(eff.scali[0][1])}, arriva ${esc(eff.scali[eff.scali.length - 1][1])}</small>` : '';
+      return `<li class="${proprio || eff.ritardo ? 'late' : ''}"><span><b>c. ${esc(c.numero)}</b> · ${esc(c.scali[0][1])} ${esc(c.scali[0][0])} → ${esc(c.scali[c.scali.length - 1][1])} ${esc(c.scali[c.scali.length - 1][0])}</span>` +
+        `<select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>${nota}</li>`;
+    }).join('');
+    return `<div class="mov-ritardi"><p class="mov-bis-title">⏱ Ritardi delle corse</p><ul>${righe}</ul></div>`;
+  }
+  const ritardiLista = map => Object.entries(map || {}).map(([corsa, r]) => ({ corsa, minuti: r.minuti, oltre: !!r.oltre }));
 
   function equipaggio(code, day, r, crew, tutti, min) {
     const altri = [...O.TURNI, 'BIS'].filter(c => c !== code);
@@ -252,7 +273,7 @@
     const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
     const values = {
       nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
-      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ...patch
+      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), ...patch
     };
     try {
       state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code, values, autore);
@@ -268,12 +289,13 @@
     setStatus('Ripristino…');
     try {
       const incarichi = code === 'BIS' ? (state.oggi.BIS?.incarichi || []) : [];
+      const ritardi = ritardiLista(state.oggi[code]?.ritardi);
       state.turniNavi = await window.NaviAdminFirebase.ripristinaTurnoNave(state.day, code);
-      // il BIS torna alla nave dell'O.d.S. ma tiene gli incarichi del giorno
-      if (incarichi.length) {
-        const r = T.turniDelGiorno(righeNavi(), state.day).BIS || {};
-        state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, 'BIS',
-          { nave: r.nave || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif, incarichi }, autore);
+      // torna la nave dell'O.d.S., ma restano i ritardi e gli incarichi del BIS del giorno
+      if (incarichi.length || ritardi.length) {
+        const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
+        state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code,
+          { nave: r.nave || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif, incarichi, ritardi }, autore);
       }
       setStatus(`${code}: nave e ormeggi dell'O.d.S. ripristinati.`, 'ok');
     } catch (error) {
@@ -312,6 +334,13 @@
       const value = el.value.trim();
       const nomi = { nave: 'nave', ormeggio_mattino: 'ormeggio del mattino', ormeggio_serale: 'ormeggio della sera' };
       salva(code, { [el.dataset.f]: value }, `${code}: ${nomi[el.dataset.f]} ${value || 'tolto'}.`);
+      return;
+    }
+    if (el.dataset.act === 'ritardo') {
+      const r = state.oggi[code] || {};
+      const ritardi = ritardiLista(r.ritardi).filter(x => x.corsa !== el.dataset.corsa);
+      if (el.value) ritardi.push({ corsa: el.dataset.corsa, minuti: el.value === 'oltre' ? 120 : Number(el.value), oltre: el.value === 'oltre' });
+      salva(code, { ritardi }, el.value ? `${code} corsa ${el.dataset.corsa}: ritardo ${O.testoRitardo({ minuti: Number(el.value), oltre: el.value === 'oltre' })}.` : `${code} corsa ${el.dataset.corsa}: in orario.`);
       return;
     }
     if (el.dataset.bis) {

@@ -46,8 +46,35 @@
     return corse;
   }
 
+  // Ritardi dell'Ufficio Movimento per corsa: {numero: {minuti, oltre}} (oltre = piu' di 2 ore, contato
+  // come 2 ore). La corsa in ritardo ha tutti gli orari spostati e il campo ritardo.
+  // Il ritardo passa alle corse successive della stessa nave quanto la nave arriva dopo la loro partenza
+  // (si recupera nelle soste): ritardo propagato = {minuti, oltre, propagato: true}.
+  function conRitardi(corse, ritardi) {
+    if (!ritardi || !Object.keys(ritardi).length) return corse;
+    let arrivo = -Infinity, oltre = false;
+    return corse.map(c => {
+      const proprio = ritardi[c.numero];
+      const partenza = minutes(c.scali[0][1]);
+      const portato = Math.max(0, arrivo - partenza);
+      const minuti = Math.max(proprio?.minuti || 0, portato);
+      const r = !minuti ? null : proprio && proprio.minuti >= portato ? proprio : { minuti, oltre: oltre && portato >= 120, propagato: true };
+      const out = r ? { ...c, ritardo: r, scali: c.scali.map(([s, t]) => [s, hhmm(minutes(t) + minuti)]) } : c;
+      arrivo = minutes(out.scali[out.scali.length - 1][1]);
+      oltre = !!r?.oltre;
+      return out;
+    });
+  }
+  const durata = n => (n < 60 ? `${n}'` : `${Math.floor(n / 60)}h${n % 60 ? ` ${String(n % 60).padStart(2, '0')}'` : ''}`);
+  // "+15'", "+1h 05'", "oltre 2 ore"
+  const testoRitardo = r => (!r ? '' : r.oltre ? 'oltre 2 ore' : `+${durata(r.minuti)}`);
+  // Ritardi di tutti i turni dai turni nave del giorno (NaviServiziTerra.turniDelGiorno): {turno: {numero: r}}.
+  const ritardiDelGiorno = turni => Object.fromEntries(Object.entries(turni || {}).filter(([, v]) => v?.ritardi).map(([code, v]) => [code, v.ritardi]));
+
   // Corse del turno con gli scali: [{numero, turno, scali: [[scalo, ora], ...]}] in ordine di orario.
-  function corseDelTurno(code, day) {
+  // ritardi (facoltativo): quelli del turno, {numero: {minuti, oltre}}.
+  function corseDelTurno(code, day, ritardi) { return conRitardi(corseDaOrario(code, day), ritardi); }
+  function corseDaOrario(code, day) {
     if (code === 'T1' || code === 'T2') {
       return (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(row => row[2] === code).map(([time, kind, , run]) => ({
         numero: run, turno: code,
@@ -67,14 +94,14 @@
     return senzaRipetizioni(corse);
   }
 
-  // Tutte le corse in servizio nel giorno.
-  function corseDelGiorno(day) {
-    return TURNI.filter(code => inServizio(code, day)).flatMap(code => corseDelTurno(code, day));
+  // Tutte le corse in servizio nel giorno; ritardi: {turno: {numero: r}}.
+  function corseDelGiorno(day, ritardi = {}) {
+    return TURNI.filter(code => inServizio(code, day)).flatMap(code => corseDelTurno(code, day, ritardi[code]));
   }
 
   // Viaggi della nave: corse consecutive dello stesso turno unite quando la successiva parte dallo
   // scalo d'arrivo entro 15' (la nave prosegue). Scali [scalo, ora, corsa].
-  function viaggiDelTurno(code, day) { return viaggiDaCorse(code, corseDelTurno(code, day)); }
+  function viaggiDelTurno(code, day, ritardi) { return viaggiDaCorse(code, corseDelTurno(code, day, ritardi)); }
   function viaggiDaCorse(code, corse) {
     const viaggi = [];
     corse.forEach(corsa => {
@@ -90,14 +117,14 @@
     });
     return viaggi;
   }
-  const viaggiDelGiorno = day => TURNI.filter(code => inServizio(code, day)).flatMap(code => viaggiDelTurno(code, day));
+  const viaggiDelGiorno = (day, ritardi = {}) => TURNI.filter(code => inServizio(code, day)).flatMap(code => viaggiDelTurno(code, day, ritardi[code]));
 
   // BIS, il servizio di emergenza: l'Ufficio Movimento gli assegna degli incarichi del giorno
   // [{tipo: 'sostituzione' | 'aiuto', turno, dalla, alla}]: fa le corse del turno dalla corsa `dalla`
   // alla corsa `alla` compresa (vuota = fino a nuovo ordine), al posto della nave del turno
   // (sostituzione) o in piu' (aiuto, corse aggiuntive).
-  function corseIncarico(incarico, day) {
-    const corse = corseDelTurno(String(incarico?.turno || ''), day);
+  function corseIncarico(incarico, day, ritardi = {}) {
+    const corse = corseDelTurno(String(incarico?.turno || ''), day, ritardi[incarico?.turno]);
     const i = corse.findIndex(c => c.numero === String(incarico?.dalla || ''));
     if (i < 0) return [];
     const j = incarico.alla ? corse.findIndex(c => c.numero === String(incarico.alla)) : -1;
@@ -105,14 +132,14 @@
       .map(c => ({ ...c, turno: 'BIS', per: String(incarico.turno), tipo: incarico.tipo === 'aiuto' ? 'aiuto' : 'sostituzione' }));
   }
   // Corse del BIS nel giorno, in ordine di orario.
-  const corseBis = (incarichi, day) => (incarichi || []).flatMap(inc => corseIncarico(inc, day))
+  const corseBis = (incarichi, day, ritardi) => (incarichi || []).flatMap(inc => corseIncarico(inc, day, ritardi))
     .sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
   // Incarico di sostituzione che copre la corsa `numero` del turno (la fa il BIS), o null.
   const bisPerCorsa = (incarichi, turno, numero, day) => (incarichi || []).find(inc => inc?.tipo !== 'aiuto' && inc?.turno === turno &&
     corseIncarico(inc, day).some(c => c.numero === String(numero))) || null;
   // Viaggi del BIS in aiuto (corse aggiuntive): le sostituzioni restano nei viaggi del turno.
-  const viaggiBis = (incarichi, day) => viaggiDaCorse('BIS', corseBis((incarichi || []).filter(inc => inc?.tipo === 'aiuto'), day));
+  const viaggiBis = (incarichi, day, ritardi) => viaggiDaCorse('BIS', corseBis((incarichi || []).filter(inc => inc?.tipo === 'aiuto'), day, ritardi));
 
   root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
-    corseIncarico, corseBis, bisPerCorsa, viaggiBis };
+    corseIncarico, corseBis, bisPerCorsa, viaggiBis, conRitardi, testoRitardo, ritardiDelGiorno };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -64,26 +64,38 @@
     const aiuti = OG?.corseIncarico ? incarichi.filter(inc => inc.tipo === 'aiuto').flatMap(inc => {
       const numeri = new Set(OG.corseIncarico(inc, day).map(c => c.numero));
       return arrivi.filter(a => a.code === inc.turno && numeri.has(String(a.run)))
-        .map(a => ({ ...a, code: 'BIS', where: `${a.where} · in aiuto alla ${inc.turno}`, evening: false }));
+        .map(a => ({ ...a, code: 'BIS', per: inc.turno, where: `${a.where} · in aiuto alla ${inc.turno}`, evening: false }));
     }) : [];
+    // Ritardi del Movimento (anche quelli passati alle corse dopo): l'avviso si sposta con l'arrivo
+    const ritardi = OG?.ritardiDelGiorno ? OG.ritardiDelGiorno(navi) : {};
+    const effettive = {};
+    const ritardoCorsa = (turno, run) => {
+      if (!run || !ritardi[turno]) return null;
+      effettive[turno] = effettive[turno] || OG.corseDelTurno(turno, day, ritardi[turno]);
+      return effettive[turno].find(c => c.numero === String(run))?.ritardo || null;
+    };
     // le corse sospese dall'Ufficio Movimento non arrivano
-    return [...arrivi, ...aiuti].filter(arrivo => !navi[arrivo.code]?.sospesa).sort((a, b) => minutes(a.time) - minutes(b.time)).map(arrivo => {
-      const { time, code, run, kind, where, evening, residenza } = arrivo;
+    return [...arrivi, ...aiuti].filter(arrivo => !navi[arrivo.code]?.sospesa).map(arrivo => {
+      const ritardo = ritardoCorsa(arrivo.per || arrivo.code, arrivo.run);
+      return { ...arrivo, scheduled: arrivo.time, ritardo, time: ritardo ? hhmm(minutes(arrivo.time) + ritardo.minuti) : arrivo.time };
+    }).sort((a, b) => minutes(a.time) - minutes(b.time)).map(arrivo => {
+      const { time, scheduled, ritardo, code, run, kind, where, evening, residenza } = arrivo;
       const chi = code !== 'BIS' && run && OG?.bisPerCorsa?.(incarichi, code, run, day) ? 'BIS' : code;
       const odsMooring = evening ? navi[code]?.ormeggio : '';
       const pontile = residenza === 'DESENZANO'
-        ? T().pontileFor(pontili[T().courseKey(time, code, run)], day, odsMooring).value
+        ? T().pontileFor(pontili[T().courseKey(scheduled, code, run)], day, odsMooring).value
         : T().pontLabel(odsMooring || '');
       const nave = navi[chi]?.nave || '';
       const comandante = G().comandante(crews[chi]);
       const percorso = kind === 'S' ? `scalo ${where.replace('›', '→')}` : where;
-      const title = `${code}${chi !== code ? ' · BIS' : ''}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}`;
+      const title = `${code}${chi !== code ? ' · BIS' : ''}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}${ritardo ? ` (${OG.testoRitardo(ritardo)})` : ''}`;
       const body = [[pontile ? `⚓ Pontile ${pontile}` : '', percorso, run ? `corsa ${run}` : ''].filter(Boolean).join(' · '),
         comandante ? `Comandante ${comandante}` : ''].filter(Boolean).join('\n');
       const at = minutes(time) - anticipo;
       return {
         at, quando: hhmm(at), time, code, run, servizio, pontile, nave, comandante, title, body,
-        tag: `navisuite-arrivo-${day}-${code}-${run || time}`, url: 'servizi-terra.html'
+        // con un ritardo nuovo arriva un nuovo avviso
+        tag: `navisuite-arrivo-${day}-${code}-${run || scheduled}${ritardo ? `-r${ritardo.minuti}` : ''}`, url: 'servizi-terra.html', ritardo
       };
     });
   }

@@ -79,3 +79,5 @@
   .or-map{max-height:62vh}
   .or-stops{margin-left:8px}
 }
+.or-rit{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;background:rgba(245,158,11,.18);color:#fbbf24;font-size:10px;font-weight:900;vertical-align:middle}
+.ora .or-rit{display:block;margin:2px 0 0;width:max-content}

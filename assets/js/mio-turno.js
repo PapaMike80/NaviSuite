@@ -32,7 +32,7 @@
   ];
 
   // Corse dei turni, scali e periodi dell'orario: assets/js/orario-giorno.js (in comune con Orario).
-  const { inServizio, corseDelTurno, corseBis, bisPerCorsa, corseIncarico } = window.NaviOrarioGiorno;
+  const { inServizio, corseDelTurno, corseBis, bisPerCorsa, corseIncarico, ritardiDelGiorno, testoRitardo } = window.NaviOrarioGiorno;
 
   function profile() {
     try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; }
@@ -76,7 +76,9 @@
     // BIS: le corse assegnate dall'Ufficio Movimento (al posto di un'altra nave o in aiuto); gli altri
     // turni: le proprie, segnando quelle che fa il BIS al posto della nave.
     const incarichi = T.turniDelGiorno(turniNavi, day).BIS?.incarichi || [];
-    const corse = code === 'BIS' ? corseBis(incarichi, day) : corseDelTurno(code, day);
+    // ritardi del Movimento: orari spostati (anche delle corse dopo, se la nave arriva tardi)
+    const ritardi = ritardiDelGiorno(T.turniDelGiorno(turniNavi, day));
+    const corse = code === 'BIS' ? corseBis(incarichi, day, ritardi) : corseDelTurno(code, day, ritardi[code]);
     const naveBis = T.turniDelGiorno(turniNavi, day).BIS?.nave || '';
     const sostituzione = code !== 'BIS' ? incarichi.find(inc => inc.tipo !== 'aiuto' && inc.turno === code) : null;
     const corseSostituite = sostituzione ? corseIncarico(sostituzione, day) : [];
@@ -99,11 +101,11 @@
       const prev = rows[rows.length - 1];
       const bolgetta = (BOLGETTE[corsa.numero] || {})[nome];
       if (j === 0 && prev && prev.nome === nome && prev.orario === orario) {
-        prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta;
+        prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta; prev.rit = prev.rit || corsa.ritardo;
         return;
       }
       const last = j === corsa.scali.length - 1;
-      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0,
+      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0, rit: j === 0 ? corsa.ritardo : null,
         per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
     if (rows.length) rows[rows.length - 1].kind = 'A';
@@ -134,7 +136,7 @@
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
         const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.split ? ' split' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
-        return `<div class="${cls}"><span class="ora">${esc(row.orario)}</span>` +
+        return `<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;

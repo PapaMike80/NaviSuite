@@ -317,7 +317,7 @@ ${FIT}</body></html>`;
   // {turno: {nave, ormeggio, rif, ormeggioMattino, sospesa, motivo, movimento}} con ormeggio =
   // "pontile 5", "porto esterno"... o '' (della sera), rif = rifornimento la mattina; dall'Ufficio
   // Movimento anche l'ormeggio del mattino (altrimenti e' quello della sera prima), le corse sospese e,
-  // per il BIS, gli incarichi del giorno (vedi NaviOrarioGiorno.corseIncarico).
+  // per il BIS, gli incarichi del giorno (vedi NaviOrarioGiorno.corseIncarico); i ritardi per corsa.
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -333,7 +333,11 @@ ${FIT}</body></html>`;
       if (!nave && !ormeggio && !rif && !movimento) return;
       const pontile = value => { const n = String(value || '').match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1]; return n ? `pontile ${n}` : String(value || '').trim().toLowerCase(); };
       const incarichi = Array.isArray(row.incarichi) ? row.incarichi : Object.values(row.incarichi || {});
-      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true, ...(incarichi.length ? { incarichi } : {}) } : {};
+      // ritardi per corsa: [{corsa, minuti, oltre}] -> {corsa: {minuti, oltre}}
+      const ritardi = Object.fromEntries((Array.isArray(row.ritardi) ? row.ritardi : Object.values(row.ritardi || {}))
+        .filter(r => r?.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => [String(r.corsa), { minuti: r.oltre ? 120 : Number(r.minuti), oltre: r.oltre === true }]));
+      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true,
+        ...(incarichi.length ? { incarichi } : {}), ...(Object.keys(ritardi).length ? { ritardi } : {}) } : {};
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
         out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif, ...extra };
       });

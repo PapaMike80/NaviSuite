@@ -87,11 +87,17 @@
     const navi = T.turniDelGiorno(turniNavi, day);
     // BIS dall'Ufficio Movimento: corse in aiuto (viaggi in piu') e corse al posto di un'altra nave
     const incarichi = navi.BIS?.incarichi || [];
-    const bis = O.inServizio('BIS', day) && !navi.BIS?.sospesa ? O.viaggiBis(incarichi, day) : [];
+    // ritardi del Movimento: orari spostati (anche delle corse dopo, se la nave arriva tardi)
+    const ritardi = O.ritardiDelGiorno(navi);
+    const bisAttivo = O.inServizio('BIS', day) && !navi.BIS?.sospesa;
+    const bis = bisAttivo ? O.viaggiBis(incarichi, day, ritardi) : [];
+    const ritardo = {};
+    [...O.corseDelGiorno(day, ritardi), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day, ritardi) : [])]
+      .forEach(c => { if (c.ritardo) ritardo[`${c.turno}|${c.numero}`] = c.ritardo; });
     return {
-      day, incarichi,
+      day, incarichi, ritardo,
       // le corse sospese dall'Ufficio Movimento non ci sono (ne' sul lago, ne' nei viaggi, ne' allo scalo)
-      viaggi: [...O.viaggiDelGiorno(day).filter(v => !navi[v.turno]?.sospesa), ...bis],
+      viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa), ...bis],
       navi,
       crews: state.schedule ? G.equipaggi(state.schedule, day).navi : {}
     };
@@ -103,6 +109,9 @@
     const c = chi(g, code, corsa);
     return [c !== code ? 'BIS' : '', naveDi(g, c), G.comandante(g.crews[c])].filter(Boolean).join(' · ');
   };
+  // Ritardo della corsa (Movimento): "+15'" in arancio.
+  const ritardoDi = (g, turno, corsa) => g.ritardo?.[`${turno}|${corsa}`] || null;
+  const badgeRitardo = (g, turno, corsa) => { const r = ritardoDi(g, turno, corsa); return r ? `<b class="or-rit" title="Ritardo">${esc(O.testoRitardo(r))}</b>` : ''; };
   const corsaPos = pos => pos?.a?.corsa || pos?.fino?.corsa || pos?.prossimo?.corsa || pos?.ultimo?.corsa || '';
 
   // ---------------- Lago ----------------
@@ -196,7 +205,7 @@
       `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
     const ordinate = navi.slice().sort((a, b) => O.TURNI.indexOf(a.code) - O.TURNI.indexOf(b.code));
     const lista = ordinate.map(item => `<button type="button" class="or-ship-row${item.code === state.selected ? ' active' : ''}" data-ship="${item.code}">` +
-      `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}</small></span></button>`).join('');
+      `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}${ritardoDi(g, item.code, corsaPos(item.pos)) ? ` · ritardo ${esc(O.testoRitardo(ritardoDi(g, item.code, corsaPos(item.pos))))}` : ''}</small></span></button>`).join('');
     const dettaglio = state.selected ? dettaglioNave(g, state.selected, t) : '';
     const side = (dettaglio || '') + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
     return { t, svg, side };
@@ -306,7 +315,7 @@
     const righe = visibili.map((s, i) => {
       const durata = s.arr - s.dep;
       const tratte = s.legs.map(l => `<div class="or-leg">${chip(l.v.turno)}<span><b>${hhmm(l.dep)} ${esc(l.from)} → ${hhmm(l.arr)} ${esc(l.to)}</b>` +
-        `<small>corsa ${esc(l.corsa)}${naveInfo(g, l.v.turno, l.corsa) ? ` · ${esc(naveInfo(g, l.v.turno, l.corsa))}` : ''}</small></span></div>`).join('<div class="or-change">cambio</div>');
+        `<small>corsa ${esc(l.corsa)}${badgeRitardo(g, l.v.turno, l.corsa)}${naveInfo(g, l.v.turno, l.corsa) ? ` · ${esc(naveInfo(g, l.v.turno, l.corsa))}` : ''}</small></span></div>`).join('<div class="or-change">cambio</div>');
       return `<div class="or-trip${i === 0 && realToday() && !state.showPast ? ' next' : ''}${s.dep < ora ? ' past' : ''}"><div class="or-trip-head"><b>${hhmm(s.dep)} → ${hhmm(s.arr)}</b>` +
         `<span>${durata >= 60 ? `${Math.floor(durata / 60)}h${String(durata % 60).padStart(2, '0')}` : `${durata}min`} · ${s.legs.length === 1 ? 'diretta' : `1 cambio a ${esc(s.legs[0].to)}`}</span></div>${tratte}</div>`;
     }).join('');
@@ -361,7 +370,7 @@
       const scali = aperto ? `<ol class="mt-scali or-stops">${e.v.scali.map(([nome, orario, corsa]) =>
         `<li class="${nome === state.scalo && orario === e.ora ? 'coming' : ''}"><span>${esc(orario)}</span>${esc(nome)}<small>c. ${esc(corsa)}</small></li>`).join('')}</ol>` : '';
       return `<div class="or-board-item${aperto ? ' open' : ''}"><div class="nave${/^T[12]$/.test(e.v.turno) ? ' ferry' : ''}${e.stato === 'past' ? ' past' : ''}${e.stato === 'next' ? ' next' : ''}" data-open="${esc(e.key)}" tabindex="0" role="button" aria-expanded="${aperto}">` +
-        `<span class="ora">${esc(e.ora)}</span><span class="tipo ${e.kind}">${KIND[e.kind]}<small>corsa ${esc(e.corsa)}</small></span>${chip(e.v.turno)}` +
+        `<span class="ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span><span class="tipo ${e.kind}">${KIND[e.kind]}<small>corsa ${esc(e.corsa)}</small></span>${chip(e.v.turno)}` +
         `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(e.dove)}</span>${info ? `<span class="cte">${esc(info)}</span>` : ''}</span></span></div>${scali}</div>`;
     }).join('');
     $('orario-content').innerHTML = `<div class="or-single">${card(`Tabellone ${state.scalo}`, `${eventi.length} passaggi`, select + toggle +

@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=13/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=14/);
 assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
@@ -76,8 +76,8 @@ assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;ch
 const terraPage = fs.readFileSync('servizi-terra.html', 'utf8');
 assert.match(terraPage, /class="servizi-terra-page"/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
-assert.match(terraPage, /servizi-terra-a4\.js\?v=13/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=20/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=14/);
+assert.match(terraPage, /servizi-terra-page\.js\?v=21/);
 assert.doesNotMatch(terraPage, /<iframe/); // pagina web, non il foglio A4
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');

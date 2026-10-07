@@ -77,4 +77,20 @@ assert.ok(lista.some(n => n.code === 'BIS' && n.run === '33' && /in aiuto alla P
 assert.ok(lista.some(n => n.code === 'P2' && n.run === '33'));
 assert.match(rest, /incarichi:\(Array\.isArray\(values\.incarichi\)/);
 ['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"', 'data-act="bis-form"'].forEach(act => assert.ok(page.includes(act), act));
+// Ritardi per corsa: orari spostati; il ritardo passa alle corse dopo quanto la nave arriva tardi
+const conRit = rit => O.corseDelTurno('D1', day, rit).map(c => `${c.numero} ${c.scali[0][1]} ${O.testoRitardo(c.ritardo)}${c.ritardo?.propagato ? '*' : ''}`.trim());
+assert.deepStrictEqual(conRit({ 14: { minuti: 25 } }), ["14 9.40 +25'", "15 10.00 +25'*", "16 10.20 +15'*", '17 14.00', '18 17.05', '19 18.35']);
+assert.deepStrictEqual(conRit({ 16: { minuti: 120, oltre: true } }).slice(2, 4), ['16 12.05 oltre 2 ore', "17 15.00 +1h*"]);
+assert.strictEqual(O.testoRitardo({ minuti: 65 }), "+1h 05'");
+const ritRow = { data: day, corsa: 'D1', fonte: 'movimento', attiva: true, nave: 'S. MARCO', ritardi: [{ corsa: '15', minuti: 20 }, { corsa: '17', minuti: 120, oltre: true }] };
+assert.deepStrictEqual(T.turniDelGiorno([ritRow], day).D1.ritardi, { 15: { minuti: 20, oltre: false }, 17: { minuti: 120, oltre: true } });
+assert.deepStrictEqual(O.ritardiDelGiorno(T.turniDelGiorno([ritRow], day)), { D1: { 15: { minuti: 20, oltre: false }, 17: { minuti: 120, oltre: true } } });
+// notifica spostata con l'arrivo, nuovo tag con il ritardo
+const conRitardo = A.notifiche({ ...data, turni_navi: [ritRow] }, '4', day);
+const n15 = conRitardo.find(n => n.run === '15');
+assert.strictEqual(n15.title, "D1 S. MARCO arriva alle 10.15 (+20')");
+assert.strictEqual(n15.quando, '10.05');
+assert.match(n15.tag, /-15-r20$/);
+assert.match(rest, /ritardi:\(Array\.isArray\(values\.ritardi\)/);
+assert.ok(page.includes('data-act="ritardo"'));
 console.log('movimento ok');
