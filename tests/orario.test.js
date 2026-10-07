@@ -112,5 +112,5 @@ assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.repla
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
 assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
 assert.match(js, /while \(resto\[fine \+ 1\]\?\.scalo === state\.scalo\) fine \+= 1;/); // sosta: arrivo e ripartenza, poi lo scalo dopo
-assert.match(js, /riga\(dopo, fine \+ 1, '', false\)/); // quanto manca solo al mio scalo
+assert.match(js, /riga\(dopo, fine \+ 1\)/); // scalo dopo il mio, con quanto manca
 console.log('orario ok');

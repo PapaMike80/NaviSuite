@@ -39,7 +39,10 @@
   }
 
   const params = new URLSearchParams(location.search);
-  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: String(params.get('turno') || '') };
+  // «Prova turno» (provare la pagina con un altro turno) solo per gli admin
+  const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
+  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '' };
+  if (!admin) document.querySelector('.mt-test')?.remove();
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
 
@@ -169,6 +172,7 @@
 
   function renderTestSelect(myShift) {
     const select = $('turno-test');
+    if (!select) return;
     const mine = myShift ? `Il mio turno (${myShift})` : 'Il mio turno';
     select.innerHTML = `<option value="">${esc(mine)}</option>` + TURNI_PROVA.map(([group, codes]) =>
       `<optgroup label="${esc(group)}">${codes.map(code => `<option value="${code}"${code === state.test ? ' selected' : ''}>${code === 'RIP' ? 'Riposo' : code}</option>`).join('')}</optgroup>`).join('');
@@ -233,7 +237,7 @@
   $('turno-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
   $('turno-day-today').addEventListener('click', () => goToDay(iso(new Date())));
   $('turno-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-  $('turno-test').addEventListener('change', event => { state.test = event.target.value; state.showPast = false; render(); });
+  $('turno-test')?.addEventListener('change', event => { state.test = event.target.value; state.showPast = false; render(); });
   $('turno-content').addEventListener('click', event => {
     if (!event.target.closest('[data-past]')) return;
     state.showPast = !state.showPast;
