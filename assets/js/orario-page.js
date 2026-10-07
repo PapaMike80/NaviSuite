@@ -455,11 +455,11 @@
     const pos = posizione(punti, t);
     if (!pos) return '';
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
-    const riga = (p, k, cls = '') => {
+    const riga = (p, k, cls = '', conManca = true) => {
       // quanto manca (entro 2 ore); il primo scalo, se la nave naviga, e' "in arrivo"
       const min = p.t - t;
       const arriva = k === 0 && pos.stato === 'naviga';
-      const manca = cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+      const manca = conManca && cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
       return `<li class="${p.scalo === state.scalo ? 'qui' : ''} ${cls}"><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
     };
     // Se la nave passa dal mio scalo: solo il mio scalo (orario e quanto manca), con lo scalo precedente
@@ -476,9 +476,17 @@
     const giornata = state.giornate.has(code);
     const soloQui = iQui >= 0 || partita;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
+    // Al mio scalo: arrivo e (se la nave fa sosta) ripartenza, poi lo scalo successivo; quanto manca solo
+    // sulle righe del mio scalo
+    function alMioScalo() {
+      let fine = iQui;
+      while (resto[fine + 1]?.scalo === state.scalo) fine += 1;
+      const dopo = resto[fine + 1];
+      return resto.slice(iQui, fine + 1).map((p, j) => riga(p, iQui + j)).join('') + (dopo ? riga(dopo, fine + 1, '', false) : '');
+    }
     const prossimi = giornata ? punti.map((p, k) => riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
-      : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
-        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui) + (resto[iQui + 1] ? riga(resto[iQui + 1], iQui + 1) : '')
+      : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0, '', false) : '')
+        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
