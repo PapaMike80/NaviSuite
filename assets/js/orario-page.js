@@ -467,7 +467,9 @@
     const resto = punti.slice(from);
     const iQui = resto.findIndex(p => p.scalo === state.scalo);
     // partita dal mio scalo da meno di 10 minuti: il mio scalo in trasparenza e il prossimo
-    const partita = punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
+    // (se e' ancora ferma al mio scalo non e' partita: l'ultimo punto li' e' l'arrivo)
+    const ferma = pos.stato === 'fermo' && pos.scalo === state.scalo;
+    const partita = ferma ? null : punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
     const soloQui = (iQui >= 0 || partita) && !state.tuttiScali;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
     const prossimi = !soloQui ? resto.slice(0, 6).map((p, k) => riga(p, k)).join('')
@@ -477,7 +479,15 @@
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
-    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}`.trim(), G.comandante(crew) || '',
+    // Nell'intestazione quanto manca al mio scalo: "in arrivo tra 13 min", "riparte tra 8 min", "partita 3 min fa"
+    let manca = '';
+    if (partita) manca = `partita ${t - partita.t ? `${t - partita.t} min fa` : 'adesso'}`;
+    else if (iQui >= 0 && resto[iQui].t - t <= 120) {
+      const min = resto[iQui].t - t;
+      manca = ferma ? `riparte ${traMin(min)}`
+        : iQui === 0 && pos.stato === 'naviga' ? `in arrivo ${traMin(min)}` : `a ${state.scalo} ${traMin(min)}`;
+    }
+    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}`.trim(), G.comandante(crew) || '',
       `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 

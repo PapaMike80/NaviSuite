@@ -110,4 +110,5 @@ assert.match(portal, /homeRichiesta=new URLSearchParams\(location\.search\)\.has
 assert.match(portal, /navisuite\.startDone/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=\$\{res === 'MADERNO' \? 'Maderno' : 'Desenzano'\}`\)/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
+assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
 console.log('orario ok');
