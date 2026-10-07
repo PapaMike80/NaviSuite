@@ -470,14 +470,15 @@
     // (se e' ancora ferma al mio scalo non e' partita: l'ultimo punto li' e' l'arrivo)
     const ferma = pos.stato === 'fermo' && pos.scalo === state.scalo;
     const partita = ferma ? null : punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
-    // Compatta: lo scalo gia' fatto in trasparenza e il prossimo (il mio scalo, se la nave ci passa);
+    // Compatta: lo scalo gia' fatto in trasparenza e il prossimo (il mio scalo, se la nave ci passa, con lo
+    // scalo dopo il mio);
     // con la freccia l'intera giornata della nave, gli scali gia' fatti in trasparenza.
     const giornata = state.giornate.has(code);
     const soloQui = iQui >= 0 || partita;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
     const prossimi = giornata ? punti.map((p, k) => riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
-        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui)
+        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui) + (resto[iQui + 1] ? riga(resto[iQui + 1], iQui + 1) : '')
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
