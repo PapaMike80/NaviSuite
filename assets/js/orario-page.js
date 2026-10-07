@@ -70,7 +70,7 @@
     view: ['lago', 'viaggio', 'scalo'].includes(params.get('vista')) ? params.get('vista') : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false,
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -207,8 +207,25 @@
     const lista = ordinate.map(item => `<button type="button" class="or-ship-row${item.code === state.selected ? ' active' : ''}" data-ship="${item.code}">` +
       `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}${ritardoDi(g, item.code, corsaPos(item.pos)) ? ` · ritardo ${esc(O.testoRitardo(ritardoDi(g, item.code, corsaPos(item.pos))))}` : ''}</small></span></button>`).join('');
     const dettaglio = state.selected ? dettaglioNave(g, state.selected, t) : '';
-    const side = (dettaglio || '') + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
+    const side = (dettaglio || '') + alloScalo(g, t) + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
     return { t, svg, side };
+  }
+
+  // Sezione "Allo scalo": le prossime navi che partono, passano o arrivano allo scalo (dall'ora scelta).
+  function alloScalo(g, t) {
+    const KIND = { P: 'parte', A: 'arriva', S: 'passa' };
+    const eventi = eventiScalo(g, state.scalo);
+    const dopo = eventi.filter(e => e.t >= t);
+    const prima = eventi.filter(e => e.t < t).slice(-1);
+    const righe = [...prima, ...dopo.slice(0, 6)].map(e => {
+      const info = naveInfo(g, e.v.turno, e.corsa);
+      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
+        `<span><b>${KIND[e.kind]} · ${esc(e.dove)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
+    }).join('');
+    const vuoto = eventi.length ? 'Nessun\'altra nave in questo giorno.' : 'Nessuna nave in questo scalo nel giorno scelto.';
+    return card(`Allo scalo`, dopo.length ? `${dopo.length} navi da qui in poi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
+      `${righe ? `<ol class="or-at">${righe}</ol>` : ''}${dopo.length ? '' : `<p class="legend">${vuoto}</p>`}` +
+      `<button type="button" class="past-toggle" data-goto="scalo">Tabellone completo di ${esc(state.scalo)} ›</button>`, 'or-at-card');
   }
 
   function controlliTempo(t) {
@@ -220,6 +237,7 @@
   }
 
   function renderLago() {
+    posizioneGps();
     const { t, svg, side } = lagoParti();
     $('orario-content').innerHTML = `<div class="terra-grid or-lago"><div class="terra-col">` +
       card('Lago', 'posizione delle navi all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`) +
@@ -285,18 +303,27 @@
     };
     return SCALI.map(nome => ({ nome, km: km(MAPPA.scali[nome].geo) })).sort((a, b) => a.km - b.km)[0];
   }
-  function partenzaDaGps() {
-    if (state.gps || state.fromScelto || !navigator.geolocation) return;
+  // Una sola lettura della posizione: vale per la partenza di Da -> A e per lo scalo (tabellone e
+  // sezione "Allo scalo" del Lago), finche' non li si sceglie a mano.
+  function posizioneGps() {
+    if (state.gps || !navigator.geolocation) return;
     state.gps = { attesa: true };
     navigator.geolocation.getCurrentPosition(pos => {
       const vicino = scaloVicino(pos.coords.latitude, pos.coords.longitude);
       state.gps = vicino;
-      if (vicino.km > 3 || state.fromScelto) return;
-      if (state.to === vicino.nome) state.to = state.from !== vicino.nome ? state.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
-      state.from = vicino.nome;
-      if (state.view === 'viaggio') render();
+      if (vicino.km > 3) return;
+      if (!state.fromScelto) {
+        if (state.to === vicino.nome) state.to = state.from !== vicino.nome ? state.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
+        state.from = vicino.nome;
+      }
+      if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; }
+      render();
     }, () => { state.gps = { errore: true }; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60000 });
   }
+  const partenzaDaGps = posizioneGps;
+  // "📍 Sei a 120 m da Maderno" quando lo scalo scelto e' quello vicino
+  const gpsHint = scalo => (state.gps?.nome && state.gps.km <= 3 && scalo === state.gps.nome
+    ? `<p class="or-gps">📍 Sei a ${state.gps.km < 1 ? `${Math.round(state.gps.km * 1000)} m` : `${state.gps.km.toFixed(1).replace('.', ',')} km`} da ${esc(state.gps.nome)}</p>` : '');
 
   function renderViaggio() {
     partenzaDaGps();
@@ -305,8 +332,7 @@
     const form = `<div class="or-route"><label><span>Da</span><select id="or-from">${opzioni(state.from)}</select></label>` +
       `<button type="button" class="or-swap" data-swap aria-label="Inverti">⇅</button>` +
       `<label><span>A</span><select id="or-to">${opzioni(state.to)}</select></label></div>` +
-      (state.gps?.nome && state.gps.km <= 3 && state.from === state.gps.nome
-        ? `<p class="or-gps">📍 Sei a ${state.gps.km < 1 ? `${Math.round(state.gps.km * 1000)} m` : `${state.gps.km.toFixed(1).replace('.', ',')} km`} da ${esc(state.gps.nome)}</p>` : '');
+      gpsHint(state.from);
     const tutte = state.from === state.to ? [] : soluzioni(g, state.from, state.to);
     const ora = realToday() ? nowMinutes() : -1;
     const passate = tutte.filter(s => s.dep < ora);
@@ -351,9 +377,11 @@
     return out.sort((a, b) => a.t - b.t || a.v.turno.localeCompare(b.v.turno));
   }
 
+  const selectScalo = id => `<label class="or-station"><span>Scalo</span><select id="${id}" data-scalo>${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
   function renderScalo() {
+    posizioneGps();
     const g = giornata();
-    const select = `<label class="or-station"><span>Scalo</span><select id="or-scalo">${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
+    const select = selectScalo('or-scalo') + gpsHint(state.scalo);
     const eventi = eventiScalo(g, state.scalo);
     const ora = realToday() ? nowMinutes() : -1;
     let nextFound = false;
@@ -432,12 +460,14 @@
   content.addEventListener('change', event => {
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; }
     else if (event.target.id === 'or-to') state.to = event.target.value;
-    else if (event.target.id === 'or-scalo') { state.scalo = event.target.value; state.open = ''; }
+    else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; }
     else return;
     state.showPast = false;
     render();
   });
   content.addEventListener('click', event => {
+    const vai = event.target.closest('[data-goto]');
+    if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const ship = event.target.closest('[data-ship]');
     if (ship) { state.selected = state.selected === ship.dataset.ship ? '' : ship.dataset.ship; render(); return; }
     if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }

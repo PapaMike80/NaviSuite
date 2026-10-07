@@ -81,3 +81,12 @@
 }
 .or-rit{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;background:rgba(245,158,11,.18);color:#fbbf24;font-size:10px;font-weight:900;vertical-align:middle}
 .ora .or-rit{display:block;margin:2px 0 0;width:max-content}
+/* Allo scalo (vista Lago) */
+.or-at{display:grid;gap:4px;margin:8px 0;padding:0;list-style:none}
+.or-at li{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:9px;padding:6px 8px;border:1px solid transparent;border-radius:10px;background:rgba(255,255,255,.025)}
+.or-at li.past{opacity:.45}
+.or-at li.next{border-color:#2dd4bf;background:rgba(45,212,191,.10)}
+.or-at-ora{min-width:42px;font:900 15px Manrope,sans-serif;color:#e8f7f7}
+.or-at li b{display:block;font-size:13px}
+.or-at li small{display:block;margin-top:1px;color:#9bc8d5;font-size:11px}
+.or-at-card .or-station{margin-bottom:4px}
