@@ -229,13 +229,15 @@
   }
   const badgeManca = m => (m ? `<em class="or-manca${m.arriva ? ' arriva' : ''}">${esc(m.testo)}</em>` : '');
 
-  // Navi per cui aprire la scheda da sole: in arrivo (navigano verso lo scalo) o ferme allo scalo;
-  // se nessuna, la prossima che ci passa.
+  // Navi per cui aprire la scheda da sole: in arrivo (navigano verso lo scalo), ferme allo scalo o
+  // partite (o arrivate a fine servizio) da meno di 10 minuti; se nessuna, la prossima che ci passa.
+  const DOPO_PARTENZA = 10;
   function naviAlloScalo(g, t) {
     if (!state.auto) return [];
+    const recenti = new Set(eventiScalo(g, state.scalo).filter(e => e.t <= t && t < e.t + DOPO_PARTENZA).map(e => e.v.turno));
     const qui = [...new Set(g.viaggi.map(v => v.turno))].map(code => ({ code, pos: posizione(puntiDelTurno(g.viaggi, code), t) }))
-      .filter(({ pos }) => (pos?.stato === 'naviga' && pos.a.scalo === state.scalo) || (pos?.stato === 'fermo' && pos.scalo === state.scalo))
-      .sort((a, b) => (a.pos.a?.t ?? 0) - (b.pos.a?.t ?? 0)).map(x => x.code);
+      .filter(({ code, pos }) => (pos?.stato === 'naviga' && pos.a.scalo === state.scalo) || (pos?.stato === 'fermo' && pos.scalo === state.scalo) || recenti.has(code))
+      .sort((a, b) => (a.pos?.a?.t ?? 0) - (b.pos?.a?.t ?? 0)).map(x => x.code);
     if (qui.length) return qui;
     const prossima = eventiScalo(g, state.scalo).find(e => e.t >= t);
     return prossima ? [prossima.v.turno] : [];
@@ -300,17 +302,19 @@
     // in trasparenza; la freccia mostra tutti i prossimi scali.
     const resto = punti.slice(from);
     const iQui = resto.findIndex(p => p.scalo === state.scalo);
-    const soloQui = iQui >= 0 && !state.tuttiScali;
+    // partita dal mio scalo da meno di 10 minuti: il mio scalo in trasparenza e il prossimo
+    const partita = punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
+    const soloQui = (iQui >= 0 || partita) && !state.tuttiScali;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
-    const prossimi = soloQui
-      ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui)
-      : resto.slice(0, 6).map((p, k) => riga(p, k)).join('');
-    const freccia = iQui >= 0 ? `<button type="button" class="past-toggle" data-tutti>${state.tuttiScali ? `▴ Solo ${esc(state.scalo)}` : '▾ Tutti i prossimi scali'}</button>` : '';
+    const prossimi = !soloQui ? resto.slice(0, 6).map((p, k) => riga(p, k)).join('')
+      : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
+        : (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui);
+    const freccia = iQui >= 0 || partita ? `<button type="button" class="past-toggle" data-tutti>${state.tuttiScali ? `▴ Solo ${esc(state.scalo)}` : '▾ Tutti i prossimi scali'}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? `A ${esc(state.scalo)}` : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------

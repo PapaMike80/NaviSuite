@@ -92,4 +92,5 @@ assert.match(js, /state\.chiuse\.add\(code\)/);
 assert.match(js, /function quantoManca\(g, e, t\)/);
 assert.match(js, /in arrivo · \$\{testo\}/);
 assert.match(js, /or-next-nome/);
+assert.match(js, /const DOPO_PARTENZA = 10;/);
 console.log('orario ok');
