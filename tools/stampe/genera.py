@@ -5,7 +5,9 @@
     python3 tools/stampe/genera.py --out /tmp/prove
 
 Scrive in stampe/:
-  Desenzano_pontile_AgB_A4.pdf          navi in ordine di orario + ormeggi serali lun-dom con rifornimenti
+  Desenzano_pontile_AgB_A4.pdf          navi in ordine di orario + ormeggi serali lun-dom con rifornimenti,
+                                        nei colori di NaviSuite
+  Desenzano_pontile_tascabile_A4.pdf    tascabile del pontilista: 4 cartoncini A6 fronte/retro da ritagliare
   Maderno_servizio_terra_A4.pdf         navi di linea + traghetto Torri
   Maderno_passeggeri_A4.pdf             per il pubblico: navi di linea, partenze e ritorni con coincidenze
   Maderno_traghetto_Torri_A4.pdf        per il pubblico: traghetto Maderno - Torri, andata e ritorno
@@ -26,7 +28,7 @@ QUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, QUI)
 RADICE = os.path.dirname(os.path.dirname(QUI))
 
-import ormeggi, a4_desenzano, a4_maderno, a4_passeggeri_maderno, a4_passeggeri_desenzano, cover  # noqa: E402
+import ormeggi, a4_desenzano, a4_desenzano_colori, a4_maderno, a4_passeggeri_maderno, a4_passeggeri_desenzano, cover  # noqa: E402
 
 
 def main():
@@ -44,7 +46,9 @@ def main():
     print(f"Turno navi: {len(giorni)} giorni, dal {giorni[0]} al {giorni[-1]}")
 
     lunedi = a4_desenzano.settimana(a.oggi)
-    a4_desenzano.main(os.path.join(a.out, "Desenzano_pontile_AgB_A4.pdf"), dati, lunedi)
+    # Desenzano pontile e AgB: solo la versione a colori (quella in bianco e nero non si stampa piu')
+    a4_desenzano_colori.colori(os.path.join(a.out, "Desenzano_pontile_AgB_A4.pdf"), dati, lunedi)
+    a4_desenzano_colori.tascabile(os.path.join(a.out, "Desenzano_pontile_tascabile_A4.pdf"), dati, lunedi)
     coperti = sum((lunedi + datetime.timedelta(days=i)).isoformat() in dati for i in range(7))
     print(f"A4 Desenzano: ormeggi settimana dal {lunedi} ({coperti}/7 giorni negli O.d.S.)")
     a4_maderno.main(os.path.join(a.out, "Maderno_servizio_terra_A4.pdf"))
