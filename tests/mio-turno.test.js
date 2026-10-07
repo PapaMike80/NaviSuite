@@ -90,4 +90,6 @@ assert.match(js, /i !== lastPast && !state\.showPast/); // scali gia' fatti nasc
 const scaliJs = fs.readFileSync('assets/js/orario-page.js', 'utf8');
 assert.match(scaliJs, /window\.NaviOrarioPage = \{/);
 assert.match(scaliJs, /if \(EMBED && !state\.embed\) return;/);
+assert.match(js, /const admin = !!window\.NaviRoles\?\.isAdminAgent\?\.\(profile\(\)\);/); // «Prova turno» solo per gli admin
+assert.match(js, /if \(!admin\) document\.querySelector\('\.mt-test'\)\?\.remove\(\);/);
 console.log('mio-turno ok');

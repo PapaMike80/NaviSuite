@@ -111,5 +111,6 @@ assert.match(portal, /navisuite\.startDone/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=\$\{res === 'MADERNO' \? 'Maderno' : 'Desenzano'\}`\)/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
 assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
-assert.match(js, /riga\(resto\[iQui\], iQui\) \+ \(resto\[iQui \+ 1\] \? riga\(resto\[iQui \+ 1\], iQui \+ 1\) : ''\)/); // anche lo scalo dopo il mio
+assert.match(js, /while \(resto\[fine \+ 1\]\?\.scalo === state\.scalo\) fine \+= 1;/); // sosta: arrivo e ripartenza, poi lo scalo dopo
+assert.match(js, /riga\(dopo, fine \+ 1\)/); // scalo dopo il mio, con quanto manca
 console.log('orario ok');

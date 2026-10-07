@@ -476,9 +476,16 @@
     const giornata = state.giornate.has(code);
     const soloQui = iQui >= 0 || partita;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
+    // Al mio scalo: arrivo e (se la nave fa sosta) ripartenza, poi lo scalo successivo
+    function alMioScalo() {
+      let fine = iQui;
+      while (resto[fine + 1]?.scalo === state.scalo) fine += 1;
+      const dopo = resto[fine + 1];
+      return resto.slice(iQui, fine + 1).map((p, j) => riga(p, iQui + j)).join('') + (dopo ? riga(dopo, fine + 1) : '');
+    }
     const prossimi = giornata ? punti.map((p, k) => riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
-        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui) + (resto[iQui + 1] ? riga(resto[iQui + 1], iQui + 1) : '')
+        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
