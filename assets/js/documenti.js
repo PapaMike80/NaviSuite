@@ -470,6 +470,13 @@ async function openDocument(documentId) {
   const cachedUrl = documentContentCache.get(String(documentItem.id));
   const url = cachedUrl || await documentUrl(documentItem);
   if (!url) throw new Error('Contenuto del documento non disponibile');
+  // Fogli A4 in HTML: visore con "✕" e "Stampa / PDF" che stampa anche su iPhone
+  if (isHtmlDocument(documentItem) && window.NaviServiziTerra?.mostra) {
+    const blob = dataUrlBlob(url);
+    const html = blob ? await blob.text() : await (await fetch(url, { cache: 'no-store' })).text();
+    window.NaviServiziTerra.mostra(html, documentItem.titolo || documentItem.filename);
+    return;
+  }
   elements.viewerTitle.textContent = documentItem.titolo || documentItem.filename || 'Documento';
   elements.viewerDownload.dataset.documentId = String(documentItem.id);
   elements.viewer.hidden = false;
