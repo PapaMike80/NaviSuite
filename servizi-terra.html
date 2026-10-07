@@ -2,56 +2,17 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="NaviDiaria">
-  <meta name="theme-color" content="#002b5e">
-  <link rel="manifest" href="manifest.json">
-  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
-  <title>NaviSuite Servizi a terra</title>
-  <link rel="stylesheet" href="assets/css/navi-shared.css">
-  <link rel="stylesheet" href="assets/css/shared-menu.css">
-  <link rel="stylesheet" href="assets/css/servizi-terra.css?v=15">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviSuite Scali</title>
+  <!-- Servizi a terra e' ora nella pagina Scali (orario.html): qui solo il rimando per link e segnalibri. -->
+  <script>
+    (function () {
+      var res = (new URLSearchParams(location.search).get('res') || '').toLowerCase();
+      location.replace('orario.html' + (res === 'maderno' ? '?scalo=Maderno' : res === 'desenzano' ? '?scalo=Desenzano' : ''));
+    })();
+  </script>
 </head>
-<body class="servizi-terra-page">
-  <aside class="app-sidebar" id="terra-sidebar"></aside>
-
-  <header class="page-header">
-    <p class="terra-label">SERVIZI A TERRA</p>
-    <h1 class="terra-title" id="terra-title">Servizi a terra</h1>
-    <p class="terra-context" id="terra-context">Caricamento…</p>
-  </header>
-
-  <main id="servizi-terra">
-    <div class="terra-bar">
-      <div class="quick-residence-selector" id="terra-residences" aria-label="Cambia residenza"></div>
-      <span class="terra-day">
-        <button type="button" class="terra-day-nav" id="terra-day-prev" aria-label="Giorno precedente">‹</button>
-        <span class="terra-day-current"><span class="terra-day-label" id="terra-day-label"></span>
-          <input type="date" class="terra-day-input" id="terra-day-input" aria-label="Scegli la giornata"></span>
-        <button type="button" class="terra-day-nav" id="terra-day-next" aria-label="Giorno successivo">›</button>
-        <button type="button" class="terra-day-today" id="terra-day-today" hidden>Oggi</button>
-      </span>
-      <button type="button" class="terra-print" id="terra-print">⎙ Stampa A4</button>
-    </div>
-    <div class="terra-notice" id="terra-notice" hidden></div>
-    <div class="terra-grid" id="terra-content"></div>
-  </main>
-
-  <script src="assets/js/shared-roles.js?v=1"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=40"></script>
-  <script src="assets/js/shared-data.js?v=123"></script>
-  <script src="assets/js/firebase-auth.js?v=2"></script>
-  <script src="assets/js/shared-menu.js?v=1.62"></script>
-  <script src="assets/js/turni-giorno.js?v=2"></script>
-  <script src="assets/js/servizi-terra-a4.js?v=14"></script>
-  <script src="assets/js/course-info.js?v=1"></script>
-  <script src="assets/js/orario-corse.js?v=1"></script>
-  <script src="assets/js/orario-giorno.js?v=3"></script>
-  <script src="assets/js/servizi-terra-page.js?v=21"></script>
-  <script src="assets/js/push-arrivi.js?v=4"></script>
-  <script src="assets/js/arrivi-avvisi.js?v=1"></script>
+<body style="background:#061821;color:#e8f7f7;font-family:sans-serif">
+  <p>Servizi a terra è ora nella pagina <a href="orario.html" style="color:#5eead4">Scali</a>.</p>
 </body>
 </html>

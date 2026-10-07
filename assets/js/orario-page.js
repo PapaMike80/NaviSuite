@@ -1,9 +1,9 @@
-// Pagina "Orario": orario interattivo del giorno (O.d.S. 39/2026) in tre viste.
-// - Lago: mappa del Garda (orario-lago.js) con le navi in servizio nella posizione dell'ora scelta
-//   (adesso o con il cursore del tempo); toccando una nave: turno, nave, comandante, equipaggio,
-//   dove sta andando e i prossimi scali.
+// Pagina "Scali" (orario.html): orario interattivo del giorno (O.d.S. 39/2026) in due viste.
+// - Lago: mappa del Garda (orario-lago.js) con le navi nella posizione dell'ora scelta (adesso o con il
+//   cursore del tempo) e la sezione «Allo scalo» (ex Servizi a terra): navi che partono, passano o
+//   arrivano allo scalo con pontili, ormeggi, rifornimenti e bolgette, navi in linea oggi, note e agenti
+//   di servizio; schede delle corse con quanto manca, aperte da sole per le navi al mio scalo.
 // - Da -> A: viaggi diretti o con un cambio fra due scali, con turno e nave del giorno.
-// - Scalo: tabellone di partenze e arrivi di uno scalo; toccando una riga, tutti gli scali.
 // Corse e scali da orario-giorno.js; navi, equipaggi e turni modificati come in Il mio turno.
 (function () {
   'use strict';
@@ -12,6 +12,9 @@
   const G = window.NaviTurniGiorno;
   const T = window.NaviServiziTerra;
   const $ = id => document.getElementById(id);
+  // Incorporata in Il mio turno (window.NaviOrarioEmbed): niente intestazione, giorni, tab, GPS e URL;
+  // la mostra NaviOrarioPage.show({ modo: 'terra' | 'nave', scalo, turno, day }).
+  const EMBED = window.NaviOrarioEmbed === true;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const parseIso = value => { const [y, m, d] = String(value).split('-').map(Number); return new Date(y, m - 1, d); };
   const iso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -67,10 +70,10 @@
   const scaloValido = value => (POS[value] ? value : '');
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
-    view: ['lago', 'viaggio', 'scalo'].includes(params.get('vista')) ? params.get('vista') : 'lago',
+    view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), tuttiScali: false, scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -94,8 +97,13 @@
     const ritardo = {};
     [...O.corseDelGiorno(day, ritardi), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day, ritardi) : [])]
       .forEach(c => { if (c.ritardo) ritardo[`${c.turno}|${c.numero}`] = c.ritardo; });
+    // corse come da orario (senza ritardi): chiavi dei pontili condivise con Servizi a terra
+    const programmate = {};
+    [...O.corseDelGiorno(day), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day) : [])]
+      .forEach(c => { programmate[`${c.turno}|${c.numero}`] = c.scali; });
     return {
-      day, incarichi, ritardo,
+      day, incarichi, ritardo, programmate, bisAttivo,
+      ieri: T.turniDelGiorno(turniNavi, addDays(day, -1)),
       // le corse sospese dall'Ufficio Movimento non ci sono (ne' sul lago, ne' nei viaggi, ne' allo scalo)
       viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa), ...bis],
       navi,
@@ -145,6 +153,11 @@
   function lagoParti() {
     const g = giornata();
     const t = shownTime();
+    // Schede aperte: la nave scelta a mano piu' quelle aperte da sole per il mio scalo (le navi in
+    // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
+    // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
+    const mia = state.embed?.modo === 'nave' ? state.embed.turno : '';
+    const aperte = mia ? [mia] : [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
     const turni = [...new Set(g.viaggi.map(v => v.turno))];
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
@@ -165,15 +178,14 @@
       const [x, y] = candidati.find(c => libero(c) && inAcqua(c)) || candidati.find(libero) || [x0, y0];
       posti.push([x, y]);
       const ferma = item.pos.stato === 'prima' || item.pos.stato === 'fine';
-      const sel = item.code === state.selected;
-      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
+      const sel = aperte.includes(item.code);
+      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}${mia && !sel ? ' dim' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
         `<circle r="${sel ? 3.6 : 3}" fill="${COLORI[item.code] || '#94a3b8'}"/><text y="0.9">${esc(item.code)}</text></g>`;
     }).join('');
     // Rotta del giorno della nave scelta (tratteggiata) e tratto gia' fatto (pieno).
-    const scelta = navi.find(item => item.code === state.selected);
-    let percorso = '';
-    if (scelta) {
-      const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+    // Rotta del giorno delle navi con la scheda aperta (tratteggiata) e tratto gia' fatto (pieno).
+    const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+    const percorso = navi.filter(item => aperte.includes(item.code)).map(scelta => {
       const tutto = [], fatto = [];
       scelta.punti.forEach((p, k) => {
         if (!k || p.scalo === scelta.punti[k - 1].scalo) return;
@@ -187,14 +199,15 @@
         fatto.push(linea(lungoRotta(r, Math.min(1, f), true)));
       }
       const colore = COLORI[scelta.code] || '#94a3b8';
-      percorso = `<g class="or-path" style="--c:${colore}"><path class="todo" d="${tutto.join('')}"/><path class="done" d="${fatto.join('')}"/></g>`;
-    }
+      return `<g class="or-path" style="--c:${colore}"><path class="todo" d="${tutto.join('')}"/><path class="done" d="${fatto.join('')}"/></g>`;
+    }).join('');
     const porti = SCALI.map(nome => {
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
       const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : lato[0] === 's' ? [x, y + 4.4, 'middle'] : [x, y - 2.6, 'middle'];
       // toccando un pontile la sezione "Allo scalo" passa a quello scalo
-      return `<g class="or-port${nome === state.scalo ? ' selected' : ''}" data-port="${esc(nome)}" role="button" tabindex="0" aria-label="Navi allo scalo di ${esc(nome)}"><circle cx="${x}" cy="${y}" r="${nome === state.scalo ? 1.7 : 1.25}"/>` +
+      const qui = nome === state.scalo && !mia; // in Il mio turno (corsa di linea) nessuno scalo scelto
+      return `<g class="or-port${qui ? ' selected' : ''}" data-port="${esc(nome)}" role="button" tabindex="0" aria-label="Navi allo scalo di ${esc(nome)}"><circle cx="${x}" cy="${y}" r="${qui ? 1.7 : 1.25}"/>` +
         `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
     const km5 = 5 * MAPPA.km;
@@ -204,30 +217,207 @@
     const svg = `<svg class="or-map" viewBox="-12 -3 102 148" role="img" aria-label="Mappa del Lago di Garda con le navi">` +
       `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
       `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
-    const ordinate = navi.slice().sort((a, b) => O.TURNI.indexOf(a.code) - O.TURNI.indexOf(b.code));
-    const lista = ordinate.map(item => `<button type="button" class="or-ship-row${item.code === state.selected ? ' active' : ''}" data-ship="${item.code}">` +
-      `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}${ritardoDi(g, item.code, corsaPos(item.pos)) ? ` · ritardo ${esc(O.testoRitardo(ritardoDi(g, item.code, corsaPos(item.pos))))}` : ''}</small></span></button>`).join('');
-    const dettaglio = state.selected ? dettaglioNave(g, state.selected, t) : '';
-    const side = (dettaglio || '') + alloScalo(g, t) + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
+    const dettaglio = aperte.map(code => dettaglioNave(g, code, t)).join('');
+    const side = (dettaglio || '') + alloScalo(g, t, aperte, navi);
     return { t, svg, side };
   }
 
   // Sezione "Allo scalo": le prossime navi che partono, passano o arrivano allo scalo (dall'ora scelta).
-  function alloScalo(g, t) {
-    const KIND = { P: 'parte', A: 'arriva', S: 'passa' };
+  const traMin = min => (min === 0 ? 'adesso' : min < 60 ? `tra ${min} min` : `tra ${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`);
+  // Quanto manca: "in arrivo · tra 8 min" se la nave sta gia' navigando verso lo scalo, altrimenti
+  // "tra 25 min" per le navi entro un'ora (dall'ora mostrata).
+  function quantoManca(g, e, t) {
+    const min = e.t - t;
+    if (min < 0 || min > 60) return null;
+    const pos = posizione(puntiDelTurno(g.viaggi, e.v.turno), t);
+    const arriva = pos?.stato === 'naviga' && pos.a.scalo === e.v.scali.find(s => s[1] === e.ora)?.[0] && pos.a.t === e.t;
+    const testo = traMin(min);
+    return { arriva, testo: arriva ? `in arrivo · ${testo}` : testo };
+  }
+  const badgeManca = m => (m ? `<em class="or-manca${m.arriva ? ' arriva' : ''}">${esc(m.testo)}</em>` : '');
+
+  // Navi per cui aprire la scheda da sole: in arrivo (navigano verso lo scalo), ferme allo scalo o
+  // partite (o arrivate a fine servizio) da meno di 10 minuti; se nessuna, la prossima che ci passa.
+  const DOPO_PARTENZA = 10;
+  function naviAlloScalo(g, t) {
+    if (!state.auto) return [];
+    const recenti = new Set(eventiScalo(g, state.scalo).filter(e => e.t <= t && t < e.t + DOPO_PARTENZA).map(e => e.v.turno));
+    const qui = [...new Set(g.viaggi.map(v => v.turno))].map(code => ({ code, pos: posizione(puntiDelTurno(g.viaggi, code), t) }))
+      .filter(({ code, pos }) => (pos?.stato === 'naviga' && pos.a.scalo === state.scalo) || (pos?.stato === 'fermo' && pos.scalo === state.scalo) || recenti.has(code))
+      .sort((a, b) => (a.pos?.a?.t ?? 0) - (b.pos?.a?.t ?? 0)).map(x => x.code);
+    if (qui.length) return qui;
+    const prossima = eventiScalo(g, state.scalo).find(e => e.t >= t);
+    return prossima ? [prossima.v.turno] : [];
+  }
+
+  // ---------------- Allo scalo (come Servizi a terra) ----------------
+  // Tutte le navi che partono, passano o arrivano allo scalo, con orario di arrivo, ormeggi del mattino
+  // e della sera, R (rifornimento), B (bolgetta) e, a Desenzano, il pontile di ogni corsa (condiviso con
+  // Servizi a terra); in fondo gli agenti di servizio. Passate nascoste tranne l'ultima.
+  const RESIDENZA_SCALO = { Desenzano: 'DESENZANO', Maderno: 'MADERNO' };
+  const D = T.DATA;
+  const PONTILI = ['1', '2', '3', '4', '5', '6'];
+  const PONTILI_CACHE = 'navisuite.serviziTerra.pontili';
+  state.pontili = (() => { try { return JSON.parse(localStorage.getItem(PONTILI_CACHE) || '{}') || {}; } catch { return {}; } })();
+  async function caricaPontili() {
+    try {
+      const provider = window.NaviAdminFirebase;
+      if (!provider?.getPontiliCorse) return;
+      await provider.ready;
+      state.pontili = await provider.getPontiliCorse('DESENZANO');
+      try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
+      if (!document.activeElement?.matches?.('select')) render();
+    } catch (error) { console.warn('Orario: pontili non disponibili', error); }
+  }
+  // Pontile di una corsa (e della partenza che la segue): tutti lo vedono.
+  async function salvaPontile(keys, value) {
+    const day = today();
+    keys.forEach(key => { (state.pontili[key] = state.pontili[key] || {})[day] = value || '-'; });
+    try { localStorage.setItem(PONTILI_CACHE, JSON.stringify(state.pontili)); } catch { /* niente copia locale */ }
+    render();
+    try {
+      const provider = window.NaviAdminFirebase;
+      if (!provider?.savePontileCorsa) throw new Error('Firebase non disponibile');
+      await provider.ready;
+      for (const key of keys) await provider.savePontileCorsa('DESENZANO', key, day, value || '-');
+    } catch (error) {
+      $('orario-notice').hidden = false;
+      $('orario-notice').textContent = `Pontile salvato solo su questo dispositivo (${error.message}).`;
+    }
+  }
+  function pontileSelect(keys, day, odsMooring, when) {
+    const { value, source } = T.pontileFor(state.pontili[keys[0]], day, odsMooring);
+    const options = ['', ...PONTILI];
+    if (value && !options.includes(value)) options.push(value);
+    const title = `Pontile${when ? ` ${when}` : ''}${source === 'ods' ? ' (dall\'O.d.S.)' : source === 'ieri' ? ' (come il giorno prima)' : ''}`;
+    return `<label class="pontile-sel${value ? '' : ' empty'}${source === 'ods' ? ' ods' : ''}" title="${esc(title)}">⚓` +
+      `<select data-pontile="${esc(keys.join(' '))}" aria-label="${esc(title)}">${options.map(option =>
+        `<option value="${esc(option)}"${option === value ? ' selected' : ''}>${option ? esc(option) : '–'}</option>`).join('')}</select></label>`;
+  }
+  // Orario di una corsa allo scalo come da orario (senza ritardi), per la chiave del pontile.
+  function orarioProgrammato(g, turno, corsa, scalo, ultimo) {
+    const scali = (g.programmate[`${turno}|${corsa}`] || []).filter(([nome]) => nome === scalo);
+    return (ultimo ? scali[scali.length - 1] : scali[0])?.[1] || '';
+  }
+
+  function agentiDiServizio(res, t) {
+    const terra = state.schedule ? G.equipaggi(state.schedule, today()).terra : null;
+    const who = code => {
+      if (!terra) return '<span class="agenti muted">Caricamento agenti…</span>';
+      const list = terra[code] || [];
+      return list.length ? `<span class="agenti">👤 ${list.map(esc).join(', ')}</span>` : '<span class="agenti muted">Nessun agente di turno</span>';
+    };
+    const ora = realToday() || state.time != null ? t : null;
+    const noti = D.SERVIZI[res].map(([code]) => code);
+    const altri = terra ? (G.TERRA_RESIDENZA[res] || []).filter(code => !noti.includes(code) && terra[code]?.length)
+      .map(code => `<div class="servizio">${chip(code)}<span class="ore"></span>${who(code)}</div>`).join('') : '';
+    return `<div class="servizi or-servizi">${D.SERVIZI[res].map(([code, mattina, pomeriggio, nota]) => {
+      let stato = '';
+      if (ora != null) {
+        const [a, b] = mattina.split(' – ').map(minutes), [c, d] = pomeriggio.split(' – ').map(minutes);
+        if ((ora >= a && ora < b) || (ora >= c && ora < d)) stato = 'IN SERVIZIO ORA';
+        else if (ora >= b && ora < c) stato = `PAUSA · RIPRENDE ALLE ${pomeriggio.split(' – ')[0]}`;
+      }
+      return `<div class="servizio${stato.startsWith('IN') ? ' now' : ''}">${chip(code)}<span class="ore">${mattina}<br>${pomeriggio}</span>` +
+        `${who(code)}<small>${esc(nota)}</small>${stato ? `<span class="stato">${stato}</span>` : ''}</div>`;
+    }).join('')}${altri}</div>`;
+  }
+
+  // Righe dello scalo: arrivo e ripartenza della stessa nave (sosta breve) in una riga sola.
+  function righeScalo(g) {
     const eventi = eventiScalo(g, state.scalo);
-    const dopo = eventi.filter(e => e.t >= t);
-    const prima = eventi.filter(e => e.t < t).slice(-1);
-    const righe = [...prima, ...dopo.slice(0, 6)].map(e => {
-      const info = naveInfo(g, e.v.turno, e.corsa);
-      // toccando la riga si apre la scheda della corsa (come dall'elenco Navi)
-      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${e.v.turno === state.selected ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
-        `<span><b>${KIND[e.kind]} · ${esc(e.dove)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
+    const usati = new Set();
+    const righe = [];
+    eventi.forEach(e => {
+      if (usati.has(e)) return;
+      if (e.kind === 'A') {
+        const riparte = eventi.find(x => x.v === e.v && x.i === e.i + 1 && x.kind === 'P');
+        if (riparte) { usati.add(riparte); righe.push({ ...riparte, arr: e }); return; }
+      }
+      righe.push(e);
+    });
+    // BIS a disposizione a Desenzano (pronto alle 8.30, rientro alle 18.40), oltre agli incarichi
+    if (state.scalo === 'Desenzano' && g.bisAttivo) {
+      D.NAVI.DESENZANO.filter(row => row[2] === 'BIS' && !row[3]).forEach(([ora, kind, , , dove]) =>
+        righe.push({ v: { turno: 'BIS', scali: [] }, ora, t: minutes(ora), corsa: '', kind, dove, propria: true }));
+    }
+    return righe.sort((a, b) => a.t - b.t || a.v.turno.localeCompare(b.v.turno));
+  }
+
+  // Navi in linea oggi (chiuso come le note): turno, nave, comandante e dove si trova; si apre la scheda.
+  function naviInLinea(g, navi, t) {
+    const ordinate = navi.slice().sort((a, b) => [...O.TURNI, 'BIS'].indexOf(a.code) - [...O.TURNI, 'BIS'].indexOf(b.code));
+    const righe = ordinate.map(item => {
+      const r = ritardoDi(g, item.code, corsaPos(item.pos));
+      return `<button type="button" class="or-ship-row" data-ship="${item.code}">${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b>` +
+        `<small>${esc(statoTesto(item.pos))}${r ? ` · ritardo ${esc(O.testoRitardo(r))}` : ''}</small></span></button>`;
     }).join('');
-    const vuoto = eventi.length ? 'Nessun\'altra nave in questo giorno.' : 'Nessuna nave in questo scalo nel giorno scelto.';
-    return card(`Allo scalo`, dopo.length ? `${dopo.length} navi da qui in poi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
-      `${righe ? `<ol class="or-at">${righe}</ol>` : ''}${dopo.length ? '' : `<p class="legend">${vuoto}</p>`}` +
-      `<button type="button" class="past-toggle" data-goto="scalo">Tabellone completo di ${esc(state.scalo)} ›</button>`, 'or-at-card');
+    return `<details class="or-note" data-dettaglio="navi"${state.dettagli.has('navi') ? ' open' : ''}><summary>Navi in linea oggi (${navi.length})</summary>` +
+      `<div class="or-ship-list">${righe || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div></details>`;
+  }
+
+  function alloScalo(g, t, aperte = [], navi = []) {
+    const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
+    const res = RESIDENZA_SCALO[state.scalo] || '';
+    const desenzano = state.scalo === 'Desenzano';
+    const bolgette = res ? D.BOLGETTE[res] || {} : {};
+    const righe = righeScalo(g);
+    const day = today();
+    // prima e ultima uscita di ogni nave nel giorno: ormeggio del mattino (R) e della sera
+    const primo = {}, ultimo = {};
+    g.viaggi.forEach(v => { const p = puntiDelTurno(g.viaggi, v.turno); primo[v.turno] = p[0]; ultimo[v.turno] = p[p.length - 1]; });
+    const pastIdx = righe.map((r, i) => (r.t < t ? i : -1)).filter(i => i >= 0);
+    const lastPast = pastIdx[pastIdx.length - 1];
+    const nascoste = Math.max(0, pastIdx.length - 1);
+    const prossima = righe.findIndex(r => r.t >= t);
+    const html = righe.map((r, i) => {
+      if (r.t < t && i !== lastPast && !state.showPastLago) return '';
+      const code = r.v.turno;
+      // BIS a disposizione: esce la mattina (8.30) e rientra la sera (18.40) da Desenzano
+      const mattino = r.propria ? r.kind === 'P' : r.kind === 'P' && !r.arr && primo[code]?.scalo === state.scalo && primo[code]?.t === r.t;
+      const sera = r.propria ? r.kind === 'A' : r.kind === 'A' && ultimo[code]?.scalo === state.scalo && ultimo[code]?.t === r.t;
+      const nave = g.navi[code] || {};
+      const badges = [];
+      if (mattino && nave.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
+      const bolgetta = r.corsa && (bolgette[r.corsa] || (r.arr && bolgette[r.arr.corsa]));
+      if (bolgetta) {
+        const label = bolgetta.replace('BOLGETTA · ', 'Bolgetta: ').toLowerCase().replace(/^b/, 'B');
+        badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
+      }
+      const odsMooring = mattino ? (nave.ormeggioMattino || g.ieri[code]?.ormeggio) : sera ? nave.ormeggio : '';
+      if (desenzano) {
+        // pontile di ogni corsa, come in Servizi a terra (l'arrivo vale anche per la ripartenza)
+        const key = (ev, ultimo) => T.courseKey(orarioProgrammato(g, code, ev.corsa, state.scalo, ultimo) || ev.ora, code, ev.corsa);
+        const keys = r.arr ? [key(r.arr, true), key(r, false)] : [key(r, r.kind === 'A')];
+        badges.push(pontileSelect(keys, day, odsMooring, mattino ? 'del mattino' : sera ? 'serale' : ''));
+      } else if (odsMooring) {
+        badges.push(`<b class="ormeggio" title="Ormeggio ${mattino ? 'del mattino' : 'serale'}">⚓ ${esc(T.pontLabel(odsMooring))}</b>`);
+      }
+      // quanto manca: all'arrivo finche' la nave non e' arrivata, poi alla partenza
+      const verso = r.arr && t < r.arr.t ? r.arr : r;
+      const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
+      const manca = mancaRaw && verso === r && r.arr ? { ...mancaRaw, testo: mancaRaw.testo.replace('in arrivo · ', 'parte ') } : mancaRaw;
+      const info = r.propria ? [naveDi(g, 'BIS'), G.comandante(g.crews.BIS)].filter(Boolean).join(' · ') : naveInfo(g, code, r.corsa);
+      const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${r.t < t ? ' past' : ''}${i === prossima ? ' next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(code) ? ' active' : ''}`;
+      const arrivo = r.arr ? `<small class="arr" title="Arrivo">arr. ${esc(r.arr.ora)}</small>` : '';
+      return `<div class="${cls}"${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
+        `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa)}</span>` +
+        `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
+        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
+        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
+    }).join('');
+    const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
+    const vuoto = righe.length ? '' : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>';
+    const legenda = desenzano
+      ? '⚓ pontile di ogni corsa: proposto dall\'O.d.S. (mattino e sera) o dalla scelta del giorno prima, si può cambiare (lo vedono tutti) · R = rifornimento · B = bolgetta'
+      : '⚓ ormeggio del mattino e della sera · R = rifornimento · B = bolgetta · arr. = arrivo della nave che poi riparte';
+    const note = res ? `<details class="or-note" data-dettaglio="note"${state.dettagli.has('note') ? ' open' : ''}><summary>Note di Servizi a terra</summary><ul class="note-list">${res === 'DESENZANO' ? `<li class="rif"><b>${esc(D.RIFORNIMENTI.titolo)}</b>${D.RIFORNIMENTI.righe.map(esc).join('<br>')}</li>` : ''}` +
+      `${D.NOTE[res].map(([bold, text]) => `<li${bold ? ' class="bold"' : ''}>${esc(text)}</li>`).join('')}</ul><p class="validita">${esc(D.VALIDITA)}</p></details>` : '';
+    return card('Allo scalo', righe.length ? `${righe.length} passaggi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
+      `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
+      `${naviInLinea(g, navi, t)}${note}` +
+      // agenti di servizio in fondo a tutto
+      `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, 'or-at-card');
   }
 
   function controlliTempo(t) {
@@ -241,6 +431,11 @@
   function renderLago() {
     posizioneGps();
     const { t, svg, side } = lagoParti();
+    if (state.embed?.modo === 'nave') {
+      // Il mio turno, corsa di linea: solo la mappa con la mia nave, la sua rotta e il tratto fatto
+      $('orario-content').innerHTML = card('Lago', 'la mia corsa all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`, 'or-mia');
+      return;
+    }
     $('orario-content').innerHTML = `<div class="terra-grid or-lago"><div class="terra-col">` +
       card('Lago', 'posizione delle navi all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`) +
       `</div><div class="terra-col" id="or-side">${side}</div></div>`;
@@ -249,7 +444,7 @@
   function aggiornaLago() {
     const { t, svg, side } = lagoParti();
     $('or-map-wrap').innerHTML = svg;
-    $('or-side').innerHTML = side;
+    if ($('or-side')) $('or-side').innerHTML = side;
     $('or-clock').textContent = hhmm(t);
     const live = document.querySelector('#or-time .or-live');
     if (live && state.time != null) live.outerHTML = `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`;
@@ -260,12 +455,30 @@
     const pos = posizione(punti, t);
     if (!pos) return '';
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
-    const prossimi = punti.slice(from, from + 6).map(p => `<li><span>${hhmm(p.t)}</span>${esc(p.scalo)}<small>c. ${esc(p.corsa)}</small></li>`).join('');
+    const riga = (p, k, cls = '') => {
+      // quanto manca (entro 2 ore); il primo scalo, se la nave naviga, e' "in arrivo"
+      const min = p.t - t;
+      const arriva = k === 0 && pos.stato === 'naviga';
+      const manca = cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+      return `<li class="${p.scalo === state.scalo ? 'qui' : ''} ${cls}"><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
+    };
+    // Se la nave passa dal mio scalo: solo il mio scalo (orario e quanto manca), con lo scalo precedente
+    // in trasparenza; la freccia mostra tutti i prossimi scali.
+    const resto = punti.slice(from);
+    const iQui = resto.findIndex(p => p.scalo === state.scalo);
+    // partita dal mio scalo da meno di 10 minuti: il mio scalo in trasparenza e il prossimo
+    const partita = punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
+    const soloQui = (iQui >= 0 || partita) && !state.tuttiScali;
+    const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
+    const prossimi = !soloQui ? resto.slice(0, 6).map((p, k) => riga(p, k)).join('')
+      : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
+        : (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui);
+    const freccia = iQui >= 0 || partita ? `<button type="button" class="past-toggle" data-tutti>${state.tuttiScali ? `▴ Solo ${esc(state.scalo)}` : '▾ Tutti i prossimi scali'}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">Prossimi scali</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${equipaggio}`, 'or-detail');
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------
@@ -308,7 +521,7 @@
   // Una sola lettura della posizione: vale per la partenza di Da -> A e per lo scalo (tabellone e
   // sezione "Allo scalo" del Lago), finche' non li si sceglie a mano.
   function posizioneGps() {
-    if (state.gps || !navigator.geolocation) return;
+    if (EMBED || state.gps || !navigator.geolocation) return;
     state.gps = { attesa: true };
     navigator.geolocation.getCurrentPosition(pos => {
       const vicino = scaloVicino(pos.coords.latitude, pos.coords.longitude);
@@ -318,7 +531,7 @@
         if (state.to === vicino.nome) state.to = state.from !== vicino.nome ? state.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
         state.from = vicino.nome;
       }
-      if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; }
+      if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; nuovoScalo(); }
       render();
     }, () => { state.gps = { errore: true }; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60000 });
   }
@@ -374,51 +587,29 @@
       const numero = kind === 'A' ? corsa : (next?.[2] || corsa);
       const origine = inizioCorsa(v, kind === 'A' ? corsa : numero);
       const destinazione = fineCorsa(v, numero);
-      out.push({ v, ora, t: minutes(ora), corsa: numero, kind, dove: kind === 'A' ? `da ${origine}` : kind === 'P' ? `per ${destinazione}` : `${origine} › ${destinazione}`, key: `${v.turno}|${numero}|${ora}` });
+      out.push({ v, i, ora, t: minutes(ora), corsa: numero, kind, dove: kind === 'A' ? `da ${origine}` : kind === 'P' ? `per ${destinazione}` : `${origine} › ${destinazione}`, key: `${v.turno}|${numero}|${ora}` });
     }));
     return out.sort((a, b) => a.t - b.t || a.v.turno.localeCompare(b.v.turno));
   }
 
+  // Cambiando scalo torna la scheda automatica della prossima nave che ci passa.
+  function nuovoScalo() { state.auto = true; state.chiuse = new Set(); }
   const selectScalo = id => `<label class="or-station"><span>Scalo</span><select id="${id}" data-scalo>${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
-  function renderScalo() {
-    posizioneGps();
-    const g = giornata();
-    const select = selectScalo('or-scalo') + gpsHint(state.scalo);
-    const eventi = eventiScalo(g, state.scalo);
-    const ora = realToday() ? nowMinutes() : -1;
-    let nextFound = false;
-    eventi.forEach(e => { e.stato = e.t < ora ? 'past' : !nextFound && ora >= 0 ? (nextFound = true, 'next') : ''; });
-    const pastIdx = eventi.map((e, i) => e.stato === 'past' ? i : -1).filter(i => i >= 0);
-    const lastPast = pastIdx[pastIdx.length - 1];
-    const hidden = Math.max(0, pastIdx.length - 1);
-    const toggle = hidden ? `<button type="button" class="past-toggle" data-past>${state.showPast ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${hidden})`}</button>` : '';
-    const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
-    const righe = eventi.map((e, i) => {
-      if (e.stato === 'past' && i !== lastPast && !state.showPast) return '';
-      const aperto = state.open === e.key;
-      const info = naveInfo(g, e.v.turno, e.corsa);
-      const scali = aperto ? `<ol class="mt-scali or-stops">${e.v.scali.map(([nome, orario, corsa]) =>
-        `<li class="${nome === state.scalo && orario === e.ora ? 'coming' : ''}"><span>${esc(orario)}</span>${esc(nome)}<small>c. ${esc(corsa)}</small></li>`).join('')}</ol>` : '';
-      return `<div class="or-board-item${aperto ? ' open' : ''}"><div class="nave${/^T[12]$/.test(e.v.turno) ? ' ferry' : ''}${e.stato === 'past' ? ' past' : ''}${e.stato === 'next' ? ' next' : ''}" data-open="${esc(e.key)}" tabindex="0" role="button" aria-expanded="${aperto}">` +
-        `<span class="ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span><span class="tipo ${e.kind}">${KIND[e.kind]}<small>corsa ${esc(e.corsa)}</small></span>${chip(e.v.turno)}` +
-        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(e.dove)}</span>${info ? `<span class="cte">${esc(info)}</span>` : ''}</span></span></div>${scali}</div>`;
-    }).join('');
-    $('orario-content').innerHTML = `<div class="or-single">${card(`Tabellone ${state.scalo}`, `${eventi.length} passaggi`, select + toggle +
-      (righe ? `<div class="navi-list">${righe}</div>` : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>'))}</div>`;
-  }
-
   // ---------------- Pagina ----------------
-  function card(title, side, body, cls = '') {
-    return `<section class="terra-card ${cls}"><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
+  function card(title, side, body, cls = '', attrs = '') {
+    return `<section class="terra-card ${cls}" ${attrs}><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
   }
 
   function render() {
+    if (EMBED && !state.embed) return;
     const day = today(), shown = parseIso(day), clock = new Date();
-    $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
-      (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
-    $('orario-day-input').value = day;
-    $('orario-day-today').hidden = realToday();
-    document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
+    if (!EMBED) {
+      $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
+        (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
+      $('orario-day-input').value = day;
+      $('orario-day-today').hidden = realToday();
+      document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
+    }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
     const navi = giornata().navi;
     const sospese = attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`);
@@ -429,29 +620,35 @@
     $('orario-notice').textContent = notice;
     if (state.view === 'lago') renderLago();
     else if (state.view === 'viaggio') renderViaggio();
-    else renderScalo();
+    if (EMBED) return;
+
     const url = new URL(location.href);
     url.search = '';
     if (state.day) url.searchParams.set('day', state.day);
     url.searchParams.set('vista', state.view);
     if (state.view === 'viaggio') { url.searchParams.set('da', state.from); url.searchParams.set('a', state.to); }
-    if (state.view === 'scalo') url.searchParams.set('scalo', state.scalo);
+    if (state.scaloScelto) url.searchParams.set('scalo', state.scalo);
     history.replaceState(null, '', url);
   }
 
   function stopPlay() { if (state.playing) { clearInterval(state.playing); state.playing = null; } }
   const goToDay = day => { state.day = day === iso(new Date()) ? '' : day; state.time = null; state.showPast = false; state.open = ''; stopPlay(); render(); };
-  $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
-  $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
-  $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
-  $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-  $('orario-tabs').addEventListener('click', event => {
+  if (!EMBED) $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
+  if (!EMBED) $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
+  if (!EMBED) $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  if (!EMBED) $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
+  $('orario-tabs')?.addEventListener('click', event => {
     const button = event.target.closest('[data-view]');
     if (!button) return;
     state.view = button.dataset.view; state.showPast = false; stopPlay(); render();
   });
 
   const content = $('orario-content');
+  // riquadri richiudibili (navi in linea, note): restano come li ho lasciati quando la pagina si ridisegna
+  content.addEventListener('toggle', event => {
+    const key = event.target?.dataset?.dettaglio;
+    if (key) { if (event.target.open) state.dettagli.add(key); else state.dettagli.delete(key); }
+  }, true);
   content.addEventListener('input', event => {
     if (event.target.id === 'or-slider') {
       stopPlay();
@@ -462,7 +659,8 @@
   content.addEventListener('change', event => {
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; }
     else if (event.target.id === 'or-to') state.to = event.target.value;
-    else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; }
+    else if (event.target.matches('[data-pontile]')) { salvaPontile(event.target.dataset.pontile.split(' '), event.target.value); return; }
+    else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); }
     else return;
     state.showPast = false;
     render();
@@ -470,22 +668,39 @@
   content.addEventListener('click', event => {
     const port = event.target.closest('[data-port]');
     if (port) {
-      state.scalo = port.dataset.port; state.scaloScelto = true; state.open = '';
+      state.scalo = port.dataset.port; state.scaloScelto = true; state.open = ''; nuovoScalo();
       render();
       if (matchMedia('(max-width: 900px)').matches) document.querySelector('.or-at-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    const vai = event.target.closest('[data-goto]');
-    if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (event.target.closest('.pontile-sel')) return;
+    if (event.target.closest('[data-past-lago]')) { state.showPastLago = !state.showPastLago; render(); return; }
     // intestazione della scheda della corsa: la richiude
-    if (event.target.closest('.or-detail .terra-card-head')) { state.selected = ''; render(); return; }
+    const chiudi = event.target.closest('.or-detail .terra-card-head');
+    if (chiudi) {
+      const code = chiudi.closest('[data-detail]')?.dataset.detail || '';
+      if (state.selected === code) state.selected = '';
+      state.chiuse.add(code);
+      render();
+      return;
+    }
+    if (event.target.closest('[data-tutti]')) { state.tuttiScali = !state.tuttiScali; render(); return; }
     const ship = event.target.closest('[data-ship]');
+    if (ship && state.embed?.modo === 'nave') return;
     if (ship) {
       // da «Allo scalo» apre sempre la corsa; dalla mappa e dall'elenco apre o chiude
       const fromScalo = ship.dataset.from === 'scalo';
-      state.selected = !fromScalo && state.selected === ship.dataset.ship ? '' : ship.dataset.ship;
+      const code = ship.dataset.ship;
+      if (!fromScalo && document.querySelector(`.or-detail[data-detail="${code}"]`)) {
+        // gia' aperta: dalla mappa e dall'elenco la richiude
+        if (state.selected === code) state.selected = '';
+        state.chiuse.add(code);
+      } else {
+        state.selected = code;
+        state.chiuse.delete(code);
+      }
       render();
-      if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector('.or-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector(`.or-detail[data-detail="${ship.dataset.ship}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }
@@ -513,6 +728,25 @@
     target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
 
+  if (EMBED) {
+    window.NaviOrarioPage = {
+      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '' } = {}) {
+        const giorno = day && day !== iso(new Date()) ? day : '';
+        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
+        // mentre si sceglie un pontile o si usa il cursore non si ridisegna
+        if (!cambia && (document.activeElement?.closest?.('#orario-content select') || state.playing)) return;
+        state.embed = { modo, turno };
+        state.view = 'lago';
+        if (cambia) {
+          state.day = giorno; state.time = null; stopPlay();
+          state.scalo = SCALI.includes(scalo) ? scalo : 'Desenzano';
+          state.selected = ''; state.chiuse = new Set(); state.auto = modo === 'terra';
+        }
+        render();
+      },
+      hide() { state.embed = null; stopPlay(); $('orario-content').innerHTML = ''; $('orario-notice').hidden = true; }
+    };
+  }
   render();
   window.NaviSharedData?.loadCacheFirst?.(data => { state.schedule = data || { residenze: {} }; render(); })
     .catch(error => console.warn('Orario: turni non disponibili', error));
@@ -525,6 +759,9 @@
     } catch (error) { console.warn('Orario: navi non disponibili', error); }
   })();
   G.caricaModifiche(profile()).then(() => { if (state.schedule) render(); });
+  // pontili di Desenzano scelti dai colleghi (Servizi a terra e qui): riletti ogni minuto
+  caricaPontili();
+  setInterval(caricaPontili, 60000);
   // Adesso: posizioni e tabellone aggiornati ogni minuto (non mentre si usa il cursore).
   setInterval(() => { if (state.time == null && !state.playing && !document.activeElement?.matches?.('select')) render(); }, 60000);
 })();

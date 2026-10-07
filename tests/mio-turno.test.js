@@ -71,10 +71,13 @@ assert.match(fs.readFileSync('index.html', 'utf8'), /href="mio-turno\.html"/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="mio-turno\.html"/);
 assert.match(fs.readFileSync('assets/js/portal.js', 'utf8'), /'mio-turno\.html'/);
 const js = fs.readFileSync('assets/js/mio-turno.js', 'utf8');
-assert.match(js, /NaviServiziTerraPage\?\.show\(\{ residence: residenza, day \}\)/); // a terra: Servizi a terra incorporata
-assert.doesNotMatch(js, /location\.replace/);
-assert.match(page, /window\.NaviServiziTerraEmbed = true/);
-assert.match(page, /id="terra-content"/);
+assert.match(js, /NaviOrarioPage\?\.show\(\{ modo: 'terra', scalo: residenza === 'MADERNO' \? 'Maderno' : 'Desenzano', day \}\)/); // a terra: la pagina Scali del mio scalo
+assert.match(js, /NaviOrarioPage\?\.show\(\{ modo: 'nave', turno: nave, day \}\)/); // in linea: la mappa con la mia corsa
+assert.ok((js.match(/location\.replace/g) || []).length === 1 && /params\.get\('auto'\) === '1'/.test(js)); // solo per la prima pagina Automatica (a terra -> Scali)
+assert.match(page, /window\.NaviOrarioEmbed = true/);
+assert.match(page, /id="orario-content"/);
+const ordine = name => page.indexOf(`<script src="assets/js/${name}`);
+assert.ok(ordine('orario-lago.js') > 0 && ordine('orario-lago.js') < ordine('orario-page.js') && ordine('orario-page.js') < ordine('mio-turno.js'));
 assert.match(page, /id="turno-test"/); // prova con un altro turno
 assert.match(js, /shiftForCode\(/); // ore del servizio
 assert.doesNotMatch(js, /Buono pasto|`Diaria |'Imbarco'/); // competenze tolte dalla pagina
@@ -84,7 +87,7 @@ assert.match(js, /past-toggle/);
 assert.match(js, /G\.caricaModifiche\(profile\(\)\)/); // turni modificati in Diaria/Turni // corse gia' fatte nascoste
 assert.match(js, /class="navi-list"/); // corse e scali come l'orario di Servizi a terra
 assert.match(js, /i !== lastPast && !state\.showPast/); // scali gia' fatti nascosti tranne l'ultimo
-const terraJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
-assert.match(terraJs, /window\.NaviServiziTerraPage = \{/);
-assert.match(terraJs, /if \(EMBED\) return;/);
+const scaliJs = fs.readFileSync('assets/js/orario-page.js', 'utf8');
+assert.match(scaliJs, /window\.NaviOrarioPage = \{/);
+assert.match(scaliJs, /if \(EMBED && !state\.embed\) return;/);
 console.log('mio-turno ok');

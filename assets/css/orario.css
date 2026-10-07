@@ -97,3 +97,30 @@
 .or-at li.active{border-color:#5b8cff;background:rgba(91,140,255,.12);opacity:1}
 .or-detail .terra-card-head{cursor:pointer}
 .or-detail .terra-card-head h2::after{content:" ✕";color:#86a5af;font-size:.8em;font-weight:700}
+/* Quanto manca all'arrivo allo scalo */
+.or-manca{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:6px;background:rgba(155,200,213,.12);color:#9bc8d5;font-size:10px;font-style:normal;font-weight:900;letter-spacing:.02em;vertical-align:middle}
+.or-manca.arriva{background:rgba(45,212,191,.18);color:#5eead4;animation:or-pulse 2s ease-in-out infinite}
+.or-at li.arriva{border-color:#2dd4bf}
+@keyframes or-pulse{50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.or-manca.arriva{animation:none}}
+.or-next .or-manca{margin-left:6px}
+.or-next li.qui{color:#5eead4;font-weight:800}
+.mt-scali li span.or-next-nome{min-width:0;font:inherit;text-align:left;padding-right:0}
+.or-next li.prec{opacity:.4}
+.or-detail .past-toggle{margin:0 0 10px}
+/* Allo scalo come Servizi a terra */
+.or-at-card .navi-list{margin-top:8px}
+.or-at-card .nave{cursor:pointer}
+.or-at-card .nave.active{box-shadow:inset 3px 0 0 #5b8cff}
+.or-at-card .nave.arriva{box-shadow:inset 3px 0 0 #2dd4bf}
+.or-note{margin:10px 0 4px;color:#9bc8d5;font-size:12px}
+.or-note summary{cursor:pointer;font-weight:800}
+.or-agenti-title{margin-top:14px!important}
+.or-servizi{margin-top:6px}
+/* righe di «Allo scalo» nella colonna stretta: dove e badge uno sotto l'altro, nomi a capo */
+.or-at-card .nave{grid-template-columns:50px 72px 44px 1fr;gap:6px;padding:5px 7px}
+.or-at-card .nave .dove{flex-direction:column;align-items:flex-start;gap:3px;font-size:13px}
+.or-at-card .nave .dove span,.or-at-card .nave .ship-line{white-space:normal;overflow:visible}
+.or-at-card .nave .badges{justify-content:flex-start;overflow:visible}
+.or-at-card .nave .ship-line .cte{display:block}
+.or-ship.dim{opacity:.3}

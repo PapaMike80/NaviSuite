@@ -54,7 +54,7 @@ assert.match(fs.readFileSync('assets/js/push-notifications-v3.js', 'utf8'), /arr
 const center = fs.readFileSync('assets/js/push-center.js', 'utf8');
 assert.match(center, /id="push-pref-arrivals"/);
 assert.match(center, /arrivals:\$\('push-pref-arrivals'\)\.checked/);
-['servizi-terra.html', 'mio-turno.html', 'orario.html'].forEach(page => {
+['mio-turno.html', 'orario.html'].forEach(page => {
   const html = fs.readFileSync(page, 'utf8');
   assert.ok(html.indexOf('push-arrivi.js') > html.indexOf('turni-giorno.js') && html.indexOf('arrivi-avvisi.js') > html.indexOf('push-arrivi.js'), page);
   assert.ok(html.includes('orario-giorno.js'), page);

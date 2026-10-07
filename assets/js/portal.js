@@ -100,10 +100,17 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
-  const allowedStartPages=new Set(['index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','mio-turno.html','orario.html','servizi-terra.html','impostazioni.html','aggiornamenti.html','agenti.html']);
-  const savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));
-  const preferred=allowedStartPages.has(savedStartPage||'')?savedStartPage:'index.html';
-  if(preferred&&preferred!=='index.html'){location.href=preferred;return;}
+  const allowedStartPages=new Set(['auto','index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','mio-turno.html','orario.html','impostazioni.html','aggiornamenti.html','agenti.html']);
+  // Prima pagina: quella scelta in Impostazioni; chi non ha mai scelto ha "Automatica" (Scali se oggi e'
+  // di turno a terra, altrimenti Il mio turno), tranne le bariste. Servizi a terra e' ora in Scali.
+  const barista=isBaristaAgent(agent)&&!isHibaBarista(agent);
+  let savedStartPage=null;try{savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));}catch(_){}
+  savedStartPage=(savedStartPage==null?(barista?'index.html':'auto'):savedStartPage).replace(/^servizi-terra\.html$/,'orario.html');
+  const preferred=allowedStartPages.has(savedStartPage)&&!(barista&&savedStartPage==='auto')?savedStartPage:'index.html';
+  // Solo all'apertura dell'app (una volta per sessione) e mai quando si torna alla Home dal menu.
+  let giaAperta=false;try{giaAperta=sessionStorage.getItem('navisuite.startDone')==='1';sessionStorage.setItem('navisuite.startDone','1');}catch(_){}
+  const homeRichiesta=new URLSearchParams(location.search).has('home');
+  if(preferred!=='index.html'&&!giaAperta&&!homeRichiesta){location.href=preferred==='auto'?'mio-turno.html?auto=1':preferred;return;}
   const diaria = document.querySelector('.app-card.diaria');
   const oggi = document.querySelector('.app-card.oggi');
   const docs = document.querySelector('.app-card.docs');

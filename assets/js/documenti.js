@@ -401,7 +401,7 @@ function terraCard(documentItem) {
     ? (documentItem.settimana ? `SERVIZI A TERRA · SETTIMANA ${documentItem.settimana}` : 'SERVIZI A TERRA · ORARIO INVERNALE')
     : documentItem.servizio ? 'SERVIZI A TERRA · PDF DA STAMPARE' : 'STAMPA · PDF';
   const description = weekly
-    ? `Generato il ${formatDate(documentItem.data) || '—'} da Aggiornamenti · si apre anche dalla pagina <a href="servizi-terra.html?res=${escapeHtml(String(documentItem.residenza || '').toLowerCase())}">Servizi a terra</a>`
+    ? `Generato il ${formatDate(documentItem.data) || '—'} da Aggiornamenti · si apre anche dalla pagina <a href="orario.html?scalo=${String(documentItem.residenza || '').toUpperCase() === 'MADERNO' ? 'Maderno' : 'Desenzano'}">Scali</a>`
     : 'Rigenerato automaticamente a ogni nuovo ODS';
   return `
     <article class="document${weekly ? ' published-document' : ''}" data-document-id="${escapeHtml(documentItem.id)}">
