@@ -13,14 +13,21 @@
 .or-clock{min-width:44px;font:900 18px Manrope,sans-serif;text-align:right}
 .or-live{padding:3px 7px;border-radius:7px;background:rgba(45,212,191,.16);color:#2dd4bf;font-size:10px;font-weight:900;letter-spacing:.08em}
 .or-map{display:block;width:100%;max-height:72vh;margin:0 auto}
-.or-lake{fill:rgba(36,183,242,.10);stroke:rgba(124,196,255,.45);stroke-width:.5;stroke-linejoin:round}
-.or-port circle{fill:#e8f7f7}
-.or-port text{fill:#9bc8d5;font:700 3.1px DM Sans,sans-serif}
+.or-shore{fill:none;stroke:rgba(150,232,245,.22);stroke-width:2.6;stroke-linejoin:round}
+.or-lake{fill:url(#or-water);stroke:#8fe3ef;stroke-width:.55;stroke-linejoin:round}
+.or-port circle{fill:#c9964b;stroke:#06171d;stroke-width:.45}
+.or-port text{fill:#d7eef2;font:700 3px DM Sans,sans-serif;paint-order:stroke;stroke:#0b2530;stroke-width:.7px;stroke-linejoin:round}
+.or-north path{fill:#9bc8d5}
+.or-north text,.or-scale text{fill:#9bc8d5;font:800 2.6px Manrope,sans-serif;text-anchor:middle}
+.or-scale path{fill:none;stroke:#9bc8d5;stroke-width:.45}
+.or-path path{fill:none;stroke:var(--c);stroke-linecap:round;stroke-linejoin:round}
+.or-path .todo{stroke-width:.6;stroke-dasharray:1.4 1.2;opacity:.75}
+.or-path .done{stroke-width:.9;opacity:.95}
 .or-ship{cursor:pointer;transition:transform .9s linear}
 .or-ship circle{stroke:#071820;stroke-width:.6}
-.or-ship text{fill:#06171d;font:900 2.6px Manrope,sans-serif;text-anchor:middle;pointer-events:none}
+.or-ship text{fill:#06171d;font:900 2.2px Manrope,sans-serif;text-anchor:middle;pointer-events:none}
 .or-ship.moored{opacity:.45}
-.or-ship.selected circle{stroke:#fff;stroke-width:.9}
+.or-ship.selected circle{stroke:#fff;stroke-width:.8}
 .or-ship:focus-visible{outline:none}
 .or-ship:focus-visible circle{stroke:#fff;stroke-width:1}
 .or-ship-list{display:grid;gap:5px}

@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 
-['assets/js/orario-giorno.js', 'assets/js/orario-page.js']
+['assets/js/orario-giorno.js', 'assets/js/orario-lago.js', 'assets/js/orario-page.js']
   .forEach(file => execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }));
 
 globalThis.window = globalThis;
@@ -45,4 +45,38 @@ assert.match(fs.readFileSync('mio-turno.html', 'utf8'), /orario-giorno\.js/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /window\.NaviOrarioGiorno/);
 const css = fs.readFileSync('assets/css/orario.css', 'utf8');
 assert.strictEqual((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
+
+// Mappa del lago: ogni scalo ha pontile e boa in acqua; le rotte di tutte le corse restano in acqua
+// (es. Garda - Torri gira attorno a Punta San Vigilio).
+require('../assets/js/orario-lago.js');
+const M = globalThis.NaviLagoMappa;
+const costa = M.costa.slice(1, -1).split(' L').map(p => p.split(' ').map(Number));
+const inAcqua = ([x, y]) => {
+  let dentro = false;
+  for (let i = 0, j = costa.length - 1; i < costa.length; j = i, i += 1) {
+    const [xi, yi] = costa[i], [xj, yj] = costa[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) dentro = !dentro;
+  }
+  return dentro;
+};
+assert.strictEqual(Object.keys(M.scali).length, 17);
+Object.entries(M.scali).forEach(([nome, s]) => assert.ok(inAcqua(s.boa), `boa ${nome}`));
+assert.ok(M.km > 2 && M.km < 3.5, 'scala');
+assert.ok((M.rotte['Garda|Torri'] || M.rotte['Torri|Garda'])?.length, 'Garda - Torri attorno a San Vigilio');
+const rotta = (a, b) => [M.scali[a].boa, ...(M.rotte[`${a}|${b}`] || (M.rotte[`${b}|${a}`] || []).slice().reverse()), M.scali[b].boa];
+const coppie = new Set();
+['2026-10-06', '2026-12-10', '2027-03-21'].forEach(day => O.viaggiDelGiorno(day).forEach(v => v.scali.forEach((s, i) => {
+  if (i && v.scali[i - 1][0] !== s[0]) coppie.add(`${v.scali[i - 1][0]}|${s[0]}`);
+})));
+assert.ok(coppie.size > 20);
+coppie.forEach(coppia => {
+  const r = rotta(...coppia.split('|'));
+  r.slice(1).forEach(([x, y], i) => {
+    for (let k = 0; k <= 20; k += 1) {
+      const p = [r[i][0] + (x - r[i][0]) * k / 20, r[i][1] + (y - r[i][1]) * k / 20];
+      assert.ok(inAcqua(p), `${coppia} passa sulla terra`);
+    }
+  });
+});
+assert.ok(page.indexOf('orario-lago.js') > 0 && page.indexOf('orario-lago.js') < page.indexOf('orario-page.js'));
 console.log('orario ok');

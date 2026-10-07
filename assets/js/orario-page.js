@@ -1,5 +1,5 @@
 // Pagina "Orario": orario interattivo del giorno (O.d.S. 39/2026) in tre viste.
-// - Lago: mappa schematica del Garda con le navi in servizio nella posizione dell'ora scelta
+// - Lago: mappa del Garda (orario-lago.js) con le navi in servizio nella posizione dell'ora scelta
 //   (adesso o con il cursore del tempo); toccando una nave: turno, nave, comandante, equipaggio,
 //   dove sta andando e i prossimi scali.
 // - Da -> A: viaggi diretti o con un cambio fra due scali, con turno e nave del giorno.
@@ -21,15 +21,40 @@
   const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   const chip = code => `<span class="chip" data-code="${esc(code)}">${esc(code)}</span>`;
 
-  // Scali nell'ordine dell'orario ufficiale (Desenzano - Riva) e posizione sulla mappa schematica.
-  const SCALI = [
-    ['Desenzano', 30, 134], ['Peschiera', 74, 128], ['Sirmione', 48, 122], ['Lazise', 72, 112], ['Bardolino', 68, 100],
-    ['Garda', 62, 86], ['Torri', 60, 74], ['Portese', 19, 96], ['Salò', 20, 86], ['Gardone', 24, 78],
-    ['Maderno', 27, 70], ['Gargnano', 33, 50], ['Brenzone', 61, 54], ['Malcesine', 61, 36], ['Limone', 38, 24],
-    ['Torbole', 60, 4], ['Riva', 50, 2]
-  ];
-  const POS = Object.fromEntries(SCALI.map(([nome, x, y]) => [nome, [x, y]]));
-  const LAGO = '46,0 56,0 64,6 62,20 63,40 63,60 63,78 66,90 71,104 75,118 77,131 68,139 56,134 50,125 46,125 44,133 34,139 24,135 17,122 16,104 17,90 21,80 25,68 30,54 35,40 37,24 42,10';
+  // Scali nell'ordine dell'orario ufficiale (Desenzano - Riva). Mappa: costa, pontili, boe davanti
+  // ai pontili (dove sta la nave) e rotte in acqua fra due scali (orario-lago.js).
+  const SCALI = ['Desenzano', 'Peschiera', 'Sirmione', 'Lazise', 'Bardolino', 'Garda', 'Torri', 'Portese', 'Salò',
+    'Gardone', 'Maderno', 'Gargnano', 'Brenzone', 'Malcesine', 'Limone', 'Torbole', 'Riva'];
+  const MAPPA = window.NaviLagoMappa;
+  const POS = Object.fromEntries(SCALI.map(nome => [nome, MAPPA.scali[nome].boa]));
+  const COSTA = MAPPA.costa.slice(1, -1).split(' L').map(p => p.split(' ').map(Number));
+  function inAcqua([x, y]) {
+    let dentro = false;
+    for (let i = 0, j = COSTA.length - 1; i < COSTA.length; j = i, i += 1) {
+      const [xi, yi] = COSTA[i], [xj, yj] = COSTA[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) dentro = !dentro;
+    }
+    return dentro;
+  }
+  // Rotta fra due scali: boa di partenza, punti in acqua, boa d'arrivo.
+  function rotta(a, b) {
+    const via = MAPPA.rotte[`${a}|${b}`] || (MAPPA.rotte[`${b}|${a}`] || []).slice().reverse();
+    return [POS[a], ...via, POS[b]];
+  }
+  // Punto a frazione f della rotta (per lunghezza); con parte=true la rotta fin li'.
+  function lungoRotta(punti, f, parte = false) {
+    const tratti = punti.slice(1).map((p, i) => Math.hypot(p[0] - punti[i][0], p[1] - punti[i][1]));
+    let resto = f * tratti.reduce((s, l) => s + l, 0);
+    for (let i = 0; i < tratti.length; i += 1) {
+      if (resto <= tratti[i] || i === tratti.length - 1) {
+        const k = tratti[i] ? Math.min(1, resto / tratti[i]) : 0;
+        const xy = [punti[i][0] + (punti[i + 1][0] - punti[i][0]) * k, punti[i][1] + (punti[i + 1][1] - punti[i][1]) * k];
+        return parte ? [...punti.slice(0, i + 1), xy] : xy;
+      }
+      resto -= tratti[i];
+    }
+    return parte ? punti : punti[punti.length - 1];
+  }
   const COLORI = { D1: '#5b8cff', R1: '#5b8cff', P1: '#5b8cff', T1: '#5b8cff', D2: '#46c98a', R2: '#46c98a', P2: '#46c98a', T2: '#46c98a', R3: '#f59a52', M1: '#f59a52', SR1: '#a78bfa', SR2: '#a78bfa', BIS: '#67d7e6' };
 
   function profile() {
@@ -86,8 +111,7 @@
     const a = punti[i], b = punti[i + 1];
     if (a.scalo === b.scalo) return { stato: 'fermo', scalo: a.scalo, xy: POS[a.scalo], fino: b, i };
     const f = (t - a.t) / Math.max(1, b.t - a.t);
-    const [ax, ay] = POS[a.scalo], [bx, by] = POS[b.scalo];
-    return { stato: 'naviga', da: a, a: b, xy: [ax + (bx - ax) * f, ay + (by - ay) * f], i: i + 1 };
+    return { stato: 'naviga', da: a, a: b, xy: lungoRotta(rotta(a.scalo, b.scalo), f), i: i + 1 };
   }
   function statoTesto(p) {
     if (!p) return '';
@@ -104,25 +128,61 @@
     const turni = [...new Set(g.viaggi.map(v => v.turno))];
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
-    // Navi vicine (stesso scalo o quasi): affiancate per non sovrapporsi.
+    // Navi vicine (stesso scalo o quasi): affiancate in acqua, prima verso il largo.
     const posti = [];
     const marker = navi.map(item => {
-      let [x, y] = item.pos.xy;
-      while (posti.some(([px, py]) => Math.hypot(px - x, py - y) < 6.6)) x += 7.2;
+      const [x0, y0] = item.pos.xy;
+      const scalo = MAPPA.scali[item.pos.scalo || ''];
+      const largo = scalo ? Math.atan2(scalo.boa[1] - scalo.porto[1], scalo.boa[0] - scalo.porto[0]) : 0;
+      const libero = ([x, y]) => !posti.some(([ox, oy]) => Math.hypot(ox - x, oy - y) < 5.6);
+      const candidati = [[x0, y0]];
+      [5.8, 11.6, 17.4].forEach(r => {
+        for (let k = 0; k < 12; k += 1) {
+          const ang = largo + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6;
+          candidati.push([x0 + Math.cos(ang) * r, y0 + Math.sin(ang) * r]);
+        }
+      });
+      const [x, y] = candidati.find(c => libero(c) && inAcqua(c)) || candidati.find(libero) || [x0, y0];
       posti.push([x, y]);
-      const dx = 0;
       const ferma = item.pos.stato === 'prima' || item.pos.stato === 'fine';
       const sel = item.code === state.selected;
-      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}" data-ship="${item.code}" transform="translate(${(x + dx).toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
-        `<circle r="${sel ? 4.6 : 3.8}" fill="${COLORI[item.code] || '#94a3b8'}"/><text y="1.1">${esc(item.code)}</text></g>`;
+      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
+        `<circle r="${sel ? 3.6 : 3}" fill="${COLORI[item.code] || '#94a3b8'}"/><text y="0.9">${esc(item.code)}</text></g>`;
     }).join('');
-    const scali = SCALI.map(([nome, x, y]) => {
-      const right = x > 50;
-      return `<g class="or-port" data-port="${esc(nome)}"><circle cx="${x}" cy="${y}" r="1.3"/>` +
-        `<text x="${right ? x + 2.6 : x - 2.6}" y="${y + 1}" text-anchor="${right ? 'start' : 'end'}">${esc(nome)}</text></g>`;
+    // Rotta del giorno della nave scelta (tratteggiata) e tratto gia' fatto (pieno).
+    const scelta = navi.find(item => item.code === state.selected);
+    let percorso = '';
+    if (scelta) {
+      const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+      const tutto = [], fatto = [];
+      scelta.punti.forEach((p, k) => {
+        if (!k || p.scalo === scelta.punti[k - 1].scalo) return;
+        const r = rotta(scelta.punti[k - 1].scalo, p.scalo);
+        tutto.push(linea(r));
+        if (p.t <= t) fatto.push(linea(r));
+      });
+      if (scelta.pos.stato === 'naviga') {
+        const r = rotta(scelta.pos.da.scalo, scelta.pos.a.scalo);
+        const f = (t - scelta.pos.da.t) / Math.max(1, scelta.pos.a.t - scelta.pos.da.t);
+        fatto.push(linea(lungoRotta(r, Math.min(1, f), true)));
+      }
+      const colore = COLORI[scelta.code] || '#94a3b8';
+      percorso = `<g class="or-path" style="--c:${colore}"><path class="todo" d="${tutto.join('')}"/><path class="done" d="${fatto.join('')}"/></g>`;
+    }
+    const porti = SCALI.map(nome => {
+      const { porto: [x, y], lato } = MAPPA.scali[nome];
+      const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
+      const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : [x, y - 2.6, 'middle'];
+      return `<g class="or-port" data-port="${esc(nome)}"><circle cx="${x}" cy="${y}" r="1.25"/>` +
+        `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
-    const svg = `<svg class="or-map" viewBox="-14 -6 128 150" role="img" aria-label="Mappa schematica del lago con le navi">` +
-      `<polygon class="or-lake" points="${LAGO}"/>${scali}${marker}</svg>`;
+    const km5 = 5 * MAPPA.km;
+    const decoro = `<g class="or-north" transform="translate(4 8)"><path d="M0 -6 L2.4 1.5 L0 0 L-2.4 1.5Z"/><text y="6.2">N</text></g>` +
+      `<g class="or-scale" transform="translate(-8 141)"><path d="M0 0 H${km5.toFixed(1)}"/><path d="M0 -1.2 V1.2 M${(km5 / 2).toFixed(1)} -0.8 V0.8 M${km5.toFixed(1)} -1.2 V1.2"/>` +
+      `<text x="${(km5 / 2).toFixed(1)}" y="-2.2">5 km</text></g>`;
+    const svg = `<svg class="or-map" viewBox="-12 -3 102 148" role="img" aria-label="Mappa del Lago di Garda con le navi">` +
+      `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
+      `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
     const ordinate = navi.slice().sort((a, b) => O.TURNI.indexOf(a.code) - O.TURNI.indexOf(b.code));
     const lista = ordinate.map(item => `<button type="button" class="or-ship-row${item.code === state.selected ? ' active' : ''}" data-ship="${item.code}">` +
       `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}</small></span></button>`).join('');
@@ -196,7 +256,7 @@
 
   function renderViaggio() {
     const g = giornata();
-    const opzioni = sel => SCALI.map(([nome]) => `<option${nome === sel ? ' selected' : ''}>${esc(nome)}</option>`).join('');
+    const opzioni = sel => SCALI.map(nome => `<option${nome === sel ? ' selected' : ''}>${esc(nome)}</option>`).join('');
     const form = `<div class="or-route"><label><span>Da</span><select id="or-from">${opzioni(state.from)}</select></label>` +
       `<button type="button" class="or-swap" data-swap aria-label="Inverti">⇅</button>` +
       `<label><span>A</span><select id="or-to">${opzioni(state.to)}</select></label></div>`;
@@ -246,7 +306,7 @@
 
   function renderScalo() {
     const g = giornata();
-    const select = `<label class="or-station"><span>Scalo</span><select id="or-scalo">${SCALI.map(([nome]) => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
+    const select = `<label class="or-station"><span>Scalo</span><select id="or-scalo">${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
     const eventi = eventiScalo(g, state.scalo);
     const ora = realToday() ? nowMinutes() : -1;
     let nextFound = false;
