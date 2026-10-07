@@ -97,3 +97,9 @@
 .or-at li.active{border-color:#5b8cff;background:rgba(91,140,255,.12);opacity:1}
 .or-detail .terra-card-head{cursor:pointer}
 .or-detail .terra-card-head h2::after{content:" ✕";color:#86a5af;font-size:.8em;font-weight:700}
+/* Quanto manca all'arrivo allo scalo */
+.or-manca{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:6px;background:rgba(155,200,213,.12);color:#9bc8d5;font-size:10px;font-style:normal;font-weight:900;letter-spacing:.02em;vertical-align:middle}
+.or-manca.arriva{background:rgba(45,212,191,.18);color:#5eead4;animation:or-pulse 2s ease-in-out infinite}
+.or-at li.arriva{border-color:#2dd4bf}
+@keyframes or-pulse{50%{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.or-manca.arriva{animation:none}}

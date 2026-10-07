@@ -213,6 +213,18 @@
   }
 
   // Sezione "Allo scalo": le prossime navi che partono, passano o arrivano allo scalo (dall'ora scelta).
+  // Quanto manca: "in arrivo · tra 8 min" se la nave sta gia' navigando verso lo scalo, altrimenti
+  // "tra 25 min" per le navi entro un'ora (dall'ora mostrata).
+  function quantoManca(g, e, t) {
+    const min = e.t - t;
+    if (min < 0 || min > 60) return null;
+    const pos = posizione(puntiDelTurno(g.viaggi, e.v.turno), t);
+    const arriva = pos?.stato === 'naviga' && pos.a.scalo === e.v.scali.find(s => s[1] === e.ora)?.[0] && pos.a.t === e.t;
+    const testo = min === 0 ? 'adesso' : min === 60 ? 'tra 1 ora' : `tra ${min} min`;
+    return { arriva, testo: arriva ? `in arrivo · ${testo}` : testo };
+  }
+  const badgeManca = m => (m ? `<em class="or-manca${m.arriva ? ' arriva' : ''}">${esc(m.testo)}</em>` : '');
+
   function alloScalo(g, t) {
     const KIND = { P: 'parte', A: 'arriva', S: 'passa' };
     const eventi = eventiScalo(g, state.scalo);
@@ -220,9 +232,10 @@
     const prima = eventi.filter(e => e.t < t).slice(-1);
     const righe = [...prima, ...dopo.slice(0, 6)].map(e => {
       const info = naveInfo(g, e.v.turno, e.corsa);
+      const manca = e.t >= t ? quantoManca(g, e, t) : null;
       // toccando la riga si apre la scheda della corsa (come dall'elenco Navi)
-      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${e.v.turno === state.selected ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
-        `<span><b>${KIND[e.kind]} · ${esc(e.dove)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
+      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${manca?.arriva ? ' arriva' : ''}${e.v.turno === state.selected ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
+        `<span><b>${KIND[e.kind]} · ${esc(e.dove)}${badgeManca(manca)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
     }).join('');
     const vuoto = eventi.length ? 'Nessun\'altra nave in questo giorno.' : 'Nessuna nave in questo scalo nel giorno scelto.';
     return card(`Allo scalo`, dopo.length ? `${dopo.length} navi da qui in poi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
@@ -401,7 +414,7 @@
         `<li class="${nome === state.scalo && orario === e.ora ? 'coming' : ''}"><span>${esc(orario)}</span>${esc(nome)}<small>c. ${esc(corsa)}</small></li>`).join('')}</ol>` : '';
       return `<div class="or-board-item${aperto ? ' open' : ''}"><div class="nave${/^T[12]$/.test(e.v.turno) ? ' ferry' : ''}${e.stato === 'past' ? ' past' : ''}${e.stato === 'next' ? ' next' : ''}" data-open="${esc(e.key)}" tabindex="0" role="button" aria-expanded="${aperto}">` +
         `<span class="ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span><span class="tipo ${e.kind}">${KIND[e.kind]}<small>corsa ${esc(e.corsa)}</small></span>${chip(e.v.turno)}` +
-        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(e.dove)}</span>${info ? `<span class="cte">${esc(info)}</span>` : ''}</span></span></div>${scali}</div>`;
+        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(e.dove)}</span>${ora >= 0 ? badgeManca(quantoManca(g, e, ora)) : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span></span></div>${scali}</div>`;
     }).join('');
     $('orario-content').innerHTML = `<div class="or-single">${card(`Tabellone ${state.scalo}`, `${eventi.length} passaggi`, select + toggle +
       (righe ? `<div class="navi-list">${righe}</div>` : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>'))}</div>`;

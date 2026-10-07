@@ -87,4 +87,6 @@ assert.match(js, /data-goto="scalo"/);
 assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
 assert.match(js, /data-from="scalo"/);
 assert.match(js, /closest\('\.or-detail \.terra-card-head'\)\) \{ state\.selected = ''/);
+assert.match(js, /function quantoManca\(g, e, t\)/);
+assert.match(js, /in arrivo · \$\{testo\}/);
 console.log('orario ok');
