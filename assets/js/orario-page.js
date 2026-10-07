@@ -84,10 +84,12 @@
   function giornata() {
     const day = today();
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
+    const navi = T.turniDelGiorno(turniNavi, day);
     return {
       day,
-      viaggi: O.viaggiDelGiorno(day),
-      navi: T.turniDelGiorno(turniNavi, day),
+      // le corse sospese dall'Ufficio Movimento non ci sono (ne' sul lago, ne' nei viaggi, ne' allo scalo)
+      viaggi: O.viaggiDelGiorno(day).filter(v => !navi[v.turno]?.sospesa),
+      navi,
       crews: state.schedule ? G.equipaggi(state.schedule, day).navi : {}
     };
   }
@@ -369,8 +371,11 @@
     $('orario-day-today').hidden = realToday();
     document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
-    const notice = !attivi.length ? 'Nessuna corsa in orario in questo giorno.' :
-      !attivi.includes('D1') ? 'In questo periodo è attivo solo il traghetto Maderno – Torri.' : '';
+    const navi = giornata().navi;
+    const sospese = attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`);
+    const notice = [!attivi.length ? 'Nessuna corsa in orario in questo giorno.' :
+      !attivi.includes('D1') ? 'In questo periodo è attivo solo il traghetto Maderno – Torri.' : '',
+    sospese.length ? `⚠ Corse sospese dall'Ufficio Movimento: ${sospese.join(', ')}.` : ''].filter(Boolean).join(' · ');
     $('orario-notice').hidden = !notice;
     $('orario-notice').textContent = notice;
     if (state.view === 'lago') renderLago();

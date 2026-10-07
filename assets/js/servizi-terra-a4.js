@@ -105,8 +105,9 @@
 
   // {data: {gruppo: {nave, pontile, rif, ods}}} dai turni nave (attivi) dell'app.
   // Se piu' righe descrivono lo stesso giorno e gruppo vince l'O.d.S. con il numero piu' alto
-  // (a parita', la riga inserita per ultima); le righe ancora da salvare vincono sempre.
-  const rank = row => [row._pending ? 1 : 0, Number(String(row.ods || '').match(/\d+/)?.[0] || 0), String(row.inserita_il || '')];
+  // (a parita', la riga inserita per ultima); le righe ancora da salvare e poi quelle dell'Ufficio
+  // Movimento (modifiche del giorno) vincono sempre.
+  const rank = row => [(row._pending ? 2 : 0) + (row.fonte === 'movimento' ? 1 : 0), Number(String(row.ods || '').match(/\d+/)?.[0] || 0), String(row.inserita_il || '')];
   const newer = (a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]); };
   function indexTurniNavi(rows) {
     const out = {};
@@ -313,8 +314,9 @@ ${FIT}</body></html>`;
     return page([sheet], sheet.title, options.printButton !== false);
   }
   // Turni nave di un giorno per ogni turno (D1, P2, M1, R1, T1, SR1, BIS...):
-  // {turno: {nave, ormeggio, rif}} con ormeggio = "pontile 5", "porto esterno"... o '' e
-  // rif = rifornimento la mattina.
+  // {turno: {nave, ormeggio, rif, ormeggioMattino, sospesa, motivo, movimento}} con ormeggio =
+  // "pontile 5", "porto esterno"... o '' (della sera), rif = rifornimento la mattina; dall'Ufficio
+  // Movimento anche l'ormeggio del mattino (altrimenti e' quello della sera prima) e le corse sospese.
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -326,9 +328,12 @@ ${FIT}</body></html>`;
       const ormeggio = number ? `pontile ${number}` : mooring.toLowerCase();
       const refuel = String(row.rifornimento_mattina || '').trim();
       const rif = /^s[iì]$/i.test(refuel) || /riforn/i.test(refuel);
-      if (!nave && !ormeggio && !rif) return;
+      const movimento = row.fonte === 'movimento';
+      if (!nave && !ormeggio && !rif && !movimento) return;
+      const pontile = value => { const n = String(value || '').match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1]; return n ? `pontile ${n}` : String(value || '').trim().toLowerCase(); };
+      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true } : {};
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
-        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif };
+        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif, ...extra };
       });
     });
     return out;

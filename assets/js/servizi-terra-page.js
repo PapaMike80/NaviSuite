@@ -176,7 +176,7 @@
         const label = bolgette[run].replace('BOLGETTA · ', 'Bolgetta: ').toLowerCase().replace(/^b/, 'B');
         badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
       }
-      const odsMooring = morning ? ieri[code]?.ormeggio : evening ? turni[code]?.ormeggio : '';
+      const odsMooring = morning ? (turni[code]?.ormeggioMattino || ieri[code]?.ormeggio) : evening ? turni[code]?.ormeggio : '';
       if (desenzano) {
         // Desenzano: selettore del pontile su ogni corsa (proposto dall'O.d.S. o dal giorno prima).
         // Un arrivo seguito da una partenza della stessa nave: la nave riparte dallo stesso pontile.
@@ -195,12 +195,14 @@
       }
       const ship = turni[code]?.nave;
       const captain = comandante(crews[code]);
-      const info = [ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
+      // Corse sospese dall'Ufficio Movimento (lago mosso, guasto...)
+      const sospesa = turni[code]?.sospesa ? `<b class="sospesa" title="${esc(turni[code].motivo || 'Corse sospese dal Movimento')}">SOSPESA</b>` : '';
+      const info = [sospesa, ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
       const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line">${info || '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
-      return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code) };
+      return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code), sospesa: !!sospesa };
     });
     // Navi gia' partite: nascoste tranne l'ultima (spenta); la freccia le mostra tutte.
     const pastIdx = items.map((item, i) => item.state === 'past' ? i : -1).filter(i => i >= 0);
@@ -211,7 +213,7 @@
       const hide = !state.showPast && item.state === 'past' && i !== lastPast;
       const hideOff = !state.showPast && item.state === 'off' && lastPast != null && i < lastPast;
       if (hide || hideOff) return '';
-      const cls = `nave${item.ferry ? ' ferry' : ''}${item.split ? ' split' : ''}${isPast ? ' past' : ''}${item.state === 'next' ? ' next' : ''}`;
+      const cls = `nave${item.sospesa ? ' sospesa' : ''}${item.ferry ? ' ferry' : ''}${item.split ? ' split' : ''}${isPast ? ' past' : ''}${item.state === 'next' ? ' next' : ''}`;
       return `<div class="${cls}" tabindex="0" data-crew="${esc(item.code)}" data-ship="${esc(item.ship || '')}" data-where="${esc(item.where)}">${item.html}</div>`;
     }).join('');
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +

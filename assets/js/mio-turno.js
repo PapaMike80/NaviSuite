@@ -118,7 +118,7 @@
       : rows.length ? toggle + `<div class="navi-list">${rows.map((row, i) => {
         if (row.stato === 'past' && i !== lastPast && !state.showPast) return '';
         const badges = [];
-        if (i === 0) { if (oggi.rif) badges.push('<b class="rifornimento" title="Rifornimento prima delle corse">R</b>'); if (ieri.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio del mattino (dalla sera prima)">⚓ ${esc(pontLabel(ieri.ormeggio))}</b>`); }
+        if (i === 0) { if (oggi.rif) badges.push('<b class="rifornimento" title="Rifornimento prima delle corse">R</b>'); const mattino = oggi.ormeggioMattino || ieri.ormeggio; if (mattino) badges.push(`<b class="ormeggio" title="Ormeggio del mattino${oggi.ormeggioMattino ? '' : ' (dalla sera prima)'}">⚓ ${esc(pontLabel(mattino))}</b>`); }
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
         const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.split ? ' split' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
@@ -180,6 +180,9 @@
     if (state.test) messages.push(`Prova con il turno ${state.test === 'RIP' ? 'Riposo' : state.test}: i tuoi dati non cambiano.`);
     else if (!found) messages.push('Non trovo il tuo turno nei dati di NaviTurni.');
     if (nave && !inServizio(nave, day)) messages.push(`Il turno ${nave} non è in servizio in questo giorno secondo l'orario in vigore.`);
+    // Corse sospese dall'Ufficio Movimento (pagina Movimento)
+    const sospesa = nave && state.schedule ? T.turniDelGiorno([...(state.schedule.turni_navi || []), ...state.firebaseNavi], day)[nave] : null;
+    if (sospesa?.sospesa) messages.push(`⚠ Corse del ${nave} sospese dall'Ufficio Movimento${sospesa.motivo ? `: ${sospesa.motivo}` : ''}.`);
     notice(messages.join(' · '));
     if (nave) renderNave(nave, day, me);
     else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day);

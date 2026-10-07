@@ -57,7 +57,8 @@
     const navi = T().turniDelGiorno(data?.turni_navi || [], day);
     const crews = G().equipaggi(data, day).navi;
     const pontili = options.pontili || {};
-    return arriviDelServizio(servizio, day).map(arrivo => {
+    // le corse sospese dall'Ufficio Movimento non arrivano
+    return arriviDelServizio(servizio, day).filter(arrivo => !navi[arrivo.code]?.sospesa).map(arrivo => {
       const { time, code, run, kind, where, evening, residenza } = arrivo;
       const odsMooring = evening ? navi[code]?.ormeggio : '';
       const pontile = residenza === 'DESENZANO'
