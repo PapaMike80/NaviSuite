@@ -87,7 +87,7 @@ assert.match(js, /function posizioneGps\(\)/);
 assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
 assert.match(js, /function alloScalo\(g, t, aperte = \[\], navi = \[\]\)/);
 assert.match(js, /function naviAlloScalo\(g, t\)/);
-assert.match(js, /data-tutti/);
+assert.match(js, /data-giornata=/); // tutta la giornata della nave nella scheda
 assert.ok(!js.includes('data-goto'), 'niente Tabellone completo');
 assert.match(js, /Navi in linea oggi/);
 assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
@@ -110,4 +110,6 @@ assert.match(portal, /homeRichiesta=new URLSearchParams\(location\.search\)\.has
 assert.match(portal, /navisuite\.startDone/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=\$\{res === 'MADERNO' \? 'Maderno' : 'Desenzano'\}`\)/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
+assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
+assert.match(js, /riga\(resto\[iQui\], iQui\) \+ \(resto\[iQui \+ 1\] \? riga\(resto\[iQui \+ 1\], iQui \+ 1\) : ''\)/); // anche lo scalo dopo il mio
 console.log('orario ok');

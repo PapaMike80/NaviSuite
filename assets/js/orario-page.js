@@ -73,7 +73,7 @@
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), tuttiScali: false, scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -467,18 +467,33 @@
     const resto = punti.slice(from);
     const iQui = resto.findIndex(p => p.scalo === state.scalo);
     // partita dal mio scalo da meno di 10 minuti: il mio scalo in trasparenza e il prossimo
-    const partita = punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
-    const soloQui = (iQui >= 0 || partita) && !state.tuttiScali;
+    // (se e' ancora ferma al mio scalo non e' partita: l'ultimo punto li' e' l'arrivo)
+    const ferma = pos.stato === 'fermo' && pos.scalo === state.scalo;
+    const partita = ferma ? null : punti.slice(0, from).reverse().find(p => p.scalo === state.scalo && t - p.t <= DOPO_PARTENZA) || null;
+    // Compatta: lo scalo gia' fatto in trasparenza e il prossimo (il mio scalo, se la nave ci passa, con lo
+    // scalo dopo il mio);
+    // con la freccia l'intera giornata della nave, gli scali gia' fatti in trasparenza.
+    const giornata = state.giornate.has(code);
+    const soloQui = iQui >= 0 || partita;
     const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
-    const prossimi = !soloQui ? resto.slice(0, 6).map((p, k) => riga(p, k)).join('')
+    const prossimi = giornata ? punti.map((p, k) => riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
-        : (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui);
-    const freccia = iQui >= 0 || partita ? `<button type="button" class="past-toggle" data-tutti>${state.tuttiScali ? `▴ Solo ${esc(state.scalo)}` : '▾ Tutti i prossimi scali'}</button>` : '';
+        : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui) + (resto[iQui + 1] ? riga(resto[iQui + 1], iQui + 1) : '')
+          : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
+    const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
-    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
+    // Nell'intestazione quanto manca al mio scalo: "in arrivo tra 13 min", "riparte tra 8 min", "partita 3 min fa"
+    let manca = '';
+    if (partita) manca = `partita ${t - partita.t ? `${t - partita.t} min fa` : 'adesso'}`;
+    else if (iQui >= 0 && resto[iQui].t - t <= 120) {
+      const min = resto[iQui].t - t;
+      manca = ferma ? `riparte ${traMin(min)}`
+        : iQui === 0 && pos.stato === 'naviga' ? `in arrivo ${traMin(min)}` : `a ${state.scalo} ${traMin(min)}`;
+    }
+    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}`.trim(), G.comandante(crew) || '',
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------
@@ -684,7 +699,8 @@
       render();
       return;
     }
-    if (event.target.closest('[data-tutti]')) { state.tuttiScali = !state.tuttiScali; render(); return; }
+    const giornata = event.target.closest('[data-giornata]');
+    if (giornata) { const code = giornata.dataset.giornata; if (state.giornate.has(code)) state.giornate.delete(code); else state.giornate.add(code); render(); return; }
     const ship = event.target.closest('[data-ship]');
     if (ship && state.embed?.modo === 'nave') return;
     if (ship) {
