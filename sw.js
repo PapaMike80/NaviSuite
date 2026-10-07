@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v302-bis-ormeggio';
+const CACHE_VERSION = 'navisuite-v303-scali';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -209,14 +209,6 @@ self.addEventListener('fetch', event => {
       );
       return text;
     }));
-    return;
-  }
-
-  if (url.pathname.endsWith('/assets/js/portal.js')) {
-    event.respondWith(transformedScript(event.request, text => text.replace(
-      "if(preferred&&preferred!=='index.html'){location.href=preferred;return;}",
-      "const explicitHome=new URLSearchParams(location.search).get('home')==='1';if(!explicitHome&&preferred&&preferred!=='index.html'){location.href=preferred;return;}"
-    )));
     return;
   }
 

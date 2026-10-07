@@ -1,9 +1,9 @@
-// Pagina "Orario": orario interattivo del giorno (O.d.S. 39/2026) in tre viste.
-// - Lago: mappa del Garda (orario-lago.js) con le navi in servizio nella posizione dell'ora scelta
-//   (adesso o con il cursore del tempo); toccando una nave: turno, nave, comandante, equipaggio,
-//   dove sta andando e i prossimi scali.
+// Pagina "Scali" (orario.html): orario interattivo del giorno (O.d.S. 39/2026) in due viste.
+// - Lago: mappa del Garda (orario-lago.js) con le navi nella posizione dell'ora scelta (adesso o con il
+//   cursore del tempo) e la sezione «Allo scalo» (ex Servizi a terra): navi che partono, passano o
+//   arrivano allo scalo con pontili, ormeggi, rifornimenti e bolgette, navi in linea oggi, note e agenti
+//   di servizio; schede delle corse con quanto manca, aperte da sole per le navi al mio scalo.
 // - Da -> A: viaggi diretti o con un cambio fra due scali, con turno e nave del giorno.
-// - Scalo: tabellone di partenze e arrivi di uno scalo; toccando una riga, tutti gli scali.
 // Corse e scali da orario-giorno.js; navi, equipaggi e turni modificati come in Il mio turno.
 (function () {
   'use strict';
@@ -67,10 +67,10 @@
   const scaloValido = value => (POS[value] ? value : '');
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
-    view: ['lago', 'viaggio', 'scalo'].includes(params.get('vista')) ? params.get('vista') : 'lago',
+    view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), tuttiScali: false, scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), tuttiScali: false, scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -213,7 +213,7 @@
       `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
       `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
     const dettaglio = aperte.map(code => dettaglioNave(g, code, t)).join('');
-    const side = (dettaglio || '') + alloScalo(g, t, aperte);
+    const side = (dettaglio || '') + alloScalo(g, t, aperte, navi);
     return { t, svg, side };
   }
 
@@ -339,7 +339,19 @@
     return righe.sort((a, b) => a.t - b.t || a.v.turno.localeCompare(b.v.turno));
   }
 
-  function alloScalo(g, t, aperte = []) {
+  // Navi in linea oggi (chiuso come le note): turno, nave, comandante e dove si trova; si apre la scheda.
+  function naviInLinea(g, navi, t) {
+    const ordinate = navi.slice().sort((a, b) => [...O.TURNI, 'BIS'].indexOf(a.code) - [...O.TURNI, 'BIS'].indexOf(b.code));
+    const righe = ordinate.map(item => {
+      const r = ritardoDi(g, item.code, corsaPos(item.pos));
+      return `<button type="button" class="or-ship-row" data-ship="${item.code}">${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b>` +
+        `<small>${esc(statoTesto(item.pos))}${r ? ` · ritardo ${esc(O.testoRitardo(r))}` : ''}</small></span></button>`;
+    }).join('');
+    return `<details class="or-note" data-dettaglio="navi"${state.dettagli.has('navi') ? ' open' : ''}><summary>Navi in linea oggi (${navi.length})</summary>` +
+      `<div class="or-ship-list">${righe || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div></details>`;
+  }
+
+  function alloScalo(g, t, aperte = [], navi = []) {
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
     const res = RESIDENZA_SCALO[state.scalo] || '';
     const desenzano = state.scalo === 'Desenzano';
@@ -394,11 +406,11 @@
     const legenda = desenzano
       ? '⚓ pontile di ogni corsa: proposto dall\'O.d.S. (mattino e sera) o dalla scelta del giorno prima, si può cambiare (lo vedono tutti) · R = rifornimento · B = bolgetta'
       : '⚓ ormeggio del mattino e della sera · R = rifornimento · B = bolgetta · arr. = arrivo della nave che poi riparte';
-    const note = res ? `<details class="or-note"><summary>Note di Servizi a terra</summary><ul class="note-list">${res === 'DESENZANO' ? `<li class="rif"><b>${esc(D.RIFORNIMENTI.titolo)}</b>${D.RIFORNIMENTI.righe.map(esc).join('<br>')}</li>` : ''}` +
+    const note = res ? `<details class="or-note" data-dettaglio="note"${state.dettagli.has('note') ? ' open' : ''}><summary>Note di Servizi a terra</summary><ul class="note-list">${res === 'DESENZANO' ? `<li class="rif"><b>${esc(D.RIFORNIMENTI.titolo)}</b>${D.RIFORNIMENTI.righe.map(esc).join('<br>')}</li>` : ''}` +
       `${D.NOTE[res].map(([bold, text]) => `<li${bold ? ' class="bold"' : ''}>${esc(text)}</li>`).join('')}</ul><p class="validita">${esc(D.VALIDITA)}</p></details>` : '';
     return card('Allo scalo', righe.length ? `${righe.length} passaggi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
-      `<button type="button" class="past-toggle" data-goto="scalo">Tabellone completo di ${esc(state.scalo)} ›</button>${note}` +
+      `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
       `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, 'or-at-card');
   }
@@ -573,33 +585,6 @@
   // Cambiando scalo torna la scheda automatica della prossima nave che ci passa.
   function nuovoScalo() { state.auto = true; state.chiuse = new Set(); }
   const selectScalo = id => `<label class="or-station"><span>Scalo</span><select id="${id}" data-scalo>${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
-  function renderScalo() {
-    posizioneGps();
-    const g = giornata();
-    const select = selectScalo('or-scalo') + gpsHint(state.scalo);
-    const eventi = eventiScalo(g, state.scalo);
-    const ora = realToday() ? nowMinutes() : -1;
-    let nextFound = false;
-    eventi.forEach(e => { e.stato = e.t < ora ? 'past' : !nextFound && ora >= 0 ? (nextFound = true, 'next') : ''; });
-    const pastIdx = eventi.map((e, i) => e.stato === 'past' ? i : -1).filter(i => i >= 0);
-    const lastPast = pastIdx[pastIdx.length - 1];
-    const hidden = Math.max(0, pastIdx.length - 1);
-    const toggle = hidden ? `<button type="button" class="past-toggle" data-past>${state.showPast ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${hidden})`}</button>` : '';
-    const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
-    const righe = eventi.map((e, i) => {
-      if (e.stato === 'past' && i !== lastPast && !state.showPast) return '';
-      const aperto = state.open === e.key;
-      const info = naveInfo(g, e.v.turno, e.corsa);
-      const scali = aperto ? `<ol class="mt-scali or-stops">${e.v.scali.map(([nome, orario, corsa]) =>
-        `<li class="${nome === state.scalo && orario === e.ora ? 'coming' : ''}"><span>${esc(orario)}</span>${esc(nome)}<small>c. ${esc(corsa)}</small></li>`).join('')}</ol>` : '';
-      return `<div class="or-board-item${aperto ? ' open' : ''}"><div class="nave${/^T[12]$/.test(e.v.turno) ? ' ferry' : ''}${e.stato === 'past' ? ' past' : ''}${e.stato === 'next' ? ' next' : ''}" data-open="${esc(e.key)}" tabindex="0" role="button" aria-expanded="${aperto}">` +
-        `<span class="ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span><span class="tipo ${e.kind}">${KIND[e.kind]}<small>corsa ${esc(e.corsa)}</small></span>${chip(e.v.turno)}` +
-        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(e.dove)}</span>${ora >= 0 ? badgeManca(quantoManca(g, e, ora)) : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span></span></div>${scali}</div>`;
-    }).join('');
-    $('orario-content').innerHTML = `<div class="or-single">${card(`Tabellone ${state.scalo}`, `${eventi.length} passaggi`, select + toggle +
-      (righe ? `<div class="navi-list">${righe}</div>` : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>'))}</div>`;
-  }
-
   // ---------------- Pagina ----------------
   function card(title, side, body, cls = '', attrs = '') {
     return `<section class="terra-card ${cls}" ${attrs}><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
@@ -622,13 +607,13 @@
     $('orario-notice').textContent = notice;
     if (state.view === 'lago') renderLago();
     else if (state.view === 'viaggio') renderViaggio();
-    else renderScalo();
+
     const url = new URL(location.href);
     url.search = '';
     if (state.day) url.searchParams.set('day', state.day);
     url.searchParams.set('vista', state.view);
     if (state.view === 'viaggio') { url.searchParams.set('da', state.from); url.searchParams.set('a', state.to); }
-    if (state.view === 'scalo') url.searchParams.set('scalo', state.scalo);
+    if (state.scaloScelto) url.searchParams.set('scalo', state.scalo);
     history.replaceState(null, '', url);
   }
 
@@ -645,6 +630,11 @@
   });
 
   const content = $('orario-content');
+  // riquadri richiudibili (navi in linea, note): restano come li ho lasciati quando la pagina si ridisegna
+  content.addEventListener('toggle', event => {
+    const key = event.target?.dataset?.dettaglio;
+    if (key) { if (event.target.open) state.dettagli.add(key); else state.dettagli.delete(key); }
+  }, true);
   content.addEventListener('input', event => {
     if (event.target.id === 'or-slider') {
       stopPlay();
@@ -671,8 +661,6 @@
     }
     if (event.target.closest('.pontile-sel')) return;
     if (event.target.closest('[data-past-lago]')) { state.showPastLago = !state.showPastLago; render(); return; }
-    const vai = event.target.closest('[data-goto]');
-    if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     // intestazione della scheda della corsa: la richiude
     const chiudi = event.target.closest('.or-detail .terra-card-head');
     if (chiudi) {

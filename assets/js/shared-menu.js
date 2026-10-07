@@ -82,7 +82,7 @@
       ['naviturni.html','▦','Turni'],
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
-      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','◷','Orario'],['servizi-terra.html','⛴','Servizi a terra']]),
+      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali']]),
       ['cambi_turno.html','⇄','Cambio'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
@@ -251,7 +251,7 @@
   // Home · Oggi · NaviTurni · Distinta · Documenti · Impostazioni · Cambio turno,
   // e infine (solo admin) Aggiornamenti · Agenti. Cambia soltanto quale voce e' attiva.
   common=(()=>{
-    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',terra:'servizi-terra.html',mioturno:'mio-turno.html',orario:'orario.html',settings:'impostazioni.html'}[page]||'';
+    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',terra:'orario.html',mioturno:'mio-turno.html',orario:'orario.html',settings:'impostazioni.html'}[page]||'';
     // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
     const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
     return [
@@ -261,8 +261,7 @@
       ['navidiaria.html','≈','Distinta','diariaNavLink'],
       ['documenti.html','▤','Documenti','archiveNavLink'],
       ['mio-turno.html','⚑','Il mio turno','mioTurnoNavLink'],
-      ['orario.html','◷','Orario','orarioNavLink'],
-      ['servizi-terra.html','⛴','Servizi a terra','terraNavLink'],
+      ['orario.html','⚓','Scali','orarioNavLink'],
       ['impostazioni.html','⚙','Impostazioni',''],
       ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
     ].map(([href,icon,label,id])=>{
@@ -307,7 +306,7 @@
     common+=item('movimento.html','⚓','Movimento');
   }
 
-  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':page==='terra'?'NaviSuite Servizi a terra':page==='mioturno'?'NaviSuite Il mio turno':page==='orario'?'NaviSuite Orario':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':page==='terra'?'NaviSuite Servizi a terra':page==='mioturno'?'NaviSuite Il mio turno':page==='orario'?'NaviSuite Scali':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';

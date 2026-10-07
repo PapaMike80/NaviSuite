@@ -32,12 +32,15 @@ assert.deepStrictEqual(t1[0], { numero: '201', turno: 'T1', scali: [['Maderno', 
 // Pagina Orario: tre viste, menu, Home e Impostazioni; Il mio turno usa lo stesso modulo.
 const page = fs.readFileSync('orario.html', 'utf8');
 ['orario-giorno.js', 'orario-corse.js', 'turni-giorno.js', 'orario-page.js'].forEach(script => assert.ok(page.includes(script), script));
-['data-view="lago"', 'data-view="viaggio"', 'data-view="scalo"'].forEach(tab => assert.ok(page.includes(tab), tab));
+['data-view="lago"', 'data-view="viaggio"'].forEach(tab => assert.ok(page.includes(tab), tab));
+assert.ok(!page.includes('data-view="scalo"'), 'tab Scalo tolto');
+assert.match(page, /<h1 class="terra-title" id="orario-title">Scali<\/h1>/);
 const js = fs.readFileSync('assets/js/orario-page.js', 'utf8');
 assert.match(js, /function posizione\(punti, t\)/);
 assert.match(js, /function soluzioni\(g, from, to\)/);
 assert.match(js, /function eventiScalo\(g, scalo\)/);
-assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /\['orario\.html','◷','Orario'\]/);
+assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /\['orario\.html','⚓','Scali'\]/);
+assert.ok(!fs.readFileSync('assets/js/shared-menu.js', 'utf8').includes("'servizi-terra.html'"), 'Servizi a terra tolto dal menu');
 assert.match(fs.readFileSync('index.html', 'utf8'), /href="orario\.html"/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="orario\.html"/);
 assert.match(fs.readFileSync('assets/js/portal.js', 'utf8'), /'orario\.html'/);
@@ -82,10 +85,11 @@ assert.ok(page.indexOf('orario-lago.js') > 0 && page.indexOf('orario-lago.js') <
 // Scalo dal GPS (Da -> A, tabellone e sezione "Allo scalo" del Lago), sempre modificabile
 assert.match(js, /function posizioneGps\(\)/);
 assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
-assert.match(js, /function alloScalo\(g, t, aperte = \[\]\)/);
+assert.match(js, /function alloScalo\(g, t, aperte = \[\], navi = \[\]\)/);
 assert.match(js, /function naviAlloScalo\(g, t\)/);
 assert.match(js, /data-tutti/);
-assert.match(js, /data-goto="scalo"/);
+assert.ok(!js.includes('data-goto'), 'niente Tabellone completo');
+assert.match(js, /Navi in linea oggi/);
 assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
 assert.match(js, /data-from="scalo"/);
 assert.match(js, /state\.chiuse\.add\(code\)/);
@@ -99,4 +103,11 @@ assert.match(js, /savePontileCorsa\('DESENZANO', key, day/);
 assert.match(js, /class="arr" title="Arrivo">arr\./);
 assert.match(js, /Agenti di servizio/);
 assert.ok(!/card\('Navi'/.test(js), 'sezione Navi tolta');
+// Prima pagina Automatica: Scali nei giorni a terra, altrimenti Il mio turno (solo all'apertura, non da Home)
+const portal = fs.readFileSync('assets/js/portal.js', 'utf8');
+assert.match(portal, /location\.href=preferred==='auto'\?'mio-turno\.html\?auto=1':preferred/);
+assert.match(portal, /homeRichiesta=new URLSearchParams\(location\.search\)\.has\('home'\)/);
+assert.match(portal, /navisuite\.startDone/);
+assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=\$\{res === 'MADERNO' \? 'Maderno' : 'Desenzano'\}`\)/);
+assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
 console.log('orario ok');

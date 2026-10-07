@@ -190,6 +190,15 @@
     if (!state.schedule && !state.test) { $('turno-content').innerHTML = ''; return; }
     const turno = state.test || found?.turno || '';
     const nave = G.naveCode(turno), terra = G.terraCode(turno);
+    // Prima pagina "Automatica": oggi a terra -> pagina Scali sul mio scalo, altrimenti resta Il mio turno
+    if (params.get('auto') === '1' && found && !state.test) {
+      params.delete('auto');
+      if (terra && realToday) {
+        const res = G.terraResidenza(terra) || String(found.residenza || '').toUpperCase();
+        location.replace(`orario.html?scalo=${res === 'MADERNO' ? 'Maderno' : 'Desenzano'}`);
+        return;
+      }
+    }
     const messages = [];
     if (state.test) messages.push(`Prova con il turno ${state.test === 'RIP' ? 'Riposo' : state.test}: i tuoi dati non cambiano.`);
     else if (!found) messages.push('Non trovo il tuo turno nei dati di NaviTurni.');
@@ -202,6 +211,7 @@
     else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day);
     else renderAltro(turno, day);
     const url = new URL(location.href);
+    url.searchParams.delete('auto');
     if (state.day) url.searchParams.set('day', state.day); else url.searchParams.delete('day');
     if (state.test) url.searchParams.set('turno', state.test); else url.searchParams.delete('turno');
     history.replaceState(null, '', url);

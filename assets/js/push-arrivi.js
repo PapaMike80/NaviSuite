@@ -95,7 +95,7 @@
       return {
         at, quando: hhmm(at), time, code, run, servizio, pontile, nave, comandante, title, body,
         // con un ritardo nuovo arriva un nuovo avviso
-        tag: `navisuite-arrivo-${day}-${code}-${run || scheduled}${ritardo ? `-r${ritardo.minuti}` : ''}`, url: 'servizi-terra.html', ritardo
+        tag: `navisuite-arrivo-${day}-${code}-${run || scheduled}${ritardo ? `-r${ritardo.minuti}` : ''}`, url: `orario.html?scalo=${residenza === 'MADERNO' ? 'Maderno' : 'Desenzano'}`, ritardo
       };
     });
   }

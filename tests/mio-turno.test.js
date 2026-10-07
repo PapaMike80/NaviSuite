@@ -72,7 +72,7 @@ assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="mio
 assert.match(fs.readFileSync('assets/js/portal.js', 'utf8'), /'mio-turno\.html'/);
 const js = fs.readFileSync('assets/js/mio-turno.js', 'utf8');
 assert.match(js, /NaviServiziTerraPage\?\.show\(\{ residence: residenza, day \}\)/); // a terra: Servizi a terra incorporata
-assert.doesNotMatch(js, /location\.replace/);
+assert.ok((js.match(/location\.replace/g) || []).length === 1 && /params\.get\('auto'\) === '1'/.test(js)); // solo per la prima pagina Automatica (a terra -> Scali)
 assert.match(page, /window\.NaviServiziTerraEmbed = true/);
 assert.match(page, /id="terra-content"/);
 assert.match(page, /id="turno-test"/); // prova con un altro turno
