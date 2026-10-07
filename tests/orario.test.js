@@ -79,4 +79,12 @@ coppie.forEach(coppia => {
   });
 });
 assert.ok(page.indexOf('orario-lago.js') > 0 && page.indexOf('orario-lago.js') < page.indexOf('orario-page.js'));
+// Scalo dal GPS (Da -> A, tabellone e sezione "Allo scalo" del Lago), sempre modificabile
+assert.match(js, /function posizioneGps\(\)/);
+assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
+assert.match(js, /function alloScalo\(g, t\)/);
+assert.match(js, /data-goto="scalo"/);
+assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
+assert.match(js, /data-from="scalo"/);
+assert.match(js, /closest\('\.or-detail \.terra-card-head'\)\) \{ state\.selected = ''/);
 console.log('orario ok');

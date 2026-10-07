@@ -48,14 +48,15 @@ COSTA_PX = [
 ]
 
 # Pontili: pallino sulla cartina (pixel), coordinate vere (lat, lon) per la scala e lato dell'etichetta
-# (o = a sinistra, e = a destra, n = sopra; o+/o- un po' piu' in basso/in alto). Portese e' il pallino di San Felice del Benaco.
+# (o = a sinistra, e = a destra, n = sopra, s = sotto; o+/o- un po' piu' in basso/in alto). Portese e' sulla sponda sud
+# del golfo di Salò.
 SCALI = [
     ("Riva", (589.0, 92.5), (45.8858, 10.8418), "o"), ("Torbole", (639.4, 118.5), (45.8706, 10.8740), "e"),
     ("Limone", (526.4, 225.4), (45.8128, 10.7920), "o"), ("Malcesine", (553.0, 320.1), (45.7638, 10.8094), "e"),
     ("Gargnano", (362.7, 490.5), (45.6890, 10.6640), "o"), ("Brenzone", (465.4, 496.2), (45.6990, 10.7640), "e"),
     ("Maderno", (283.6, 597.7), (45.6365, 10.6040), "o"), ("Gardone", (221.3, 629.8), (45.6215, 10.5640), "o-"),
     ("Torri", (400.9, 638.6), (45.6106, 10.6870), "e"), ("Salò", (181.5, 654.0), (45.6060, 10.5230), "o+"),
-    ("Garda", (428.8, 705.4), (45.5752, 10.7067), "e"), ("Portese", (206.8, 717.3), (45.5880, 10.5640), "o"),
+    ("Garda", (428.8, 705.4), (45.5752, 10.7067), "e"), ("Portese", (208.5, 669.5), (45.5966, 10.5603), "s"),
     ("Bardolino", (447.6, 759.4), (45.5486, 10.7212), "e"), ("Lazise", (464.9, 844.0), (45.5053, 10.7323), "e"),
     ("Sirmione", (296.8, 875.3), (45.4935, 10.6075), "n"), ("Desenzano", (209.3, 911.8), (45.4686, 10.5420), "o"),
     ("Peschiera", (416.0, 973.5), (45.4400, 10.6915), "e"),
