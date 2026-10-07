@@ -82,11 +82,13 @@ assert.ok(page.indexOf('orario-lago.js') > 0 && page.indexOf('orario-lago.js') <
 // Scalo dal GPS (Da -> A, tabellone e sezione "Allo scalo" del Lago), sempre modificabile
 assert.match(js, /function posizioneGps\(\)/);
 assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
-assert.match(js, /function alloScalo\(g, t\)/);
+assert.match(js, /function alloScalo\(g, t, aperte = \[\]\)/);
+assert.match(js, /function naviAlloScalo\(g, t\)/);
+assert.match(js, /data-tutti/);
 assert.match(js, /data-goto="scalo"/);
 assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
 assert.match(js, /data-from="scalo"/);
-assert.match(js, /closest\('\.or-detail \.terra-card-head'\)\) \{ state\.selected = ''/);
+assert.match(js, /state\.chiuse\.add\(code\)/);
 assert.match(js, /function quantoManca\(g, e, t\)/);
 assert.match(js, /in arrivo · \$\{testo\}/);
 assert.match(js, /or-next-nome/);

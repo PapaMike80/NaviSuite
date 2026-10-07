@@ -70,7 +70,7 @@
     view: ['lago', 'viaggio', 'scalo'].includes(params.get('vista')) ? params.get('vista') : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), tuttiScali: false, scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -145,6 +145,10 @@
   function lagoParti() {
     const g = giornata();
     const t = shownTime();
+    // Schede aperte: la nave scelta a mano piu' quelle aperte da sole per il mio scalo (le navi in
+    // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
+    // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
+    const aperte = [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
     const turni = [...new Set(g.viaggi.map(v => v.turno))];
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
@@ -165,15 +169,14 @@
       const [x, y] = candidati.find(c => libero(c) && inAcqua(c)) || candidati.find(libero) || [x0, y0];
       posti.push([x, y]);
       const ferma = item.pos.stato === 'prima' || item.pos.stato === 'fine';
-      const sel = item.code === state.selected;
+      const sel = aperte.includes(item.code);
       return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
         `<circle r="${sel ? 3.6 : 3}" fill="${COLORI[item.code] || '#94a3b8'}"/><text y="0.9">${esc(item.code)}</text></g>`;
     }).join('');
     // Rotta del giorno della nave scelta (tratteggiata) e tratto gia' fatto (pieno).
-    const scelta = navi.find(item => item.code === state.selected);
-    let percorso = '';
-    if (scelta) {
-      const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+    // Rotta del giorno delle navi con la scheda aperta (tratteggiata) e tratto gia' fatto (pieno).
+    const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+    const percorso = navi.filter(item => aperte.includes(item.code)).map(scelta => {
       const tutto = [], fatto = [];
       scelta.punti.forEach((p, k) => {
         if (!k || p.scalo === scelta.punti[k - 1].scalo) return;
@@ -187,8 +190,8 @@
         fatto.push(linea(lungoRotta(r, Math.min(1, f), true)));
       }
       const colore = COLORI[scelta.code] || '#94a3b8';
-      percorso = `<g class="or-path" style="--c:${colore}"><path class="todo" d="${tutto.join('')}"/><path class="done" d="${fatto.join('')}"/></g>`;
-    }
+      return `<g class="or-path" style="--c:${colore}"><path class="todo" d="${tutto.join('')}"/><path class="done" d="${fatto.join('')}"/></g>`;
+    }).join('');
     const porti = SCALI.map(nome => {
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
@@ -205,10 +208,10 @@
       `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
       `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
     const ordinate = navi.slice().sort((a, b) => O.TURNI.indexOf(a.code) - O.TURNI.indexOf(b.code));
-    const lista = ordinate.map(item => `<button type="button" class="or-ship-row${item.code === state.selected ? ' active' : ''}" data-ship="${item.code}">` +
+    const lista = ordinate.map(item => `<button type="button" class="or-ship-row${aperte.includes(item.code) ? ' active' : ''}" data-ship="${item.code}">` +
       `${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b><small>${esc(statoTesto(item.pos))}${ritardoDi(g, item.code, corsaPos(item.pos)) ? ` · ritardo ${esc(O.testoRitardo(ritardoDi(g, item.code, corsaPos(item.pos))))}` : ''}</small></span></button>`).join('');
-    const dettaglio = state.selected ? dettaglioNave(g, state.selected, t) : '';
-    const side = (dettaglio || '') + alloScalo(g, t) + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
+    const dettaglio = aperte.map(code => dettaglioNave(g, code, t)).join('');
+    const side = (dettaglio || '') + alloScalo(g, t, aperte) + card('Navi', `${navi.length} in servizio · tocca una nave`, `<div class="or-ship-list">${lista || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div>`);
     return { t, svg, side };
   }
 
@@ -226,7 +229,19 @@
   }
   const badgeManca = m => (m ? `<em class="or-manca${m.arriva ? ' arriva' : ''}">${esc(m.testo)}</em>` : '');
 
-  function alloScalo(g, t) {
+  // Navi per cui aprire la scheda da sole: in arrivo (navigano verso lo scalo) o ferme allo scalo;
+  // se nessuna, la prossima che ci passa.
+  function naviAlloScalo(g, t) {
+    if (!state.auto) return [];
+    const qui = [...new Set(g.viaggi.map(v => v.turno))].map(code => ({ code, pos: posizione(puntiDelTurno(g.viaggi, code), t) }))
+      .filter(({ pos }) => (pos?.stato === 'naviga' && pos.a.scalo === state.scalo) || (pos?.stato === 'fermo' && pos.scalo === state.scalo))
+      .sort((a, b) => (a.pos.a?.t ?? 0) - (b.pos.a?.t ?? 0)).map(x => x.code);
+    if (qui.length) return qui;
+    const prossima = eventiScalo(g, state.scalo).find(e => e.t >= t);
+    return prossima ? [prossima.v.turno] : [];
+  }
+
+  function alloScalo(g, t, aperte = []) {
     const KIND = { P: 'parte', A: 'arriva', S: 'passa' };
     const eventi = eventiScalo(g, state.scalo);
     const dopo = eventi.filter(e => e.t >= t);
@@ -235,7 +250,7 @@
       const info = naveInfo(g, e.v.turno, e.corsa);
       const manca = e.t >= t ? quantoManca(g, e, t) : null;
       // toccando la riga si apre la scheda della corsa (come dall'elenco Navi)
-      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${manca?.arriva ? ' arriva' : ''}${e.v.turno === state.selected ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
+      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(e.v.turno) ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
         `<span><b>${KIND[e.kind]} · ${esc(e.dove)}${badgeManca(manca)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
     }).join('');
     const vuoto = eventi.length ? 'Nessun\'altra nave in questo giorno.' : 'Nessuna nave in questo scalo nel giorno scelto.';
@@ -274,17 +289,28 @@
     const pos = posizione(punti, t);
     if (!pos) return '';
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
-    // quanto manca a ogni prossimo scalo (entro 2 ore); il primo, se la nave naviga, e' "in arrivo"
-    const prossimi = punti.slice(from, from + 6).map((p, k) => {
+    const riga = (p, k, cls = '') => {
+      // quanto manca (entro 2 ore); il primo scalo, se la nave naviga, e' "in arrivo"
       const min = p.t - t;
-      const manca = min >= 0 && min <= 120 ? badgeManca({ arriva: k === 0 && pos.stato === 'naviga', testo: k === 0 && pos.stato === 'naviga' ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
-      return `<li${p.scalo === state.scalo ? ' class="qui"' : ''}><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
-    }).join('');
+      const arriva = k === 0 && pos.stato === 'naviga';
+      const manca = cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+      return `<li class="${p.scalo === state.scalo ? 'qui' : ''} ${cls}"><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
+    };
+    // Se la nave passa dal mio scalo: solo il mio scalo (orario e quanto manca), con lo scalo precedente
+    // in trasparenza; la freccia mostra tutti i prossimi scali.
+    const resto = punti.slice(from);
+    const iQui = resto.findIndex(p => p.scalo === state.scalo);
+    const soloQui = iQui >= 0 && !state.tuttiScali;
+    const prec = iQui > 0 ? resto[iQui - 1] : punti[from - 1];
+    const prossimi = soloQui
+      ? (prec ? riga(prec, -1, 'prec') : '') + riga(resto[iQui], iQui)
+      : resto.slice(0, 6).map((p, k) => riga(p, k)).join('');
+    const freccia = iQui >= 0 ? `<button type="button" class="past-toggle" data-tutti>${state.tuttiScali ? `▴ Solo ${esc(state.scalo)}` : '▾ Tutti i prossimi scali'}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">Prossimi scali</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${equipaggio}`, 'or-detail');
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${soloQui ? `A ${esc(state.scalo)}` : 'Prossimi scali'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------
@@ -337,7 +363,7 @@
         if (state.to === vicino.nome) state.to = state.from !== vicino.nome ? state.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
         state.from = vicino.nome;
       }
-      if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; }
+      if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; nuovoScalo(); }
       render();
     }, () => { state.gps = { errore: true }; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60000 });
   }
@@ -398,6 +424,8 @@
     return out.sort((a, b) => a.t - b.t || a.v.turno.localeCompare(b.v.turno));
   }
 
+  // Cambiando scalo torna la scheda automatica della prossima nave che ci passa.
+  function nuovoScalo() { state.auto = true; state.chiuse = new Set(); }
   const selectScalo = id => `<label class="or-station"><span>Scalo</span><select id="${id}" data-scalo>${SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join('')}</select></label>`;
   function renderScalo() {
     posizioneGps();
@@ -427,8 +455,8 @@
   }
 
   // ---------------- Pagina ----------------
-  function card(title, side, body, cls = '') {
-    return `<section class="terra-card ${cls}"><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
+  function card(title, side, body, cls = '', attrs = '') {
+    return `<section class="terra-card ${cls}" ${attrs}><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
   }
 
   function render() {
@@ -481,7 +509,7 @@
   content.addEventListener('change', event => {
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; }
     else if (event.target.id === 'or-to') state.to = event.target.value;
-    else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; }
+    else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); }
     else return;
     state.showPast = false;
     render();
@@ -489,7 +517,7 @@
   content.addEventListener('click', event => {
     const port = event.target.closest('[data-port]');
     if (port) {
-      state.scalo = port.dataset.port; state.scaloScelto = true; state.open = '';
+      state.scalo = port.dataset.port; state.scaloScelto = true; state.open = ''; nuovoScalo();
       render();
       if (matchMedia('(max-width: 900px)').matches) document.querySelector('.or-at-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
@@ -497,14 +525,30 @@
     const vai = event.target.closest('[data-goto]');
     if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     // intestazione della scheda della corsa: la richiude
-    if (event.target.closest('.or-detail .terra-card-head')) { state.selected = ''; render(); return; }
+    const chiudi = event.target.closest('.or-detail .terra-card-head');
+    if (chiudi) {
+      const code = chiudi.closest('[data-detail]')?.dataset.detail || '';
+      if (state.selected === code) state.selected = '';
+      state.chiuse.add(code);
+      render();
+      return;
+    }
+    if (event.target.closest('[data-tutti]')) { state.tuttiScali = !state.tuttiScali; render(); return; }
     const ship = event.target.closest('[data-ship]');
     if (ship) {
       // da «Allo scalo» apre sempre la corsa; dalla mappa e dall'elenco apre o chiude
       const fromScalo = ship.dataset.from === 'scalo';
-      state.selected = !fromScalo && state.selected === ship.dataset.ship ? '' : ship.dataset.ship;
+      const code = ship.dataset.ship;
+      if (!fromScalo && document.querySelector(`.or-detail[data-detail="${code}"]`)) {
+        // gia' aperta: dalla mappa e dall'elenco la richiude
+        if (state.selected === code) state.selected = '';
+        state.chiuse.add(code);
+      } else {
+        state.selected = code;
+        state.chiuse.delete(code);
+      }
       render();
-      if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector('.or-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector(`.or-detail[data-detail="${ship.dataset.ship}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }
