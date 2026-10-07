@@ -105,8 +105,9 @@
 
   // {data: {gruppo: {nave, pontile, rif, ods}}} dai turni nave (attivi) dell'app.
   // Se piu' righe descrivono lo stesso giorno e gruppo vince l'O.d.S. con il numero piu' alto
-  // (a parita', la riga inserita per ultima); le righe ancora da salvare vincono sempre.
-  const rank = row => [row._pending ? 1 : 0, Number(String(row.ods || '').match(/\d+/)?.[0] || 0), String(row.inserita_il || '')];
+  // (a parita', la riga inserita per ultima); le righe ancora da salvare e poi quelle dell'Ufficio
+  // Movimento (modifiche del giorno) vincono sempre.
+  const rank = row => [(row._pending ? 2 : 0) + (row.fonte === 'movimento' ? 1 : 0), Number(String(row.ods || '').match(/\d+/)?.[0] || 0), String(row.inserita_il || '')];
   const newer = (a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]); };
   function indexTurniNavi(rows) {
     const out = {};
@@ -313,8 +314,10 @@ ${FIT}</body></html>`;
     return page([sheet], sheet.title, options.printButton !== false);
   }
   // Turni nave di un giorno per ogni turno (D1, P2, M1, R1, T1, SR1, BIS...):
-  // {turno: {nave, ormeggio, rif}} con ormeggio = "pontile 5", "porto esterno"... o '' e
-  // rif = rifornimento la mattina.
+  // {turno: {nave, ormeggio, rif, ormeggioMattino, sospesa, motivo, movimento}} con ormeggio =
+  // "pontile 5", "porto esterno"... o '' (della sera), rif = rifornimento la mattina; dall'Ufficio
+  // Movimento anche l'ormeggio del mattino (altrimenti e' quello della sera prima), le corse sospese e,
+  // per il BIS, gli incarichi del giorno (vedi NaviOrarioGiorno.corseIncarico); i ritardi per corsa.
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -326,9 +329,17 @@ ${FIT}</body></html>`;
       const ormeggio = number ? `pontile ${number}` : mooring.toLowerCase();
       const refuel = String(row.rifornimento_mattina || '').trim();
       const rif = /^s[iì]$/i.test(refuel) || /riforn/i.test(refuel);
-      if (!nave && !ormeggio && !rif) return;
+      const movimento = row.fonte === 'movimento';
+      if (!nave && !ormeggio && !rif && !movimento) return;
+      const pontile = value => { const n = String(value || '').match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1]; return n ? `pontile ${n}` : String(value || '').trim().toLowerCase(); };
+      const incarichi = Array.isArray(row.incarichi) ? row.incarichi : Object.values(row.incarichi || {});
+      // ritardi per corsa: [{corsa, minuti, oltre}] -> {corsa: {minuti, oltre}}
+      const ritardi = Object.fromEntries((Array.isArray(row.ritardi) ? row.ritardi : Object.values(row.ritardi || {}))
+        .filter(r => r?.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => [String(r.corsa), { minuti: r.oltre ? 120 : Number(r.minuti), oltre: r.oltre === true }]));
+      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true,
+        ...(incarichi.length ? { incarichi } : {}), ...(Object.keys(ritardi).length ? { ritardi } : {}) } : {};
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
-        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif };
+        out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif, ...extra };
       });
     });
     return out;
@@ -404,6 +415,19 @@ ${FIT}</body></html>`;
     BOLGETTE: { DESENZANO: BOLGETTE, MADERNO: MADERNO_BOLGETTE }
   };
 
+  // Pontile di ogni corsa a Desenzano (scelto nella pagina Servizi a terra, condiviso su Firebase):
+  // chiave della corsa e valore del giorno = scelta di oggi, poi l'O.d.S. (ormeggio del mattino o
+  // della sera), poi l'ultima scelta dei giorni prima. history = {data: '1'..'6' | '-'}.
+  const courseKey = (time, code, run) => `${String(time).replace('.', '-')}_${code}_${run || 'x'}`;
+  const pontLabel = value => String(value || '').replace(/^pontile\s+/i, '');
+  function pontileFor(history, day, odsMooring) {
+    const h = history || {};
+    if (h[day] != null) return { value: h[day] === '-' ? '' : h[day], source: 'oggi' };
+    if (odsMooring) return { value: pontLabel(odsMooring), source: 'ods' };
+    const previous = Object.keys(h).filter(date => date < day).sort().pop();
+    return previous && h[previous] !== '-' ? { value: h[previous], source: 'ieri' } : { value: '', source: '' };
+  }
+
   // Apre l'A4 di una residenza in una nuova finestra, pronto da stampare.
   function openResidence(residenza, turniNavi, monday) {
     const popup = window.open('', '_blank');
@@ -416,6 +440,7 @@ ${FIT}</body></html>`;
 
   window.NaviServiziTerra = {
     RESIDENZE, DATA, defaultMonday, indexTurniNavi, turniDelGiorno, naviDelGiorno, ormeggiSettimana, ferryRows, minutes, openResidence,
+    courseKey, pontLabel, pontileFor,
     buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open
   };
 })();

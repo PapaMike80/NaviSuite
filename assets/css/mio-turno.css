@@ -26,7 +26,8 @@
 .mt-test select{min-height:30px;padding:0 6px;border:1px solid #2f5661;border-radius:8px;background:#0d202b;color:#e8f7f7;font:800 13px DM Sans,sans-serif}
 .mt-test.active{border-style:solid;border-color:#f59e0b;color:#fcd34d}
 #turno-terra{margin-top:14px}
-@media(max-width:520px){.mt-test{margin-left:0}.mt-scali li.done,.mt-scali li.left{opacity:.45}
+@media(max-width:520px){.mt-test{margin-left:0}}
+.mt-scali li.done,.mt-scali li.left{opacity:.45}
 .mt-scali li.coming{color:#a7fff0;font-weight:800}
 .mt-scali li em{margin-left:8px;color:#2dd4bf;font-size:10px;font-style:normal;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .mt-scali li.left em{color:#86a5af}

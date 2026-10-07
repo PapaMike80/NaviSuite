@@ -48,8 +48,38 @@
     });
     return map;
   }
+  // Turni modificati a mano in NaviDiaria (anche da NaviTurni, che apre la Distinta): vincono
+  // su variazioni ODS e turno base, come in NaviTurni. Chiave "idAgente|data".
+  let modifiche = new Map();
+  function aggiungiModifiche(map, agentId, entries) {
+    (entries || []).forEach(entry => {
+      if (!entry?.date || !entry?.shift || entry.manualOverride !== true || entry.manualModified !== true) return;
+      map.set(`${String(agentId)}|${String(entry.date).slice(0, 10)}`, String(entry.shift));
+    });
+  }
+  // Le modifiche di tutti da Firebase piu' le proprie salvate sul dispositivo (non ancora sincronizzate).
+  async function caricaModifiche(profile) {
+    const map = new Map();
+    try {
+      const provider = root.NaviAdminFirebase;
+      if (provider?.loadAllDiaria) {
+        await provider.ready;
+        (await provider.loadAllDiaria()).forEach(record => aggiungiModifiche(map, record.agentId, record.entries));
+      }
+    } catch (error) { console.warn('Turni: modifiche NaviDiaria non disponibili', error); }
+    try {
+      const id = String(profile?.id || '');
+      if (id && root.localStorage) aggiungiModifiche(map, id, JSON.parse(root.localStorage.getItem(`navidiaria.entries.v1.${id}`) || '[]'));
+    } catch { /* copia locale non leggibile */ }
+    modifiche = map;
+    return map;
+  }
+  const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
+
   const turnoDi = (agent, day, map) => {
-    const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`);
+    const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
+    if (manual) return manual;
+    const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
     return variation !== undefined ? variation : agent?.turni?.[day];
   };
 
@@ -83,5 +113,5 @@
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente };
+  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche };
 })(typeof window !== 'undefined' ? window : globalThis);

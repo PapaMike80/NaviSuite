@@ -205,6 +205,73 @@
     return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
   }
 
+  // Ufficio Movimento (pagina movimento.html): nave, ormeggi, rifornimento e corse sospese di un turno
+  // nave in un giorno. La riga del Movimento (fonte "movimento") sostituisce quelle degli O.d.S. dello
+  // stesso giorno e turno, che restano salvate ma non attive (sostituita_da_movimento) e tornano
+  // attive con il ripristino. Ogni salvataggio rilegge i turni nave e riscrive solo quel nodo.
+  const corsaDi = row => String(row?.corsa || "").toUpperCase().replace(/\s+/g, "").replace(/^BIS2$/, "BIS");
+  const stessoTurnoNave = (row, day, corsa) => String(row?.data || "").slice(0, 10) === day && corsaDi(row) === corsa;
+  async function writeTurniNavi(rows) {
+    await databaseRequest("private/adminUpdates/turniNavi", { method:"PUT", body:JSON.stringify(rows) });
+    await databaseRequest("private/adminUpdates/updatedAt", { method:"PUT", body:JSON.stringify(new Date().toISOString()) });
+    return rows;
+  }
+  async function saveTurnoNaveMovimento(day, corsa, values = {}, updatedBy = "") {
+    const code = String(corsa || "").toUpperCase();
+    const rows = (await getTurniNavi()).map(row => (stessoTurnoNave(row, day, code) && row.fonte !== "movimento" && row.attiva !== false)
+      ? { ...row, attiva:false, sostituita_da_movimento:true } : row)
+      .filter(row => !(stessoTurnoNave(row, day, code) && row.fonte === "movimento"));
+    const row = {
+      data:day, corsa:code,
+      nave:String(values.nave || "").trim(),
+      ormeggio_mattino:String(values.ormeggio_mattino || "").trim(),
+      ormeggio_serale:String(values.ormeggio_serale || "").trim(),
+      rifornimento_mattina:values.rifornimento_mattina ? "Sì" : "",
+      sospesa:values.sospesa === true,
+      sospesa_motivo:values.sospesa ? String(values.sospesa_motivo || "").trim() : "",
+      sospesa_il:values.sospesa ? String(values.sospesa_il || new Date().toISOString()) : "",
+      // ritardi per corsa (a scatti di 5 minuti fino a 2 ore, oppure oltre 2 ore)
+      ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => ({
+        corsa:String(r.corsa), minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true
+      })),
+      // BIS: incarichi del giorno (sostituisce un turno nave o fa corse in aiuto)
+      incarichi:(Array.isArray(values.incarichi) ? values.incarichi : []).filter(inc => inc && inc.turno && inc.dalla).map(inc => ({
+        tipo:inc.tipo === "aiuto" ? "aiuto" : "sostituzione", turno:String(inc.turno).toUpperCase(),
+        dalla:String(inc.dalla), alla:String(inc.alla || ""), nota:String(inc.nota || "")
+      })),
+      ods:"MOVIMENTO", fonte:"movimento", attiva:true,
+      inserita_il:new Date().toISOString(), modificata_da:String(updatedBy || "")
+    };
+    return writeTurniNavi([...rows, row]);
+  }
+  async function ripristinaTurnoNave(day, corsa) {
+    const code = String(corsa || "").toUpperCase();
+    const rows = (await getTurniNavi())
+      .filter(row => !(stessoTurnoNave(row, day, code) && row.fonte === "movimento"))
+      .map(row => {
+        if (!stessoTurnoNave(row, day, code) || !row.sostituita_da_movimento) return row;
+        const { sostituita_da_movimento, ...rest } = row;
+        return { ...rest, attiva:true };
+      });
+    return writeTurniNavi(rows);
+  }
+  // Equipaggio: le modifiche del Movimento sono variazioni manuali dei turni (ods "MOVIMENTO"), una
+  // per agente e giorno; turnoNuovo vuoto annulla la variazione.
+  async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "") {
+    const result = await databaseRequest("private/adminUpdates/manualVariations");
+    const id = String(agent.id || "");
+    const rows = (Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {}))
+      .filter(item => !(String(item?.data || "").slice(0, 10) === day && String(item?.id_agente || "") === id && item?.ods === "MOVIMENTO"));
+    if (turnoNuovo) rows.push({
+      attiva:true, data:day, id_agente:id, agente:String(agent.agente || agent.name || ""),
+      turno_originale:String(turnoOriginale || "").toUpperCase(), turno_nuovo:String(turnoNuovo).toUpperCase(),
+      ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString()
+    });
+    await databaseRequest("private/adminUpdates/manualVariations", { method:"PUT", body:JSON.stringify(rows) });
+    await databaseRequest("private/adminUpdates/updatedAt", { method:"PUT", body:JSON.stringify(new Date().toISOString()) });
+    return rows;
+  }
+
   // Pontile scelto per ogni corsa nella pagina Servizi a terra:
   // private/adminUpdates/pontiliCorse/{residenza}/{corsa}/{data} = "1".."6" oppure "-" (nessuno).
   const pontileKey = value => String(value || "").replace(/[.#$\[\]/]/g, "-");
@@ -854,6 +921,9 @@
     clearPendingConnectionAlerts,
     getAdminDocuments,
     getTurniNavi,
+    saveTurnoNaveMovimento,
+    ripristinaTurnoNave,
+    saveVariazioneMovimento,
     getPontiliCorse,
     savePontileCorsa,
     getAdminDocumentFile,

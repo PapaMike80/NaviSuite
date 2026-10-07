@@ -34,7 +34,7 @@
   }
 
   function defaultPreferences(){
-    return {tomorrowSummary:true,shiftChanges:true,ods:true,summaryDelivery:{mode:'previous-day',time:'22:05',leadMinutes:60}};
+    return {tomorrowSummary:true,shiftChanges:true,ods:true,arrivals:true,summaryDelivery:{mode:'previous-day',time:'22:05',leadMinutes:60}};
   }
   function normalizePreferences(value){
     const defaults=defaultPreferences();

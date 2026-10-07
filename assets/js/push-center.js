@@ -60,6 +60,7 @@
           </div>
           <div class="switch-row" style="margin:0;padding:12px 0;border-bottom:0"><div class="switch-copy"><strong>Cambi turno</strong><span>Richieste, approvazioni e modifiche che ti riguardano.</span></div><label class="switch"><input id="push-pref-changes" type="checkbox"><i></i></label></div>
           <div class="switch-row" style="margin:0;padding:12px 0"><div class="switch-copy"><strong>ODS e variazioni</strong><span>Nuovi ODS e variazioni rilevanti per il tuo servizio.</span></div><label class="switch"><input id="push-pref-ods" type="checkbox"><i></i></label></div>
+          <div class="switch-row" style="margin:0;padding:12px 0;border-bottom:0"><div class="switch-copy"><strong>Arrivi delle navi</strong><span>Quando lavori a terra: 10 minuti prima di ogni nave in arrivo, con pontile e comandante.</span></div><label class="switch"><input id="push-pref-arrivals" type="checkbox"><i></i></label></div>
         </div>
 
         <div id="push-admin-alerts" ${isAdmin?'':'hidden'}>
@@ -115,7 +116,7 @@
       finally{box.disabled=false;}
     });
   }
-  function prefsFromUi(){return {tomorrowSummary:$('push-pref-summary').checked,shiftChanges:$('push-pref-changes').checked,ods:$('push-pref-ods').checked,summaryDelivery:{mode:String($('push-summary-mode').value||'previous-day'),time:String($('push-summary-time').value||'22:05'),leadMinutes:Number($('push-summary-lead').value||60)}};}
+  function prefsFromUi(){return {tomorrowSummary:$('push-pref-summary').checked,shiftChanges:$('push-pref-changes').checked,ods:$('push-pref-ods').checked,arrivals:$('push-pref-arrivals').checked,summaryDelivery:{mode:String($('push-summary-mode').value||'previous-day'),time:String($('push-summary-time').value||'22:05'),leadMinutes:Number($('push-summary-lead').value||60)}};}
   function updateScheduleUi(){
     const mode=String($('push-summary-mode')?.value||'previous-day'),enabled=$('push-pref-summary')?.checked!==false,relative=mode==='before-service';
     $('push-summary-time-wrap').hidden=relative;$('push-summary-lead-wrap').hidden=!relative;$('push-summary-schedule').style.opacity=enabled?'1':'.48';
@@ -124,7 +125,7 @@
     $('push-summary-copy').textContent=mode==='previous-day'?`Riceverai automaticamente il riepilogo alle ${time} del giorno prima.`:mode==='same-day'?`Riceverai automaticamente il riepilogo alle ${time} del giorno stesso.`:`Riceverai automaticamente il riepilogo ${lead===60?'1 ora':lead===120?'2 ore':'30 minuti'} prima dell’inizio del servizio.`;
   }
   function fillPrefs(value){
-    const prefs=NaviPush.normalizePreferences(value);$('push-pref-summary').checked=prefs.tomorrowSummary!==false;$('push-pref-changes').checked=prefs.shiftChanges!==false;$('push-pref-ods').checked=prefs.ods!==false;
+    const prefs=NaviPush.normalizePreferences(value);$('push-pref-summary').checked=prefs.tomorrowSummary!==false;$('push-pref-changes').checked=prefs.shiftChanges!==false;$('push-pref-ods').checked=prefs.ods!==false;$('push-pref-arrivals').checked=prefs.arrivals!==false;
     $('push-summary-mode').value=prefs.summaryDelivery.mode;$('push-summary-time').value=prefs.summaryDelivery.time;$('push-summary-lead').value=String(prefs.summaryDelivery.leadMinutes);updateScheduleUi();
   }
   async function savePrefs(message='Preferenze notifiche salvate.'){
@@ -175,7 +176,7 @@
     createSection();await waitPush();
     $('push-enable').addEventListener('click',async()=>{const btn=$('push-enable');btn.disabled=true;$('push-status').textContent='Attivazione notifiche…';try{await NaviPush.subscribe(profile,prefsFromUi());$('push-status').textContent='✅ Notifiche attive e dispositivo registrato.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Attivazione non riuscita.';}finally{btn.disabled=false;}});
     $('push-disable').addEventListener('click',async()=>{const btn=$('push-disable');btn.disabled=true;$('push-status').textContent='Disattivazione…';try{await NaviPush.unsubscribe(profile);$('push-status').textContent='Notifiche disattivate su questo dispositivo.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Disattivazione non riuscita.';}finally{btn.disabled=false;}});
-    ['push-pref-summary','push-pref-changes','push-pref-ods'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
+    ['push-pref-summary','push-pref-changes','push-pref-ods','push-pref-arrivals'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
     ['push-summary-mode','push-summary-time','push-summary-lead'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs('Orario del riepilogo automatico salvato.');}));
     if(isAdmin){$('push-day-refresh').addEventListener('click',loadRecipients);$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);}
     initAdminAlerts().catch(error=>console.warn('Avvisi amministratore:',error));

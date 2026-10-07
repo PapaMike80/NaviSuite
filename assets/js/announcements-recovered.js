@@ -23,7 +23,7 @@
     load('assets/js/shared-data.js?v=123');
     load('assets/js/course-info.js?v=1');
     load('assets/js/push-summary.js?v=1');
-    load('assets/js/push-notifications-v3.js?v=20260906-1');
-    load('assets/js/push-center.js?v=20261002-1');
+    load('assets/js/push-notifications-v3.js?v=20261007-1');
+    load('assets/js/push-center.js?v=20261007-1');
   }
 })();

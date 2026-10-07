@@ -10,34 +10,38 @@
   <link rel="manifest" href="manifest.json">
   <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
-  <title>NaviSuite Servizi a terra</title>
+  <title>NaviSuite Orario</title>
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=15">
+  <link rel="stylesheet" href="assets/css/orario.css?v=4">
 </head>
-<body class="servizi-terra-page">
-  <aside class="app-sidebar" id="terra-sidebar"></aside>
+<body class="servizi-terra-page orario-page">
+  <aside class="app-sidebar" id="orario-sidebar"></aside>
 
   <header class="page-header">
-    <p class="terra-label">SERVIZI A TERRA</p>
-    <h1 class="terra-title" id="terra-title">Servizi a terra</h1>
-    <p class="terra-context" id="terra-context">Caricamento…</p>
+    <p class="terra-label">ORARIO INTERATTIVO</p>
+    <h1 class="terra-title" id="orario-title">Orario</h1>
+    <p class="terra-context" id="orario-context">Navi sul lago, viaggi da scalo a scalo e tabellone</p>
   </header>
 
-  <main id="servizi-terra">
+  <main id="orario">
     <div class="terra-bar">
-      <div class="quick-residence-selector" id="terra-residences" aria-label="Cambia residenza"></div>
       <span class="terra-day">
-        <button type="button" class="terra-day-nav" id="terra-day-prev" aria-label="Giorno precedente">‹</button>
-        <span class="terra-day-current"><span class="terra-day-label" id="terra-day-label"></span>
-          <input type="date" class="terra-day-input" id="terra-day-input" aria-label="Scegli la giornata"></span>
-        <button type="button" class="terra-day-nav" id="terra-day-next" aria-label="Giorno successivo">›</button>
-        <button type="button" class="terra-day-today" id="terra-day-today" hidden>Oggi</button>
+        <button type="button" class="terra-day-nav" id="orario-day-prev" aria-label="Giorno precedente">‹</button>
+        <span class="terra-day-current"><span class="terra-day-label" id="orario-day-label"></span>
+          <input type="date" class="terra-day-input" id="orario-day-input" aria-label="Scegli la giornata"></span>
+        <button type="button" class="terra-day-nav" id="orario-day-next" aria-label="Giorno successivo">›</button>
+        <button type="button" class="terra-day-today" id="orario-day-today" hidden>Oggi</button>
       </span>
-      <button type="button" class="terra-print" id="terra-print">⎙ Stampa A4</button>
+      <nav class="or-tabs" id="orario-tabs" aria-label="Vista">
+        <button type="button" data-view="lago">Lago</button>
+        <button type="button" data-view="viaggio">Da → A</button>
+        <button type="button" data-view="scalo">Scalo</button>
+      </nav>
     </div>
-    <div class="terra-notice" id="terra-notice" hidden></div>
-    <div class="terra-grid" id="terra-content"></div>
+    <div class="terra-notice" id="orario-notice" hidden></div>
+    <div id="orario-content"></div>
   </main>
 
   <script src="assets/js/shared-roles.js?v=1"></script>
@@ -45,12 +49,13 @@
   <script src="assets/js/shared-data.js?v=123"></script>
   <script src="assets/js/firebase-auth.js?v=2"></script>
   <script src="assets/js/shared-menu.js?v=1.62"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/turni-giorno.js?v=2"></script>
   <script src="assets/js/servizi-terra-a4.js?v=14"></script>
-  <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=3"></script>
-  <script src="assets/js/servizi-terra-page.js?v=21"></script>
+  <script src="assets/js/orario-lago.js?v=1"></script>
+  <script src="assets/js/orario-page.js?v=6"></script>
   <script src="assets/js/push-arrivi.js?v=4"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>

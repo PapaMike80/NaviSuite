@@ -66,3 +66,6 @@ Il calendario mensile degli ormeggi serali di Desenzano non fa parte delle stamp
   le pagine Desenzano–Riva e Riva–Desenzano (il traghetto Torri si ricava dagli orari di Maderno):
   `python3 tools/stampe/orario_corse.py "ods/O.d.S. n. 39-2026 INVERNO.pdf" 15 16 > assets/js/orario-corse.js`.
   I numeri delle corse di ogni turno sono in `assets/js/course-info.js`.
+- **Mappa del lago della pagina "Orario"**: `assets/js/orario-lago.js` (costa, pontili, boe e rotte in
+  acqua fra gli scali), generata da `cd tools/stampe && python3 mappa_lago.py > ../../assets/js/orario-lago.js`
+  (circa un minuto e mezzo). Va rigenerata solo se si aggiunge uno scalo.

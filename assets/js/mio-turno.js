@@ -9,7 +9,6 @@
   const G = window.NaviTurniGiorno;
   const T = window.NaviServiziTerra;
   const C = window.NaviShiftCompetence;
-  const ORARIO = window.NaviOrarioCorse || {};
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const parseIso = value => { const [y, m, d] = String(value).split('-').map(Number); return new Date(y, m - 1, d); };
@@ -32,17 +31,8 @@
     ['Altro', ['RIP']]
   ];
 
-  // Periodi in cui vale l'orario (O.d.S. 39/2026): SR fino all'11/10 e dal 20/3, T1 tutto l'inverno.
-  const PERIODI = {
-    SR: [['2026-10-05', '2026-10-11'], ['2027-03-20', '2027-03-25']],
-    T1: [['2026-10-05', '2027-03-25']],
-    ALTRI: [['2026-10-05', '2026-11-01'], ['2027-03-13', '2027-03-25']]
-  };
-  function inServizio(code, day) {
-    if (code === 'T1' && day === '2026-12-25') return false;
-    const periodi = /^SR/.test(code) ? PERIODI.SR : code === 'T1' ? PERIODI.T1 : PERIODI.ALTRI;
-    return periodi.some(([from, to]) => day >= from && day <= to);
-  }
+  // Corse dei turni, scali e periodi dell'orario: assets/js/orario-giorno.js (in comune con Orario).
+  const { inServizio, corseDelTurno, corseBis, bisPerCorsa, corseIncarico, ritardiDelGiorno, testoRitardo } = window.NaviOrarioGiorno;
 
   function profile() {
     try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; }
@@ -52,49 +42,6 @@
   const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: String(params.get('turno') || '') };
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
-
-  // Corse del turno con gli scali: dalla tabella dell'orario o, per il traghetto, da Maderno (+/- 30').
-  function corseDelTurno(code, day) {
-    if (code === 'T1' || code === 'T2') {
-      const hhmm = n => `${Math.floor(n / 60)}.${String(n % 60).padStart(2, '0')}`;
-      return (T.DATA.TRAGHETTO || []).filter(row => row[2] === code).map(([time, kind, , run]) => ({
-        numero: run,
-        scali: kind === 'P' ? [['Maderno', time], ['Torri', hhmm(minutes(time) + 30)]] : [['Torri', hhmm(minutes(time) - 30)], ['Maderno', time]]
-      })).sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
-    }
-    const trips = window.NaviCourseInfo?.info(code, day)?.trips || '';
-    const numeri = [];
-    trips.split('·').forEach(part => {
-      const [a, b] = part.trim().split(/[–-]/).map(Number);
-      if (!a) return;
-      for (let n = a; n <= (b || a); n += 1) numeri.push(String(n));
-    });
-    const corse = numeri.filter(n => ORARIO[n]).map(n => ({ numero: n, scali: ORARIO[n].map(s => [...s]) }))
-      .sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
-    return senzaRipetizioni(corse);
-  }
-
-  // Nell'orario una corsa riporta anche gli scali di passaggio della corsa che la precede (o la
-  // segue) con gli stessi orari, es. c. 31 da Lazise 8.53 dopo la c. 30 Peschiera - Garda 9.25.
-  // Ogni scalo resta nella corsa in cui la nave lo fa davvero.
-  function senzaRipetizioni(corse) {
-    for (let i = 1; i < corse.length; i += 1) {
-      const a = corse[i - 1].scali, b = corse[i].scali;
-      const key = s => `${s[0]}|${s[1]}`;
-      const comuni = new Set(a.map(key).filter(k => b.some(s => key(s) === k)));
-      if (!comuni.size) continue;
-      if (comuni.has(key(b[0]))) {
-        // la corsa successiva comincia da dove arriva la precedente
-        const fine = a[a.length - 1];
-        corse[i].scali = [fine, ...b.filter(s => !comuni.has(key(s)) && minutes(s[1]) > minutes(fine[1]))];
-      } else {
-        // la precedente finisce prima degli scali che fa gia' la successiva
-        const resto = a.filter(s => !comuni.has(key(s)));
-        if (resto.length >= 2) corse[i - 1].scali = resto;
-      }
-    }
-    return corse;
-  }
 
   function card(title, side, body, cls = '') {
     return `<section class="terra-card ${cls}"><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
@@ -126,7 +73,15 @@
     const ieri = T.turniDelGiorno(turniNavi, addDays(day, -1))[code] || {};
     const crew = G.equipaggi(state.schedule, day).navi[code] || [];
     const info = window.NaviCourseInfo?.info(code, day, { refuel: !!oggi.rif }) || {};
-    const corse = corseDelTurno(code, day);
+    // BIS: le corse assegnate dall'Ufficio Movimento (al posto di un'altra nave o in aiuto); gli altri
+    // turni: le proprie, segnando quelle che fa il BIS al posto della nave.
+    const incarichi = T.turniDelGiorno(turniNavi, day).BIS?.incarichi || [];
+    // ritardi del Movimento: orari spostati (anche delle corse dopo, se la nave arriva tardi)
+    const ritardi = ritardiDelGiorno(T.turniDelGiorno(turniNavi, day));
+    const corse = code === 'BIS' ? corseBis(incarichi, day, ritardi) : corseDelTurno(code, day, ritardi[code]);
+    const naveBis = T.turniDelGiorno(turniNavi, day).BIS?.nave || '';
+    const sostituzione = code !== 'BIS' ? incarichi.find(inc => inc.tipo !== 'aiuto' && inc.turno === code) : null;
+    const corseSostituite = sostituzione ? corseIncarico(sostituzione, day) : [];
     const realToday = day === iso(new Date());
     const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
 
@@ -146,11 +101,12 @@
       const prev = rows[rows.length - 1];
       const bolgetta = (BOLGETTE[corsa.numero] || {})[nome];
       if (j === 0 && prev && prev.nome === nome && prev.orario === orario) {
-        prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta;
+        prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta; prev.rit = prev.rit || corsa.ritardo;
         return;
       }
       const last = j === corsa.scali.length - 1;
-      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0 });
+      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0, rit: j === 0 ? corsa.ritardo : null,
+        per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
     if (rows.length) rows[rows.length - 1].kind = 'A';
     let nextFound = false;
@@ -166,23 +122,28 @@
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi gli scali già fatti' : `▾ Mostra gli scali già fatti (${hidden})`}</button>` : '';
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
-    const listaCorse = code === 'BIS'
-      ? `<p class="mt-bis">A disposizione dell'Ufficio Movimento: pronti a muovere alle 8.30 verso Garda, rientro alle 18.40.</p>`
-      : rows.length ? toggle + `<div class="navi-list">${rows.map((row, i) => {
+    const avvisoBis = code === 'BIS'
+      ? `<p class="mt-bis">${incarichi.length ? 'Corse assegnate dall\'Ufficio Movimento' : 'A disposizione dell\'Ufficio Movimento: pronti a muovere alle 8.30 verso Garda, rientro alle 18.40.'}</p>`
+      : sostituzione && corseSostituite.length
+        ? `<p class="mt-bis">Le corse ${esc(corseSostituite[0].numero)}${corseSostituite.length > 1 ? `–${esc(corseSostituite[corseSostituite.length - 1].numero)}` : ''} le fa il BIS${naveBis ? ` (${esc(naveBis)})` : ''} al posto della nave${sostituzione.alla ? '' : ', fino a nuovo ordine'}.</p>` : '';
+    const listaCorse = code === 'BIS' && !rows.length ? avvisoBis
+      : rows.length ? avvisoBis + toggle + `<div class="navi-list">${rows.map((row, i) => {
         if (row.stato === 'past' && i !== lastPast && !state.showPast) return '';
         const badges = [];
-        if (i === 0) { if (oggi.rif) badges.push('<b class="rifornimento" title="Rifornimento prima delle corse">R</b>'); if (ieri.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio del mattino (dalla sera prima)">⚓ ${esc(pontLabel(ieri.ormeggio))}</b>`); }
+        if (i === 0) { if (oggi.rif) badges.push('<b class="rifornimento" title="Rifornimento prima delle corse">R</b>'); const mattino = oggi.ormeggioMattino || ieri.ormeggio; if (mattino) badges.push(`<b class="ormeggio" title="Ormeggio del mattino${oggi.ormeggioMattino ? '' : ' (dalla sera prima)'}">⚓ ${esc(pontLabel(mattino))}</b>`); }
+        if (row.bis) badges.push('<b class="bis" title="Corsa fatta dal BIS al posto della nave">BIS</b>');
+        if (row.per) badges.push(`<b class="bis" title="${row.aiuto ? 'In aiuto' : 'Al posto della nave'} del ${esc(row.per)}">${row.aiuto ? 'aiuto' : 'al posto'} ${esc(row.per)}</b>`);
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
         const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.split ? ' split' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
-        return `<div class="${cls}"><span class="ora">${esc(row.orario)}</span>` +
-          `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(code)}` +
+        return `<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
+          `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
-    const right = card(code === 'BIS' ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
+    const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
     // Prima corse e scali, poi la scheda Turno.
     $('turno-content').innerHTML = `<div class="terra-col">${right}</div><div class="terra-col">${left}</div>`;
   }
@@ -233,6 +194,9 @@
     if (state.test) messages.push(`Prova con il turno ${state.test === 'RIP' ? 'Riposo' : state.test}: i tuoi dati non cambiano.`);
     else if (!found) messages.push('Non trovo il tuo turno nei dati di NaviTurni.');
     if (nave && !inServizio(nave, day)) messages.push(`Il turno ${nave} non è in servizio in questo giorno secondo l'orario in vigore.`);
+    // Corse sospese dall'Ufficio Movimento (pagina Movimento)
+    const sospesa = nave && state.schedule ? T.turniDelGiorno([...(state.schedule.turni_navi || []), ...state.firebaseNavi], day)[nave] : null;
+    if (sospesa?.sospesa) messages.push(`⚠ Corse del ${nave} sospese dall'Ufficio Movimento${sospesa.motivo ? `: ${sospesa.motivo}` : ''}.`);
     notice(messages.join(' · '));
     if (nave) renderNave(nave, day, me);
     else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day);
@@ -271,5 +235,10 @@
       if (state.schedule) render();
     } catch (error) { console.warn('Il mio turno: turni nave non disponibili', error); }
   })();
-  setInterval(() => { if (state.schedule && $('turno-terra').hidden) render(); }, 60000);
+  // Turni modificati in NaviDiaria/NaviTurni: all'apertura, ogni minuto e quando si torna sulla pagina.
+  const aggiornaModifiche = () => G.caricaModifiche(profile()).then(() => { if (state.schedule) render(); });
+  aggiornaModifiche();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiornaModifiche(); });
+  window.addEventListener('storage', event => { if (String(event.key || '').startsWith('navidiaria.entries.v1.')) aggiornaModifiche(); });
+  setInterval(() => { if (state.schedule && $('turno-terra').hidden) aggiornaModifiche(); }, 60000);
 })();
