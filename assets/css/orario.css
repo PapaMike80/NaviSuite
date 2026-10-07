@@ -1,0 +1,73 @@
+/* Orario interattivo: stesse schede e righe di Servizi a terra (servizi-terra.css) piu' questi elementi. */
+#orario{max-width:1120px;margin:0 auto;padding:14px 14px 30px;box-sizing:border-box}
+#orario-content{margin-top:14px}
+.or-tabs{display:inline-flex;gap:4px;margin-left:auto;padding:3px;border:1px solid #2f5661;border-radius:12px;background:#0d202b}
+.or-tabs button{min-height:32px;padding:0 14px;border:0;border-radius:9px;background:transparent;color:#9bc8d5;font:800 13px DM Sans,sans-serif;cursor:pointer}
+.or-tabs button.active{background:#2dd4bf;color:#05221e}
+.or-single{max-width:760px;margin:0 auto}
+/* Lago */
+.or-lago .terra-col:first-child{position:sticky;top:8px;align-self:start}
+.or-time{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.or-time input[type=range]{flex:1;min-width:0;accent-color:#2dd4bf}
+.or-play{width:34px;height:34px;flex:none;border:1px solid #2dd4bf;border-radius:10px;background:#103a3d;color:#a7fff0;font-size:13px;font-weight:900;cursor:pointer}
+.or-clock{min-width:44px;font:900 18px Manrope,sans-serif;text-align:right}
+.or-live{padding:3px 7px;border-radius:7px;background:rgba(45,212,191,.16);color:#2dd4bf;font-size:10px;font-weight:900;letter-spacing:.08em}
+.or-map{display:block;width:100%;max-height:72vh;margin:0 auto}
+.or-lake{fill:rgba(36,183,242,.10);stroke:rgba(124,196,255,.45);stroke-width:.5;stroke-linejoin:round}
+.or-port circle{fill:#e8f7f7}
+.or-port text{fill:#9bc8d5;font:700 3.1px DM Sans,sans-serif}
+.or-ship{cursor:pointer;transition:transform .9s linear}
+.or-ship circle{stroke:#071820;stroke-width:.6}
+.or-ship text{fill:#06171d;font:900 2.6px Manrope,sans-serif;text-anchor:middle;pointer-events:none}
+.or-ship.moored{opacity:.45}
+.or-ship.selected circle{stroke:#fff;stroke-width:.9}
+.or-ship:focus-visible{outline:none}
+.or-ship:focus-visible circle{stroke:#fff;stroke-width:1}
+.or-ship-list{display:grid;gap:5px}
+.or-ship-row{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;width:100%;padding:7px 9px;border:1px solid transparent;border-radius:11px;background:rgba(255,255,255,.025);color:#e8f7f7;text-align:left;cursor:pointer}
+.or-ship-row b{display:block;font-size:13px}
+.or-ship-row small{display:block;margin-top:2px;color:#9bc8d5;font-size:11px}
+.or-ship-row.active{border-color:#2dd4bf;background:rgba(45,212,191,.10)}
+.or-status{margin:0 0 8px;font-size:14px;font-weight:800;color:#a7fff0}
+.or-sub{margin:0 0 4px;color:#86a5af;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.or-next{margin-bottom:10px}
+.mt-scali{margin:0;padding:0 0 4px;list-style:none;display:grid;gap:2px}
+.mt-scali li{display:grid;grid-template-columns:48px 1fr auto;align-items:center;font-size:13px}
+.mt-scali li span{font:900 14px Manrope,sans-serif;text-align:right;padding-right:10px}
+.mt-scali li small{color:#86a5af;font-size:10px;font-weight:800}
+.mt-scali li.coming{color:#a7fff0;font-weight:800}
+.mt-crew{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.mt-crew li{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.025)}
+.mt-crew li small{color:#86a5af;font-size:11px;font-weight:700}
+/* Da -> A */
+.or-route{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-bottom:10px}
+.or-route label,.or-station{display:grid;gap:3px;flex:1;min-width:120px}
+.or-route span,.or-station span{color:#86a5af;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.or-route select,.or-station select{min-height:38px;padding:0 8px;border:1px solid #2f5661;border-radius:10px;background:#0d202b;color:#e8f7f7;font:800 14px DM Sans,sans-serif}
+.or-station{max-width:260px;margin-bottom:10px}
+.or-swap{width:38px;height:38px;border:1px solid #2d6570;border-radius:10px;background:#12313b;color:#a7fff0;font-size:18px;cursor:pointer}
+.or-trip{margin-bottom:8px;padding:9px 11px;border:1px solid #1c3b47;border-radius:12px;background:rgba(255,255,255,.02)}
+.or-trip.next{border-color:#2dd4bf;box-shadow:0 0 0 1px rgba(45,212,191,.25)}
+.or-trip.past{opacity:.45}
+.or-trip-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;margin-bottom:6px}
+.or-trip-head b{font:900 18px Manrope,sans-serif}
+.or-trip-head span{color:#9bc8d5;font-size:12px;font-weight:800}
+.or-leg{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:9px;padding:4px 0}
+.or-leg b{display:block;font-size:13px}
+.or-leg small{display:block;color:#86a5af;font-size:11px}
+.or-change{margin:2px 0 2px 12px;padding-left:10px;border-left:2px dashed #f59e0b;color:#fcd34d;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+/* Scalo */
+.or-board-item .nave{cursor:pointer}
+.or-board-item.open .nave{border-color:#2d6570}
+.or-stops{margin:4px 0 8px 54px}
+@media(max-width:860px){
+  .or-lago .terra-col:first-child{position:static}
+  .or-tabs{margin-left:0}
+}
+@media(max-width:520px){
+  #orario{padding:12px 10px 26px}
+  .or-tabs{width:100%}
+  .or-tabs button{flex:1;padding:0 6px}
+  .or-map{max-height:62vh}
+  .or-stops{margin-left:8px}
+}
