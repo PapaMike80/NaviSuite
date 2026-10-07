@@ -103,3 +103,6 @@
 .or-at li.arriva{border-color:#2dd4bf}
 @keyframes or-pulse{50%{opacity:.6}}
 @media (prefers-reduced-motion:reduce){.or-manca.arriva{animation:none}}
+.or-next .or-manca{margin-left:6px}
+.or-next li.qui{color:#5eead4;font-weight:800}
+.mt-scali li span.or-next-nome{min-width:0;font:inherit;text-align:left;padding-right:0}

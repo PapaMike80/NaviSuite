@@ -89,4 +89,5 @@ assert.match(js, /data-from="scalo"/);
 assert.match(js, /closest\('\.or-detail \.terra-card-head'\)\) \{ state\.selected = ''/);
 assert.match(js, /function quantoManca\(g, e, t\)/);
 assert.match(js, /in arrivo · \$\{testo\}/);
+assert.match(js, /or-next-nome/);
 console.log('orario ok');

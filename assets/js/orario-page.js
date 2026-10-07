@@ -213,6 +213,7 @@
   }
 
   // Sezione "Allo scalo": le prossime navi che partono, passano o arrivano allo scalo (dall'ora scelta).
+  const traMin = min => (min === 0 ? 'adesso' : min < 60 ? `tra ${min} min` : `tra ${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`);
   // Quanto manca: "in arrivo · tra 8 min" se la nave sta gia' navigando verso lo scalo, altrimenti
   // "tra 25 min" per le navi entro un'ora (dall'ora mostrata).
   function quantoManca(g, e, t) {
@@ -220,7 +221,7 @@
     if (min < 0 || min > 60) return null;
     const pos = posizione(puntiDelTurno(g.viaggi, e.v.turno), t);
     const arriva = pos?.stato === 'naviga' && pos.a.scalo === e.v.scali.find(s => s[1] === e.ora)?.[0] && pos.a.t === e.t;
-    const testo = min === 0 ? 'adesso' : min === 60 ? 'tra 1 ora' : `tra ${min} min`;
+    const testo = traMin(min);
     return { arriva, testo: arriva ? `in arrivo · ${testo}` : testo };
   }
   const badgeManca = m => (m ? `<em class="or-manca${m.arriva ? ' arriva' : ''}">${esc(m.testo)}</em>` : '');
@@ -273,7 +274,12 @@
     const pos = posizione(punti, t);
     if (!pos) return '';
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
-    const prossimi = punti.slice(from, from + 6).map(p => `<li><span>${hhmm(p.t)}</span>${esc(p.scalo)}<small>c. ${esc(p.corsa)}</small></li>`).join('');
+    // quanto manca a ogni prossimo scalo (entro 2 ore); il primo, se la nave naviga, e' "in arrivo"
+    const prossimi = punti.slice(from, from + 6).map((p, k) => {
+      const min = p.t - t;
+      const manca = min >= 0 && min <= 120 ? badgeManca({ arriva: k === 0 && pos.stato === 'naviga', testo: k === 0 && pos.stato === 'naviga' ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+      return `<li${p.scalo === state.scalo ? ' class="qui"' : ''}><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
+    }).join('');
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
     const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
