@@ -93,3 +93,7 @@
 .or-at li b{display:block;font-size:13px}
 .or-at li small{display:block;margin-top:1px;color:#9bc8d5;font-size:11px}
 .or-at-card .or-station{margin-bottom:4px}
+.or-at li{cursor:pointer}
+.or-at li.active{border-color:#5b8cff;background:rgba(91,140,255,.12);opacity:1}
+.or-detail .terra-card-head{cursor:pointer}
+.or-detail .terra-card-head h2::after{content:" ✕";color:#86a5af;font-size:.8em;font-weight:700}

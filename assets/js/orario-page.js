@@ -220,7 +220,8 @@
     const prima = eventi.filter(e => e.t < t).slice(-1);
     const righe = [...prima, ...dopo.slice(0, 6)].map(e => {
       const info = naveInfo(g, e.v.turno, e.corsa);
-      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
+      // toccando la riga si apre la scheda della corsa (come dall'elenco Navi)
+      return `<li class="${e.t < t ? 'past' : e === dopo[0] ? 'next' : ''}${e.v.turno === state.selected ? ' active' : ''}" data-ship="${esc(e.v.turno)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(e.corsa)} del ${esc(e.v.turno)}"><span class="or-at-ora">${esc(e.ora)}${badgeRitardo(g, e.v.turno, e.corsa)}</span>${chip(e.v.turno)}` +
         `<span><b>${KIND[e.kind]} · ${esc(e.dove)}</b><small>corsa ${esc(e.corsa)}${info ? ` · ${esc(info)}` : ''}</small></span></li>`;
     }).join('');
     const vuoto = eventi.length ? 'Nessun\'altra nave in questo giorno.' : 'Nessuna nave in questo scalo nel giorno scelto.';
@@ -476,8 +477,17 @@
     }
     const vai = event.target.closest('[data-goto]');
     if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    // intestazione della scheda della corsa: la richiude
+    if (event.target.closest('.or-detail .terra-card-head')) { state.selected = ''; render(); return; }
     const ship = event.target.closest('[data-ship]');
-    if (ship) { state.selected = state.selected === ship.dataset.ship ? '' : ship.dataset.ship; render(); return; }
+    if (ship) {
+      // da «Allo scalo» apre sempre la corsa; dalla mappa e dall'elenco apre o chiude
+      const fromScalo = ship.dataset.from === 'scalo';
+      state.selected = !fromScalo && state.selected === ship.dataset.ship ? '' : ship.dataset.ship;
+      render();
+      if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector('.or-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }
     if (event.target.closest('[data-play]')) {
       if (state.playing) { stopPlay(); render(); return; }
@@ -497,7 +507,7 @@
   });
   content.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    const target = event.target.closest('[data-ship],[data-open],[data-port]');
+    const target = event.target.closest('[data-ship],[data-open],[data-port],.or-detail .terra-card-head');
     if (!target) return;
     event.preventDefault();
     target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
