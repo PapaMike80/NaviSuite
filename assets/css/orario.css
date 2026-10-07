@@ -51,6 +51,7 @@
 .or-route label,.or-station{display:grid;gap:3px;flex:1;min-width:120px}
 .or-route span,.or-station span{color:#86a5af;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .or-route select,.or-station select{min-height:38px;padding:0 8px;border:1px solid #2f5661;border-radius:10px;background:#0d202b;color:#e8f7f7;font:800 14px DM Sans,sans-serif}
+.or-gps{margin:-4px 0 10px;color:#5eead4;font-size:12px;font-weight:700}
 .or-station{max-width:260px;margin-bottom:10px}
 .or-swap{width:38px;height:38px;border:1px solid #2d6570;border-radius:10px;background:#12313b;color:#a7fff0;font-size:18px;cursor:pointer}
 .or-trip{margin-bottom:8px;padding:9px 11px;border:1px solid #1c3b47;border-radius:12px;background:rgba(255,255,255,.02)}

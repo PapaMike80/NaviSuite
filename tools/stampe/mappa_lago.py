@@ -235,18 +235,18 @@ def main():
     disegno = semplifica(lisce, 0.05)
     scali = {}
     boe = {}
-    for nome, px, _, lato in SCALI:
+    for nome, px, geo, lato in SCALI:
         porto = unita(*px)
         _, q, i = vicino(lisce, porto)
         n = normale_interna(lisce, i, q)
         boa = boa_di(lisce, q, n)
         boe[nome] = boa
         scali[nome] = {"porto": [round(porto[0], 1), round(porto[1], 1)], "boa": [round(boa[0], 1), round(boa[1], 1)],
-                       "lato": lato}
+                       "lato": lato, "geo": list(geo)}
     d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in disegno) + "Z"
     dati = {"km": round(1 / km_per_unita(), 3), "costa": d, "scali": scali, "rotte": rotte(semplifica(lisce, 0.05), boe)}
     print("// Mappa del Lago di Garda per la pagina Orario (generato da tools/stampe/mappa_lago.py: costa, pontili,")
-    print("// boe d'attracco e rotte in acqua fra gli scali; km = unita' per chilometro). Non modificare a mano.")
+    print("// boe d'attracco, coordinate GPS dei pontili e rotte in acqua fra gli scali; km = unita' per chilometro). Non modificare a mano.")
     print("(function (root) {")
     print("  'use strict';")
     print(f"  root.NaviLagoMappa = {json.dumps(dati, ensure_ascii=False)};")

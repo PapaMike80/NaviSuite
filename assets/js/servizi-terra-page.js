@@ -110,16 +110,9 @@
   // ---- Pontile di ogni corsa (Desenzano) ----
   const PONTILI = ['1', '2', '3', '4', '5', '6'];
   const PONTILI_CACHE = 'navisuite.serviziTerra.pontili';
-  const pontLabel = value => String(value || '').replace(/^pontile\s+/i, '');
-  const courseKey = (time, code, run) => `${time.replace('.', '-')}_${code}_${run || 'x'}`;
-  // Valore del giorno: scelta di oggi, poi l'O.d.S. (ormeggio del mattino/sera), poi l'ultima scelta dei giorni prima.
-  function pontileFor(key, day, odsMooring) {
-    const history = state.pontili[key] || {};
-    if (history[day] != null) return { value: history[day] === '-' ? '' : history[day], source: 'oggi' };
-    if (odsMooring) return { value: pontLabel(odsMooring), source: 'ods' };
-    const previous = Object.keys(history).filter(date => date < day).sort().pop();
-    return previous && history[previous] !== '-' ? { value: history[previous], source: 'ieri' } : { value: '', source: '' };
-  }
+  const { courseKey, pontLabel } = T;
+  // Valore del giorno: scelta di oggi, poi l'O.d.S., poi l'ultima scelta dei giorni prima.
+  const pontileFor = (key, day, odsMooring) => T.pontileFor(state.pontili[key], day, odsMooring);
   function pontileSelect(key, day, odsMooring, when, follow = '') {
     const { value, source } = pontileFor(key, day, odsMooring);
     const options = ['', ...PONTILI];

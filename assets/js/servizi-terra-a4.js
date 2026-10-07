@@ -404,6 +404,19 @@ ${FIT}</body></html>`;
     BOLGETTE: { DESENZANO: BOLGETTE, MADERNO: MADERNO_BOLGETTE }
   };
 
+  // Pontile di ogni corsa a Desenzano (scelto nella pagina Servizi a terra, condiviso su Firebase):
+  // chiave della corsa e valore del giorno = scelta di oggi, poi l'O.d.S. (ormeggio del mattino o
+  // della sera), poi l'ultima scelta dei giorni prima. history = {data: '1'..'6' | '-'}.
+  const courseKey = (time, code, run) => `${String(time).replace('.', '-')}_${code}_${run || 'x'}`;
+  const pontLabel = value => String(value || '').replace(/^pontile\s+/i, '');
+  function pontileFor(history, day, odsMooring) {
+    const h = history || {};
+    if (h[day] != null) return { value: h[day] === '-' ? '' : h[day], source: 'oggi' };
+    if (odsMooring) return { value: pontLabel(odsMooring), source: 'ods' };
+    const previous = Object.keys(h).filter(date => date < day).sort().pop();
+    return previous && h[previous] !== '-' ? { value: h[previous], source: 'ieri' } : { value: '', source: '' };
+  }
+
   // Apre l'A4 di una residenza in una nuova finestra, pronto da stampare.
   function openResidence(residenza, turniNavi, monday) {
     const popup = window.open('', '_blank');
@@ -416,6 +429,7 @@ ${FIT}</body></html>`;
 
   window.NaviServiziTerra = {
     RESIDENZE, DATA, defaultMonday, indexTurniNavi, turniDelGiorno, naviDelGiorno, ormeggiSettimana, ferryRows, minutes, openResidence,
+    courseKey, pontLabel, pontileFor,
     buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open
   };
 })();

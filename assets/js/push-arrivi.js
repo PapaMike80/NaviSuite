@@ -1,0 +1,84 @@
+// Notifiche degli arrivi per chi lavora a terra: il pontilista deve essere sul pontile 10 minuti
+// prima dell'arrivo della nave. Per la giornata a terra dell'agente (AgB, PonD, AgM, AgT...) elenca
+// le navi in arrivo nelle ore del suo servizio, con nave, pontile (scelto in Servizi a terra o
+// dall'O.d.S.) e comandante, e l'ora a cui avvisare.
+// Lo usano l'app aperta (arrivi-avvisi.js) e il push-worker su TrueNAS, che scarica questo file e
+// quelli da cui dipende da GitHub Pages: servizi-terra-a4.js, turni-giorno.js, course-info.js,
+// orario-corse.js e orario-giorno.js (in Node con globalThis.window = globalThis).
+// Modulo puro: niente DOM.
+(function (root, factory) {
+  const api = factory(root);
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.NaviPushArrivi = api;
+})(typeof window !== 'undefined' ? window : globalThis, function (root) {
+  'use strict';
+
+  const ANTICIPO = 10;
+  const minutes = t => { const [h, m] = String(t).replace(':', '.').split('.').map(Number); return h * 60 + m; };
+  const hhmm = n => `${Math.floor(n / 60)}.${String(n % 60).padStart(2, '0')}`;
+  const T = () => root.NaviServiziTerra;
+  const G = () => root.NaviTurniGiorno;
+  const inServizio = (code, day) => root.NaviOrarioGiorno?.inServizio ? root.NaviOrarioGiorno.inServizio(code, day) : true;
+
+  // Arrivi che riguardano un servizio a terra nel giorno: [{time, code, run, where, kind, evening}].
+  // Desenzano (AgB, PonD, DT): gli arrivi delle navi di linea. Maderno: AgT gli arrivi del traghetto
+  // da Torri, AgM (e PonM) arrivi e scali delle navi di linea. Solo nelle ore del servizio, se note.
+  function arriviDelServizio(servizio, day) {
+    const D = T().DATA;
+    const residenza = G().terraResidenza(servizio);
+    let rows = [];
+    if (residenza === 'DESENZANO') rows = D.NAVI.DESENZANO.filter(row => row[1] === 'A');
+    else if (/^AgT/.test(servizio)) rows = D.TRAGHETTO.filter(row => row[1] === 'A').map(([time, kind, code, run]) => [time, kind, code, run, 'da Torri']);
+    else if (residenza === 'MADERNO') rows = D.NAVI.MADERNO.filter(row => row[1] === 'A' || row[1] === 'S');
+    const orari = (D.SERVIZI[residenza] || []).find(([code]) => code === servizio);
+    const fasce = orari ? [orari[1], orari[2]].map(fascia => fascia.split(' – ').map(minutes)) : null;
+    // ultimo movimento di ogni nave nello scalo: l'arrivo della sera (ormeggio serale)
+    const tutte = residenza === 'MADERNO' ? [...D.NAVI.MADERNO, ...D.TRAGHETTO] : D.NAVI.DESENZANO;
+    const ultimo = {};
+    tutte.forEach(([time, , code]) => { if (!ultimo[code] || minutes(time) > minutes(ultimo[code])) ultimo[code] = time; });
+    return rows
+      .filter(([time, , code]) => inServizio(code, day) && (!fasce || fasce.some(([a, b]) => minutes(time) >= a && minutes(time) <= b)))
+      .map(([time, kind, code, run, where]) => ({
+        time, code, run, kind, residenza,
+        where: String(where || '').replace(/\s*\*$/, ''),
+        evening: kind === 'A' && ultimo[code] === time
+      }))
+      .sort((a, b) => minutes(a.time) - minutes(b.time));
+  }
+
+  // Notifiche della giornata per l'agente: [{at (minuti), quando, time, code, run, title, body, tag, url}].
+  // data: turni condivisi con le variazioni (come NaviSharedData o push-summary effectiveData);
+  // options.pontili: pontiliCorse di Desenzano {chiaveCorsa: {data: valore}}; options.anticipo.
+  function notifiche(data, agentId, day, options = {}) {
+    const turno = G().turnoAgente(data, { id: agentId, name: options.agentName || '' }, day);
+    const servizio = G().terraCode(turno?.turno);
+    if (!servizio) return [];
+    const anticipo = Number(options.anticipo) || ANTICIPO;
+    const navi = T().turniDelGiorno(data?.turni_navi || [], day);
+    const crews = G().equipaggi(data, day).navi;
+    const pontili = options.pontili || {};
+    return arriviDelServizio(servizio, day).map(arrivo => {
+      const { time, code, run, kind, where, evening, residenza } = arrivo;
+      const odsMooring = evening ? navi[code]?.ormeggio : '';
+      const pontile = residenza === 'DESENZANO'
+        ? T().pontileFor(pontili[T().courseKey(time, code, run)], day, odsMooring).value
+        : T().pontLabel(odsMooring || '');
+      const nave = navi[code]?.nave || '';
+      const comandante = G().comandante(crews[code]);
+      const percorso = kind === 'S' ? `scalo ${where.replace('›', '→')}` : where;
+      const title = `${code}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}`;
+      const body = [[pontile ? `⚓ Pontile ${pontile}` : '', percorso, run ? `corsa ${run}` : ''].filter(Boolean).join(' · '),
+        comandante ? `Comandante ${comandante}` : ''].filter(Boolean).join('\n');
+      const at = minutes(time) - anticipo;
+      return {
+        at, quando: hhmm(at), time, code, run, servizio, pontile, nave, comandante, title, body,
+        tag: `navisuite-arrivo-${day}-${code}-${run || time}`, url: 'servizi-terra.html'
+      };
+    });
+  }
+
+  // Notifiche da mandare adesso: l'ora di avviso e' passata da meno di `finestra` minuti.
+  const dovute = (lista, ora, finestra = 5) => (lista || []).filter(item => ora >= item.at && ora < item.at + finestra);
+
+  return { ANTICIPO, arriviDelServizio, notifiche, dovute };
+});
