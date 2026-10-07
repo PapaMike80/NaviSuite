@@ -230,6 +230,11 @@
       sospesa:values.sospesa === true,
       sospesa_motivo:values.sospesa ? String(values.sospesa_motivo || "").trim() : "",
       sospesa_il:values.sospesa ? String(values.sospesa_il || new Date().toISOString()) : "",
+      // BIS: incarichi del giorno (sostituisce un turno nave o fa corse in aiuto)
+      incarichi:(Array.isArray(values.incarichi) ? values.incarichi : []).filter(inc => inc && inc.turno && inc.dalla).map(inc => ({
+        tipo:inc.tipo === "aiuto" ? "aiuto" : "sostituzione", turno:String(inc.turno).toUpperCase(),
+        dalla:String(inc.dalla), alla:String(inc.alla || ""), nota:String(inc.nota || "")
+      })),
       ods:"MOVIMENTO", fonte:"movimento", attiva:true,
       inserita_il:new Date().toISOString(), modificata_da:String(updatedBy || "")
     };

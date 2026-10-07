@@ -39,7 +39,7 @@
   const RUOLI = [['capitano', 'capitano', 'capitani'], ['capo_timoniere', 'capo timoniere', 'capi timonieri'], ['timoniere', 'timoniere', 'timonieri'],
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
-  const state = { day: iso(new Date()), schedule: null, turniNavi: [], fleet: {}, open: '', suspending: '', busy: false, loaded: false };
+  const state = { day: iso(new Date()), schedule: null, turniNavi: [], fleet: {}, open: '', suspending: '', busy: false, loaded: false, oggi: {}, bisForm: null };
 
   function setStatus(text, kind = '') { const el = $('mov-status'); el.textContent = text; el.className = `mov-status ${kind}`.trim(); }
 
@@ -102,6 +102,7 @@
     $('mov-count').textContent = String(codes.length);
     const righe = righeNavi();
     const oggi = T.turniDelGiorno(righe, day);
+    state.oggi = oggi;
     const ieri = T.turniDelGiorno(righe, addDays(day, -1));
     const crews = G.equipaggi(state.schedule, day).navi;
     const tutti = agenti(day);
@@ -130,10 +131,13 @@
     } else {
       azioni = `<button class="btn danger" type="button" data-act="suspend" data-code="${code}">Sospendi corse</button>`;
     }
-    if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione">↺ O.d.S.</button>`;
+    if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione${code === 'BIS' ? ' (gli incarichi del BIS restano)' : ''}">↺ O.d.S.</button>`;
+    if (code !== 'BIS' && O.inServizio('BIS', day)) azioni += `<button class="btn ghost" type="button" data-act="bis-form" data-code="${code}" title="Il BIS sostituisce questa nave o fa corse in aiuto">⇄ BIS</button>`;
+    const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
+    const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
       <div class="mov-row">
-        <div class="mov-id"><span class="chip" data-code="${code}">${code}</span><div><b>${orari}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}</small></div></div>
+        <div class="mov-id"><span class="chip" data-code="${code}">${code}</span><div><b>${orari}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}</small>${bisBadge}</div></div>
         ${field('nave', 'Nave', r.nave || '', 'list="mov-navi" placeholder="Nave"')}
         ${field('ormeggio_mattino', 'Ormeggio mattino', r.ormeggioMattino || '', `list="mov-ormeggi" placeholder="${esc(ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—')}"`)}
         ${field('ormeggio_serale', 'Ormeggio sera', r.ormeggio || '', 'list="mov-ormeggi" placeholder="—"')}
@@ -142,6 +146,7 @@
           👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''} <span>${open ? '▴' : '▾'}</span></button>
         <div class="mov-actions">${azioni}</div>
       </div>
+      ${code === 'BIS' ? bisPanel(day, r) : ''}
       ${open ? equipaggio(code, day, r, crew, tutti, min) : ''}
     </article>`;
   }
@@ -180,6 +185,65 @@
     return `<div class="mov-crew">${minimoTxt}<ul>${membri || '<li class="vuoto">Nessun agente su questo turno.</li>'}${tolti}</ul>${aggiungi}</div>`;
   }
 
+  // ---------------- BIS ----------------
+  // Il BIS (servizio di emergenza) sostituisce la nave di un turno dalla corsa scelta fino a nuovo
+  // ordine (o fino a una corsa), oppure fa corse in aiuto a un altro turno (corse aggiuntive).
+  const etichettaCorsa = c => `c. ${c.numero} · ${c.scali[0][1]} ${c.scali[0][0]} → ${c.scali[c.scali.length - 1][0]}`;
+  function incaricoCorse(inc) {
+    const corse = O.corseIncarico(inc, state.day);
+    if (!corse.length) return `corsa ${esc(inc.dalla)}`;
+    const da = corse[0].numero, a = corse[corse.length - 1].numero;
+    return `${da === a ? `corsa ${esc(da)}` : `corse ${esc(da)}–${esc(a)}`}${inc.tipo !== 'aiuto' && !inc.alla ? ' · fino a nuovo ordine' : ''}`;
+  }
+  // Prima corsa del turno non ancora partita (oggi), altrimenti la prima.
+  function prossimaCorsa(turno, day) {
+    const corse = O.corseDelTurno(turno, day);
+    const now = new Date();
+    if (day !== iso(now)) return corse[0]?.numero || '';
+    const ora = now.getHours() * 60 + now.getMinutes();
+    return (corse.find(c => O.minutes(c.scali[0][1]) >= ora) || corse[corse.length - 1])?.numero || '';
+  }
+  function bisPanel(day, r) {
+    const incarichi = r.incarichi || [];
+    const lista = incarichi.map((inc, i) => {
+      const corse = O.corseDelTurno(inc.turno, day);
+      const nave = state.oggi[inc.turno]?.nave;
+      const titolo = inc.tipo === 'aiuto' ? `In aiuto alla ${esc(inc.turno)}` : `Al posto della ${esc(inc.turno)}${nave ? ` (${esc(nave)})` : ''}`;
+      const k = corse.findIndex(c => c.numero === String(inc.dalla));
+      const riprende = inc.tipo !== 'aiuto' && !inc.alla && k >= 0 && k < corse.length - 1
+        ? `<select data-act="bis-riprende" data-i="${i}" aria-label="La nave riprende dalla corsa"><option value="">La nave riprende dalla corsa…</option>${corse.slice(k + 1).map(c => `<option value="${esc(c.numero)}">${esc(etichettaCorsa(c))}</option>`).join('')}</select>` : '';
+      const riapri = inc.tipo !== 'aiuto' && inc.alla ? `<button class="btn ghost" type="button" data-act="bis-riapri" data-i="${i}" title="Il BIS continua fino a nuovo ordine">Fino a nuovo ordine</button>` : '';
+      return `<li><span class="chip" data-code="${esc(inc.turno)}">${esc(inc.turno)}</span><div><b>${titolo}</b><small>${incaricoCorse(inc)}${inc.alla && inc.tipo !== 'aiuto' ? ` · la nave riprende dopo la corsa ${esc(inc.alla)}` : ''}</small></div>` +
+        `<span class="mov-crew-act">${riprende}${riapri}<button class="btn danger" type="button" data-act="bis-del" data-i="${i}">Togli</button></span></li>`;
+    }).join('');
+    const f = state.bisForm || {};
+    const turni = turniCodici(day).filter(c => c !== 'BIS');
+    const turno = turni.includes(f.turno) ? f.turno : turni[0] || '';
+    const corse = turno ? O.corseDelTurno(turno, day) : [];
+    const dalla = corse.some(c => c.numero === f.dalla) ? f.dalla : prossimaCorsa(turno, day);
+    const tipo = f.tipo === 'aiuto' ? 'aiuto' : 'sostituzione';
+    const k = corse.findIndex(c => c.numero === dalla);
+    const alla = corse.slice(k).some(c => c.numero === f.alla) ? f.alla : tipo === 'aiuto' ? dalla : '';
+    const opt = (list, sel) => list.map(c => `<option value="${esc(c.numero)}"${c.numero === sel ? ' selected' : ''}>${esc(etichettaCorsa(c))}</option>`).join('');
+    const form = turno ? `<div class="mov-bis-form">
+        <label><span>Il BIS</span><select data-bis="tipo"><option value="sostituzione"${tipo === 'sostituzione' ? ' selected' : ''}>sostituisce la nave del turno</option><option value="aiuto"${tipo === 'aiuto' ? ' selected' : ''}>fa corse in aiuto al turno</option></select></label>
+        <label><span>Turno</span><select data-bis="turno">${turni.map(c => `<option${c === turno ? ' selected' : ''}>${c}</option>`).join('')}</select></label>
+        <label><span>Dalla corsa</span><select data-bis="dalla">${opt(corse, dalla)}</select></label>
+        <label><span>Fino alla corsa</span><select data-bis="alla">${tipo === 'sostituzione' ? `<option value=""${alla ? '' : ' selected'}>fino a nuovo ordine</option>` : ''}${opt(corse.slice(Math.max(0, k)), alla)}</select></label>
+        <button class="btn primary" type="button" data-act="bis-add">Assegna al BIS</button>
+      </div>` : '<p class="mov-min">Nessun turno nave in servizio da affiancare.</p>';
+    // Il BIS non puo' fare due corse insieme: avviso se gli incarichi si sovrappongono negli orari
+    const corseBis = O.corseBis(incarichi, day);
+    const fine = c => O.minutes(c.scali[c.scali.length - 1][1]);
+    const sovrapposte = corseBis.slice(1).map((c, i) => [corseBis[i], c]).filter(([prima, c]) => O.minutes(c.scali[0][1]) < fine(prima))
+      .map(([prima, c]) => `corsa ${c.numero} (${c.per}) e corsa ${prima.numero} (${prima.per})`);
+    const avviso = sovrapposte.length ? `<p class="mov-min warn">⚠ Incarichi sovrapposti negli orari: ${esc(sovrapposte.join(', '))}.</p>` : '';
+    return `<div class="mov-bis" id="mov-bis"><p class="mov-bis-title">Incarichi del BIS · servizio di emergenza</p>${lista ? `<ul>${lista}</ul>` : '<p class="mov-min">Nessun incarico: il BIS è a disposizione.</p>'}${avviso}${form}</div>`;
+  }
+  function salvaIncarichi(incarichi, messaggio) {
+    return salva('BIS', { incarichi }, messaggio);
+  }
+
   // ---------------- Salvataggi ----------------
   async function salva(code, patch, messaggio) {
     if (state.busy) return;
@@ -188,7 +252,7 @@
     const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
     const values = {
       nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
-      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', ...patch
+      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ...patch
     };
     try {
       state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code, values, autore);
@@ -203,7 +267,14 @@
     state.busy = true;
     setStatus('Ripristino…');
     try {
+      const incarichi = code === 'BIS' ? (state.oggi.BIS?.incarichi || []) : [];
       state.turniNavi = await window.NaviAdminFirebase.ripristinaTurnoNave(state.day, code);
+      // il BIS torna alla nave dell'O.d.S. ma tiene gli incarichi del giorno
+      if (incarichi.length) {
+        const r = T.turniDelGiorno(righeNavi(), state.day).BIS || {};
+        state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, 'BIS',
+          { nave: r.nave || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif, incarichi }, autore);
+      }
       setStatus(`${code}: nave e ormeggi dell'O.d.S. ripristinati.`, 'ok');
     } catch (error) {
       setStatus(`Non ripristinato: ${error.message}`, 'bad');
@@ -243,6 +314,23 @@
       salva(code, { [el.dataset.f]: value }, `${code}: ${nomi[el.dataset.f]} ${value || 'tolto'}.`);
       return;
     }
+    if (el.dataset.bis) {
+      state.bisForm = { ...(state.bisForm || {}), turno: state.bisForm?.turno || el.closest('.mov-bis-form').querySelector('[data-bis=turno]').value, [el.dataset.bis]: el.value };
+      if (el.dataset.bis === 'turno') { state.bisForm.dalla = ''; state.bisForm.alla = ''; }
+      if (el.dataset.bis === 'tipo' || el.dataset.bis === 'dalla') state.bisForm.alla = '';
+      render();
+      return;
+    }
+    if (el.dataset.act === 'bis-riprende' && el.value) {
+      const incarichi = [...(state.oggi.BIS?.incarichi || [])];
+      const inc = incarichi[Number(el.dataset.i)];
+      const corse = O.corseDelTurno(inc.turno, state.day);
+      const k = corse.findIndex(c => c.numero === el.value);
+      if (k <= 0 || corse[k - 1].numero === undefined) return;
+      incarichi[Number(el.dataset.i)] = { ...inc, alla: corse[k - 1].numero };
+      salvaIncarichi(incarichi, `${inc.turno}: la nave riprende dalla corsa ${el.value}; il BIS fa fino alla corsa ${corse[k - 1].numero}.`);
+      return;
+    }
     if (el.dataset.act === 'remove' && el.value) {
       const nome = el.closest('li')?.querySelector('b')?.textContent || '';
       variazione(el.dataset.id, el.value, `${nome} tolto da ${code} (${el.value}).`);
@@ -270,6 +358,32 @@
     } else if (act === 'resume') salva(code, { sospesa: false, sospesa_motivo: '' }, `${code}: corse ripristinate.`);
     else if (act === 'restore') ripristina(code);
     else if (act === 'undo') variazione(button.dataset.id, '', 'Variazione dell\'equipaggio annullata.');
+    else if (act === 'bis-form') {
+      state.bisForm = { tipo: 'sostituzione', turno: code };
+      render();
+      $('mov-bis')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (act === 'bis-add') {
+      const form = button.closest('.mov-bis-form');
+      const value = name => form.querySelector(`[data-bis=${name}]`).value;
+      const inc = { tipo: value('tipo'), turno: value('turno'), dalla: value('dalla'), alla: value('alla') };
+      if (!inc.turno || !inc.dalla) return;
+      // una sola sostituzione per turno: la nuova prende il posto della precedente
+      const incarichi = (state.oggi.BIS?.incarichi || []).filter(x => !(inc.tipo === 'sostituzione' && x.tipo !== 'aiuto' && x.turno === inc.turno));
+      state.bisForm = null;
+      const nave = state.oggi[inc.turno]?.nave;
+      salvaIncarichi([...incarichi, inc], inc.tipo === 'aiuto'
+        ? `BIS in aiuto alla ${inc.turno}: ${incaricoCorse(inc)}.`
+        : `Il BIS sostituisce ${nave || 'la nave'} sulla ${inc.turno}: ${incaricoCorse(inc)}.`);
+    } else if (act === 'bis-del') {
+      const incarichi = [...(state.oggi.BIS?.incarichi || [])];
+      const [tolto] = incarichi.splice(Number(button.dataset.i), 1);
+      salvaIncarichi(incarichi, `Incarico del BIS sulla ${tolto?.turno || ''} tolto.`);
+    } else if (act === 'bis-riapri') {
+      const incarichi = [...(state.oggi.BIS?.incarichi || [])];
+      const i = Number(button.dataset.i);
+      incarichi[i] = { ...incarichi[i], alla: '' };
+      salvaIncarichi(incarichi, `Il BIS continua sulla ${incarichi[i].turno} fino a nuovo ordine.`);
+    }
   });
 
   const goToDay = day => { state.day = day; state.open = ''; state.suspending = ''; render(); };

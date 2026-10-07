@@ -160,7 +160,15 @@
     const ieri = T.turniDelGiorno(state.turniNavi, addDays(now.today, -1));
     const crews = state.schedule ? equipaggi(state.schedule, now.today).navi : {};
     state.crews = crews;
-    const navi = D.NAVI_CON_TRAGHETTO[state.residence];
+    // BIS (Ufficio Movimento): corse fatte al posto della nave del turno e corse in aiuto (in piu').
+    const OG = window.NaviOrarioGiorno;
+    const incarichi = turni.BIS?.incarichi || [];
+    const aiuti = OG ? incarichi.filter(inc => inc.tipo === 'aiuto').flatMap(inc => {
+      const numeri = new Set(OG.corseIncarico(inc, now.today).map(c => c.numero));
+      return D.NAVI_CON_TRAGHETTO[state.residence].filter(row => row[2] === inc.turno && numeri.has(String(row[3])))
+        .map(row => [row[0], row[1], 'BIS', row[3], `${row[4]} · in aiuto alla ${inc.turno}`, row[5]]);
+    }) : [];
+    const navi = [...D.NAVI_CON_TRAGHETTO[state.residence], ...aiuti].sort((a, b) => T.minutes(a[0]) - T.minutes(b[0]));
     const firstIndex = {}, lastIndex = {};
     navi.forEach(([, , code], i) => { if (!(code in firstIndex)) firstIndex[code] = i; lastIndex[code] = i; });
     let nextFound = false;
@@ -172,7 +180,7 @@
       // R (rifornimento) e B (bolgetta) a sinistra, il pontile sempre ultimo a destra.
       const badges = [];
       if (morning && turni[code]?.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
-      if (bolgette[run]) {
+      if (bolgette[run] && code !== 'BIS') {
         const label = bolgette[run].replace('BOLGETTA · ', 'Bolgetta: ').toLowerCase().replace(/^b/, 'B');
         badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
       }
@@ -193,16 +201,20 @@
         if (T.minutes(time) < now.minutes) state_ = 'past';
         else if (!nextFound) { state_ = 'next'; nextFound = true; }
       }
-      const ship = turni[code]?.nave;
-      const captain = comandante(crews[code]);
+      // corsa fatta dal BIS al posto della nave del turno: nave ed equipaggio del BIS
+      const sostituita = OG && run && code !== 'BIS' ? OG.bisPerCorsa(incarichi, code, run, now.today) : null;
+      const crewCode = sostituita ? 'BIS' : code;
+      const ship = turni[crewCode]?.nave;
+      const captain = comandante(crews[crewCode]);
+      const bis = sostituita ? `<b class="bis" title="Al posto della nave del ${esc(code)}">BIS</b>` : '';
       // Corse sospese dall'Ufficio Movimento (lago mosso, guasto...)
       const sospesa = turni[code]?.sospesa ? `<b class="sospesa" title="${esc(turni[code].motivo || 'Corse sospese dal Movimento')}">SOSPESA</b>` : '';
-      const info = [sospesa, ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
+      const info = [sospesa, bis, ship ? `<span class="ship-name">${esc(ship)}</span>` : '', captain ? `<span class="cte">${esc(captain)}</span>` : ''].filter(Boolean).join('');
       const html = `<span class="ora">${arrival ? `<small class="arr" title="Arrivo da Torri">arr. ${arrival}</small>` : ''}${time}</span>` +
         `<span class="tipo ${kind}">${D.KIND[kind]}<small>${run ? `corsa ${esc(run)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line">${info || '<span class="muted">nave non indicata</span>'}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span>`;
-      return { html, state: state_, split: time === split, code, ship, where, ferry: /^T[12]$/.test(code), sospesa: !!sospesa };
+      return { html, state: state_, split: time === split, code, crewCode, ship, where, ferry: /^T[12]$/.test(code), sospesa: !!sospesa };
     });
     // Navi gia' partite: nascoste tranne l'ultima (spenta); la freccia le mostra tutte.
     const pastIdx = items.map((item, i) => item.state === 'past' ? i : -1).filter(i => i >= 0);
@@ -214,7 +226,7 @@
       const hideOff = !state.showPast && item.state === 'off' && lastPast != null && i < lastPast;
       if (hide || hideOff) return '';
       const cls = `nave${item.sospesa ? ' sospesa' : ''}${item.ferry ? ' ferry' : ''}${item.split ? ' split' : ''}${isPast ? ' past' : ''}${item.state === 'next' ? ' next' : ''}`;
-      return `<div class="${cls}" tabindex="0" data-crew="${esc(item.code)}" data-ship="${esc(item.ship || '')}" data-where="${esc(item.where)}">${item.html}</div>`;
+      return `<div class="${cls}" tabindex="0" data-crew="${esc(item.crewCode)}" data-ship="${esc(item.ship || '')}" data-where="${esc(item.where)}">${item.html}</div>`;
     }).join('');
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi le navi già partite' : `▾ Mostra le navi già partite (${hidden})`}</button>` : '';

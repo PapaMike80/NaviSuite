@@ -74,9 +74,10 @@
 
   // Viaggi della nave: corse consecutive dello stesso turno unite quando la successiva parte dallo
   // scalo d'arrivo entro 15' (la nave prosegue). Scali [scalo, ora, corsa].
-  function viaggiDelTurno(code, day) {
+  function viaggiDelTurno(code, day) { return viaggiDaCorse(code, corseDelTurno(code, day)); }
+  function viaggiDaCorse(code, corse) {
     const viaggi = [];
-    corseDelTurno(code, day).forEach(corsa => {
+    corse.forEach(corsa => {
       const last = viaggi[viaggi.length - 1];
       const fine = last?.scali[last.scali.length - 1];
       const inizio = corsa.scali[0];
@@ -91,5 +92,27 @@
   }
   const viaggiDelGiorno = day => TURNI.filter(code => inServizio(code, day)).flatMap(code => viaggiDelTurno(code, day));
 
-  root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDelGiorno };
+  // BIS, il servizio di emergenza: l'Ufficio Movimento gli assegna degli incarichi del giorno
+  // [{tipo: 'sostituzione' | 'aiuto', turno, dalla, alla}]: fa le corse del turno dalla corsa `dalla`
+  // alla corsa `alla` compresa (vuota = fino a nuovo ordine), al posto della nave del turno
+  // (sostituzione) o in piu' (aiuto, corse aggiuntive).
+  function corseIncarico(incarico, day) {
+    const corse = corseDelTurno(String(incarico?.turno || ''), day);
+    const i = corse.findIndex(c => c.numero === String(incarico?.dalla || ''));
+    if (i < 0) return [];
+    const j = incarico.alla ? corse.findIndex(c => c.numero === String(incarico.alla)) : -1;
+    return corse.slice(i, (j >= i ? j : corse.length - 1) + 1)
+      .map(c => ({ ...c, turno: 'BIS', per: String(incarico.turno), tipo: incarico.tipo === 'aiuto' ? 'aiuto' : 'sostituzione' }));
+  }
+  // Corse del BIS nel giorno, in ordine di orario.
+  const corseBis = (incarichi, day) => (incarichi || []).flatMap(inc => corseIncarico(inc, day))
+    .sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
+  // Incarico di sostituzione che copre la corsa `numero` del turno (la fa il BIS), o null.
+  const bisPerCorsa = (incarichi, turno, numero, day) => (incarichi || []).find(inc => inc?.tipo !== 'aiuto' && inc?.turno === turno &&
+    corseIncarico(inc, day).some(c => c.numero === String(numero))) || null;
+  // Viaggi del BIS in aiuto (corse aggiuntive): le sostituzioni restano nei viaggi del turno.
+  const viaggiBis = (incarichi, day) => viaggiDaCorse('BIS', corseBis((incarichi || []).filter(inc => inc?.tipo === 'aiuto'), day));
+
+  root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
+    corseIncarico, corseBis, bisPerCorsa, viaggiBis };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -316,7 +316,8 @@ ${FIT}</body></html>`;
   // Turni nave di un giorno per ogni turno (D1, P2, M1, R1, T1, SR1, BIS...):
   // {turno: {nave, ormeggio, rif, ormeggioMattino, sospesa, motivo, movimento}} con ormeggio =
   // "pontile 5", "porto esterno"... o '' (della sera), rif = rifornimento la mattina; dall'Ufficio
-  // Movimento anche l'ormeggio del mattino (altrimenti e' quello della sera prima) e le corse sospese.
+  // Movimento anche l'ormeggio del mattino (altrimenti e' quello della sera prima), le corse sospese e,
+  // per il BIS, gli incarichi del giorno (vedi NaviOrarioGiorno.corseIncarico).
   // Stessa precedenza di indexTurniNavi (O.d.S. piu' recente, poi righe ancora da salvare).
   function turniDelGiorno(rows, day) {
     const out = {};
@@ -331,7 +332,8 @@ ${FIT}</body></html>`;
       const movimento = row.fonte === 'movimento';
       if (!nave && !ormeggio && !rif && !movimento) return;
       const pontile = value => { const n = String(value || '').match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1]; return n ? `pontile ${n}` : String(value || '').trim().toLowerCase(); };
-      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true } : {};
+      const incarichi = Array.isArray(row.incarichi) ? row.incarichi : Object.values(row.incarichi || {});
+      const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true, ...(incarichi.length ? { incarichi } : {}) } : {};
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
         out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif, ...extra };
       });

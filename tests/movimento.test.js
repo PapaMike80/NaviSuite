@@ -53,4 +53,28 @@ assert.strictEqual((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).len
 assert.match(fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8'), /turni\[code\]\?\.ormeggioMattino \|\| ieri\[code\]\?\.ormeggio/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /oggi\.ormeggioMattino \|\| ieri\.ormeggio/);
 assert.match(fs.readFileSync('assets/js/orario-page.js', 'utf8'), /filter\(v => !navi\[v\.turno\]\?\.sospesa\)/);
+// BIS: incarichi del giorno (al posto della nave di un turno, o in aiuto con corse aggiuntive)
+const O = globalThis.NaviOrarioGiorno;
+const incarichi = [{ tipo: 'sostituzione', turno: 'D1', dalla: '16', alla: '' }, { tipo: 'aiuto', turno: 'P2', dalla: '32', alla: '33' }];
+assert.deepStrictEqual(O.corseIncarico(incarichi[0], day).map(c => c.numero), ['16', '17', '18', '19'], 'fino a nuovo ordine');
+assert.deepStrictEqual(O.corseIncarico({ ...incarichi[0], alla: '17' }, day).map(c => c.numero), ['16', '17'], 'la nave riprende dalla 18');
+assert.deepStrictEqual(O.corseBis(incarichi, day).map(c => `${c.numero}/${c.per}/${c.tipo}`),
+  ['16/D1/sostituzione', '32/P2/aiuto', '33/P2/aiuto', '17/D1/sostituzione', '18/D1/sostituzione', '19/D1/sostituzione']);
+assert.strictEqual(O.bisPerCorsa(incarichi, 'D1', '15', day), null);
+assert.strictEqual(O.bisPerCorsa(incarichi, 'D1', '17', day).dalla, '16');
+assert.strictEqual(O.bisPerCorsa(incarichi, 'P2', '32', day), null, 'in aiuto la P2 fa comunque la sua corsa');
+assert.deepStrictEqual(O.viaggiBis(incarichi, day).map(v => [v.turno, v.corse]), [['BIS', ['32', '33']]]);
+const bisRow = { data: day, corsa: 'BIS', nave: 'BRESCIA', fonte: 'movimento', attiva: true, incarichi };
+assert.deepStrictEqual(T.turniDelGiorno([bisRow], day).BIS.incarichi, incarichi);
+// Notifiche: le corse al posto della nave hanno nave e comandante del BIS; quelle in aiuto sono arrivi in piu'
+const dataBis = { residenze: { DESENZANO: [{ id: '4', agente: 'NERI', turni: { [day]: 'POND' } }, { id: '7', agente: 'MORO', qualifica: 'capitano', turni: { [day]: 'BIS' } }] },
+  turni_navi: [bisRow, { data: day, corsa: 'D1', nave: 'S. MARCO', ods: 'ODS 39/2026' }] };
+const lista = A.notifiche(dataBis, '4', day);
+assert.strictEqual(lista.find(n => n.run === '17').title, 'D1 · BIS BRESCIA arriva alle 16.55');
+assert.match(lista.find(n => n.run === '17').body, /Comandante MORO/);
+assert.strictEqual(lista.find(n => n.run === '15').title, 'D1 S. MARCO arriva alle 9.55');
+assert.ok(lista.some(n => n.code === 'BIS' && n.run === '33' && /in aiuto alla P2/.test(n.body)));
+assert.ok(lista.some(n => n.code === 'P2' && n.run === '33'));
+assert.match(rest, /incarichi:\(Array\.isArray\(values\.incarichi\)/);
+['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"', 'data-act="bis-form"'].forEach(act => assert.ok(page.includes(act), act));
 console.log('movimento ok');

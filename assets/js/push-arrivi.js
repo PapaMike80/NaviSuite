@@ -57,17 +57,27 @@
     const navi = T().turniDelGiorno(data?.turni_navi || [], day);
     const crews = G().equipaggi(data, day).navi;
     const pontili = options.pontili || {};
+    // BIS dall'Ufficio Movimento: corse in aiuto (arrivi in piu') e corse al posto di un'altra nave
+    const OG = root.NaviOrarioGiorno;
+    const incarichi = navi.BIS?.incarichi || [];
+    const arrivi = arriviDelServizio(servizio, day);
+    const aiuti = OG?.corseIncarico ? incarichi.filter(inc => inc.tipo === 'aiuto').flatMap(inc => {
+      const numeri = new Set(OG.corseIncarico(inc, day).map(c => c.numero));
+      return arrivi.filter(a => a.code === inc.turno && numeri.has(String(a.run)))
+        .map(a => ({ ...a, code: 'BIS', where: `${a.where} · in aiuto alla ${inc.turno}`, evening: false }));
+    }) : [];
     // le corse sospese dall'Ufficio Movimento non arrivano
-    return arriviDelServizio(servizio, day).filter(arrivo => !navi[arrivo.code]?.sospesa).map(arrivo => {
+    return [...arrivi, ...aiuti].filter(arrivo => !navi[arrivo.code]?.sospesa).sort((a, b) => minutes(a.time) - minutes(b.time)).map(arrivo => {
       const { time, code, run, kind, where, evening, residenza } = arrivo;
+      const chi = code !== 'BIS' && run && OG?.bisPerCorsa?.(incarichi, code, run, day) ? 'BIS' : code;
       const odsMooring = evening ? navi[code]?.ormeggio : '';
       const pontile = residenza === 'DESENZANO'
         ? T().pontileFor(pontili[T().courseKey(time, code, run)], day, odsMooring).value
         : T().pontLabel(odsMooring || '');
-      const nave = navi[code]?.nave || '';
-      const comandante = G().comandante(crews[code]);
+      const nave = navi[chi]?.nave || '';
+      const comandante = G().comandante(crews[chi]);
       const percorso = kind === 'S' ? `scalo ${where.replace('›', '→')}` : where;
-      const title = `${code}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}`;
+      const title = `${code}${chi !== code ? ' · BIS' : ''}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}`;
       const body = [[pontile ? `⚓ Pontile ${pontile}` : '', percorso, run ? `corsa ${run}` : ''].filter(Boolean).join(' · '),
         comandante ? `Comandante ${comandante}` : ''].filter(Boolean).join('\n');
       const at = minutes(time) - anticipo;

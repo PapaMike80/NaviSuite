@@ -32,7 +32,7 @@
   ];
 
   // Corse dei turni, scali e periodi dell'orario: assets/js/orario-giorno.js (in comune con Orario).
-  const { inServizio, corseDelTurno } = window.NaviOrarioGiorno;
+  const { inServizio, corseDelTurno, corseBis, bisPerCorsa, corseIncarico } = window.NaviOrarioGiorno;
 
   function profile() {
     try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; }
@@ -73,7 +73,13 @@
     const ieri = T.turniDelGiorno(turniNavi, addDays(day, -1))[code] || {};
     const crew = G.equipaggi(state.schedule, day).navi[code] || [];
     const info = window.NaviCourseInfo?.info(code, day, { refuel: !!oggi.rif }) || {};
-    const corse = corseDelTurno(code, day);
+    // BIS: le corse assegnate dall'Ufficio Movimento (al posto di un'altra nave o in aiuto); gli altri
+    // turni: le proprie, segnando quelle che fa il BIS al posto della nave.
+    const incarichi = T.turniDelGiorno(turniNavi, day).BIS?.incarichi || [];
+    const corse = code === 'BIS' ? corseBis(incarichi, day) : corseDelTurno(code, day);
+    const naveBis = T.turniDelGiorno(turniNavi, day).BIS?.nave || '';
+    const sostituzione = code !== 'BIS' ? incarichi.find(inc => inc.tipo !== 'aiuto' && inc.turno === code) : null;
+    const corseSostituite = sostituzione ? corseIncarico(sostituzione, day) : [];
     const realToday = day === iso(new Date());
     const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
 
@@ -97,7 +103,8 @@
         return;
       }
       const last = j === corsa.scali.length - 1;
-      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0 });
+      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0,
+        per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
     if (rows.length) rows[rows.length - 1].kind = 'A';
     let nextFound = false;
@@ -113,23 +120,28 @@
     const toggle = hidden ? `<button type="button" class="past-toggle" data-past aria-expanded="${state.showPast}">` +
       `${state.showPast ? '▴ Nascondi gli scali già fatti' : `▾ Mostra gli scali già fatti (${hidden})`}</button>` : '';
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
-    const listaCorse = code === 'BIS'
-      ? `<p class="mt-bis">A disposizione dell'Ufficio Movimento: pronti a muovere alle 8.30 verso Garda, rientro alle 18.40.</p>`
-      : rows.length ? toggle + `<div class="navi-list">${rows.map((row, i) => {
+    const avvisoBis = code === 'BIS'
+      ? `<p class="mt-bis">${incarichi.length ? 'Corse assegnate dall\'Ufficio Movimento' : 'A disposizione dell\'Ufficio Movimento: pronti a muovere alle 8.30 verso Garda, rientro alle 18.40.'}</p>`
+      : sostituzione && corseSostituite.length
+        ? `<p class="mt-bis">Le corse ${esc(corseSostituite[0].numero)}${corseSostituite.length > 1 ? `–${esc(corseSostituite[corseSostituite.length - 1].numero)}` : ''} le fa il BIS${naveBis ? ` (${esc(naveBis)})` : ''} al posto della nave${sostituzione.alla ? '' : ', fino a nuovo ordine'}.</p>` : '';
+    const listaCorse = code === 'BIS' && !rows.length ? avvisoBis
+      : rows.length ? avvisoBis + toggle + `<div class="navi-list">${rows.map((row, i) => {
         if (row.stato === 'past' && i !== lastPast && !state.showPast) return '';
         const badges = [];
         if (i === 0) { if (oggi.rif) badges.push('<b class="rifornimento" title="Rifornimento prima delle corse">R</b>'); const mattino = oggi.ormeggioMattino || ieri.ormeggio; if (mattino) badges.push(`<b class="ormeggio" title="Ormeggio del mattino${oggi.ormeggioMattino ? '' : ' (dalla sera prima)'}">⚓ ${esc(pontLabel(mattino))}</b>`); }
+        if (row.bis) badges.push('<b class="bis" title="Corsa fatta dal BIS al posto della nave">BIS</b>');
+        if (row.per) badges.push(`<b class="bis" title="${row.aiuto ? 'In aiuto' : 'Al posto della nave'} del ${esc(row.per)}">${row.aiuto ? 'aiuto' : 'al posto'} ${esc(row.per)}</b>`);
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
         const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.split ? ' split' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
         return `<div class="${cls}"><span class="ora">${esc(row.orario)}</span>` +
-          `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(code)}` +
+          `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
-    const right = card(code === 'BIS' ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
+    const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
     // Prima corse e scali, poi la scheda Turno.
     $('turno-content').innerHTML = `<div class="terra-col">${right}</div><div class="terra-col">${left}</div>`;
   }
