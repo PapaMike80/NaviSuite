@@ -16,6 +16,9 @@
 .or-shore{fill:none;stroke:rgba(150,232,245,.22);stroke-width:2.6;stroke-linejoin:round}
 .or-lake{fill:url(#or-water);stroke:#8fe3ef;stroke-width:.55;stroke-linejoin:round}
 .or-port circle{fill:#c9964b;stroke:#06171d;stroke-width:.45}
+.or-port{cursor:pointer}
+.or-port.selected circle{fill:#2dd4bf;stroke:#fff;stroke-width:.5}
+.or-port.selected text{fill:#5eead4}
 .or-port text{fill:#d7eef2;font:700 3px DM Sans,sans-serif;paint-order:stroke;stroke:#0b2530;stroke-width:.7px;stroke-linejoin:round}
 .or-north path{fill:#9bc8d5}
 .or-north text,.or-scale text{fill:#9bc8d5;font:800 2.6px Manrope,sans-serif;text-anchor:middle}

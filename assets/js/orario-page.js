@@ -193,7 +193,8 @@
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
       const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : lato[0] === 's' ? [x, y + 4.4, 'middle'] : [x, y - 2.6, 'middle'];
-      return `<g class="or-port" data-port="${esc(nome)}"><circle cx="${x}" cy="${y}" r="1.25"/>` +
+      // toccando un pontile la sezione "Allo scalo" passa a quello scalo
+      return `<g class="or-port${nome === state.scalo ? ' selected' : ''}" data-port="${esc(nome)}" role="button" tabindex="0" aria-label="Navi allo scalo di ${esc(nome)}"><circle cx="${x}" cy="${y}" r="${nome === state.scalo ? 1.7 : 1.25}"/>` +
         `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
     const km5 = 5 * MAPPA.km;
@@ -466,6 +467,13 @@
     render();
   });
   content.addEventListener('click', event => {
+    const port = event.target.closest('[data-port]');
+    if (port) {
+      state.scalo = port.dataset.port; state.scaloScelto = true; state.open = '';
+      render();
+      if (matchMedia('(max-width: 900px)').matches) document.querySelector('.or-at-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     const vai = event.target.closest('[data-goto]');
     if (vai) { state.view = vai.dataset.goto; state.showPast = false; stopPlay(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const ship = event.target.closest('[data-ship]');
@@ -489,7 +497,7 @@
   });
   content.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    const target = event.target.closest('[data-ship],[data-open]');
+    const target = event.target.closest('[data-ship],[data-open],[data-port]');
     if (!target) return;
     event.preventDefault();
     target.dispatchEvent(new MouseEvent('click', { bubbles: true }));

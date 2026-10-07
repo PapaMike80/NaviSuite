@@ -84,4 +84,5 @@ assert.match(js, /function posizioneGps\(\)/);
 assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
 assert.match(js, /function alloScalo\(g, t\)/);
 assert.match(js, /data-goto="scalo"/);
+assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
 console.log('orario ok');
