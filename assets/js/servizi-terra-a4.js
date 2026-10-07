@@ -155,13 +155,12 @@
   const CSS = `
 @page{size:A4 portrait;margin:0}
 *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-html,body{margin:0;background:#d8dde2;color:#102a33;font-family:"DejaVu Sans",Verdana,Arial,sans-serif}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%;margin:0;background:#d8dde2;color:#102a33;font-family:"DejaVu Sans",Verdana,Arial,sans-serif}
 .sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:0 16mm 8mm;overflow:hidden}
 .sheet+.sheet{page-break-before:always;break-before:page}
-.band{margin:0 -16mm;padding:6mm 16mm 4.5mm;background:#0b2530;color:#fff;border-bottom:1.6mm solid #2dd4bf}
-.band .kicker{margin:0 0 2mm;color:#2dd4bf;font-size:8.5pt;font-weight:700;letter-spacing:.32em}
-h1{display:inline;font-size:26pt;margin:0;line-height:1}
-.sub{display:inline;font-size:11.5pt;margin:0 0 0 4mm}.src{font-size:8.8pt;color:#9bc8d5;margin:2mm 0 0}
+.band{margin:0 -16mm;padding:4mm 16mm 3mm;background:#0b2530;color:#fff;border-bottom:1.6mm solid #2dd4bf}
+h1{font-size:24pt;margin:0;line-height:1;letter-spacing:.04em}
+.src{font-size:7.6pt;color:#5a7680;margin:1mm 0 0}
 .boxes{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:5mm}
 .box{border:.8pt solid #c9e3e6;border-left:2.2mm solid #0f8f80;border-radius:3mm;background:#eef7f7;padding:2.5mm 5mm;display:grid;grid-template-columns:auto 1fr;row-gap:.5mm}
 .box b{font-size:17pt;color:#0b2530}.box .h{text-align:right;font-size:12.5pt;line-height:1.25;font-weight:700;color:#0b2530}.box small{grid-column:1/-1;font-size:7.4pt;color:#5a7680}
@@ -250,7 +249,7 @@ table{border-collapse:collapse;width:100%}
       title: `Servizi a terra Desenzano ${fmt(days[0])}-${fmt(days[6])}`,
       days: known.length,
       html: `<div class="sheet desenzano">
-<div class="band"><p class="kicker">NAVISUITE · SERVIZI A TERRA</p><h1>DESENZANO</h1><p class="sub">pontile e AgB · navi in orario e ormeggi serali</p><p class="src">${esc(VALIDITA)}</p></div>
+<div class="band"><h1>DESENZANO</h1></div>
 <div class="boxes">
 ${boxes('DESENZANO')}
 </div>
@@ -260,6 +259,7 @@ ${boxes('DESENZANO')}
 <div class="rules"><b>${esc(RIFORNIMENTI.titolo)}</b><br>
 ${RIFORNIMENTI.righe.map(esc).join('<br>\n')}</div>
 <div class="notes">${notes('DESENZANO')}</div>
+<p class="src">${esc(VALIDITA)}</p>
 </div>`
     };
   }
@@ -289,7 +289,7 @@ ${RIFORNIMENTI.righe.map(esc).join('<br>\n')}</div>
       title: 'Servizi a terra Maderno',
       days: 0,
       html: `<div class="sheet maderno">
-<div class="band"><p class="kicker">NAVISUITE · SERVIZI A TERRA</p><h1>MADERNO</h1><p class="sub">AgM e AgT · navi di linea e traghetto Torri</p><p class="src">${esc(VALIDITA)}</p></div>
+<div class="band"><h1>MADERNO</h1></div>
 <div class="boxes">
 ${boxes('MADERNO')}
 </div>
@@ -298,6 +298,7 @@ ${boxes('MADERNO')}
 <div class="orm-title">TRAGHETTO MADERNO – TORRI<span>arrivo da Torri, sosta a Maderno, partenza per Torri</span></div>
 <div class="ferries">${ferry('T1')}${ferry('T2')}</div>
 <div class="notes">${notes('MADERNO')}</div>
+<p class="src">${esc(VALIDITA)}</p>
 </div>`
     };
   }
@@ -392,15 +393,69 @@ ${FIT}</body></html>`;
     });
   }
 
-  // Apre gli A4 (Desenzano e Maderno) in una nuova finestra; restituisce il numero di giorni
+  // Visore dentro la pagina, al posto di una nuova finestra: su iPhone (app sul telefono) la
+  // finestra nuova non stampa e non si chiude. I fogli stanno in uno shadow DOM con il loro CSS,
+  // con la barra "✕" e "Stampa / PDF"; in stampa si nasconde il resto della pagina.
+  // html: pagina completa (anche un documento salvato in Documenti), ne usa lo stile e i .sheet.
+  const VIEWER_CSS = `
+:host{all:initial;position:fixed;inset:0;z-index:2147483000;overflow:auto;-webkit-overflow-scrolling:touch;background:#d8dde2;display:block}
+.a4-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:#0b2530;color:#fff;font:700 15px -apple-system,system-ui,sans-serif}
+.a4-bar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a4-bar button{font:700 15px -apple-system,system-ui,sans-serif;border-radius:10px;cursor:pointer}
+.a4-x{width:40px;height:40px;border:1px solid #2dd4bf;background:transparent;color:#fff;font-size:20px!important;line-height:1}
+.a4-print{padding:10px 14px;border:0;background:#2dd4bf;color:#0b2530}
+.a4-sheets{padding:8px 0 calc(24px + env(safe-area-inset-bottom))}
+.print-actions{display:none!important}
+@media print{:host{position:static;overflow:visible;background:#fff}.a4-bar{display:none}.a4-sheets{padding:0}}
+`;
+  const PRINT_CSS = '@page{size:A4 portrait;margin:0}@media print{html,body{background:#fff!important;height:auto!important;overflow:visible!important;margin:0!important;padding:0!important}body>*:not(#navi-a4-viewer){display:none!important}}';
+  let chiudiVisore = null;
+  function mostra(html, title) {
+    if (chiudiVisore) chiudiVisore();
+    const doc = new DOMParser().parseFromString(String(html), 'text/html');
+    const style = [...doc.querySelectorAll('style')].map(el => el.textContent).join('\n')
+      .replace(/(^|[},\s])html\s*,\s*body\s*\{/g, '$1:host{').replace(/(^|[},\s])body\s*\{/g, '$1:host{');
+    const sheets = [...doc.querySelectorAll('.sheet')].map(el => el.outerHTML).join('\n');
+    const host = document.createElement('div');
+    host.id = 'navi-a4-viewer';
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML = `<style>${VIEWER_CSS}${style}</style>` +
+      `<div class="a4-bar"><button type="button" class="a4-x" aria-label="Chiudi">✕</button>` +
+      `<strong>${esc(title || doc.title || 'Servizi a terra')}</strong><button type="button" class="a4-print">Stampa / PDF</button></div>` +
+      `<div class="a4-sheets">${sheets}</div>`;
+    const print = document.createElement('style');
+    print.id = 'navi-a4-print';
+    print.textContent = PRINT_CSS;
+    const overflow = document.body.style.overflow;
+    const fit = () => {
+      const s = Math.min(1, (host.clientWidth - 16) / 793.7);
+      root.querySelectorAll('.sheet').forEach(el => { el.style.zoom = s < 1 ? s : ''; });
+    };
+    const key = event => { if (event.key === 'Escape') chiudiVisore(); };
+    // in stampa il foglio a grandezza vera
+    const before = () => root.querySelectorAll('.sheet').forEach(el => { el.style.zoom = ''; });
+    chiudiVisore = () => {
+      host.remove(); print.remove();
+      document.body.style.overflow = overflow;
+      removeEventListener('resize', fit); removeEventListener('keydown', key);
+      removeEventListener('beforeprint', before); removeEventListener('afterprint', fit);
+      chiudiVisore = null;
+    };
+    root.querySelector('.a4-x').addEventListener('click', () => chiudiVisore());
+    root.querySelector('.a4-print').addEventListener('click', () => { before(); window.print(); setTimeout(fit, 500); });
+    document.head.appendChild(print);
+    document.body.appendChild(host);
+    document.body.style.overflow = 'hidden';
+    addEventListener('resize', fit); addEventListener('keydown', key);
+    addEventListener('beforeprint', before); addEventListener('afterprint', fit);
+    fit();
+    return host;
+  }
+
+  // Apre gli A4 (Desenzano e Maderno) nel visore; restituisce il numero di giorni
   // della settimana di Desenzano coperti dagli O.d.S.
   function open(turniNavi, monday) {
-    const popup = window.open('', '_blank');
-    if (!popup) throw new Error('Il browser ha bloccato la nuova finestra: consenti i popup per NaviSuite.');
-    popup.document.open();
-    popup.document.write(buildAllHtml(turniNavi, monday));
-    popup.document.close();
-    popup.focus();
+    mostra(buildAllHtml(turniNavi, monday), 'Servizi a terra');
     return sheetDesenzano(turniNavi, monday).days;
   }
 
@@ -436,19 +491,15 @@ ${FIT}</body></html>`;
     return previous && h[previous] !== '-' ? { value: h[previous], source: 'ieri' } : { value: '', source: '' };
   }
 
-  // Apre l'A4 di una residenza in una nuova finestra, pronto da stampare.
+  // Apre l'A4 di una residenza nel visore, pronto da stampare.
   function openResidence(residenza, turniNavi, monday) {
-    const popup = window.open('', '_blank');
-    if (!popup) throw new Error('Il browser ha bloccato la nuova finestra: consenti i popup per NaviSuite.');
-    popup.document.open();
-    popup.document.write(buildResidenceHtml(residenza, turniNavi, monday));
-    popup.document.close();
-    popup.focus();
+    const sheet = sheetFor(residenza, turniNavi, monday);
+    mostra(page([sheet], sheet.title, false), sheet.title);
   }
 
   window.NaviServiziTerra = {
     RESIDENZE, DATA, defaultMonday, indexTurniNavi, turniDelGiorno, naviDelGiorno, ormeggiSettimana, ferryRows, minutes, openResidence,
     courseKey, pontLabel, pontileFor,
-    buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open
+    buildHtml, buildMadernoHtml, buildResidenceHtml, buildAllHtml, documents, open, mostra
   };
 })();
