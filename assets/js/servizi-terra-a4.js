@@ -151,46 +151,58 @@
     return rows;
   }
 
+  // Nei colori di NaviSuite (come le stampe di tools/stampe/a4_desenzano_colori.py), anche in stampa.
   const CSS = `
 @page{size:A4 portrait;margin:0}
-*{box-sizing:border-box}
-html,body{margin:0;background:#d8dde2;color:#000;font-family:"DejaVu Sans",Verdana,Arial,sans-serif}
-.sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:11mm 18mm 9mm;overflow:hidden}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;background:#d8dde2;color:#102a33;font-family:"DejaVu Sans",Verdana,Arial,sans-serif}
+.sheet{width:210mm;height:297mm;margin:8mm auto;background:#fff;padding:0 16mm 8mm;overflow:hidden}
 .sheet+.sheet{page-break-before:always;break-before:page}
-h1{font-size:26pt;margin:0;line-height:1}
-.sub{font-size:12pt;margin:2mm 0 0}.src{font-size:9pt;color:#333;margin:1.5mm 0 0}
-.boxes{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:4mm}
-.box{border:1px solid #000;border-radius:3mm;padding:2.5mm 5mm;display:grid;grid-template-columns:auto 1fr;row-gap:.5mm}
-.box b{font-size:16pt}.box .h{text-align:right;font-size:13pt;line-height:1.25}.box small{grid-column:1/-1;font-size:7.5pt;color:#333}
+.band{margin:0 -16mm;padding:6mm 16mm 4.5mm;background:#0b2530;color:#fff;border-bottom:1.6mm solid #2dd4bf}
+.band .kicker{margin:0 0 2mm;color:#2dd4bf;font-size:8.5pt;font-weight:700;letter-spacing:.32em}
+h1{display:inline;font-size:26pt;margin:0;line-height:1}
+.sub{display:inline;font-size:11.5pt;margin:0 0 0 4mm}.src{font-size:8.8pt;color:#9bc8d5;margin:2mm 0 0}
+.boxes{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:5mm}
+.box{border:.8pt solid #c9e3e6;border-left:2.2mm solid #0f8f80;border-radius:3mm;background:#eef7f7;padding:2.5mm 5mm;display:grid;grid-template-columns:auto 1fr;row-gap:.5mm}
+.box b{font-size:17pt;color:#0b2530}.box .h{text-align:right;font-size:12.5pt;line-height:1.25;font-weight:700;color:#0b2530}.box small{grid-column:1/-1;font-size:7.4pt;color:#5a7680}
 table{border-collapse:collapse;width:100%}
-.navi{margin-top:6mm}.navi th{background:#000;color:#fff;font-size:9pt;text-align:left;padding:1.4mm 2mm}
-.navi td{height:5.9mm;line-height:1;padding:0 2mm;font-size:12pt;white-space:nowrap}
-.navi .time{font-weight:700;font-size:15pt;text-align:right;width:20mm}.navi .kind{font-weight:700;font-size:10.5pt;width:30mm}
-.navi .code{font-weight:700;font-size:15pt;width:22mm}.navi .run{width:22mm}
+.navi{margin-top:6mm}.navi th{background:#123a47;color:#fff;font-size:8.8pt;text-align:left;padding:1.4mm 2mm}
+.navi thead th:first-child{border-radius:2mm 0 0 2mm}.navi thead th:last-child{border-radius:0 2mm 2mm 0}
+.navi td{height:5.9mm;line-height:1;padding:0 2mm;font-size:11.5pt;white-space:nowrap}
+.navi .time{font-weight:700;font-size:15pt;text-align:right;width:20mm}.navi .kind{font-weight:700;font-size:9.6pt;width:30mm}
+.navi .kind.P{color:#0f8f80}.navi .kind.A{color:#1f7fbf}.navi .kind.S{color:#b7791f}
+.navi .code{width:22mm}.navi .run{width:22mm}
+.chip{display:inline-block;min-width:13mm;padding:.6mm 2mm;border-radius:3mm;background:#64748b;color:#fff;font-weight:700;font-size:10.5pt;text-align:center;line-height:1.15}
+.chip[data-code="D1"],.chip[data-code="R1"],.chip[data-code="P1"],.chip[data-code="T1"]{background:#3b6fe0}
+.chip[data-code="D2"],.chip[data-code="R2"],.chip[data-code="P2"],.chip[data-code="T2"]{background:#1f9d63}
+.chip[data-code="M1"],.chip[data-code="R3"],.chip[data-code="D3"]{background:#e07b2a}.chip[data-code="D4"]{background:#c25bbd}
+.chip[data-code="BIS"]{background:#0e9fb3}.chip[data-code="SR1"],.chip[data-code="SR2"]{background:#7c5ce0}
 .navi .where div{display:flex;align-items:center;justify-content:space-between;gap:2mm}
-.bolg{background:#000;color:#fff;font-weight:700;font-size:8.5pt;line-height:1.2;border-radius:1.5mm;padding:.5mm 2.5mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.stripe td,.stripe th{background:#ededed}.navi tr.split{border-top:1.4px solid #000}
-.orm-title{margin:5mm 0 2mm;font-size:12pt;font-weight:700;white-space:nowrap}.orm-title span{font-weight:400;font-size:8.5pt;color:#333;margin-left:3mm}
-.orm{table-layout:fixed}.orm thead th{background:#000;color:#fff;font-size:9pt;padding:1.3mm 0}
-.orm thead th:first-child{width:12mm}
-.orm tbody th{text-align:left;font-size:12pt;padding-left:1.5mm}
-.orm td{height:8.6mm;text-align:center;border-left:.4px solid #000;line-height:1.05}
-.orm .pont{font-weight:700;font-size:14pt}.orm .rif{font-weight:700;font-size:9pt;margin-left:1.2mm;vertical-align:2pt}
-.orm .ship{display:block;font-size:7pt;white-space:nowrap;overflow:hidden}
-.orm .next{font-size:6.5pt;color:#333;background:#fff}.orm .none{font-size:10pt}
-.rules{margin-top:4mm;font-size:8.4pt;line-height:1.45}.rules b{font-size:8.6pt}
-.notes{margin-top:1.5mm;font-size:8.2pt;color:#333;line-height:1.45}.notes b{color:#000;font-size:8.6pt}
+.bolg{background:#f59e0b;color:#0b2530;font-weight:700;font-size:8.4pt;line-height:1.2;border-radius:1.5mm;padding:.5mm 2.5mm}
+.stripe td,.stripe th{background:#eef7f7}.navi tr.split{border-top:1.2pt solid #0f8f80}
+.orm-title{margin:5mm 0 2mm;font-size:12pt;font-weight:700;white-space:nowrap;color:#0b2530}.orm-title span{font-weight:400;font-size:8.2pt;color:#5a7680;margin-left:3mm}
+.orm{table-layout:fixed}.orm thead th{background:#123a47;color:#fff;font-size:8.8pt;padding:1.3mm 0}
+.orm thead th:first-child{width:15mm;border-radius:2mm 0 0 2mm}.orm thead th:last-child{border-radius:0 2mm 2mm 0}
+.orm tbody th{text-align:left;padding-left:1mm}.orm tbody th .chip{min-width:11mm;font-size:9.5pt}
+.orm td{height:8.6mm;text-align:center;border-left:.5pt solid #c9e3e6;line-height:1.05}
+.orm .pont{font-weight:700;font-size:14pt}
+.orm .rif,.mark{display:inline-block;background:#facc15;color:#0b2530;font-weight:700;font-size:8.5pt;border-radius:1.2mm;padding:.2mm 1.2mm;margin-left:1.2mm;vertical-align:2pt}
+.mark{margin:0 1.5mm 0 0;vertical-align:0}.mark.b{background:#f59e0b}
+.orm .ship{display:block;font-size:7pt;white-space:nowrap;overflow:hidden;color:#5a7680}
+.orm .next{font-size:6.4pt;color:#5a7680;background:#fff}.orm .none{font-size:10pt}
+.rules{margin-top:4mm;font-size:8.2pt;line-height:1.5}.rules b{font-size:8.4pt;color:#0b2530}
+.notes{margin-top:1.5mm;font-size:8pt;color:#5a7680;line-height:1.5}.notes b{color:#102a33;font-size:8.2pt}
 .maderno .navi{margin-top:0}.maderno .navi td{height:6.6mm}.maderno .navi .kind{width:25mm}.maderno .navi .run{width:17mm}
 .ferries{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
-.ferry{border:.6pt solid #000}.ferry th{background:#000;color:#fff;font-size:8.4pt;padding:1.6mm 0;text-align:center}
-.ferry th:first-child{font-size:13pt;text-align:left;padding-left:2.5mm;width:9mm}
+.ferry{border:.6pt solid #c9e3e6}.ferry th{background:#123a47;color:#fff;font-size:8.4pt;padding:1.6mm 0;text-align:center}
+.ferry th:first-child{text-align:left;padding-left:2mm;width:15mm}
 .ferry td{height:7.4mm;line-height:1;text-align:center;white-space:nowrap;padding:0}
-.ferry .t{font-weight:700;font-size:14pt}.ferry .t small{font-weight:400;font-size:7pt;color:#333;margin-left:1mm}
-.ferry .note{font-size:8.6pt;color:#333}.ferry .sosta{font-size:11pt}.ferry .sosta.lunch{font-weight:700}
+.ferry .t{font-weight:700;font-size:14pt}.ferry .t small{font-weight:400;font-size:7pt;color:#5a7680;margin-left:1mm}
+.ferry .note{font-size:8.4pt;color:#5a7680}.ferry .sosta{font-size:11pt;color:#0f8f80}.ferry .sosta.lunch{font-weight:700}
 .ferry .sosta.lunch:before{content:"pausa";display:block;font-weight:400;font-size:7pt}
-.ferry tr.torri td{font-size:8.2pt;font-weight:700;color:#333;border-top:.4pt dashed #000;border-bottom:.4pt dashed #000;background:#fff}
+.ferry tr.torri td{font-size:8pt;font-weight:700;color:#1f7fbf;border-top:.4pt dashed #1f7fbf;border-bottom:.4pt dashed #1f7fbf;background:#fff}
 .print-actions{position:fixed;top:8px;right:8px;display:flex;gap:6px;z-index:5}
-.print-actions button{font:700 13px sans-serif;padding:8px 12px;border-radius:8px;border:1px solid #000;background:#fff;cursor:pointer}
+.print-actions button{font:700 13px sans-serif;padding:8px 12px;border-radius:8px;border:1px solid #0f8f80;background:#fff;color:#0b2530;cursor:pointer}
 @media screen and (max-width:830px){.sheet{margin:8px auto}}
 @media print{html,body{background:#fff}.sheet{margin:0;zoom:1!important}.print-actions{display:none}}
 `;
@@ -220,12 +232,12 @@ table{border-collapse:collapse;width:100%}
 
     const naviRows = NAVI.map(([time, kind, code, run, where], i) =>
       `<tr class="${i % 2 ? '' : 'stripe'}${time === '14.30' ? ' split' : ''}"><td class="time">${time}</td>` +
-      `<td class="kind">${KIND[kind]}</td><td class="code">${code}</td>` +
+      `<td class="kind ${kind}">${KIND[kind]}</td><td class="code"><span class="chip" data-code="${code}">${code}</span></td>` +
       `<td class="run">${run || '–'}</td><td class="where"><div>${esc(where)}` +
       `${BOLGETTE[run] ? `<span class="bolg">${BOLGETTE[run]}</span>` : ''}</div></td></tr>`).join('');
 
     const head = days.map((d, i) => `<th>${GIORNI[i]} ${fmt(d)}</th>`).join('');
-    const body = groups.map((g, gi) => `<tr class="${gi % 2 ? '' : 'stripe'}"><th>${g}</th>` + days.map(d => {
+    const body = groups.map((g, gi) => `<tr class="${gi % 2 ? '' : 'stripe'}"><th><span class="chip" data-code="${g}">${g}</span></th>` + days.map(d => {
       const day = data[iso(d)];
       if (!day) return gi === 0 ? `<td class="next" rowspan="${groups.length}">nel prossimo<br>O.d.S.</td>` : '';
       const v = day[g];
@@ -238,9 +250,7 @@ table{border-collapse:collapse;width:100%}
       title: `Servizi a terra Desenzano ${fmt(days[0])}-${fmt(days[6])}`,
       days: known.length,
       html: `<div class="sheet desenzano">
-<h1>DESENZANO</h1>
-<p class="sub">Pontile e AgB - navi in ordine di orario e ormeggi serali</p>
-<p class="src">${esc(VALIDITA)}</p>
+<div class="band"><p class="kicker">NAVISUITE · SERVIZI A TERRA</p><h1>DESENZANO</h1><p class="sub">pontile e AgB · navi in orario e ormeggi serali</p><p class="src">${esc(VALIDITA)}</p></div>
 <div class="boxes">
 ${boxes('DESENZANO')}
 </div>
@@ -257,7 +267,7 @@ ${RIFORNIMENTI.righe.map(esc).join('<br>\n')}</div>
   function sheetMaderno() {
     const lineRows = MADERNO_LINEA.map(([time, kind, code, run, where], i) =>
       `<tr class="${i % 2 ? '' : 'stripe'}${time === '14.00' ? ' split' : ''}"><td class="time">${time}</td>` +
-      `<td class="kind">${KIND[kind]}</td><td class="code">${code}</td><td class="run">${run}</td>` +
+      `<td class="kind ${kind}">${KIND[kind]}</td><td class="code"><span class="chip" data-code="${code}">${code}</span></td><td class="run">${run}</td>` +
       `<td class="where"><div>${esc(where)}${MADERNO_BOLGETTE[run] ? `<span class="bolg">${MADERNO_BOLGETTE[run]}</span>` : ''}</div></td></tr>`).join('');
     const time = value => value ? `<span class="t">${value[0]}<small>${value[1]}</small></span>` : '';
     const ferry = code => {
@@ -273,15 +283,13 @@ ${RIFORNIMENTI.righe.map(esc).join('<br>\n')}</div>
         return `<tr${cls}><td></td><td>${row.kind === 'prima' ? '<span class="note">1ª partenza</span>' : time(row.arr)}</td>` +
           `<td>${sosta}</td><td>${row.kind === 'ultima' ? '<span class="note">fine servizio</span>' : time(row.dep)}</td></tr>`;
       }).join('');
-      return `<table class="ferry"><thead><tr><th>${code}</th><th>ARRIVO</th><th>SOSTA</th><th>PARTENZA</th></tr></thead><tbody>${rows}</tbody></table>`;
+      return `<table class="ferry"><thead><tr><th><span class="chip" data-code="${code}">${code}</span></th><th>ARRIVO</th><th>SOSTA</th><th>PARTENZA</th></tr></thead><tbody>${rows}</tbody></table>`;
     };
     return {
       title: 'Servizi a terra Maderno',
       days: 0,
       html: `<div class="sheet maderno">
-<h1>MADERNO</h1>
-<p class="sub">Servizio di terra - navi di linea e traghetto Torri</p>
-<p class="src">${esc(VALIDITA)}</p>
+<div class="band"><p class="kicker">NAVISUITE · SERVIZI A TERRA</p><h1>MADERNO</h1><p class="sub">AgM e AgT · navi di linea e traghetto Torri</p><p class="src">${esc(VALIDITA)}</p></div>
 <div class="boxes">
 ${boxes('MADERNO')}
 </div>
