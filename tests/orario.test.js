@@ -93,4 +93,10 @@ assert.match(js, /function quantoManca\(g, e, t\)/);
 assert.match(js, /in arrivo · \$\{testo\}/);
 assert.match(js, /or-next-nome/);
 assert.match(js, /const DOPO_PARTENZA = 10;/);
+// Allo scalo come Servizi a terra: pontili (Desenzano), R, B, ormeggi, arrivo, agenti in fondo; niente sezione Navi
+assert.match(js, /function righeScalo\(g\)/);
+assert.match(js, /savePontileCorsa\('DESENZANO', key, day/);
+assert.match(js, /class="arr" title="Arrivo">arr\./);
+assert.match(js, /Agenti di servizio/);
+assert.ok(!/card\('Navi'/.test(js), 'sezione Navi tolta');
 console.log('orario ok');
