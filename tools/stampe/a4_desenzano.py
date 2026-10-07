@@ -1,4 +1,7 @@
-"""Foglio A4 Desenzano - pontile e AgB, orario dal 05/10/2026 (O.d.S. 39/2026, pag. 15-19)."""
+"""Foglio A4 Desenzano - pontile e AgB, orario dal 05/10/2026 (O.d.S. 39/2026, pag. 15-19).
+
+Dati (ROWS, BOLGETTE, settimana) usati da a4_desenzano_colori.py, che genera la stampa a colori e il
+tascabile; main() e' la vecchia versione in bianco e nero, non piu' generata da genera.py."""
 import sys, re, json, datetime
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
