@@ -131,4 +131,8 @@ const turni = JSON.parse(JSON.stringify(T.turniDelGiorno(rows, '2026-10-09')));
 assert.deepStrictEqual(turni.D1, { nave: 'AGONE', ormeggio: 'pontile 5', rif: false });
 assert.deepStrictEqual(turni.T1, { nave: 'BRESCIA', ormeggio: 'porto esterno', rif: false });
 assert.strictEqual(T.turniDelGiorno([rows[0]], '2026-10-09').D1.rif, true);
+// Desenzano a colori e tascabile del pontilista (tools/stampe/a4_desenzano_colori.py), in Documenti
+assert.ok(fs.existsSync('stampe/Desenzano_pontile_AgB_colori_A4.pdf') && fs.existsSync('stampe/Desenzano_pontile_tascabile_A4.pdf'));
+assert.match(fs.readFileSync('tools/stampe/genera.py', 'utf8'), /a4_desenzano_colori\.tascabile\(/);
+assert.ok(documenti.indexOf('Desenzano_pontile_tascabile') < documenti.indexOf("[/^Desenzano_pontile/i"), 'titoli specifici prima di quello generico');
 console.log('servizi-terra-a4 ok');
