@@ -192,7 +192,7 @@
     const porti = SCALI.map(nome => {
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
-      const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : [x, y - 2.6, 'middle'];
+      const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : lato[0] === 's' ? [x, y + 4.4, 'middle'] : [x, y - 2.6, 'middle'];
       return `<g class="or-port" data-port="${esc(nome)}"><circle cx="${x}" cy="${y}" r="1.25"/>` +
         `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
