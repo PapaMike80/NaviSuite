@@ -152,11 +152,11 @@
     $('turno-title').innerHTML = `${chip(code)} A terra`;
     $('turno-context').textContent = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
-    // A terra: prima l'orario delle navi (Servizi a terra), poi la scheda Turno.
+    // A terra: la pagina Scali del mio scalo (mappa, navi allo scalo con pontili, ormeggi, agenti), poi la scheda Turno.
     $('turno-content').innerHTML = '';
     $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
-    $('turno-terra').hidden = false;
-    window.NaviServiziTerraPage?.show({ residence: residenza, day });
+    $('turno-scali').hidden = false;
+    window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day });
   }
 
   function renderAltro(turno, day) {
@@ -182,7 +182,7 @@
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
     $('turno-day-input').value = day;
     $('turno-day-today').hidden = realToday;
-    $('turno-terra').hidden = true;
+    $('turno-scali').hidden = true;
     $('turno-after').innerHTML = '';
     const me = profile();
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
@@ -207,7 +207,13 @@
     const sospesa = nave && state.schedule ? T.turniDelGiorno([...(state.schedule.turni_navi || []), ...state.firebaseNavi], day)[nave] : null;
     if (sospesa?.sospesa) messages.push(`⚠ Corse del ${nave} sospese dall'Ufficio Movimento${sospesa.motivo ? `: ${sospesa.motivo}` : ''}.`);
     notice(messages.join(' · '));
-    if (nave) renderNave(nave, day, me);
+    if (!nave && !terra) window.NaviOrarioPage?.hide();
+    if (nave) {
+      renderNave(nave, day, me);
+      // In linea: la mappa del lago con la mia corsa (sotto corse, scali e turno)
+      $('turno-scali').hidden = false;
+      window.NaviOrarioPage?.show({ modo: 'nave', turno: nave, day });
+    }
     else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day);
     else renderAltro(turno, day);
     const url = new URL(location.href);
@@ -250,5 +256,5 @@
   aggiornaModifiche();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiornaModifiche(); });
   window.addEventListener('storage', event => { if (String(event.key || '').startsWith('navidiaria.entries.v1.')) aggiornaModifiche(); });
-  setInterval(() => { if (state.schedule && $('turno-terra').hidden) aggiornaModifiche(); }, 60000);
+  setInterval(() => { if (state.schedule) aggiornaModifiche(); }, 60000);
 })();

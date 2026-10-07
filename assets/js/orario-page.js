@@ -12,6 +12,9 @@
   const G = window.NaviTurniGiorno;
   const T = window.NaviServiziTerra;
   const $ = id => document.getElementById(id);
+  // Incorporata in Il mio turno (window.NaviOrarioEmbed): niente intestazione, giorni, tab, GPS e URL;
+  // la mostra NaviOrarioPage.show({ modo: 'terra' | 'nave', scalo, turno, day }).
+  const EMBED = window.NaviOrarioEmbed === true;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const parseIso = value => { const [y, m, d] = String(value).split('-').map(Number); return new Date(y, m - 1, d); };
   const iso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -153,7 +156,8 @@
     // Schede aperte: la nave scelta a mano piu' quelle aperte da sole per il mio scalo (le navi in
     // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
     // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
-    const aperte = [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
+    const mia = state.embed?.modo === 'nave' ? state.embed.turno : '';
+    const aperte = mia ? [mia] : [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
     const turni = [...new Set(g.viaggi.map(v => v.turno))];
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
@@ -175,7 +179,7 @@
       posti.push([x, y]);
       const ferma = item.pos.stato === 'prima' || item.pos.stato === 'fine';
       const sel = aperte.includes(item.code);
-      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
+      return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}${mia && !sel ? ' dim' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
         `<circle r="${sel ? 3.6 : 3}" fill="${COLORI[item.code] || '#94a3b8'}"/><text y="0.9">${esc(item.code)}</text></g>`;
     }).join('');
     // Rotta del giorno della nave scelta (tratteggiata) e tratto gia' fatto (pieno).
@@ -202,7 +206,8 @@
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
       const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : lato[0] === 's' ? [x, y + 4.4, 'middle'] : [x, y - 2.6, 'middle'];
       // toccando un pontile la sezione "Allo scalo" passa a quello scalo
-      return `<g class="or-port${nome === state.scalo ? ' selected' : ''}" data-port="${esc(nome)}" role="button" tabindex="0" aria-label="Navi allo scalo di ${esc(nome)}"><circle cx="${x}" cy="${y}" r="${nome === state.scalo ? 1.7 : 1.25}"/>` +
+      const qui = nome === state.scalo && !mia; // in Il mio turno (corsa di linea) nessuno scalo scelto
+      return `<g class="or-port${qui ? ' selected' : ''}" data-port="${esc(nome)}" role="button" tabindex="0" aria-label="Navi allo scalo di ${esc(nome)}"><circle cx="${x}" cy="${y}" r="${qui ? 1.7 : 1.25}"/>` +
         `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
     const km5 = 5 * MAPPA.km;
@@ -426,6 +431,11 @@
   function renderLago() {
     posizioneGps();
     const { t, svg, side } = lagoParti();
+    if (state.embed?.modo === 'nave') {
+      // Il mio turno, corsa di linea: solo la mappa con la mia nave, la sua rotta e il tratto fatto
+      $('orario-content').innerHTML = card('Lago', 'la mia corsa all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`, 'or-mia');
+      return;
+    }
     $('orario-content').innerHTML = `<div class="terra-grid or-lago"><div class="terra-col">` +
       card('Lago', 'posizione delle navi all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`) +
       `</div><div class="terra-col" id="or-side">${side}</div></div>`;
@@ -434,7 +444,7 @@
   function aggiornaLago() {
     const { t, svg, side } = lagoParti();
     $('or-map-wrap').innerHTML = svg;
-    $('or-side').innerHTML = side;
+    if ($('or-side')) $('or-side').innerHTML = side;
     $('or-clock').textContent = hhmm(t);
     const live = document.querySelector('#or-time .or-live');
     if (live && state.time != null) live.outerHTML = `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`;
@@ -511,7 +521,7 @@
   // Una sola lettura della posizione: vale per la partenza di Da -> A e per lo scalo (tabellone e
   // sezione "Allo scalo" del Lago), finche' non li si sceglie a mano.
   function posizioneGps() {
-    if (state.gps || !navigator.geolocation) return;
+    if (EMBED || state.gps || !navigator.geolocation) return;
     state.gps = { attesa: true };
     navigator.geolocation.getCurrentPosition(pos => {
       const vicino = scaloVicino(pos.coords.latitude, pos.coords.longitude);
@@ -591,12 +601,15 @@
   }
 
   function render() {
+    if (EMBED && !state.embed) return;
     const day = today(), shown = parseIso(day), clock = new Date();
-    $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
-      (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
-    $('orario-day-input').value = day;
-    $('orario-day-today').hidden = realToday();
-    document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
+    if (!EMBED) {
+      $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
+        (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
+      $('orario-day-input').value = day;
+      $('orario-day-today').hidden = realToday();
+      document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
+    }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
     const navi = giornata().navi;
     const sospese = attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`);
@@ -607,6 +620,7 @@
     $('orario-notice').textContent = notice;
     if (state.view === 'lago') renderLago();
     else if (state.view === 'viaggio') renderViaggio();
+    if (EMBED) return;
 
     const url = new URL(location.href);
     url.search = '';
@@ -619,11 +633,11 @@
 
   function stopPlay() { if (state.playing) { clearInterval(state.playing); state.playing = null; } }
   const goToDay = day => { state.day = day === iso(new Date()) ? '' : day; state.time = null; state.showPast = false; state.open = ''; stopPlay(); render(); };
-  $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
-  $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
-  $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
-  $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-  $('orario-tabs').addEventListener('click', event => {
+  if (!EMBED) $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
+  if (!EMBED) $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
+  if (!EMBED) $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  if (!EMBED) $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
+  $('orario-tabs')?.addEventListener('click', event => {
     const button = event.target.closest('[data-view]');
     if (!button) return;
     state.view = button.dataset.view; state.showPast = false; stopPlay(); render();
@@ -672,6 +686,7 @@
     }
     if (event.target.closest('[data-tutti]')) { state.tuttiScali = !state.tuttiScali; render(); return; }
     const ship = event.target.closest('[data-ship]');
+    if (ship && state.embed?.modo === 'nave') return;
     if (ship) {
       // da «Allo scalo» apre sempre la corsa; dalla mappa e dall'elenco apre o chiude
       const fromScalo = ship.dataset.from === 'scalo';
@@ -713,6 +728,25 @@
     target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
 
+  if (EMBED) {
+    window.NaviOrarioPage = {
+      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '' } = {}) {
+        const giorno = day && day !== iso(new Date()) ? day : '';
+        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
+        // mentre si sceglie un pontile o si usa il cursore non si ridisegna
+        if (!cambia && (document.activeElement?.closest?.('#orario-content select') || state.playing)) return;
+        state.embed = { modo, turno };
+        state.view = 'lago';
+        if (cambia) {
+          state.day = giorno; state.time = null; stopPlay();
+          state.scalo = SCALI.includes(scalo) ? scalo : 'Desenzano';
+          state.selected = ''; state.chiuse = new Set(); state.auto = modo === 'terra';
+        }
+        render();
+      },
+      hide() { state.embed = null; stopPlay(); $('orario-content').innerHTML = ''; $('orario-notice').hidden = true; }
+    };
+  }
   render();
   window.NaviSharedData?.loadCacheFirst?.(data => { state.schedule = data || { residenze: {} }; render(); })
     .catch(error => console.warn('Orario: turni non disponibili', error));

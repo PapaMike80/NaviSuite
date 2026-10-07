@@ -78,19 +78,13 @@ const terraPage = fs.readFileSync('mio-turno.html', 'utf8');
 assert.match(fs.readFileSync('servizi-terra.html', 'utf8'), /location\.replace\('orario\.html'/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
 assert.match(terraPage, /servizi-terra-a4\.js\?v=14/);
-assert.match(terraPage, /servizi-terra-page\.js\?v=21/);
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
-const pageJs = fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8');
-assert.doesNotMatch(pageJs, /ormeggiCard/); // niente tabella ormeggi: sono nell'orario
-assert.match(pageJs, /past-toggle/); // freccia per le navi gia' partite
-assert.match(pageJs, /crew-hover-tooltip/); // popup equipaggio come NaviTurni
 assert.match(fs.readFileSync('assets/js/turni-giorno.js', 'utf8'), /grado\[0\] === 'Capo timoniere'\)\?\.name/); // capo timoniere a bordo fa da comandante
-assert.doesNotMatch(pageJs, /Cte\./); // solo il nome, senza Cte.
-assert.match(pageJs, /ferry: \/\^T\[12\]\$\/\.test\(code\)/); // traghetti con sfondo diverso
-assert.match(pageJs, /select data-pontile/); // selettore del pontile per ogni corsa (Desenzano)
-assert.match(pageJs, /data-follow/);
-assert.match(pageJs, /goToDay\(addDays\(nowInfo\(\)\.today, 1\)\)/); // l'arrivo porta il pontile alla partenza successiva della stessa nave
+// pontili, ormeggi, R e B ora in Scali (orario-page.js, sezione «Allo scalo»)
+const pageJs = fs.readFileSync('assets/js/orario-page.js', 'utf8');
+assert.match(pageJs, /select data-pontile/);
 assert.match(pageJs, /savePontileCorsa\('DESENZANO'/);
+assert.ok(!fs.existsSync('assets/js/servizi-terra-page.js'), 'vecchio modulo di Servizi a terra eliminato');
 const firebaseJs = fs.readFileSync('assets/js/admin-firebase-rest.js', 'utf8');
 assert.match(firebaseJs, /private\/adminUpdates\/pontiliCorse\//);
 // Impostazioni: Scali (ex Servizi a terra) selezionabile come prima pagina, Quiz no.
@@ -99,7 +93,7 @@ assert.match(settings, /data-start-page="orario\.html"/);
 assert.doesNotMatch(settings, /data-start-page="servizi-terra\.html"/);
 assert.doesNotMatch(settings, /data-start-page="quiz\.html"/);
 assert.doesNotMatch(fs.readFileSync('assets/js/portal.js', 'utf8'), /allowedStartPages=new Set\(\[[^\]]*quiz/);
-assert.match(pageJs, /addDays\(now\.today, -1\)/); // ormeggio del mattino dalla sera prima
+assert.match(pageJs, /ieri: T\.turniDelGiorno\(turniNavi, addDays\(day, -1\)\)/); // ormeggio del mattino dalla sera prima
 // Dati condivisi tra pagina web e foglio A4.
 assert.deepStrictEqual([...T.DATA.SERVIZI.MADERNO.map(s => s[0])], ['AgM', 'AgT']);
 assert.strictEqual(T.DATA.NAVI.DESENZANO.length, 22);
@@ -111,12 +105,10 @@ assert.ok(maderno2.some(row => row.join('|') === '9.25|P|T1|203|per Torri|9.15')
 assert.ok(maderno2.some(row => row.join('|') === '14.20|P|T1|209|per Torri|13.20'));
 assert.ok(maderno2.some(row => row.join('|') === '18.30|A|T1|214|da Torri|'));
 assert.ok(maderno2.every((row, i) => i === 0 || T.minutes(maderno2[i - 1][0]) <= T.minutes(row[0])));
-assert.doesNotMatch(fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8'), /traghettoCard/);
 assert.strictEqual(T.DATA.BOLGETTE.MADERNO[8], 'BOLGETTA · RIENTRA');
 const week = T.ormeggiSettimana(rows, '2026-10-05');
 assert.deepStrictEqual([...week.groups], ['D1']);
 assert.strictEqual(week.days.length, 7);
-execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-page.js'], { stdio: 'pipe' });
 const menu = fs.readFileSync('assets/js/shared-menu.js', 'utf8');
 assert.match(menu, /\['orario\.html','⚓','Scali'\]/); // Servizi a terra e' nella pagina Scali
 assert.match(menu, /servizi-terra-page'\)\?'terra'/);

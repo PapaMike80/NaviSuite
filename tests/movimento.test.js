@@ -50,7 +50,7 @@ const css = fs.readFileSync('assets/css/movimento.css', 'utf8');
 assert.strictEqual((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
 
 // Le altre pagine: ormeggio del mattino del Movimento e corse sospese
-assert.match(fs.readFileSync('assets/js/servizi-terra-page.js', 'utf8'), /turni\[code\]\?\.ormeggioMattino \|\| ieri\[code\]\?\.ormeggio/);
+assert.match(fs.readFileSync('assets/js/orario-page.js', 'utf8'), /nave\.ormeggioMattino \|\| g\.ieri\[code\]\?\.ormeggio/);
 assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /oggi\.ormeggioMattino \|\| ieri\.ormeggio/);
 assert.match(fs.readFileSync('assets/js/orario-page.js', 'utf8'), /filter\(v => !navi\[v\.turno\]\?\.sospesa\)/);
 // BIS: incarichi del giorno (al posto della nave di un turno, o in aiuto con corse aggiuntive)
