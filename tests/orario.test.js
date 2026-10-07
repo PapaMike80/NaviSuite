@@ -87,7 +87,7 @@ assert.match(js, /function posizioneGps\(\)/);
 assert.match(js, /if \(!state\.scaloScelto\) \{ state\.scalo = vicino\.nome/);
 assert.match(js, /function alloScalo\(g, t, aperte = \[\], navi = \[\]\)/);
 assert.match(js, /function naviAlloScalo\(g, t\)/);
-assert.match(js, /data-tutti/);
+assert.match(js, /data-giornata=/); // tutta la giornata della nave nella scheda
 assert.ok(!js.includes('data-goto'), 'niente Tabellone completo');
 assert.match(js, /Navi in linea oggi/);
 assert.match(js, /const port = event\.target\.closest\('\[data-port\]'\)/);
