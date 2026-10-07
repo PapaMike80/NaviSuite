@@ -356,8 +356,9 @@
     const html = righe.map((r, i) => {
       if (r.t < t && i !== lastPast && !state.showPastLago) return '';
       const code = r.v.turno;
-      const mattino = !r.propria && r.kind === 'P' && !r.arr && primo[code]?.scalo === state.scalo && primo[code]?.t === r.t;
-      const sera = !r.propria && r.kind === 'A' && ultimo[code]?.scalo === state.scalo && ultimo[code]?.t === r.t;
+      // BIS a disposizione: esce la mattina (8.30) e rientra la sera (18.40) da Desenzano
+      const mattino = r.propria ? r.kind === 'P' : r.kind === 'P' && !r.arr && primo[code]?.scalo === state.scalo && primo[code]?.t === r.t;
+      const sera = r.propria ? r.kind === 'A' : r.kind === 'A' && ultimo[code]?.scalo === state.scalo && ultimo[code]?.t === r.t;
       const nave = g.navi[code] || {};
       const badges = [];
       if (mattino && nave.rif) badges.push('<b class="rifornimento" title="Rifornimento prima della corsa" aria-label="Rifornimento">R</b>');
@@ -367,7 +368,7 @@
         badges.push(`<b class="bolgetta" title="${esc(label)}" aria-label="${esc(label)}">B</b>`);
       }
       const odsMooring = mattino ? (nave.ormeggioMattino || g.ieri[code]?.ormeggio) : sera ? nave.ormeggio : '';
-      if (desenzano && !r.propria) {
+      if (desenzano) {
         // pontile di ogni corsa, come in Servizi a terra (l'arrivo vale anche per la ripartenza)
         const key = (ev, ultimo) => T.courseKey(orarioProgrammato(g, code, ev.corsa, state.scalo, ultimo) || ev.ora, code, ev.corsa);
         const keys = r.arr ? [key(r.arr, true), key(r, false)] : [key(r, r.kind === 'A')];
