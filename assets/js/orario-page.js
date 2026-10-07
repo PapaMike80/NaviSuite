@@ -161,22 +161,31 @@
     const turni = [...new Set(g.viaggi.map(v => v.turno))];
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
-    // Navi vicine (stesso scalo o quasi): affiancate in acqua, prima verso il largo.
+    // Le navi in navigazione restano sempre sulla loro rotta (spostarle per non sovrapporle le faceva
+    // saltellare fuori rotta scorrendo il tempo). Si affiancano in acqua solo le navi ferme negli
+    // scali, prima verso il largo, in ordine di arrivo: chi arriva dopo si mette accanto senza spostare
+    // chi c'e' gia'. Le navi in navigazione sono disegnate sopra.
+    // da quando la nave e' nello scalo (prima partenza: da sempre); in navigazione: dopo tutte
+    const arrivo = ({ pos, punti }) => pos.stato === 'prima' ? -1 : pos.stato === 'fermo' ? punti[pos.i].t : pos.stato === 'fine' ? pos.ultimo.t : Infinity;
+    const ordinate = [...navi].sort((a, b) => arrivo(a) - arrivo(b) || a.code.localeCompare(b.code));
     const posti = [];
-    const marker = navi.map(item => {
+    const marker = ordinate.map(item => {
       const [x0, y0] = item.pos.xy;
-      const scalo = MAPPA.scali[item.pos.scalo || ''];
-      const largo = scalo ? Math.atan2(scalo.boa[1] - scalo.porto[1], scalo.boa[0] - scalo.porto[0]) : 0;
-      const libero = ([x, y]) => !posti.some(([ox, oy]) => Math.hypot(ox - x, oy - y) < 5.6);
-      const candidati = [[x0, y0]];
-      [5.8, 11.6, 17.4].forEach(r => {
-        for (let k = 0; k < 12; k += 1) {
-          const ang = largo + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6;
-          candidati.push([x0 + Math.cos(ang) * r, y0 + Math.sin(ang) * r]);
-        }
-      });
-      const [x, y] = candidati.find(c => libero(c) && inAcqua(c)) || candidati.find(libero) || [x0, y0];
-      posti.push([x, y]);
+      let [x, y] = [x0, y0];
+      if (item.pos.stato !== 'naviga') {
+        const scalo = MAPPA.scali[item.pos.scalo || ''];
+        const largo = scalo ? Math.atan2(scalo.boa[1] - scalo.porto[1], scalo.boa[0] - scalo.porto[0]) : 0;
+        const libero = ([cx, cy]) => !posti.some(([ox, oy]) => Math.hypot(ox - cx, oy - cy) < 5.6);
+        const candidati = [[x0, y0]];
+        [5.8, 11.6, 17.4].forEach(r => {
+          for (let k = 0; k < 12; k += 1) {
+            const ang = largo + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 6;
+            candidati.push([x0 + Math.cos(ang) * r, y0 + Math.sin(ang) * r]);
+          }
+        });
+        [x, y] = candidati.find(c => libero(c) && inAcqua(c)) || candidati.find(libero) || [x0, y0];
+        posti.push([x, y]);
+      }
       const ferma = item.pos.stato === 'prima' || item.pos.stato === 'fine';
       const sel = aperte.includes(item.code);
       return `<g class="or-ship${ferma ? ' moored' : ''}${sel ? ' selected' : ''}${mia && !sel ? ' dim' : ''}" data-ship="${item.code}" transform="translate(${x.toFixed(2)} ${y.toFixed(2)})" tabindex="0" role="button" aria-label="${esc(item.code)}: ${esc(statoTesto(item.pos))}">` +
