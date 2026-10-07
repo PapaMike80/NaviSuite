@@ -98,17 +98,23 @@
       : `<p class="legend">${state.schedule ? 'Equipaggio non disponibile.' : 'Caricamento equipaggio…'}</p>`;
 
     // Corse e scali come l'orario di Servizi a terra: una riga per scalo. Il cambio di corsa nello
-    // stesso scalo e alla stessa ora e' una riga sola (corsa 30 › 31).
+    // stesso scalo e alla stessa ora e' una riga sola (corsa 30 › 31). Fra una corsa e l'altra una
+    // linea con il numero della nuova corsa: prima della sua partenza o, se il cambio e' in una riga
+    // sola, dopo quella riga.
     const rows = [];
+    let sepNext = '';
     corse.forEach((corsa, ci) => corsa.scali.forEach(([nome, orario], j) => {
       const prev = rows[rows.length - 1];
       const bolgetta = (BOLGETTE[corsa.numero] || {})[nome];
       if (j === 0 && prev && prev.nome === nome && prev.orario === orario) {
         prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta; prev.rit = prev.rit || corsa.ritardo;
+        sepNext = corsa.numero;
         return;
       }
       const last = j === corsa.scali.length - 1;
-      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', split: j === 0 && ci > 0, rit: j === 0 ? corsa.ritardo : null,
+      const sep = j === 0 && ci > 0 ? corsa.numero : sepNext;
+      sepNext = '';
+      rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', sep, rit: j === 0 ? corsa.ritardo : null,
         per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
     if (rows.length) rows[rows.length - 1].kind = 'A';
@@ -138,8 +144,9 @@
         if (row.per) badges.push(`<b class="bis" title="${row.aiuto ? 'In aiuto' : 'Al posto della nave'} del ${esc(row.per)}">${row.aiuto ? 'aiuto' : 'al posto'} ${esc(row.per)}</b>`);
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
-        const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.split ? ' split' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
-        return `<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
+        const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
+        const sep = row.sep ? `<div class="mt-sep" role="separator" aria-label="Corsa ${esc(row.sep)}"><span>${esc(row.sep)}</span></div>` : '';
+        return `${sep}<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
