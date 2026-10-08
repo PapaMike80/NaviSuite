@@ -465,7 +465,7 @@
     const next = righe[prossima] || righe[righe.length - 1];
     const lato = chiuso ? '' : (righe.length ? `${righe.length} passaggi` : '');
     // chiuso: turno, nave, ora e destinazione, corsa della prossima nave (es. T2 San Vigilio 15.05 per Torri · c. 12)
-    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} <b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
+    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} ${next.arr ? `<span title="Arrivo">arr. ${esc(next.arr.ora)}</span> › ` : ''}<b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
     const scheda = card('Allo scalo', lato, `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
