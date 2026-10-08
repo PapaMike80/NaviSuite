@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false };
+  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '' };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -130,6 +130,7 @@
       .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Aggiungi all'equipaggio">
       <div class="pop-head"><span class="pop-pallino" style="--g:#2dd4bf">+</span><div><b>Aggiungi all'equipaggio</b><small>${esc(code)} · ${crew.length} a bordo</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
+      <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
       <p class="pop-res">Come</p><div class="pop-chips"><button type="button" class="pop-chip${ui.sovr ? '' : ' on'}" data-act="tipo" data-v="eq">Membro dell'equipaggio</button><button type="button" class="pop-chip${ui.sovr ? ' on' : ''}" data-act="tipo" data-v="sovr">Sovrannumero (${esc(code)}*)</button></div>
       ${gruppi || '<p class="pop-vuoto">Nessun agente da aggiungere.</p>'}</div>`;
   }
@@ -157,7 +158,24 @@
     const fuori = x.membro ? `<p class="pop-res">Oppure toglilo senza sostituto</p><div class="pop-chips">${chips('out', '')}</div>` : '';
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
       <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
+      <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
       ${gruppi || (x.extra ? '' : '<p class="pop-vuoto">Nessun agente disponibile per questo grado.</p>')}${sbarco}${fuori}</div>`;
+  }
+  // Filtra l'elenco mentre si scrive: nasconde gli agenti che non corrispondono e le intestazioni rimaste vuote.
+  function filtraPopover() {
+    const pop = $('slot-pop');
+    if (!pop) return;
+    const q = G.norm(ui.q);
+    const figli = [...pop.children];
+    figli.forEach(el => { if (el.classList.contains('pop-agente')) el.hidden = !!q && !G.norm(el.textContent).includes(q); });
+    const vuota = (da, ferma) => { const righe = []; for (let el = figli[da + 1]; el && !ferma(el); el = el.nextElementSibling) if (el.classList.contains('pop-agente')) righe.push(el); return righe.length > 0 && righe.every(r => r.hidden); };
+    figli.forEach((el, i) => {
+      if (el.classList.contains('pop-tier')) el.hidden = vuota(i, e => e.classList.contains('pop-tier') || e.classList.contains('pop-chips'));
+      else if (el.classList.contains('pop-res')) el.hidden = vuota(i, e => e.classList.contains('pop-tier') || e.classList.contains('pop-res') || e.classList.contains('pop-chips'));
+    });
+    const nessuno = q && !figli.some(el => el.classList.contains('pop-agente') && !el.hidden);
+    pop.querySelector('.pop-nessuno')?.remove();
+    if (nessuno && figli.some(el => el.classList.contains('pop-agente'))) pop.querySelector('.pop-q').insertAdjacentHTML('afterend', '<p class="pop-vuoto pop-nessuno">Nessun collega con questo nome.</p>');
   }
   function posizionaPopover() {
     const pop = $('slot-pop'), lista = $('mov-list');
@@ -222,8 +240,8 @@
     if (ui.menu) {
       const c = ui.menu.code, crew = crews[c] || [];
       const x = codes.includes(c) ? posti(oggi[c]?.nave, day, crew)[ui.menu.i] : null;
-      if (ui.menu.i === -1 && codes.includes(c)) { $('mov-list').insertAdjacentHTML('beforeend', popoverAggiunta(c, crew, tutti)); posizionaPopover(); }
-      else if (x) { $('mov-list').insertAdjacentHTML('beforeend', popoverPosto(c, crew, tutti, x)); posizionaPopover(); } else ui.menu = null;
+      if (ui.menu.i === -1 && codes.includes(c)) { $('mov-list').insertAdjacentHTML('beforeend', popoverAggiunta(c, crew, tutti)); filtraPopover(); posizionaPopover(); $('pop-q')?.focus(); }
+      else if (x) { $('mov-list').insertAdjacentHTML('beforeend', popoverPosto(c, crew, tutti, x)); filtraPopover(); posizionaPopover(); $('pop-q')?.focus(); } else ui.menu = null;
     }
   }
 
@@ -432,7 +450,9 @@
       variazione(el.value, code, `${nome} aggiunto a ${code}.`);
     }
   });
+  list.addEventListener('input', event => { if (event.target.id === 'pop-q') { ui.q = event.target.value; filtraPopover(); posizionaPopover(); } });
   list.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && event.target.id === 'pop-q') { const visibili = [...document.querySelectorAll('#slot-pop .pop-agente')].filter(el => !el.hidden); if (visibili.length === 1) visibili[0].click(); return; }
     if ((event.key === 'Enter' || event.key === ' ') && event.target.classList?.contains('mov-head')) { event.preventDefault(); event.target.click(); return; }
     if (event.key === 'Enter' && event.target.matches('input[data-f]')) event.target.blur();
     if (event.key === 'Enter' && event.target.id === 'mov-motivo') list.querySelector('[data-act="confirm-suspend"]')?.click();
@@ -445,8 +465,8 @@
     const code = button.dataset.code;
     const act = button.dataset.act;
     if (act === 'open') { ui.open = ui.open === code ? '' : code; ui.menu = null; render(); }
-    else if (act === 'slot') { const i = Number(button.dataset.i); ui.menu = ui.menu?.code === code && ui.menu.i === i ? null : { code, i }; render(); }
-    else if (act === 'menu-close') { ui.menu = null; render(); }
+    else if (act === 'slot') { const i = Number(button.dataset.i); ui.q = ''; ui.menu = ui.menu?.code === code && ui.menu.i === i ? null : { code, i }; render(); }
+    else if (act === 'menu-close') { ui.menu = null; ui.q = ''; render(); }
     else if (act === 'pick') cambiaPosto(code, button.dataset.id, 'pick');
     else if (act === 'tipo') { ui.sovr = button.dataset.v === 'sovr'; render(); }
     else if (act === 'aggiungi') {

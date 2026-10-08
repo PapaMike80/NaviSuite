@@ -283,3 +283,7 @@ html.navisuite-light .pop-chip{background:#f4fafb!important;color:#17596a!import
 .slot.piu:hover .slot-pallino{background:rgba(45,212,191,.2)}
 .slot.sovr .slot-pallino{border-style:dashed;opacity:1;background:transparent}
 .slot.sovr .slot-nome::after{content:'*';margin-left:1px}
+.pop-q{width:100%;margin:8px 0 2px;padding:9px 11px;border:1px solid #315b66;border-radius:10px;background:#0b2731;color:#fff;font:700 13px inherit}
+.pop-q:focus{outline:2px solid var(--accent);outline-offset:0}
+.pop-agente[hidden],.pop-tier[hidden],.pop-res[hidden]{display:none}
+html.navisuite-light .pop-q{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
