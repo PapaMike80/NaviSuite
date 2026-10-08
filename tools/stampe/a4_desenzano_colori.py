@@ -92,41 +92,75 @@ def nome_nave(v):
 
 
 # ------------------------------------------------------------------ agenti di servizio
-SCHEDULE_URL = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/schedule.json"
+FIREBASE_KEY = "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE"   # chiave pubblica dell'app (come assets/js/admin-firebase-rest.js)
+FIREBASE_DB = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app"
 SIGLE_TERRA = {"AGB": "AgB", "POND": "PonD"}
 
 
 def sigla_terra(turno):
-    m = re.match(r"^C?(AGB|POND)C?$", re.sub(r"[\s.]", "", str(turno or "")).upper())
+    m = re.match(r"^C?(AGB|POND)C?$", re.sub(r"[^A-Z]", "", str(turno or "").upper()))
     return SIGLE_TERRA[m.group(1)] if m else ""
 
 
-def agenti_settimana(days, schedule=None):
-    """{giorno ISO: {"AgB": [nomi], "PonD": [nomi]}} dai turni di Desenzano pubblicati in NaviSuite,
-    con le variazioni dell'O.d.S.; vuoto se i turni non coprono la settimana (o senza rete)."""
-    if schedule is None:
+def turni_firebase():
+    """Turni come li vede l'app: orario pubblicato, turni importati da Aggiornamenti e variazioni
+    (O.d.S. e manuali). Accesso anonimo come l'app."""
+    import urllib.request
+
+    def get(url, data=None):
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    tok = get(f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_KEY}", b'{"returnSecureToken":true}')["idToken"]
+    lista = lambda v: [x for x in (v if isinstance(v, list) else list((v or {}).values())) if x]
+    priv = lambda k: lista(get(f"{FIREBASE_DB}/private/adminUpdates/{k}.json?auth={tok}"))
+    return {"schedule": get(f"{FIREBASE_DB}/public/schedule.json"), "imports": priv("scheduleImports"),
+            "variazioni": priv("odsVariations") + priv("manualVariations")}
+
+
+def agenti_settimana(days, dati=None):
+    """{giorno ISO: {"AgB": [nomi], "PonD": [nomi]}} per Desenzano; vuoto senza rete o senza turni."""
+    if dati is None:
         try:
-            import urllib.request
-            with urllib.request.urlopen(SCHEDULE_URL, timeout=20) as r:
-                schedule = json.load(r)
+            dati = turni_firebase()
         except Exception as e:  # senza rete: righe da compilare a mano
             print("Agenti di servizio non disponibili:", e)
             return {}
-    agenti = (schedule or {}).get("residenze", {}).get("DESENZANO", []) or []
-    variaz = [v for v in (schedule or {}).get("variazioni_ods", []) or [] if v.get("attiva", True) is not False]
-    out = {}
-    for d in days:
-        day = d.isoformat()
-        out[day] = {"AgB": [], "PonD": []}
-        for a in agenti:
-            turno = (a.get("turni") or {}).get(day, "")
-            for v in variaz:
-                if v.get("data") == day and ((v.get("id_agente") and str(v["id_agente"]) == str(a.get("id"))) or
-                                             (not v.get("id_agente") and v.get("agente") and str(a.get("agente", "")).upper().startswith(v["agente"].upper()))):
-                    turno = v.get("turno_nuovo") or turno
-            sigla = sigla_terra(turno)
-            if sigla:
-                out[day][sigla].append(re.sub(r"\s+", " ", str(a.get("agente", ""))).strip())
+    giorni = {d.isoformat() for d in days}
+    turno = {}   # (giorno, chiave agente) -> turno ; nomi[chiave] = (nome, residenza)
+    nomi = {}
+    # chiave: il cognome e l'iniziale senza punti/spazi (gli id cambiano fra orario, import e variazioni)
+    norm = lambda n: re.sub(r"[^A-Z]", "", str(n or "").upper())
+
+    def chiave(n):
+        k = norm(n)
+        return next((x for x in nomi if x.startswith(k)), k) if k and k not in nomi else k
+    for res, agenti in ((dati.get("schedule") or {}).get("residenze") or {}).items():
+        for a in agenti or []:
+            k = norm(a.get("agente"))
+            nomi[k] = (a.get("agente", ""), res.upper())
+            for g, t in (a.get("turni") or {}).items():
+                if g in giorni:
+                    turno[(g, k)] = t
+    for imp in sorted((i for i in dati.get("imports") or [] if i.get("attiva") is not False), key=lambda i: str(i.get("importedAt", ""))):
+        date = imp.get("dates") or []
+        for r in imp.get("rows") or []:
+            k = norm(r.get("agente"))
+            nomi[k] = (r.get("agente") or nomi.get(k, ("", ""))[0], str(r.get("residenza") or nomi.get(k, ("", ""))[1]).upper())
+            for g, t in zip(date, r.get("turni") or []):
+                if g in giorni:
+                    turno[(g, k)] = t
+    for v in sorted((v for v in dati.get("variazioni") or [] if v.get("attiva", True) is not False), key=lambda v: str(v.get("inserita_il", ""))):
+        if v.get("data") in giorni and v.get("turno_nuovo"):
+            k = chiave(v.get("agente"))
+            nomi.setdefault(k, (v.get("agente", ""), ""))
+            turno[(v["data"], k)] = v["turno_nuovo"]
+    out = {g: {"AgB": [], "PonD": []} for g in giorni}
+    for (g, k), t in sorted(turno.items()):
+        sigla = sigla_terra(t)
+        nome, res = nomi.get(k, ("", ""))
+        if sigla and nome:  # AgB e PonD sono servizi di Desenzano (la residenza negli import non sempre e' aggiornata)
+            out[g][sigla].append(re.sub(r"\s+", " ", nome).strip() + ("*" if "*" in str(t) else ""))
     return out
 
 
@@ -415,8 +449,9 @@ def retro(c, x, y, ormeggi, days, agenti=None):
             c.setFont("DVB", 11.5)
             nw = pdfmetrics.stringWidth(num, "DVB", 11.5)
             if v["rif"]:
+                # il numero resta in colonna (centrato), la R accanto
                 rw = 3.6 * mm
-                x0 = cx - (nw + rw + 0.8 * mm) / 2
+                x0 = cx - nw / 2
                 c.drawString(x0, yy - 0.8 * mm, num)
                 c.setFillColor(GIALLO); c.roundRect(x0 + nw + 0.8 * mm, yy - 1.2 * mm, rw, 3.8 * mm, 1 * mm, stroke=0, fill=1)
                 c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(x0 + nw + 0.8 * mm + rw / 2, yy - 0.3 * mm, "R")
