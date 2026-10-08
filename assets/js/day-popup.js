@@ -30,27 +30,9 @@
   // Trasferta (o servizio in un'altra residenza): 2 ore di cambio assegnate
   // da sole, finche' l'agente non le cambia a mano (changeDecision).
   const applyAutoChange=e=>{if(!working(e)||e.changeDecision)return false;const minutes=suggestedChange(e);if(minutes<=0)return false;overtime.setChanges(e,minutes,service(e));e.changeDecision='auto';return true};
-  // Rifornimenti dell'O.d.S. (8815/2°, dal 5/10/2026 al 25/3/2027): nel giorno del rifornimento il
-  // motorista (per la M1 tutto l'equipaggio; per la D1 con l'Agone anche l'aiuto motorista) prende
-  // servizio prima: la giornata lo propone da sola in banca ore, finche' l'agente non lo cambia.
-  // giorni: 0 = domenica ... 6 = sabato
-  const RIFORNIMENTI={D1:{giorni:[2,5],motorista:30},D2:{giorni:[1,4],motorista:30},T1:{giorni:[3],motorista:60},T2:{giorni:[4],motorista:60},
-    M1:{giorni:[4],tutti:30},R1:{giorni:[2,5],motorista:30},R2:{giorni:[2,5],motorista:60},R3:{giorni:[2,5],motorista:30},
-    BIS:{giorni:[0,1,2,3,4,5,6],motorista:0},SR2:{giorni:[0,1,2,3,4,5,6],motorista:0}};  // BIS e SR2: ogni giorno, senza anticipo
+  // Rifornimenti dell'O.d.S.: regole in overtime-components.js (anche per le giornate importate)
   const sessionQualifica=()=>{for(const key of ['navidiaria.activeAgent','naviturni_logged_agent']){try{const q=JSON.parse(localStorage.getItem(key)||'null')?.qualifica;if(q)return String(q).trim().toLowerCase()}catch{}}return''};
-  const suggestedRefuel=e=>{
-    // null = nessun rifornimento per questo agente; 0 = rifornimento senza anticipo
-    if(!e?.date||e.date<'2026-10-05'||e.date>'2027-03-25')return null;
-    const code=String(e.shift||'').trim().toUpperCase().replace(/^C(?=[A-Z]+\d)/,'').replace(/C$/,''),regola=RIFORNIMENTI[code];
-    if(!regola)return null;
-    const giorno=new Date(`${e.date}T12:00:00`).getDay(),nave=String(opts?.shipForService?.(e.date,e.shift)||'').toUpperCase(),agone=code==='D1'&&nave.includes('AGONE');
-    if(!regola.giorni.includes(giorno)&&!(agone&&giorno===0))return null;
-    if(regola.tutti)return regola.tutti;
-    const q=String(e.qualifica||opts?.qualifica||sessionQualifica()).replace(/\s+/g,' ');
-    if(q==='motorista')return regola.motorista;
-    if(agone&&/^aiuto ?motorista$/.test(q))return 30;
-    return null};
-  const applyAutoRefuel=e=>{if(!working(e)||e.refuelDecision||refuelDone(e))return false;const minutes=suggestedRefuel(e);if(minutes==null)return false;overtime.setRefuel(e,minutes,service(e),0,true);e.refuelDecision='auto';return true};
+  const applyAutoRefuel=e=>working(e)&&overtime.autoRefuel(e,service(e),{qualifica:e.qualifica||opts?.qualifica||sessionQualifica(),ship:opts?.shipForService?.(e.date,e.shift)||''});
   const suggestedChange=e=>{if(change(e)>0)return 0;const supplied=Math.max(0,Math.round(Number(opts.changeSuggestionMinutes?.(e))||0));if(supplied)return supplied;const home=String(e?.agentResidence||opts?.agentResidence||sessionResidence()).trim().toUpperCase(),service=String(serviceResidences[String(e?.shift||'').trim().toUpperCase()]||e?.serviceResidence||'').trim().toUpperCase();return e?.travel===true||home&&service&&home!==service?120:0};
   const holiday=e=>e.holidayWorked===undefined?(day.getDay()===0||holidays.has(`${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`)):!!e.holidayWorked;
   const ticket=e=>e.ticketPresence===undefined?!!e.mealUsed:!!e.ticketPresence;
