@@ -230,6 +230,9 @@
       sospesa:values.sospesa === true,
       sospesa_motivo:values.sospesa ? String(values.sospesa_motivo || "").trim() : "",
       sospesa_il:values.sospesa ? String(values.sospesa_il || new Date().toISOString()) : "",
+      // corse sospese una per una (numeri di corsa), senza sospendere tutto il turno
+      corse_sospese:(Array.isArray(values.corse_sospese) ? values.corse_sospese : []).map(x => (x && typeof x === "object"
+        ? { corsa:String(x.corsa || ""), da:String(x.da || ""), scalo:String(x.scalo || "") } : { corsa:String(x), da:"", scalo:"" })).filter(x => x.corsa),
       // ritardi per corsa (a scatti di 5 minuti fino a 2 ore, oppure oltre 2 ore)
       ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => ({
         corsa:String(r.corsa), minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true
@@ -244,6 +247,21 @@
     };
     return writeTurniNavi([...rows, row]);
   }
+  // Turno fermato o ripreso fuori dal calendario dell'O.d.S. (pagina Movimento): una riga per turno con il campo "stagione"
+  // ("ferma" | "attiva"), valida dal giorno `dal` al giorno `al` (vuoto = fino a nuovo ordine).
+  async function saveStagioneTurno(code, stato, dal, al = "", updatedBy = "") {
+    const turno = String(code || "").toUpperCase();
+    const rows = (await getTurniNavi()).filter(row => !(row?.stagione && corsaDi(row) === turno));
+    rows.push({
+      data:String(dal), corsa:turno, nave:"", stagione:stato === "attiva" ? "attiva" : "ferma", stagione_al:String(al || ""),
+      ods:"MOVIMENTO", fonte:"movimento", attiva:true, inserita_il:new Date().toISOString(), modificata_da:String(updatedBy || "")
+    });
+    return writeTurniNavi(rows);
+  }
+  async function togliStagioneTurno(code) {
+    const turno = String(code || "").toUpperCase();
+    return writeTurniNavi((await getTurniNavi()).filter(row => !(row?.stagione && corsaDi(row) === turno)));
+  }
   async function ripristinaTurnoNave(day, corsa) {
     const code = String(corsa || "").toUpperCase();
     const rows = (await getTurniNavi())
@@ -255,9 +273,22 @@
       });
     return writeTurniNavi(rows);
   }
+  // Approvazione dei cambi turno fatti dagli agenti dalla propria Distinta (pagina Movimento): una voce per agente e giorno
+  // {turno, approvata_da, approvata_il}; il cambio resta "in attesa" finche' non c'e' una voce con lo stesso turno.
+  const chiaveApprovazione = (agentId, day) => `${String(agentId).replace(/[.#$\[\]/]/g, "-")}_${day}`;
+  async function getApprovazioniTurni() {
+    const result = await databaseRequest("private/adminUpdates/approvazioniTurni");
+    return result.data && typeof result.data === "object" ? result.data : {};
+  }
+  async function saveApprovazioneTurno(agentId, day, turno, approvataDa = "", stato = "approvata") {
+    // turno = quello chiesto dall'agente; stato = approvata | rifiutata | modificata (la richiesta e' chiusa in ogni caso)
+    const item = { agentId:String(agentId), data:day, turno:String(turno || "").toUpperCase(), stato, approvata_da:String(approvataDa), approvata_il:new Date().toISOString() };
+    await databaseRequest(`private/adminUpdates/approvazioniTurni/${chiaveApprovazione(agentId, day)}`, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
   // Equipaggio: le modifiche del Movimento sono variazioni manuali dei turni (ods "MOVIMENTO"), una
   // per agente e giorno; turnoNuovo vuoto annulla la variazione.
-  async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "") {
+  async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "", extra = {}) {
     const result = await databaseRequest("private/adminUpdates/manualVariations");
     const id = String(agent.id || "");
     const rows = (Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {}))
@@ -265,7 +296,11 @@
     if (turnoNuovo) rows.push({
       attiva:true, data:day, id_agente:id, agente:String(agent.agente || agent.name || ""),
       turno_originale:String(turnoOriginale || "").toUpperCase(), turno_nuovo:String(turnoNuovo).toUpperCase(),
-      ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString()
+      ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString(),
+      // membro aggiunto dal "+" della corsa: in piu' del minimo, eventualmente sovrannumero
+      ...(extra.aggiunto ? { aggiunto:true } : {}), ...(extra.sovrannumero ? { sovrannumero:true } : {}),
+      // cambio dell'agente (dalla Distinta) che questa decisione del Movimento sovrascrive (vuoto = nessuno)
+      ...(extra.sovrascrive !== undefined ? { sovrascrive:String(extra.sovrascrive || "") } : {})
     });
     await databaseRequest("private/adminUpdates/manualVariations", { method:"PUT", body:JSON.stringify(rows) });
     await databaseRequest("private/adminUpdates/updatedAt", { method:"PUT", body:JSON.stringify(new Date().toISOString()) });
@@ -924,6 +959,10 @@
     saveTurnoNaveMovimento,
     ripristinaTurnoNave,
     saveVariazioneMovimento,
+    getApprovazioniTurni,
+    saveApprovazioneTurno,
+    saveStagioneTurno,
+    togliStagioneTurno,
     getPontiliCorse,
     savePontileCorsa,
     getAdminDocumentFile,

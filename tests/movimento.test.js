@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 
-['assets/js/movimento-corse.js', 'assets/js/admin-firebase-rest.js']
+['assets/js/movimento-corse.js', 'assets/js/movimento-core.js', 'assets/js/movimento.js', 'assets/js/movimento-agenti.js', 'assets/js/admin-firebase-rest.js']
   .forEach(file => execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }));
 
 globalThis.window = globalThis;
@@ -37,13 +37,14 @@ assert.match(rest, /ods:"MOVIMENTO", tipo:"MANUALE"/);
 
 // Pagina Movimento: solo admin, corse del giorno sopra l'anagrafica navi, script e stili
 const html = fs.readFileSync('movimento.html', 'utf8');
-assert.ok(html.indexOf('id="mov-corse"') < html.indexOf('id="fleet-table"'));
-['shared-data.js', 'turni-giorno.js', 'servizi-terra-a4.js', 'orario-giorno.js', 'course-info.js', 'movimento.js', 'movimento-corse.js']
+['corse', 'navi', 'agenti'].forEach(tab => assert.ok(html.includes(`data-tab="${tab}"`) && html.includes(`data-panel="${tab}"`), tab));
+assert.ok(html.indexOf('id="mov-day-input"') < html.indexOf('data-panel="corse"'), 'selettore giornata sopra i tab');
+['shared-data.js', 'turni-giorno.js', 'servizi-terra-a4.js', 'orario-giorno.js', 'course-info.js', 'movimento-core.js', 'movimento.js', 'movimento-corse.js', 'movimento-agenti.js']
   .forEach(script => assert.ok(html.includes(script), script));
 assert.ok(html.indexOf('movimento-corse.js') > html.indexOf('orario-giorno.js'));
 const page = fs.readFileSync('assets/js/movimento-corse.js', 'utf8');
-assert.match(page, /isAdminAgent\(profile\)/);
-['data-act="suspend"', 'data-act="confirm-suspend"', 'data-act="resume"', 'data-act="restore"', 'data-act="open"', 'data-act="add"', 'data-act="remove"', 'data-act="undo"']
+assert.match(fs.readFileSync('assets/js/movimento-core.js', 'utf8'), /isAdminAgent\(profile\)/);
+['data-act="suspend"', 'data-act="confirm-suspend"', 'data-act="resume"', 'data-act="restore"', 'data-act="open"', 'data-act="crew-reset"', 'data-act="slot"']
   .forEach(act => assert.ok(page.includes(act), act));
 assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /page==='movimento'\)&&!isAdminAgent\(sessionAgent\)/);
 const css = fs.readFileSync('assets/css/movimento.css', 'utf8');
@@ -76,7 +77,7 @@ assert.strictEqual(lista.find(n => n.run === '15').title, 'D1 S. MARCO arriva al
 assert.ok(lista.some(n => n.code === 'BIS' && n.run === '33' && /in aiuto alla P2/.test(n.body)));
 assert.ok(lista.some(n => n.code === 'P2' && n.run === '33'));
 assert.match(rest, /incarichi:\(Array\.isArray\(values\.incarichi\)/);
-['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"', 'data-act="bis-form"'].forEach(act => assert.ok(page.includes(act), act));
+['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"'].forEach(act => assert.ok(page.includes(act), act));
 // Ritardi per corsa: orari spostati; il ritardo passa alle corse dopo quanto la nave arriva tardi
 const conRit = rit => O.corseDelTurno('D1', day, rit).map(c => `${c.numero} ${c.scali[0][1]} ${O.testoRitardo(c.ritardo)}${c.ritardo?.propagato ? '*' : ''}`.trim());
 assert.deepStrictEqual(conRit({ 14: { minuti: 25 } }), ["14 9.40 +25'", "15 10.00 +25'*", "16 10.20 +15'*", '17 14.00', '18 17.05', '19 18.35']);
@@ -93,4 +94,19 @@ assert.strictEqual(n15.quando, '10.05');
 assert.match(n15.tag, /-15-r20$/);
 assert.match(rest, /ritardi:\(Array\.isArray\(values\.ritardi\)/);
 assert.ok(page.includes('data-act="ritardo"'));
+// Corse sospese una per una: dal Movimento, senza sospendere tutto il turno
+const rigaSosp = { data: day, corsa: 'D1', nave: 'S. MARCO', fonte: 'movimento', attiva: true, corse_sospese: ['16', '17'] };
+assert.deepStrictEqual(T.turniDelGiorno([rigaSosp], day).D1.corseSospese, ['16', '17']);
+assert.ok(!T.turniDelGiorno([rigaSosp], day).D1.sospesa);
+assert.match(rest, /corse_sospese:\(Array\.isArray\(values\.corse_sospese\)/);
+['data-act="corsa-chiedi"', "act === 'corsa-sospendi'", "act === 'corsa-bis'", 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
+// Turni fermati o ripresi dal Movimento fuori dal calendario dell'O.d.S.
+O.stagioneDaRighe([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', stagione_al: '2027-03-19', attiva: true }, { data: '2026-10-08', corsa: 'D3', stagione: 'attiva', attiva: true }]);
+assert.strictEqual(O.inServizio('SR1', '2026-10-09'), true);
+assert.strictEqual(O.inServizio('SR1', '2026-12-01'), false);
+assert.strictEqual(O.inServizio('D3', '2026-10-20'), true);
+assert.strictEqual(O.inServizio('D3', '2026-09-01'), false);
+assert.deepStrictEqual(T.turniDelGiorno([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', fonte: 'movimento', attiva: true }], '2026-11-11'), {});
+assert.match(rest, /saveStagioneTurno/);
+O.stagioneDaRighe([]);
 console.log('movimento ok');

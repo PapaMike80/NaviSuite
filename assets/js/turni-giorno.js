@@ -17,15 +17,15 @@
   // Residenza di un servizio a terra (AgB -> DESENZANO).
   const terraResidenza = code => Object.keys(TERRA_RESIDENZA).find(res => TERRA_RESIDENZA[res].includes(code)) || '';
 
-  // Turno nave di un agente (D1, P2, M1, T1, R1, SR1...): come in Oggi, CxxC (trasferta) vale xx.
+  // Turno nave di un agente (D1, P2, M1, T1, R1, SR1...): come in Oggi, CxxC (trasferta) vale xx, D1* (sovrannumero) vale D1.
   function naveCode(value) {
     const raw = String(value || '').trim().toUpperCase().replace(/[‐‑–—]/g, '-').replace(/\s+/g, '');
-    const code = raw.match(/^C?(D[1-4]|BIS|T[12]|M1|R[1-4]|P[1-3]|SR[12])C?$/)?.[1];
+    const code = raw.match(/^C?(D[1-4]|BIS|T[12]|M1|R[1-4]|P[1-3]|SR[12])C?\*?$/)?.[1];
     return code || '';
   }
   // Grado per ordinare e colorare l'equipaggio, come nel popup di NaviTurni.
   const GRADI = [
-    [/capitano|comandante/i, 'Comandante', '#facc15', 1],
+    [/capitano|comandante/i, 'Capitano', '#facc15', 1],
     [/capo\s*tim|capotim/i, 'Capo timoniere', '#fb923c', 1],
     [/aiuto\s*motorista|aiutomotorista/i, 'Aiuto motorista', '#3b82f6', 4],
     [/motorista/i, 'Motorista', '#a855f7', 2],
@@ -34,15 +34,22 @@
   ];
   const gradoOf = agent => GRADI.find(([pattern]) => pattern.test(String(agent?.qualifica || agent?.grado || '')))?.slice(1) || ['', '#e8f3f6', 9];
   // Comandante della nave: il capitano/comandante o, se manca, il capo timoniere (a bordo fa da capitano).
-  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Comandante')?.name ||
+  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Capitano')?.name ||
     (crew || []).find(member => member.grado[0] === 'Capo timoniere')?.name || '';
 
   function variazioni(data, day) {
     const map = new Map();
+    // decisioni dell'Ufficio Movimento: valgono anche sul cambio che l'agente si e' fatto nella Distinta
+    map.movimento = new Map();
     (data?.variazioni_ods || []).forEach(item => {
       if (String(item?.data || '').slice(0, 10) !== day) return;
       const shift = item?.turno_nuovo ?? item?.turno;
       if (shift === undefined) return;
+      if (item?.ods === 'MOVIMENTO') {
+        const decisione = { shift, sovrascrive: item.sovrascrive };
+        if (item?.id_agente) map.movimento.set(`id:${item.id_agente}`, decisione);
+        if (item?.agente) map.movimento.set(`name:${norm(item.agente)}`, decisione);
+      }
       if (item?.id_agente) map.set(`id:${item.id_agente}`, shift);
       if (item?.agente) map.set(`name:${norm(item.agente)}`, shift);
     });
@@ -74,10 +81,17 @@
     modifiche = map;
     return map;
   }
+  // Turno modificato a mano dall'agente nella propria Distinta (NaviDiaria) in un giorno, se c'e'.
+  const modificaManuale = (agentId, day) => modifiche.get(`${String(agentId)}|${day}`);
+  // Tutti i cambi fatti a mano dagli agenti: [{id, day, turno}]
+  const modificheManuali = () => [...modifiche.entries()].map(([key, turno]) => { const [id, day] = key.split('|'); return { id, day, turno }; });
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
   const turnoDi = (agent, day, map) => {
+    const decisione = map.movimento?.get(`id:${agent?.id}`) ?? map.movimento?.get(`name:${norm(agent?.agente)}`);
     const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
+    // la decisione del Movimento vince sul cambio dell'agente che ha sovrascritto; un cambio diverso, fatto dopo, vale subito
+    if (decisione && (manual === undefined || String(manual).trim().toUpperCase() === String(decisione.sovrascrive ?? '').trim().toUpperCase())) return decisione.shift;
     if (manual) return manual;
     const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
     return variation !== undefined ? variation : agent?.turni?.[day];
@@ -113,5 +127,5 @@
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche };
+  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
 })(typeof window !== 'undefined' ? window : globalThis);

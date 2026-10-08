@@ -75,7 +75,7 @@
       return effettive[turno].find(c => c.numero === String(run))?.ritardo || null;
     };
     // le corse sospese dall'Ufficio Movimento non arrivano
-    return [...arrivi, ...aiuti].filter(arrivo => !navi[arrivo.code]?.sospesa).map(arrivo => {
+    return [...arrivi, ...aiuti].filter(arrivo => !navi[arrivo.code]?.sospesa && !((navi[arrivo.per || arrivo.code]?.corseSospeseRaw || []).some(x => x.corsa === String(arrivo.run) && (!x.da || minutes(arrivo.time) >= minutes(x.da))))).map(arrivo => {
       const ritardo = ritardoCorsa(arrivo.per || arrivo.code, arrivo.run);
       return { ...arrivo, scheduled: arrivo.time, ritardo, time: ritardo ? hhmm(minutes(arrivo.time) + ritardo.minuti) : arrivo.time };
     }).sort((a, b) => minutes(a.time) - minutes(b.time)).map(arrivo => {

@@ -18,7 +18,23 @@
     T1: [['2026-10-05', '2027-03-25']],
     ALTRI: [['2026-10-05', '2026-11-01'], ['2027-03-13', '2027-03-25']]
   };
+  // Turni fermati o ripresi dall'Ufficio Movimento fuori dal calendario dell'O.d.S.: {codice: {stato: 'ferma' | 'attiva', dal, al}}
+  // (al vuoto = fino a nuovo ordine). Letti dalle righe dei turni nave con il campo "stagione" (vedi stagioneDaRighe).
+  function stagioneDaRighe(rows) {
+    const map = {};
+    (Array.isArray(rows) ? rows : []).forEach(row => {
+      if (!row?.stagione || row.attiva === false) return;
+      const code = String(row.corsa || '').toUpperCase().replace(/\s+/g, '');
+      if (!code) return;
+      const dal = String(row.data || '').slice(0, 10);
+      if (!map[code] || String(map[code].dal) <= dal) map[code] = { stato: row.stagione === 'attiva' ? 'attiva' : 'ferma', dal, al: String(row.stagione_al || '').slice(0, 10) };
+    });
+    root.NaviStagione = map;
+    return map;
+  }
   function inServizio(code, day) {
+    const st = root.NaviStagione?.[code];
+    if (st && day >= st.dal && (!st.al || day <= st.al)) return st.stato === 'attiva';
     if (code === 'T1' && day === '2026-12-25') return false;
     const periodi = /^SR/.test(code) ? PERIODI.SR : code === 'T1' ? PERIODI.T1 : PERIODI.ALTRI;
     return periodi.some(([from, to]) => day >= from && day <= to);
@@ -140,6 +156,6 @@
   // Viaggi del BIS in aiuto (corse aggiuntive): le sostituzioni restano nei viaggi del turno.
   const viaggiBis = (incarichi, day, ritardi) => viaggiDaCorse('BIS', corseBis((incarichi || []).filter(inc => inc?.tipo === 'aiuto'), day, ritardi));
 
-  root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
+  root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, stagioneDaRighe, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
     corseIncarico, corseBis, bisPerCorsa, viaggiBis, conRitardi, testoRitardo, ritardiDelGiorno };
 })(typeof window !== 'undefined' ? window : globalThis);

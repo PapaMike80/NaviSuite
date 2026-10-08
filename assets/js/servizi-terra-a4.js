@@ -331,7 +331,7 @@ ${FIT}</body></html>`;
   function turniDelGiorno(rows, day) {
     const out = {};
     [...(rows || [])].sort(newer).forEach(row => {
-      if (!row || row.attiva === false || row.data !== day) return;
+      if (!row || row.attiva === false || row.data !== day || row.stagione) return;
       const nave = String(row.nave || '').replace(/\s*(\([A-Z]\)|©)/g, '').trim();
       const mooring = String(row.ormeggio_serale || '').trim();
       const number = mooring.match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1];
@@ -345,8 +345,12 @@ ${FIT}</body></html>`;
       // ritardi per corsa: [{corsa, minuti, oltre}] -> {corsa: {minuti, oltre}}
       const ritardi = Object.fromEntries((Array.isArray(row.ritardi) ? row.ritardi : Object.values(row.ritardi || {}))
         .filter(r => r?.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => [String(r.corsa), { minuti: r.oltre ? 120 : Number(r.minuti), oltre: r.oltre === true }]));
+      // corse sospese una per una: {corsa, da, scalo}; "da" e' l'ora dello scalo da cui vale la sospensione (vuoto = tutta la corsa)
+      const sospRaw = (Array.isArray(row.corse_sospese) ? row.corse_sospese : Object.values(row.corse_sospese || {}))
+        .map(x => (x && typeof x === 'object' ? { corsa: String(x.corsa || ''), da: String(x.da || ''), scalo: String(x.scalo || '') } : { corsa: String(x), da: '', scalo: '' })).filter(x => x.corsa);
+      const corseSospese = sospRaw.map(x => x.corsa);
       const extra = movimento ? { ormeggioMattino: pontile(row.ormeggio_mattino), sospesa: row.sospesa === true, motivo: String(row.sospesa_motivo || ''), movimento: true,
-        ...(incarichi.length ? { incarichi } : {}), ...(Object.keys(ritardi).length ? { ritardi } : {}) } : {};
+        ...(incarichi.length ? { incarichi } : {}), ...(Object.keys(ritardi).length ? { ritardi } : {}), ...(corseSospese.length ? { corseSospese, corseSospeseRaw: sospRaw } : {}) } : {};
       String(row.corsa || '').toUpperCase().replace(/\s+/g, '').split('/').forEach(code => {
         out[code.replace(/^BIS2$/, 'BIS')] = { nave, ormeggio, rif, ...extra };
       });
