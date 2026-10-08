@@ -417,3 +417,18 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .mov-turno.sotto-minimo{border-color:#b4414f;box-shadow:inset 4px 0 0 #e11d48}
 .mov-sum small.mov-sotto{display:block;margin-top:3px;color:#fb7185;font-size:12px;font-weight:900;letter-spacing:.01em}
 .mov-warn{color:#fb7185!important}
+
+/* Selettore di giornata: la data e' il dato principale della pagina */
+.mov-toolbar{margin:16px 0 12px}
+.mov-day{gap:10px}
+.mov-day .btn{min-width:48px;min-height:48px;font-size:22px;border-radius:12px}
+.mov-day-current{position:relative;overflow:hidden;display:flex;align-items:center;min-height:48px;padding:0 22px;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.12);color:#f2fffd;cursor:pointer}
+.mov-day-current>span{font:900 clamp(22px,4.2vw,30px)/1.1 Manrope,Inter,sans-serif;letter-spacing:.01em;text-transform:capitalize;white-space:nowrap;pointer-events:none}
+.mov-day-current input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:16px;cursor:pointer}
+.mov-day #mov-day-today{min-height:48px;padding:0 16px;font-size:13px}
+html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:#087b6e!important;color:#0c3b36!important}
+.mov-toolbar .mov-day{flex:1 1 360px;max-width:560px}
+.toolbar .mov-day .btn{flex:0 0 52px;min-width:52px;padding:0}
+.toolbar .mov-day #mov-day-today{flex:0 0 auto;padding:0 16px}
+.mov-day-current{flex:1 1 auto;justify-content:center;min-width:0}
+@media(max-width:560px){.mov-day-current{padding:0 10px}.mov-day-current>span{font-size:20px}}
