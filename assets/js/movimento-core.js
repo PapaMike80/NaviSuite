@@ -94,7 +94,8 @@
 
   // Riga dell'O.d.S. del turno nel giorno (anche quella sostituita dal Movimento), come sarebbe senza modifiche.
   function baseOds(code, day) {
-    const rows = (state.schedule?.turni_navi || []).filter(row => row?.fonte !== 'movimento')
+    // anche le righe O.d.S. lette da Firebase: quelle sostituite dal Movimento restano li', disattivate
+    const rows = [...(state.schedule?.turni_navi || []), ...state.turniNavi].filter(row => row?.fonte !== 'movimento')
       .map(row => (row.sostituita_da_movimento ? { ...row, attiva: true, sostituita_da_movimento: undefined } : row));
     return T.turniDelGiorno(rows, day)[code] || {};
   }
@@ -104,6 +105,14 @@
     const nave = v => nomiNave(v).map(x => x.toUpperCase()).join('+');
     return nave(values.nave) === nave(base.nave) && n(values.ormeggio_mattino) === n(base.ormeggioMattino) && n(values.ormeggio_serale) === n(base.ormeggio) &&
       !!values.rifornimento_mattina === !!base.rif && !values.sospesa && !(values.corse_sospese || []).length && !(values.ritardi || []).length && !(values.incarichi || []).length;
+  }
+
+  // La nave, gli ormeggi o il rifornimento del Movimento sono diversi dall'O.d.S.? (ritardi e sospensioni non contano)
+  function modificaOds(code, day, r) {
+    const base = baseOds(code, day);
+    const n = v => String(v || '').trim().toUpperCase();
+    const nave = v => nomiNave(v).map(x => x.toUpperCase()).join('+');
+    return nave(r.nave) !== nave(base.nave) || n(r.ormeggioMattino) !== n(base.ormeggioMattino) || n(r.ormeggio) !== n(base.ormeggio) || !!r.rif !== !!base.rif;
   }
 
   async function salva(code, patch, messaggio) {
@@ -202,7 +211,7 @@
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
-  window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave,
+  window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
     variazioneMovimento, salva, ripristina, variazione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.

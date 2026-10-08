@@ -15,7 +15,7 @@
 
   const NM = window.NaviMovimento;
   if (!NM || !document.getElementById('mov-list')) return;
-  const { O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, agenti, nomiNave, stessaNave, variazioneMovimento, salva, ripristina, variazione } = NM;
+  const { O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, agenti, nomiNave, stessaNave, modificaOds, variazioneMovimento, salva, ripristina, variazione } = NM;
   const C = window.NaviCourseInfo;
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -294,7 +294,7 @@
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
       <div class="mov-head" role="button" tabindex="0" data-act="open" data-code="${code}" aria-expanded="${open}">
         <span class="chip" data-code="${code}">${code}</span>
-        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${bisBadge}</span>
+        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento && modificaOds(code, day, r) ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · <em class="mov-rit">⏱ ${ritardiTesto(r.ritardi)}</em>` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${bisBadge}</span>
         ${nave}${stato}
         <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
@@ -309,6 +309,11 @@
   // ritardo passa da solo alle corse successive se la nave arriva dopo la loro partenza.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
   const ritardoValore = r => (!r ? '' : r.oltre ? 'oltre' : String(r.minuti));
+  // "c. 14 +1h" per i primi ritardi del turno, poi "+N".
+  function ritardiTesto(map) {
+    const voci = Object.entries(map).map(([corsa, x]) => `c. ${corsa} ${O.testoRitardo(x)}`);
+    return voci.slice(0, 3).join(', ') + (voci.length > 3 ? ` +${voci.length - 3}` : '');
+  }
   // Colore del ritardo: verde in orario, giallo fino a 15', arancio fino a 45', rosso oltre; viola oltre 2 ore.
   const livelloRitardo = rit => (!rit ? 'ok' : rit.oltre ? 'max' : rit.minuti <= 15 ? 'l1' : rit.minuti <= 45 ? 'l2' : 'l3');
   function ritardiPanel(code, day, r) {
