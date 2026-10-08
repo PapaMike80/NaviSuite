@@ -145,8 +145,16 @@
     const casa = residenzaCorsa(code, crew, tutti);
     const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
     const riga = a => { const g = G.gradoOf(a.agent); return `<button type="button" class="pop-agente" data-act="aggiungi" data-code="${code}" data-id="${esc(a.agent.id)}"><span class="pa-nome" style="color:${g[1]}">${esc(a.agent.agente)}</span><small>${esc(g[0] || '')}</small><span class="chip" data-code="${esc(a.turno || '—')}">${esc(a.turno || '—')}</span></button>`; };
-    const gruppi = residenze.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` + candidati.filter(a => a.residenza === r)
-      .sort((a, b) => perDisponibilita(a, b) || G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
+    // ordine gerarchico (comandanti, capi timonieri, motoristi, timonieri, aiuto motoristi, marinai); dentro ogni grado per
+    // residenza (prima quella della corsa) e poi per disponibilita'
+    const GERARCHIA = ['capitano', 'capo_timoniere', 'motorista', 'timoniere', 'aiuto_motorista', 'marinaio'];
+    const ruoloDi = a => RUOLO[G.gradoOf(a.agent)[0]] || 'marinaio';
+    const gruppi = GERARCHIA.filter(ruolo => candidati.some(a => ruoloDi(a) === ruolo)).map(ruolo => {
+      const dentro = candidati.filter(a => ruoloDi(a) === ruolo);
+      const [, colore, nomeGrado] = RUOLO_INFO[ruolo];
+      return `<p class="pop-tier" style="--g:${colore}">${esc(nomeGrado)}</p>` + residenze.filter(r => dentro.some(a => a.residenza === r)).map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
+        dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
+    }).join('');
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Aggiungi all'equipaggio">
       <div class="pop-head"><span class="pop-pallino" style="--g:#2dd4bf">+</span><div><b>Aggiungi all'equipaggio</b><small>${esc(code)} · ${crew.length} a bordo</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
       <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
@@ -155,7 +163,7 @@
   }
   function popoverPosto(code, crew, tutti, x) {
     const ids = new Set(crew.map(m => String(m.id)));
-    const candidati = x.extra ? [] : tutti.filter(a => !ids.has(String(a.agent.id)) && puoCoprire(RUOLO[G.gradoOf(a.agent)[0]], x.ruolo));
+    const candidati = tutti.filter(a => !ids.has(String(a.agent.id)) && puoCoprire(RUOLO[G.gradoOf(a.agent)[0]], x.ruolo));
     const casa = residenzaCorsa(code, crew, tutti);
     const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
     const [sigla, colore, nomeRuolo] = RUOLO_INFO[x.ruolo] || RUOLO_INFO.marinaio;
