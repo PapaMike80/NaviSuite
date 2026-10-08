@@ -96,7 +96,12 @@
     });
     liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: false }));
     crew.filter(isSovr).forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: true }));
-    return out;
+    // in ordine gerarchico del grado di chi c'e' (anche se a bordo copre un posto piu' basso); i posti vuoti secondo il loro grado;
+    // i sovrannumero restano in fondo
+    const RANGO = { capitano: 0, capo_timoniere: 1, motorista: 2, timoniere: 3, aiuto_motorista: 4, marinaio: 5 };
+    const rango = x => RANGO[x.membro ? (RUOLO[x.membro.grado[0]] || 'marinaio') : x.ruolo] ?? 9;
+    const base = out.filter(x => !x.sovr).map((x, i) => [x, i]).sort((a, b) => rango(a[0]) - rango(b[0]) || a[1] - b[1]).map(a => a[0]);
+    return [...base, ...out.filter(x => x.sovr)];
   }
   function pallini(code, lista) {
     return lista.map((x, i) => {
