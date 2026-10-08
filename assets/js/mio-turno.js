@@ -97,23 +97,14 @@
         `<b>${esc(member.name)}</b><small>${esc(member.grado[0] || '')}</small></li>`).join('')}</ul>`
       : `<p class="legend">${state.schedule ? 'Equipaggio non disponibile.' : 'Caricamento equipaggio…'}</p>`;
 
-    // Corse e scali come l'orario di Servizi a terra: una riga per scalo. Il cambio di corsa nello
-    // stesso scalo e alla stessa ora e' una riga sola (corsa 30 › 31). Fra una corsa e l'altra una
-    // linea con il numero della nuova corsa: prima della sua partenza o, se il cambio e' in una riga
-    // sola, dopo quella riga.
+    // Corse e scali come l'orario di Servizi a terra: una riga per scalo. Prima di ogni corsa (anche
+    // la prima) una linea con il suo numero; se la corsa riparte subito dallo scalo d'arrivo della
+    // precedente, lo scalo compare due volte: arrivo della corsa prima, linea, partenza della nuova.
     const rows = [];
-    let sepNext = '';
     corse.forEach((corsa, ci) => corsa.scali.forEach(([nome, orario], j) => {
-      const prev = rows[rows.length - 1];
       const bolgetta = (BOLGETTE[corsa.numero] || {})[nome];
-      if (j === 0 && prev && prev.nome === nome && prev.orario === orario) {
-        prev.kind = 'S'; prev.run = `${prev.run} › ${corsa.numero}`; prev.bolgetta = prev.bolgetta || bolgetta; prev.rit = prev.rit || corsa.ritardo;
-        sepNext = corsa.numero;
-        return;
-      }
       const last = j === corsa.scali.length - 1;
-      const sep = j === 0 && ci > 0 ? corsa.numero : sepNext;
-      sepNext = '';
+      const sep = j === 0 ? corsa.numero : '';
       rows.push({ nome, orario, run: corsa.numero, bolgetta, kind: j === 0 ? 'P' : last ? 'A' : 'S', sep, rit: j === 0 ? corsa.ritardo : null,
         per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
