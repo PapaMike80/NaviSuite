@@ -83,7 +83,14 @@
   const realToday = () => today() === iso(new Date());
   const nowMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
   // Ora mostrata: quella del cursore, altrimenti adesso (o le 9.00 per gli altri giorni).
-  const shownTime = () => state.time ?? (realToday() ? nowMinutes() : 9 * 60);
+  // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima partenza della giornata dal mio scalo
+  // (come nell'elenco Allo scalo; gli arrivi e il BIS a disposizione non contano), altrimenti le 9.00.
+  const shownTime = g => {
+    if (state.time != null) return state.time;
+    if (realToday()) return nowMinutes();
+    const prima = righeScalo(g || giornata()).find(r => r.kind === 'P' && !r.propria);
+    return prima ? prima.t : 9 * 60;
+  };
 
   // Dati del giorno: viaggi, navi assegnate ed equipaggi.
   function giornata() {
@@ -174,7 +181,7 @@
   // Mappa, elenco e dettaglio all'ora t (il cursore aggiorna solo queste parti).
   function lagoParti() {
     const g = giornata();
-    const t = shownTime();
+    const t = shownTime(g);
     // Schede aperte: la nave scelta a mano piu' quelle aperte da sole per il mio scalo (le navi in
     // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
     // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
