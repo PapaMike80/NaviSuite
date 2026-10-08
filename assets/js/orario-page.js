@@ -89,7 +89,7 @@
     if (state.time != null) return state.time;
     if (realToday()) return nowMinutes();
     // servizio a terra scelto (anche in prova): il lago parte dall'ora in cui inizia
-    if (/^d{1,2}[.:]d{2}$/.test(state.embed?.inizio || '')) return minutes(state.embed.inizio);
+    if (/^\d{1,2}[.:]\d{2}$/.test(state.embed?.inizio || '')) return minutes(state.embed.inizio);
     const prima = righeScalo(g || giornata()).find(r => r.kind === 'P' && !r.propria);
     return prima ? prima.t : 9 * 60;
   };
