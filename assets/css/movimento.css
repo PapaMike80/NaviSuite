@@ -157,3 +157,67 @@ html.navisuite-light .mov-bis select{background:#fff!important;color:#17323a!imp
 .mov-rit-prop{grid-column:1/-1;color:#fcd34d;font-size:11px}
 @media(max-width:560px){.mov-ritardi ul{grid-template-columns:1fr}}
 html.navisuite-light .mov-ritardi select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
+
+/* Tab Corse / Navi / Agenti */
+.mov-toolbar{margin:18px 0 10px}
+.mov-tabs{display:flex;gap:6px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.mov-tabs button{padding:10px 18px;border:1px solid transparent;border-bottom:0;border-radius:10px 10px 0 0;background:transparent;color:var(--muted);font:900 13px inherit;cursor:pointer}
+.mov-tabs button.on{border-color:var(--line);background:rgba(12,37,48,.94);color:var(--accent)}
+.mov-panel[hidden]{display:none}
+.mov-panel{margin-top:0;border-top-left-radius:0}
+/* carta corsa: intestazione cliccabile */
+.mov-head{display:flex;align-items:center;gap:12px;width:100%;padding:11px 13px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.mov-sum{flex:1;min-width:0}
+.mov-sum b{display:block;font-size:14px}
+.mov-sum small{display:block;margin-top:2px;color:#86a5af;font-size:11px}
+.mov-sum em{color:#facc15;font-style:normal;font-weight:800}
+.mov-nave-tag{padding:4px 10px;border-radius:8px;background:#163b45;color:#e8f7f7;font-size:12px;font-weight:900}
+.mov-nave-tag.vuota{background:transparent;color:#86a5af;font-weight:700;border:1px dashed #315b66}
+.mov-turno.ferma{opacity:.4;cursor:default}
+.mov-turno.ferma .mov-head{cursor:default}
+.mov-row{display:grid;grid-template-columns:repeat(3,minmax(130px,1fr)) auto;align-items:end;gap:10px;padding:4px 13px 12px;border-top:1px solid #1d4350}
+.mov-row .mov-actions{grid-column:1/-1;justify-content:flex-start}
+/* Navi */
+.nave-list,.agenti-res{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.nave-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid #315b66;border-radius:999px;background:#102d37;color:#d4e8eb;font:900 13px inherit;cursor:pointer}
+.nave-chip small{padding:1px 7px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px}
+.nave-chip.on{border-color:var(--accent);background:rgba(45,212,191,.18);color:#99f6e4}
+.nave-chip.off{opacity:.45}
+.nave-det{display:grid;gap:12px;padding:14px;border:1px solid #1f4652;border-radius:12px;background:#0b222c}
+.nave-det.off{opacity:.7}
+.nave-head{display:flex;align-items:center;gap:10px}
+.nave-head input,.nave-det input,.nave-det select,.agenti-res+label input,#agenti-view input,#agenti-view select{padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 13px inherit}
+.nave-head input{font-size:18px;font-weight:900;min-width:220px}
+.nave-det h3{margin:0 0 8px;color:#91aeb7;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.nave-det label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.nave-n{display:flex;align-items:end;gap:16px;flex-wrap:wrap}
+.nave-n input[type=number]{width:80px;font-size:20px;text-align:center}
+.posti{display:flex;flex-wrap:wrap;gap:10px}
+.posto{--g:#e8f3f6;width:50px;height:50px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:900 12px inherit;cursor:pointer}
+.posto.on{box-shadow:0 0 0 3px rgba(45,212,191,.55)}
+.gradi{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.gradi span{color:#91aeb7;font-size:12px;font-weight:700}
+.grado{--g:#e8f3f6;padding:7px 12px;border:1px solid var(--g);border-radius:999px;background:color-mix(in srgb,var(--g) 14%,transparent);color:var(--g);font:900 12px inherit;cursor:pointer}
+.grado.on{background:color-mix(in srgb,var(--g) 38%,transparent)}
+.nave-periodo{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-top:14px}
+.nave-periodo .periodi{flex-basis:100%;color:#86a5af}
+.nave-periodo .periodi b{color:#99f6e4}
+.nave-assegna{max-width:260px}
+.nave-azioni{display:flex;gap:8px;flex-wrap:wrap}
+.nave-det small{color:#86a5af;font-size:11px}
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:9px;font-weight:900;text-transform:uppercase}
+/* Agenti */
+.ag-res{margin:16px 0 6px;font-size:14px}
+.ag-list{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.ag-list li{display:grid;grid-template-columns:minmax(160px,1fr) minmax(110px,auto) auto;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.03)}
+.ag-nome{font-weight:900;font-size:13px}
+.ag-list small{color:#86a5af;font-size:11px}
+.ag-turno{display:flex;align-items:center;gap:6px}
+.ag-turno select{min-width:110px}
+@media(max-width:850px){.mov-row{grid-template-columns:1fr 1fr}.ag-list li{grid-template-columns:1fr auto}.ag-list li small{grid-column:1}.mov-head{flex-wrap:wrap}.mov-tabs button{flex:1}}
+html.navisuite-light .mov-tabs button.on{background:#fff!important;color:#087b6e!important}
+html.navisuite-light .nave-det,html.navisuite-light .mov-head{background:#f8fcfc!important;color:#17323a!important}
+html.navisuite-light .nave-det input,html.navisuite-light .nave-det select,html.navisuite-light #agenti-view input,html.navisuite-light #agenti-view select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
+html.navisuite-light .nave-chip{background:#f4fafb!important;color:#17596a!important;border-color:#9fc5cc!important}
+html.navisuite-light .mov-nave-tag{background:#e2f5f2!important;color:#087b6e!important}
+html.navisuite-light .ag-list li{background:#f1f8f9!important}

@@ -10,41 +10,41 @@
   <title>NaviSuite Movimento</title>
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
-  <link rel="stylesheet" href="assets/css/movimento.css?v=4">
+  <link rel="stylesheet" href="assets/css/movimento.css?v=5">
 </head>
 <body class="movimento-page">
   <aside class="app-sidebar" id="admin-sidebar"></aside>
   <main>
-    <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Movimento · Navi ed equipaggi</h1><p>Giorno per giorno: nave, ormeggi ed equipaggio di ogni turno nave, corse sospese. Sotto, l'equipaggio minimo di ogni nave.</p></header>
-    <div id="status" class="status">Caricamento anagrafica navi da Firebase…</div>
+    <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Movimento</h1><p>Corse, navi e agenti giorno per giorno. Le modifiche valgono solo per il giorno scelto e vincono sull'O.d.S.; si salvano subito e le vedono tutti.</p></header>
+    <div class="toolbar mov-toolbar">
+      <span class="mov-day">
+        <button type="button" class="btn" id="mov-day-prev" aria-label="Giorno precedente">‹</button>
+        <label class="mov-day-current"><span id="mov-day-label"></span><input type="date" id="mov-day-input" aria-label="Scegli il giorno"></label>
+        <button type="button" class="btn" id="mov-day-next" aria-label="Giorno successivo">›</button>
+        <button type="button" class="btn ghost" id="mov-day-today" hidden>Oggi</button>
+      </span>
+      <span class="spacer"></span>
+      <span id="mov-status" class="mov-status" aria-live="polite"></span>
+    </div>
+    <nav class="mov-tabs" id="mov-tabs" role="tablist">
+      <button type="button" role="tab" data-tab="corse">Corse</button>
+      <button type="button" role="tab" data-tab="navi">Navi</button>
+      <button type="button" role="tab" data-tab="agenti">Agenti</button>
+    </nav>
 
-    <section class="section" id="mov-corse">
-      <div class="section-head"><div><h2>Corse del giorno</h2><p>Le modifiche valgono solo per il giorno scelto e vincono sull'O.d.S.; si salvano subito e le vedono tutti (NaviTurni, Oggi, Il mio turno, Orario, Servizi a terra). Tocca 👥 per l'equipaggio. «Sospendi corse» sospende tutte le corse del turno nave, «↺ O.d.S.» torna all'assegnazione dell'O.d.S.</p></div><span id="mov-count" class="count">0</span></div>
-      <div class="toolbar mov-toolbar">
-        <span class="mov-day">
-          <button type="button" class="btn" id="mov-day-prev" aria-label="Giorno precedente">‹</button>
-          <label class="mov-day-current"><span id="mov-day-label"></span><input type="date" id="mov-day-input" aria-label="Scegli il giorno"></label>
-          <button type="button" class="btn" id="mov-day-next" aria-label="Giorno successivo">›</button>
-          <button type="button" class="btn ghost" id="mov-day-today" hidden>Oggi</button>
-        </span>
-        <span class="spacer"></span>
-        <span id="mov-status" class="mov-status" aria-live="polite"></span>
-      </div>
+    <section class="section mov-panel" id="mov-corse" data-panel="corse">
+      <div class="section-head"><div><h2>Corse</h2><p>Tocca una corsa per nave, ormeggi, rifornimento, ritardi ed equipaggio. «Sospendi corse» sospende tutte le corse del turno nave, «↺ O.d.S.» torna all'assegnazione dell'O.d.S. Le corse ferme sono in fondo.</p></div><span id="mov-count" class="count">0</span></div>
       <div id="mov-list" class="mov-list"></div>
     </section>
 
-    <section class="section">
-      <div class="section-head"><div><h2>Anagrafica navi</h2><p>Per ogni nave indica quante persone servono per ruolo. Un nuovo periodo (es. orario invernale) vale dalla data indicata e sostituisce il precedente; il periodo in vigore alla data di riferimento è evidenziato.</p></div><span id="fleet-count" class="count">0</span></div>
-      <div class="toolbar">
-        <label>Data di riferimento<input id="ref-date" type="date"></label>
-        <label>Nuova nave<input id="new-ship-name" type="text" placeholder="Es. Solferino" autocomplete="off"></label>
-        <button id="add-ship" class="btn" type="button">+ Aggiungi nave</button>
-        <button id="import-ships" class="btn ghost" type="button" title="Legge i nomi già usati nelle assegnazioni nave/corsa">Importa nomi dai turni</button>
-        <span class="spacer"></span>
-        <button id="save-fleet" class="btn primary" type="button" disabled>Salva</button>
-      </div>
-      <div class="table-wrap"><table class="fleet-table" id="fleet-table"></table></div>
-      <p id="fleet-empty" class="empty hidden">Nessuna nave in anagrafica. Aggiungi la prima con il campo «Nuova nave».</p>
+    <section class="section mov-panel" id="mov-navi" data-panel="navi" hidden>
+      <div class="section-head"><div><h2>Navi</h2><p>Scegli una nave: indica l'equipaggio minimo e il grado di ogni posto, oppure assegnala a una corsa del giorno.</p></div><span id="fleet-count" class="count">0</span></div>
+      <div id="navi-view"></div>
+    </section>
+
+    <section class="section mov-panel" id="mov-agenti" data-panel="agenti" hidden>
+      <div class="section-head"><div><h2>Agenti</h2><p>Per residenza e grado, con il turno del giorno scelto: cambialo dal menu.</p></div><span id="agenti-count" class="count">0</span></div>
+      <div id="agenti-view"></div>
     </section>
   </main>
   <script src="assets/js/shared-roles.js?v=1"></script>
@@ -57,7 +57,9 @@
   <script src="assets/js/servizi-terra-a4.js?v=16"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=3"></script>
-  <script src="assets/js/movimento.js?v=1"></script>
-  <script src="assets/js/movimento-corse.js?v=3"></script>
+  <script src="assets/js/movimento-core.js?v=1"></script>
+  <script src="assets/js/movimento-corse.js?v=4"></script>
+  <script src="assets/js/movimento.js?v=2"></script>
+  <script src="assets/js/movimento-agenti.js?v=1"></script>
 </body>
 </html>

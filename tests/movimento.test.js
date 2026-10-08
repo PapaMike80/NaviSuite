@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 
-['assets/js/movimento-corse.js', 'assets/js/admin-firebase-rest.js']
+['assets/js/movimento-corse.js', 'assets/js/movimento-core.js', 'assets/js/movimento.js', 'assets/js/movimento-agenti.js', 'assets/js/admin-firebase-rest.js']
   .forEach(file => execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }));
 
 globalThis.window = globalThis;
@@ -37,12 +37,13 @@ assert.match(rest, /ods:"MOVIMENTO", tipo:"MANUALE"/);
 
 // Pagina Movimento: solo admin, corse del giorno sopra l'anagrafica navi, script e stili
 const html = fs.readFileSync('movimento.html', 'utf8');
-assert.ok(html.indexOf('id="mov-corse"') < html.indexOf('id="fleet-table"'));
-['shared-data.js', 'turni-giorno.js', 'servizi-terra-a4.js', 'orario-giorno.js', 'course-info.js', 'movimento.js', 'movimento-corse.js']
+['corse', 'navi', 'agenti'].forEach(tab => assert.ok(html.includes(`data-tab="${tab}"`) && html.includes(`data-panel="${tab}"`), tab));
+assert.ok(html.indexOf('id="mov-day-input"') < html.indexOf('data-panel="corse"'), 'selettore giornata sopra i tab');
+['shared-data.js', 'turni-giorno.js', 'servizi-terra-a4.js', 'orario-giorno.js', 'course-info.js', 'movimento-core.js', 'movimento.js', 'movimento-corse.js', 'movimento-agenti.js']
   .forEach(script => assert.ok(html.includes(script), script));
 assert.ok(html.indexOf('movimento-corse.js') > html.indexOf('orario-giorno.js'));
 const page = fs.readFileSync('assets/js/movimento-corse.js', 'utf8');
-assert.match(page, /isAdminAgent\(profile\)/);
+assert.match(fs.readFileSync('assets/js/movimento-core.js', 'utf8'), /isAdminAgent\(profile\)/);
 ['data-act="suspend"', 'data-act="confirm-suspend"', 'data-act="resume"', 'data-act="restore"', 'data-act="open"', 'data-act="add"', 'data-act="remove"', 'data-act="undo"']
   .forEach(act => assert.ok(page.includes(act), act));
 assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /page==='movimento'\)&&!isAdminAgent\(sessionAgent\)/);

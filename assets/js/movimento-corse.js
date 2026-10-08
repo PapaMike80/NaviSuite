@@ -13,23 +13,14 @@
 (() => {
   'use strict';
 
-  const O = window.NaviOrarioGiorno;
-  const G = window.NaviTurniGiorno;
-  const T = window.NaviServiziTerra;
+  const NM = window.NaviMovimento;
+  if (!NM || !document.getElementById('mov-list')) return;
+  const { O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, agenti, variazioneMovimento, salva, ripristina, variazione } = NM;
   const C = window.NaviCourseInfo;
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const iso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const parseIso = value => { const [y, m, d] = String(value).split('-').map(Number); return new Date(y, m - 1, d); };
-  const addDays = (value, days) => { const d = parseIso(value); d.setDate(d.getDate() + days); return iso(d); };
-  const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-  const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
   const clock = value => String(value || '').replace(':', '.').replace(/^0(\d)/, '$1');
-
-  let profile = null;
-  try { profile = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { profile = null; }
-  if (!profile || !window.NaviRoles?.isAdminAgent(profile) || !$('mov-list')) return;
-  const autore = String(profile.name || profile.agente || profile.id || '');
+  const autore = NM.autore;
 
   // Causali per togliere un agente dall'equipaggio (oppure lo si sposta su un altro turno).
   const CAUSALI = [['MAL', 'Malattia'], ['RIP', 'Riposo'], ['CON', 'Congedo'], ['FERIE', 'Ferie']];
@@ -39,33 +30,8 @@
   const RUOLI = [['capitano', 'capitano', 'capitani'], ['capo_timoniere', 'capo timoniere', 'capi timonieri'], ['timoniere', 'timoniere', 'timonieri'],
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
-  const state = { day: iso(new Date()), schedule: null, turniNavi: [], fleet: {}, open: '', suspending: '', busy: false, loaded: false, oggi: {}, bisForm: null };
-
-  function setStatus(text, kind = '') { const el = $('mov-status'); el.textContent = text; el.className = `mov-status ${kind}`.trim(); }
-
-  // Turni nave: quelli del Movimento e degli O.d.S. appena letti vincono sulla copia dei turni condivisi.
-  function righeNavi() {
-    const key = row => `${row?.data || ''}|${String(row?.corsa || '').toUpperCase()}|${String(row?.nave || '').trim().toUpperCase()}`;
-    const fresh = new Set(state.turniNavi.map(key));
-    const base = (state.schedule?.turni_navi || []).filter(row => row?.fonte !== 'movimento' && !fresh.has(key(row)));
-    return [...base, ...state.turniNavi];
-  }
-  const turniCodici = day => [...O.TURNI.slice(0, 2), 'BIS', ...O.TURNI.slice(2)].filter(code => O.inServizio(code, day));
-
-  // Variazione del Movimento di un agente nel giorno (per "annulla").
-  const variazioneMovimento = (day, id) => (state.schedule?.variazioni_ods || [])
-    .filter(item => item?.ods === 'MOVIMENTO' && String(item.data).slice(0, 10) === day && String(item.id_agente) === String(id)).pop() || null;
-
-  function agenti(day) {
-    const seen = new Set(), out = [];
-    Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => {
-      const id = String(agent?.id || '');
-      if (!id || seen.has(id) || window.NaviRoles?.isBaristaAgent?.(agent)) return;
-      seen.add(id);
-      out.push({ agent, residenza, turno: String(G.turnoAgente(state.schedule, { id }, day)?.turno || '').trim().toUpperCase() });
-    }));
-    return out.sort((a, b) => String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
-  }
+  const state = NM.state;
+  const ui = { open: '', suspending: '', bisForm: null };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -93,10 +59,6 @@
   // ---------------- Render ----------------
   function render() {
     const day = state.day;
-    const d = parseIso(day);
-    $('mov-day-label').textContent = `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`;
-    $('mov-day-input').value = day;
-    $('mov-day-today').hidden = day === iso(new Date());
     if (!state.schedule) { $('mov-list').innerHTML = '<p class="empty">Caricamento turni…</p>'; return; }
     const codes = turniCodici(day);
     $('mov-count').textContent = String(codes.length);
@@ -111,7 +73,11 @@
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
     const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
-    $('mov-list').innerHTML = datalists + (cards || '<p class="empty">Nessun turno nave in servizio in questo giorno.</p>');
+    const ferme = turniFermi(day).map(code => {
+      const info = C?.info?.(code, day);
+      return `<article class="mov-turno ferma"><div class="mov-head"><span class="chip" data-code="${code}">${code}</span><div class="mov-sum"><b>Corsa ferma</b><small>${info?.trips ? `corse ${esc(info.trips)}` : 'non in servizio in questo periodo'}</small></div></div></article>`;
+    }).join('');
+    $('mov-list').innerHTML = datalists + (cards || '<p class="empty">Nessun turno nave in servizio in questo giorno.</p>') + ferme;
   }
 
   function card(code, day, r, ieri, crew, tutti) {
@@ -121,12 +87,12 @@
     const comandante = G.comandante(crew);
     const min = minimo(r.nave, day, crew);
     const avviso = min && (min.mancano.length || crew.length < min.totale);
-    const open = state.open === code;
+    const open = ui.open === code;
     const field = (f, label, value, extra = '') => `<label class="mov-field mov-${f}"><span>${label}</span><input data-code="${code}" data-f="${f}" value="${esc(value)}" ${extra} autocomplete="off"></label>`;
     let azioni;
     if (r.sospesa) {
       azioni = `<span class="mov-sospesa" title="${esc(r.motivo)}">SOSPESA${r.motivo ? ` · ${esc(r.motivo)}` : ''}</span><button class="btn primary" type="button" data-act="resume" data-code="${code}">Ripristina corse</button>`;
-    } else if (state.suspending === code) {
+    } else if (ui.suspending === code) {
       azioni = `<input class="mov-motivo" id="mov-motivo" placeholder="Motivo (es. lago mosso)" autocomplete="off"><button class="btn danger" type="button" data-act="confirm-suspend" data-code="${code}">Sospendi tutte le corse</button><button class="btn ghost" type="button" data-act="cancel-suspend">Annulla</button>`;
     } else {
       azioni = `<button class="btn danger" type="button" data-act="suspend" data-code="${code}">Sospendi corse</button>`;
@@ -135,18 +101,23 @@
     if (code !== 'BIS' && O.inServizio('BIS', day)) azioni += `<button class="btn ghost" type="button" data-act="bis-form" data-code="${code}" title="Il BIS sostituisce questa nave o fa corse in aiuto">⇄ BIS</button>`;
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
     const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
+    const nave = r.nave ? `<span class="mov-nave-tag">${esc(r.nave)}</span>` : '<span class="mov-nave-tag vuota">nave da assegnare</span>';
+    const stato = r.sospesa ? '<span class="mov-sospesa">SOSPESA</span>' : '';
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
-      <div class="mov-row">
-        <div class="mov-id"><span class="chip" data-code="${code}">${code}</span><div><b>${orari}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}</small>${bisBadge}</div></div>
+      <button class="mov-head" type="button" data-act="open" data-code="${code}" aria-expanded="${open}">
+        <span class="chip" data-code="${code}">${code}</span>
+        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}</small>${bisBadge}</span>
+        ${nave}${stato}
+        <span class="mov-crew-btn${avviso ? ' warn' : ''}">👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''} <span>${open ? '▴' : '▾'}</span></span>
+      </button>
+      ${open ? `<div class="mov-row">
         ${field('nave', 'Nave', r.nave || '', 'list="mov-navi" placeholder="Nave"')}
         ${field('ormeggio_mattino', 'Ormeggio mattino', r.ormeggioMattino || '', `list="mov-ormeggi" placeholder="${esc(ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—')}"`)}
         ${field('ormeggio_serale', 'Ormeggio sera', r.ormeggio || '', 'list="mov-ormeggi" placeholder="—"')}
-        <label class="mov-rif" title="Rifornimento la mattina"><input type="checkbox" data-code="${code}" data-f="rif"${r.rif ? ' checked' : ''}> R</label>
-        <button class="mov-crew-btn${avviso ? ' warn' : ''}" type="button" data-act="open" data-code="${code}" aria-expanded="${open}">
-          👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''} <span>${open ? '▴' : '▾'}</span></button>
+        <label class="mov-rif" title="Rifornimento la mattina"><input type="checkbox" data-code="${code}" data-f="rif"${r.rif ? ' checked' : ''}> Rifornimento</label>
         <div class="mov-actions">${azioni}</div>
-      </div>
-      ${code === 'BIS' ? bisPanel(day, r) : ''}
+      </div>` : ''}
+      ${code === 'BIS' && open ? bisPanel(day, r) : ''}
       ${open ? ritardiPanel(code, day, r) + equipaggio(code, day, r, crew, tutti, min) : ''}
     </article>`;
   }
@@ -237,7 +208,7 @@
       return `<li><span class="chip" data-code="${esc(inc.turno)}">${esc(inc.turno)}</span><div><b>${titolo}</b><small>${incaricoCorse(inc)}${inc.alla && inc.tipo !== 'aiuto' ? ` · la nave riprende dopo la corsa ${esc(inc.alla)}` : ''}</small></div>` +
         `<span class="mov-crew-act">${riprende}${riapri}<button class="btn danger" type="button" data-act="bis-del" data-i="${i}">Togli</button></span></li>`;
     }).join('');
-    const f = state.bisForm || {};
+    const f = ui.bisForm || {};
     const turni = turniCodici(day).filter(c => c !== 'BIS');
     const turno = turni.includes(f.turno) ? f.turno : turni[0] || '';
     const corse = turno ? O.corseDelTurno(turno, day) : [];
@@ -265,65 +236,6 @@
     return salva('BIS', { incarichi }, messaggio);
   }
 
-  // ---------------- Salvataggi ----------------
-  async function salva(code, patch, messaggio) {
-    if (state.busy) return;
-    state.busy = true;
-    setStatus('Salvataggio…');
-    const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
-    const values = {
-      nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
-      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), ...patch
-    };
-    try {
-      state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code, values, autore);
-      setStatus(messaggio, 'ok');
-    } catch (error) {
-      setStatus(`Non salvato: ${error.message}`, 'bad');
-    } finally { state.busy = false; render(); }
-  }
-
-  async function ripristina(code) {
-    if (state.busy) return;
-    state.busy = true;
-    setStatus('Ripristino…');
-    try {
-      const incarichi = code === 'BIS' ? (state.oggi.BIS?.incarichi || []) : [];
-      const ritardi = ritardiLista(state.oggi[code]?.ritardi);
-      state.turniNavi = await window.NaviAdminFirebase.ripristinaTurnoNave(state.day, code);
-      // torna la nave dell'O.d.S., ma restano i ritardi e gli incarichi del BIS del giorno
-      if (incarichi.length || ritardi.length) {
-        const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
-        state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code,
-          { nave: r.nave || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif, incarichi, ritardi }, autore);
-      }
-      setStatus(`${code}: nave e ormeggi dell'O.d.S. ripristinati.`, 'ok');
-    } catch (error) {
-      setStatus(`Non ripristinato: ${error.message}`, 'bad');
-    } finally { state.busy = false; render(); }
-  }
-
-  // Variazione di turno di un agente (turnoNuovo vuoto = annulla quella del Movimento).
-  async function variazione(id, turnoNuovo, messaggio) {
-    if (state.busy) return;
-    const item = agenti(state.day).find(a => String(a.agent.id) === String(id));
-    if (!item) return;
-    state.busy = true;
-    setStatus('Salvataggio equipaggio…');
-    const prima = variazioneMovimento(state.day, id);
-    const originale = prima?.turno_originale || item.turno;
-    try {
-      const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`);
-      // aggiorna subito i turni in pagina: tolte le variazioni del Movimento del giorno, aggiunte quelle salvate
-      const day = state.day;
-      state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === day)),
-        ...rows.filter(v => v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === day)];
-      setStatus(messaggio, 'ok');
-    } catch (error) {
-      setStatus(`Equipaggio non salvato: ${error.message}`, 'bad');
-    } finally { state.busy = false; render(); }
-  }
-
   // ---------------- Eventi ----------------
   const list = $('mov-list');
   list.addEventListener('change', event => {
@@ -344,9 +256,9 @@
       return;
     }
     if (el.dataset.bis) {
-      state.bisForm = { ...(state.bisForm || {}), turno: state.bisForm?.turno || el.closest('.mov-bis-form').querySelector('[data-bis=turno]').value, [el.dataset.bis]: el.value };
-      if (el.dataset.bis === 'turno') { state.bisForm.dalla = ''; state.bisForm.alla = ''; }
-      if (el.dataset.bis === 'tipo' || el.dataset.bis === 'dalla') state.bisForm.alla = '';
+      ui.bisForm = { ...(ui.bisForm || {}), turno: ui.bisForm?.turno || el.closest('.mov-bis-form').querySelector('[data-bis=turno]').value, [el.dataset.bis]: el.value };
+      if (el.dataset.bis === 'turno') { ui.bisForm.dalla = ''; ui.bisForm.alla = ''; }
+      if (el.dataset.bis === 'tipo' || el.dataset.bis === 'dalla') ui.bisForm.alla = '';
       render();
       return;
     }
@@ -377,18 +289,18 @@
     if (!button) return;
     const code = button.dataset.code;
     const act = button.dataset.act;
-    if (act === 'open') { state.open = state.open === code ? '' : code; render(); }
-    else if (act === 'suspend') { state.suspending = code; render(); $('mov-motivo')?.focus(); }
-    else if (act === 'cancel-suspend') { state.suspending = ''; render(); }
+    if (act === 'open') { ui.open = ui.open === code ? '' : code; render(); }
+    else if (act === 'suspend') { ui.suspending = code; render(); $('mov-motivo')?.focus(); }
+    else if (act === 'cancel-suspend') { ui.suspending = ''; render(); }
     else if (act === 'confirm-suspend') {
       const motivo = $('mov-motivo')?.value.trim() || '';
-      state.suspending = '';
+      ui.suspending = '';
       salva(code, { sospesa: true, sospesa_motivo: motivo, sospesa_il: new Date().toISOString() }, `${code}: tutte le corse sospese${motivo ? ` (${motivo})` : ''}.`);
     } else if (act === 'resume') salva(code, { sospesa: false, sospesa_motivo: '' }, `${code}: corse ripristinate.`);
     else if (act === 'restore') ripristina(code);
     else if (act === 'undo') variazione(button.dataset.id, '', 'Variazione dell\'equipaggio annullata.');
     else if (act === 'bis-form') {
-      state.bisForm = { tipo: 'sostituzione', turno: code };
+      ui.bisForm = { tipo: 'sostituzione', turno: code };
       render();
       $('mov-bis')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (act === 'bis-add') {
@@ -398,7 +310,7 @@
       if (!inc.turno || !inc.dalla) return;
       // una sola sostituzione per turno: la nuova prende il posto della precedente
       const incarichi = (state.oggi.BIS?.incarichi || []).filter(x => !(inc.tipo === 'sostituzione' && x.tipo !== 'aiuto' && x.turno === inc.turno));
-      state.bisForm = null;
+      ui.bisForm = null;
       const nave = state.oggi[inc.turno]?.nave;
       salvaIncarichi([...incarichi, inc], inc.tipo === 'aiuto'
         ? `BIS in aiuto alla ${inc.turno}: ${incaricoCorse(inc)}.`
@@ -415,39 +327,5 @@
     }
   });
 
-  const goToDay = day => { state.day = day; state.open = ''; state.suspending = ''; render(); };
-  $('mov-day-prev').addEventListener('click', () => goToDay(addDays(state.day, -1)));
-  $('mov-day-next').addEventListener('click', () => goToDay(addDays(state.day, 1)));
-  $('mov-day-today').addEventListener('click', () => goToDay(iso(new Date())));
-  $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-
-  // ---------------- Dati ----------------
-  // Non ridisegna mentre si scrive in un campo (per non perdere il testo).
-  const editing = () => document.activeElement?.closest?.('#mov-list') && document.activeElement.matches('input, select');
-  async function aggiorna() {
-    const provider = window.NaviAdminFirebase;
-    try {
-      await provider?.ready;
-      const [rows, fleet] = await Promise.all([provider.getTurniNavi(), provider.getFleet().catch(() => ({ navi: state.fleet }))]);
-      state.turniNavi = rows;
-      state.fleet = fleet.navi || {};
-      if (!state.busy && !editing()) render();
-    } catch (error) {
-      setStatus(`Turni nave non aggiornati: ${error.message}`, 'bad');
-    }
-  }
-  function carica() {
-    window.NaviSharedData?.loadCacheFirst?.((data, meta) => {
-      state.schedule = data;
-      if (!meta?.stale) setStatus('');
-      if (!state.busy && !editing()) render();
-    })?.catch?.(error => setStatus(`Turni non disponibili: ${error.message}`, 'bad'));
-  }
-  setStatus('Caricamento turni e navi…');
-  render();
-  carica();
-  aggiorna();
-  // Le modifiche dei colleghi: turni nave ogni minuto, turni degli agenti ogni 5 minuti.
-  setInterval(aggiorna, 60000);
-  setInterval(carica, 5 * 60000);
+  NM.vista('corse', render, { onDay: () => { ui.open = ''; ui.suspending = ''; ui.bisForm = null; } });
 })();

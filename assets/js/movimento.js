@@ -1,58 +1,52 @@
 /*
- * NaviSuite · Movimento — anagrafica navi ed equipaggio minimo.
+ * NaviSuite · Movimento — tab Navi: anagrafica navi, equipaggio minimo e assegnazione alle corse.
  *
- * L'equipaggio minimo appartiene alla NAVE, non alla corsa: la stessa corsa
- * puo' essere fatta da navi diverse (es. D2 con la Tonale da 5 o con la
- * Solferino da 3). Ogni nave ha uno o piu' PERIODI di validita' (es. estate /
- * orario invernale), ciascuno con il numero di persone richieste per ruolo.
+ * L'equipaggio minimo appartiene alla NAVE, non alla corsa: la stessa corsa puo' essere fatta da
+ * navi diverse. Ogni nave ha uno o piu' PERIODI di validita' (es. estate / orario invernale) con il
+ * numero di persone richieste per grado. Nella pagina ogni posto e' un cerchio col suo grado; sul
+ * database resta il conteggio per ruolo (usato dall'avviso "manca…" nelle Corse).
  *
- * Dati: Firebase private/adminUpdates/movimentoFlotta (NaviAdminFirebase.getFleet
- * / saveFleet). Pagina riservata agli admin (gate anche in shared-menu.js).
+ * Dati: Firebase private/adminUpdates/movimentoFlotta (NaviAdminFirebase.getFleet / saveFleet).
  */
 (() => {
   'use strict';
 
-  // ===== CONFIG ===========================================================
-  // Ruoli a bordo, nell'ordine in cui compaiono nelle colonne. `key` e' il nome
-  // salvato su Firebase: non cambiarlo dopo il primo salvataggio.
-  // Per aggiungere o togliere un ruolo basta modificare questa lista.
+  // Gradi a bordo, nell'ordine in cui compaiono. `key` e' il nome salvato su Firebase: non cambiarlo.
   const RUOLI = [
-    { key:'capitano', label:'Capitano' },
-    { key:'capo_timoniere', label:'Capo timoniere' },
-    { key:'timoniere', label:'Timoniere' },
-    { key:'motorista', label:'Motorista' },
-    { key:'aiuto_motorista', label:'Aiuto motorista' },
-    { key:'marinaio', label:'Marinaio' }
+    { key:'capitano', label:'Capitano', sigla:'Cap', colore:'#facc15' },
+    { key:'capo_timoniere', label:'Capo timoniere', sigla:'CT', colore:'#fb923c' },
+    { key:'timoniere', label:'Timoniere', sigla:'Tim', colore:'#22c55e' },
+    { key:'motorista', label:'Motorista', sigla:'Mot', colore:'#a855f7' },
+    { key:'aiuto_motorista', label:'Aiuto motorista', sigla:'AM', colore:'#3b82f6' },
+    { key:'marinaio', label:'Marinaio', sigla:'Mar', colore:'#e8f3f6' }
   ];
   const MAX_PER_RUOLO = 9;
-  // ========================================================================
+  const MAX_POSTI = 12;
 
-  const $ = id => document.getElementById(id);
+  const NM = window.NaviMovimento;
+  const view = document.getElementById('navi-view');
+  if (!NM || !view) return;
+  const { O, T } = NM;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const norm = value => String(value || '').trim().toUpperCase();
 
-  let profile = null;
-  try { profile = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { profile = null; }
-  // Il gate vero e' in shared-menu.js; questo evita di caricare dati senza ruolo.
-  if (!profile || !window.NaviRoles?.isAdminAgent(profile)) { location.replace('index.html'); return; }
+  const ui = { navi:{}, sel:'', circle:-1, dirty:false, loadedAt:'', synced:false };
 
-  const state = { navi:{}, loadedAt:'', dirty:false };
-
-  function setStatus(text, kind = '') { const el = $('status'); el.textContent = text; el.className = `status ${kind}`.trim(); }
-  function setDirty(value) { state.dirty = value; $('save-fleet').disabled = !value; }
-
-  function emptyEquipaggio() { return Object.fromEntries(RUOLI.map(r => [r.key, 0])); }
-  function newPeriod(dal = '', from = null) {
-    return { dal, equipaggio:{ ...emptyEquipaggio(), ...(from?.equipaggio || {}) }, nota:'' };
-  }
+  const emptyEquipaggio = () => Object.fromEntries(RUOLI.map(r => [r.key, 0]));
+  const newPeriod = (dal = '', from = null) => ({ dal, equipaggio:{ ...emptyEquipaggio(), ...(from?.equipaggio || {}) }, nota:'' });
   const totale = period => RUOLI.reduce((sum, r) => sum + (Number(period.equipaggio[r.key]) || 0), 0);
   const sortPeriods = ship => ship.periodi.sort((a, b) => String(a.dal).localeCompare(String(b.dal)));
-
   // Periodo in vigore alla data: l'ultimo con `dal` <= data (dal vuoto = da sempre).
-  function currentPeriod(ship, iso) {
+  function currentPeriod(ship, day) {
     let found = null;
-    sortPeriods(ship).forEach(p => { if (String(p.dal) <= iso) found = p; });
+    sortPeriods(ship).forEach(p => { if (String(p.dal) <= day) found = p; });
     return found;
+  }
+  // Posti dell'equipaggio come lista di ruoli, nell'ordine dei gradi; e viceversa.
+  const posti = period => RUOLI.flatMap(r => Array(Number(period.equipaggio[r.key]) || 0).fill(r.key));
+  function impostaPosti(period, lista) {
+    period.equipaggio = emptyEquipaggio();
+    lista.forEach(key => { period.equipaggio[key] += 1; });
   }
 
   function normalizeFleet(raw) {
@@ -73,115 +67,184 @@
   function slug(name) {
     const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'nave';
     let id = base, n = 2;
-    while (state.navi[id]) id = `${base}-${n++}`;
+    while (ui.navi[id]) id = `${base}-${n++}`;
     return id;
   }
-  const nameTaken = (name, exceptId = '') => Object.entries(state.navi).some(([id, s]) => id !== exceptId && s.nome.trim().toLowerCase() === name.trim().toLowerCase());
+  const nameTaken = (name, exceptId = '') => Object.entries(ui.navi).some(([id, s]) => id !== exceptId && s.nome.trim().toLowerCase() === name.trim().toLowerCase());
+  const setDirty = value => { ui.dirty = value; const b = document.getElementById('save-fleet'); if (b) b.disabled = !value; };
 
   // ---- Render --------------------------------------------------------------
-
   function render() {
-    const ref = $('ref-date').value || todayIso();
-    const ids = Object.keys(state.navi).sort((a, b) => state.navi[a].nome.localeCompare(state.navi[b].nome, 'it'));
-    $('fleet-count').textContent = String(ids.length);
-    $('fleet-empty').classList.toggle('hidden', ids.length > 0);
-    $('fleet-table').classList.toggle('hidden', ids.length === 0);
-    const head = `<thead><tr><th>Nave</th><th>Valido dal</th>${RUOLI.map(r => `<th>${esc(r.label)}</th>`).join('')}<th>Totale</th><th>Nota</th><th></th></tr></thead>`;
-    const body = ids.map(id => {
-      const ship = state.navi[id];
-      const current = currentPeriod(ship, ref);
-      const rows = ship.periodi.map((p, i) => {
-        const dupDate = ship.periodi.filter(q => q.dal === p.dal).length > 1;
-        return `<tr class="${p === current ? 'current' : ''}">
-          ${i === 0 ? `<td class="ship-name" rowspan="${ship.periodi.length + 1}"><input data-ship="${esc(id)}" data-f="nome" value="${esc(ship.nome)}" aria-label="Nome nave"><small>${current ? '' : '<span class="badge">Nessun periodo in vigore</span>'}</small></td>` : ''}
-          <td><input type="date" data-ship="${esc(id)}" data-p="${i}" data-f="dal" value="${esc(p.dal)}" class="${dupDate ? 'invalid' : ''}" title="Vuoto = da sempre" aria-label="Valido dal"></td>
-          ${RUOLI.map(r => `<td><input type="number" min="0" max="${MAX_PER_RUOLO}" step="1" inputmode="numeric" data-ship="${esc(id)}" data-p="${i}" data-r="${r.key}" value="${p.equipaggio[r.key]}" aria-label="${esc(r.label)}"></td>`).join('')}
-          <td class="total" data-total="${esc(id)}-${i}">${totale(p)}</td>
-          <td><input class="note" data-ship="${esc(id)}" data-p="${i}" data-f="nota" value="${esc(p.nota)}" placeholder="Es. orario invernale" aria-label="Nota"></td>
-          <td>${ship.periodi.length > 1 ? `<button class="btn danger" type="button" data-act="del-period" data-ship="${esc(id)}" data-p="${i}" title="Elimina periodo">✕</button>` : ''}</td>
-        </tr>`;
-      }).join('');
-      const actions = `<tr class="actions"><td colspan="${RUOLI.length + 5}">
-        <button class="btn" type="button" data-act="add-period" data-ship="${esc(id)}">+ Nuovo periodo</button>
-        <button class="btn ghost" type="button" data-act="toggle-ship" data-ship="${esc(id)}">${ship.attiva ? 'Disattiva nave' : 'Riattiva nave'}</button>
-        <button class="btn danger" type="button" data-act="del-ship" data-ship="${esc(id)}">Elimina nave</button>
-      </td></tr>`;
-      return `<tbody class="ship${ship.attiva ? '' : ' inactive'}">${rows}${actions}</tbody>`;
+    const day = NM.state.day;
+    const ids = Object.keys(ui.navi).sort((a, b) => (ui.navi[b].attiva - ui.navi[a].attiva) || ui.navi[a].nome.localeCompare(ui.navi[b].nome, 'it'));
+    if (!ui.navi[ui.sel]) ui.sel = '';
+    document.getElementById('fleet-count').textContent = String(ids.filter(id => ui.navi[id].attiva).length);
+    const chips = ids.map(id => {
+      const ship = ui.navi[id];
+      const p = currentPeriod(ship, day);
+      return `<button type="button" class="nave-chip${id === ui.sel ? ' on' : ''}${ship.attiva ? '' : ' off'}" data-act="sel" data-ship="${esc(id)}">${esc(ship.nome)}<small>${p ? totale(p) : '?'}</small></button>`;
     }).join('');
-    $('fleet-table').innerHTML = head + body;
+    const toolbar = `<div class="toolbar">
+        <label>Nuova nave<input id="new-ship-name" type="text" placeholder="Es. Solferino" autocomplete="off"></label>
+        <button id="add-ship" class="btn" type="button" data-act="add-ship">+ Aggiungi nave</button>
+        <button id="import-ships" class="btn ghost" type="button" data-act="import" title="Legge i nomi già usati nelle assegnazioni nave/corsa">Importa nomi dai turni</button>
+        <span class="spacer"></span>
+        <button id="save-fleet" class="btn primary" type="button" data-act="save"${ui.dirty ? '' : ' disabled'}>Salva</button>
+      </div>`;
+    view.innerHTML = `${toolbar}<div class="nave-list">${chips || '<p class="empty">Nessuna nave in anagrafica. Aggiungi la prima con «Nuova nave».</p>'}</div>${ui.sel ? dettaglio(ui.sel, day) : (chips ? '<p class="empty">Seleziona una nave.</p>' : '')}`;
+  }
+
+  function dettaglio(id, day) {
+    const ship = ui.navi[id];
+    const p = currentPeriod(ship, day) || ship.periodi[0];
+    const idx = ship.periodi.indexOf(p);
+    const inVigore = p === currentPeriod(ship, day);
+    const lista = posti(p);
+    const cerchi = lista.map((key, i) => {
+      const r = RUOLI.find(x => x.key === key);
+      return `<button type="button" class="posto${i === ui.circle ? ' on' : ''}" style="--g:${r.colore}" data-act="posto" data-i="${i}" title="${esc(r.label)}">${r.sigla}</button>`;
+    }).join('');
+    const palette = ui.circle >= 0 && ui.circle < lista.length
+      ? `<div class="gradi"><span>Grado del posto ${ui.circle + 1}:</span>${RUOLI.map(r => `<button type="button" class="grado${lista[ui.circle] === r.key ? ' on' : ''}" style="--g:${r.colore}" data-act="grado" data-r="${r.key}">${esc(r.label)}</button>`).join('')}</div>` : '';
+    // assegnazione alla corsa del giorno
+    const oggi = T.turniDelGiorno(NM.righeNavi(), day);
+    const codici = NM.turniCodici(day);
+    const attuale = codici.find(c => norm(oggi[c]?.nave).replace(/\s*(\([A-Z]\)|©)/g, '') === norm(ship.nome)) || '';
+    const opzioni = `<option value="">— nessuna —</option>${codici.map(c => `<option value="${c}"${c === attuale ? ' selected' : ''}>${c}${oggi[c]?.nave && c !== attuale ? ` (ora: ${esc(oggi[c].nave)})` : ''}</option>`).join('')}`;
+    const periodi = ship.periodi.length > 1 ? `<small class="periodi">Periodi: ${ship.periodi.map(q => `${q === p ? '<b>' : ''}${q.dal ? 'dal ' + esc(q.dal.split('-').reverse().join('/')) : 'da sempre'}${q === p ? '</b>' : ''}`).join(' · ')}</small>` : '';
+    return `<div class="nave-det${ship.attiva ? '' : ' off'}">
+      <div class="nave-head"><input data-f="nome" value="${esc(ship.nome)}" aria-label="Nome nave">${inVigore ? '' : '<span class="badge">Nessun periodo in vigore nel giorno</span>'}</div>
+      <div class="nave-blocco">
+        <h3>Equipaggio minimo</h3>
+        <div class="nave-n"><label>Persone<input type="number" min="0" max="${MAX_POSTI}" step="1" inputmode="numeric" data-f="n" value="${lista.length}"></label>
+          <div class="posti">${cerchi || '<small>Indica quante persone servono.</small>'}</div></div>
+        ${palette}
+        <div class="nave-periodo"><label>Valido dal<input type="date" data-f="dal" value="${esc(p.dal)}" title="Vuoto = da sempre"></label>
+          <label>Nota<input class="note" data-f="nota" value="${esc(p.nota)}" placeholder="Es. orario invernale"></label>${periodi}
+          <button class="btn" type="button" data-act="add-period">+ Nuovo periodo dal ${esc(day.split('-').reverse().join('/'))}</button>
+          ${ship.periodi.length > 1 ? '<button class="btn danger" type="button" data-act="del-period">Elimina periodo</button>' : ''}</div>
+      </div>
+      <div class="nave-blocco">
+        <h3>Assegna a una corsa · ${esc(day.split('-').reverse().join('/'))}</h3>
+        <label class="nave-assegna">Corsa<select data-f="assegna"${ship.attiva ? '' : ' disabled'}>${opzioni}</select></label>
+        <small>${attuale ? `Oggi fa la corsa ${attuale}.` : 'Oggi non è assegnata a nessuna corsa.'} L'assegnazione si salva subito e vale solo per questo giorno.</small>
+      </div>
+      <div class="nave-azioni">
+        <button class="btn ghost" type="button" data-act="toggle-ship">${ship.attiva ? 'Disattiva nave' : 'Riattiva nave'}</button>
+        <button class="btn danger" type="button" data-act="del-ship">Elimina nave</button>
+      </div>
+    </div>`;
   }
 
   // ---- Azioni --------------------------------------------------------------
-
   function addShip(name) {
     const clean = String(name || '').trim();
-    if (!clean) { setStatus('Scrivi il nome della nave.', 'bad'); return false; }
-    if (nameTaken(clean)) { setStatus(`La nave «${clean}» esiste già.`, 'bad'); return false; }
-    state.navi[slug(clean)] = { nome:clean, attiva:true, periodi:[newPeriod()] };
+    if (!clean) { NM.setStatus('Scrivi il nome della nave.', 'bad'); return false; }
+    if (nameTaken(clean)) { NM.setStatus(`La nave «${clean}» esiste già.`, 'bad'); return false; }
+    const id = slug(clean);
+    ui.navi[id] = { nome:clean, attiva:true, periodi:[newPeriod()] };
+    ui.sel = id;
     return true;
+  }
+  const periodoCorrente = () => { const ship = ui.navi[ui.sel]; return ship && (currentPeriod(ship, NM.state.day) || ship.periodi[0]); };
+
+  async function assegna(ship, code) {
+    const day = NM.state.day;
+    const oggi = T.turniDelGiorno(NM.righeNavi(), day);
+    const nomeNave = ship.nome.trim();
+    const attuale = NM.turniCodici(day).find(c => norm(oggi[c]?.nave).replace(/\s*(\([A-Z]\)|©)/g, '') === norm(nomeNave));
+    if (attuale && attuale !== code && !(await NM.salva(attuale, { nave:'' }, `${nomeNave} tolta dalla ${attuale}.`))) return;
+    if (code) {
+      const prima = oggi[code]?.nave;
+      await NM.salva(code, { nave:nomeNave }, `${nomeNave} assegnata alla ${code}${prima && norm(prima) !== norm(nomeNave) ? ` al posto di ${prima}` : ''}.`);
+    }
   }
 
   function onClick(event) {
     const btn = event.target.closest('button[data-act]');
     if (!btn) return;
-    const ship = state.navi[btn.dataset.ship];
-    if (!ship) return;
     const act = btn.dataset.act;
-    if (act === 'add-period') {
-      let dal = $('ref-date').value || todayIso();
-      while (ship.periodi.some(p => p.dal === dal)) { const d = new Date(`${dal}T12:00:00`); d.setDate(d.getDate() + 1); dal = d.toISOString().slice(0, 10); }
-      ship.periodi.push(newPeriod(dal, currentPeriod(ship, dal) || ship.periodi[ship.periodi.length - 1]));
+    const ship = ui.navi[ui.sel];
+    if (act === 'sel') { ui.sel = btn.dataset.ship; ui.circle = -1; render(); return; }
+    if (act === 'save') { save(); return; }
+    if (act === 'import') { importNames(); return; }
+    if (act === 'add-ship') {
+      const input = document.getElementById('new-ship-name');
+      if (addShip(input.value)) { setDirty(true); NM.setStatus('Nave aggiunta: indica l\'equipaggio minimo e salva.'); render(); }
+      return;
+    }
+    if (!ship) return;
+    const p = periodoCorrente();
+    if (act === 'posto') { ui.circle = ui.circle === Number(btn.dataset.i) ? -1 : Number(btn.dataset.i); render(); return; }
+    if (act === 'grado') {
+      const lista = posti(p);
+      if (ui.circle < 0 || ui.circle >= lista.length) return;
+      lista[ui.circle] = btn.dataset.r;
+      impostaPosti(p, lista);
+      ui.circle = -1;
+    } else if (act === 'add-period') {
+      let dal = NM.state.day;
+      if (ship.periodi.some(q => q.dal === dal)) { NM.setStatus('Esiste già un periodo con questa data di inizio.', 'bad'); return; }
+      ship.periodi.push(newPeriod(dal, p));
       sortPeriods(ship);
     } else if (act === 'del-period') {
       if (!confirm('Eliminare questo periodo?')) return;
-      ship.periodi.splice(Number(btn.dataset.p), 1);
+      ship.periodi.splice(ship.periodi.indexOf(p), 1);
     } else if (act === 'toggle-ship') {
       ship.attiva = !ship.attiva;
     } else if (act === 'del-ship') {
       if (!confirm(`Eliminare la nave «${ship.nome}» e tutti i suoi periodi?`)) return;
-      delete state.navi[btn.dataset.ship];
-    }
+      delete ui.navi[ui.sel];
+      ui.sel = '';
+    } else return;
     setDirty(true);
     render();
   }
 
   function onInput(event) {
     const el = event.target;
-    const ship = state.navi[el.dataset.ship];
+    const ship = ui.navi[ui.sel];
     if (!ship) return;
-    if (el.dataset.r) {
-      const p = ship.periodi[Number(el.dataset.p)];
-      const value = Math.max(0, Math.min(MAX_PER_RUOLO, Math.floor(Number(el.value) || 0)));
-      p.equipaggio[el.dataset.r] = value;
-      const cell = document.querySelector(`[data-total="${CSS.escape(`${el.dataset.ship}-${el.dataset.p}`)}"]`);
-      if (cell) cell.textContent = String(totale(p));
-    } else if (el.dataset.f === 'nome') {
-      ship.nome = el.value;
-    } else if (el.dataset.f === 'nota') {
-      ship.periodi[Number(el.dataset.p)].nota = el.value;
-    } else {
-      return; // la data si gestisce su `change`, per non riordinare mentre si digita
-    }
+    const p = periodoCorrente();
+    if (el.dataset.f === 'nome') ship.nome = el.value;
+    else if (el.dataset.f === 'nota') p.nota = el.value;
+    else if (el.dataset.f === 'n') {
+      const n = Math.max(0, Math.min(MAX_POSTI, Math.floor(Number(el.value) || 0)));
+      const lista = posti(p);
+      while (lista.length < n) lista.push('marinaio');
+      lista.length = n;
+      impostaPosti(p, lista);
+      ui.circle = -1;
+      const box = view.querySelector('.posti');
+      if (box) box.innerHTML = lista.map((key, i) => { const r = RUOLI.find(x => x.key === key); return `<button type="button" class="posto" style="--g:${r.colore}" data-act="posto" data-i="${i}" title="${esc(r.label)}">${r.sigla}</button>`; }).join('') || '<small>Indica quante persone servono.</small>';
+      view.querySelector('.gradi')?.remove();
+    } else return;
     setDirty(true);
   }
 
   function onChange(event) {
     const el = event.target;
-    const ship = state.navi[el.dataset.ship];
+    const ship = ui.navi[ui.sel];
     if (!ship) return;
     if (el.dataset.f === 'dal') {
-      ship.periodi[Number(el.dataset.p)].dal = el.value;
+      const p = periodoCorrente();
+      if (ship.periodi.some(q => q !== p && q.dal === el.value)) { NM.setStatus('Esiste già un periodo con questa data di inizio.', 'bad'); render(); return; }
+      p.dal = el.value;
       sortPeriods(ship);
       setDirty(true);
       render();
-    } else if (el.dataset.r) {
-      el.value = ship.periodi[Number(el.dataset.p)].equipaggio[el.dataset.r]; // riporta il valore ripulito
+    } else if (el.dataset.f === 'n') {
+      render();
+    } else if (el.dataset.f === 'nome') {
+      render();
+    } else if (el.dataset.f === 'assegna') {
+      assegna(ship, el.value);
     }
   }
 
   function validate() {
     const names = new Set();
-    for (const [id, ship] of Object.entries(state.navi)) {
+    for (const ship of Object.values(ui.navi)) {
       const name = ship.nome.trim();
       if (!name) return 'Una nave non ha il nome.';
       if (names.has(name.toLowerCase())) return `Nome nave duplicato: «${name}».`;
@@ -194,7 +257,7 @@
   }
 
   function serialize() {
-    return Object.fromEntries(Object.entries(state.navi).map(([id, ship]) => [id, {
+    return Object.fromEntries(Object.entries(ui.navi).map(([id, ship]) => [id, {
       nome:ship.nome.trim(),
       attiva:ship.attiva,
       periodi:sortPeriods(ship).map(p => ({ dal:p.dal, equipaggio:Object.fromEntries(RUOLI.map(r => [r.key, p.equipaggio[r.key]])), nota:p.nota.trim() }))
@@ -203,29 +266,31 @@
 
   async function save() {
     const problem = validate();
-    if (problem) { setStatus(problem, 'bad'); return; }
-    $('save-fleet').disabled = true;
+    if (problem) { NM.setStatus(problem, 'bad'); return; }
+    const btn = document.getElementById('save-fleet');
+    if (btn) btn.disabled = true;
     try {
       // Evita di sovrascrivere in silenzio le modifiche di un altro admin.
       const remote = await window.NaviAdminFirebase.getFleet();
-      if (remote.updatedAt && remote.updatedAt !== state.loadedAt &&
+      if (remote.updatedAt && remote.updatedAt !== ui.loadedAt &&
         !confirm(`L'anagrafica è stata modificata da ${remote.updatedBy || 'un altro admin'} dopo il tuo caricamento. Sovrascrivere comunque?`)) {
-        setStatus('Salvataggio annullato: ricarica la pagina per vedere le modifiche più recenti.', 'bad');
-        $('save-fleet').disabled = false;
+        NM.setStatus('Salvataggio annullato: ricarica la pagina per vedere le modifiche più recenti.', 'bad');
+        if (btn) btn.disabled = false;
         return;
       }
-      const saved = await window.NaviAdminFirebase.saveFleet(serialize(), profile.name || profile.agente || profile.cognome || profile.id);
-      state.loadedAt = saved.updatedAt;
+      const saved = await window.NaviAdminFirebase.saveFleet(serialize(), NM.profile.name || NM.profile.agente || NM.profile.cognome || NM.profile.id);
+      ui.loadedAt = saved.updatedAt;
+      NM.state.fleet = saved.navi;
+      NM.state.fleetMeta = { updatedAt: saved.updatedAt, updatedBy: saved.updatedBy };
       setDirty(false);
-      setStatus(`Salvato alle ${new Date(saved.updatedAt).toLocaleTimeString('it-IT')}.`, 'ok');
+      NM.setStatus(`Navi salvate alle ${new Date(saved.updatedAt).toLocaleTimeString('it-IT')}.`, 'ok');
     } catch (error) {
-      setStatus(`Salvataggio non riuscito: ${error.message}`, 'bad');
-      $('save-fleet').disabled = false;
+      NM.setStatus(`Salvataggio non riuscito: ${error.message}`, 'bad');
+      if (btn) btn.disabled = false;
     }
   }
 
-  // Nomi nave gia' presenti nelle assegnazioni nave/corsa (turniNavi), da
-  // aggiungere all'anagrafica. Le righe che sono in realta' codici turno si scartano.
+  // Nomi nave gia' presenti nelle assegnazioni nave/corsa (turniNavi). Le righe che sono codici turno si scartano.
   async function importNames() {
     try {
       const updates = await window.NaviAdminFirebase.getAdminUpdates();
@@ -237,35 +302,24 @@
       });
       const added = [...found.values()].filter(name => !nameTaken(name)).map(name => addShip(name)).filter(Boolean).length;
       if (added) { setDirty(true); render(); }
-      setStatus(added ? `Aggiunte ${added} navi dalle assegnazioni esistenti: ora indica l'equipaggio minimo di ciascuna.` : 'Nessuna nave nuova nelle assegnazioni esistenti.', added ? 'ok' : '');
+      NM.setStatus(added ? `Aggiunte ${added} navi dalle assegnazioni esistenti: ora indica l'equipaggio minimo di ciascuna.` : 'Nessuna nave nuova nelle assegnazioni esistenti.', added ? 'ok' : '');
     } catch (error) {
-      setStatus(`Importazione non riuscita: ${error.message}`, 'bad');
+      NM.setStatus(`Importazione non riuscita: ${error.message}`, 'bad');
     }
   }
 
-  async function init() {
-    $('ref-date').value = todayIso();
-    $('ref-date').addEventListener('change', render);
-    $('add-ship').addEventListener('click', () => { if (addShip($('new-ship-name').value)) { $('new-ship-name').value = ''; setDirty(true); setStatus('Nave aggiunta: indica l\'equipaggio minimo e salva.'); render(); } });
-    $('new-ship-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('add-ship').click(); });
-    $('import-ships').addEventListener('click', importNames);
-    $('save-fleet').addEventListener('click', save);
-    const table = $('fleet-table');
-    table.addEventListener('click', onClick);
-    table.addEventListener('input', onInput);
-    table.addEventListener('change', onChange);
-    window.addEventListener('beforeunload', e => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
-    try {
-      await window.NaviAdminFirebase.ready;
-      const fleet = await window.NaviAdminFirebase.getFleet();
-      state.navi = normalizeFleet(fleet.navi);
-      state.loadedAt = fleet.updatedAt;
-      setStatus(fleet.updatedAt ? `Anagrafica caricata · ultimo salvataggio ${new Date(fleet.updatedAt).toLocaleString('it-IT')}${fleet.updatedBy ? ` da ${fleet.updatedBy}` : ''}.` : 'Anagrafica vuota: aggiungi le navi.', 'ok');
-    } catch (error) {
-      setStatus(`Impossibile leggere l'anagrafica: ${error.message}`, 'bad');
-    }
-    render();
-  }
+  view.addEventListener('click', onClick);
+  view.addEventListener('input', onInput);
+  view.addEventListener('change', onChange);
+  view.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'new-ship-name') document.getElementById('add-ship').click(); });
+  window.addEventListener('beforeunload', e => { if (ui.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
-  init();
+  // Copia modificabile dell'anagrafica: si aggiorna dal server solo se non ci sono modifiche in corso.
+  function onData() {
+    if (ui.dirty) return;
+    ui.navi = normalizeFleet(NM.state.fleet);
+    ui.loadedAt = NM.state.fleetMeta.updatedAt;
+    if (!ui.synced) { ui.synced = true; NM.setStatus(ui.loadedAt ? `Navi caricate · ultimo salvataggio ${new Date(ui.loadedAt).toLocaleString('it-IT')}${NM.state.fleetMeta.updatedBy ? ` da ${NM.state.fleetMeta.updatedBy}` : ''}.` : 'Anagrafica vuota: aggiungi le navi.', 'ok'); }
+  }
+  NM.vista('navi', render, { onData, onDay: () => { ui.circle = -1; } });
 })();
