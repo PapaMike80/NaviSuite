@@ -399,7 +399,7 @@ def fronte(c, x, y):
         c.drawString(L + 33.5 * mm, yy + 0.2 * mm, f"c. {run}" if run else "–")
         testo = where.replace(" (a disposizione)", " (a disp.)")
         c.setFillColor(INCHIOSTRO); c.setFont("DV", 8)
-        limite = R - (6 * mm if run in BOLGETTE else 0)
+        limite = R - (pdfmetrics.stringWidth(BOLGETTE[run], "DVB", 5.8) + 5 * mm if run in BOLGETTE else 0)
         assert L + 42 * mm + pdfmetrics.stringWidth(testo, "DV", 8) <= limite, testo
         c.drawString(L + 42 * mm, yy, testo)
         yy -= row_h
@@ -407,11 +407,9 @@ def fronte(c, x, y):
     evidenzia(c, R - 5.6 * mm, 2.4 * mm, 0.8 * mm, righe)
     for t, top, bot in righe:
         if next(r[3] for r in ROWS if r[0] == t) in BOLGETTE:
-            cy = bot + 1.9 * mm
-            c.setFillColor(ARANCIO); c.circle(R - 2.2 * mm, cy + 1 * mm, 2.2 * mm, stroke=0, fill=1)
-            c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, cy - 0.1 * mm, "B")
+            etichetta(c, R, bot + 1.9 * mm, BOLGETTE[next(r[3] for r in ROWS if r[0] == t)], ARANCIO, NOTTE, size=5.8, h=3.8 * mm)
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
-    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB 7.45 Lun/Giov (rifornimento D2)")
+    c.drawString(L, y + 4 * mm, "AgB 7.45 Lun/Giov (rifornimento D2)")
 
     assert yy + row_h - 1.9 * mm > y + 6.5 * mm, (yy - y) / mm
 
