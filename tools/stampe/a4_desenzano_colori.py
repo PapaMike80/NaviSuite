@@ -391,12 +391,17 @@ def fronte(c, x, y):
     assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
 
 
-def retro(c, x, y, ormeggi, days, agenti=None):
+RIF_FISSI = {"D1": (1, 4), "D2": (0, 3), "BIS": tuple(range(7))}   # giorni (0 = lunedi')
+
+
+def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
     """Servizi a terra, ormeggi serali della settimana con chi e' di servizio, note."""
     agenti = agenti or {}
     gruppi, ods = gruppi_settimana(ormeggi, days)
-    top = intestazione_carta(c, x, y, f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
-                             "pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
+    if vuoto:  # versione pulita da compilare a mano: niente date, pontili, O.d.S. e agenti
+        gruppi, ormeggi, agenti = ["D1", "D2", "BIS"], {}, {}
+    top = intestazione_carta(c, x, y, "ORMEGGI SERALI  ___ / ___ – ___ / ___" if vuoto else f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
+                             "pontile della sera  ·  R = rifornimento  ·  da compilare" if vuoto else "pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
     L, R = x + 4 * mm, x + CW - 4 * mm
     # servizi a terra: orario e pausa pranzo
     yy = top - 3 * mm
@@ -427,7 +432,7 @@ def retro(c, x, y, ormeggi, days, agenti=None):
         c.setFillColor(NOTTE); c.setFont("DVB", 8.2)
         c.drawString(L + 1 * mm, yy + 0.4 * mm, GIORNI[i])
         c.setFont("DV", 7); c.setFillColor(GRIGIO)
-        c.drawString(L + 1 * mm, yy - 2.4 * mm, f"{d.day}/{d.month}")
+        c.drawString(L + 1 * mm, yy - 2.4 * mm, "__/__" if vuoto else f"{d.day}/{d.month}")
         # chi e' di servizio (dai turni); se non ancora noti, righe da compilare a mano
         chi = agenti.get(d.isoformat(), {})
         for k, (sigla, dy) in enumerate((("AgB", 1.2), ("PonD", -2.3))):
@@ -442,6 +447,14 @@ def retro(c, x, y, ormeggi, days, agenti=None):
                 c.setStrokeColor(BORDO); c.setLineWidth(0.5); c.line(AX + 7.5 * mm, yy + (dy - 0.4) * mm, R - 1 * mm, yy + (dy - 0.4) * mm)
         for gi, g in enumerate(gruppi):
             cx = L + lab_w + gw * (gi + 0.5)
+            if vuoto:
+                c.setStrokeColor(BORDO); c.setLineWidth(0.6)
+                c.roundRect(cx - 6 * mm, yy - 2.2 * mm, 8.5 * mm, 5.4 * mm, 1.2 * mm, stroke=1, fill=0)
+                # rifornimenti fissi dell'O.d.S.: D1 mar e ven, D2 lun e gio, BIS ogni giorno
+                if i in RIF_FISSI.get(g, ()):
+                    c.setFillColor(GIALLO); c.roundRect(cx + 3.2 * mm, yy - 1.2 * mm, 3.6 * mm, 3.8 * mm, 1 * mm, stroke=0, fill=1)
+                    c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(cx + 5 * mm, yy - 0.3 * mm, "R")
+                continue
             if d.isoformat() not in ormeggi:
                 if gi == 0:
                     c.setFont("DV", 5.8); c.setFillColor(GRIGIO)
@@ -482,9 +495,9 @@ def retro(c, x, y, ormeggi, days, agenti=None):
     assert yy - 0.4 * mm > y + 3.5 * mm, (yy - y) / mm
 
 
-def tascabile(out, ormeggi, lunedi, agenti=None):
+def tascabile(out, ormeggi, lunedi, agenti=None, vuoto=False):
     days = [lunedi + datetime.timedelta(days=i) for i in range(7)]
-    if agenti is None:
+    if agenti is None and not vuoto:
         agenti = agenti_settimana(days)
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle("Desenzano - pontile - tascabile (4 cartoncini A6, fronte/retro)")
@@ -494,7 +507,7 @@ def tascabile(out, ormeggi, lunedi, agenti=None):
     segni_taglio(c)
     c.showPage()
     for x, y in angoli:
-        retro(c, x, y, ormeggi, days, agenti)
+        retro(c, x, y, ormeggi, days, agenti, vuoto)
     segni_taglio(c)
     c.showPage()
     c.save()

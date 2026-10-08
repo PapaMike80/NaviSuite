@@ -8,6 +8,7 @@ Scrive in stampe/:
   Desenzano_pontile_AgB_A4.pdf          navi in ordine di orario + ormeggi serali lun-dom con rifornimenti,
                                         nei colori di NaviSuite
   Desenzano_pontile_tascabile_A4.pdf    tascabile del pontilista: 4 cartoncini A6 fronte/retro da ritagliare
+  Desenzano_pontile_tascabile_vuoto_A4.pdf  lo stesso senza pontili, date e agenti, da compilare a mano
   Maderno_servizio_terra_A4.pdf         navi di linea + traghetto Torri
   Maderno_passeggeri_A4.pdf             per il pubblico: navi di linea, partenze e ritorni con coincidenze
   Maderno_traghetto_Torri_A4.pdf        per il pubblico: traghetto Maderno - Torri, andata e ritorno
@@ -49,6 +50,8 @@ def main():
     # Desenzano pontile e AgB: solo la versione a colori (quella in bianco e nero non si stampa piu')
     a4_desenzano_colori.colori(os.path.join(a.out, "Desenzano_pontile_AgB_A4.pdf"), dati, lunedi)
     a4_desenzano_colori.tascabile(os.path.join(a.out, "Desenzano_pontile_tascabile_A4.pdf"), dati, lunedi)
+    # la stessa, pulita: ormeggi e agenti da compilare a mano
+    a4_desenzano_colori.tascabile(os.path.join(a.out, "Desenzano_pontile_tascabile_vuoto_A4.pdf"), dati, lunedi, vuoto=True)
     coperti = sum((lunedi + datetime.timedelta(days=i)).isoformat() in dati for i in range(7))
     print(f"A4 Desenzano: ormeggi settimana dal {lunedi} ({coperti}/7 giorni negli O.d.S.)")
     a4_maderno.main(os.path.join(a.out, "Maderno_servizio_terra_A4.pdf"))
