@@ -460,11 +460,14 @@
       : '⚓ ormeggio del mattino e della sera · R = rifornimento · B = bolgetta · arr. = arrivo della nave che poi riparte';
     const note = res ? `<details class="or-note" data-dettaglio="note"${state.dettagli.has('note') ? ' open' : ''}><summary>Note di Servizi a terra</summary><ul class="note-list">${res === 'DESENZANO' ? `<li class="rif"><b>${esc(D.RIFORNIMENTI.titolo)}</b>${D.RIFORNIMENTI.righe.map(esc).join('<br>')}</li>` : ''}` +
       `${D.NOTE[res].map(([bold, text]) => `<li${bold ? ' class="bold"' : ''}>${esc(text)}</li>`).join('')}</ul><p class="validita">${esc(D.VALIDITA)}</p></details>` : '';
-    return card('Allo scalo', righe.length ? `${righe.length} passaggi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
-      `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
+    // richiudibile: chiuso resta lo scalo scelto e solo la prossima nave (es. "San Vigilio 15.05")
+    const chiuso = !!state.scaloChiuso;
+    return card('Allo scalo', righe.length ? `${righe.length} passaggi` : '', `<div class="or-at-top">${selectScalo('or-scalo-lago')}` +
+      `<button type="button" class="or-at-toggle" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Mostra solo la prossima nave'}">${chiuso ? '▾' : '▴'}</button></div>` +
+      `<div class="or-at-corpo">${gpsHint(state.scalo)}${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
-      `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, 'or-at-card');
+      `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}</div>`, `or-at-card${chiuso ? ' or-at-chiuso' : ''}`);
   }
 
   function controlliTempo(t) {
@@ -809,6 +812,7 @@
       return;
     }
     if (event.target.closest('.pontile-sel')) return;
+    if (event.target.closest('[data-at-toggle]')) { state.scaloChiuso = !state.scaloChiuso; render(); return; }
     if (event.target.closest('[data-past-lago]')) { state.showPastLago = !state.showPastLago; render(); return; }
     // intestazione della scheda della corsa: la richiude
     const chiudi = event.target.closest('.or-detail .terra-card-head');
