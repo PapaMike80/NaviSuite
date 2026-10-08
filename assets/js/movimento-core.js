@@ -92,6 +92,20 @@
   // ---------------- Salvataggi ----------------
   const ritardiLista = map => Object.entries(map || {}).map(([corsa, x]) => ({ corsa, minuti: x.minuti, oltre: !!x.oltre }));
 
+  // Riga dell'O.d.S. del turno nel giorno (anche quella sostituita dal Movimento), come sarebbe senza modifiche.
+  function baseOds(code, day) {
+    const rows = (state.schedule?.turni_navi || []).filter(row => row?.fonte !== 'movimento')
+      .map(row => (row.sostituita_da_movimento ? { ...row, attiva: true, sostituita_da_movimento: undefined } : row));
+    return T.turniDelGiorno(rows, day)[code] || {};
+  }
+  // I valori da salvare coincidono con l'O.d.S.: nessuna modifica del Movimento da tenere.
+  function ugualeAllOds(values, base) {
+    const n = v => String(v || '').trim().toUpperCase();
+    const nave = v => nomiNave(v).map(x => x.toUpperCase()).join('+');
+    return nave(values.nave) === nave(base.nave) && n(values.ormeggio_mattino) === n(base.ormeggioMattino) && n(values.ormeggio_serale) === n(base.ormeggio) &&
+      !!values.rifornimento_mattina === !!base.rif && !values.sospesa && !(values.ritardi || []).length && !(values.incarichi || []).length;
+  }
+
   async function salva(code, patch, messaggio) {
     if (state.busy) return false;
     state.busy = true;
@@ -103,6 +117,13 @@
     };
     let ok = false;
     try {
+      if (r.movimento && ugualeAllOds(values, baseOds(code, state.day))) {
+        // tornato com'era nell'O.d.S.: toglie la riga del Movimento (e con lei la scritta "modificato dal Movimento")
+        state.turniNavi = await window.NaviAdminFirebase.ripristinaTurnoNave(state.day, code);
+        setStatus(`${messaggio} Tornata come nell'O.d.S.`, 'ok');
+        ok = true;
+        return ok;
+      }
       state.turniNavi = await window.NaviAdminFirebase.saveTurnoNaveMovimento(state.day, code, values, autore);
       setStatus(messaggio, 'ok');
       ok = true;

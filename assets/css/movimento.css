@@ -314,3 +314,6 @@ html.navisuite-light .pop-q{background:#fff!important;color:#17323a!important;bo
 html.navisuite-light .rit-tile{background:color-mix(in srgb,var(--c) 10%,#fff)!important}
 html.navisuite-light .rit-tile select,html.navisuite-light .bolla input{background:#fff!important;color:#17323a!important}
 html.navisuite-light .rit-top b,html.navisuite-light .rit-rotta{color:#17323a!important}
+/* Un membro in piu' del minimo ma non sovrannumero resta un pallino pieno: il tratteggio e' solo dei sovrannumero (D1*) */
+.slot.extra .slot-pallino{opacity:1;border-style:solid}
+.slot.extra.sovr .slot-pallino{border-style:dashed;background:transparent}

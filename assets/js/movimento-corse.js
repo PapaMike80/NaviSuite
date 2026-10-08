@@ -73,7 +73,10 @@
   function posti(nave, day, crew) {
     const periodo = periodoNave(nave, day);
     const variazione = m => variazioneMovimento(day, m.id);
-    const aggiunti = crew.filter(m => variazione(m)?.aggiunto && !sovrannumero(variazione(m))).map(m => RUOLO[m.grado[0]] || 'marinaio');
+    // sovrannumero: variazione col "+" o turno scritto con l'asterisco (D1*) gia' nei turni
+    const turni = new Map(agenti(day).map(a => [String(a.agent.id), a.turno]));
+    const isSovr = m => sovrannumero(variazione(m)) || String(turni.get(String(m.id)) || '').trim().endsWith('*');
+    const aggiunti = crew.filter(m => variazione(m)?.aggiunto && !isSovr(m)).map(m => RUOLO[m.grado[0]] || 'marinaio');
     const slot = periodo ? [...RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)), ...aggiunti] : crew.map(m => RUOLO[m.grado[0]] || 'marinaio');
     const liberi = [...crew];
     const out = slot.map(ruolo => ({ ruolo, membro: null, adattato: false }));
@@ -89,7 +92,7 @@
       const adatti = liberi.filter(m => COPRE[RUOLO[m.grado[0]]]?.includes(x.ruolo)).sort((a, b) => b.grado[2] - a.grado[2]);
       if (adatti.length) { x.membro = adatti[0]; x.adattato = true; liberi.splice(liberi.indexOf(adatti[0]), 1); }
     });
-    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: sovrannumero(variazione(m)) }));
+    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: isSovr(m) }));
     return out;
   }
   function pallini(code, lista) {
