@@ -304,7 +304,10 @@
       ...righe.flatMap(row => nomiNave(row?.nave))].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
-    const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
+    // le corse con l'equipaggio incompleto vanno in alto (a parita' resta l'ordine dei turni)
+    const mancanti = code => minimo((oggi[code] || {}).nave, day, crews[code] || [])?.mancano.reduce((t, x) => t + x.n - x.presenti, 0) || 0;
+    const cards = codes.map((code, i) => ({ code, i, m: mancanti(code) })).sort((x, y) => (y.m > 0) - (x.m > 0) || x.i - y.i)
+      .map(x => card(x.code, day, oggi[x.code] || {}, ieri[x.code] || {}, crews[x.code] || [], tutti)).join('');
     const terraCrews = Object.fromEntries(SERVIZI_TERRA.map(([cd]) => [cd, membriTerra(cd, tutti)]));
     const terra = `<h3 class="mov-sez">Servizi a terra</h3>` + [...new Set(SERVIZI_TERRA.map(x => x[1]))].map(res => cardTerraResidenza(res, day, terraCrews)).join('');
     const dmy = d => (d ? d.split('-').reverse().join('/') : '');
@@ -361,7 +364,7 @@
         <span class="chip" data-code="${code}">${code}</span>
         <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento && modificaOds(code, day, r) ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · <em class="mov-rit">⏱ ${ritardiTesto(r.ritardi)}</em>` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${avviso ? `<small class="mov-sotto">⚠ Equipaggio sotto il minimo · manca ${esc(manca)}</small>` : ''}${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo: manca ${esc(manca)}">⚠</span>' : ''}</span>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? `<span class="mov-warn" title="Equipaggio sotto il minimo: manca ${esc(manca)}">${min.mancano.reduce((t, x) => t + x.n - x.presenti, 0)}</span>` : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
       ${open ? `<div class="mov-azioni">${azioni}</div>` : ''}

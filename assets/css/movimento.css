@@ -485,3 +485,4 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .ag-res-head .ag-modificato + .ag-richiesta-tag{margin-left:8px}
 .tab-badge.rosso{background:#e11d48;color:#fff}
 .tab-badge.arancio{background:#f59e0b;color:#1f1300}
+.mov-warn{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:999px;background:#e11d48;color:#fff!important;font-size:14px!important;font-weight:800;box-sizing:border-box}
