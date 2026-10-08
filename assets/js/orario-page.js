@@ -83,14 +83,14 @@
   const realToday = () => today() === iso(new Date());
   const nowMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
   // Ora mostrata: quella del cursore, altrimenti adesso (o le 9.00 per gli altri giorni).
-  // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima partenza della giornata dal mio scalo
-  // (come nell'elenco Allo scalo; gli arrivi e il BIS a disposizione non contano), altrimenti le 9.00.
+  // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima ora dell'elenco Allo scalo
+  // (la prima nave che passa dallo scalo, BIS compreso come una nave di corsa), altrimenti le 9.00.
   const shownTime = g => {
     if (state.time != null) return state.time;
     if (realToday()) return nowMinutes();
     // servizio a terra scelto (anche in prova): il lago parte dall'ora in cui inizia
     if (/^\d{1,2}[.:]\d{2}$/.test(state.embed?.inizio || '')) return minutes(state.embed.inizio);
-    const prima = righeScalo(g || giornata()).find(r => r.kind === 'P' && !r.propria);
+    const prima = righeScalo(g || giornata()).find(r => !r.v?.sospesa);
     return prima ? prima.t : 9 * 60;
   };
 
