@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null };
+  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, destAperto: false };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -171,14 +171,17 @@
       return titolo + res.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
-    // dove va chi sbarca: riposo e assenze, L.D. e Lavori, oppure un'altra corsa
-    const dest = [...[['RIP', 'Riposo (RIP)'], ['MAL', 'Malattia (MAL)'], ['CON', 'Congedo (CON)'], ['FERIE', 'Ferie (FERIE)'], ['F.P.', 'Ferie F.P.'], ['LD', 'L.D. (LD)'], ['LAV', 'Lavori (LAV)']],
-      ...[...O.TURNI, 'BIS'].filter(cd => cd !== code).map(cd => [cd, `sulla ${cd}`])];
-    const opz = scelto => dest.map(([v, l]) => `<option value="${v}"${scelto === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
-    // due bolle accanto al grado: "Se lo sostituisci va in…" (di solito riposo) e "Toglilo" senza sostituto
+    // dove va chi sbarca: di solito riposo; si cambia dal valore nella bolla (assenze, a terra, altre corse)
+    const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori' };
+    const nomeDest = v => NOMI[v] || `sulla ${v}`;
+    const chip = v => `<button type="button" class="pop-chip${ui.sbarco === v ? ' on' : ''}" data-act="dest-scegli" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
+    const destinazioni = ui.destAperto ? `<div class="pop-dest">
+      <p>Assenze</p><div class="pop-chips">${['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'].map(chip).join('')}</div>
+      <p>A terra</p><div class="pop-chips">${['LD', 'LAV'].map(chip).join('')}</div>
+      <p>Su un'altra corsa</p><div class="pop-chips">${[...O.TURNI, 'BIS'].filter(cd => cd !== code).map(chip).join('')}</div></div>` : '';
     const bolle = x.membro ? `<div class="pop-bolle">` +
-      (candidati.length ? `<label class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} se lo sostituisci"><span>↪ Sostituito va in</span><select data-pop-sbarco aria-label="Dove va chi viene sostituito">${opz(ui.sbarco)}</select></label>` : '') +
-      `<label class="pop-bolla b-togli" title="Toglie ${esc(x.membro.name)} senza metterne un altro"><span>✕ Toglilo</span><select data-pop-out aria-label="Togli senza sostituto"><option value="" selected>va in…</option>${opz('')}</select></label></div>` : '';
+      (candidati.length ? `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} se lo sostituisci"><span>↪ Sostituito va in</span><button type="button" class="pop-val${ui.destAperto ? ' on' : ''}" data-act="dest-apri">${esc(nomeDest(ui.sbarco))} ▾</button></span>` : '') +
+      `<button type="button" class="pop-bolla b-togli" data-act="togli-subito" data-code="${code}" title="Toglie ${esc(x.membro.name)} senza metterne un altro: va in ${esc(nomeDest(ui.sbarco))}">✕ Toglilo</button></div>${destinazioni}` : '';
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
       <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
       ${bolle}
@@ -457,8 +460,6 @@
   list.addEventListener('change', event => {
     const el = event.target;
     const code = el.dataset.code;
-    if (el.matches('[data-pop-sbarco]')) { ui.sbarco = el.value; setStatus(`Chi viene sostituito va in ${el.value}.`, 'ok'); render(); return; }
-    if (el.matches('[data-pop-out]')) { if (el.value && ui.menu) cambiaPosto(ui.menu.code, el.value, 'out'); return; }
     if (el.dataset.f === 'rif') { salva(code, { rifornimento_mattina: el.checked }, `${code}: rifornimento ${el.checked ? 'previsto' : 'tolto'}.`); return; }
     if (el.dataset.f) {
       const value = el.value.trim();
@@ -506,9 +507,12 @@
     const code = button.dataset.code;
     const act = button.dataset.act;
     if (act === 'open') { ui.open = ui.open === code ? '' : code; ui.menu = null; render(); }
-    else if (act === 'slot') { const i = Number(button.dataset.i); ui.q = ''; ui.menu = ui.menu?.code === code && ui.menu.i === i ? null : { code, i }; render(); }
+    else if (act === 'slot') { const i = Number(button.dataset.i); ui.q = ''; ui.destAperto = false; ui.menu = ui.menu?.code === code && ui.menu.i === i ? null : { code, i }; render(); }
     else if (act === 'menu-close') { ui.menu = null; ui.q = ''; render(); }
     else if (act === 'pick') cambiaPosto(code, button.dataset.id, 'pick');
+    else if (act === 'togli-subito') cambiaPosto(code, ui.sbarco, 'out');
+    else if (act === 'dest-apri') { ui.destAperto = !ui.destAperto; render(); }
+    else if (act === 'dest-scegli') { ui.sbarco = button.dataset.v; ui.destAperto = false; render(); }
     else if (act === 'tipo') { ui.sovr = button.dataset.v === 'sovr'; render(); }
     else if (act === 'aggiungi') {
       const sovr = ui.sovr;
