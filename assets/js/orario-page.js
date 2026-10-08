@@ -101,13 +101,18 @@
     const programmate = {};
     [...O.corseDelGiorno(day), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day) : [])]
       .forEach(c => { programmate[`${c.turno}|${c.numero}`] = c.scali; });
-    // corse sospese dall'Ufficio Movimento (una per una o tutto il turno): restano in elenco con la scritta
+    // corse sospese dall'Ufficio Movimento (una per una o tutto il turno): restano in elenco con la scritta,
+    // sugli scali da cui vale la sospensione (se la nave era gia' in viaggio, dallo scalo in cui si trovava)
+    const daDi = (code, numero) => { const x = (navi[code]?.corseSospeseRaw || []).find(y => y.corsa === String(numero)); return x?.da ? { t: minutes(x.da), scalo: x.scalo } : null; };
     const sospese = O.TURNI.filter(code => O.inServizio(code, day)).flatMap(code => {
       const v = navi[code];
       if (!v?.sospesa && !v?.corseSospese?.length) return [];
       const dal = new Set(v.corseSospese || []);
-      return O.corseDelTurno(code, day).filter(c => v.sospesa || dal.has(String(c.numero)))
-        .map(c => ({ turno: code, corse: [c.numero], numero: c.numero, sospesa: true, tutto: !!v.sospesa, motivo: v.motivo || '', scali: c.scali.map(([nome, ora]) => [nome, ora, c.numero]) }));
+      return O.corseDelTurno(code, day).filter(c => v.sospesa || dal.has(String(c.numero))).map(c => {
+        const da = v.sospesa ? null : daDi(code, c.numero);
+        const scali = c.scali.filter(([, ora]) => !da || minutes(ora) >= da.t);
+        return { turno: code, corse: [c.numero], numero: c.numero, sospesa: true, tutto: !!v.sospesa, motivo: v.motivo || '', da: da?.scalo || '', scali: scali.map(([nome, ora]) => [nome, ora, c.numero]) };
+      }).filter(x => x.scali.length);
     });
     return {
       day, incarichi, ritardo, programmate, bisAttivo, sospese,
@@ -116,7 +121,9 @@
       viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa).map(v => {
         // corse sospese una per una: fuori dal viaggio
         const sosp = new Set(navi[v.turno]?.corseSospese || []);
-        return sosp.size ? { ...v, corse: v.corse.filter(n => !sosp.has(String(n))), scali: v.scali.filter(s => !sosp.has(String(s[2]))) } : v;
+        // la parte gia' fatta di una corsa sospesa in viaggio resta nel viaggio
+        const fatto = s => { const x = (navi[v.turno]?.corseSospeseRaw || []).find(y => y.corsa === String(s[2])); return !!x?.da && minutes(s[1]) <= minutes(x.da); };
+        return sosp.size ? { ...v, corse: v.corse.filter(n => !sosp.has(String(n)) || v.scali.some(s => String(s[2]) === String(n) && fatto(s))), scali: v.scali.filter(s => !sosp.has(String(s[2])) || fatto(s)) } : v;
       }).filter(v => v.corse.length), ...bis],
       navi,
       crews: state.schedule ? G.equipaggi(state.schedule, day).navi : {}
@@ -408,7 +415,7 @@
       if (r.v.sospesa) {
         return `<div class="nave sospesa${r.t < t ? ' past' : ''}"><span class="ora">${esc(r.ora)}</span>` +
           `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>corsa ${esc(r.corsa)}</small></span>${chip(code)}` +
-          `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span><b class="sosp-tag">SOSPESA</b>${r.v.motivo ? `<span class="cte">${esc(r.v.motivo)}</span>` : ''}</span></span></div>`;
+          `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span><b class="sosp-tag">SOSPESA${r.v.da ? ` da ${esc(r.v.da)}` : ''}</b>${r.v.motivo ? `<span class="cte">${esc(r.v.motivo)}</span>` : ''}</span></span></div>`;
       }
       // BIS a disposizione: esce la mattina (8.30) e rientra la sera (18.40) da Desenzano
       const mattino = r.propria ? r.kind === 'P' : r.kind === 'P' && !r.arr && primo[code]?.scalo === state.scalo && primo[code]?.t === r.t;
@@ -710,7 +717,7 @@
       if (v?.sospesa) voci.push(`<b>${esc(code)}</b> · tutte le corse (${corse.length ? `${esc(corse[0].numero)}–${esc(corse[corse.length - 1].numero)}` : ''}) <em>SOSPESE</em>${v.motivo ? ` · ${esc(v.motivo)}` : ''}`);
       else (v?.corseSospese || []).forEach(n => {
         const c = corse.find(x => x.numero === String(n));
-        if (c) voci.push(`<b>${esc(code)}</b> · c. ${esc(c.numero)} · ${corsaTesto(c)} <em>SOSPESA</em>`);
+        if (c) voci.push(`<b>${esc(code)}</b> · c. ${esc(c.numero)} · ${corsaTesto(c)} <em>SOSPESA${(v.corseSospeseRaw || []).find(y => y.corsa === String(c.numero))?.scalo ? ` da ${esc((v.corseSospeseRaw || []).find(y => y.corsa === String(c.numero)).scalo)}` : ''}</em>`);
       });
     });
     (navi.BIS?.incarichi || []).filter(inc => inc.tipo !== 'aiuto').forEach(inc => {

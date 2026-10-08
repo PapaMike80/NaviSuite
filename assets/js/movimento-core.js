@@ -122,7 +122,7 @@
     const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
     const values = {
       nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
-      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), corse_sospese: r.corseSospese || [], ...patch
+      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), corse_sospese: r.corseSospeseRaw || [], ...patch
     };
     let ok = false;
     try {

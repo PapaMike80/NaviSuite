@@ -343,6 +343,18 @@
       <div class="sp-tutto"><input class="mov-motivo" id="mov-motivo" placeholder="Motivo (es. lago mosso)" autocomplete="off"><button type="button" class="btn danger" data-act="confirm-suspend" data-code="${code}">Sospendi tutto il turno</button><button type="button" class="btn ghost" data-act="cancel-suspend">Chiudi</button></div>
     </div>`;
   }
+  // Sospensione di una corsa gia' in viaggio: vale dallo scalo in cui la nave si trova adesso (oggi); se non e'
+  // ancora partita (o e' un altro giorno) vale per tutta la corsa.
+  function daSospensione(c) {
+    if (state.day !== iso(new Date())) return { da: '', scalo: '' };
+    const adesso = new Date().getHours() * 60 + new Date().getMinutes();
+    const t = i => O.minutes(c.scali[i][1]);
+    if (adesso <= t(0) || adesso >= t(c.scali.length - 1)) return { da: '', scalo: '' };
+    let i = 0;
+    c.scali.forEach((_, k) => { if (t(k) <= adesso) i = k; });
+    return { da: c.scali[i][1], scalo: c.scali[i][0] };
+  }
+  const sospRaw = code => state.oggi[code]?.corseSospeseRaw || [];
   // Colore del ritardo: verde in orario, giallo fino a 15', arancio fino a 45', rosso oltre; viola oltre 2 ore.
   const livelloRitardo = rit => (!rit ? 'ok' : rit.oltre ? 'max' : rit.minuti <= 15 ? 'l1' : rit.minuti <= 45 ? 'l2' : 'l3');
   function ritardiPanel(code, day, r) {
@@ -357,11 +369,12 @@
       const nota = eff.ritardo?.propagato ? `dalla corsa prima · parte ${esc(eff.scali[0][1])}` : proprio ? `parte ${esc(eff.scali[0][1])}, arriva ${esc(eff.scali[eff.scali.length - 1][1])}` : '';
       const ultimo = c.scali[c.scali.length - 1];
       const sospesa = (r.corseSospese || []).includes(String(c.numero));
+      const sospDa = (r.corseSospeseRaw || []).find(x => x.corsa === String(c.numero));
       const perBis = code !== 'BIS' ? O.bisPerCorsa(state.oggi.BIS?.incarichi, code, c.numero, day) : null;
       const azione = perBis ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-code="${code}" data-corsa="${esc(c.numero)}" title="Toglie la corsa al BIS: la rifa la nave della ${code}">↺ Ripristina alla ${code}</button>` : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>`
         : '';
       return `<div class="rit-tile ${sospesa ? 'sosp' : livelloRitardo(eff.ritardo)}${eff.ritardo?.propagato && !sospesa ? ' prop' : ''}${perBis ? ' bis' : ''}">
-        <div class="rit-top"><b>c. ${esc(c.numero)}</b><span class="rit-badge">${sospesa ? 'SOSPESA' : eff.ritardo ? esc(O.testoRitardo(eff.ritardo)) : 'in orario'}</span>${perBis ? '<span class="rit-bis-tag" title="La fa il BIS al posto della nave">BIS</span>' : ''}${azione}</div>
+        <div class="rit-top"><b>c. ${esc(c.numero)}</b><span class="rit-badge">${sospesa ? (sospDa?.scalo ? `SOSPESA da ${esc(sospDa.scalo)}` : 'SOSPESA') : eff.ritardo ? esc(O.testoRitardo(eff.ritardo)) : 'in orario'}</span>${perBis ? '<span class="rit-bis-tag" title="La fa il BIS al posto della nave">BIS</span>' : ''}${azione}</div>
         <div class="rit-rotta"><span>${esc(c.scali[0][1])}</span> ${esc(c.scali[0][0])} <i>→</i> <span>${esc(ultimo[1])}</span> ${esc(ultimo[0])}</div>
         ${sospesa ? '' : `<select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>`}
         ${nota && !sospesa ? `<small>${nota}</small>` : ''}</div>`;
@@ -522,7 +535,7 @@
     }
     else if (act === 'corsa-riprendi') {
       const corsa = button.dataset.corsa;
-      const lista = (state.oggi[code]?.corseSospese || []).filter(n => n !== corsa);
+      const lista = sospRaw(code).filter(x => x.corsa !== corsa);
       salva(code, { corse_sospese: lista }, `${code}: corsa ${corsa} ripristinata.`);
     }
     else if (act === 'sel-tutte') { ui.selCorse = new Set(O.corseDelTurno(code, state.day).map(x => String(x.numero))); render(); }
@@ -535,16 +548,18 @@
       render();
     }
     else if (act === 'sosp-sel') {
-      const gia = state.oggi[code]?.corseSospese || [];
-      const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
+      const gia = sospRaw(code);
+      const corseTurno = O.corseDelTurno(code, state.day);
+      const tutte = corseTurno.map(x => String(x.numero));
       const nuove = tutte.filter(n => ui.selCorse.has(n));
       if (!nuove.length) return;
       ui.selCorse = new Set(); ui.suspending = '';
-      salva(code, { corse_sospese: [...new Set([...gia, ...nuove])] }, nuove.length > 1 ? `${code}: sospese ${nuove.length} corse (${nuove.join(', ')}).` : `${code}: sospesa la corsa ${nuove[0]}.`);
+      const aggiunte = nuove.filter(n => !gia.some(x => x.corsa === n)).map(n => ({ corsa: n, ...daSospensione(corseTurno.find(x => String(x.numero) === n)) }));
+      salva(code, { corse_sospese: [...gia, ...aggiunte] }, nuove.length > 1 ? `${code}: sospese ${nuove.length} corse (${nuove.join(', ')}).` : `${code}: sospesa la corsa ${nuove[0]}.`);
     }
     else if (act === 'bis-sel') {
       // al BIS: fa le corse selezionate al posto della nave (come "⇄ BIS"), che non vengono sospese
-      const gia = state.oggi[code]?.corseSospese || [];
+      const gia = sospRaw(code);
       const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
       const nuove = tutte.filter(n => ui.selCorse.has(n));
       if (!nuove.length) return;
@@ -556,7 +571,7 @@
       const msg = `Il BIS fa ${nuove.length > 1 ? `le corse ${nuove.join(', ')}` : `la corsa ${nuove[0]}`} della ${code}.`;
       (async () => {
         if (!(await salva('BIS', { incarichi }, msg))) return;
-        const restano = gia.filter(n => !nuove.includes(n));
+        const restano = gia.filter(x => !nuove.includes(x.corsa));
         if (restano.length !== gia.length) await salva(code, { corse_sospese: restano }, msg);
       })();
     }
