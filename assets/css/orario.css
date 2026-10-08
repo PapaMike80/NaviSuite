@@ -169,3 +169,5 @@ html.navisuite-light #orario .terra-day-current,#mio-turno .terra-day-current{ba
 html.navisuite-light #orario .terra-day-label,#mio-turno .terra-day-label{color:#0c3b36!important}
 #orario .terra-day-today,#mio-turno .terra-day-today{border-width:2px;opacity:.75}
 #orario .terra-day-today.on,#mio-turno .terra-day-today.on{opacity:1;border-color:#2dd4bf;background:rgba(45,212,191,.28);color:#99f6e4;box-shadow:0 0 14px rgba(45,212,191,.55)}
+.or-adesso{flex:none;min-width:84px;height:30px;padding:0 10px;border:2px solid rgba(45,212,191,.55);border-radius:9px;background:rgba(45,212,191,.08);color:rgba(153,246,228,.85);font:900 11px DM Sans,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.or-adesso.on{border-color:#2dd4bf;background:rgba(45,212,191,.22);color:#2dd4bf;cursor:default}

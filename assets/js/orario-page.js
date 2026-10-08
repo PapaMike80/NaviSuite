@@ -474,12 +474,15 @@
     return scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
   }
 
+  // Solo nella giornata di oggi: "Adesso" sempre della stessa misura; acceso se l'ora segue l'orologio, con un bordino verde
+  // trasparente se ho spostato l'ora (clic = torna adesso). Negli altri giorni niente pulsante.
+  const bottoneAdesso = live => (realToday() ? `<button type="button" class="or-adesso${live ? ' on' : ''}" data-now>${live ? 'ADESSO' : 'Adesso'}</button>` : '');
   function controlliTempo(t) {
     const min = 7 * 60, max = 20 * 60 + 30;
     const live = state.time == null && realToday();
     return `<button type="button" class="or-play" data-play aria-label="${state.playing ? 'Ferma' : 'Fai scorrere il tempo'}">${state.playing ? '❚❚' : '▶'}</button>` +
       `<input type="range" id="or-slider" min="${min}" max="${max}" step="1" value="${Math.min(max, Math.max(min, t))}" aria-label="Ora">` +
-      `<b class="or-clock" id="or-clock">${hhmm(t)}</b>${live ? '<span class="or-live">ADESSO</span>' : `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`}`;
+      `<b class="or-clock" id="or-clock">${hhmm(t)}</b>${bottoneAdesso(live)}`;
   }
 
   function renderLago() {
@@ -500,8 +503,8 @@
     $('or-map-wrap').innerHTML = svg;
     if ($('or-side')) $('or-side').innerHTML = side;
     $('or-clock').textContent = hhmm(t);
-    const live = document.querySelector('#or-time .or-live');
-    if (live && state.time != null) live.outerHTML = `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`;
+    const adesso = document.querySelector('#or-time .or-adesso');
+    if (adesso && state.time != null) { adesso.classList.remove('on'); adesso.textContent = 'Adesso'; }
   }
 
   function dettaglioNave(g, code, t) {
@@ -850,7 +853,7 @@
       if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector(`.or-detail[data-detail="${ship.dataset.ship}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }
+    if (event.target.closest('[data-now]')) { stopPlay(); state.time = null; render(); return; }
     if (event.target.closest('[data-play]')) {
       if (state.playing) { stopPlay(); render(); return; }
       state.time = shownTime();
