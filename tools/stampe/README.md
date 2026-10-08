@@ -7,7 +7,7 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | `Desenzano_pontile_AgB_A4.pdf` | AgB e PonD, navi in ordine di orario con le barre degli orari di servizio di AgB e PonD, ormeggi serali lun–dom con rifornimenti (R), nei colori di NaviSuite (`a4_desenzano_colori.py`) |
 | `Desenzano_pontile_tascabile_A4.pdf` | tascabile del pontilista: 2 pagine da stampare fronte/retro (lato lungo) e tagliare in 4 cartoncini A6; davanti le navi in ordine di orario, davanti, a destra delle corse, le barre degli orari di servizio di AgB e PonD (interrotte nella pausa); dietro AgB/PonD, ormeggi serali della settimana con R, chi è di servizio AgB e PonD (dai turni pubblicati, altrimenti righe da compilare) e note su rifornimenti e bolgette |
 | `Desenzano_pontile_tascabile_rifornimenti_A4.pdf` | lo stesso tascabile valido per ogni settimana: dietro solo i rifornimenti fissi dell'O.d.S., senza pontili e agenti |
-| `Maderno_servizio_terra_A4.pdf` | AgM e AgT, navi di linea e traghetto Torri in ordine di orario |
+| `Maderno_servizio_terra_A4.pdf` | AgM e AgT, navi di linea e traghetto Torri in ordine di orario, nei colori di NaviSuite |
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
 | `Desenzano_passeggeri_A4.pdf` | lo stesso foglio per i passeggeri di Desenzano |
