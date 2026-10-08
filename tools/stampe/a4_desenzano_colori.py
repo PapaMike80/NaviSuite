@@ -40,7 +40,7 @@ TURNI = {"D1": "#3b6fe0", "R1": "#3b6fe0", "P1": "#3b6fe0", "T1": "#3b6fe0",
          "M1": "#e07b2a", "R3": "#e07b2a", "D3": "#e07b2a", "D4": "#c25bbd",
          "BIS": "#0e9fb3", "SR1": "#7c5ce0", "SR2": "#7c5ce0"}
 GIORNI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
-SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30' (Lun/Giov 8 ore 45', rifornimento D2)"),
+SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30'"),
            ("PonD", "9.30 – 13.35", "15.00 – 19.50", "8 ore 55'"))
 ANTICIPO = {"AgB": "7.45 Lun/Giov"}   # inizio anticipato per il rifornimento D2
 VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027  ·  O.d.S. n. 39/2026"
