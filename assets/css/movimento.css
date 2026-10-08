@@ -247,3 +247,7 @@ select.mov-nave-tag.vuota{border:1px dashed #315b66;background:transparent}
 select.mov-nave-tag option{background:#0b2731;color:#e8f7f7}
 html.navisuite-light select.mov-nave-tag option{background:#fff;color:#17323a}
 select.mov-nave-tag,select.mov-nave-tag option{font:900 12px/1.2 Inter,Arial,sans-serif}
+.slot{position:relative}
+.slot-menu{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font:900 12px/1.2 Inter,Arial,sans-serif}
+.slot-menu option,.slot-menu optgroup{font:700 12px/1.3 Inter,Arial,sans-serif;color:#17323a;background:#fff}
+.slot-reset{align-self:center;min-height:30px;padding:4px 10px;font-size:11px}

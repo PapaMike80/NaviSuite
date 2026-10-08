@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, slot: null };
+  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP' };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -90,13 +90,14 @@
     liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true }));
     return out;
   }
-  function pallini(code, lista) {
+  function pallini(code, lista, crew, tutti) {
     return lista.map((x, i) => {
       const [sigla, colore, nomeRuolo] = RUOLO_INFO[x.ruolo] || RUOLO_INFO.marinaio;
       const nome = x.membro ? `<span class="slot-nome" style="color:${x.membro.grado[1]}">${esc(cognome(x.membro.name))}</span>` : '<span class="slot-nome vuoto">vuoto</span>';
       const titolo = `${nomeRuolo}${x.membro ? `: ${x.membro.name}${x.adattato ? ` (fa da ${nomeRuolo.toLowerCase()})` : ''}` : ': posto scoperto'} — tocca per cambiare`;
-      return `<button type="button" class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}" style="--g:${colore}" data-act="slot" data-code="${code}" data-i="${i}" title="${esc(titolo)}">` +
-        `<span class="slot-pallino">${sigla}</span>${nome}</button>`;
+      return `<span class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}" style="--g:${colore}" title="${esc(titolo)}">` +
+        `<span class="slot-pallino">${sigla}</span>${nome}` +
+        `<select class="slot-menu" data-slot="${i}" data-code="${code}" aria-label="${esc(nomeRuolo)}: cambia agente">${opzioniPosto(code, crew, tutti, x)}</select></span>`;
     }).join('');
   }
   // Residenza della corsa: quella della maggior parte dell'equipaggio, altrimenti dalla lettera del turno.
@@ -109,23 +110,42 @@
     return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
-  function sceltaAgente(code, day, crew, tutti, lista) {
-    const x = lista[ui.slot.i];
-    if (!x) return '';
+  // Menu del posto: gli agenti che lo possono coprire (stesso grado o superiore, mai inferiore), prima quelli della
+  // residenza della corsa; in fondo si toglie chi c'e' (riposo, malattia, congedo, ferie).
+  const puoCoprire = (ruoloAgente, ruoloPosto) => ruoloAgente === ruoloPosto || !!COPRE[ruoloAgente]?.includes(ruoloPosto) ||
+    (ruoloPosto === 'capitano' && ruoloAgente === 'capo_timoniere');
+  function opzioniPosto(code, crew, tutti, x) {
     const ids = new Set(crew.map(m => String(m.id)));
-    const gradoOk = a => { const r = RUOLO[G.gradoOf(a.agent)[0]]; return ui.slot.tutti || r === x.ruolo || (x.ruolo === 'capitano' && r === 'capo_timoniere'); };
-    const candidati = tutti.filter(a => !ids.has(String(a.agent.id)) && gradoOk(a));
+    const candidati = x.extra ? [] : tutti.filter(a => !ids.has(String(a.agent.id)) && puoCoprire(RUOLO[G.gradoOf(a.agent)[0]], x.ruolo));
     const casa = residenzaCorsa(code, crew, tutti);
     const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
     const gruppi = residenze.map(res => `<optgroup label="${esc(titoloRes(res))}${res === casa ? ' (residenza della corsa)' : ''}">${candidati.filter(a => a.residenza === res)
       .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'))
-      .map(a => `<option value="${esc(a.agent.id)}">${esc(a.agent.agente)} · ${esc(a.turno || '—')}${ui.slot.tutti ? ` · ${esc(G.gradoOf(a.agent)[0] || a.agent.qualifica || '')}` : ''}</option>`).join('')}</optgroup>`).join('');
-    const info = RUOLO_INFO[x.ruolo];
-    const sost = x.membro ? `<label>${esc(x.membro.name)} va in<select id="mov-slot-out">${CAUSALI.map(([c, l]) => `<option value="${c}">${l} (${c})</option>`).join('')}</select></label>` : '';
-    return `<div class="mov-slot-pick" id="mov-slot-pick"><b>${esc(info?.[2] || '')}${x.membro ? ` · ora ${esc(x.membro.name)}` : ' · posto scoperto'}</b>
-      <label>Sostituto<select id="mov-slot-agente"><option value="">Scegli un agente…</option>${gruppi}</select></label>${sost}
-      <label class="mov-slot-tutti"><input type="checkbox" data-slot-tutti${ui.slot.tutti ? ' checked' : ''}> tutti i gradi</label>
-      <button class="btn primary" type="button" data-act="slot-ok" data-code="${code}">Metti sul posto</button><button class="btn ghost" type="button" data-act="slot-no">Chiudi</button></div>`;
+      .map(a => `<option value="${esc(a.agent.id)}">${esc(a.agent.agente)} · ${esc(a.turno || '—')} · ${esc(G.gradoOf(a.agent)[0] || '')}</option>`).join('')}</optgroup>`).join('');
+    // dove va chi sbarca: riposo, assenze oppure un altro turno
+    const destinazioni = [...CAUSALI.map(([c, l]) => [c, `${l} (${c})`]), ...[...O.TURNI, 'BIS'].filter(c => c !== code).map(c => [c, `sulla ${c}`])];
+    const fuori = x.membro ? `<optgroup label="Togli ${esc(x.membro.name)} senza sostituto, va in">${destinazioni.map(([c, l]) => `<option value="out:${c}">${l}</option>`).join('')}</optgroup>` : '';
+    const sbarco = x.membro && candidati.length ? `<optgroup label="Se lo sostituisci, ${esc(x.membro.name)} va in">${destinazioni.map(([c, l]) => `<option value="sbarco:${c}">${c === ui.sbarco ? '✓ ' : ''}${l}</option>`).join('')}</optgroup>` : '';
+    const titolo = x.membro ? `${esc(x.membro.name)}` : 'posto scoperto';
+    return `<option value="" selected hidden>${titolo}</option>${gruppi || (x.membro ? '' : '<option value="" disabled>nessun agente disponibile</option>')}${sbarco}${fuori}`;
+  }
+
+  // Cambi d'equipaggio fatti dal Movimento che toccano la corsa (arrivi o sbarchi): agenti da ripristinare.
+  function cambiCorsa(code, day) {
+    const ids = new Map();
+    (state.schedule?.variazioni_ods || []).forEach(v => {
+      if (v?.ods !== 'MOVIMENTO' || String(v.data).slice(0, 10) !== day) return;
+      if (String(v.turno_nuovo || '').toUpperCase() === code || String(v.turno_originale || '').toUpperCase() === code) ids.set(String(v.id_agente), v.agente);
+    });
+    return [...ids.entries()].map(([id, nome]) => ({ id, nome }));
+  }
+  // Ripristina i turni previsti: toglie le variazioni del Movimento degli agenti coinvolti, una alla volta.
+  async function ripristinaEquipaggio(code) {
+    const cambi = cambiCorsa(code, state.day);
+    if (!cambi.length) return;
+    if (!confirm(`Ripristinare i turni previsti per ${cambi.map(c => c.nome).join(', ')}?`)) return;
+    for (const c of cambi) await variazione(c.id, '', `${c.nome}: turno ripristinato.`);
+    setStatus(`${code}: equipaggio ripristinato (${cambi.length} ${cambi.length === 1 ? 'cambio annullato' : 'cambi annullati'}).`, 'ok');
   }
 
   // ---------------- Render ----------------
@@ -184,10 +204,9 @@
         <span class="chip" data-code="${code}">${code}</span>
         <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''}</small>${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}</span>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew), crew, tutti) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}${cambiCorsa(code, day).length ? `<button type="button" class="btn ghost slot-reset" data-act="crew-reset" data-code="${code}" title="Ripristina i turni previsti: annulla i cambi d'equipaggio del Movimento su questa corsa">↺ Ripristina</button>` : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
-      ${ui.slot?.code === code ? sceltaAgente(code, day, crew, tutti, posti(r.nave, day, crew)) : ''}
       ${open ? `<div class="mov-row">
         ${field('nave', 'Nave', r.nave || '', 'list="mov-navi" placeholder="Nave"')}
         ${field('ormeggio_mattino', 'Ormeggio mattino', r.ormeggioMattino || '', `list="mov-ormeggi" placeholder="${esc(ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—')}"`)}
@@ -319,7 +338,25 @@
   list.addEventListener('change', event => {
     const el = event.target;
     const code = el.dataset.code;
-    if (el.matches('[data-slot-tutti]')) { ui.slot.tutti = el.checked; render(); return; }
+    if (el.matches('select[data-slot]')) {
+      if (!el.value) return;
+      const crew = G.equipaggi(state.schedule, state.day).navi[code] || [];
+      const vecchio = posti(state.oggi[code]?.nave, state.day, crew)[Number(el.dataset.slot)]?.membro;
+      if (el.value.startsWith('out:')) {
+        const causale = el.value.slice(4);
+        if (vecchio) variazione(vecchio.id, causale, `${vecchio.name} tolto da ${code} (${causale}).`);
+        return;
+      }
+      if (el.value.startsWith('sbarco:')) { ui.sbarco = el.value.slice(7); setStatus(`Chi viene sostituito va in ${ui.sbarco}.`, 'ok'); render(); return; }
+      const nuovo = el.value;
+      (async () => {
+        // chi viene sostituito va a riposo; si cambia con il menu "Togli" se e' malato, in ferie...
+        if (vecchio) await variazione(vecchio.id, ui.sbarco, `${vecchio.name} tolto da ${code} (${ui.sbarco}).`);
+        const nome = agenti(state.day).find(a => String(a.agent.id) === String(nuovo))?.agent.agente || '';
+        await variazione(nuovo, code, `${nome} messo sulla ${code}${vecchio ? ` al posto di ${vecchio.name}` : ''}.`);
+      })();
+      return;
+    }
     if (el.dataset.f === 'rif') { salva(code, { rifornimento_mattina: el.checked }, `${code}: rifornimento ${el.checked ? 'previsto' : 'tolto'}.`); return; }
     if (el.dataset.f) {
       const value = el.value.trim();
@@ -370,22 +407,8 @@
     if (!button) return;
     const code = button.dataset.code;
     const act = button.dataset.act;
-    if (act === 'open') { ui.open = ui.open === code ? '' : code; ui.slot = null; render(); }
-    else if (act === 'slot') { const i = Number(button.dataset.i); ui.slot = ui.slot?.code === code && ui.slot.i === i ? null : { code, i, tutti: false }; render(); }
-    else if (act === 'slot-no') { ui.slot = null; render(); }
-    else if (act === 'slot-ok') {
-      const nuovo = $('mov-slot-agente')?.value;
-      if (!nuovo) { setStatus("Scegli l'agente da mettere sul posto.", 'bad'); return; }
-      const lista = posti(state.oggi[code]?.nave, state.day, G.equipaggi(state.schedule, state.day).navi[code] || []);
-      const vecchio = lista[ui.slot?.i]?.membro;
-      const fuori = $('mov-slot-out')?.value;
-      ui.slot = null;
-      (async () => {
-        if (vecchio && fuori) await variazione(vecchio.id, fuori, `${vecchio.name} tolto da ${code} (${fuori}).`);
-        const nome = agenti(state.day).find(a => String(a.agent.id) === String(nuovo))?.agent.agente || '';
-        await variazione(nuovo, code, `${nome} messo sulla ${code}${vecchio ? ` al posto di ${vecchio.name}` : ''}.`);
-      })();
-    }
+    if (act === 'open') { ui.open = ui.open === code ? '' : code; render(); }
+    else if (act === 'crew-reset') ripristinaEquipaggio(code);
     else if (act === 'suspend') { ui.suspending = code; render(); $('mov-motivo')?.focus(); }
     else if (act === 'cancel-suspend') { ui.suspending = ''; render(); }
     else if (act === 'confirm-suspend') {
