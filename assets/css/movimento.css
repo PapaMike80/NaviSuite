@@ -349,3 +349,6 @@ html.navisuite-light .sp-riga{background:#fff!important}
 .rit-chiedi .pop-chips{margin:2px 0}
 .rit-oppure{color:#7fb1b9;font-size:11px;font-weight:800;margin-top:2px}
 .rit-bis-tag.aiuto{background:rgba(103,215,230,.1);border:1px dashed #67d7e6}
+.rit-nota{font-size:12px;color:var(--c)}
+.rit-nota b{font-size:13px}
+.rit-nota em{color:#9eb9c1;font-style:normal;font-size:11px}

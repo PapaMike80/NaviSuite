@@ -352,7 +352,8 @@
       const proprio = r.ritardi?.[c.numero];
       const eff = effettive[i];
       const opzioni = `<option value="">in orario</option>${RITARDI.map(v => `<option value="${v}"${v === ritardoValore(proprio) ? ' selected' : ''}>${v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) })}</option>`).join('')}`;
-      const nota = eff.ritardo?.propagato ? `dalla corsa prima · parte ${esc(eff.scali[0][1])}` : proprio ? `parte ${esc(eff.scali[0][1])}, arriva ${esc(eff.scali[eff.scali.length - 1][1])}` : '';
+      const ultEff = eff.scali[eff.scali.length - 1];
+      const nota = eff.ritardo ? `<span class="rit-nuovo">⏱ <b>${esc(eff.scali[0][1])}</b> ${esc(eff.scali[0][0])} → <b>${esc(ultEff[1])}</b> ${esc(ultEff[0])}</span>${eff.ritardo.propagato ? ' <em>(ritardo dalla corsa prima)</em>' : ''}` : '';
       const ultimo = c.scali[c.scali.length - 1];
       const sospesa = (r.corseSospese || []).includes(String(c.numero));
       const sospDa = (r.corseSospeseRaw || []).find(x => x.corsa === String(c.numero));
@@ -372,7 +373,7 @@
         <div class="rit-rotta"><span>${esc(c.scali[0][1])}</span> ${esc(c.scali[0][0])} <i>→</i> <span>${esc(ultimo[1])}</span> ${esc(ultimo[0])}</div>
         ${azione ? `<div class="rit-act">${azione}</div>` : ''}
         ${sospesa ? '' : `<select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>`}
-        ${nota && !sospesa ? `<small>${nota}</small>` : ''}</div>`;
+        ${nota && !sospesa ? `<div class="rit-nota">${nota}</div>` : ''}</div>`;
     }).join('');
     return `<div class="mov-ritardi"><p class="mov-bis-title">⏱ Ritardi delle corse${inRitardo ? ` <span class="rit-tot">${inRitardo} in ritardo</span>` : ''}${(r.corseSospese || []).length ? ` <span class="rit-tot sosp">${r.corseSospese.length} sospese</span>` : ''}</p><div class="rit-grid">${tessere}</div></div>`;
   }
