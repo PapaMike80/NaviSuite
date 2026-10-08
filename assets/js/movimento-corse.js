@@ -332,7 +332,7 @@
       const perBis = code !== 'BIS' ? O.bisPerCorsa(state.oggi.BIS?.incarichi, code, c.numero, day) : null;
       const chiede = ui.sospCorsa?.code === code && ui.sospCorsa.corsa === String(c.numero);
       const successive = corse.slice(i).filter(x => !(r.corseSospese || []).includes(String(x.numero))).length;
-      const azione = sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>`
+      const azione = perBis ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-code="${code}" data-corsa="${esc(c.numero)}" title="Toglie la corsa al BIS: la rifa la nave della ${code}">↺ Ripristina alla ${code}</button>` : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>`
         : chiede ? `<div class="rit-chiedi"><b>${ui.sospBis && bisDisp ? 'Assegnare al BIS…' : 'Sospendere…'}</b>` +
           `${bisDisp ? `<label class="rit-bis"><input type="checkbox" data-sosp-bis${ui.sospBis ? ' checked' : ''}> Assegna al BIS (la fa il BIS, non viene sospesa)</label>` : ''}` +
           `<button type="button" class="btn danger" data-act="corsa-sospendi" data-code="${code}" data-corsa="${esc(c.numero)}" data-quali="una">${ui.sospBis && bisDisp ? 'BIS solo sulla' : 'solo la'} corsa ${esc(c.numero)}</button>` +
@@ -485,6 +485,22 @@
     else if (act === 'sbarco') { ui.sbarco = button.dataset.v; render(); }
     else if (act === 'crew-reset') ripristinaEquipaggio(code);
     else if (act === 'corsa-chiedi') { ui.sospCorsa = { code, corsa: button.dataset.corsa }; render(); }
+    else if (act === 'corsa-bis-togli') {
+      // la corsa torna alla nave: l'incarico del BIS si spezza o si accorcia attorno ad essa
+      const corsa = button.dataset.corsa;
+      const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
+      const incarichi = (state.oggi.BIS?.incarichi || []).flatMap(inc => {
+        if (inc.tipo === 'aiuto' || inc.turno !== code) return [inc];
+        const ns = O.corseIncarico(inc, state.day).map(x => String(x.numero));
+        if (!ns.includes(corsa)) return [inc];
+        const aperto = !inc.alla && ns[ns.length - 1] === tutte[tutte.length - 1];
+        const resto = tutte.filter(n => ns.includes(n) && n !== corsa);
+        const gruppi = [];
+        resto.forEach(n => { const l = gruppi[gruppi.length - 1]; if (l && tutte.indexOf(n) === tutte.indexOf(l[l.length - 1]) + 1) l.push(n); else gruppi.push([n]); });
+        return gruppi.map((g, i) => ({ ...inc, dalla: g[0], alla: aperto && i === gruppi.length - 1 ? '' : g[g.length - 1] }));
+      });
+      salva('BIS', { incarichi }, `${code}: la corsa ${corsa} torna alla nave.`);
+    }
     else if (act === 'corsa-annulla') { ui.sospCorsa = null; ui.sospBis = false; render(); }
     else if (act === 'corsa-sospendi' || act === 'corsa-riprendi') {
       const corsa = button.dataset.corsa;
