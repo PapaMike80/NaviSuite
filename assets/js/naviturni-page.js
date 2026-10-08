@@ -80,6 +80,13 @@
       return records;
     }
 
+    // Cambio fatto a mano dall'agente nella Distinta, se vale ancora: una decisione dell'Ufficio Movimento (approvata, modificata
+    // o rifiutata) vince sempre sul cambio dell'agente.
+    function diariaOverrideFor(agent, iso) {
+      if (agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO") return undefined;
+      return diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+    }
+
     function getAgentShiftOnDate(agent, iso) {
       const week = settimaneInfo.find(item => Array.isArray(item.dateIso) && item.dateIso.includes(iso));
       if (!week) return "rip";
@@ -90,7 +97,8 @@
       // riguarda l'altra residenza e non deve far sparire l'etichetta qui.
       if (scheduled !== BARISTA_PRIVATE_SHIFT && isElsewhereShift(scheduled)) return scheduled;
       const ods = agent?.variazioni_ods?.[iso]?.turno_nuovo;
-      const manual = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      // una decisione dell'Ufficio Movimento vince sul cambio fatto dall'agente nella Distinta
+      const manual = agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO" ? undefined : diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
       const isLoggedHibaRow = isHibaProfile() &&
         normalizeOdsAgentName(agent?.agente) === normalizeOdsAgentName(loggedAgentProfile?.name);
       const hibaRecord = isLoggedHibaRow ? getBaristaRecords().find(record => {
@@ -1900,7 +1908,7 @@
           let hisShiftRaw = getAgentShiftOnDate(ag, calInfo.iso);
           let hisShiftPuro = ottieniTurnoPulito(hisShiftRaw);
           const odsVariation = ag.variazioni_ods?.[calInfo.iso] || null;
-          const hasManualDay = diariaShiftOverrides.has(`${String(ag.id || "")}|${calInfo.iso}`);
+          const hasManualDay = diariaOverrideFor(ag, calInfo.iso) !== undefined;
           const movedAwayByOds = !hasManualDay && odsVariation &&
             isSameCrewShift(odsVariation.turno_originale, cleanShift) &&
             !isSameCrewShift(odsVariation.turno_nuovo, cleanShift);
@@ -1994,7 +2002,7 @@
         const futureSharedDot = hasCurrentOrFutureSharedCrewWithLogged(r.agentRecord)
           ? '<span class="future-shared-dot" title="Avete turni in comune da oggi in avanti" aria-label="Turni in comune da oggi in avanti"></span>'
           : "";
-        const manualDay = diariaShiftOverrides.get(`${String(r.id || "")}|${calInfo.iso}`);
+        const manualDay = diariaOverrideFor(r.agentRecord || r, calInfo.iso);
         const manualBadge = manualDay ? `<span class="c-res" title="Turno previsto: ${escapeAttribute(manualDay.from || "—")}">MODIFICATO</span>` : "";
         card.innerHTML = `<span class="c-num">${escapeAttribute(r.id || "—")}</span>
           <span class="c-name">${escapeAttribute(r.agente)}${odsBadge}${manualBadge}${groundService}${instructorMark} ${infoResidenza}</span>
