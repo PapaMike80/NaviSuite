@@ -398,3 +398,11 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .ag-list li.aperto{background:rgba(45,212,191,.06)}
 .ag-dest{margin:0 10px 10px}
 @media(max-width:850px){.ag-riga{grid-template-columns:1fr auto 52px}.ag-riga .ag-turno{grid-column:1/-1}}
+/* Agenti: destinazioni nello stesso carattere della pastiglia del turno */
+.ag-dest{font-family:inherit}
+.ag-dest p{font:900 10px inherit}
+.ag-dest-chip{cursor:pointer;min-width:46px;padding:7px 13px;font:900 12px inherit}
+.ag-dest-chip:hover{filter:brightness(1.25)}
+.ag-dest-chip.on{box-shadow:0 0 0 2px currentColor}
+.ag-sovr{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 13px;border:2px dashed #67d7e6;border-radius:999px;background:transparent;color:#67d7e6;font:900 12px inherit;cursor:pointer}
+.ag-sovr.on{background:rgba(103,215,230,.18)}

@@ -12,7 +12,7 @@
   const { G } = NM;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 
-  const ui = { res:'', q:'', aperto:'', aperte:new Set() };
+  const ui = { res:'', q:'', aperto:'', aperte:new Set(), sovr:false };
   const titolo = text => String(text).charAt(0) + String(text).slice(1).toLowerCase();
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Comandante: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
@@ -30,11 +30,14 @@
     const navi = NM.turniCodici(NM.state.day);
     const terra = [...new Set(Object.values(G.SIGLE_TERRA))];
     const noti = new Set([...Object.keys(NOMI), ...navi, ...terra, ...NM.TUTTI_I_TURNI]);
+    const corse = [...new Set([...navi, ...NM.TUTTI_I_TURNI])];
     const altri = [...new Set([...rows.map(x => x.turno), r.turno].filter(t => t && !noti.has(t)))].sort();
-    const chip = v => `<button type="button" class="pop-chip${stesso(v, r.turno) ? ' on' : ''}" data-act="turno-scegli" data-id="${esc(r.agent.id)}" data-v="${esc(v)}">${esc(nomeTurno(v))}</button>`;
+    // stesse pastiglie colorate del turno del giorno
+    const chip = v => `<button type="button" class="chip ag-dest-chip${stesso(v, r.turno) ? ' on' : ''}" data-code="${esc(v)}" data-act="turno-scegli" data-id="${esc(r.agent.id)}" data-v="${esc(v)}">${esc(nomeTurno(v))}${ui.sovr && corse.includes(v) ? '*' : ''}</button>`;
     const gruppo = (titoloGruppo, lista) => (lista.length ? `<p>${titoloGruppo}</p><div class="pop-chips">${lista.map(chip).join('')}</div>` : '');
-    return `<div class="pop-dest ag-dest">${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra])}` +
-      `${gruppo('Su una corsa', [...new Set([...navi, ...NM.TUTTI_I_TURNI])])}${gruppo('Altri', altri)}</div>`;
+    const sovrToggle = `<button type="button" class="ag-sovr${ui.sovr ? ' on' : ''}" data-act="sovr-toggle" title="Sulla corsa scelta come sovrannumero (turno con asterisco, es. D1*): non conta nel minimo della nave">${ui.sovr ? '☑' : '☐'} In sovrannumero (*)</button>`;
+    return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra])}` +
+      `${gruppo(ui.sovr ? 'Su una corsa · sovrannumero (*)' : 'Su una corsa', corse)}${gruppo('Altri', altri)}</div>`;
   }
 
   function render() {
@@ -100,11 +103,16 @@
     if (undo) { NM.variazione(undo.dataset.undo, '', 'Variazione del turno annullata.'); return; }
     const apri = event.target.closest('[data-act="turno-apri"]');
     if (apri) { ui.aperto = ui.aperto === apri.dataset.id ? '' : apri.dataset.id; render(); return; }
+    if (event.target.closest('[data-act="sovr-toggle"]')) { ui.sovr = !ui.sovr; render(); return; }
     const scegli = event.target.closest('[data-act="turno-scegli"]');
     if (scegli) {
       const riga = NM.agenti(NM.state.day).find(a => String(a.agent.id) === String(scegli.dataset.id));
       ui.aperto = '';
-      NM.variazione(scegli.dataset.id, scegli.dataset.v, `${riga?.agent.agente || ''}: turno ${nomeTurno(scegli.dataset.v)}.`);
+      const v = scegli.dataset.v;
+      // sulle corse si puo' scegliere il sovrannumero: turno con asterisco (D1*), fuori dal minimo della nave
+      const comeSovr = ui.sovr && [...NM.turniCodici(NM.state.day), ...NM.TUTTI_I_TURNI].includes(v);
+      ui.sovr = false;
+      NM.variazione(scegli.dataset.id, comeSovr ? `${v}*` : v, `${riga?.agent.agente || ''}: turno ${nomeTurno(v)}${comeSovr ? ' in sovrannumero (' + v + '*)' : ''}.`, comeSovr ? { aggiunto: true, sovrannumero: true } : {});
     }
   });
   view.addEventListener('input', event => {
@@ -117,5 +125,5 @@
   });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && ui.aperto) { ui.aperto = ''; if (NM.state.tab === 'agenti') render(); } });
 
-  NM.vista('agenti', render, { onDay: () => { ui.aperto = ''; } });
+  NM.vista('agenti', render, { onDay: () => { ui.aperto = ''; ui.sovr = false; } });
 })();
