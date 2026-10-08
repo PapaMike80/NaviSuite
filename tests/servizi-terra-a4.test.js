@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 execFileSync(process.execPath, ['--check', 'assets/js/servizi-terra-a4.js'], { stdio: 'pipe' });
 const html = fs.readFileSync('aggiornamenti.html', 'utf8');
-assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=16/);
+assert.match(html, /assets\/js\/servizi-terra-a4\.js\?v=19/);
 assert.match(html, /saveServiziTerraDocuments\(state\.turniNavi/); // ODS salvato: Documenti aggiornati
 assert.match(html, /id="generate-servizi-terra"/);
 assert.match(html, /id="servizi-terra-week"/);
@@ -77,7 +77,7 @@ assert.strictEqual(decodeURIComponent(docs[1].dataUrl.replace('data:text/html;ch
 const terraPage = fs.readFileSync('mio-turno.html', 'utf8');
 assert.match(fs.readFileSync('servizi-terra.html', 'utf8'), /location\.replace\('orario\.html'/);
 assert.match(fs.readFileSync('assets/css/servizi-terra.css', 'utf8'), /quick-residence-btn\[data-res="MADERNO"\]/);
-assert.match(terraPage, /servizi-terra-a4\.js\?v=16/);
+assert.match(terraPage, /servizi-terra-a4\.js\?v=19/);
 assert.match(terraPage, /shared-data\.js/); // turni degli agenti per agente di turno ed equipaggi
 assert.match(fs.readFileSync('assets/js/turni-giorno.js', 'utf8'), /grado\[0\] === 'Capo timoniere'\)\?\.name/); // capo timoniere a bordo fa da comandante
 // pontili, ormeggi, R e B ora in Scali (orario-page.js, sezione «Allo scalo»)

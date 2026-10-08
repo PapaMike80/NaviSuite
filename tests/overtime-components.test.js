@@ -33,7 +33,8 @@ assert.equal(overtime.total(shortenedDay),0);
 overtime.sync(shortenedDay,shortenedDay.serviceMinutes);
 assert.equal(shortenedDay.workedMinutes,8*60);
 overtime.setChanges(shortenedDay,60,shortenedDay.serviceMinutes);
-assert.equal(shortenedDay.workedMinutes,8*60);
+// cambio e sentine aumentano sempre le ore lavorate, anche se corrette a mano
+assert.equal(shortenedDay.workedMinutes,8*60+60);
 assert.equal(overtime.total(shortenedDay),60);
 
 const changedService={shift:'PonD',serviceMinutes:565,delay:0,changeMinutes:0,bank:30,mealUsed:true,allowanceRate:24,embark:true,overnight40:true};

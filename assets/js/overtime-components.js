@@ -40,17 +40,24 @@
     return sync(entry,serviceMinutes);
   }
   function setOrdinary(entry,value,serviceMinutes){activate(entry).ordinario=minutes(value);entry.overtimeMeta={...(entry.overtimeMeta||{}),ordinaryMode:'manual'};return sync(entry,serviceMinutes)}
-  function setChanges(entry,value,serviceMinutes){activate(entry).cambi=minutes(value);entry.changeMinutes=minutes(value);return sync(entry,serviceMinutes)}
+  // Cambio e sentine aumentano sempre le ore lavorate: se le ore sono state corrette a mano
+  // si aggiunge (o toglie) la differenza alla correzione.
+  function addToManualWorked(entry,delta){if(isWorkedManual(entry)&&delta)entry.workedMinutes=minutes(minutes(entry.workedMinutes)+delta)}
+  function setChanges(entry,value,serviceMinutes){const before=changes(entry);activate(entry).cambi=minutes(value);entry.changeMinutes=minutes(value);addToManualWorked(entry,minutes(value)-before);return sync(entry,serviceMinutes)}
   function setSentine(entry,type,serviceMinutes){
+    const before=sentine(entry);
     activate(entry);
     const normalized=SENTINE_TYPES[type]?type:null,amount=normalized?SENTINE_TYPES[normalized]:0;
     entry.overtimeComponents.sentine=amount;
     entry.sentineActivity=normalized?{type:normalized,minutes:amount}:null;
+    addToManualWorked(entry,amount-before);
     return sync(entry,serviceMinutes);
   }
   function setSentineMinutes(entry,value,serviceMinutes){
+    const before=sentine(entry);
     activate(entry);
     const amount=minutes(value);
+    addToManualWorked(entry,amount-before);
     entry.overtimeComponents.sentine=amount;
     entry.sentineActivity=amount?{minutes:amount}:null;
     return sync(entry,serviceMinutes);
