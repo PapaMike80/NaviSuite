@@ -120,7 +120,8 @@
   // riposo concordato, e' sempre l'ultimo.
   function disponibilita(turno) {
     const t = String(turno || '').trim().toUpperCase();
-    if (/^(?:CONG?\.?|CON[;/]|CONC\.?|CONGEDO)$/.test(t)) return 4;
+    // qualunque scrittura del congedo: CON, CONG., CON; CON/ CON* e simili (cio' che segue CON e' un simbolo)
+    if (/^(?:CON|C\.(?!\w))/.test(t)) return 4;
     if (/^(?:L\.?D[.;]?|LAV[.;]?|LAVORI|TERRA|DISP)$/.test(t)) return 0;
     if (!t || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(t)) return 1;
     if (G.terraCode(t) || /^PONTILE/.test(t)) return 2;
