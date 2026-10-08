@@ -193,12 +193,15 @@
     const nomeDest = v => NOMI[v] || `sulla ${v}`;
     const per = ui.destAperto;
     const attuale = per === 'togli' ? ui.togliDest : ui.sbarco;
-    const chip = v => `<button type="button" class="pop-chip${attuale === v ? ' on' : ''}" data-act="dest-scegli" data-per="${per}" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
+    // stessa griglia di pastiglie colorate del turno del giorno nel tab Agenti
+    const chip = v => `<button type="button" class="chip ag-dest-chip${attuale === v ? ' on' : ''}" data-code="${esc(v)}" data-act="dest-scegli" data-per="${per}" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
+    const terraSigle = [...new Set(Object.values(G.SIGLE_TERRA))];
+    const corseDest = [...new Set([...O.TURNI, 'BIS', ...NM.TUTTI_I_TURNI])].filter(cd => cd !== code);
     const destinazioni = per ? `<div class="pop-dest">
       <p>${per === 'togli' ? `${esc(x.membro?.name || '')} se lo togli va in` : 'Chi viene sostituito va in'}</p>
       <p>Assenze</p><div class="pop-chips">${['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'].map(chip).join('')}</div>
-      <p>A terra</p><div class="pop-chips">${['LD', 'LAV'].map(chip).join('')}</div>
-      <p>Su un'altra corsa</p><div class="pop-chips">${[...O.TURNI, 'BIS'].filter(cd => cd !== code).map(chip).join('')}</div></div>` : '';
+      <p>A terra</p><div class="pop-chips">${['LD', 'LAV', ...terraSigle, 'TERRA'].map(chip).join('')}</div>
+      <p>Su una corsa</p><div class="pop-chips">${corseDest.map(chip).join('')}</div></div>` : '';
     // due bolle: "Sostituito va in …" (di solito riposo) e "Toglilo" (subito, in riposo o dove scegli accanto)
     const bolle = x.membro ? `<div class="pop-bolle">` +
       `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} quando scegli un sostituto"><span>↪ Sostituito va in</span><button type="button" class="pop-val${per === 'sost' ? ' on' : ''}" data-act="dest-apri" data-per="sost">${esc(nomeDest(ui.sbarco))} ▾</button></span>` +
@@ -568,7 +571,11 @@
     else if (act === 'pick') cambiaPosto(code, button.dataset.id, 'pick');
     else if (act === 'togli-subito') cambiaPosto(code, ui.togliDest, 'out');
     else if (act === 'dest-apri') { ui.destAperto = ui.destAperto === button.dataset.per ? false : button.dataset.per; render(); }
-    else if (act === 'dest-scegli') { if (button.dataset.per === 'togli') ui.togliDest = button.dataset.v; else ui.sbarco = button.dataset.v; ui.destAperto = false; render(); }
+    else if (act === 'dest-scegli') {
+      // Toglilo: scegliendo il turno la persona viene tolta subito e va li'; Sostituito va in: si ricorda la scelta
+      if (button.dataset.per === 'togli') { ui.togliDest = 'RIP'; ui.destAperto = false; cambiaPosto(ui.menu.code, button.dataset.v, 'out'); return; }
+      ui.sbarco = button.dataset.v; ui.destAperto = false; render();
+    }
     else if (act === 'tipo') { ui.sovr = button.dataset.v === 'sovr'; render(); }
     else if (act === 'aggiungi') {
       const sovr = ui.sovr;
