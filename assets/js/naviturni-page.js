@@ -83,7 +83,8 @@
     // Cambio fatto a mano dall'agente nella Distinta, se vale ancora: una decisione dell'Ufficio Movimento (approvata, modificata
     // o rifiutata) vince sempre sul cambio dell'agente.
     function diariaOverrideFor(agent, iso) {
-      if (agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO") return undefined;
+      if (agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO" ||
+        (Array.isArray(globalData?.variazioni_ods) && globalData.variazioni_ods.some(v => v && v.ods === "MOVIMENTO" && v.attiva !== false && String(v.data || "").slice(0, 10) === iso && String(v.id_agente || "") === String(agent?.id || "")))) return undefined;
       return diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
     }
 
@@ -97,8 +98,16 @@
       // riguarda l'altra residenza e non deve far sparire l'etichetta qui.
       if (scheduled !== BARISTA_PRIVATE_SHIFT && isElsewhereShift(scheduled)) return scheduled;
       const ods = agent?.variazioni_ods?.[iso]?.turno_nuovo;
-      // una decisione dell'Ufficio Movimento vince sul cambio fatto dall'agente nella Distinta
-      const manual = agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO" ? undefined : diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      // Il Movimento e' il capo: una sua decisione (turno assegnato, modificato o rifiutato) vince sempre sul cambio che l'agente
+      // si e' fatto a mano nella Distinta. La si cerca sia nella variazione dell'agente sia nell'elenco completo delle variazioni.
+      const decisoDalMovimento = agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO"
+        ? agent.variazioni_ods[iso]
+        : (typeof globalData !== "undefined" && Array.isArray(globalData?.variazioni_ods) ? globalData.variazioni_ods : [])
+          .filter(v => v && v.ods === "MOVIMENTO" && v.attiva !== false && String(v.data || "").slice(0, 10) === iso &&
+            ((v.id_agente && String(v.id_agente) === String(agent?.id)) || (!v.id_agente && v.agente && String(v.agente).trim().toUpperCase() === String(agent?.agente || "").trim().toUpperCase())))
+          .pop();
+      const manual = decisoDalMovimento ? undefined : diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      const odsMovimento = decisoDalMovimento?.turno_nuovo;
       const isLoggedHibaRow = isHibaProfile() &&
         normalizeOdsAgentName(agent?.agente) === normalizeOdsAgentName(loggedAgentProfile?.name);
       const hibaRecord = isLoggedHibaRow ? getBaristaRecords().find(record => {
@@ -107,7 +116,7 @@
         return active && name === normalizeOdsAgentName(loggedAgentProfile?.name) &&
           String(record.data || "").slice(0, 10) === iso && String(record.corsa || "").trim();
       }) : null;
-      return manual?.shift || hibaRecord?.corsa || ods || scheduled;
+      return manual?.shift || hibaRecord?.corsa || odsMovimento || ods || scheduled;
     }
 
     async function loadDiariaShiftOverrides({ refresh = true } = {}) {
