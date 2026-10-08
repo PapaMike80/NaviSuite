@@ -62,8 +62,8 @@
         <div class="agenti-res" title="Apre o chiude le residenze"><button type="button" class="nave-chip${residenze.length && residenze.every(r => ui.aperte.has(r)) ? ' on' : ''}" data-res="">Tutte</button>${residenze.map(r => `<button type="button" class="nave-chip${ui.aperte.has(r) ? ' on' : ''}" data-res="${esc(r)}">${esc(titolo(r))}</button>`).join('')}</div>
         <label>Cerca<input id="agenti-q" type="search" value="${esc(ui.q)}" placeholder="Nome agente" autocomplete="off"></label></div>`;
     const gruppi = residenze.map(res => {
-      // in alto chi ha avuto un cambio turno, poi per grado (capitano e capo timoniere pari grado) e anzianita' del prospetto
-      const lista = visibili.filter(r => r.residenza === res).sort((a, b) => (b.cambiato - a.cambiato) || a.grado[2] - b.grado[2] || anz(a) - anz(b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
+      // in alto chi ha una richiesta di cambio da approvare, poi chi ha avuto un cambio turno, poi per grado (capitano e capo timoniere pari grado) e anzianita' del prospetto
+      const lista = visibili.filter(r => r.residenza === res).sort((a, b) => (richiesteGiorno.has(String(b.agent.id)) - richiesteGiorno.has(String(a.agent.id))) || (b.cambiato - a.cambiato) || a.grado[2] - b.grado[2] || anz(a) - anz(b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
       if (!lista.length) return '';
       const modificati = lista.filter(r => r.cambiato).length;
       const conRichiesta = lista.filter(r => richiesteGiorno.has(String(r.agent.id))).length;
