@@ -116,10 +116,12 @@
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
   // Disponibilita' per la sostituzione: prima chi e' libero (L.D. e Lavori/TERRA, i primi a essere imbarcati), poi chi
-  // riposa, poi chi fa un servizio a terra, poi gli altri (malattia, ferie, altre corse...); il congedo, che e' un
-  // riposo concordato, e' sempre l'ultimo.
+  // riposa, poi chi fa un servizio a terra, poi gli altri (ferie, altre corse...); il congedo, che e' un
+  // riposo concordato, e' in fondo; ancora sotto chi non e' chiamabile (#, malattia, aspettativa).
   function disponibilita(turno) {
     const t = String(turno || '').trim().toUpperCase();
+    // # = non chiamabile (malattia o aspettativa), come la malattia scritta per esteso: in fondo a tutti
+    if (t.includes('#') || /^MAL/.test(t)) return 5;
     // qualunque scrittura del congedo: CON, CONG., CON; CON/ CON* e simili (cio' che segue CON e' un simbolo)
     if (/^(?:CON|C\.(?!\w))/.test(t)) return 4;
     if (/^(?:L\.?D[.;]?|LAV[.;]?|LAVORI|TERRA|DISP)$/.test(t)) return 0;
