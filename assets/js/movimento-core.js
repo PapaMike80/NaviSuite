@@ -103,7 +103,7 @@
     const n = v => String(v || '').trim().toUpperCase();
     const nave = v => nomiNave(v).map(x => x.toUpperCase()).join('+');
     return nave(values.nave) === nave(base.nave) && n(values.ormeggio_mattino) === n(base.ormeggioMattino) && n(values.ormeggio_serale) === n(base.ormeggio) &&
-      !!values.rifornimento_mattina === !!base.rif && !values.sospesa && !(values.ritardi || []).length && !(values.incarichi || []).length;
+      !!values.rifornimento_mattina === !!base.rif && !values.sospesa && !(values.corse_sospese || []).length && !(values.ritardi || []).length && !(values.incarichi || []).length;
   }
 
   async function salva(code, patch, messaggio) {
@@ -113,7 +113,7 @@
     const r = T.turniDelGiorno(righeNavi(), state.day)[code] || {};
     const values = {
       nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
-      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), ...patch
+      sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi: ritardiLista(r.ritardi), corse_sospese: r.corseSospese || [], ...patch
     };
     let ok = false;
     try {

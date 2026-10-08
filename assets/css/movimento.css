@@ -317,3 +317,12 @@ html.navisuite-light .rit-top b,html.navisuite-light .rit-rotta{color:#17323a!im
 /* Un membro in piu' del minimo ma non sovrannumero resta un pallino pieno: il tratteggio e' solo dei sovrannumero (D1*) */
 .slot.extra .slot-pallino{opacity:1;border-style:solid}
 .slot.extra.sovr .slot-pallino{border-style:dashed;background:transparent}
+/* Corse sospese una per una */
+.rit-top{gap:8px}
+.rit-top .rit-badge{margin-right:auto}
+.rit-sosp{min-height:28px;padding:3px 10px;font-size:11px}
+.rit-tile.sosp{--c:#94a3b8;opacity:.8;background:repeating-linear-gradient(135deg,rgba(148,163,184,.08) 0 8px,transparent 8px 16px),#0b222c}
+.rit-tile.sosp .rit-rotta{text-decoration:line-through}
+.rit-tot.sosp{background:rgba(148,163,184,.22);color:#cbd5e1}
+.rit-chiedi{display:grid;gap:6px}
+.rit-chiedi b{font-size:12px;color:#fca5a5}

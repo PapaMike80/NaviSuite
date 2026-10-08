@@ -230,6 +230,8 @@
       sospesa:values.sospesa === true,
       sospesa_motivo:values.sospesa ? String(values.sospesa_motivo || "").trim() : "",
       sospesa_il:values.sospesa ? String(values.sospesa_il || new Date().toISOString()) : "",
+      // corse sospese una per una (numeri di corsa), senza sospendere tutto il turno
+      corse_sospese:(Array.isArray(values.corse_sospese) ? values.corse_sospese : []).map(String).filter(Boolean),
       // ritardi per corsa (a scatti di 5 minuti fino a 2 ore, oppure oltre 2 ore)
       ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre)).map(r => ({
         corsa:String(r.corsa), minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true

@@ -105,7 +105,11 @@
       day, incarichi, ritardo, programmate, bisAttivo,
       ieri: T.turniDelGiorno(turniNavi, addDays(day, -1)),
       // le corse sospese dall'Ufficio Movimento non ci sono (ne' sul lago, ne' nei viaggi, ne' allo scalo)
-      viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa), ...bis],
+      viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa).map(v => {
+        // corse sospese una per una: fuori dal viaggio
+        const sosp = new Set(navi[v.turno]?.corseSospese || []);
+        return sosp.size ? { ...v, corse: v.corse.filter(n => !sosp.has(String(n))), scali: v.scali.filter(s => !sosp.has(String(s[2]))) } : v;
+      }).filter(v => v.corse.length), ...bis],
       navi,
       crews: state.schedule ? G.equipaggi(state.schedule, day).navi : {}
     };
@@ -665,7 +669,8 @@
     }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
     const navi = giornata().navi;
-    const sospese = attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`);
+    const sospese = [...attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`),
+      ...attivi.filter(code => !navi[code]?.sospesa && navi[code]?.corseSospese?.length).map(code => `${code} corsa ${navi[code].corseSospese.join(', ')}`)];
     const notice = [!attivi.length ? 'Nessuna corsa in orario in questo giorno.' :
       !attivi.includes('D1') ? 'In questo periodo è attivo solo il traghetto Maderno – Torri.' : '',
     sospese.length ? `⚠ Corse sospese dall'Ufficio Movimento: ${sospese.join(', ')}.` : ''].filter(Boolean).join(' · ');

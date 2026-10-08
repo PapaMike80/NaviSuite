@@ -94,4 +94,10 @@ assert.strictEqual(n15.quando, '10.05');
 assert.match(n15.tag, /-15-r20$/);
 assert.match(rest, /ritardi:\(Array\.isArray\(values\.ritardi\)/);
 assert.ok(page.includes('data-act="ritardo"'));
+// Corse sospese una per una: dal Movimento, senza sospendere tutto il turno
+const rigaSosp = { data: day, corsa: 'D1', nave: 'S. MARCO', fonte: 'movimento', attiva: true, corse_sospese: ['16', '17'] };
+assert.deepStrictEqual(T.turniDelGiorno([rigaSosp], day).D1.corseSospese, ['16', '17']);
+assert.ok(!T.turniDelGiorno([rigaSosp], day).D1.sospesa);
+assert.match(rest, /corse_sospese:\(Array\.isArray\(values\.corse_sospese\)/);
+['data-act="corsa-chiedi"', 'data-act="corsa-sospendi"', 'data-act="corsa-riprendi"'].forEach(act => assert.ok(page.includes(act), act));
 console.log('movimento ok');
