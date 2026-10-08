@@ -171,14 +171,19 @@
       return titolo + res.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
-    const dest = [...CAUSALI.map(([c, l]) => [c, c, l]), ...[...O.TURNI, 'BIS'].filter(c => c !== code).map(c => [c, c, `sulla ${c}`])];
-    const chips = (act, scelto) => dest.map(([v, l, t]) => `<button type="button" class="pop-chip${scelto === v ? ' on' : ''}" data-act="${act}" data-code="${code}" data-v="${v}" title="${esc(t)}">${l}</button>`).join('');
-    const sbarco = x.membro && candidati.length ? `<p class="pop-res">Se lo sostituisci, ${esc(x.membro.name)} va in</p><div class="pop-chips">${chips('sbarco', ui.sbarco)}</div>` : '';
-    const fuori = x.membro ? `<p class="pop-res">Oppure toglilo senza sostituto</p><div class="pop-chips">${chips('out', '')}</div>` : '';
+    // dove va chi sbarca: riposo e assenze, L.D. e Lavori, oppure un'altra corsa
+    const dest = [...[['RIP', 'Riposo (RIP)'], ['MAL', 'Malattia (MAL)'], ['CON', 'Congedo (CON)'], ['FERIE', 'Ferie (FERIE)'], ['F.P.', 'Ferie F.P.'], ['LD', 'L.D. (LD)'], ['LAV', 'Lavori (LAV)']],
+      ...[...O.TURNI, 'BIS'].filter(cd => cd !== code).map(cd => [cd, `sulla ${cd}`])];
+    const opz = scelto => dest.map(([v, l]) => `<option value="${v}"${scelto === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
+    // due bolle accanto al grado: "Se lo sostituisci va in…" (di solito riposo) e "Toglilo" senza sostituto
+    const bolle = x.membro ? `<div class="pop-bolle">` +
+      (candidati.length ? `<label class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} se lo sostituisci"><span>↪ Sostituito va in</span><select data-pop-sbarco aria-label="Dove va chi viene sostituito">${opz(ui.sbarco)}</select></label>` : '') +
+      `<label class="pop-bolla b-togli" title="Toglie ${esc(x.membro.name)} senza metterne un altro"><span>✕ Toglilo</span><select data-pop-out aria-label="Togli senza sostituto"><option value="" selected>va in…</option>${opz('')}</select></label></div>` : '';
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
       <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
+      ${bolle}
       <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
-      ${gruppi || (x.extra ? '' : '<p class="pop-vuoto">Nessun agente disponibile per questo grado.</p>')}${sbarco}${fuori}</div>`;
+      ${gruppi || (x.extra ? '' : '<p class="pop-vuoto">Nessun agente disponibile per questo grado.</p>')}</div>`;
   }
   // Filtra l'elenco mentre si scrive: nasconde gli agenti che non corrispondono e le intestazioni rimaste vuote.
   function filtraPopover() {
@@ -452,6 +457,8 @@
   list.addEventListener('change', event => {
     const el = event.target;
     const code = el.dataset.code;
+    if (el.matches('[data-pop-sbarco]')) { ui.sbarco = el.value; setStatus(`Chi viene sostituito va in ${el.value}.`, 'ok'); render(); return; }
+    if (el.matches('[data-pop-out]')) { if (el.value && ui.menu) cambiaPosto(ui.menu.code, el.value, 'out'); return; }
     if (el.dataset.f === 'rif') { salva(code, { rifornimento_mattina: el.checked }, `${code}: rifornimento ${el.checked ? 'previsto' : 'tolto'}.`); return; }
     if (el.dataset.f) {
       const value = el.value.trim();
@@ -509,8 +516,6 @@
       const nome = agenti(state.day).find(a => String(a.agent.id) === String(button.dataset.id))?.agent.agente || '';
       variazione(button.dataset.id, sovr ? `${code}*` : code, `${nome} aggiunto alla ${code}${sovr ? ' in sovrannumero (' + code + '*)' : ''}.`, { aggiunto: true, sovrannumero: sovr });
     }
-    else if (act === 'out') cambiaPosto(code, button.dataset.v, 'out');
-    else if (act === 'sbarco') { ui.sbarco = button.dataset.v; render(); }
     else if (act === 'crew-reset') ripristinaEquipaggio(code);
     else if (act === 'corsa-bis-togli') {
       // la corsa torna alla nave: l'incarico del BIS si spezza o si accorcia attorno ad essa

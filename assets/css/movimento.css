@@ -352,3 +352,9 @@ html.navisuite-light .sp-riga{background:#fff!important}
 .rit-nota{font-size:12px;color:var(--c)}
 .rit-nota b{font-size:13px}
 .rit-nota em{color:#9eb9c1;font-style:normal;font-size:11px}
+.pop-bolle{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.pop-bolla{--c:#a78bfa;display:flex;align-items:center;gap:7px;padding:4px 6px 4px 12px;border:2px solid color-mix(in srgb,var(--c) 70%,transparent);border-radius:999px;background:color-mix(in srgb,var(--c) 12%,transparent);color:var(--c);font:900 11px inherit;text-transform:none;letter-spacing:0}
+.pop-bolla.b-togli{--c:#fb7185}
+.pop-bolla span{white-space:nowrap}
+.pop-bolla select{min-width:0;padding:4px 8px;border:1px solid color-mix(in srgb,var(--c) 50%,transparent);border-radius:999px;background:rgba(6,24,33,.8);color:#fff;font:800 11px inherit}
+html.navisuite-light .pop-bolla select{background:#fff!important;color:#17323a!important}
