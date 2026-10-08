@@ -101,8 +101,16 @@
     const programmate = {};
     [...O.corseDelGiorno(day), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day) : [])]
       .forEach(c => { programmate[`${c.turno}|${c.numero}`] = c.scali; });
+    // corse sospese dall'Ufficio Movimento (una per una o tutto il turno): restano in elenco con la scritta
+    const sospese = O.TURNI.filter(code => O.inServizio(code, day)).flatMap(code => {
+      const v = navi[code];
+      if (!v?.sospesa && !v?.corseSospese?.length) return [];
+      const dal = new Set(v.corseSospese || []);
+      return O.corseDelTurno(code, day).filter(c => v.sospesa || dal.has(String(c.numero)))
+        .map(c => ({ turno: code, corse: [c.numero], numero: c.numero, sospesa: true, tutto: !!v.sospesa, motivo: v.motivo || '', scali: c.scali.map(([nome, ora]) => [nome, ora, c.numero]) }));
+    });
     return {
-      day, incarichi, ritardo, programmate, bisAttivo,
+      day, incarichi, ritardo, programmate, bisAttivo, sospese,
       ieri: T.turniDelGiorno(turniNavi, addDays(day, -1)),
       // le corse sospese dall'Ufficio Movimento non ci sono (ne' sul lago, ne' nei viaggi, ne' allo scalo)
       viaggi: [...O.viaggiDelGiorno(day, ritardi).filter(v => !navi[v.turno]?.sospesa).map(v => {
@@ -338,7 +346,7 @@
 
   // Righe dello scalo: arrivo e ripartenza della stessa nave (sosta breve) in una riga sola.
   function righeScalo(g) {
-    const eventi = eventiScalo(g, state.scalo);
+    const eventi = eventiScalo(g, state.scalo, true);
     const usati = new Set();
     const righe = [];
     eventi.forEach(e => {
@@ -397,6 +405,11 @@
     const html = righe.map((r, i) => {
       if (r.t < t && i !== lastPast && !state.showPastLago) return '';
       const code = r.v.turno;
+      if (r.v.sospesa) {
+        return `<div class="nave sospesa${r.t < t ? ' past' : ''}"><span class="ora">${esc(r.ora)}</span>` +
+          `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>corsa ${esc(r.corsa)}</small></span>${chip(code)}` +
+          `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span><b class="sosp-tag">SOSPESA</b>${r.v.motivo ? `<span class="cte">${esc(r.v.motivo)}</span>` : ''}</span></span></div>`;
+      }
       // BIS a disposizione: esce la mattina (8.30) e rientra la sera (18.40) da Desenzano
       const mattino = r.propria ? r.kind === 'P' : r.kind === 'P' && !r.arr && primo[code]?.scalo === state.scalo && primo[code]?.t === r.t;
       const sera = r.propria ? r.kind === 'A' : r.kind === 'A' && ultimo[code]?.scalo === state.scalo && ultimo[code]?.t === r.t;
@@ -427,7 +440,7 @@
       return `<div class="${cls}"${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
         `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
+        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
     }).join('');
     const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
@@ -533,6 +546,13 @@
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
         : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
+    // corse del turno sospese o sostituite dal BIS: restano scritte
+    const sospeseNave = (g.sospese || []).filter(x => x.turno === code);
+    const perBis = O.corseDelTurno(code, g.day).filter(cc => O.bisPerCorsa(g.incarichi, code, cc.numero, g.day));
+    const cambiate = [...sospeseNave.map(x => ({ n: x.numero, scali: x.scali, tag: '<b class="sosp-tag">SOSPESA</b>' })),
+      ...perBis.map(cc => ({ n: cc.numero, scali: cc.scali, tag: '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' }))]
+      .sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
+    const sospBlocco = cambiate.length ? `<ul class="or-cambiate">${cambiate.map(x => `<li><b>c. ${esc(x.n)}</b> ${esc(x.scali[0][1])} ${esc(x.scali[0][0])} → ${esc(x.scali[x.scali.length - 1][1])} ${esc(x.scali[x.scali.length - 1][0])} ${x.tag}</li>`).join('')}</ul>` : '';
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
@@ -546,7 +566,7 @@
         : iQui === 0 && pos.stato === 'naviga' ? `in arrivo ${traMin(min)}` : `a ${state.scalo} ${traMin(min)}`;
     }
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${sospBlocco}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------
@@ -643,9 +663,9 @@
   }
   const fineCorsa = (v, numero) => v.scali.filter(s => s[2] === numero).pop()?.[0] || '';
 
-  function eventiScalo(g, scalo) {
+  function eventiScalo(g, scalo, conSospese = false) {
     const out = [];
-    g.viaggi.forEach(v => v.scali.forEach(([nome, ora, corsa], i) => {
+    [...g.viaggi, ...(conSospese ? g.sospese || [] : [])].forEach(v => v.scali.forEach(([nome, ora, corsa], i) => {
       if (nome !== scalo) return;
       const prev = v.scali[i - 1], next = v.scali[i + 1];
       let kind = 'S';

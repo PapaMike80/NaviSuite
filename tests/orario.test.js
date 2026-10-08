@@ -38,7 +38,7 @@ assert.match(page, /<h1 class="terra-title" id="orario-title">Scali<\/h1>/);
 const js = fs.readFileSync('assets/js/orario-page.js', 'utf8');
 assert.match(js, /function posizione\(punti, t\)/);
 assert.match(js, /function soluzioni\(g, from, to\)/);
-assert.match(js, /function eventiScalo\(g, scalo\)/);
+assert.match(js, /function eventiScalo\(g, scalo(, conSospese = false)?\)/);
 assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /\['orario\.html','⚓','Scali'\]/);
 assert.ok(!fs.readFileSync('assets/js/shared-menu.js', 'utf8').includes("'servizi-terra.html'"), 'Servizi a terra tolto dal menu');
 assert.match(fs.readFileSync('index.html', 'utf8'), /href="orario\.html"/);

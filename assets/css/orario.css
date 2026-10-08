@@ -136,3 +136,10 @@
 .or-cambi em{padding:1px 7px;border-radius:999px;background:rgba(248,113,113,.2);color:#fca5a5;font-size:10px;font-style:normal;font-weight:900}
 .or-cambi em.bis{background:rgba(103,215,230,.2);color:#67d7e6}
 div.or-ship-row{cursor:default}
+
+.nave.sospesa{opacity:.6}
+.nave.sospesa .ship-name{text-decoration:line-through}
+.sosp-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(248,113,113,.22);color:#fca5a5;font-size:10px;font-weight:900;letter-spacing:.04em;white-space:nowrap}
+.sosp-tag.bis{background:rgba(103,215,230,.2);color:#67d7e6}
+.or-cambiate{margin:10px 0 0;padding:0;list-style:none;font-size:12px}
+.or-cambiate li{margin:4px 0;color:#c7dde2}
