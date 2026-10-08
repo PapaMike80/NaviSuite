@@ -119,9 +119,18 @@
     const casa = residenzaCorsa(code, crew, tutti);
     const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
     const [sigla, colore, nomeRuolo] = RUOLO_INFO[x.ruolo] || RUOLO_INFO.marinaio;
-    const gruppi = residenze.map(res => `<p class="pop-res">${esc(titoloRes(res))}${res === casa ? ' · residenza della corsa' : ''}</p>` + candidati.filter(a => a.residenza === res)
-      .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'))
-      .map(a => { const g = G.gradoOf(a.agent); return `<button type="button" class="pop-agente" data-act="pick" data-code="${code}" data-id="${esc(a.agent.id)}"><span class="pa-nome" style="color:${g[1]}">${esc(a.agent.agente)}</span><small>${esc(g[0] || '')}</small><span class="chip" data-code="${esc(a.turno || '—')}">${esc(a.turno || '—')}</span></button>`; }).join('')).join('');
+    const riga = a => { const g = G.gradoOf(a.agent); return `<button type="button" class="pop-agente" data-act="pick" data-code="${code}" data-id="${esc(a.agent.id)}"><span class="pa-nome" style="color:${g[1]}">${esc(a.agent.agente)}</span><small>${esc(g[0] || '')}</small><span class="chip" data-code="${esc(a.turno || '—')}">${esc(a.turno || '—')}</span></button>`; };
+    // prima i pari grado di tutte le residenze, poi i gradi superiori in salita; ogni blocco diviso per residenza
+    const LIVELLO = { marinaio: 1, aiuto_motorista: 2, timoniere: 3, motorista: 3, capo_timoniere: 4, capitano: 5 };
+    const ruoli = [...new Set(candidati.map(a => RUOLO[G.gradoOf(a.agent)[0]]))].sort((a, b) => (b === x.ruolo) - (a === x.ruolo) || LIVELLO[a] - LIVELLO[b]);
+    const gruppi = ruoli.map(ruolo => {
+      const nomeGrado = RUOLO_INFO[ruolo]?.[2] || ruolo;
+      const titolo = `<p class="pop-tier" style="--g:${RUOLO_INFO[ruolo]?.[1] || '#e8f3f6'}">${ruolo === x.ruolo ? `Pari grado · ${esc(nomeGrado)}` : `Grado superiore · ${esc(nomeGrado)}`}</p>`;
+      const dentro = candidati.filter(a => RUOLO[G.gradoOf(a.agent)[0]] === ruolo);
+      const res = residenze.filter(r => dentro.some(a => a.residenza === r));
+      return titolo + res.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
+        dentro.filter(a => a.residenza === r).sort((a, b) => String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
+    }).join('');
     const dest = [...CAUSALI.map(([c, l]) => [c, c, l]), ...[...O.TURNI, 'BIS'].filter(c => c !== code).map(c => [c, c, `sulla ${c}`])];
     const chips = (act, scelto) => dest.map(([v, l, t]) => `<button type="button" class="pop-chip${scelto === v ? ' on' : ''}" data-act="${act}" data-code="${code}" data-v="${v}" title="${esc(t)}">${l}</button>`).join('');
     const sbarco = x.membro && candidati.length ? `<p class="pop-res">Se lo sostituisci, ${esc(x.membro.name)} va in</p><div class="pop-chips">${chips('sbarco', ui.sbarco)}</div>` : '';

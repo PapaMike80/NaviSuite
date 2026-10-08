@@ -276,3 +276,5 @@ select.mov-nave-tag,select.mov-nave-tag option{font:900 12px/1.2 Inter,Arial,san
 html.navisuite-light .slot-pop{background:#fff!important;border-color:#b6d4d9!important;box-shadow:0 18px 40px rgba(22,56,66,.22)!important}
 html.navisuite-light .pop-agente{background:#f1f8f9!important}
 html.navisuite-light .pop-chip{background:#f4fafb!important;color:#17596a!important;border-color:#9fc5cc!important}
+.pop-tier{--g:#e8f3f6;margin:14px 0 2px!important;padding-bottom:3px;border-bottom:1px solid color-mix(in srgb,var(--g) 40%,transparent);color:var(--g)!important;font-size:11px!important;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.pop-tier+.pop-res{margin-top:6px!important}
