@@ -432,3 +432,11 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .toolbar .mov-day #mov-day-today{flex:0 0 auto;padding:0 16px}
 .mov-day-current{flex:1 1 auto;justify-content:center;min-width:0}
 @media(max-width:560px){.mov-day-current{padding:0 10px}.mov-day-current>span{font-size:20px}}
+/* Selettore di giornata al centro della pagina, con Oggi sempre visibile nello stesso carattere della data */
+.mov-toolbar{flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.mov-toolbar .spacer{display:none}
+.mov-toolbar .mov-day{flex:0 1 auto;justify-content:center;max-width:100%}
+.mov-status{text-align:center}
+.toolbar .mov-day #mov-day-today{flex:0 0 auto;min-height:48px;padding:0 20px;border-radius:14px;font:900 clamp(18px,3.4vw,26px)/1.1 Manrope,Inter,sans-serif;text-transform:capitalize;white-space:nowrap}
+.toolbar .mov-day #mov-day-today.on{border:2px solid #2dd4bf;border-style:solid;background:rgba(45,212,191,.2);color:#99f6e4}
+@media(max-width:560px){.toolbar .mov-day #mov-day-today{padding:0 12px;font-size:17px}}

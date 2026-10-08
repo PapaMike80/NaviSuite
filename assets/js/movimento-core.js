@@ -72,7 +72,8 @@
     const d = parseIso(state.day);
     $('mov-day-label').textContent = `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`;
     $('mov-day-input').value = state.day;
-    $('mov-day-today').hidden = state.day === iso(new Date());
+    // "Oggi" sempre visibile; acceso quando si guarda il giorno corrente
+    $('mov-day-today').classList.toggle('on', state.day === iso(new Date()));
     viste[state.tab]?.render();
   }
   const notify = render;
@@ -232,6 +233,8 @@
   $('mov-day-prev').addEventListener('click', () => goToDay(addDays(state.day, -1)));
   $('mov-day-next').addEventListener('click', () => goToDay(addDays(state.day, 1)));
   $('mov-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  // cliccando sulla data si apre il calendario
+  $('mov-day-input').addEventListener('click', event => { try { event.target.showPicker?.(); } catch { /* il browser lo apre da solo */ } });
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
