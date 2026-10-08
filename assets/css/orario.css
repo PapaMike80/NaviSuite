@@ -161,8 +161,8 @@ div.or-ship-row{cursor:default}
 #orario .terra-bar,#mio-turno .terra-bar{justify-content:center}
 #orario .terra-day,#mio-turno .terra-day{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
 #orario .terra-day-nav,#mio-turno .terra-day-nav{width:52px;height:48px;border-radius:12px;font-size:22px}
-#orario .terra-day-current,#mio-turno .terra-day-current{flex:0 0 auto;width:15em;min-height:48px;justify-content:center;padding:0 .6em;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.12);font-size:clamp(15px,4.2vw,26px)}
-#orario .terra-day-label,#mio-turno .terra-day-label{color:#f2fffd;font:900 1em/1.1 Manrope,Inter,sans-serif;letter-spacing:.01em;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis}
+#orario .terra-day-current,#mio-turno .terra-day-current{flex:0 0 auto;width:15em;min-height:48px;justify-content:center;padding:0 .6em;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.28);box-shadow:0 0 14px rgba(45,212,191,.55);font-size:clamp(15px,4.2vw,26px)}
+#orario .terra-day-label,#mio-turno .terra-day-label{color:#99f6e4;font:900 1em/1.1 Manrope,Inter,sans-serif;letter-spacing:.01em;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis}
 #orario .terra-day-today,#mio-turno .terra-day-today{flex:0 0 5em;min-height:48px;padding:0;border-radius:14px;font:900 clamp(15px,4.2vw,26px)/1.1 Manrope,Inter,sans-serif}
 #orario .terra-day-today[hidden],#mio-turno .terra-day-today[hidden]{display:inline-flex;visibility:hidden}
 html.navisuite-light #orario .terra-day-current,#mio-turno .terra-day-current{background:#bfeee4!important;border-color:#087b6e!important}
