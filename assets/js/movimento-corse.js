@@ -42,14 +42,9 @@
       .sort((a, b) => String(a.dal || '').localeCompare(String(b.dal || '')));
     const periodo = periodi.filter(p => String(p.dal || '') <= day).pop();
     if (!periodo) return null;
+    // ogni posto e' coperto da chi ha quel grado o uno superiore (non il contrario)
     const presenti = {};
-    crew.forEach(member => { const ruolo = RUOLO[member.grado[0]]; if (ruolo) presenti[ruolo] = (presenti[ruolo] || 0) + 1; });
-    // a bordo il capo timoniere fa da capitano, se il capitano manca
-    const servono = key => Number(periodo.equipaggio?.[key]) || 0;
-    while ((presenti.capitano || 0) < servono('capitano') && (presenti.capo_timoniere || 0) > servono('capo_timoniere')) {
-      presenti.capitano = (presenti.capitano || 0) + 1;
-      presenti.capo_timoniere -= 1;
-    }
+    posti(nave, day, crew).forEach(x => { if (x.membro && !x.extra) presenti[x.ruolo] = (presenti[x.ruolo] || 0) + 1; });
     const richiesti = RUOLI.filter(([key]) => Number(periodo.equipaggio?.[key]) > 0)
       .map(([key, uno, piu]) => ({ key, n: Number(periodo.equipaggio[key]), label: Number(periodo.equipaggio[key]) === 1 ? uno : piu, presenti: presenti[key] || 0 }));
     const totale = richiesti.reduce((s, r) => s + r.n, 0);
@@ -71,6 +66,10 @@
       .sort((a, b) => String(a.dal || '').localeCompare(String(b.dal || '')));
     return periodi.filter(p => String(p.dal || '') <= day).pop() || null;
   }
+  // Posti che ciascun grado puo' coprire oltre al proprio: ponte (capitano > capo timoniere > timoniere > marinaio)
+  // e macchina (motorista > aiuto motorista > marinaio).
+  const COPRE = { capitano: ['capo_timoniere', 'timoniere', 'marinaio'], capo_timoniere: ['timoniere', 'marinaio'], timoniere: ['marinaio'],
+    motorista: ['aiuto_motorista', 'marinaio'], aiuto_motorista: ['marinaio'] };
   function posti(nave, day, crew) {
     const periodo = periodoNave(nave, day);
     const slot = periodo ? RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)) : crew.map(m => RUOLO[m.grado[0]] || 'marinaio');
@@ -84,7 +83,12 @@
     prendi((x, m) => RUOLO[m.grado[0]] === x.ruolo, false);
     // a bordo il capo timoniere fa da capitano
     prendi((x, m) => x.ruolo === 'capitano' && RUOLO[m.grado[0]] === 'capo_timoniere', false);
-    prendi(() => true, true);
+    // un grado superiore copre un posto inferiore (non il contrario): sceglie il meno alto tra chi puo'
+    out.forEach(x => {
+      if (x.membro) return;
+      const adatti = liberi.filter(m => COPRE[RUOLO[m.grado[0]]]?.includes(x.ruolo)).sort((a, b) => b.grado[2] - a.grado[2]);
+      if (adatti.length) { x.membro = adatti[0]; x.adattato = true; liberi.splice(liberi.indexOf(adatti[0]), 1); }
+    });
     liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true }));
     return out;
   }
@@ -156,7 +160,7 @@
     const corse = info.trips ? `corse ${esc(info.trips)}` : code === 'BIS' ? 'a disposizione' : '';
     const comandante = G.comandante(crew);
     const min = minimo(r.nave, day, crew);
-    const avviso = min && (min.mancano.length || crew.length < min.totale);
+    const avviso = min && min.mancano.length > 0;
     const open = ui.open === code;
     const field = (f, label, value, extra = '') => `<label class="mov-field mov-${f}"><span>${label}</span><input data-code="${code}" data-f="${f}" value="${esc(value)}" ${extra} autocomplete="off"></label>`;
     let azioni;
@@ -171,7 +175,10 @@
     if (code !== 'BIS' && O.inServizio('BIS', day)) azioni += `<button class="btn ghost" type="button" data-act="bis-form" data-code="${code}" title="Il BIS sostituisce questa nave o fa corse in aiuto">⇄ BIS</button>`;
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
     const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
-    const nave = r.nave ? `<span class="mov-nave-tag">${esc(r.nave)}</span>` : '<span class="mov-nave-tag vuota">nave da assegnare</span>';
+    const attive = Object.values(state.fleet).filter(x => x?.attiva !== false).map(x => String(x.nome || '').trim()).filter(Boolean).sort((a, b) => a.localeCompare(b, 'it'));
+    const usate = Object.fromEntries(Object.entries(state.oggi).filter(([c, v]) => c !== code && v?.nave).map(([c, v]) => [String(v.nave).trim().toUpperCase(), c]));
+    const nomi = r.nave && !attive.some(n => n.toUpperCase() === String(r.nave).trim().toUpperCase()) ? [String(r.nave).trim(), ...attive] : attive;
+    const nave = `<select class="mov-nave-tag${r.nave ? '' : ' vuota'}" data-code="${code}" data-f="nave" aria-label="Nave della ${code}"><option value=""${r.nave ? '' : ' selected'}>nave da assegnare</option>${nomi.map(n => `<option value="${esc(n)}"${n.toUpperCase() === String(r.nave || '').trim().toUpperCase() ? ' selected' : ''}>${esc(n)}${usate[n.toUpperCase()] ? ` (ora ${usate[n.toUpperCase()]})` : ''}</option>`).join('')}</select>`;
     const stato = r.sospesa ? '<span class="mov-sospesa">SOSPESA</span>' : '';
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
       <div class="mov-head" role="button" tabindex="0" data-act="open" data-code="${code}" aria-expanded="${open}">
@@ -242,7 +249,7 @@
     if (min) {
       const req = min.richiesti.map(x => `${x.n} ${x.label}`).join(' · ');
       const manca = min.mancano.map(x => `${x.n - x.presenti} ${x.n - x.presenti === 1 ? RUOLI.find(y => y[0] === x.key)[1] : RUOLI.find(y => y[0] === x.key)[2]}`).join(', ');
-      minimoTxt = `<p class="mov-min${min.mancano.length || crew.length < min.totale ? ' warn' : ''}">Equipaggio minimo ${esc(min.nome)}: ${esc(req)}${manca ? ` — ⚠ manca ${esc(manca)}` : crew.length < min.totale ? ` — ⚠ servono ${min.totale} persone` : ' — completo'}</p>`;
+      minimoTxt = `<p class="mov-min${min.mancano.length ? ' warn' : ''}">Equipaggio minimo ${esc(min.nome)}: ${esc(req)}${manca ? ` — ⚠ manca ${esc(manca)}` : ' — completo'}</p>`;
     } else if (r.nave) {
       minimoTxt = `<p class="mov-min">Equipaggio minimo di ${esc(r.nave)} non indicato nell'anagrafica navi.</p>`;
     }
@@ -359,6 +366,7 @@
     if (event.key === 'Enter' && event.target.id === 'mov-motivo') list.querySelector('[data-act="confirm-suspend"]')?.click();
   });
   list.addEventListener('click', event => {
+    if (event.target.closest('select')) return;
     const button = event.target.closest('button[data-act], .mov-head[data-act]');
     if (!button) return;
     const code = button.dataset.code;

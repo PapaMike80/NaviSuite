@@ -229,7 +229,6 @@ html.navisuite-light .ag-list li{background:#f1f8f9!important}
 .slot-nome{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:900}
 .slot-nome.vuoto{color:#fb7185;font-weight:700}
 .slot.manca .slot-pallino{border-style:dashed;background:transparent}
-.slot.adattato .slot-pallino{box-shadow:0 0 0 2px rgba(250,204,21,.55)}
 .slot.extra .slot-pallino{opacity:.55;border-style:dotted}
 .slot:hover .slot-pallino{background:color-mix(in srgb,var(--g) 34%,transparent)}
 .mov-warn{align-self:center;color:#fcd34d;font-size:18px}
@@ -243,3 +242,7 @@ html.navisuite-light .ag-list li{background:#f1f8f9!important}
 @media(max-width:850px){.mov-slots{max-width:100%;flex-basis:100%;justify-content:flex-start}.mov-slot-pick select{min-width:0;width:100%}}
 html.navisuite-light .mov-slot-pick select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
 html.navisuite-light .slot-nome.vuoto{color:#be123c}
+select.mov-nave-tag{appearance:none;-webkit-appearance:none;max-width:150px;border:1px solid #2f6f7a;cursor:pointer;font-family:inherit}
+select.mov-nave-tag.vuota{border:1px dashed #315b66;background:transparent}
+select.mov-nave-tag option{background:#0b2731;color:#e8f7f7}
+html.navisuite-light select.mov-nave-tag option{background:#fff;color:#17323a}
