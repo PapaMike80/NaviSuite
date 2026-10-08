@@ -330,3 +330,18 @@ html.navisuite-light .rit-top b,html.navisuite-light .rit-rotta{color:#17323a!im
 .rit-bis{display:flex;align-items:center;gap:7px;color:#67d7e6;font-size:12px;font-weight:800;letter-spacing:0;text-transform:none}
 .rit-bis-tag{padding:2px 8px;border-radius:999px;background:rgba(103,215,230,.18);color:#67d7e6;font-size:10px;font-weight:900}
 .rit-tile.bis{--c:#67d7e6}
+/* Elenco delle corse da sospendere o dare al BIS */
+.mov-sosp{margin:0 13px 10px;padding:12px;border:1px solid #9f3044;border-radius:14px;background:rgba(159,48,68,.1)}
+.btn.danger.on{background:#7f1d33;color:#fff}
+.sp-rapidi,.sp-azioni,.sp-tutto{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.sp-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px;margin:8px 0}
+.sp-riga{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid #28515d;border-radius:10px;background:#0b222c;font-size:12px;cursor:pointer}
+.sp-riga.sel{border-color:#fb7185;background:rgba(251,113,133,.14)}
+.sp-riga.passata{opacity:.5}
+.sp-riga input{width:17px;height:17px;accent-color:#fb7185}
+.sp-riga b{font-size:13px}
+.sp-riga span{flex:1;color:#b9d2d8}
+.sp-riga em{padding:1px 7px;border-radius:999px;background:rgba(248,113,113,.2);color:#fca5a5;font-size:10px;font-style:normal;font-weight:900}
+.sp-riga em.bis{background:rgba(103,215,230,.2);color:#67d7e6}
+.sp-riga em.fatta{background:rgba(148,163,184,.2);color:#cbd5e1}
+html.navisuite-light .sp-riga{background:#fff!important}

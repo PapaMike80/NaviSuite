@@ -99,5 +99,5 @@ const rigaSosp = { data: day, corsa: 'D1', nave: 'S. MARCO', fonte: 'movimento',
 assert.deepStrictEqual(T.turniDelGiorno([rigaSosp], day).D1.corseSospese, ['16', '17']);
 assert.ok(!T.turniDelGiorno([rigaSosp], day).D1.sospesa);
 assert.match(rest, /corse_sospese:\(Array\.isArray\(values\.corse_sospese\)/);
-['data-act="corsa-chiedi"', 'data-act="corsa-sospendi"', 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
+['data-act="sosp-sel"', 'data-act="bis-sel"', 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
 console.log('movimento ok');
