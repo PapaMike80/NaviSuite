@@ -196,7 +196,11 @@
     const prima = variazioneMovimento(state.day, id);
     const originale = prima?.turno_originale || item.turno;
     // rimesso sul turno previsto: non resta nessuna variazione
-    if (turnoNuovo && String(turnoNuovo).trim().toUpperCase() === String(originale || '').trim().toUpperCase()) turnoNuovo = '';
+    // se coincide con quello previsto non serve una variazione, tranne quando l'agente ha un cambio suo nella Distinta da sovrascrivere:
+    // li' la decisione deve restare, altrimenti ricompare il cambio dell'agente
+    const cambioAgente = G.modificaManuale?.(id, state.day);
+    if (turnoNuovo && String(turnoNuovo).trim().toUpperCase() === String(originale || '').trim().toUpperCase() &&
+      (cambioAgente === undefined || String(cambioAgente).trim().toUpperCase() === String(turnoNuovo).trim().toUpperCase())) turnoNuovo = '';
     try {
       // la decisione sovrascrive il cambio che l'agente si e' fatto nella Distinta in quel giorno, se c'e'
       const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`, { sovrascrive: G.modificaManuale?.(id, state.day) ?? '', ...extra });
