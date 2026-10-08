@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null };
+  const ui = { open: '', suspending: '', bisForm: null, slot: null };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -54,6 +54,76 @@
       .map(([key, uno, piu]) => ({ key, n: Number(periodo.equipaggio[key]), label: Number(periodo.equipaggio[key]) === 1 ? uno : piu, presenti: presenti[key] || 0 }));
     const totale = richiesti.reduce((s, r) => s + r.n, 0);
     return { nome: ship.nome, richiesti, totale, mancano: richiesti.filter(r => r.presenti < r.n) };
+  }
+
+  // ---------------- Pallini dell'equipaggio ----------------
+  // Un pallino per ogni posto dell'equipaggio minimo della nave, col colore del grado, e sotto il nome di chi
+  // ci sta. Ogni agente va sul posto del suo grado; chi resta riempie i posti scoperti (es. un marinaio al
+  // posto di un timoniere); chi avanza e' in piu' rispetto al minimo.
+  const RUOLO_INFO = { capitano: ['Cap', '#facc15', 'Comandante'], capo_timoniere: ['CT', '#fb923c', 'Capo timoniere'], timoniere: ['Tim', '#22c55e', 'Timoniere'],
+    motorista: ['Mot', '#a855f7', 'Motorista'], aiuto_motorista: ['AM', '#3b82f6', 'Aiuto motorista'], marinaio: ['Mar', '#e8f3f6', 'Marinaio'] };
+  const cognome = name => { const w = String(name || '').trim().split(/\s+/)[0] || ''; return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
+  function periodoNave(nave, day) {
+    const norm = value => String(value || '').trim().toUpperCase();
+    const ship = Object.values(state.fleet).find(item => norm(item?.nome) === norm(nave));
+    if (!ship) return null;
+    const periodi = (Array.isArray(ship.periodi) ? ship.periodi : Object.values(ship.periodi || {})).filter(Boolean)
+      .sort((a, b) => String(a.dal || '').localeCompare(String(b.dal || '')));
+    return periodi.filter(p => String(p.dal || '') <= day).pop() || null;
+  }
+  function posti(nave, day, crew) {
+    const periodo = periodoNave(nave, day);
+    const slot = periodo ? RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)) : crew.map(m => RUOLO[m.grado[0]] || 'marinaio');
+    const liberi = [...crew];
+    const out = slot.map(ruolo => ({ ruolo, membro: null, adattato: false }));
+    const prendi = (cond, adattato) => out.forEach(x => {
+      if (x.membro) return;
+      const i = liberi.findIndex(m => cond(x, m));
+      if (i >= 0) { x.membro = liberi.splice(i, 1)[0]; x.adattato = adattato; }
+    });
+    prendi((x, m) => RUOLO[m.grado[0]] === x.ruolo, false);
+    // a bordo il capo timoniere fa da capitano
+    prendi((x, m) => x.ruolo === 'capitano' && RUOLO[m.grado[0]] === 'capo_timoniere', false);
+    prendi(() => true, true);
+    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true }));
+    return out;
+  }
+  function pallini(code, lista) {
+    return lista.map((x, i) => {
+      const [sigla, colore, nomeRuolo] = RUOLO_INFO[x.ruolo] || RUOLO_INFO.marinaio;
+      const nome = x.membro ? `<span class="slot-nome" style="color:${x.membro.grado[1]}">${esc(cognome(x.membro.name))}</span>` : '<span class="slot-nome vuoto">vuoto</span>';
+      const titolo = `${nomeRuolo}${x.membro ? `: ${x.membro.name}${x.adattato ? ` (fa da ${nomeRuolo.toLowerCase()})` : ''}` : ': posto scoperto'} — tocca per cambiare`;
+      return `<button type="button" class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}" style="--g:${colore}" data-act="slot" data-code="${code}" data-i="${i}" title="${esc(titolo)}">` +
+        `<span class="slot-pallino">${sigla}</span>${nome}</button>`;
+    }).join('');
+  }
+  // Residenza della corsa: quella della maggior parte dell'equipaggio, altrimenti dalla lettera del turno.
+  function residenzaCorsa(code, crew, tutti) {
+    const conta = {};
+    crew.forEach(m => { const r = tutti.find(a => String(a.agent.id) === String(m.id))?.residenza; if (r) conta[r] = (conta[r] || 0) + 1; });
+    const top = Object.entries(conta).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (top) return top;
+    const lettera = code[0] === 'D' ? 'DESENZANO' : /^[MT]/.test(code) ? 'MADERNO' : '';
+    return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
+  }
+  const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
+  function sceltaAgente(code, day, crew, tutti, lista) {
+    const x = lista[ui.slot.i];
+    if (!x) return '';
+    const ids = new Set(crew.map(m => String(m.id)));
+    const gradoOk = a => { const r = RUOLO[G.gradoOf(a.agent)[0]]; return ui.slot.tutti || r === x.ruolo || (x.ruolo === 'capitano' && r === 'capo_timoniere'); };
+    const candidati = tutti.filter(a => !ids.has(String(a.agent.id)) && gradoOk(a));
+    const casa = residenzaCorsa(code, crew, tutti);
+    const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
+    const gruppi = residenze.map(res => `<optgroup label="${esc(titoloRes(res))}${res === casa ? ' (residenza della corsa)' : ''}">${candidati.filter(a => a.residenza === res)
+      .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'))
+      .map(a => `<option value="${esc(a.agent.id)}">${esc(a.agent.agente)} · ${esc(a.turno || '—')}${ui.slot.tutti ? ` · ${esc(G.gradoOf(a.agent)[0] || a.agent.qualifica || '')}` : ''}</option>`).join('')}</optgroup>`).join('');
+    const info = RUOLO_INFO[x.ruolo];
+    const sost = x.membro ? `<label>${esc(x.membro.name)} va in<select id="mov-slot-out">${CAUSALI.map(([c, l]) => `<option value="${c}">${l} (${c})</option>`).join('')}</select></label>` : '';
+    return `<div class="mov-slot-pick" id="mov-slot-pick"><b>${esc(info?.[2] || '')}${x.membro ? ` · ora ${esc(x.membro.name)}` : ' · posto scoperto'}</b>
+      <label>Sostituto<select id="mov-slot-agente"><option value="">Scegli un agente…</option>${gruppi}</select></label>${sost}
+      <label class="mov-slot-tutti"><input type="checkbox" data-slot-tutti${ui.slot.tutti ? ' checked' : ''}> tutti i gradi</label>
+      <button class="btn primary" type="button" data-act="slot-ok" data-code="${code}">Metti sul posto</button><button class="btn ghost" type="button" data-act="slot-no">Chiudi</button></div>`;
   }
 
   // ---------------- Render ----------------
@@ -104,12 +174,14 @@
     const nave = r.nave ? `<span class="mov-nave-tag">${esc(r.nave)}</span>` : '<span class="mov-nave-tag vuota">nave da assegnare</span>';
     const stato = r.sospesa ? '<span class="mov-sospesa">SOSPESA</span>' : '';
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
-      <button class="mov-head" type="button" data-act="open" data-code="${code}" aria-expanded="${open}">
+      <div class="mov-head" role="button" tabindex="0" data-act="open" data-code="${code}" aria-expanded="${open}">
         <span class="chip" data-code="${code}">${code}</span>
-        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}</small>${bisBadge}</span>
+        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''}</small>${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-crew-btn${avviso ? ' warn' : ''}">👥 ${crew.length}${comandante ? ` · ${esc(comandante)}` : ''}${avviso ? ' ⚠' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''} <span>${open ? '▴' : '▾'}</span></span>
-      </button>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}</span>
+        <span class="mov-chev">${open ? '▴' : '▾'}</span>
+      </div>
+      ${ui.slot?.code === code ? sceltaAgente(code, day, crew, tutti, posti(r.nave, day, crew)) : ''}
       ${open ? `<div class="mov-row">
         ${field('nave', 'Nave', r.nave || '', 'list="mov-navi" placeholder="Nave"')}
         ${field('ormeggio_mattino', 'Ormeggio mattino', r.ormeggioMattino || '', `list="mov-ormeggi" placeholder="${esc(ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—')}"`)}
@@ -241,6 +313,7 @@
   list.addEventListener('change', event => {
     const el = event.target;
     const code = el.dataset.code;
+    if (el.matches('[data-slot-tutti]')) { ui.slot.tutti = el.checked; render(); return; }
     if (el.dataset.f === 'rif') { salva(code, { rifornimento_mattina: el.checked }, `${code}: rifornimento ${el.checked ? 'previsto' : 'tolto'}.`); return; }
     if (el.dataset.f) {
       const value = el.value.trim();
@@ -281,15 +354,31 @@
     }
   });
   list.addEventListener('keydown', event => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target.classList?.contains('mov-head')) { event.preventDefault(); event.target.click(); return; }
     if (event.key === 'Enter' && event.target.matches('input[data-f]')) event.target.blur();
     if (event.key === 'Enter' && event.target.id === 'mov-motivo') list.querySelector('[data-act="confirm-suspend"]')?.click();
   });
   list.addEventListener('click', event => {
-    const button = event.target.closest('button[data-act]');
+    const button = event.target.closest('button[data-act], .mov-head[data-act]');
     if (!button) return;
     const code = button.dataset.code;
     const act = button.dataset.act;
-    if (act === 'open') { ui.open = ui.open === code ? '' : code; render(); }
+    if (act === 'open') { ui.open = ui.open === code ? '' : code; ui.slot = null; render(); }
+    else if (act === 'slot') { const i = Number(button.dataset.i); ui.slot = ui.slot?.code === code && ui.slot.i === i ? null : { code, i, tutti: false }; render(); }
+    else if (act === 'slot-no') { ui.slot = null; render(); }
+    else if (act === 'slot-ok') {
+      const nuovo = $('mov-slot-agente')?.value;
+      if (!nuovo) { setStatus("Scegli l'agente da mettere sul posto.", 'bad'); return; }
+      const lista = posti(state.oggi[code]?.nave, state.day, G.equipaggi(state.schedule, state.day).navi[code] || []);
+      const vecchio = lista[ui.slot?.i]?.membro;
+      const fuori = $('mov-slot-out')?.value;
+      ui.slot = null;
+      (async () => {
+        if (vecchio && fuori) await variazione(vecchio.id, fuori, `${vecchio.name} tolto da ${code} (${fuori}).`);
+        const nome = agenti(state.day).find(a => String(a.agent.id) === String(nuovo))?.agent.agente || '';
+        await variazione(nuovo, code, `${nome} messo sulla ${code}${vecchio ? ` al posto di ${vecchio.name}` : ''}.`);
+      })();
+    }
     else if (act === 'suspend') { ui.suspending = code; render(); $('mov-motivo')?.focus(); }
     else if (act === 'cancel-suspend') { ui.suspending = ''; render(); }
     else if (act === 'confirm-suspend') {

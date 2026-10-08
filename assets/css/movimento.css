@@ -221,3 +221,25 @@ html.navisuite-light .nave-det input,html.navisuite-light .nave-det select,html.
 html.navisuite-light .nave-chip{background:#f4fafb!important;color:#17596a!important;border-color:#9fc5cc!important}
 html.navisuite-light .mov-nave-tag{background:#e2f5f2!important;color:#087b6e!important}
 html.navisuite-light .ag-list li{background:#f1f8f9!important}
+
+/* Pallini dell'equipaggio nella corsa chiusa */
+.mov-slots{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;gap:8px;max-width:48%}
+.slot{--g:#e8f3f6;display:grid;justify-items:center;gap:3px;min-width:54px;padding:2px;border:0;background:transparent;font:inherit;cursor:pointer}
+.slot-pallino{display:grid;place-items:center;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:900 11px inherit}
+.slot-nome{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:900}
+.slot-nome.vuoto{color:#fb7185;font-weight:700}
+.slot.manca .slot-pallino{border-style:dashed;background:transparent}
+.slot.adattato .slot-pallino{box-shadow:0 0 0 2px rgba(250,204,21,.55)}
+.slot.extra .slot-pallino{opacity:.55;border-style:dotted}
+.slot:hover .slot-pallino{background:color-mix(in srgb,var(--g) 34%,transparent)}
+.mov-warn{align-self:center;color:#fcd34d;font-size:18px}
+.mov-chev{align-self:center;color:#86a5af}
+.mov-head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:12px}
+.mov-slot-pick{display:flex;flex-wrap:wrap;align-items:end;gap:10px;padding:10px 13px;border-top:1px dashed #2f6f7a;background:rgba(45,212,191,.05)}
+.mov-slot-pick>b{flex-basis:100%;font-size:12px}
+.mov-slot-pick label{display:grid;gap:4px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mov-slot-pick select{min-width:220px;padding:8px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#e8f7f7;font:700 12px inherit}
+.mov-slot-pick .mov-slot-tutti{display:flex;align-items:center;gap:6px;padding-bottom:10px}
+@media(max-width:850px){.mov-slots{max-width:100%;flex-basis:100%;justify-content:flex-start}.mov-slot-pick select{min-width:0;width:100%}}
+html.navisuite-light .mov-slot-pick select{background:#fff!important;color:#17323a!important;border-color:#b6d4d9!important}
+html.navisuite-light .slot-nome.vuoto{color:#be123c}
