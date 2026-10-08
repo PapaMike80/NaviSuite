@@ -447,7 +447,7 @@
       return `<div class="${cls}"${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
         `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
-        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
+        `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : code !== 'BIS' && (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(r.corsa))) ? '<b class="sosp-tag bis" title="Il BIS fa la corsa in aiuto">BIS IN AIUTO</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
     }).join('');
     const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
@@ -501,9 +501,10 @@
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
     // corse sostituite dal BIS o sospese: restano in elenco con la scritta accanto a ogni scalo
     const bisCorse = new Set(O.corseDelTurno(code, g.day).filter(cc => O.bisPerCorsa(g.incarichi, code, cc.numero, g.day)).map(cc => String(cc.numero)));
+    const aiutoCorse = new Set(O.corseDelTurno(code, g.day).filter(cc => (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(cc.numero)))).map(cc => String(cc.numero)));
     const extra = (g.sospese || []).filter(x => x.turno === code)
       .flatMap(x => x.scali.map(([scalo, ora, corsa]) => ({ scalo, t: minutes(ora), corsa, sosp: true, da: x.da })));
-    const tagDi = p => (p.sosp ? `<b class="sosp-tag">SOSPESA${p.da ? ` da ${esc(p.da)}` : ''}</b>` : bisCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' : '');
+    const tagDi = p => (p.sosp ? `<b class="sosp-tag">SOSPESA${p.da ? ` da ${esc(p.da)}` : ''}</b>` : bisCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' : aiutoCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">BIS IN AIUTO</b>' : '');
     const riga = (p, k, cls = '') => {
       // quanto manca (entro 2 ore); il primo scalo, se la nave naviga, e' "in arrivo"
       const min = p.t - t;
@@ -547,7 +548,7 @@
       if (finite.has(p.corsa) && !mostraFinite) return '';
       const idx = q => punti.indexOf(q);
       const cls = q => (q.t < t || (idx(q) >= 0 && idx(q) < from) ? 'prec' : '');
-      const sep = q => linea(q.corsa, q.sosp || bisCorse.has(String(q.corsa)) ? tagDi(q) : '');
+      const sep = q => linea(q.corsa, q.sosp || bisCorse.has(String(q.corsa)) || aiutoCorse.has(String(q.corsa)) ? tagDi(q) : '');
       const rk = i => i - from;
       if (!k) return sep(p) + riga(p, rk(idx(p)), cls(p));
       const prima = tutti[k - 1];

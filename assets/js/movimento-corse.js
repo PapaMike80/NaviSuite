@@ -325,18 +325,20 @@
     return { da: c.scali[i][1], scalo: c.scali[i][0] };
   }
   const sospRaw = code => state.oggi[code]?.corseSospeseRaw || [];
-  // Domanda sotto la corsa: sospenderla (solo questa o anche le successive) oppure darla al BIS al posto della nave.
+  // Domanda sotto la corsa: sospenderla (e volendo darla al BIS al posto della nave) oppure chiamare il BIS.
+  // Corsa in orario: "Chiama il BIS" = BIS in aiuto (corse in piu'); corsa sospesa o dentro "Sospendi corsa": BIS al posto della nave.
   function domandaCorsa(code, c, i, corse, successive, bisDisp) {
     const n = esc(c.numero);
-    const modoBis = ui.sospCorsa.modo === 'bis' && bisDisp;
+    const modo = ui.sospCorsa.modo;
     const resto = corse.length - i;
-    const bottone = (act, quali, testo, classe) => `<button type="button" class="btn ${classe}" data-act="${act}" data-code="${code}" data-corsa="${n}" data-quali="${quali}">${testo}</button>`;
-    const gruppoBis = etichetta => `${etichetta ? `<span class="rit-oppure">${etichetta}</span>` : ''}` +
-      bottone('corsa-bis', 'una', `BIS solo sulla ${n}`, 'primary') + (resto > 1 ? bottone('corsa-bis', 'succ', `BIS sulla ${n} e le ${resto - 1} successive`, 'primary') : '');
-    if (modoBis) return `<div class="rit-chiedi"><b>Chiamare il BIS al posto della nave…</b>${gruppoBis('')}<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>`;
+    const bottone = (act, quali, testo, classe, tipo = '') => `<button type="button" class="btn ${classe}" data-act="${act}" data-code="${code}" data-corsa="${n}" data-quali="${quali}"${tipo ? ` data-tipo="${tipo}"` : ''}>${testo}</button>`;
+    const gruppoBis = (tipo, etichetta) => `${etichetta ? `<span class="rit-oppure">${etichetta}</span>` : ''}` +
+      bottone('corsa-bis', 'una', `BIS solo sulla ${n}`, 'primary', tipo) + (resto > 1 ? bottone('corsa-bis', 'succ', `BIS sulla ${n} e le ${resto - 1} successive`, 'primary', tipo) : '');
+    if (bisDisp && modo === 'aiuto') return `<div class="rit-chiedi"><b>Chiamare il BIS in aiuto…</b>${gruppoBis('aiuto', '')}<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>`;
+    if (bisDisp && modo === 'bis') return `<div class="rit-chiedi"><b>Chiamare il BIS al posto della nave…</b>${gruppoBis('sostituzione', '')}<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>`;
     return `<div class="rit-chiedi"><b>Sospendere…</b>` + bottone('corsa-sospendi', 'una', `solo la corsa ${n}`, 'danger') +
       (successive > 1 ? bottone('corsa-sospendi', 'succ', `la ${n} e le ${successive - 1} successive`, 'danger') : '') +
-      (bisDisp ? gruppoBis('Oppure il BIS al posto della nave:') : '') +
+      (bisDisp ? gruppoBis('sostituzione', 'Oppure il BIS al posto della nave:') : '') +
       '<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>';
   }
   // Colore del ritardo: verde in orario, giallo fino a 15', arancio fino a 45', rosso oltre; viola oltre 2 ore.
@@ -357,14 +359,16 @@
       const bisDisp = code !== 'BIS' && O.inServizio('BIS', day);
       const chiede = ui.sospCorsa?.code === code && ui.sospCorsa.corsa === String(c.numero);
       const successive = corse.slice(i).filter(x => !(r.corseSospese || []).includes(String(x.numero))).length;
+      const inAiuto = code !== 'BIS' && (state.oggi.BIS?.incarichi || []).some(x => x.tipo === 'aiuto' && x.turno === code && O.corseIncarico(x, day).some(cc => cc.numero === String(c.numero)));
       const perBis = code !== 'BIS' ? O.bisPerCorsa(state.oggi.BIS?.incarichi, code, c.numero, day) : null;
       const azione = perBis ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-code="${code}" data-corsa="${esc(c.numero)}" title="Toglie la corsa al BIS: la rifa la nave della ${code}">↺ Ripristina alla ${code}</button>`
         : chiede ? domandaCorsa(code, c, i, corse, successive, bisDisp)
         : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>` + (bisDisp ? `<button type="button" class="btn primary rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="bis">Chiama il BIS</button>` : '')
         : `<button type="button" class="btn danger rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="sosp">Sospendi corsa</button>` +
-          (bisDisp ? `<button type="button" class="btn primary rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="bis">Chiama il BIS</button>` : '');
-      return `<div class="rit-tile ${sospesa ? 'sosp' : livelloRitardo(eff.ritardo)}${eff.ritardo?.propagato && !sospesa ? ' prop' : ''}${perBis ? ' bis' : ''}">
-        <div class="rit-top"><b>c. ${esc(c.numero)}</b><span class="rit-badge">${sospesa ? (sospDa?.scalo ? `SOSPESA da ${esc(sospDa.scalo)}` : 'SOSPESA') : eff.ritardo ? esc(O.testoRitardo(eff.ritardo)) : 'in orario'}</span>${perBis ? '<span class="rit-bis-tag" title="La fa il BIS al posto della nave">BIS</span>' : ''}</div>
+          (bisDisp ? (inAiuto ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-tipo="aiuto" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Togli il BIS in aiuto</button>`
+          : `<button type="button" class="btn primary rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="aiuto">Chiama il BIS in aiuto</button>`) : '');
+      return `<div class="rit-tile ${sospesa ? 'sosp' : livelloRitardo(eff.ritardo)}${eff.ritardo?.propagato && !sospesa ? ' prop' : ''}${perBis || inAiuto ? ' bis' : ''}">
+        <div class="rit-top"><b>c. ${esc(c.numero)}</b><span class="rit-badge">${sospesa ? (sospDa?.scalo ? `SOSPESA da ${esc(sospDa.scalo)}` : 'SOSPESA') : eff.ritardo ? esc(O.testoRitardo(eff.ritardo)) : 'in orario'}</span>${perBis ? '<span class="rit-bis-tag" title="La fa il BIS al posto della nave">BIS</span>' : ''}${inAiuto ? '<span class="rit-bis-tag aiuto" title="Il BIS fa la corsa in aiuto alla nave">BIS in aiuto</span>' : ''}</div>
         <div class="rit-rotta"><span>${esc(c.scali[0][1])}</span> ${esc(c.scali[0][0])} <i>→</i> <span>${esc(ultimo[1])}</span> ${esc(ultimo[0])}</div>
         ${azione ? `<div class="rit-act">${azione}</div>` : ''}
         ${sospesa ? '' : `<select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>`}
@@ -510,9 +514,10 @@
     else if (act === 'corsa-bis-togli') {
       // la corsa torna alla nave: l'incarico del BIS si spezza o si accorcia attorno ad essa
       const corsa = button.dataset.corsa;
+      const tipoTogli = button.dataset.tipo === 'aiuto' ? 'aiuto' : 'sostituzione';
       const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
       const incarichi = (state.oggi.BIS?.incarichi || []).flatMap(inc => {
-        if (inc.tipo === 'aiuto' || inc.turno !== code) return [inc];
+        if ((inc.tipo === 'aiuto') !== (tipoTogli === 'aiuto') || inc.turno !== code) return [inc];
         const ns = O.corseIncarico(inc, state.day).map(x => String(x.numero));
         if (!ns.includes(corsa)) return [inc];
         const aperto = !inc.alla && ns[ns.length - 1] === tutte[tutte.length - 1];
@@ -521,7 +526,7 @@
         resto.forEach(n => { const l = gruppi[gruppi.length - 1]; if (l && tutte.indexOf(n) === tutte.indexOf(l[l.length - 1]) + 1) l.push(n); else gruppi.push([n]); });
         return gruppi.map((g, i) => ({ ...inc, dalla: g[0], alla: aperto && i === gruppi.length - 1 ? '' : g[g.length - 1] }));
       });
-      salva('BIS', { incarichi }, `${code}: la corsa ${corsa} torna alla nave.`);
+      salva('BIS', { incarichi }, tipoTogli === 'aiuto' ? `${code}: tolto il BIS in aiuto dalla corsa ${corsa}.` : `${code}: la corsa ${corsa} torna alla nave.`);
     }
     else if (act === 'corsa-riprendi') {
       const corsa = button.dataset.corsa;
@@ -546,7 +551,7 @@
       const gia = sospRaw(code);
       const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
       const nuove = button.dataset.quali === 'succ' ? tutte.slice(tutte.indexOf(corsa)) : [corsa];
-      const aiuto = false;
+      const aiuto = button.dataset.tipo === 'aiuto';
       const incarichi = [...(state.oggi.BIS?.incarichi || [])].filter(x => aiuto || !(x.tipo !== 'aiuto' && x.turno === code && O.corseIncarico(x, state.day).some(cc => nuove.includes(cc.numero))));
       incarichi.push({ tipo: aiuto ? 'aiuto' : 'sostituzione', turno: code, dalla: corsa, alla: aiuto || nuove[nuove.length - 1] !== tutte[tutte.length - 1] ? nuove[nuove.length - 1] : '' });
       ui.sospCorsa = null;
