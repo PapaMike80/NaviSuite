@@ -17,7 +17,7 @@
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Comandante: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
     'Aiuto motorista': ['AM', '#3b82f6'], Marinaio: ['Mar', '#e8f3f6'] };
-  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori' };
+  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra' };
   const nomeTurno = t => NOMI[t] || t || '—';
 
   // Anzianita' del prospetto dei turni (posizione, 1 = la piu' anziana); chi non c'e' va in fondo.
@@ -29,15 +29,15 @@
   function destinazioni(rows, r) {
     const navi = NM.turniCodici(NM.state.day);
     const terra = [...new Set(Object.values(G.SIGLE_TERRA))];
-    const noti = new Set([...Object.keys(NOMI), ...navi, ...terra, ...NM.TUTTI_I_TURNI]);
     const corse = [...new Set([...navi, ...NM.TUTTI_I_TURNI])];
-    const altri = [...new Set([...rows.map(x => x.turno), r.turno].filter(t => t && !noti.has(t)))].sort();
     // stesse pastiglie colorate del turno del giorno
     const chip = v => `<button type="button" class="chip ag-dest-chip${stesso(v, r.turno) ? ' on' : ''}" data-code="${esc(v)}" data-act="turno-scegli" data-id="${esc(r.agent.id)}" data-v="${esc(v)}">${esc(nomeTurno(v))}${ui.sovr && corse.includes(v) ? '*' : ''}</button>`;
     const gruppo = (titoloGruppo, lista) => (lista.length ? `<p>${titoloGruppo}</p><div class="pop-chips">${lista.map(chip).join('')}</div>` : '');
     const sovrToggle = `<button type="button" class="ag-sovr${ui.sovr ? ' on' : ''}" data-act="sovr-toggle" title="Sulla corsa scelta come sovrannumero (turno con asterisco, es. D1*): non conta nel minimo della nave">${ui.sovr ? '☑' : '☐'} In sovrannumero (*)</button>`;
-    return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra])}` +
-      `${gruppo(ui.sovr ? 'Su una corsa · sovrannumero (*)' : 'Su una corsa', corse)}${gruppo('Altri', altri)}</div>`;
+    // in sovrannumero solo le corse; altrimenti assenze, a terra (con TERRA) e corse. Niente codici "altri".
+    if (ui.sovr) return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Su una corsa · sovrannumero (*)', corse)}</div>`;
+    return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra, 'TERRA'])}` +
+      `${gruppo('Su una corsa', corse)}</div>`;
   }
 
   function render() {
