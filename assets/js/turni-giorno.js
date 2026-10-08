@@ -25,7 +25,7 @@
   }
   // Grado per ordinare e colorare l'equipaggio, come nel popup di NaviTurni.
   const GRADI = [
-    [/capitano|comandante/i, 'Comandante', '#facc15', 1],
+    [/capitano|comandante/i, 'Capitano', '#facc15', 1],
     [/capo\s*tim|capotim/i, 'Capo timoniere', '#fb923c', 1],
     [/aiuto\s*motorista|aiutomotorista/i, 'Aiuto motorista', '#3b82f6', 4],
     [/motorista/i, 'Motorista', '#a855f7', 2],
@@ -34,7 +34,7 @@
   ];
   const gradoOf = agent => GRADI.find(([pattern]) => pattern.test(String(agent?.qualifica || agent?.grado || '')))?.slice(1) || ['', '#e8f3f6', 9];
   // Comandante della nave: il capitano/comandante o, se manca, il capo timoniere (a bordo fa da capitano).
-  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Comandante')?.name ||
+  const comandante = crew => (crew || []).find(member => member.grado[0] === 'Capitano')?.name ||
     (crew || []).find(member => member.grado[0] === 'Capo timoniere')?.name || '';
 
   function variazioni(data, day) {

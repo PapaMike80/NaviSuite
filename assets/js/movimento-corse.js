@@ -26,7 +26,7 @@
   const CAUSALI = [['MAL', 'Malattia'], ['RIP', 'Riposo'], ['CON', 'Congedo'], ['FERIE', 'Ferie']];
   const PONTILI = ['pontile 1', 'pontile 2', 'pontile 3', 'pontile 4', 'pontile 5', 'pontile 6'];
   // Ruolo dell'anagrafica navi per grado dell'equipaggio (turni-giorno.js).
-  const RUOLO = { Comandante: 'capitano', 'Capo timoniere': 'capo_timoniere', Timoniere: 'timoniere', Motorista: 'motorista', 'Aiuto motorista': 'aiuto_motorista', Marinaio: 'marinaio' };
+  const RUOLO = { Capitano: 'capitano', 'Capo timoniere': 'capo_timoniere', Timoniere: 'timoniere', Motorista: 'motorista', 'Aiuto motorista': 'aiuto_motorista', Marinaio: 'marinaio' };
   const RUOLI = [['capitano', 'capitano', 'capitani'], ['capo_timoniere', 'capo timoniere', 'capi timonieri'], ['timoniere', 'timoniere', 'timonieri'],
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
@@ -54,7 +54,7 @@
   // Un pallino per ogni posto dell'equipaggio minimo della nave, col colore del grado, e sotto il nome di chi
   // ci sta. Ogni agente va sul posto del suo grado; chi resta riempie i posti scoperti (es. un marinaio al
   // posto di un timoniere); chi avanza e' in piu' rispetto al minimo.
-  const RUOLO_INFO = { capitano: ['Cap', '#facc15', 'Comandante'], capo_timoniere: ['CT', '#fb923c', 'Capo timoniere'], timoniere: ['Tim', '#22c55e', 'Timoniere'],
+  const RUOLO_INFO = { capitano: ['Cap', '#facc15', 'Capitano'], capo_timoniere: ['CT', '#fb923c', 'Capo timoniere'], timoniere: ['Tim', '#22c55e', 'Timoniere'],
     motorista: ['Mot', '#a855f7', 'Motorista'], aiuto_motorista: ['AM', '#3b82f6', 'Aiuto motorista'], marinaio: ['Mar', '#e8f3f6', 'Marinaio'] };
   const cognome = name => { const w = String(name || '').trim().split(/\s+/)[0] || ''; return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
   function periodoNave(nave, day) {
