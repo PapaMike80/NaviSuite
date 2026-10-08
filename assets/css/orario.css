@@ -151,9 +151,8 @@ div.or-ship-row{cursor:default}
 .or-equipaggio{margin-top:10px}
 .or-equipaggio>summary{cursor:pointer;color:#94a3b8;font-size:13px;font-weight:700;padding:4px 0}
 .or-equipaggio[open]>summary{margin-bottom:6px}
-.or-at-top{display:flex;align-items:flex-end;gap:8px}
-.or-at-top .or-station{flex:1}
-.or-at-toggle{flex:none;width:38px;min-height:38px;border:1px solid #2f5661;border-radius:10px;background:#0d202b;color:#9bc8d5;font:900 14px DM Sans,sans-serif;cursor:pointer}
-.or-at-chiuso .or-at-corpo>:not(.navi-list){display:none}
-.or-at-chiuso .or-at-corpo .navi-list>.nave:not(.next){display:none}
+.or-at-titolo{all:unset;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.or-at-titolo:focus-visible{outline:2px solid #2dd4bf;border-radius:6px}
+.or-at-chiuso .terra-card-body{display:none}
+.or-at-chiuso .terra-card-head small{color:#e8f7f7;font-size:14px;font-weight:900}
 @media(max-width:860px){.or-lago #or-side{order:1}.or-lago>.terra-col:first-child{order:2}}
