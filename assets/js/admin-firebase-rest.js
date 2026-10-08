@@ -298,7 +298,9 @@
       turno_originale:String(turnoOriginale || "").toUpperCase(), turno_nuovo:String(turnoNuovo).toUpperCase(),
       ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString(),
       // membro aggiunto dal "+" della corsa: in piu' del minimo, eventualmente sovrannumero
-      ...(extra.aggiunto ? { aggiunto:true } : {}), ...(extra.sovrannumero ? { sovrannumero:true } : {})
+      ...(extra.aggiunto ? { aggiunto:true } : {}), ...(extra.sovrannumero ? { sovrannumero:true } : {}),
+      // cambio dell'agente (dalla Distinta) che questa decisione del Movimento sovrascrive (vuoto = nessuno)
+      ...(extra.sovrascrive !== undefined ? { sovrascrive:String(extra.sovrascrive || "") } : {})
     });
     await databaseRequest("private/adminUpdates/manualVariations", { method:"PUT", body:JSON.stringify(rows) });
     await databaseRequest("private/adminUpdates/updatedAt", { method:"PUT", body:JSON.stringify(new Date().toISOString()) });

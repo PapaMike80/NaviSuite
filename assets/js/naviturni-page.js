@@ -83,9 +83,13 @@
     // Cambio fatto a mano dall'agente nella Distinta, se vale ancora: una decisione dell'Ufficio Movimento (approvata, modificata
     // o rifiutata) vince sempre sul cambio dell'agente.
     function diariaOverrideFor(agent, iso) {
-      if (agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO" ||
-        (Array.isArray(globalData?.variazioni_ods) && globalData.variazioni_ods.some(v => v && v.ods === "MOVIMENTO" && v.attiva !== false && String(v.data || "").slice(0, 10) === iso && String(v.id_agente || "") === String(agent?.id || "")))) return undefined;
-      return diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      const manual = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      if (manual === undefined) return undefined;
+      const decisione = agent?.variazioni_ods?.[iso]?.ods === "MOVIMENTO" ? agent.variazioni_ods[iso]
+        : (Array.isArray(globalData?.variazioni_ods) ? globalData.variazioni_ods : [])
+          .filter(v => v && v.ods === "MOVIMENTO" && v.attiva !== false && String(v.data || "").slice(0, 10) === iso && String(v.id_agente || "") === String(agent?.id || "")).pop();
+      if (decisione && String(manual.shift).trim().toUpperCase() === String(decisione.sovrascrive ?? "").trim().toUpperCase()) return undefined;
+      return manual;
     }
 
     function getAgentShiftOnDate(agent, iso) {
@@ -106,8 +110,12 @@
           .filter(v => v && v.ods === "MOVIMENTO" && v.attiva !== false && String(v.data || "").slice(0, 10) === iso &&
             ((v.id_agente && String(v.id_agente) === String(agent?.id)) || (!v.id_agente && v.agente && String(v.agente).trim().toUpperCase() === String(agent?.agente || "").trim().toUpperCase())))
           .pop();
-      const manual = decisoDalMovimento ? undefined : diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
-      const odsMovimento = decisoDalMovimento?.turno_nuovo;
+      const manualRaw = diariaShiftOverrides.get(`${String(agent?.id || "")}|${iso}`);
+      // vince il Movimento sul cambio che ha sovrascritto (o sempre, per le decisioni senza il campo); un cambio dell'agente diverso, fatto dopo, vale subito
+      const movimentoVince = !!decisoDalMovimento && (manualRaw === undefined ||
+        String(manualRaw.shift).trim().toUpperCase() === String(decisoDalMovimento.sovrascrive ?? "").trim().toUpperCase());
+      const manual = movimentoVince ? undefined : manualRaw;
+      const odsMovimento = movimentoVince ? decisoDalMovimento?.turno_nuovo : undefined;
       const isLoggedHibaRow = isHibaProfile() &&
         normalizeOdsAgentName(agent?.agente) === normalizeOdsAgentName(loggedAgentProfile?.name);
       const hibaRecord = isLoggedHibaRow ? getBaristaRecords().find(record => {

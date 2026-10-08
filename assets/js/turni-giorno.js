@@ -45,7 +45,11 @@
       if (String(item?.data || '').slice(0, 10) !== day) return;
       const shift = item?.turno_nuovo ?? item?.turno;
       if (shift === undefined) return;
-      if (item?.ods === 'MOVIMENTO') { if (item?.id_agente) map.movimento.set(`id:${item.id_agente}`, shift); if (item?.agente) map.movimento.set(`name:${norm(item.agente)}`, shift); }
+      if (item?.ods === 'MOVIMENTO') {
+        const decisione = { shift, sovrascrive: item.sovrascrive };
+        if (item?.id_agente) map.movimento.set(`id:${item.id_agente}`, decisione);
+        if (item?.agente) map.movimento.set(`name:${norm(item.agente)}`, decisione);
+      }
       if (item?.id_agente) map.set(`id:${item.id_agente}`, shift);
       if (item?.agente) map.set(`name:${norm(item.agente)}`, shift);
     });
@@ -84,9 +88,10 @@
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
   const turnoDi = (agent, day, map) => {
-    const decisoDalMovimento = map.movimento?.get(`id:${agent?.id}`) ?? map.movimento?.get(`name:${norm(agent?.agente)}`);
-    if (decisoDalMovimento !== undefined) return decisoDalMovimento;
+    const decisione = map.movimento?.get(`id:${agent?.id}`) ?? map.movimento?.get(`name:${norm(agent?.agente)}`);
     const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
+    // la decisione del Movimento vince sul cambio dell'agente che ha sovrascritto; un cambio diverso, fatto dopo, vale subito
+    if (decisione && (manual === undefined || String(manual).trim().toUpperCase() === String(decisione.sovrascrive ?? '').trim().toUpperCase())) return decisione.shift;
     if (manual) return manual;
     const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
     return variation !== undefined ? variation : agent?.turni?.[day];

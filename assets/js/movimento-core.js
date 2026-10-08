@@ -198,7 +198,8 @@
     // rimesso sul turno previsto: non resta nessuna variazione
     if (turnoNuovo && String(turnoNuovo).trim().toUpperCase() === String(originale || '').trim().toUpperCase()) turnoNuovo = '';
     try {
-      const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`, extra);
+      // la decisione sovrascrive il cambio che l'agente si e' fatto nella Distinta in quel giorno, se c'e'
+      const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`, { sovrascrive: G.modificaManuale?.(id, state.day) ?? '', ...extra });
       // aggiorna subito i turni in pagina: tolte le variazioni del Movimento del giorno, aggiunte quelle salvate
       const day = state.day;
       state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === day)),
@@ -273,10 +274,13 @@
       const previsto = turnoPrevisto(agent, m.day);
       const chiusa = state.approvazioni?.[chiave(m.id, m.day)];
       const deciso = variazioneMovimento(m.day, m.id);
+      // chiusa: approvata/rifiutata/modificata dal Movimento, oppure gia' sovrascritta da una sua decisione
+      const sovrascritta = !!deciso && norm(deciso.sovrascrive ?? '') === norm(m.turno);
       return { agent, residenza, day: m.day, turno: m.turno, previsto, deciso: deciso ? String(deciso.turno_nuovo || '') : '',
-        chiusa: !!chiusa && norm(chiusa.turno) === norm(m.turno) };
-    })      // diverso dal turno in vigore (la decisione del Movimento se c'e', altrimenti quello previsto)
-      .filter(r => !r.chiusa && norm(r.turno) !== norm(r.deciso || r.previsto))
+        chiusa: (!!chiusa && norm(chiusa.turno) === norm(m.turno)) || sovrascritta };
+    })
+      // un cambio dell'agente e' una richiesta se e' diverso dal turno previsto e da quello che il Movimento ha gia' deciso
+      .filter(r => !r.chiusa && norm(r.turno) !== norm(r.previsto) && !(r.deciso && norm(r.deciso) === norm(r.turno)))
       .sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
   }
   // Quali richieste il Movimento ha gia' visto aprendo "Vedi": l'avviso rosso conta solo le nuove. Non toccare una richiesta vuol dire
@@ -312,7 +316,7 @@
       } else {
         const nuovo = scelta === 'rifiuta' ? (r.previsto || 'RIP') : scelta;
         esito = scelta === 'rifiuta' ? 'rifiutata' : 'modificata';
-        aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${esito}`));
+        aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${esito}`, { sovrascrive: r.turno }));
         setStatus(`${r.agent.agente}: richiesta del ${dmy} ${scelta === 'rifiuta' ? `rifiutata, resta ${nuovo}` : `cambiata in ${nuovo}`}.`, 'ok');
       }
       const item = await provider.saveApprovazioneTurno(r.agent.id, r.day, r.turno, autore, esito);
