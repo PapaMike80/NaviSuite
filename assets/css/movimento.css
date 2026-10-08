@@ -480,3 +480,6 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .ag-rich-btn{min-height:30px;padding:3px 10px;font-size:11px}
 .ag-richiesta-tag{padding:3px 11px;border-radius:999px;background:rgba(225,29,72,.2);border:1px solid #e11d48;color:#fda4af;font-size:11px;font-weight:900}
 .ag-list li.con-richiesta{box-shadow:inset 3px 0 0 #e11d48}
+/* le etichette della testata di residenza (modificato, richieste) stanno allineate a destra */
+.ag-res-head .ag-richiesta-tag{margin-left:auto}
+.ag-res-head .ag-modificato + .ag-richiesta-tag{margin-left:8px}
