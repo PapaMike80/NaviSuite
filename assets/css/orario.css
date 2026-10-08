@@ -148,3 +148,6 @@ div.or-ship-row{cursor:default}
 .mt-scali li.or-sep.sosp::before,.mt-scali li.or-sep.sosp::after{background:linear-gradient(90deg,transparent,#b4414f 18%,#b4414f 82%,transparent)}
 .mt-scali li.or-sep.bis{color:#67d7e6}
 .mt-scali li.or-sep.bis::before,.mt-scali li.or-sep.bis::after{background:linear-gradient(90deg,transparent,#2f8fa0 18%,#2f8fa0 82%,transparent)}
+.or-equipaggio{margin-top:10px}
+.or-equipaggio>summary{cursor:pointer;color:#94a3b8;font-size:13px;font-weight:700;padding:4px 0}
+.or-equipaggio[open]>summary{margin-bottom:6px}

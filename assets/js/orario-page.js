@@ -68,6 +68,8 @@
 
   const params = new URLSearchParams(location.search);
   const scaloValido = value => (POS[value] ? value : '');
+  // l'equipaggio della nave e' un dato secondario: sta chiuso finche' non lo apri (si ricorda la scelta)
+  document.addEventListener('toggle', event => { if (event.target.classList?.contains('or-equipaggio')) state.equipAperto = event.target.open; }, true);
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
@@ -583,7 +585,7 @@
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
-    const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
+    const equipaggio = crew.length ? `<details class="or-equipaggio"${state.equipAperto ? ' open' : ''}><summary>Equipaggio · ${crew.length}</summary><ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul></details>` : '';
     // Nell'intestazione quanto manca al mio scalo: "in arrivo tra 13 min", "riparte tra 8 min", "partita 3 min fa"
     let manca = '';
     if (partita) manca = `partita ${t - partita.t ? `${t - partita.t} min fa` : 'adesso'}`;
