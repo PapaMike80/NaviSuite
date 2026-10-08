@@ -369,3 +369,7 @@ button.pop-bolla.b-togli:hover{background:color-mix(in srgb,var(--c) 28%,transpa
 .pop-dest p{margin:8px 0 5px!important;color:#7fb1b9!important;font-size:10px!important;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
 .pop-dest p:first-child{margin-top:0!important}
 html.navisuite-light .pop-val{color:#fff}
+button.pop-bolla.b-togli{padding:0;border:0;background:none}
+span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
+.pop-togli{padding:5px 12px;border:0;border-radius:999px;background:transparent;color:var(--c);font:900 12px inherit;cursor:pointer}
+.pop-togli:hover{background:color-mix(in srgb,var(--c) 28%,transparent)}

@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, destAperto: false };
+  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, destAperto: false, togliDest: 'RIP' };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -174,14 +174,18 @@
     // dove va chi sbarca: di solito riposo; si cambia dal valore nella bolla (assenze, a terra, altre corse)
     const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori' };
     const nomeDest = v => NOMI[v] || `sulla ${v}`;
-    const chip = v => `<button type="button" class="pop-chip${ui.sbarco === v ? ' on' : ''}" data-act="dest-scegli" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
-    const destinazioni = ui.destAperto ? `<div class="pop-dest">
+    const per = ui.destAperto;
+    const attuale = per === 'togli' ? ui.togliDest : ui.sbarco;
+    const chip = v => `<button type="button" class="pop-chip${attuale === v ? ' on' : ''}" data-act="dest-scegli" data-per="${per}" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
+    const destinazioni = per ? `<div class="pop-dest">
+      <p>${per === 'togli' ? `${esc(x.membro?.name || '')} se lo togli va in` : 'Chi viene sostituito va in'}</p>
       <p>Assenze</p><div class="pop-chips">${['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'].map(chip).join('')}</div>
       <p>A terra</p><div class="pop-chips">${['LD', 'LAV'].map(chip).join('')}</div>
       <p>Su un'altra corsa</p><div class="pop-chips">${[...O.TURNI, 'BIS'].filter(cd => cd !== code).map(chip).join('')}</div></div>` : '';
+    // due bolle: "Sostituito va in …" (di solito riposo) e "Toglilo" (subito, in riposo o dove scegli accanto)
     const bolle = x.membro ? `<div class="pop-bolle">` +
-      (candidati.length ? `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} se lo sostituisci"><span>↪ Sostituito va in</span><button type="button" class="pop-val${ui.destAperto ? ' on' : ''}" data-act="dest-apri">${esc(nomeDest(ui.sbarco))} ▾</button></span>` : '') +
-      `<button type="button" class="pop-bolla b-togli" data-act="togli-subito" data-code="${code}" title="Toglie ${esc(x.membro.name)} senza metterne un altro: va in ${esc(nomeDest(ui.sbarco))}">✕ Toglilo</button></div>${destinazioni}` : '';
+      `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} quando scegli un sostituto"><span>↪ Sostituito va in</span><button type="button" class="pop-val${per === 'sost' ? ' on' : ''}" data-act="dest-apri" data-per="sost">${esc(nomeDest(ui.sbarco))} ▾</button></span>` +
+      `<span class="pop-bolla b-togli"><button type="button" class="pop-togli" data-act="togli-subito" data-code="${code}" title="Toglie ${esc(x.membro.name)} senza metterne un altro">✕ Toglilo</button><button type="button" class="pop-val${per === 'togli' ? ' on' : ''}" data-act="dest-apri" data-per="togli" title="Dove va se lo togli">${esc(nomeDest(ui.togliDest))} ▾</button></span></div>${destinazioni}` : '';
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
       <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
       ${bolle}
@@ -510,9 +514,9 @@
     else if (act === 'slot') { const i = Number(button.dataset.i); ui.q = ''; ui.destAperto = false; ui.menu = ui.menu?.code === code && ui.menu.i === i ? null : { code, i }; render(); }
     else if (act === 'menu-close') { ui.menu = null; ui.q = ''; render(); }
     else if (act === 'pick') cambiaPosto(code, button.dataset.id, 'pick');
-    else if (act === 'togli-subito') cambiaPosto(code, ui.sbarco, 'out');
-    else if (act === 'dest-apri') { ui.destAperto = !ui.destAperto; render(); }
-    else if (act === 'dest-scegli') { ui.sbarco = button.dataset.v; ui.destAperto = false; render(); }
+    else if (act === 'togli-subito') cambiaPosto(code, ui.togliDest, 'out');
+    else if (act === 'dest-apri') { ui.destAperto = ui.destAperto === button.dataset.per ? false : button.dataset.per; render(); }
+    else if (act === 'dest-scegli') { if (button.dataset.per === 'togli') ui.togliDest = button.dataset.v; else ui.sbarco = button.dataset.v; ui.destAperto = false; render(); }
     else if (act === 'tipo') { ui.sovr = button.dataset.v === 'sovr'; render(); }
     else if (act === 'aggiungi') {
       const sovr = ui.sovr;
