@@ -453,3 +453,12 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .mov-turno.terra .mov-head{cursor:default}
 .chip[data-code="AgB"],.chip[data-code="AgM"],.chip[data-code="AgT"],.chip[data-code="AgT2"]{--c:#6eb1ff}
 .chip[data-code="PonD"]{--c:#fb9292}
+/* Servizi a terra raggruppati per residenza */
+.mov-turno.terra .mov-head{align-items:flex-start;flex-wrap:wrap}
+.terra-res{flex:0 0 130px;padding-top:6px;font:900 16px Manrope,sans-serif;color:#e8f7f7}
+.terra-servizi{flex:1 1 360px;display:flex;flex-wrap:wrap;gap:14px 28px}
+.terra-serv{flex:1 1 280px;min-width:0}
+.terra-top{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-bottom:6px}
+.terra-top .chip{font-size:13px;padding:5px 12px}
+.terra-top small{color:#86a5af;font-size:11px}
+.terra-slots{display:flex;flex-wrap:wrap;gap:8px}

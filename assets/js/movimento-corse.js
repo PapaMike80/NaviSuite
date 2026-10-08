@@ -271,13 +271,18 @@
     .sort((a, b) => a.grado[2] - b.grado[2] || a.name.localeCompare(b.name, 'it'));
   // Equipaggio di un turno nave o di un servizio a terra.
   const equipaggioDi = code => (SERVIZI_TERRA.some(([cd]) => cd === code) ? membriTerra(code, agenti(state.day)) : G.equipaggi(state.schedule, state.day).navi[code] || []);
-  function cardTerra(code, res, day, crew) {
-    const orari = (T.DATA?.SERVIZI?.[res] || []).find(x => x[0] === code);
-    const lista = posti(null, day, crew);
-    return `<article class="mov-turno terra" data-turno="${code}"><div class="mov-head" role="group" aria-label="Servizio ${code}">
-      <span class="chip" data-code="${code}">${code}</span>
-      <span class="mov-sum"><b>${esc(titoloRes(res))}${orari ? ` · ${esc(orari[1])} / ${esc(orari[2])}` : ''}</b><small>${orari ? esc(orari[3]) : 'servizio a terra'}${crew.length ? '' : ' · nessun agente di turno'}</small></span>
-      <span class="mov-slots">${pallini(code, lista)}</span></div></article>`;
+  // Una carta per residenza (Desenzano: AgB e PonD; Maderno: AgM e AgT): per ogni servizio la pastiglia, gli orari e sotto
+  // gli agenti, con i sovrannumero (turno con asterisco, es. AGB*) in fondo tratteggiati.
+  function cardTerraResidenza(res, day, terraCrews) {
+    const servizi = SERVIZI_TERRA.filter(([, r]) => r === res).map(([code]) => {
+      const orari = (T.DATA?.SERVIZI?.[res] || []).find(x => x[0] === code);
+      const crew = terraCrews[code];
+      return `<div class="terra-serv"><div class="terra-top"><span class="chip" data-code="${code}">${code}</span>` +
+        `<small>${orari ? `${esc(orari[1])} / ${esc(orari[2])} · ${esc(orari[3])}` : 'servizio a terra'}${crew.length ? '' : ' · nessun agente di turno'}</small></div>` +
+        `<div class="terra-slots">${pallini(code, posti(null, day, crew))}</div></div>`;
+    }).join('');
+    return `<article class="mov-turno terra" data-res="${res}"><div class="mov-head" role="group" aria-label="Servizi a terra ${esc(titoloRes(res))}">` +
+      `<span class="terra-res">${esc(titoloRes(res))}</span><div class="terra-servizi">${servizi}</div></div></article>`;
   }
 
   // ---------------- Render ----------------
@@ -298,7 +303,7 @@
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
     const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
     const terraCrews = Object.fromEntries(SERVIZI_TERRA.map(([cd]) => [cd, membriTerra(cd, tutti)]));
-    const terra = `<h3 class="mov-sez">Servizi a terra</h3>` + SERVIZI_TERRA.map(([cd, res]) => cardTerra(cd, res, day, terraCrews[cd])).join('');
+    const terra = `<h3 class="mov-sez">Servizi a terra</h3>` + [...new Set(SERVIZI_TERRA.map(x => x[1]))].map(res => cardTerraResidenza(res, day, terraCrews)).join('');
     const dmy = d => (d ? d.split('-').reverse().join('/') : '');
     const ferme = turniFermi(day).map(code => {
       // corse dell'orario estivo (O.d.S. 16/2026) o invernale di questo turno
