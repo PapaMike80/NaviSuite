@@ -35,20 +35,22 @@
   // servizio prima: la giornata lo propone da sola in banca ore, finche' l'agente non lo cambia.
   // giorni: 0 = domenica ... 6 = sabato
   const RIFORNIMENTI={D1:{giorni:[2,5],motorista:30},D2:{giorni:[1,4],motorista:30},T1:{giorni:[3],motorista:60},T2:{giorni:[4],motorista:60},
-    M1:{giorni:[4],tutti:30},R1:{giorni:[2,5],motorista:30},R2:{giorni:[2,5],motorista:60},R3:{giorni:[2,5],motorista:30}};
+    M1:{giorni:[4],tutti:30},R1:{giorni:[2,5],motorista:30},R2:{giorni:[2,5],motorista:60},R3:{giorni:[2,5],motorista:30},
+    BIS:{giorni:[0,1,2,3,4,5,6],motorista:0},SR2:{giorni:[0,1,2,3,4,5,6],motorista:0}};  // BIS e SR2: ogni giorno, senza anticipo
   const sessionQualifica=()=>{for(const key of ['navidiaria.activeAgent','naviturni_logged_agent']){try{const q=JSON.parse(localStorage.getItem(key)||'null')?.qualifica;if(q)return String(q).trim().toLowerCase()}catch{}}return''};
   const suggestedRefuel=e=>{
-    if(!e?.date||e.date<'2026-10-05'||e.date>'2027-03-25')return 0;
+    // null = nessun rifornimento per questo agente; 0 = rifornimento senza anticipo
+    if(!e?.date||e.date<'2026-10-05'||e.date>'2027-03-25')return null;
     const code=String(e.shift||'').trim().toUpperCase().replace(/^C(?=[A-Z]+\d)/,'').replace(/C$/,''),regola=RIFORNIMENTI[code];
-    if(!regola)return 0;
+    if(!regola)return null;
     const giorno=new Date(`${e.date}T12:00:00`).getDay(),nave=String(opts?.shipForService?.(e.date,e.shift)||'').toUpperCase(),agone=code==='D1'&&nave.includes('AGONE');
-    if(!regola.giorni.includes(giorno)&&!(agone&&giorno===0))return 0;
+    if(!regola.giorni.includes(giorno)&&!(agone&&giorno===0))return null;
     if(regola.tutti)return regola.tutti;
     const q=String(e.qualifica||opts?.qualifica||sessionQualifica()).replace(/\s+/g,' ');
     if(q==='motorista')return regola.motorista;
     if(agone&&/^aiuto ?motorista$/.test(q))return 30;
-    return 0};
-  const applyAutoRefuel=e=>{if(!working(e)||e.refuelDecision||refuelMinutesOf(e)>0)return false;const minutes=suggestedRefuel(e);if(minutes<=0)return false;overtime.setRefuel(e,minutes,service(e),0);e.refuelDecision='auto';return true};
+    return null};
+  const applyAutoRefuel=e=>{if(!working(e)||e.refuelDecision||refuelDone(e))return false;const minutes=suggestedRefuel(e);if(minutes==null)return false;overtime.setRefuel(e,minutes,service(e),0,true);e.refuelDecision='auto';return true};
   const suggestedChange=e=>{if(change(e)>0)return 0;const supplied=Math.max(0,Math.round(Number(opts.changeSuggestionMinutes?.(e))||0));if(supplied)return supplied;const home=String(e?.agentResidence||opts?.agentResidence||sessionResidence()).trim().toUpperCase(),service=String(serviceResidences[String(e?.shift||'').trim().toUpperCase()]||e?.serviceResidence||'').trim().toUpperCase();return e?.travel===true||home&&service&&home!==service?120:0};
   const holiday=e=>e.holidayWorked===undefined?(day.getDay()===0||holidays.has(`${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`)):!!e.holidayWorked;
   const ticket=e=>e.ticketPresence===undefined?!!e.mealUsed:!!e.ticketPresence;
@@ -56,6 +58,7 @@
   const ticketLabel=e=>ticketDue(e)?(ticket(e)?'USATO':'NON USATO'):'NON DOVUTO';
   const hydro=e=>e.hydrofoil===undefined?working(e)&&String(e.shift).toUpperCase()==='SR1':Number(e.hydrofoil)>0;
   const refuel=e=>Math.max(0,Number(opts.refuelSuggestionMinutes?.(e.date,e.shift))||0);
+  const refuelDone=e=>e?.refuelDone===true||refuelMinutesOf(e)>0;
   const refuelMinutesOf=e=>typeof e?.refuel==='number'?Math.max(0,Math.round(e.refuel)):(e?.refuel?(String(e?.shift).toUpperCase()==='DT'?60:30):0);
   function modal(){let m=document.getElementById('monthlyDayBubbleDialog');if(m)return m;if(!document.getElementById('naviDayOvertimeStyle')){const style=document.createElement('style');style.id='naviDayOvertimeStyle';style.textContent='.day-overtime-card{grid-column:1/-1;display:grid;gap:8px;padding:12px;border:1px solid rgba(250,204,21,.34);border-radius:14px;background:rgba(250,204,21,.07)}.day-overtime-card>small{color:#facc15;font:900 .72rem Manrope,sans-serif;letter-spacing:.06em}.day-overtime-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.day-overtime-line{display:grid;place-items:center;gap:2px;min-height:54px;padding:5px 6px;border:1px solid rgba(114,160,170,.28);border-radius:12px;background:rgba(255,255,255,.045)}.day-overtime-line span{color:#94adb5;font:800 .72rem Manrope,sans-serif;text-transform:uppercase}.day-overtime-line input,.day-overtime-line select{width:100%;min-height:26px;border:0;background:transparent;color:#fff;font:900 1rem Manrope,sans-serif;text-align:center;padding:0;appearance:none;-webkit-appearance:none}.day-overtime-line input:focus,.day-overtime-line select:focus{outline:none}.day-overtime-line select{cursor:pointer}.day-overtime-totals{display:flex;justify-content:space-between;gap:10px;padding-top:4px;color:#dffaf7;font:800 .78rem DM Sans,sans-serif}.day-overtime-totals strong{color:#facc15;font-size:.94rem}.day-popup-save-error{margin:0;color:#fca5a5;font:800 .76rem DM Sans,sans-serif}.monthly-bubble-actions{grid-template-columns:1fr!important}.bubble-spinner{display:none;width:16px;height:16px;margin-left:8px;border:2px solid rgba(255,255,255,.28);border-top-color:#2dd4bf;border-radius:50%;vertical-align:middle;animation:bubble-spin .7s linear infinite}.monthly-bubble-dialog[data-bubble-state="saving"] .bubble-spinner{display:inline-block}.monthly-bubble-dialog[data-bubble-state="saving"] [data-bubble-title]::after{content:" · salvataggio…";color:#7fd8cf;font-weight:700}@keyframes bubble-spin{to{transform:rotate(360deg)}}';document.head.appendChild(style)}m=document.createElement('div');m.id='monthlyDayBubbleDialog';m.className='weekly-edit-overlay';m.hidden=true;m.innerHTML='<section class="weekly-edit-dialog monthly-bubble-dialog"><button type="button" class="weekly-edit-close" data-bubble-close aria-label="Chiudi (salva)">✕</button><small>GIORNATA</small><h3 data-bubble-title></h3><span class="bubble-spinner" data-bubble-spinner aria-hidden="true"></span><button type="button" class="weekly-service" data-bubble-field="shift"></button><div class="weekly-bubble-grid" data-bubble-grid></div><p class="day-popup-save-error" data-bubble-save-error hidden aria-live="polite"></p><div class="monthly-bubble-actions" data-bubble-actions><button type="button" class="weekly-edit-save" data-bubble-diaria hidden>Diaria</button></div></section>';m.onclick=handleClick;document.body.appendChild(m);return m}
   const snapshot=value=>JSON.stringify(value||null);
@@ -99,6 +102,8 @@
   function shown(row){if(!draft)return'';switch(row.key){case'worked':return working(draft)?clock(worked(draft)):'';case'delay':{const n=totalOvertime(draft);return n?paddedClock(n):''}case'bank':{const n=Math.round(Number(draft.bank)||0);return n?paddedClock(n):''}case'ticket':return ticketLabel(draft);case'allowance':return Number(draft.allowanceRate)?`${draft.allowanceRate}%`:'';case'overnight40':return draft.overnight40?'Sì':'';case'holiday':return holiday(draft)?'Sì':'';case'secondMeal':return Number(draft.secondMeal)>0?'Sì':'';case'embark':return draft.embark?'Sì':'';case'hydrofoil':return hydro(draft)?'Sì':'';case'rfTrial':return draft.rf?'Sì':'';default:return''}}
   function overtimeCard(){
     const total=totalOvertime(draft),bankValue=Math.round(Number(draft.bank)||0),options=[0,30,60,90,120],refuelMinutes=refuelMinutesOf(draft);
+    // Rifornimento: nessuno, fatto senza anticipo (solo 1 ora di banca ore) o con l'anticipo in ore lavorate
+    const refuelSelectHtml=()=>{const value=refuelDone(draft)?String(refuelMinutes):'no',list=[['no','—'],['0','Sì · 00:00'],...[...new Set([30,60,90,120,refuelMinutes])].filter(v=>v>0).sort((a,b)=>a-b).map(v=>[String(v),paddedClock(v)])];return `<select data-overtime-refuel>${list.map(([v,l])=>`<option value="${v}" ${v===value?'selected':''}>${l}</option>`).join('')}</select>`};
     const select=(field,value)=>{const list=options.includes(value)?options:[...options,value].sort((a,b)=>a-b);return `<select data-overtime-${field}>${list.map(minutes=>`<option value="${minutes}" ${minutes===value?'selected':''}>${paddedClock(minutes)}</option>`).join('')}</select>`};
     const line=(label,inner)=>`<label class="day-overtime-line"><span>${label}</span>${inner}</label>`;
     const fiveMinDatalist=id=>{let opts='';for(let m=0;m<=120;m+=5)opts+=`<option value="${paddedClock(m)}">`;return `<datalist id="${id}">${opts}</datalist>`};
@@ -108,7 +113,7 @@
       line('CAMBIO',select('change',change(draft))),
       line('SENTINE',select('sentine',sentine(draft))),
       line('BANCA ORE',`<input data-bank-input type="text" inputmode="numeric" autocomplete="off" maxlength="5" list="dayOvertimeBancaOptions" value="${paddedClock(bankValue)}" placeholder="00:00">${fiveMinDatalist('dayOvertimeBancaOptions')}`),
-      line('RIFORNIMENTO',select('refuel',refuelMinutes))
+      line('RIFORNIMENTO',refuelSelectHtml())
     ];
     return `<section class="day-overtime-card" data-overtime-card><small>STRAORDINARI <strong data-overtime-total>${paddedClock(total)}</strong></small><div class="day-overtime-grid">${lines.join('')}</div></section>`;
   }
@@ -120,7 +125,7 @@
     sentineSelect.onchange=()=>{overtime.setSentineMinutes(draft,Number(sentineSelect.value),service(draft));paintCards()};
     workedInput.oninput=()=>{maskClock(workedInput);recalcOrdinarioFromWorked();paintCards()};workedInput.onblur=()=>{workedInput.value=paddedClock(worked(draft));paintCards()};
     bankInput.oninput=()=>{maskClock(bankInput);draft.bank=parseClock(bankInput.value);paintCards()};bankInput.onblur=()=>{bankInput.value=paddedClock(Math.round(Number(draft.bank)||0));paintCards()};
-    refuelSelect.onchange=()=>{overtime.setRefuel(draft,Number(refuelSelect.value)||0,service(draft),refuelMinutesOf(draft));draft.refuelDecision='manual';paintCards()};
+    refuelSelect.onchange=()=>{const v=refuelSelect.value;overtime.setRefuel(draft,v==='no'?0:Number(v)||0,service(draft),refuelMinutesOf(draft),v!=='no');draft.refuelDecision='manual';paintCards()};
   }
   function paintCards(){const m=modal(),card=m.querySelector('[data-overtime-card]');if(!card||!draft)return;card.querySelector('[data-overtime-total]').textContent=paddedClock(totalOvertime(draft));const workedInput=card.querySelector('[data-worked-input]');if(workedInput&&document.activeElement!==workedInput)workedInput.value=paddedClock(worked(draft));const delayInput=card.querySelector('[data-overtime-ordinary]');if(delayInput&&document.activeElement!==delayInput)delayInput.value=paddedClock(ordinaryOvertime(draft));const bankInput=card.querySelector('[data-bank-input]');if(bankInput&&document.activeElement!==bankInput)bankInput.value=paddedClock(Math.round(Number(draft.bank)||0))}
   function nextPaint(){return new Promise(resolve=>requestAnimationFrame(()=>resolve()))}

@@ -73,10 +73,12 @@
   // refuelBank / refuelWorked ricordano quanto e' gia' stato aggiunto (nei record vecchi il
   // rifornimento dava in banca ore i suoi minuti e nulla alle ore lavorate).
   const REFUEL_BANK=60;
-  function setRefuel(entry,value,serviceMinutes,previous=0){
+  // done: rifornimento fatto anche senza anticipo (es. BIS e SR2): 1 ora di banca ore, ore lavorate invariate.
+  function setRefuel(entry,value,serviceMinutes,previous=0,done=minutes(value)>0){
     const next=minutes(value),before=minutes(previous);
     const creditedBank=entry.refuelBank===undefined?before:minutes(entry.refuelBank),creditedWorked=minutes(entry.refuelWorked);
-    const bank=next>0?REFUEL_BANK:0;
+    const bank=done||next>0?REFUEL_BANK:0;
+    entry.refuelDone=bank>0;
     entry.bank=Math.round(Number(entry.bank)||0)+bank-creditedBank;
     entry.refuelBank=bank;
     if(isWorkedManual(entry))entry.workedMinutes=minutes(minutes(entry.workedMinutes)+next-creditedWorked);
