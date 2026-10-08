@@ -332,6 +332,12 @@
   // Numero di richieste sul tab Agenti
   function aggiornaBadge() {
     const nuove = state.schedule ? richiesteNuove().length : 0;
+    // tab Corse: pallino rosso col numero di agenti che mancano agli equipaggi del giorno scelto
+    const btnCorse = document.querySelector('[data-tab="corse"]');
+    if (btnCorse) {
+      const mancano = state.schedule ? (window.NaviMovimento?.mancantiGiorno?.(state.day) || 0) : 0;
+      btnCorse.innerHTML = 'Corse' + (mancano ? ` <span class="tab-badge rosso" title="Agenti che mancano agli equipaggi: ${mancano}">${mancano}</span>` : '');
+    }
     const btn = document.querySelector('[data-tab="agenti"]');
     if (btn) {
       // rosso = richieste di cambio da approvare (restano finche' non le decidi); arancione = turni modificati nel giorno scelto

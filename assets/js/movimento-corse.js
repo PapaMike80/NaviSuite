@@ -289,6 +289,13 @@
   }
 
   // ---------------- Render ----------------
+  // Agenti che mancano ai minimi delle navi in servizio nel giorno (per il pallino rosso sul tab Corse)
+  NM.mancantiGiorno = day => {
+    const oggi = T.turniDelGiorno(righeNavi(), day);
+    const crews = G.equipaggi(state.schedule, day).navi;
+    return turniCodici(day).reduce((t, code) => t + (minimo((oggi[code] || {}).nave, day, crews[code] || [])?.mancano.reduce((u, x) => u + x.n - x.presenti, 0) || 0), 0);
+  };
+
   function render() {
     const day = state.day;
     if (!state.schedule) { $('mov-list').innerHTML = '<p class="empty">Caricamento turni…</p>'; return; }
