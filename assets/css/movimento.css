@@ -486,8 +486,8 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .tab-badge.rosso{background:#e11d48;color:#fff}
 .tab-badge.arancio{background:#f59e0b;color:#1f1300}
 .mov-warn{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:999px;background:#e11d48;color:#fff!important;font-size:14px!important;font-weight:800;box-sizing:border-box}
-.sovr-tondo{display:inline-grid;place-items:center;width:24px;height:24px;margin-left:8px;padding:0;border:2px dashed #facc15;border-radius:50%;background:transparent;color:#facc15;font:900 18px/1 inherit;cursor:pointer;vertical-align:middle}
-.sovr-tondo.on{background:#facc15;border-style:solid;color:#1b1b1b}
+.sovr-tondo{display:inline-grid;place-items:center;width:24px;height:24px;margin-left:8px;padding:0;border:2px dashed var(--g,#facc15);border-radius:50%;background:transparent;color:var(--g,#facc15);font:900 18px/1 inherit;cursor:pointer;vertical-align:middle}
+.sovr-tondo.on{background:var(--g,#facc15);border-style:solid;color:#1b1b1b}
 .sovr-tondo:hover{filter:brightness(1.2)}
 .sovr-usa{display:flex;align-items:center;gap:6px;color:#fde68a;font-size:13px}
 .pop-head small{display:block}

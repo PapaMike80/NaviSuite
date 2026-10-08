@@ -209,7 +209,7 @@
     // sovrannumero: bolla per segnarlo o toglierlo (un sovrannumero tolto conta nell'organico e puo' coprire un posto scoperto)
     const sovrBtn = (m, v, testo, titolo) => `<button type="button" class="pop-bolla b-sovr" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}">${testo}</button>`;
     // membro: tondo giallo con l'asterisco accanto al nome del ruolo (toglie o mette il sovrannumero); posto scoperto: un tondo per ogni sovrannumero che lo puo' coprire
-    const tondo = (m, v, titolo) => `<button type="button" class="sovr-tondo${v ? '' : ' on'}" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}" aria-label="${esc(titolo)}">*</button>`;
+    const tondo = (m, v, titolo) => `<button type="button" class="sovr-tondo${v ? '' : ' on'}" style="--g:${(RUOLO_INFO[RUOLO[m.grado[0]]] || RUOLO_INFO.marinaio)[1]}" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}" aria-label="${esc(titolo)}">*</button>`;
     let sovrBolle = '', sovrTondo = '';
     if (x.membro) sovrTondo = tondo(x.membro, !x.sovr, x.sovr ? `${x.membro.name} e' in sovrannumero: clicca per toglierlo (entra nell'organico)` : `Metti ${x.membro.name} in sovrannumero (non conta nel minimo)`);
     else posti(state.oggi[code]?.nave, state.day, crew).filter(p => p.sovr && p.membro && puoCoprire(p.ruolo, x.ruolo))
