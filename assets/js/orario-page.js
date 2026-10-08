@@ -365,8 +365,19 @@
       return `<button type="button" class="or-ship-row" data-ship="${item.code}">${chip(item.code)}<span><b>${esc(naveInfo(g, item.code, corsaPos(item.pos)) || 'nave non indicata')}</b>` +
         `<small>${esc(statoTesto(item.pos))}${r ? ` · ritardo ${esc(O.testoRitardo(r))}` : ''}</small></span></button>`;
     }).join('');
-    return `<details class="or-note" data-dettaglio="navi"${state.dettagli.has('navi') ? ' open' : ''}><summary>Navi in linea oggi (${navi.length})</summary>` +
-      `<div class="or-ship-list">${righe || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div></details>`;
+    // BIS (servizio di emergenza): in lista anche quando e' a disposizione, senza corse in orario
+    const bisRiga = g.bisAttivo && !ordinate.some(item => item.code === 'BIS') ? (() => {
+      const incarichi = g.incarichi || [];
+      const lista = incarichi.map(inc => {
+        const corse = O.corseIncarico(inc, g.day);
+        const numeri = corse.length ? (corse.length > 1 ? `${corse[0].numero}–${corse[corse.length - 1].numero}` : corse[0].numero) : inc.dalla;
+        return inc.tipo === 'aiuto' ? `in aiuto alla ${inc.turno} (c. ${numeri})` : `al posto della ${inc.turno} (c. ${numeri})`;
+      });
+      return `<div class="or-ship-row">${chip('BIS')}<span><b>${esc(g.navi.BIS?.nave || 'nave non indicata')}</b><small>${esc(lista.length ? lista.join(' · ') : 'a disposizione · pronto 8.30, rientro 18.40')}</small></span></div>`;
+    })() : '';
+    const totale = navi.length + (bisRiga ? 1 : 0);
+    return `<details class="or-note" data-dettaglio="navi"${state.dettagli.has('navi') ? ' open' : ''}><summary>Navi in linea oggi (${totale})</summary>` +
+      `<div class="or-ship-list">${righe + bisRiga || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div></details>`;
   }
 
   function alloScalo(g, t, aperte = [], navi = []) {
@@ -669,13 +680,30 @@
     }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
     const navi = giornata().navi;
-    const sospese = [...attivi.filter(code => navi[code]?.sospesa).map(code => `${code}${navi[code].motivo ? ` (${navi[code].motivo})` : ''}`),
-      ...attivi.filter(code => !navi[code]?.sospesa && navi[code]?.corseSospese?.length).map(code => `${code} corsa ${navi[code].corseSospese.join(', ')}`)];
-    const notice = [!attivi.length ? 'Nessuna corsa in orario in questo giorno.' :
-      !attivi.includes('D1') ? 'In questo periodo è attivo solo il traghetto Maderno – Torri.' : '',
-    sospese.length ? `⚠ Corse sospese dall'Ufficio Movimento: ${sospese.join(', ')}.` : ''].filter(Boolean).join(' · ');
+    // Corse sospese o fatte dal BIS dall'Ufficio Movimento: restano in elenco, con la scritta.
+    const g = giornata();
+    const corsaTesto = c => `${esc(c.scali[0][1])} ${esc(c.scali[0][0])} → ${esc(c.scali[c.scali.length - 1][1])} ${esc(c.scali[c.scali.length - 1][0])}`;
+    const voci = [];
+    attivi.forEach(code => {
+      const v = navi[code];
+      const corse = O.corseDelTurno(code, day);
+      if (v?.sospesa) voci.push(`<b>${esc(code)}</b> · tutte le corse (${corse.length ? `${esc(corse[0].numero)}–${esc(corse[corse.length - 1].numero)}` : ''}) <em>SOSPESE</em>${v.motivo ? ` · ${esc(v.motivo)}` : ''}`);
+      else (v?.corseSospese || []).forEach(n => {
+        const c = corse.find(x => x.numero === String(n));
+        if (c) voci.push(`<b>${esc(code)}</b> · c. ${esc(c.numero)} · ${corsaTesto(c)} <em>SOSPESA</em>`);
+      });
+    });
+    (navi.BIS?.incarichi || []).filter(inc => inc.tipo !== 'aiuto').forEach(inc => {
+      const corse = O.corseIncarico(inc, day);
+      if (!corse.length) return;
+      const nave = navi[inc.turno]?.nave;
+      voci.push(`<b>${esc(inc.turno)}</b> · c. ${corse.map(c => esc(c.numero)).join(', ')} <em class="bis">FATTE DAL BIS</em>${nave ? ` al posto di ${esc(nave)}` : ''} · ${corsaTesto(corse[0])}${corse.length > 1 ? ` … ${esc(corse[corse.length - 1].scali[corse[corse.length - 1].scali.length - 1][1])}` : ''}`);
+    });
+    const testo = [!attivi.length ? 'Nessuna corsa in orario in questo giorno.' :
+      !attivi.includes('D1') ? 'In questo periodo è attivo solo il traghetto Maderno – Torri.' : ''].filter(Boolean).map(esc).join(' · ');
+    const notice = testo || voci.length;
     $('orario-notice').hidden = !notice;
-    $('orario-notice').textContent = notice;
+    $('orario-notice').innerHTML = `${testo}${testo && voci.length ? '<br>' : ''}${voci.length ? `⚠ Corse cambiate dall'Ufficio Movimento:<ul class="or-cambi">${voci.map(v => `<li>${v}</li>`).join('')}</ul>` : ''}`;
     if (state.view === 'lago') renderLago();
     else if (state.view === 'viaggio') renderViaggio();
     if (EMBED) return;
