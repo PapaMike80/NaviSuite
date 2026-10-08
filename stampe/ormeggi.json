@@ -4346,19 +4346,129 @@
  "2026-10-09": {
   "BIS": {
    "nave": "CATULLO",
-   "ods": 39,
+   "ods": 40,
    "ormeggio": "pont. 1",
    "rif": true
   },
   "D1": {
    "nave": "S. MARCO",
-   "ods": 39,
+   "ods": 40,
    "ormeggio": "pont. 2",
    "rif": true
   },
   "D2": {
    "nave": "BALDO",
-   "ods": 39,
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-10": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 40,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 1",
+   "rif": false
+  }
+ },
+ "2026-10-11": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 40,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-12": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 1",
+   "rif": true
+  }
+ },
+ "2026-10-13": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-14": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-15": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
+   "ormeggio": "pont. 1",
+   "rif": true
+  }
+ },
+ "2026-10-16": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 40,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 40,
    "ormeggio": "pont. 3",
    "rif": false
   }
