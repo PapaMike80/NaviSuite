@@ -486,3 +486,5 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .tab-badge.rosso{background:#e11d48;color:#fff}
 .tab-badge.arancio{background:#f59e0b;color:#1f1300}
 .mov-warn{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:999px;background:#e11d48;color:#fff!important;font-size:14px!important;font-weight:800;box-sizing:border-box}
+.pop-bolla.b-sovr{cursor:pointer;border:1px dashed #fcd34d;background:rgba(252,211,77,.12);color:#fde68a;font:inherit;font-size:13px;padding:7px 12px;border-radius:999px}
+.pop-bolla.b-sovr:hover{background:rgba(252,211,77,.25)}

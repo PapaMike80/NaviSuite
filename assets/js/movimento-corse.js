@@ -206,9 +206,17 @@
     const bolle = x.membro ? `<div class="pop-bolle">` +
       `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} quando scegli un sostituto"><span>↪ Sostituito va in</span><button type="button" class="pop-val${per === 'sost' ? ' on' : ''}" data-act="dest-apri" data-per="sost">${esc(nomeDest(ui.sbarco))} ▾</button></span>` +
       `<span class="pop-bolla b-togli"><button type="button" class="pop-togli" data-act="togli-subito" data-code="${code}" title="Toglie ${esc(x.membro.name)} senza metterne un altro">✕ Toglilo</button><button type="button" class="pop-val${per === 'togli' ? ' on' : ''}" data-act="dest-apri" data-per="togli" title="Dove va se lo togli">${esc(nomeDest(ui.togliDest))} ▾</button></span></div>${destinazioni}` : '';
+    // sovrannumero: bolla per segnarlo o toglierlo (un sovrannumero tolto conta nell'organico e puo' coprire un posto scoperto)
+    const sovrBtn = (m, v, testo, titolo) => `<button type="button" class="pop-bolla b-sovr" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}">${testo}</button>`;
+    let sovrBolle = '';
+    if (x.membro && x.sovr) sovrBolle = sovrBtn(x.membro, false, `★ Togli il sovrannumero a ${esc(cognome(x.membro.name))}`, `${x.membro.name} entra nell'organico e conta nel minimo`);
+    else if (x.membro) sovrBolle = sovrBtn(x.membro, true, `★ ${esc(cognome(x.membro.name))} in sovrannumero`, `${x.membro.name} resta a bordo ma non conta nel minimo`);
+    else posti(state.oggi[code]?.nave, state.day, crew).filter(p => p.sovr && p.membro && puoCoprire(p.ruolo, x.ruolo))
+      .forEach(p => { sovrBolle += sovrBtn(p.membro, false, `★ Usa ${esc(cognome(p.membro.name))} (sovrannumero a bordo) su questo posto`, `${p.membro.name} e' gia' a bordo: toglie il sovrannumero e copre il posto`); });
+    if (sovrBolle) sovrBolle = `<div class="pop-bolle">${sovrBolle}</div>`;
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
       <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
-      ${bolle}
+      ${bolle}${sovrBolle}
       <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
       ${gruppi || (x.extra ? '' : '<p class="pop-vuoto">Nessun agente disponibile per questo grado.</p>')}</div>`;
   }
@@ -592,6 +600,12 @@
       ui.menu = null; ui.sovr = false;
       const nome = agenti(state.day).find(a => String(a.agent.id) === String(button.dataset.id))?.agent.agente || '';
       variazione(button.dataset.id, sovr ? `${code}*` : code, `${nome} aggiunto alla ${code}${sovr ? ' in sovrannumero (' + code + '*)' : ''}.`, { aggiunto: true, sovrannumero: sovr });
+    }
+    else if (act === 'sovr-set') {
+      const sovr = button.dataset.v === '1';
+      const m = equipaggioDi(code).find(y => String(y.id) === String(button.dataset.id));
+      ui.menu = null;
+      variazione(button.dataset.id, sovr ? `${code}*` : code, `${m?.name || ''}: ${sovr ? 'in sovrannumero' : 'sovrannumero tolto, ora in organico'} sulla ${code}.`, { sovrannumero: sovr });
     }
     else if (act === 'crew-reset') ripristinaEquipaggio(code);
     else if (act === 'corsa-bis-togli') {
