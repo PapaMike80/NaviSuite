@@ -10,9 +10,7 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | `Maderno_servizio_terra_A4.pdf` | AgM e AgT, navi di linea e traghetto Torri in ordine di orario |
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
-| `Maderno_prossima_partenza_A4.pdf` | per la biglietteria: "Prossima partenza per … / Next boat to … / Nächstes Schiff nach …", una riga per località, da Desenzano a Riva come nell'orario ufficiale |
-| `Maderno_tascabile_A4.pdf` | tascabile: A4 orizzontale, scali al centro, a sinistra le partenze da Maderno e a destra i ritorni a Maderno |
-| `Desenzano_passeggeri_A4.pdf`, `Desenzano_prossima_partenza_A4.pdf`, `Desenzano_tascabile_A4.pdf` | gli stessi fogli per i passeggeri di Desenzano |
+| `Desenzano_passeggeri_A4.pdf` | lo stesso foglio per i passeggeri di Desenzano |
 | `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
 

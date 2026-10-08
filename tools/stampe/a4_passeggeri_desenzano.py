@@ -90,16 +90,6 @@ def main(out):
     return passeggeri.main(S, out)
 
 
-def main_destinazioni(out):
-    passeggeri.main_destinazioni(S, out)
-
-
-def main_tascabile(out):
-    passeggeri.main_tascabile(S, out)
-
-
 if __name__ == "__main__":
-    # uso: a4_passeggeri_desenzano.py navi.pdf prossima_partenza.pdf tascabile.pdf
+    # uso: a4_passeggeri_desenzano.py navi.pdf
     print("misura orari / localita':", main(sys.argv[1]))
-    main_destinazioni(sys.argv[2])
-    main_tascabile(sys.argv[3])

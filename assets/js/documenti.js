@@ -211,8 +211,6 @@ const STAMPE_TITOLI = [
   [/^Desenzano_pontile/i, 'Servizi a terra Desenzano · pontile e AgB'],
   [/^Maderno_servizio_terra/i, 'Servizi a terra Maderno · AgM e AgT'],
   [/_passeggeri_/i, 'Partenze e ritorni per i passeggeri'],
-  [/_prossima_partenza_/i, 'Prossima partenza per… (passeggeri)'],
-  [/_tascabile_/i, 'Orario tascabile per i passeggeri'],
   [/_traghetto_Torri/i, 'Traghetto Maderno – Torri (passeggeri)'],
   [/^Cover_/i, 'Cover iPhone 15 da ritagliare']
 ];
