@@ -72,7 +72,7 @@
   document.addEventListener('toggle', event => { if (event.target.classList?.contains('or-equipaggio')) state.equipAperto = event.target.open; }, true);
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
-    view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
+    view: 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
     time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), giornatePassate: new Set(), scaloScelto: !!params.get('scalo'),
@@ -83,7 +83,16 @@
   const realToday = () => today() === iso(new Date());
   const nowMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
   // Ora mostrata: quella del cursore, altrimenti adesso (o le 9.00 per gli altri giorni).
-  const shownTime = () => state.time ?? (realToday() ? nowMinutes() : 9 * 60);
+  // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima partenza della giornata dal mio scalo
+  // (come nell'elenco Allo scalo; gli arrivi e il BIS a disposizione non contano), altrimenti le 9.00.
+  const shownTime = g => {
+    if (state.time != null) return state.time;
+    if (realToday()) return nowMinutes();
+    // servizio a terra scelto (anche in prova): il lago parte dall'ora in cui inizia
+    if (/^\d{1,2}[.:]\d{2}$/.test(state.embed?.inizio || '')) return minutes(state.embed.inizio);
+    const prima = righeScalo(g || giornata()).find(r => r.kind === 'P' && !r.propria);
+    return prima ? prima.t : 9 * 60;
+  };
 
   // Dati del giorno: viaggi, navi assegnate ed equipaggi.
   function giornata() {
@@ -174,7 +183,7 @@
   // Mappa, elenco e dettaglio all'ora t (il cursore aggiorna solo queste parti).
   function lagoParti() {
     const g = giornata();
-    const t = shownTime();
+    const t = shownTime(g);
     // Schede aperte: la nave scelta a mano piu' quelle aperte da sole per il mio scalo (le navi in
     // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
     // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
@@ -465,7 +474,7 @@
     const next = righe[prossima] || righe[righe.length - 1];
     const lato = chiuso ? '' : (righe.length ? `${righe.length} passaggi` : '');
     // chiuso: turno, nave, ora e destinazione, corsa della prossima nave (es. T2 San Vigilio 15.05 per Torri · c. 12)
-    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} <b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
+    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} ${next.arr ? `<span title="Arrivo">arr. ${esc(next.arr.ora)}</span> › ` : ''}<b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
     const scheda = card('Allo scalo', lato, `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
@@ -474,12 +483,15 @@
     return scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
   }
 
+  // Solo nella giornata di oggi: "Adesso" sempre della stessa misura; acceso se l'ora segue l'orologio, con un bordino verde
+  // trasparente se ho spostato l'ora (clic = torna adesso). Negli altri giorni niente pulsante.
+  const bottoneAdesso = live => (realToday() ? `<button type="button" class="or-adesso${live ? ' on' : ''}" data-now>${live ? 'ADESSO' : 'Adesso'}</button>` : '');
   function controlliTempo(t) {
     const min = 7 * 60, max = 20 * 60 + 30;
     const live = state.time == null && realToday();
     return `<button type="button" class="or-play" data-play aria-label="${state.playing ? 'Ferma' : 'Fai scorrere il tempo'}">${state.playing ? '❚❚' : '▶'}</button>` +
       `<input type="range" id="or-slider" min="${min}" max="${max}" step="1" value="${Math.min(max, Math.max(min, t))}" aria-label="Ora">` +
-      `<b class="or-clock" id="or-clock">${hhmm(t)}</b>${live ? '<span class="or-live">ADESSO</span>' : `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`}`;
+      `<b class="or-clock" id="or-clock">${hhmm(t)}</b>${bottoneAdesso(live)}`;
   }
 
   function renderLago() {
@@ -500,8 +512,8 @@
     $('or-map-wrap').innerHTML = svg;
     if ($('or-side')) $('or-side').innerHTML = side;
     $('or-clock').textContent = hhmm(t);
-    const live = document.querySelector('#or-time .or-live');
-    if (live && state.time != null) live.outerHTML = `<button type="button" class="terra-day-today" data-now>${realToday() ? 'Adesso' : '9.00'}</button>`;
+    const adesso = document.querySelector('#or-time .or-adesso');
+    if (adesso && state.time != null) { adesso.classList.remove('on'); adesso.textContent = 'Adesso'; }
   }
 
   function dettaglioNave(g, code, t) {
@@ -731,7 +743,8 @@
       $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
         (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
       $('orario-day-input').value = day;
-      $('orario-day-today').hidden = realToday();
+      $('orario-day-today').hidden = false;
+      $('orario-day-today').classList.toggle('on', realToday());
       document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
     }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
@@ -849,7 +862,7 @@
       if (fromScalo && matchMedia('(max-width: 900px)').matches) document.querySelector(`.or-detail[data-detail="${ship.dataset.ship}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (event.target.closest('[data-now]')) { stopPlay(); state.time = realToday() ? null : 9 * 60; render(); return; }
+    if (event.target.closest('[data-now]')) { stopPlay(); state.time = null; render(); return; }
     if (event.target.closest('[data-play]')) {
       if (state.playing) { stopPlay(); render(); return; }
       state.time = shownTime();
@@ -876,12 +889,12 @@
 
   if (EMBED) {
     window.NaviOrarioPage = {
-      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '' } = {}) {
+      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '', inizio = '' } = {}) {
         const giorno = day && day !== iso(new Date()) ? day : '';
-        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
+        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || (state.embed.inizio || '') !== inizio || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
         // mentre si sceglie un pontile o si usa il cursore non si ridisegna
         if (!cambia && (document.activeElement?.closest?.('#orario-content select') || state.playing)) return;
-        state.embed = { modo, turno };
+        state.embed = { modo, turno, inizio };
         state.view = 'lago';
         if (cambia) {
           state.day = giorno; state.time = null; stopPlay();

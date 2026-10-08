@@ -157,3 +157,17 @@ div.or-ship-row{cursor:default}
 .or-at-chiuso .terra-card-head small{color:#e8f7f7;font-size:14px;font-weight:900}
 @media(max-width:860px){.or-lago #or-side{order:1}.or-lago>.terra-col:first-child{order:2}}
 .or-at-next{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;color:#e8f7f7;font-size:14px}
+/* Scali: solo il lago; in alto il giorno, grande, centrato e di larghezza fissa */
+#orario .terra-bar,#mio-turno .terra-bar{justify-content:center}
+#orario .terra-day,#mio-turno .terra-day{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+#orario .terra-day-nav,#mio-turno .terra-day-nav{width:52px;height:48px;border-radius:12px;font-size:22px}
+#orario .terra-day-current,#mio-turno .terra-day-current{flex:0 0 auto;width:15em;min-height:48px;justify-content:center;padding:0 .6em;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.12);font-size:clamp(15px,4.2vw,26px)}
+#orario .terra-day-label,#mio-turno .terra-day-label{color:#f2fffd;font:900 1em/1.1 Manrope,Inter,sans-serif;letter-spacing:.01em;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis}
+#orario .terra-day-today,#mio-turno .terra-day-today{flex:0 0 5em;min-height:48px;padding:0;border-radius:14px;font:900 clamp(15px,4.2vw,26px)/1.1 Manrope,Inter,sans-serif}
+#orario .terra-day-today[hidden],#mio-turno .terra-day-today[hidden]{display:inline-flex;visibility:hidden}
+#orario .terra-day-today,#mio-turno .terra-day-today{border-width:2px;opacity:.75}
+#orario .terra-day-today.on,#mio-turno .terra-day-today.on{opacity:1;border-color:#2dd4bf;background:rgba(45,212,191,.28);color:#99f6e4;box-shadow:0 0 14px rgba(45,212,191,.55)}
+.or-adesso{flex:none;min-width:84px;height:30px;padding:0 10px;border:2px solid rgba(45,212,191,.55);border-radius:9px;background:rgba(45,212,191,.08);color:rgba(153,246,228,.85);font:900 11px DM Sans,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.or-adesso.on{border-color:#2dd4bf;background:rgba(45,212,191,.22);color:#2dd4bf;cursor:default}
+html.navisuite-light #orario .terra-day-current,html.navisuite-light #mio-turno .terra-day-current{background:#e3f7f3!important;border-color:#087b6e!important}
+html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .terra-day-label{color:#0c3b36!important}

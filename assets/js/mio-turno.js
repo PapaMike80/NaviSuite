@@ -158,7 +158,7 @@
     $('turno-content').innerHTML = '';
     $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-scali').hidden = false;
-    window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day });
+    window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
   }
 
   function renderAltro(turno, day) {
@@ -184,7 +184,8 @@
     $('turno-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
     $('turno-day-input').value = day;
-    $('turno-day-today').hidden = realToday;
+    $('turno-day-today').hidden = false;
+    $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
     $('turno-after').innerHTML = '';
     const me = profile();
