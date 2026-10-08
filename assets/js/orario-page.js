@@ -87,6 +87,7 @@
   function giornata() {
     const day = today();
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
+    O.stagioneDaRighe(turniNavi); // turni fermati o ripresi dal Movimento
     const navi = T.turniDelGiorno(turniNavi, day);
     // BIS dall'Ufficio Movimento: corse in aiuto (viaggi in piu') e corse al posto di un'altra nave
     const incarichi = navi.BIS?.incarichi || [];

@@ -100,4 +100,13 @@ assert.deepStrictEqual(T.turniDelGiorno([rigaSosp], day).D1.corseSospese, ['16',
 assert.ok(!T.turniDelGiorno([rigaSosp], day).D1.sospesa);
 assert.match(rest, /corse_sospese:\(Array\.isArray\(values\.corse_sospese\)/);
 ['data-act="corsa-chiedi"', "act === 'corsa-sospendi'", "act === 'corsa-bis'", 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
+// Turni fermati o ripresi dal Movimento fuori dal calendario dell'O.d.S.
+O.stagioneDaRighe([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', stagione_al: '2027-03-19', attiva: true }, { data: '2026-10-08', corsa: 'D3', stagione: 'attiva', attiva: true }]);
+assert.strictEqual(O.inServizio('SR1', '2026-10-09'), true);
+assert.strictEqual(O.inServizio('SR1', '2026-12-01'), false);
+assert.strictEqual(O.inServizio('D3', '2026-10-20'), true);
+assert.strictEqual(O.inServizio('D3', '2026-10-07'), false);
+assert.deepStrictEqual(T.turniDelGiorno([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', fonte: 'movimento', attiva: true }], '2026-11-11'), {});
+assert.match(rest, /saveStagioneTurno/);
+O.stagioneDaRighe([]);
 console.log('movimento ok');

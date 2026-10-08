@@ -524,6 +524,8 @@
         updates.turniNavi || [],
         item => `${item?.data || ''}|${item?.corsa || ''}|${String(item?.nave || '').trim().toLocaleUpperCase('it')}`
       );
+      // turni fermati o ripresi dal Movimento (righe con "stagione"): servono a NaviOrarioGiorno.inServizio
+      try { window.NaviOrarioGiorno?.stagioneDaRighe?.(data.turni_navi); } catch { /* orario non caricato */ }
       data.dismissedOdsApprovals = Array.isArray(updates.dismissedOdsApprovals) ? updates.dismissedOdsApprovals : [];
         return data;
       } catch (error) {

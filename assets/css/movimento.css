@@ -406,3 +406,11 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .ag-dest-chip.on{box-shadow:0 0 0 2px currentColor}
 .ag-sovr{display:inline-flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 13px;border:2px dashed #67d7e6;border-radius:999px;background:transparent;color:#67d7e6;font:900 12px inherit;cursor:pointer}
 .ag-sovr.on{background:rgba(103,215,230,.18)}
+.mov-turno.ferma{opacity:.65;cursor:default}
+.mov-turno.ferma .mov-head{align-items:center}
+.mov-turno.ferma .btn{margin-left:auto;white-space:nowrap}
+.mov-ferma{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:0 13px 10px;padding:10px 12px;border:1px solid #7f1d33;border-radius:12px;background:rgba(159,48,68,.1)}
+.mov-ferma b{flex-basis:100%;font-size:13px;color:#fca5a5}
+.mov-ferma label{display:grid;gap:4px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mov-ferma input{padding:8px 9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
+.mov-ferma small{color:#86a5af;font-size:10px;text-transform:none;letter-spacing:0;font-weight:700}

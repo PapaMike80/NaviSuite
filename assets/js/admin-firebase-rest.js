@@ -247,6 +247,21 @@
     };
     return writeTurniNavi([...rows, row]);
   }
+  // Turno fermato o ripreso fuori dal calendario dell'O.d.S. (pagina Movimento): una riga per turno con il campo "stagione"
+  // ("ferma" | "attiva"), valida dal giorno `dal` al giorno `al` (vuoto = fino a nuovo ordine).
+  async function saveStagioneTurno(code, stato, dal, al = "", updatedBy = "") {
+    const turno = String(code || "").toUpperCase();
+    const rows = (await getTurniNavi()).filter(row => !(row?.stagione && corsaDi(row) === turno));
+    rows.push({
+      data:String(dal), corsa:turno, nave:"", stagione:stato === "attiva" ? "attiva" : "ferma", stagione_al:String(al || ""),
+      ods:"MOVIMENTO", fonte:"movimento", attiva:true, inserita_il:new Date().toISOString(), modificata_da:String(updatedBy || "")
+    });
+    return writeTurniNavi(rows);
+  }
+  async function togliStagioneTurno(code) {
+    const turno = String(code || "").toUpperCase();
+    return writeTurniNavi((await getTurniNavi()).filter(row => !(row?.stagione && corsaDi(row) === turno)));
+  }
   async function ripristinaTurnoNave(day, corsa) {
     const code = String(corsa || "").toUpperCase();
     const rows = (await getTurniNavi())
@@ -929,6 +944,8 @@
     saveTurnoNaveMovimento,
     ripristinaTurnoNave,
     saveVariazioneMovimento,
+    saveStagioneTurno,
+    togliStagioneTurno,
     getPontiliCorse,
     savePontileCorsa,
     getAdminDocumentFile,

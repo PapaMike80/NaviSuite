@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, destAperto: false, togliDest: 'RIP' };
+  const ui = { open: '', suspending: '', fermando: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, destAperto: false, togliDest: 'RIP' };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -280,9 +280,15 @@
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
     const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
+    const dmy = d => (d ? d.split('-').reverse().join('/') : '');
     const ferme = turniFermi(day).map(code => {
-      const info = C?.info?.(code, day);
-      return `<article class="mov-turno ferma"><div class="mov-head"><span class="chip" data-code="${code}">${code}</span><div class="mov-sum"><b>Corsa ferma</b><small>${info?.trips ? `corse ${esc(info.trips)}` : 'non in servizio in questo periodo'}</small></div></div></article>`;
+      // corse dell'orario estivo (O.d.S. 16/2026) o invernale di questo turno
+      const est = C?.COURSE_TRIPS?.[code], inv = C?.COURSE_TRIPS_WINTER?.[code], ore = C?.COURSE_TIMES?.[code];
+      const st = window.NaviStagione?.[code];
+      const info = [inv ? `inverno corse ${inv}` : '', est ? `estate corse ${est}${ore ? ` · ${clock(ore[0])} → ${clock(ore[1])}` : ''}` : ''].filter(Boolean).join(' · ');
+      const stato = st?.stato === 'ferma' ? `ferma dal ${dmy(st.dal)}${st.al ? ` al ${dmy(st.al)}` : ' fino a nuovo ordine'}` : 'fuori orario in questo periodo';
+      return `<article class="mov-turno ferma" data-turno="${code}"><div class="mov-head"><span class="chip" data-code="${code}">${code}</span><div class="mov-sum"><b>Corsa ferma</b><small>${esc(stato)}${info ? ` · ${esc(info)}` : ''}</small></div>` +
+        `<button type="button" class="btn primary" data-act="stagione-riprendi" data-code="${code}" title="Rimette in servizio il turno ${code} da questo giorno">▶ Ripristina corsa</button></div></article>`;
     }).join('');
     $('mov-list').innerHTML = datalists + (cards || '<p class="empty">Nessun turno nave in servizio in questo giorno.</p>') + ferme;
     if (ui.menu) {
@@ -309,6 +315,7 @@
     } else {
       azioni = `<button class="btn danger" type="button" data-act="suspend" data-code="${code}">Sospendi corse</button>`;
     }
+    if (code !== 'BIS') azioni += ui.fermando === code ? '' : `<button class="btn ghost" type="button" data-act="stagione-chiedi" data-code="${code}" title="Ferma il turno ${code} per un periodo (es. fuori stagione)">⏹ Ferma corsa</button>`;
     if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione (ritardi${code === 'BIS' ? ' e incarichi del BIS' : ''} restano)">↺ O.d.S.</button>`;
     if (cambiCorsa(code, day).length) azioni += `<button class="btn ghost" type="button" data-act="crew-reset" data-code="${code}" title="Ripristina i turni previsti: annulla i cambi d'equipaggio del Movimento su questa corsa">↺ Ripristina equipaggio</button>`;
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
@@ -328,6 +335,7 @@
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
       ${open ? `<div class="mov-azioni">${azioni}</div>` : ''}
+      ${open && ui.fermando === code ? `<div class="mov-ferma"><b>Ferma la ${code}</b><label>Dal<input type="date" id="ferma-dal" value="${day}"></label><label>Fino al<input type="date" id="ferma-al" value=""><small>vuoto = fino a nuovo ordine</small></label><button class="btn danger" type="button" data-act="stagione-ferma-ok" data-code="${code}">⏹ Ferma</button><button class="btn ghost" type="button" data-act="stagione-annulla">Annulla</button></div>` : ''}
       ${code === 'BIS' && open ? bisPanel(day, r) : ''}
       ${open ? ritardiPanel(code, day, r) + bolle(code, r, ieri) : ''}
     </article>`;
@@ -564,6 +572,14 @@
       const lista = sospRaw(code).filter(x => x.corsa !== corsa);
       salva(code, { corse_sospese: lista }, `${code}: corsa ${corsa} ripristinata.`);
     }
+    else if (act === 'stagione-chiedi') { ui.fermando = code; render(); }
+    else if (act === 'stagione-annulla') { ui.fermando = ''; render(); }
+    else if (act === 'stagione-ferma-ok') {
+      const dal = $('ferma-dal')?.value || state.day, al = $('ferma-al')?.value || '';
+      ui.fermando = '';
+      NM.salvaStagione(code, 'ferma', dal, al, `${code}: corse ferme dal ${dal.split('-').reverse().join('/')}${al ? ` al ${al.split('-').reverse().join('/')}` : ' fino a nuovo ordine'}.`);
+    }
+    else if (act === 'stagione-riprendi') NM.salvaStagione(code, 'attiva', state.day, '', `${code}: corse riprese dal ${state.day.split('-').reverse().join('/')}.`);
     else if (act === 'corsa-chiedi') { ui.sospCorsa = { code, corsa: button.dataset.corsa, modo: button.dataset.modo }; render(); }
     else if (act === 'corsa-annulla') { ui.sospCorsa = null; render(); }
     else if (act === 'corsa-sospendi') {
@@ -634,5 +650,5 @@
   document.addEventListener('click', event => { if (ui.menu && !event.target.closest('.slot-pop, .slot')) { ui.menu = null; render(); } });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && ui.menu) { ui.menu = null; render(); } });
   window.addEventListener('resize', posizionaPopover);
-  NM.vista('corse', render, { onDay: () => { ui.open = ''; ui.suspending = ''; ui.bisForm = null; ui.menu = null; ui.sospCorsa = null; } });
+  NM.vista('corse', render, { onDay: () => { ui.open = ''; ui.suspending = ''; ui.bisForm = null; ui.menu = null; ui.sospCorsa = null; ui.fermando = ''; } });
 })();

@@ -331,7 +331,7 @@ ${FIT}</body></html>`;
   function turniDelGiorno(rows, day) {
     const out = {};
     [...(rows || [])].sort(newer).forEach(row => {
-      if (!row || row.attiva === false || row.data !== day) return;
+      if (!row || row.attiva === false || row.data !== day || row.stagione) return;
       const nave = String(row.nave || '').replace(/\s*(\([A-Z]\)|©)/g, '').trim();
       const mooring = String(row.ormeggio_serale || '').trim();
       const number = mooring.match(/pont(?:ile)?\.?\s*(\d+)/i)?.[1];

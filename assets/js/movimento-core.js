@@ -37,8 +37,13 @@
   }
   // Turni nave in servizio nel giorno / fermi (D3, D4... nell'orario invernale).
   const TUTTI_I_TURNI = ['D1', 'D2', 'D3', 'D4', 'P1', 'P2', 'P3', 'R1', 'R2', 'R3', 'R4', 'M1', 'T1', 'T2', 'SR1', 'SR2'];
-  const turniCodici = day => [...O.TURNI.slice(0, 2), 'BIS', ...O.TURNI.slice(2)].filter(code => O.inServizio(code, day));
-  const turniFermi = day => TUTTI_I_TURNI.filter(code => !turniCodici(day).includes(code));
+  // I turni dell'orario in vigore, piu' quelli ripresi dal Movimento (es. D3 o D4 estivi); fermi: tutti gli altri, anche quelli dell'orario estivo.
+  const turniCodici = day => {
+    const riprese = Object.keys(window.NaviStagione || {}).filter(code => !O.TURNI.includes(code) && code !== 'BIS' && O.inServizio(code, day));
+    return [...O.TURNI.slice(0, 2), 'BIS', ...O.TURNI.slice(2), ...riprese].filter(code => O.inServizio(code, day));
+  };
+  const turniFermi = day => [...new Set([...TUTTI_I_TURNI, ...Object.keys(window.NaviCourseInfo?.COURSE_TRIPS || {}), ...Object.keys(window.NaviStagione || {})])]
+    .filter(code => code !== 'BIS' && !turniCodici(day).includes(code));
 
   // Variazione del Movimento di un agente nel giorno (per "annulla").
   const variazioneMovimento = (day, id) => (state.schedule?.variazioni_ods || [])
@@ -63,6 +68,7 @@
 
   // ---------------- Viste e giorno ----------------
   function render() {
+    O.stagioneDaRighe(righeNavi());
     const d = parseIso(state.day);
     $('mov-day-label').textContent = `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`;
     $('mov-day-input').value = state.day;
@@ -88,6 +94,22 @@
 
   // Non ridisegna mentre si scrive in un campo (per non perdere il testo).
   const editing = () => document.activeElement?.closest?.('.mov-panel') && document.activeElement.matches('input, select');
+
+  // Ferma o riprende un turno (fuori dal calendario dell'O.d.S.): stato 'ferma' | 'attiva' | '' (toglie la scelta)
+  async function salvaStagione(code, stato, dal, al, messaggio) {
+    if (state.busy) return false;
+    state.busy = true;
+    setStatus('Salvataggio…');
+    let ok = false;
+    try {
+      state.turniNavi = stato ? await window.NaviAdminFirebase.saveStagioneTurno(code, stato, dal, al, autore) : await window.NaviAdminFirebase.togliStagioneTurno(code);
+      setStatus(messaggio, 'ok');
+      ok = true;
+    } catch (error) {
+      setStatus(`Non salvato: ${error.message}`, 'bad');
+    } finally { state.busy = false; notify(); }
+    return ok;
+  }
 
   // ---------------- Salvataggi ----------------
   const ritardiLista = map => Object.entries(map || {}).map(([corsa, x]) => ({ corsa, minuti: x.minuti, oltre: !!x.oltre }));
@@ -214,7 +236,7 @@
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
   window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
-    variazioneMovimento, salva, ripristina, variazione, notify, vista, editing };
+    variazioneMovimento, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.
   const avvia = () => {
