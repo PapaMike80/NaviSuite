@@ -91,6 +91,79 @@ def nome_nave(v):
     return re.sub(r"\s*(\([A-Z]\)|©)", "", v["nave"]).replace(" + ", "+")
 
 
+# ------------------------------------------------------------------ agenti di servizio
+FIREBASE_KEY = "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE"   # chiave pubblica dell'app (come assets/js/admin-firebase-rest.js)
+FIREBASE_DB = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app"
+SIGLE_TERRA = {"AGB": "AgB", "POND": "PonD"}
+
+
+def sigla_terra(turno):
+    m = re.match(r"^C?(AGB|POND)C?$", re.sub(r"[^A-Z]", "", str(turno or "").upper()))
+    return SIGLE_TERRA[m.group(1)] if m else ""
+
+
+def turni_firebase():
+    """Turni come li vede l'app: orario pubblicato, turni importati da Aggiornamenti e variazioni
+    (O.d.S. e manuali). Accesso anonimo come l'app."""
+    import urllib.request
+
+    def get(url, data=None):
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    tok = get(f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_KEY}", b'{"returnSecureToken":true}')["idToken"]
+    lista = lambda v: [x for x in (v if isinstance(v, list) else list((v or {}).values())) if x]
+    priv = lambda k: lista(get(f"{FIREBASE_DB}/private/adminUpdates/{k}.json?auth={tok}"))
+    return {"schedule": get(f"{FIREBASE_DB}/public/schedule.json"), "imports": priv("scheduleImports"),
+            "variazioni": priv("odsVariations") + priv("manualVariations")}
+
+
+def agenti_settimana(days, dati=None):
+    """{giorno ISO: {"AgB": [nomi], "PonD": [nomi]}} per Desenzano; vuoto senza rete o senza turni."""
+    if dati is None:
+        try:
+            dati = turni_firebase()
+        except Exception as e:  # senza rete: righe da compilare a mano
+            print("Agenti di servizio non disponibili:", e)
+            return {}
+    giorni = {d.isoformat() for d in days}
+    turno = {}   # (giorno, chiave agente) -> turno ; nomi[chiave] = (nome, residenza)
+    nomi = {}
+    # chiave: il cognome e l'iniziale senza punti/spazi (gli id cambiano fra orario, import e variazioni)
+    norm = lambda n: re.sub(r"[^A-Z]", "", str(n or "").upper())
+
+    def chiave(n):
+        k = norm(n)
+        return next((x for x in nomi if x.startswith(k)), k) if k and k not in nomi else k
+    for res, agenti in ((dati.get("schedule") or {}).get("residenze") or {}).items():
+        for a in agenti or []:
+            k = norm(a.get("agente"))
+            nomi[k] = (a.get("agente", ""), res.upper())
+            for g, t in (a.get("turni") or {}).items():
+                if g in giorni:
+                    turno[(g, k)] = t
+    for imp in sorted((i for i in dati.get("imports") or [] if i.get("attiva") is not False), key=lambda i: str(i.get("importedAt", ""))):
+        date = imp.get("dates") or []
+        for r in imp.get("rows") or []:
+            k = norm(r.get("agente"))
+            nomi[k] = (r.get("agente") or nomi.get(k, ("", ""))[0], str(r.get("residenza") or nomi.get(k, ("", ""))[1]).upper())
+            for g, t in zip(date, r.get("turni") or []):
+                if g in giorni:
+                    turno[(g, k)] = t
+    for v in sorted((v for v in dati.get("variazioni") or [] if v.get("attiva", True) is not False), key=lambda v: str(v.get("inserita_il", ""))):
+        if v.get("data") in giorni and v.get("turno_nuovo"):
+            k = chiave(v.get("agente"))
+            nomi.setdefault(k, (v.get("agente", ""), ""))
+            turno[(v["data"], k)] = v["turno_nuovo"]
+    out = {g: {"AgB": [], "PonD": []} for g in giorni}
+    for (g, k), t in sorted(turno.items()):
+        sigla = sigla_terra(t)
+        nome, res = nomi.get(k, ("", ""))
+        if sigla and nome:  # AgB e PonD sono servizi di Desenzano (la residenza negli import non sempre e' aggiornata)
+            out[g][sigla].append(re.sub(r"\s+", " ", nome).strip() + ("*" if "*" in str(t) else ""))
+    return out
+
+
 # ------------------------------------------------------------------ A4 a colori
 def colori(out, ormeggi, lunedi):
     c = canvas.Canvas(out, pagesize=A4)
@@ -265,14 +338,27 @@ def intestazione_carta(c, x, y, titolo, sotto):
     return y + CH - band - 0.9 * mm
 
 
+def tm(t):
+    h, m = t.split(".")
+    return int(h) * 60 + int(m)
+
+
 def fronte(c, x, y):
     """Navi in ordine di orario."""
     top = intestazione_carta(c, x, y, "DESENZANO · PONTILE", "Navi in ordine di orario  ·  O.d.S. n. 39/2026")
     L, R = x + 4 * mm, x + CW - 4 * mm
-    row_h = 5.75 * mm
+    row_h = 5.5 * mm
     yy = top - 4.6 * mm
+    # pause pranzo: le corse durante la pausa di AgB (arancio) e di PonD (viola) hanno la riga colorata
+    PAUSE_COL = {"AgB": HexColor("#fde2b8"), "PonD": HexColor("#e4dcfb")}
+    pause = [(code, tm(a.split(" – ")[1]), tm(b.split(" – ")[0])) for code, a, b, _ in SERVIZI]
     for i, (t, kind, code, run, where) in enumerate(ROWS):
-        if i % 2 == 0:
+        in_pausa = [p for p, da, a in pause if da <= tm(t) < a]
+        if in_pausa:
+            for k, p in enumerate(in_pausa):
+                c.setFillColor(PAUSE_COL[p])
+                c.rect(L - 1 * mm, yy - 1.9 * mm + k * row_h / len(in_pausa), R - L + 2 * mm, row_h / len(in_pausa), stroke=0, fill=1)
+        elif i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L - 1 * mm, yy - 1.9 * mm, R - L + 2 * mm, row_h, stroke=0, fill=1)
         if t == "14.30":
             c.setStrokeColor(TEAL_SCURO); c.setLineWidth(0.9)
@@ -295,16 +381,24 @@ def fronte(c, x, y):
         yy -= row_h
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
     c.drawString(L, y + 4 * mm, "B = bolgetta  ·  linea = mattina | pomeriggio  ·  dal 5/10/2026")
-    assert yy + row_h - 1.9 * mm > y + 6.5 * mm, (yy - y) / mm
+    # legenda delle pause pranzo
+    lx = L
+    for code, a, b, _ in SERVIZI:
+        testo = f"pausa {code} {a.split(' – ')[1]} – {b.split(' – ')[0]}"
+        c.setFillColor(PAUSE_COL[code]); c.roundRect(lx, y + 7.6 * mm, 4 * mm, 3 * mm, 0.8 * mm, stroke=0, fill=1)
+        c.setFillColor(INCHIOSTRO); c.setFont("DVB", 6.6); c.drawString(lx + 5.2 * mm, y + 8.2 * mm, testo)
+        lx += 5.2 * mm + pdfmetrics.stringWidth(testo, "DVB", 6.6) + 5 * mm
+    assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
 
 
-def retro(c, x, y, ormeggi, days):
-    """Servizi a terra, ormeggi serali della settimana e note."""
+def retro(c, x, y, ormeggi, days, agenti=None):
+    """Servizi a terra, ormeggi serali della settimana con chi e' di servizio, note."""
+    agenti = agenti or {}
     gruppi, ods = gruppi_settimana(ormeggi, days)
     top = intestazione_carta(c, x, y, f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
-                             "nave e pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
+                             "pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
     L, R = x + 4 * mm, x + CW - 4 * mm
-    # servizi a terra
+    # servizi a terra: orario e pausa pranzo
     yy = top - 3 * mm
     bw = (R - L - 3 * mm) / 2
     for i, (code, a, b, _) in enumerate(SERVIZI):
@@ -316,26 +410,41 @@ def retro(c, x, y, ormeggi, days):
         c.drawRightString(bx + bw - 2.2 * mm, yy - 4.4 * mm, a)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 8.6 * mm, b)
     yy -= 15 * mm
-    # ormeggi: una riga per giorno, una colonna per gruppo
-    lab_w = 15 * mm
-    gw = (R - L - lab_w) / len(gruppi)
+    # ormeggi: una riga per giorno, una colonna per gruppo, poi chi e' di servizio AgB e PonD
+    lab_w = 13 * mm
+    ag_w = 36 * mm
+    gw = (R - L - lab_w - ag_w) / len(gruppi)
+    AX = R - ag_w + 1.5 * mm
     c.setFillColor(NOTTE2); c.roundRect(L, yy - 1.6 * mm, R - L, 5.6 * mm, 1.5 * mm, stroke=0, fill=1)
     for gi, g in enumerate(gruppi):
-        chip(c, L + lab_w + gw * gi + (gw - 10 * mm) / 2, yy, g, size=7.2, h=4 * mm, w=10 * mm)
-    rh = 9.4 * mm
+        chip(c, L + lab_w + gw * gi + (gw - 10 * mm) / 2, yy, g, size=7.2, h=4 * mm, w=min(10 * mm, gw - 1 * mm))
+    c.setFillColor(white); c.setFont("DVB", 6.8); c.drawString(AX, yy + 0.1 * mm, "AgB  ·  PonD")
+    rh = 8.6 * mm
     for i, d in enumerate(days):
         yy -= rh
         if i % 2 == 0:
-            c.setFillColor(RIGA); c.rect(L, yy - 3.2 * mm, R - L, rh, stroke=0, fill=1)
+            c.setFillColor(RIGA); c.rect(L, yy - 3.4 * mm, R - L, rh, stroke=0, fill=1)
         c.setFillColor(NOTTE); c.setFont("DVB", 8.2)
         c.drawString(L + 1 * mm, yy + 0.4 * mm, GIORNI[i])
         c.setFont("DV", 7); c.setFillColor(GRIGIO)
         c.drawString(L + 1 * mm, yy - 2.4 * mm, f"{d.day}/{d.month}")
+        # chi e' di servizio (dai turni); se non ancora noti, righe da compilare a mano
+        chi = agenti.get(d.isoformat(), {})
+        for k, (sigla, dy) in enumerate((("AgB", 1.2), ("PonD", -2.3))):
+            nomi = ", ".join(chi.get(sigla, []))
+            c.setFillColor(TEAL_SCURO); c.setFont("DVB", 5.6); c.drawString(AX, yy + dy * mm, sigla)
+            if nomi:
+                size = 6.6
+                while size > 4.6 and pdfmetrics.stringWidth(nomi, "DV", size) > ag_w - 10 * mm:
+                    size -= 0.2
+                c.setFillColor(INCHIOSTRO); c.setFont("DV", size); c.drawString(AX + 7.5 * mm, yy + dy * mm, nomi)
+            else:
+                c.setStrokeColor(BORDO); c.setLineWidth(0.5); c.line(AX + 7.5 * mm, yy + (dy - 0.4) * mm, R - 1 * mm, yy + (dy - 0.4) * mm)
         for gi, g in enumerate(gruppi):
             cx = L + lab_w + gw * (gi + 0.5)
             if d.isoformat() not in ormeggi:
                 if gi == 0:
-                    c.setFont("DV", 6); c.setFillColor(GRIGIO)
+                    c.setFont("DV", 5.8); c.setFillColor(GRIGIO)
                     c.drawString(L + lab_w + 1 * mm, yy - 0.6 * mm, "nel prossimo O.d.S.")
                 continue
             v = ormeggi[d.isoformat()].get(g)
@@ -347,18 +456,14 @@ def retro(c, x, y, ormeggi, days):
             c.setFont("DVB", 11.5)
             nw = pdfmetrics.stringWidth(num, "DVB", 11.5)
             if v["rif"]:
+                # il numero resta in colonna (centrato), la R accanto
                 rw = 3.6 * mm
-                x0 = cx - (nw + rw + 0.8 * mm) / 2
-                c.drawString(x0, yy + 0.4 * mm, num)
-                c.setFillColor(GIALLO); c.roundRect(x0 + nw + 0.8 * mm, yy, rw, 3.8 * mm, 1 * mm, stroke=0, fill=1)
-                c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(x0 + nw + 0.8 * mm + rw / 2, yy + 0.9 * mm, "R")
+                x0 = cx - nw / 2
+                c.drawString(x0, yy - 0.8 * mm, num)
+                c.setFillColor(GIALLO); c.roundRect(x0 + nw + 0.8 * mm, yy - 1.2 * mm, rw, 3.8 * mm, 1 * mm, stroke=0, fill=1)
+                c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(x0 + nw + 0.8 * mm + rw / 2, yy - 0.3 * mm, "R")
             else:
-                c.drawCentredString(cx, yy + 0.4 * mm, num)
-            name = nome_nave(v)
-            size = 6.4
-            while size > 4.8 and pdfmetrics.stringWidth(name, "DV", size) > gw - 1.5 * mm:
-                size -= 0.2
-            c.setFillColor(GRIGIO); c.setFont("DV", size); c.drawCentredString(cx, yy - 2.5 * mm, name)
+                c.drawCentredString(cx, yy - 0.8 * mm, num)
     # note
     yy -= 8 * mm
     righe = [("R", GIALLO, "D1 mar e ven · D2 lun e gio (rabbocco mer avvisando)"),
@@ -377,8 +482,10 @@ def retro(c, x, y, ormeggi, days):
     assert yy - 0.4 * mm > y + 3.5 * mm, (yy - y) / mm
 
 
-def tascabile(out, ormeggi, lunedi):
+def tascabile(out, ormeggi, lunedi, agenti=None):
     days = [lunedi + datetime.timedelta(days=i) for i in range(7)]
+    if agenti is None:
+        agenti = agenti_settimana(days)
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle("Desenzano - pontile - tascabile (4 cartoncini A6, fronte/retro)")
     angoli = [(0, H / 2), (W / 2, H / 2), (0, 0), (W / 2, 0)]
@@ -387,7 +494,7 @@ def tascabile(out, ormeggi, lunedi):
     segni_taglio(c)
     c.showPage()
     for x, y in angoli:
-        retro(c, x, y, ormeggi, days)
+        retro(c, x, y, ormeggi, days, agenti)
     segni_taglio(c)
     c.showPage()
     c.save()
