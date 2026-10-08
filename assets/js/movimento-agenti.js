@@ -12,7 +12,7 @@
   const { G } = NM;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 
-  const ui = { res:'', q:'', aperto:'', aperte:new Set(), sovr:false };
+  const ui = { res:'', q:'', aperto:'', aperte:new Set(), sovr:false, modifica:'' };
   const titolo = text => String(text).charAt(0) + String(text).slice(1).toLowerCase();
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Capitano: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
@@ -40,6 +40,15 @@
       `${gruppo('Su una corsa', corse)}</div>`;
   }
 
+  // Pastiglie per scegliere un altro turno al posto di quello richiesto dall'agente.
+  function destinazioniRichiesta(r) {
+    const navi = NM.turniCodici(r.day);
+    const terra = [...new Set(Object.values(G.SIGLE_TERRA))];
+    const chip = v => `<button type="button" class="chip ag-dest-chip" data-code="${esc(v)}" data-act="rich-scegli" data-k="${esc(`${r.agent.id}|${r.day}`)}" data-v="${esc(v)}">${esc(nomeTurno(v))}</button>`;
+    const gruppo = (t, lista) => `<p>${t}</p><div class="pop-chips">${lista.map(chip).join('')}</div>`;
+    return `<div class="pop-dest ag-dest">${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra, 'TERRA'])}${gruppo('Su una corsa', [...new Set([...navi, ...NM.TUTTI_I_TURNI])])}</div>`;
+  }
+
   function render() {
     const day = NM.state.day;
     if (!NM.state.schedule) { view.innerHTML = '<p class="empty">Caricamento turni…</p>'; return; }
@@ -52,6 +61,17 @@
     const q = G.norm(ui.q);
     const visibili = rows.filter(r => !q || G.norm(r.agent.agente).includes(q));
     document.getElementById('agenti-count').textContent = String(visibili.length);
+    // richieste di cambio turno fatte dagli agenti dalla Distinta, da approvare
+    const dmy = d => d.split('-').reverse().join('/');
+    const rich = NM.richieste();
+    const chiave = r => `${r.agent.id}|${r.day}`;
+    const richieste = rich.length ? `<section class="ag-richieste"><h3>Richieste di cambio turno <span class="count">${rich.length}</span></h3>` +
+      rich.map(r => { const [sigla, colore] = ICONE[G.gradoOf(r.agent)[0]] || ['?', '#94a3b8']; const k = chiave(r); return `<div class="ag-rich"><span class="ag-icona" style="--g:${colore}">${sigla}</span>` +
+        `<span class="ag-rich-testo"><b style="color:${colore}">${esc(r.agent.agente)}</b> · ${esc(dmy(r.day))}<small>dalla Distinta: <s>${esc(nomeTurno(r.previsto))}</s> → <b>${esc(nomeTurno(r.turno))}</b></small></span>` +
+        `<span class="ag-rich-azioni"><button type="button" class="btn primary" data-act="rich-approva" data-k="${esc(k)}">✓ Approva</button>` +
+        `<button type="button" class="btn ghost" data-act="rich-modifica" data-k="${esc(k)}">Modifica…</button>` +
+        `<button type="button" class="btn danger" data-act="rich-rifiuta" data-k="${esc(k)}" title="Resta il turno previsto: ${esc(nomeTurno(r.previsto))}">✗ Rifiuta</button></span>` +
+        `${ui.modifica === k ? destinazioniRichiesta(r) : ''}</div>`; }).join('') + '</section>' : '';
     const filtro = `<div class="toolbar">
         <div class="agenti-res" title="Apre o chiude le residenze"><button type="button" class="nave-chip${residenze.length && residenze.every(r => ui.aperte.has(r)) ? ' on' : ''}" data-res="">Tutte</button>${residenze.map(r => `<button type="button" class="nave-chip${ui.aperte.has(r) ? ' on' : ''}" data-res="${esc(r)}">${esc(titolo(r))}</button>`).join('')}</div>
         <label>Cerca<input id="agenti-q" type="search" value="${esc(ui.q)}" placeholder="Nome agente" autocomplete="off"></label></div>`;
@@ -80,7 +100,7 @@
       }).join('');
       return `${testata}<div class="ag-intest"><span>Agente</span><span>Grado</span><span title="Posizione nel prospetto dei turni">Anz.</span><span>Turno del giorno</span></div><ul class="ag-list">${righe}</ul>`;
     }).join('');
-    view.innerHTML = filtro + (gruppi || '<p class="empty">Nessun agente.</p>');
+    view.innerHTML = filtro + richieste + (gruppi || '<p class="empty">Nessun agente.</p>');
   }
 
   view.addEventListener('click', event => {
@@ -100,6 +120,16 @@
       if (ui.aperte.has(nome)) ui.aperte.delete(nome); else ui.aperte.add(nome);
       ui.aperto = '';
       render();
+      return;
+    }
+    const azione = event.target.closest('[data-act^="rich-"]');
+    if (azione) {
+      const [id, day] = String(azione.dataset.k).split('|');
+      const r = NM.richieste().find(x => String(x.agent.id) === id && x.day === day);
+      if (!r) return;
+      if (azione.dataset.act === 'rich-modifica') { ui.modifica = ui.modifica === azione.dataset.k ? '' : azione.dataset.k; render(); return; }
+      ui.modifica = '';
+      NM.decidiRichiesta(r, azione.dataset.act === 'rich-approva' ? 'approva' : azione.dataset.act === 'rich-rifiuta' ? 'rifiuta' : azione.dataset.v);
       return;
     }
     const undo = event.target.closest('[data-undo]');

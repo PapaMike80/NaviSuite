@@ -23,7 +23,7 @@
   if (!profile || !window.NaviRoles?.isAdminAgent(profile) || !$('mov-tabs')) return;
   const autore = String(profile.name || profile.agente || profile.id || '');
 
-  const state = { day: iso(new Date()), tab: 'corse', schedule: null, turniNavi: [], fleet: {}, fleetMeta: { updatedAt: '', updatedBy: '' }, oggi: {}, busy: false };
+  const state = { approvazioni: {}, day: iso(new Date()), tab: 'corse', schedule: null, turniNavi: [], fleet: {}, fleetMeta: { updatedAt: '', updatedBy: '' }, oggi: {}, busy: false };
   const viste = {};
 
   function setStatus(text, kind = '') { const el = $('mov-status'); el.textContent = text; el.className = `mov-status ${kind}`.trim(); }
@@ -75,6 +75,7 @@
     // "Oggi" sempre visibile; acceso quando si guarda il giorno corrente
     $('mov-day-today').classList.toggle('on', state.day === iso(new Date()));
     viste[state.tab]?.render();
+    aggiornaBadge();
   }
   const notify = render;
   function vista(tab, renderFn, extra = {}) { viste[tab] = { render: renderFn, ...extra }; }
@@ -215,6 +216,7 @@
       await provider?.ready;
       const [rows, fleet] = await Promise.all([provider.getTurniNavi(), provider.getFleet().catch(() => null)]);
       state.turniNavi = rows;
+      try { state.approvazioni = await provider.getApprovazioniTurni(); } catch { /* nodo non ancora creato */ }
       if (fleet) { state.fleet = fleet.navi || {}; state.fleetMeta = { updatedAt: fleet.updatedAt, updatedBy: fleet.updatedBy }; }
       Object.values(viste).forEach(v => v.onData?.());
       if (!state.busy && !editing()) render();
@@ -242,8 +244,59 @@
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
+  // Cambi turno fatti dagli agenti dalla propria Distinta da approvare (da oggi in poi): turno diverso da quello previsto,
+  // senza una decisione del Movimento per quel giorno e senza un'approvazione dello stesso turno.
+  const norm = value => String(value || '').trim().toUpperCase();
+  function turnoPrevisto(agent, day) {
+    const ods = (state.schedule?.variazioni_ods || []).filter(v => v?.ods !== 'MOVIMENTO' && String(v.data).slice(0, 10) === day && String(v.id_agente) === String(agent.id)).pop();
+    return String(ods ? (ods.turno_nuovo ?? ods.turno ?? '') : (agent.turni?.[day] ?? '')).trim();
+  }
+  function richieste() {
+    const oggi = iso(new Date());
+    const agentiMap = new Map();
+    Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => { if (agent?.id) agentiMap.set(String(agent.id), { agent, residenza }); }));
+    return G.modificheManuali().filter(m => m.day >= oggi && agentiMap.has(String(m.id))).map(m => {
+      const { agent, residenza } = agentiMap.get(String(m.id));
+      const previsto = turnoPrevisto(agent, m.day);
+      const approvata = state.approvazioni?.[`${String(m.id).replace(/[.#$\[\]/]/g, '-')}_${m.day}`];
+      const deciso = variazioneMovimento(m.day, m.id);
+      return { agent, residenza, day: m.day, turno: m.turno, previsto, decisa: !!deciso, approvata: !!approvata && norm(approvata.turno) === norm(m.turno) };
+    }).filter(r => norm(r.turno) !== norm(r.previsto) && !r.decisa && !r.approvata).sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
+  }
+  // Decisione del Movimento su una richiesta di cambio turno: 'approva' (il turno dell'agente resta), 'rifiuta' (torna il turno
+  // previsto) oppure un altro turno scelto dal Movimento. Rifiuto e altro turno sono variazioni del Movimento, che vincono
+  // sul cambio fatto dall'agente nella Distinta.
+  async function decidiRichiesta(r, scelta) {
+    if (state.busy) return;
+    state.busy = true;
+    setStatus('Salvataggio…');
+    const dmy = r.day.split('-').reverse().join('/');
+    try {
+      const provider = window.NaviAdminFirebase;
+      if (scelta === 'approva') {
+        const item = await provider.saveApprovazioneTurno(r.agent.id, r.day, r.turno, autore);
+        state.approvazioni = { ...state.approvazioni, [`${String(r.agent.id).replace(/[.#$\[\]/]/g, '-')}_${r.day}`]: item };
+        setStatus(`${r.agent.agente}: cambio turno del ${dmy} approvato (${r.turno}).`, 'ok');
+      } else {
+        const nuovo = scelta === 'rifiuta' ? (r.previsto || 'RIP') : scelta;
+        const rows = await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${scelta === 'rifiuta' ? 'rifiutata' : 'modificata'}`);
+        state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))),
+          ...rows.filter(v => v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))];
+        setStatus(`${r.agent.agente}: richiesta del ${dmy} ${scelta === 'rifiuta' ? `rifiutata, resta ${nuovo}` : `cambiata in ${nuovo}`}.`, 'ok');
+      }
+    } catch (error) {
+      setStatus(`Non salvato: ${error.message}`, 'bad');
+    } finally { state.busy = false; notify(); }
+  }
+  // Numero di richieste sul tab Agenti
+  function aggiornaBadge() {
+    const n = state.schedule ? richieste().length : 0;
+    const btn = document.querySelector('[data-tab="agenti"]');
+    if (btn) btn.innerHTML = n ? `Agenti <span class="tab-badge" title="Richieste di cambio turno da approvare">${n}</span>` : 'Agenti';
+  }
+
   window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
-    variazioneMovimento, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
+    variazioneMovimento, richieste, turnoPrevisto, decidiRichiesta, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.
   const avvia = () => {

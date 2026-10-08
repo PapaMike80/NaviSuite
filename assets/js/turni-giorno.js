@@ -39,10 +39,13 @@
 
   function variazioni(data, day) {
     const map = new Map();
+    // decisioni dell'Ufficio Movimento: valgono anche sul cambio che l'agente si e' fatto nella Distinta
+    map.movimento = new Map();
     (data?.variazioni_ods || []).forEach(item => {
       if (String(item?.data || '').slice(0, 10) !== day) return;
       const shift = item?.turno_nuovo ?? item?.turno;
       if (shift === undefined) return;
+      if (item?.ods === 'MOVIMENTO') { if (item?.id_agente) map.movimento.set(`id:${item.id_agente}`, shift); if (item?.agente) map.movimento.set(`name:${norm(item.agente)}`, shift); }
       if (item?.id_agente) map.set(`id:${item.id_agente}`, shift);
       if (item?.agente) map.set(`name:${norm(item.agente)}`, shift);
     });
@@ -76,9 +79,13 @@
   }
   // Turno modificato a mano dall'agente nella propria Distinta (NaviDiaria) in un giorno, se c'e'.
   const modificaManuale = (agentId, day) => modifiche.get(`${String(agentId)}|${day}`);
+  // Tutti i cambi fatti a mano dagli agenti: [{id, day, turno}]
+  const modificheManuali = () => [...modifiche.entries()].map(([key, turno]) => { const [id, day] = key.split('|'); return { id, day, turno }; });
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
   const turnoDi = (agent, day, map) => {
+    const decisoDalMovimento = map.movimento?.get(`id:${agent?.id}`) ?? map.movimento?.get(`name:${norm(agent?.agente)}`);
+    if (decisoDalMovimento !== undefined) return decisoDalMovimento;
     const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
     if (manual) return manual;
     const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
@@ -115,5 +122,5 @@
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche, modificaManuale };
+  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
 })(typeof window !== 'undefined' ? window : globalThis);

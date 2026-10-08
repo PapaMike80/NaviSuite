@@ -273,6 +273,18 @@
       });
     return writeTurniNavi(rows);
   }
+  // Approvazione dei cambi turno fatti dagli agenti dalla propria Distinta (pagina Movimento): una voce per agente e giorno
+  // {turno, approvata_da, approvata_il}; il cambio resta "in attesa" finche' non c'e' una voce con lo stesso turno.
+  const chiaveApprovazione = (agentId, day) => `${String(agentId).replace(/[.#$\[\]/]/g, "-")}_${day}`;
+  async function getApprovazioniTurni() {
+    const result = await databaseRequest("private/adminUpdates/approvazioniTurni");
+    return result.data && typeof result.data === "object" ? result.data : {};
+  }
+  async function saveApprovazioneTurno(agentId, day, turno, approvataDa = "") {
+    const item = { agentId:String(agentId), data:day, turno:String(turno || "").toUpperCase(), approvata_da:String(approvataDa), approvata_il:new Date().toISOString() };
+    await databaseRequest(`private/adminUpdates/approvazioniTurni/${chiaveApprovazione(agentId, day)}`, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
   // Equipaggio: le modifiche del Movimento sono variazioni manuali dei turni (ods "MOVIMENTO"), una
   // per agente e giorno; turnoNuovo vuoto annulla la variazione.
   async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "", extra = {}) {
@@ -944,6 +956,8 @@
     saveTurnoNaveMovimento,
     ripristinaTurnoNave,
     saveVariazioneMovimento,
+    getApprovazioniTurni,
+    saveApprovazioneTurno,
     saveStagioneTurno,
     togliStagioneTurno,
     getPontiliCorse,
