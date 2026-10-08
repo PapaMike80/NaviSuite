@@ -40,8 +40,9 @@ TURNI = {"D1": "#3b6fe0", "R1": "#3b6fe0", "P1": "#3b6fe0", "T1": "#3b6fe0",
          "M1": "#e07b2a", "R3": "#e07b2a", "D3": "#e07b2a", "D4": "#c25bbd",
          "BIS": "#0e9fb3", "SR1": "#7c5ce0", "SR2": "#7c5ce0"}
 GIORNI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
-SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30' (lun e gio 8 ore 45')\ndalle 7.45 lun e gio (rifornimento D2)"),
+SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30' (Lun/Giov 8 ore 45', rifornimento D2)"),
            ("PonD", "9.30 – 13.35", "15.00 – 19.50", "8 ore 55'"))
+ANTICIPO = {"AgB": "7.45 Lun/Giov"}   # inizio anticipato per il rifornimento D2
 VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027  ·  O.d.S. n. 39/2026"
 REGOLE_R = ("D1 martedì e venerdì  ·  D2 lunedì e giovedì (eventuale rabbocco il mercoledì avvisando la Direzione)",
             "D1 e D2: motorista mezz'ora prima del normale orario  ·  BIS tutti i giorni, liberato il pontile 5 o 3")
@@ -197,6 +198,9 @@ def colori(out, ormeggi, lunedi):
         c.setFont("DVB", 12.5)
         c.drawRightString(x + bw - 5 * mm, box_top - 7.5 * mm, a)
         c.drawRightString(x + bw - 5 * mm, box_top - 13 * mm, b)
+        if code in ANTICIPO:  # AgB: 7.45 il lunedi' e il giovedi' (rifornimento D2)
+            c.setFont("DVB", 8.6); c.setFillColor(TEAL_SCURO)
+            c.drawRightString(x + bw - 7 * mm - pdfmetrics.stringWidth(a, "DVB", 12.5), box_top - 7.5 * mm, ANTICIPO[code])
         c.setFont("DV", 7.4); c.setFillColor(GRIGIO)
         # nota su due righe se serve: la prima sotto la sigla, accanto agli orari
         righe = note.split("\n")
@@ -383,7 +387,7 @@ def fronte(c, x, y):
             c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, yy - 0.1 * mm, "B")
         yy -= row_h
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
-    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB lun e gio dalle 7.45 (rifornimento D2)")
+    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB 7.45 Lun/Giov (rifornimento D2)")
     # legenda delle pause pranzo
     lx = L
     for code, a, b, _ in SERVIZI:

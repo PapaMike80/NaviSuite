@@ -66,7 +66,7 @@
   const VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027 · O.d.S. n. 39/2026";
   // Servizi a terra: (sigla, mattina, pomeriggio, nota)
   const SERVIZI = {
-    DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', '8 ore 30\' · lun e gio dalle 7.45 (rifornimento D2, 8 ore 45\')'],
+    DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', '8 ore 30\' (Lun/Giov 8 ore 45\', rifornimento D2)'],
       ['PonD', '9.30 – 13.35', '15.00 – 19.50', "8 ore 55'"]],
     MADERNO: [['AgM', '9.00 – 11.50', '12.50 – 19.30', 'compresa assistenza alle c. 16-17 · coadiuva AgT'],
       ['AgT', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
@@ -163,7 +163,7 @@ h1{font-size:24pt;margin:0;line-height:1;letter-spacing:.04em}
 .src{font-size:7.6pt;color:#5a7680;margin:1mm 0 0}
 .boxes{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-top:5mm}
 .box{border:.8pt solid #c9e3e6;border-left:2.2mm solid #0f8f80;border-radius:3mm;background:#eef7f7;padding:2.5mm 5mm;display:grid;grid-template-columns:auto 1fr;row-gap:.5mm}
-.box b{font-size:17pt;color:#0b2530}.box .h{text-align:right;font-size:12.5pt;line-height:1.25;font-weight:700;color:#0b2530}.box small{grid-column:1/-1;font-size:7.4pt;color:#5a7680}
+.box .anticipo{font-style:normal;font-size:9pt;color:#0f8f80;margin-right:2mm}.box b{font-size:17pt;color:#0b2530}.box .h{text-align:right;font-size:12.5pt;line-height:1.25;font-weight:700;color:#0b2530}.box small{grid-column:1/-1;font-size:7.4pt;color:#5a7680}
 table{border-collapse:collapse;width:100%}
 .navi{margin-top:6mm}.navi th{background:#123a47;color:#fff;font-size:8.8pt;text-align:left;padding:1.4mm 2mm}
 .navi thead th:first-child{border-radius:2mm 0 0 2mm}.navi thead th:last-child{border-radius:0 2mm 2mm 0}
@@ -222,7 +222,7 @@ table{border-collapse:collapse;width:100%}
   }
 
   const boxes = res => SERVIZI[res].map(([code, a, b, note]) =>
-    `<div class="box"><b>${code}</b><span class="h">${a}<br>${b}</span><small>${esc(note)}</small></div>`).join('\n');
+    `<div class="box"><b>${code}</b><span class="h">${code === 'AgB' ? '<em class="anticipo">7.45 Lun/Giov</em> ' : ''}${a}<br>${b}</span><small>${esc(note)}</small></div>`).join('\n');
   const notes = res => NOTE[res].map(([bold, text]) => bold ? `<b>${esc(text)}</b>` : esc(text)).join('<br>\n');
 
   function sheetDesenzano(turniNavi, monday) {
