@@ -374,3 +374,11 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .pop-togli{padding:5px 12px;border:0;border-radius:999px;background:transparent;color:var(--c);font:900 12px inherit;cursor:pointer}
 .pop-togli:hover{background:color-mix(in srgb,var(--c) 28%,transparent)}
 .pop-res.sub{--g:#7fb1b9;margin:8px 0 4px!important;padding-left:9px;border-left:3px solid var(--g);color:#cfe6ea!important;font-size:11px!important}
+/* Tab Agenti: colonne grado e anzianita' */
+.ag-intest,.ag-list li{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(110px,.8fr) 52px minmax(190px,1fr);align-items:center;gap:10px}
+.ag-intest{margin:0 0 4px;padding:0 10px;color:#7fb1b9;font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.ag-list li{grid-template-columns:minmax(150px,1.3fr) minmax(110px,.8fr) 52px minmax(190px,1fr)}
+.ag-grado{font-size:11px;font-weight:800;opacity:.9}
+.ag-anz{color:#9eb9c1;font-size:12px;font-weight:800;text-align:center}
+@media(max-width:850px){.ag-intest{display:none}.ag-list li{grid-template-columns:1fr auto}.ag-grado,.ag-anz{font-size:11px}.ag-turno{grid-column:1/-1}}
+.ag-list li.cambiato{background:rgba(250,204,21,.09);box-shadow:inset 3px 0 0 #facc15}

@@ -171,6 +171,8 @@
     setStatus('Salvataggio turno…');
     const prima = variazioneMovimento(state.day, id);
     const originale = prima?.turno_originale || item.turno;
+    // rimesso sul turno previsto: non resta nessuna variazione
+    if (turnoNuovo && String(turnoNuovo).trim().toUpperCase() === String(originale || '').trim().toUpperCase()) turnoNuovo = '';
     try {
       const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`, extra);
       // aggiorna subito i turni in pagina: tolte le variazioni del Movimento del giorno, aggiunte quelle salvate
