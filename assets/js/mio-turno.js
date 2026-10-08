@@ -184,7 +184,8 @@
     $('turno-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
     $('turno-day-input').value = day;
-    $('turno-day-today').hidden = realToday;
+    $('turno-day-today').hidden = false;
+    $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
     $('turno-after').innerHTML = '';
     const me = profile();

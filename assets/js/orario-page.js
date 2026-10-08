@@ -731,7 +731,8 @@
       $('orario-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
         (realToday() ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
       $('orario-day-input').value = day;
-      $('orario-day-today').hidden = realToday();
+      $('orario-day-today').hidden = false;
+      $('orario-day-today').classList.toggle('on', realToday());
       document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
     }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
