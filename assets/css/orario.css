@@ -143,3 +143,8 @@ div.or-ship-row{cursor:default}
 .sosp-tag.bis{background:rgba(103,215,230,.2);color:#67d7e6}
 .or-cambiate{margin:10px 0 0;padding:0;list-style:none;font-size:12px}
 .or-cambiate li{margin:4px 0;color:#c7dde2}
+
+.mt-scali li.or-sep.sosp{color:#fca5a5}
+.mt-scali li.or-sep.sosp::before,.mt-scali li.or-sep.sosp::after{background:linear-gradient(90deg,transparent,#b4414f 18%,#b4414f 82%,transparent)}
+.mt-scali li.or-sep.bis{color:#67d7e6}
+.mt-scali li.or-sep.bis::before,.mt-scali li.or-sep.bis::after{background:linear-gradient(90deg,transparent,#2f8fa0 18%,#2f8fa0 82%,transparent)}

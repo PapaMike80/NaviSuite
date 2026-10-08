@@ -535,7 +535,8 @@
     // prima di ogni corsa (anche la prima) una linea con il suo numero, come in Il mio turno; se la
     // corsa riparte subito dallo scalo d'arrivo della precedente (alla stessa ora, nei viaggi e' un
     // punto solo) lo scalo compare due volte: arrivo, linea, partenza della nuova corsa
-    const linea = (numero, tag = '') => `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}${tag}</span></li>`;
+    // la linea della corsa sospesa e' rossa, quella sostituita dal BIS celeste
+    const linea = (numero, tag = '') => `<li class="mt-sep or-sep${tag.includes('sosp-tag bis') ? ' bis' : tag ? ' sosp' : ''}" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}${tag}</span></li>`;
     // le corse gia' finite restano nascoste (si possono mostrare)
     const fineCorsa = {};
     const tutti = [...punti, ...extra].sort((a, b) => a.t - b.t || (a.sosp ? 1 : 0) - (b.sosp ? 1 : 0));
