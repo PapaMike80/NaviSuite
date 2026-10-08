@@ -414,3 +414,6 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .mov-ferma label{display:grid;gap:4px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .mov-ferma input{padding:8px 9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 12px inherit}
 .mov-ferma small{color:#86a5af;font-size:10px;text-transform:none;letter-spacing:0;font-weight:700}
+.mov-turno.sotto-minimo{border-color:#b4414f;box-shadow:inset 4px 0 0 #e11d48}
+.mov-sum small.mov-sotto{display:block;margin-top:3px;color:#fb7185;font-size:12px;font-weight:900;letter-spacing:.01em}
+.mov-warn{color:#fb7185!important}

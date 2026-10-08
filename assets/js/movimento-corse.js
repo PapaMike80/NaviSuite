@@ -306,6 +306,8 @@
     const comandante = G.comandante(crew);
     const min = minimo(r.nave, day, crew);
     const avviso = min && min.mancano.length > 0;
+    // cosa manca, per la scritta rossa "Equipaggio sotto il minimo"
+    const manca = avviso ? min.mancano.map(x => { const n = x.n - x.presenti; const r = RUOLI.find(y => y[0] === x.key); return `${n} ${n === 1 ? r[1] : r[2]}`; }).join(', ') : '';
     const open = ui.open === code;
     let azioni;
     if (r.sospesa) {
@@ -326,12 +328,12 @@
     const ordinate = [...nomi.filter(n => !usate[n.toUpperCase()]), ...nomi.filter(n => usate[n.toUpperCase()])];
     const nave = `<select class="mov-nave-tag${r.nave ? '' : ' vuota'}" data-code="${code}" data-f="nave" aria-label="Nave della ${code}"><option value=""${r.nave ? '' : ' selected'}>nave da assegnare</option>${ordinate.map(n => `<option value="${esc(n)}"${stessaNave(n, r.nave) ? ' selected' : ''}>${esc(n)}${usate[n.toUpperCase()] ? ` (ora ${usate[n.toUpperCase()]})` : ''}</option>`).join('')}</select>`;
     const stato = r.sospesa ? '<span class="mov-sospesa">SOSPESA</span>' : '';
-    return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
+    return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}${avviso ? ' sotto-minimo' : ''}" data-turno="${code}">
       <div class="mov-head" role="button" tabindex="0" data-act="open" data-code="${code}" aria-expanded="${open}">
         <span class="chip" data-code="${code}">${code}</span>
-        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento && modificaOds(code, day, r) ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · <em class="mov-rit">⏱ ${ritardiTesto(r.ritardi)}</em>` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${bisBadge}</span>
+        <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento && modificaOds(code, day, r) ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · <em class="mov-rit">⏱ ${ritardiTesto(r.ritardi)}</em>` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${avviso ? `<small class="mov-sotto">⚠ Equipaggio sotto il minimo · manca ${esc(manca)}</small>` : ''}${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}</span>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo: manca ${esc(manca)}">⚠</span>' : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
       ${open ? `<div class="mov-azioni">${azioni}</div>` : ''}
