@@ -73,7 +73,7 @@
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), giornatePassate: new Set(), scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -496,7 +496,13 @@
     // corsa riparte subito dallo scalo d'arrivo della precedente (alla stessa ora, nei viaggi e' un
     // punto solo) lo scalo compare due volte: arrivo, linea, partenza della nuova corsa
     const linea = numero => `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}</span></li>`;
+    // le corse gia' finite restano nascoste (si possono mostrare)
+    const fineCorsa = {};
+    punti.forEach(p => { fineCorsa[p.corsa] = p.t; });
+    const finite = new Set(Object.keys(fineCorsa).filter(n => fineCorsa[n] < t));
+    const mostraFinite = state.giornatePassate.has(code);
     const giornataRighe = () => punti.map((p, k) => {
+      if (finite.has(p.corsa) && !mostraFinite) return '';
       const cls = q => (q.t < t || k < from ? 'prec' : '');
       if (!k) return linea(p.corsa) + riga(p, k - from, cls(p));
       const prima = punti[k - 1];
@@ -507,7 +513,8 @@
       }
       return linea(p.corsa) + riga(p, k - from, cls(p));
     }).join('');
-    const prossimi = giornata ? giornataRighe()
+    const toggleFinite = giornata && finite.size ? `<li class="or-finite"><button type="button" class="past-toggle" data-finite="${esc(code)}">${mostraFinite ? '▴ Nascondi le corse già fatte' : `▾ Mostra le corse già fatte (${finite.size})`}</button></li>` : '';
+    const prossimi = giornata ? toggleFinite + giornataRighe()
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
         : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
@@ -730,6 +737,8 @@
       render();
       return;
     }
+    const finiteBtn = event.target.closest('[data-finite]');
+    if (finiteBtn) { const code = finiteBtn.dataset.finite; if (state.giornatePassate.has(code)) state.giornatePassate.delete(code); else state.giornatePassate.add(code); render(); return; }
     const giornata = event.target.closest('[data-giornata]');
     if (giornata) { const code = giornata.dataset.giornata; if (state.giornate.has(code)) state.giornate.delete(code); else state.giornate.add(code); render(); return; }
     const ship = event.target.closest('[data-ship]');
