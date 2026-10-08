@@ -331,9 +331,17 @@
   }
   // Numero di richieste sul tab Agenti
   function aggiornaBadge() {
-    const n = state.schedule ? richiesteNuove().length : 0;
+    const nuove = state.schedule ? richiesteNuove().length : 0;
     const btn = document.querySelector('[data-tab="agenti"]');
-    if (btn) btn.innerHTML = n ? `Agenti <span class="tab-badge" title="Richieste di cambio turno da approvare">${n}</span>` : 'Agenti';
+    if (btn) {
+      // rosso = richieste di cambio da approvare (restano finche' non le decidi); arancione = turni modificati nel giorno scelto
+      const tutte = state.schedule ? richieste() : [];
+      const conRichiesta = new Set(tutte.filter(r => r.day === state.day).map(r => String(r.agent.id)));
+      const modificati = state.schedule ? agenti(state.day).filter(a => norm(a.turno) !== norm(turnoPrevisto(a.agent, state.day)) && !conRichiesta.has(String(a.agent.id))).length : 0;
+      btn.innerHTML = 'Agenti' + (tutte.length ? ` <span class="tab-badge rosso" title="Richieste di cambio turno da approvare: ${tutte.length}">${tutte.length}</span>` : '') +
+        (modificati ? ` <span class="tab-badge arancio" title="Turni modificati in questo giorno: ${modificati}">${modificati}</span>` : '');
+    }
+    const n = nuove;
     // avviso ben visibile in ogni tab: gli agenti si sono cambiati il turno dalla Distinta e il Movimento deve decidere
     const avviso = $('mov-avviso');
     if (avviso) {
