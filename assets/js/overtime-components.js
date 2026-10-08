@@ -30,7 +30,7 @@
     // Le ore lavorate sono calcolate automaticamente solo finché l'agente
     // non le ha corrette esplicitamente. Il servizio è una durata prevista,
     // non un valore minimo delle ore effettivamente lavorate.
-    if(Number.isFinite(Number(serviceMinutes))&&!isWorkedManual(entry))entry.workedMinutes=minutes(serviceMinutes)+sum(entry);
+    if(Number.isFinite(Number(serviceMinutes))&&!isWorkedManual(entry))entry.workedMinutes=minutes(serviceMinutes)+sum(entry)+minutes(entry?.refuelWorked);
     return entry;
   }
   function recalculateOrdinary(entry,serviceMinutes){
@@ -69,8 +69,23 @@
     // ritardo, cambio e sentine restano dati distinti e non negativi.
     return entry;
   }
+  // Rifornimento: sempre 1 ora di banca ore (una volta) e il suo tempo in piu' nelle ore lavorate.
+  // refuelBank / refuelWorked ricordano quanto e' gia' stato aggiunto (nei record vecchi il
+  // rifornimento dava in banca ore i suoi minuti e nulla alle ore lavorate).
+  const REFUEL_BANK=60;
+  function setRefuel(entry,value,serviceMinutes,previous=0){
+    const next=minutes(value),before=minutes(previous);
+    const creditedBank=entry.refuelBank===undefined?before:minutes(entry.refuelBank),creditedWorked=minutes(entry.refuelWorked);
+    const bank=next>0?REFUEL_BANK:0;
+    entry.bank=Math.round(Number(entry.bank)||0)+bank-creditedBank;
+    entry.refuelBank=bank;
+    if(isWorkedManual(entry))entry.workedMinutes=minutes(minutes(entry.workedMinutes)+next-creditedWorked);
+    entry.refuelWorked=next;
+    entry.refuel=next;
+    return sync(entry,serviceMinutes);
+  }
   function create(){return {ordinario:0,cambi:0,sentine:0}}
-  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,create,minutes,SENTINE_TYPES};
+  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,setRefuel,REFUEL_BANK,create,minutes,SENTINE_TYPES};
 })();
 
 (() => {
