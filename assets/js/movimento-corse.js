@@ -76,9 +76,11 @@
     // sovrannumero: variazione col "+" o turno scritto con l'asterisco (D1*) gia' nei turni
     const turni = new Map(agenti(day).map(a => [String(a.agent.id), a.turno]));
     const isSovr = m => sovrannumero(variazione(m)) || String(turni.get(String(m.id)) || '').trim().endsWith('*');
-    const aggiunti = crew.filter(m => variazione(m)?.aggiunto && !isSovr(m)).map(m => RUOLO[m.grado[0]] || 'marinaio');
-    const slot = periodo ? [...RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)), ...aggiunti] : crew.map(m => RUOLO[m.grado[0]] || 'marinaio');
-    const liberi = [...crew];
+    // i sovrannumero non occupano posti: restano in fondo all'equipaggio con l'asterisco
+    const normali = crew.filter(m => !isSovr(m));
+    const aggiunti = normali.filter(m => variazione(m)?.aggiunto).map(m => RUOLO[m.grado[0]] || 'marinaio');
+    const slot = periodo ? [...RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)), ...aggiunti] : normali.map(m => RUOLO[m.grado[0]] || 'marinaio');
+    const liberi = [...normali];
     const out = slot.map(ruolo => ({ ruolo, membro: null, adattato: false }));
     const prendi = (cond, adattato) => out.forEach(x => {
       if (x.membro) return;
@@ -92,7 +94,8 @@
       const adatti = liberi.filter(m => COPRE[RUOLO[m.grado[0]]]?.includes(x.ruolo)).sort((a, b) => b.grado[2] - a.grado[2]);
       if (adatti.length) { x.membro = adatti[0]; x.adattato = true; liberi.splice(liberi.indexOf(adatti[0]), 1); }
     });
-    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: isSovr(m) }));
+    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: false }));
+    crew.filter(isSovr).forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: true }));
     return out;
   }
   function pallini(code, lista) {
@@ -102,7 +105,7 @@
       const titolo = `${nomeRuolo}${x.membro ? `: ${x.membro.name}${x.adattato ? ` (fa da ${nomeRuolo.toLowerCase()})` : ''}${x.sovr ? ' (sovrannumero)' : ''}` : ': posto scoperto'} — tocca per cambiare`;
       const aperto = ui.menu?.code === code && ui.menu.i === i;
       return `<button type="button" class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}${x.sovr ? ' sovr' : ''}${aperto ? ' aperto' : ''}" style="--g:${colore}" data-act="slot" data-code="${code}" data-i="${i}" title="${esc(titolo)}">` +
-        `<span class="slot-pallino">${sigla}</span>${nome}</button>`;
+        `<span class="slot-pallino">${sigla}${x.sovr ? '*' : ''}</span>${nome}</button>`;
     }).join('') + piu(code);
   }
   // Bolla "+" a destra dei pallini: aggiunge un membro all'equipaggio (anche sovrannumero).
