@@ -492,9 +492,22 @@
       const dopo = resto[fine + 1];
       return resto.slice(iQui, fine + 1).map((p, j) => riga(p, iQui + j)).join('') + (dopo ? riga(dopo, fine + 1) : '');
     }
-    // fra una corsa e l'altra una linea con il numero della nuova corsa (come in Il mio turno)
-    const sep = (p, k) => (k && p.corsa !== punti[k - 1].corsa ? `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(p.corsa)}"><span>${esc(p.corsa)}</span></li>` : '');
-    const prossimi = giornata ? punti.map((p, k) => sep(p, k) + riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
+    // prima di ogni corsa (anche la prima) una linea con il suo numero, come in Il mio turno; se la
+    // corsa riparte subito dallo scalo d'arrivo della precedente (alla stessa ora, nei viaggi e' un
+    // punto solo) lo scalo compare due volte: arrivo, linea, partenza della nuova corsa
+    const linea = numero => `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}</span></li>`;
+    const giornataRighe = () => punti.map((p, k) => {
+      const cls = q => (q.t < t || k < from ? 'prec' : '');
+      if (!k) return linea(p.corsa) + riga(p, k - from, cls(p));
+      const prima = punti[k - 1];
+      if (p.corsa === prima.corsa) return riga(p, k - from, cls(p));
+      const partenza = (g.programmate[`${code}|${p.corsa}`] || [])[0];
+      if (partenza && partenza[0] === prima.scalo && minutes(partenza[1]) === prima.t) {
+        return linea(p.corsa) + riga({ ...prima, corsa: p.corsa }, k - 1 - from, cls(prima)) + riga(p, k - from, cls(p));
+      }
+      return linea(p.corsa) + riga(p, k - from, cls(p));
+    }).join('');
+    const prossimi = giornata ? giornataRighe()
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
         : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');
