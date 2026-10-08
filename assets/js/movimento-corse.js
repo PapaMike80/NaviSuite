@@ -68,10 +68,12 @@
   // e macchina (motorista > aiuto motorista > marinaio).
   const COPRE = { capitano: ['capo_timoniere', 'timoniere', 'marinaio'], capo_timoniere: ['timoniere', 'marinaio'], timoniere: ['marinaio'],
     motorista: ['aiuto_motorista', 'marinaio'], aiuto_motorista: ['marinaio'] };
+  // Sovrannumero: aggiunto con il "+" e segnato sul turno con l'asterisco (D1*).
+  const sovrannumero = v => !!v && (v.sovrannumero === true || String(v.turno_nuovo || '').trim().endsWith('*'));
   function posti(nave, day, crew) {
     const periodo = periodoNave(nave, day);
     const variazione = m => variazioneMovimento(day, m.id);
-    const aggiunti = crew.filter(m => variazione(m)?.aggiunto && !variazione(m)?.sovrannumero).map(m => RUOLO[m.grado[0]] || 'marinaio');
+    const aggiunti = crew.filter(m => variazione(m)?.aggiunto && !sovrannumero(variazione(m))).map(m => RUOLO[m.grado[0]] || 'marinaio');
     const slot = periodo ? [...RUOLI.flatMap(([key]) => Array(Math.max(0, Number(periodo.equipaggio?.[key]) || 0)).fill(key)), ...aggiunti] : crew.map(m => RUOLO[m.grado[0]] || 'marinaio');
     const liberi = [...crew];
     const out = slot.map(ruolo => ({ ruolo, membro: null, adattato: false }));
@@ -87,7 +89,7 @@
       const adatti = liberi.filter(m => COPRE[RUOLO[m.grado[0]]]?.includes(x.ruolo)).sort((a, b) => b.grado[2] - a.grado[2]);
       if (adatti.length) { x.membro = adatti[0]; x.adattato = true; liberi.splice(liberi.indexOf(adatti[0]), 1); }
     });
-    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: !!variazione(m)?.sovrannumero }));
+    liberi.forEach(m => out.push({ ruolo: RUOLO[m.grado[0]] || 'marinaio', membro: m, adattato: false, extra: true, sovr: sovrannumero(variazione(m)) }));
     return out;
   }
   function pallini(code, lista) {
@@ -96,7 +98,7 @@
       const nome = x.membro ? `<span class="slot-nome" style="color:${x.membro.grado[1]}">${esc(cognome(x.membro.name))}</span>` : '<span class="slot-nome vuoto">vuoto</span>';
       const titolo = `${nomeRuolo}${x.membro ? `: ${x.membro.name}${x.adattato ? ` (fa da ${nomeRuolo.toLowerCase()})` : ''}${x.sovr ? ' (sovrannumero)' : ''}` : ': posto scoperto'} — tocca per cambiare`;
       const aperto = ui.menu?.code === code && ui.menu.i === i;
-      return `<button type="button" class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}${aperto ? ' aperto' : ''}" style="--g:${colore}" data-act="slot" data-code="${code}" data-i="${i}" title="${esc(titolo)}">` +
+      return `<button type="button" class="slot${x.membro ? '' : ' manca'}${x.adattato ? ' adattato' : ''}${x.extra ? ' extra' : ''}${x.sovr ? ' sovr' : ''}${aperto ? ' aperto' : ''}" style="--g:${colore}" data-act="slot" data-code="${code}" data-i="${i}" title="${esc(titolo)}">` +
         `<span class="slot-pallino">${sigla}</span>${nome}</button>`;
     }).join('') + piu(code);
   }
@@ -128,7 +130,7 @@
       .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Aggiungi all'equipaggio">
       <div class="pop-head"><span class="pop-pallino" style="--g:#2dd4bf">+</span><div><b>Aggiungi all'equipaggio</b><small>${esc(code)} · ${crew.length} a bordo</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
-      <p class="pop-res">Come</p><div class="pop-chips"><button type="button" class="pop-chip${ui.sovr ? '' : ' on'}" data-act="tipo" data-v="eq">Membro dell'equipaggio</button><button type="button" class="pop-chip${ui.sovr ? ' on' : ''}" data-act="tipo" data-v="sovr">Sovrannumero</button></div>
+      <p class="pop-res">Come</p><div class="pop-chips"><button type="button" class="pop-chip${ui.sovr ? '' : ' on'}" data-act="tipo" data-v="eq">Membro dell'equipaggio</button><button type="button" class="pop-chip${ui.sovr ? ' on' : ''}" data-act="tipo" data-v="sovr">Sovrannumero (${esc(code)}*)</button></div>
       ${gruppi || '<p class="pop-vuoto">Nessun agente da aggiungere.</p>'}</div>`;
   }
   function popoverPosto(code, crew, tutti, x) {
@@ -182,7 +184,7 @@
     const ids = new Map();
     (state.schedule?.variazioni_ods || []).forEach(v => {
       if (v?.ods !== 'MOVIMENTO' || String(v.data).slice(0, 10) !== day) return;
-      if (String(v.turno_nuovo || '').toUpperCase() === code || String(v.turno_originale || '').toUpperCase() === code) ids.set(String(v.id_agente), v.agente);
+      if (String(v.turno_nuovo || '').toUpperCase().replace(/\*$/, '') === code || String(v.turno_originale || '').toUpperCase() === code) ids.set(String(v.id_agente), v.agente);
     });
     return [...ids.entries()].map(([id, nome]) => ({ id, nome }));
   }
@@ -451,7 +453,7 @@
       const sovr = ui.sovr;
       ui.menu = null; ui.sovr = false;
       const nome = agenti(state.day).find(a => String(a.agent.id) === String(button.dataset.id))?.agent.agente || '';
-      variazione(button.dataset.id, code, `${nome} aggiunto alla ${code}${sovr ? ' in sovrannumero' : ''}.`, { aggiunto: true, sovrannumero: sovr });
+      variazione(button.dataset.id, sovr ? `${code}*` : code, `${nome} aggiunto alla ${code}${sovr ? ' in sovrannumero (' + code + '*)' : ''}.`, { aggiunto: true, sovrannumero: sovr });
     }
     else if (act === 'out') cambiaPosto(code, button.dataset.v, 'out');
     else if (act === 'sbarco') { ui.sbarco = button.dataset.v; render(); }

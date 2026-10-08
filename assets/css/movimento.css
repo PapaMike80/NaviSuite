@@ -281,3 +281,5 @@ html.navisuite-light .pop-chip{background:#f4fafb!important;color:#17596a!import
 .slot.piu .slot-pallino{border-style:dashed;font-size:22px;font-weight:700}
 .slot.piu .slot-nome{color:#5eead4;font-weight:700}
 .slot.piu:hover .slot-pallino{background:rgba(45,212,191,.2)}
+.slot.sovr .slot-pallino{border-style:dashed;opacity:1;background:transparent}
+.slot.sovr .slot-nome::after{content:'*';margin-left:1px}
