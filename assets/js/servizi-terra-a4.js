@@ -66,7 +66,7 @@
   const VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027 · O.d.S. n. 39/2026";
   // Servizi a terra: (sigla, mattina, pomeriggio, nota)
   const SERVIZI = {
-    DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', 'dalle 7.45 con rifornimento D2 · assistenza alla c. 8'],
+    DESENZANO: [['AgB', '8.00 – 11.50', '12.50 – 17.30', '8 ore 30\' · lun e gio dalle 7.45 (rifornimento D2, 8 ore 45\')'],
       ['PonD', '9.30 – 13.35', '15.00 – 19.50', "8 ore 55'"]],
     MADERNO: [['AgM', '9.00 – 11.50', '12.50 – 19.30', 'compresa assistenza alle c. 16-17 · coadiuva AgT'],
       ['AgT', '7.50 – 13.00', '14.00 – 18.20', "9 ore 30'"]]
