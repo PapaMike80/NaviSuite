@@ -115,13 +115,15 @@
     return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
-  // Disponibilita' per la sostituzione: prima chi e' libero (LD), poi chi riposa, poi chi fa un servizio a terra,
-  // infine gli altri (ferie, malattia, congedo, altre corse...).
+  // Disponibilita' per la sostituzione: prima chi e' libero (L.D. e Lavori/TERRA, i primi a essere imbarcati), poi chi
+  // riposa, poi chi fa un servizio a terra, poi gli altri (malattia, ferie, altre corse...); il congedo, che e' un
+  // riposo concordato, e' sempre l'ultimo.
   function disponibilita(turno) {
     const t = String(turno || '').trim().toUpperCase();
-    if (/^(LD|DISP|LAV\.?)$/.test(t)) return 0;
-    if (!t || /^(RIP|RIPOSO|===|--+)$/.test(t)) return 1;
-    if (G.terraCode(t) || /^(PONTILE|TERRA)/.test(t)) return 2;
+    if (/^(?:CONG?\.?|CON[;/]|CONC\.?|CONGEDO)$/.test(t)) return 4;
+    if (/^(?:L\.?D[.;]?|LAV[.;]?|LAVORI|TERRA|DISP)$/.test(t)) return 0;
+    if (!t || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(t)) return 1;
+    if (G.terraCode(t) || /^PONTILE/.test(t)) return 2;
     return 3;
   }
   const perDisponibilita = (a, b) => disponibilita(a.turno) - disponibilita(b.turno);
