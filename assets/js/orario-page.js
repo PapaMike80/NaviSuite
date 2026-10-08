@@ -68,6 +68,8 @@
 
   const params = new URLSearchParams(location.search);
   const scaloValido = value => (POS[value] ? value : '');
+  // l'equipaggio della nave e' un dato secondario: sta chiuso finche' non lo apri (si ricorda la scelta)
+  document.addEventListener('toggle', event => { if (event.target.classList?.contains('or-equipaggio')) state.equipAperto = event.target.open; }, true);
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
@@ -458,11 +460,18 @@
       : '⚓ ormeggio del mattino e della sera · R = rifornimento · B = bolgetta · arr. = arrivo della nave che poi riparte';
     const note = res ? `<details class="or-note" data-dettaglio="note"${state.dettagli.has('note') ? ' open' : ''}><summary>Note di Servizi a terra</summary><ul class="note-list">${res === 'DESENZANO' ? `<li class="rif"><b>${esc(D.RIFORNIMENTI.titolo)}</b>${D.RIFORNIMENTI.righe.map(esc).join('<br>')}</li>` : ''}` +
       `${D.NOTE[res].map(([bold, text]) => `<li${bold ? ' class="bold"' : ''}>${esc(text)}</li>`).join('')}</ul><p class="validita">${esc(D.VALIDITA)}</p></details>` : '';
-    return card('Allo scalo', righe.length ? `${righe.length} passaggi` : '', `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
+    // richiudibile cliccando "Allo scalo": chiuso resta solo il titolo con la prossima nave (es. "15.35 · Salò")
+    const chiuso = !!state.scaloChiuso;
+    const next = righe[prossima] || righe[righe.length - 1];
+    const lato = chiuso ? '' : (righe.length ? `${righe.length} passaggi` : '');
+    // chiuso: turno, nave, ora e destinazione, corsa della prossima nave (es. T2 San Vigilio 15.05 per Torri · c. 12)
+    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} <b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
+    const scheda = card('Allo scalo', lato, `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
-      `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, 'or-at-card');
+      `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, `or-at-card${chiuso ? ' or-at-chiuso' : ''}`);
+    return scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
   }
 
   function controlliTempo(t) {
@@ -583,7 +592,7 @@
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
-    const equipaggio = crew.length ? `<ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul>` : '';
+    const equipaggio = crew.length ? `<details class="or-equipaggio"${state.equipAperto ? ' open' : ''}><summary>Equipaggio · ${crew.length}</summary><ul class="mt-crew">${crew.map(m => `<li style="color:${m.grado[1]}"><b>${esc(m.name)}</b><small>${esc(m.grado[0] || '')}</small></li>`).join('')}</ul></details>` : '';
     // Nell'intestazione quanto manca al mio scalo: "in arrivo tra 13 min", "riparte tra 8 min", "partita 3 min fa"
     let manca = '';
     if (partita) manca = `partita ${t - partita.t ? `${t - partita.t} min fa` : 'adesso'}`;
@@ -807,6 +816,7 @@
       return;
     }
     if (event.target.closest('.pontile-sel')) return;
+    if (event.target.closest('[data-at-toggle]')) { state.scaloChiuso = !state.scaloChiuso; render(); return; }
     if (event.target.closest('[data-past-lago]')) { state.showPastLago = !state.showPastLago; render(); return; }
     // intestazione della scheda della corsa: la richiude
     const chiudi = event.target.closest('.or-detail .terra-card-head');

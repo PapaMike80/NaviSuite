@@ -148,3 +148,12 @@ div.or-ship-row{cursor:default}
 .mt-scali li.or-sep.sosp::before,.mt-scali li.or-sep.sosp::after{background:linear-gradient(90deg,transparent,#b4414f 18%,#b4414f 82%,transparent)}
 .mt-scali li.or-sep.bis{color:#67d7e6}
 .mt-scali li.or-sep.bis::before,.mt-scali li.or-sep.bis::after{background:linear-gradient(90deg,transparent,#2f8fa0 18%,#2f8fa0 82%,transparent)}
+.or-equipaggio{margin-top:10px}
+.or-equipaggio>summary{cursor:pointer;color:#94a3b8;font-size:13px;font-weight:700;padding:4px 0}
+.or-equipaggio[open]>summary{margin-bottom:6px}
+.or-at-titolo{all:unset;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.or-at-titolo:focus-visible{outline:2px solid #2dd4bf;border-radius:6px}
+.or-at-chiuso .terra-card-body{display:none}
+.or-at-chiuso .terra-card-head small{color:#e8f7f7;font-size:14px;font-weight:900}
+@media(max-width:860px){.or-lago #or-side{order:1}.or-lago>.terra-col:first-child{order:2}}
+.or-at-next{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;color:#e8f7f7;font-size:14px}

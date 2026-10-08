@@ -145,8 +145,9 @@
 
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
-    // Prima corse e scali, poi la scheda Turno.
-    $('turno-content').innerHTML = `<div class="terra-col">${right}</div><div class="terra-col">${left}</div>`;
+    // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
+    $('turno-content').innerHTML = `<div class="terra-col">${right}</div>`;
+    $('turno-after').innerHTML = `<div class="terra-col">${left}</div>`;
   }
 
   function renderTerra(code, residenza, day) {
