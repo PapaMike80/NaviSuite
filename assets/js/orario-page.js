@@ -492,7 +492,9 @@
       const dopo = resto[fine + 1];
       return resto.slice(iQui, fine + 1).map((p, j) => riga(p, iQui + j)).join('') + (dopo ? riga(dopo, fine + 1) : '');
     }
-    const prossimi = giornata ? punti.map((p, k) => riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
+    // fra una corsa e l'altra una linea con il numero della nuova corsa (come in Il mio turno)
+    const sep = (p, k) => (k && p.corsa !== punti[k - 1].corsa ? `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(p.corsa)}"><span>${esc(p.corsa)}</span></li>` : '');
+    const prossimi = giornata ? punti.map((p, k) => sep(p, k) + riga(p, k - from, p.t < t || k < from ? 'prec' : '')).join('')
       : partita ? riga(partita, -1, 'prec') + (resto[0] ? riga(resto[0], 0) : '')
         : iQui >= 0 ? (prec ? riga(prec, -1, 'prec') : '') + alMioScalo()
           : (punti[from - 1] ? riga(punti[from - 1], -1, 'prec') : '') + (resto[0] ? riga(resto[0], 0) : '');

@@ -124,3 +124,7 @@
 .or-at-card .nave .badges{justify-content:flex-start;overflow:visible}
 .or-at-card .nave .ship-line .cte{display:block}
 .or-ship.dim{opacity:.3}
+/* scheda della nave, giornata intera: linea con il numero della nuova corsa */
+.mt-scali li.or-sep{display:flex;align-items:center;gap:10px;margin:5px 2px 2px;color:#5eead4;font:900 11px Manrope,sans-serif;letter-spacing:.06em}
+.mt-scali li.or-sep span{all:unset}
+.mt-scali li.or-sep::before,.mt-scali li.or-sep::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,#2f6f73 18%,#2f6f73 82%,transparent)}
