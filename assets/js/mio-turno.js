@@ -158,7 +158,7 @@
     $('turno-content').innerHTML = '';
     $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-scali').hidden = false;
-    window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day });
+    window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
   }
 
   function renderAltro(turno, day) {

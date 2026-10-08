@@ -88,6 +88,8 @@
   const shownTime = g => {
     if (state.time != null) return state.time;
     if (realToday()) return nowMinutes();
+    // servizio a terra scelto (anche in prova): il lago parte dall'ora in cui inizia
+    if (/^d{1,2}[.:]d{2}$/.test(state.embed?.inizio || '')) return minutes(state.embed.inizio);
     const prima = righeScalo(g || giornata()).find(r => r.kind === 'P' && !r.propria);
     return prima ? prima.t : 9 * 60;
   };
@@ -887,12 +889,12 @@
 
   if (EMBED) {
     window.NaviOrarioPage = {
-      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '' } = {}) {
+      show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '', inizio = '' } = {}) {
         const giorno = day && day !== iso(new Date()) ? day : '';
-        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
+        const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || (state.embed.inizio || '') !== inizio || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
         // mentre si sceglie un pontile o si usa il cursore non si ridisegna
         if (!cambia && (document.activeElement?.closest?.('#orario-content select') || state.playing)) return;
-        state.embed = { modo, turno };
+        state.embed = { modo, turno, inizio };
         state.view = 'lago';
         if (cambia) {
           state.day = giorno; state.time = null; stopPlay();
