@@ -44,7 +44,7 @@ assert.ok(html.indexOf('id="mov-day-input"') < html.indexOf('data-panel="corse"'
 assert.ok(html.indexOf('movimento-corse.js') > html.indexOf('orario-giorno.js'));
 const page = fs.readFileSync('assets/js/movimento-corse.js', 'utf8');
 assert.match(fs.readFileSync('assets/js/movimento-core.js', 'utf8'), /isAdminAgent\(profile\)/);
-['data-act="suspend"', 'data-act="confirm-suspend"', 'data-act="resume"', 'data-act="restore"', 'data-act="open"', 'data-act="add"', 'data-act="remove"', 'data-act="undo"']
+['data-act="suspend"', 'data-act="confirm-suspend"', 'data-act="resume"', 'data-act="restore"', 'data-act="open"', 'data-act="crew-reset"', 'data-act="slot"']
   .forEach(act => assert.ok(page.includes(act), act));
 assert.match(fs.readFileSync('assets/js/shared-menu.js', 'utf8'), /page==='movimento'\)&&!isAdminAgent\(sessionAgent\)/);
 const css = fs.readFileSync('assets/css/movimento.css', 'utf8');

@@ -269,7 +269,6 @@
     const min = minimo(r.nave, day, crew);
     const avviso = min && min.mancano.length > 0;
     const open = ui.open === code;
-    const field = (f, label, value, extra = '') => `<label class="mov-field mov-${f}"><span>${label}</span><input data-code="${code}" data-f="${f}" value="${esc(value)}" ${extra} autocomplete="off"></label>`;
     let azioni;
     if (r.sospesa) {
       azioni = `<span class="mov-sospesa" title="${esc(r.motivo)}">SOSPESA${r.motivo ? ` · ${esc(r.motivo)}` : ''}</span><button class="btn primary" type="button" data-act="resume" data-code="${code}">Ripristina corse</button>`;
@@ -280,6 +279,7 @@
     }
     if (r.movimento) azioni += `<button class="btn ghost" type="button" data-act="restore" data-code="${code}" title="Torna a nave e ormeggi dell'O.d.S. e toglie la sospensione (ritardi${code === 'BIS' ? ' e incarichi del BIS' : ''} restano)">↺ O.d.S.</button>`;
     if (code !== 'BIS' && O.inServizio('BIS', day)) azioni += `<button class="btn ghost" type="button" data-act="bis-form" data-code="${code}" title="Il BIS sostituisce questa nave o fa corse in aiuto">⇄ BIS</button>`;
+    if (cambiCorsa(code, day).length) azioni += `<button class="btn ghost" type="button" data-act="crew-reset" data-code="${code}" title="Ripristina i turni previsti: annulla i cambi d'equipaggio del Movimento su questa corsa">↺ Ripristina equipaggio</button>`;
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
     const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
     const attive = Object.values(state.fleet).filter(x => x?.attiva !== false).map(x => String(x.nome || '').trim()).filter(Boolean).sort((a, b) => a.localeCompare(b, 'it'));
@@ -293,18 +293,12 @@
         <span class="chip" data-code="${code}">${code}</span>
         <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · ⏱ ${Object.keys(r.ritardi).length}` : ''}</small>${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}${cambiCorsa(code, day).length ? `<button type="button" class="btn ghost slot-reset" data-act="crew-reset" data-code="${code}" title="Ripristina i turni previsti: annulla i cambi d'equipaggio del Movimento su questa corsa">↺ Ripristina</button>` : ''}</span>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo">⚠</span>' : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
-      ${open ? `<div class="mov-row">
-        ${field('nave', 'Nave', r.nave || '', 'list="mov-navi" placeholder="Nave"')}
-        ${field('ormeggio_mattino', 'Ormeggio mattino', r.ormeggioMattino || '', `list="mov-ormeggi" placeholder="${esc(ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—')}"`)}
-        ${field('ormeggio_serale', 'Ormeggio sera', r.ormeggio || '', 'list="mov-ormeggi" placeholder="—"')}
-        <label class="mov-rif" title="Rifornimento la mattina"><input type="checkbox" data-code="${code}" data-f="rif"${r.rif ? ' checked' : ''}> Rifornimento</label>
-        <div class="mov-actions">${azioni}</div>
-      </div>` : ''}
+      ${open ? `<div class="mov-azioni">${azioni}</div>` : ''}
       ${code === 'BIS' && open ? bisPanel(day, r) : ''}
-      ${open ? ritardiPanel(code, day, r) + equipaggio(code, day, r, crew, tutti, min) : ''}
+      ${open ? ritardiPanel(code, day, r) + bolle(code, r, ieri) : ''}
     </article>`;
   }
 
@@ -312,56 +306,37 @@
   // ritardo passa da solo alle corse successive se la nave arriva dopo la loro partenza.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
   const ritardoValore = r => (!r ? '' : r.oltre ? 'oltre' : String(r.minuti));
+  // Colore del ritardo: verde in orario, giallo fino a 15', arancio fino a 45', rosso oltre; viola oltre 2 ore.
+  const livelloRitardo = rit => (!rit ? 'ok' : rit.oltre ? 'max' : rit.minuti <= 15 ? 'l1' : rit.minuti <= 45 ? 'l2' : 'l3');
   function ritardiPanel(code, day, r) {
     const corse = O.corseDelTurno(code, day);
     if (!corse.length) return '';
     const effettive = O.corseDelTurno(code, day, r.ritardi);
-    const righe = corse.map((c, i) => {
+    const inRitardo = effettive.filter(c => c.ritardo).length;
+    const tessere = corse.map((c, i) => {
       const proprio = r.ritardi?.[c.numero];
       const eff = effettive[i];
       const opzioni = `<option value="">in orario</option>${RITARDI.map(v => `<option value="${v}"${v === ritardoValore(proprio) ? ' selected' : ''}>${v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) })}</option>`).join('')}`;
-      const nota = eff.ritardo?.propagato ? `<small class="mov-rit-prop">${esc(O.testoRitardo(eff.ritardo))} dalla corsa prima · parte ${esc(eff.scali[0][1])}</small>`
-        : proprio ? `<small class="mov-rit-prop">parte ${esc(eff.scali[0][1])}, arriva ${esc(eff.scali[eff.scali.length - 1][1])}</small>` : '';
-      return `<li class="${proprio || eff.ritardo ? 'late' : ''}"><span><b>c. ${esc(c.numero)}</b> · ${esc(c.scali[0][1])} ${esc(c.scali[0][0])} → ${esc(c.scali[c.scali.length - 1][1])} ${esc(c.scali[c.scali.length - 1][0])}</span>` +
-        `<select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>${nota}</li>`;
+      const nota = eff.ritardo?.propagato ? `dalla corsa prima · parte ${esc(eff.scali[0][1])}` : proprio ? `parte ${esc(eff.scali[0][1])}, arriva ${esc(eff.scali[eff.scali.length - 1][1])}` : '';
+      const ultimo = c.scali[c.scali.length - 1];
+      return `<div class="rit-tile ${livelloRitardo(eff.ritardo)}${eff.ritardo?.propagato ? ' prop' : ''}">
+        <div class="rit-top"><b>c. ${esc(c.numero)}</b><span class="rit-badge">${eff.ritardo ? esc(O.testoRitardo(eff.ritardo)) : 'in orario'}</span></div>
+        <div class="rit-rotta"><span>${esc(c.scali[0][1])}</span> ${esc(c.scali[0][0])} <i>→</i> <span>${esc(ultimo[1])}</span> ${esc(ultimo[0])}</div>
+        <select data-act="ritardo" data-code="${code}" data-corsa="${esc(c.numero)}" aria-label="Ritardo della corsa ${esc(c.numero)}">${opzioni}</select>
+        ${nota ? `<small>${nota}</small>` : ''}</div>`;
     }).join('');
-    return `<div class="mov-ritardi"><p class="mov-bis-title">⏱ Ritardi delle corse</p><ul>${righe}</ul></div>`;
+    return `<div class="mov-ritardi"><p class="mov-bis-title">⏱ Ritardi delle corse${inRitardo ? ` <span class="rit-tot">${inRitardo} in ritardo</span>` : ''}</p><div class="rit-grid">${tessere}</div></div>`;
+  }
+  // Ormeggi e rifornimento come bolle colorate, in fondo al dettaglio della corsa.
+  function bolle(code, r, ieri) {
+    const ph = ieri.ormeggio ? `${ieri.ormeggio} (sera prima)` : '—';
+    return `<div class="mov-bolle">
+      <label class="bolla b-mattina"><span>⚓ Ormeggio mattino</span><input data-code="${code}" data-f="ormeggio_mattino" value="${esc(r.ormeggioMattino || '')}" list="mov-ormeggi" placeholder="${esc(ph)}" autocomplete="off"></label>
+      <label class="bolla b-sera"><span>🌙 Ormeggio sera</span><input data-code="${code}" data-f="ormeggio_serale" value="${esc(r.ormeggio || '')}" list="mov-ormeggi" placeholder="—" autocomplete="off"></label>
+      <label class="bolla b-rif${r.rif ? ' on' : ''}" title="Rifornimento la mattina"><input type="checkbox" data-code="${code}" data-f="rif"${r.rif ? ' checked' : ''}><span>⛽ Rifornimento ${r.rif ? 'previsto' : 'mattina'}</span></label>
+    </div>`;
   }
   const ritardiLista = map => Object.entries(map || {}).map(([corsa, r]) => ({ corsa, minuti: r.minuti, oltre: !!r.oltre }));
-
-  function equipaggio(code, day, r, crew, tutti, min) {
-    const altri = [...O.TURNI, 'BIS'].filter(c => c !== code);
-    const membri = crew.map(member => {
-      const v = variazioneMovimento(day, member.id);
-      const opzioni = `<option value="">Togli…</option>${CAUSALI.map(([c, l]) => `<option value="${c}">${l} (${c})</option>`).join('')}` +
-        `<optgroup label="Sposta su">${altri.map(c => `<option value="${c}">${c}</option>`).join('')}</optgroup>`;
-      return `<li><b style="color:${member.grado[1]}">${esc(member.name)}</b><small>${esc(member.grado[0] || '')}${v ? ` · aggiunto dal Movimento (era ${esc(v.turno_originale || '—')})` : ''}</small>` +
-        `<span class="mov-crew-act">${v ? `<button class="btn ghost" type="button" data-act="undo" data-id="${esc(member.id)}">Annulla</button>` : ''}` +
-        `<select data-act="remove" data-code="${code}" data-id="${esc(member.id)}" aria-label="Togli ${esc(member.name)}">${opzioni}</select></span></li>`;
-    }).join('');
-    // Tolti dal Movimento da questa corsa (per annullare)
-    const tolti = (state.schedule?.variazioni_ods || []).filter(item => item?.ods === 'MOVIMENTO' && String(item.data).slice(0, 10) === day &&
-      String(item.turno_originale || '').toUpperCase() === code && String(item.turno_nuovo || '').toUpperCase() !== code)
-      .filter((item, i, list) => list.findLastIndex(x => String(x.id_agente) === String(item.id_agente)) === i)
-      .map(item => `<li class="tolto"><b>${esc(item.agente)}</b><small>tolto · ${esc(item.turno_nuovo)}</small><span class="mov-crew-act"><button class="btn ghost" type="button" data-act="undo" data-id="${esc(item.id_agente)}">Annulla</button></span></li>`).join('');
-    const ids = new Set(crew.map(m => String(m.id)));
-    const liberi = tutti.filter(a => !ids.has(String(a.agent.id)));
-    const libero = a => !a.turno || /^(RIP|RIPOSO|===|--+|TERRA|LAV\.?|DISP)$/i.test(a.turno) || G.terraCode(a.turno);
-    const opzione = a => `<option value="${esc(a.agent.id)}">${esc(a.agent.agente)} · ${esc(a.turno || '—')}${a.agent.qualifica ? ` · ${esc(a.agent.qualifica)}` : ''}</option>`;
-    const aggiungi = `<select data-act="add" data-code="${code}" aria-label="Aggiungi all'equipaggio"><option value="">+ Aggiungi agente…</option>` +
-      `<optgroup label="Riposo o a terra">${liberi.filter(libero).map(opzione).join('')}</optgroup>` +
-      `<optgroup label="Su altre corse">${liberi.filter(a => !libero(a) && (G.naveCode(a.turno) || !/^(MAL|CON|FERIE|F\.?P\.?)$/i.test(a.turno))).map(opzione).join('')}</optgroup>` +
-      `<optgroup label="Malattia, congedo, ferie">${liberi.filter(a => /^(MAL|CON|CONG|FERIE|F\.?P\.?)$/i.test(a.turno)).map(opzione).join('')}</optgroup></select>`;
-    let minimoTxt = '';
-    if (min) {
-      const req = min.richiesti.map(x => `${x.n} ${x.label}`).join(' · ');
-      const manca = min.mancano.map(x => `${x.n - x.presenti} ${x.n - x.presenti === 1 ? RUOLI.find(y => y[0] === x.key)[1] : RUOLI.find(y => y[0] === x.key)[2]}`).join(', ');
-      minimoTxt = `<p class="mov-min${min.mancano.length ? ' warn' : ''}">Equipaggio minimo ${esc(min.nome)}: ${esc(req)}${manca ? ` — ⚠ manca ${esc(manca)}` : ' — completo'}</p>`;
-    } else if (r.nave) {
-      minimoTxt = `<p class="mov-min">Equipaggio minimo di ${esc(r.nave)} non indicato nell'anagrafica navi.</p>`;
-    }
-    return `<div class="mov-crew">${minimoTxt}<ul>${membri || '<li class="vuoto">Nessun agente su questo turno.</li>'}${tolti}</ul>${aggiungi}</div>`;
-  }
 
   // ---------------- BIS ----------------
   // Il BIS (servizio di emergenza) sostituisce la nave di un turno dalla corsa scelta fino a nuovo
@@ -458,13 +433,6 @@
       salvaIncarichi(incarichi, `${inc.turno}: la nave riprende dalla corsa ${el.value}; il BIS fa fino alla corsa ${corse[k - 1].numero}.`);
       return;
     }
-    if (el.dataset.act === 'remove' && el.value) {
-      const nome = el.closest('li')?.querySelector('b')?.textContent || '';
-      variazione(el.dataset.id, el.value, `${nome} tolto da ${code} (${el.value}).`);
-    } else if (el.dataset.act === 'add' && el.value) {
-      const nome = el.selectedOptions[0]?.textContent.split(' · ')[0] || '';
-      variazione(el.value, code, `${nome} aggiunto a ${code}.`);
-    }
   });
   list.addEventListener('input', event => { if (event.target.id === 'pop-q') { ui.q = event.target.value; filtraPopover(); posizionaPopover(); } });
   list.addEventListener('keydown', event => {
@@ -502,7 +470,6 @@
       salva(code, { sospesa: true, sospesa_motivo: motivo, sospesa_il: new Date().toISOString() }, `${code}: tutte le corse sospese${motivo ? ` (${motivo})` : ''}.`);
     } else if (act === 'resume') salva(code, { sospesa: false, sospesa_motivo: '' }, `${code}: corse ripristinate.`);
     else if (act === 'restore') ripristina(code);
-    else if (act === 'undo') variazione(button.dataset.id, '', 'Variazione dell\'equipaggio annullata.');
     else if (act === 'bis-form') {
       ui.bisForm = { tipo: 'sostituzione', turno: code };
       render();
