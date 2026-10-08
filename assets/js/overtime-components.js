@@ -86,8 +86,35 @@
     entry.refuel=next;
     return sync(entry,serviceMinutes);
   }
+  // Rifornimenti dell'O.d.S. (8815/2°, dal 5/10/2026 al 25/3/2027): giorni (0 = domenica) e anticipo.
+  // motorista = solo il motorista; tutti = tutto l'equipaggio (M1). BIS e SR2 ogni giorno senza anticipo.
+  const RIFORNIMENTI={D1:{giorni:[2,5],motorista:30},D2:{giorni:[1,4],motorista:30},T1:{giorni:[3],motorista:60},T2:{giorni:[4],motorista:60},
+    M1:{giorni:[4],tutti:30},R1:{giorni:[2,5],motorista:30},R2:{giorni:[2,5],motorista:60},R3:{giorni:[2,5],motorista:30},
+    BIS:{giorni:[0,1,2,3,4,5,6],motorista:0},SR2:{giorni:[0,1,2,3,4,5,6],motorista:0}};
+  // Minuti di anticipo per il rifornimento del giorno (0 = senza anticipo), null se non tocca all'agente.
+  function suggestRefuel(entry,{qualifica='',ship=''}={}){
+    if(!entry?.date||entry.date<'2026-10-05'||entry.date>'2027-03-25')return null;
+    const code=String(entry.shift||'').trim().toUpperCase().replace(/^C(?=[A-Z]+\d)/,'').replace(/C$/,''),regola=RIFORNIMENTI[code];
+    if(!regola)return null;
+    const giorno=new Date(`${entry.date}T12:00:00`).getDay(),agone=code==='D1'&&String(ship).toUpperCase().includes('AGONE');
+    if(!regola.giorni.includes(giorno)&&!(agone&&giorno===0))return null;
+    if(regola.tutti)return regola.tutti;
+    const q=String(qualifica||'').trim().toLowerCase().replace(/\s+/g,' ');
+    if(q==='motorista')return regola.motorista;
+    if(agone&&/^aiuto ?motorista$/.test(q))return 30;
+    return null;
+  }
+  const refuelDone=entry=>entry?.refuelDone===true||(typeof entry?.refuel==='number'?entry.refuel>0:!!entry?.refuel);
+  // Applica la proposta una volta sola (refuelDecision): se l'agente lo cambia a mano resta la sua scelta.
+  function autoRefuel(entry,serviceMinutes,context){
+    if(!entry||entry.refuelDecision||refuelDone(entry))return false;
+    if(['RIP','RIPOSO','MALATTIA'].includes(String(entry.shift||'').toUpperCase()))return false;
+    const value=suggestRefuel(entry,context);
+    if(value==null)return false;
+    setRefuel(entry,value,serviceMinutes,0,true);entry.refuelDecision='auto';return true;
+  }
   function create(){return {ordinario:0,cambi:0,sentine:0}}
-  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,setRefuel,REFUEL_BANK,create,minutes,SENTINE_TYPES};
+  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,setRefuel,suggestRefuel,autoRefuel,RIFORNIMENTI,REFUEL_BANK,create,minutes,SENTINE_TYPES};
 })();
 
 (() => {
