@@ -304,13 +304,26 @@ def intestazione_carta(c, x, y, titolo, sotto):
     return y + CH - band - 0.9 * mm
 
 
+def tm(t):
+    h, m = t.split(".")
+    return int(h) * 60 + int(m)
+
+
 def fronte(c, x, y):
     """Navi in ordine di orario."""
     top = intestazione_carta(c, x, y, "DESENZANO · PONTILE", "Navi in ordine di orario  ·  O.d.S. n. 39/2026")
     L, R = x + 4 * mm, x + CW - 4 * mm
-    row_h = 5.75 * mm
+    row_h = 5.2 * mm
     yy = top - 4.6 * mm
+    # pause pranzo di AgB e PonD fra le corse, all'ora in cui iniziano
+    pause = sorted((tm(a.split(" – ")[1]), f"pausa {code}  {a.split(' – ')[1]} – {b.split(' – ')[0]}") for code, a, b, _ in SERVIZI)
     for i, (t, kind, code, run, where) in enumerate(ROWS):
+        while pause and pause[0][0] <= tm(t):
+            testo = pause.pop(0)[1]
+            ph = 3.9 * mm
+            c.setFillColor(ARANCIO); c.roundRect(L - 1 * mm, yy + row_h - 1.9 * mm - ph + 0.3 * mm, R - L + 2 * mm, ph - 0.6 * mm, 1.2 * mm, stroke=0, fill=1)
+            c.setFillColor(NOTTE); c.setFont("DVB", 6.8); c.drawCentredString((L + R) / 2, yy + row_h - 1.9 * mm - ph + 1.5 * mm, testo)
+            yy -= ph
         if i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L - 1 * mm, yy - 1.9 * mm, R - L + 2 * mm, row_h, stroke=0, fill=1)
         if t == "14.30":
@@ -338,7 +351,7 @@ def fronte(c, x, y):
 
 
 def retro(c, x, y, ormeggi, days, agenti=None):
-    """Servizi a terra con la pausa pranzo, ormeggi serali della settimana con chi e' di servizio, note."""
+    """Servizi a terra, ormeggi serali della settimana con chi e' di servizio, note."""
     agenti = agenti or {}
     gruppi, ods = gruppi_settimana(ormeggi, days)
     top = intestazione_carta(c, x, y, f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
@@ -350,15 +363,12 @@ def retro(c, x, y, ormeggi, days, agenti=None):
     for i, (code, a, b, _) in enumerate(SERVIZI):
         bx = L + i * (bw + 3 * mm)
         c.setFillColor(RIGA); c.setStrokeColor(BORDO); c.setLineWidth(0.5)
-        c.roundRect(bx, yy - 14 * mm, bw, 14 * mm, 2 * mm, stroke=1, fill=1)
+        c.roundRect(bx, yy - 11 * mm, bw, 11 * mm, 2 * mm, stroke=1, fill=1)
         c.setFillColor(NOTTE); c.setFont("DVB", 10.5); c.drawString(bx + 2.5 * mm, yy - 6.8 * mm, code)
         c.setFont("DVB", 7.6)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 4.4 * mm, a)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 8.6 * mm, b)
-        pausa = f"pausa {a.split(' – ')[1]} – {b.split(' – ')[0]}"
-        c.setFillColor(ARANCIO); c.roundRect(bx + bw - 2.2 * mm - pdfmetrics.stringWidth(pausa, "DVB", 6.6) - 3 * mm, yy - 13 * mm, pdfmetrics.stringWidth(pausa, "DVB", 6.6) + 3 * mm, 3.4 * mm, 1 * mm, stroke=0, fill=1)
-        c.setFillColor(NOTTE); c.setFont("DVB", 6.6); c.drawRightString(bx + bw - 3.7 * mm, yy - 12 * mm, pausa)
-    yy -= 18 * mm
+    yy -= 15 * mm
     # ormeggi: una riga per giorno, una colonna per gruppo, poi chi e' di servizio AgB e PonD
     lab_w = 13 * mm
     ag_w = 36 * mm
