@@ -31,7 +31,7 @@
     ['motorista', 'motorista', 'motoristi'], ['aiuto_motorista', 'aiuto motorista', 'aiuto motoristi'], ['marinaio', 'marinaio', 'marinai']];
 
   const state = NM.state;
-  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null, bisTipo: 'sostituzione' };
+  const ui = { open: '', suspending: '', bisForm: null, sbarco: 'RIP', menu: null, sovr: false, q: '', sospCorsa: null };
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
@@ -325,16 +325,18 @@
     return { da: c.scali[i][1], scalo: c.scali[i][0] };
   }
   const sospRaw = code => state.oggi[code]?.corseSospeseRaw || [];
-  // Domanda sotto la corsa: sospendere (solo questa o anche le successive) o chiamare il BIS.
+  // Domanda sotto la corsa: sospenderla (solo questa o anche le successive) oppure darla al BIS al posto della nave.
   function domandaCorsa(code, c, i, corse, successive, bisDisp) {
     const n = esc(c.numero);
-    const bis = ui.sospCorsa.modo === 'bis' && bisDisp;
+    const modoBis = ui.sospCorsa.modo === 'bis' && bisDisp;
     const resto = corse.length - i;
-    const bottone = (quali, testo) => `<button type="button" class="btn ${bis ? 'primary' : 'danger'}" data-act="corsa-${bis ? 'bis' : 'sospendi'}" data-code="${code}" data-corsa="${n}" data-quali="${quali}">${testo}</button>`;
-    return `<div class="rit-chiedi"><b>${bis ? 'Chiamare il BIS…' : 'Sospendere…'}</b>` +
-      `${bis ? `<div class="pop-chips"><button type="button" class="pop-chip${ui.bisTipo === 'sostituzione' ? ' on' : ''}" data-act="bis-tipo" data-v="sostituzione">Al posto della nave</button><button type="button" class="pop-chip${ui.bisTipo === 'aiuto' ? ' on' : ''}" data-act="bis-tipo" data-v="aiuto">In aiuto</button></div>` : ''}` +
-      bottone('una', `solo la corsa ${n}`) +
-      `${(bis ? resto : successive) > 1 ? bottone('succ', `la ${n} e le ${(bis ? resto : successive) - 1} successive`) : ''}` +
+    const bottone = (act, quali, testo, classe) => `<button type="button" class="btn ${classe}" data-act="${act}" data-code="${code}" data-corsa="${n}" data-quali="${quali}">${testo}</button>`;
+    const gruppoBis = etichetta => `${etichetta ? `<span class="rit-oppure">${etichetta}</span>` : ''}` +
+      bottone('corsa-bis', 'una', `BIS solo sulla ${n}`, 'primary') + (resto > 1 ? bottone('corsa-bis', 'succ', `BIS sulla ${n} e le ${resto - 1} successive`, 'primary') : '');
+    if (modoBis) return `<div class="rit-chiedi"><b>Chiamare il BIS al posto della nave…</b>${gruppoBis('')}<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>`;
+    return `<div class="rit-chiedi"><b>Sospendere…</b>` + bottone('corsa-sospendi', 'una', `solo la corsa ${n}`, 'danger') +
+      (successive > 1 ? bottone('corsa-sospendi', 'succ', `la ${n} e le ${successive - 1} successive`, 'danger') : '') +
+      (bisDisp ? gruppoBis('Oppure il BIS al posto della nave:') : '') +
       '<button type="button" class="btn ghost" data-act="corsa-annulla">Annulla</button></div>';
   }
   // Colore del ritardo: verde in orario, giallo fino a 15', arancio fino a 45', rosso oltre; viola oltre 2 ore.
@@ -356,9 +358,9 @@
       const chiede = ui.sospCorsa?.code === code && ui.sospCorsa.corsa === String(c.numero);
       const successive = corse.slice(i).filter(x => !(r.corseSospese || []).includes(String(x.numero))).length;
       const perBis = code !== 'BIS' ? O.bisPerCorsa(state.oggi.BIS?.incarichi, code, c.numero, day) : null;
-      const azione = perBis ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-code="${code}" data-corsa="${esc(c.numero)}" title="Toglie la corsa al BIS: la rifa la nave della ${code}">↺ Ripristina alla ${code}</button>` : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>`
-        : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>`
+      const azione = perBis ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-bis-togli" data-code="${code}" data-corsa="${esc(c.numero)}" title="Toglie la corsa al BIS: la rifa la nave della ${code}">↺ Ripristina alla ${code}</button>`
         : chiede ? domandaCorsa(code, c, i, corse, successive, bisDisp)
+        : sospesa ? `<button type="button" class="btn ghost rit-sosp" data-act="corsa-riprendi" data-code="${code}" data-corsa="${esc(c.numero)}">↺ Ripristina corsa</button>` + (bisDisp ? `<button type="button" class="btn primary rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="bis">Chiama il BIS</button>` : '')
         : `<button type="button" class="btn danger rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="sosp">Sospendi corsa</button>` +
           (bisDisp ? `<button type="button" class="btn primary rit-sosp" data-act="corsa-chiedi" data-code="${code}" data-corsa="${esc(c.numero)}" data-modo="bis">Chiama il BIS</button>` : '');
       return `<div class="rit-tile ${sospesa ? 'sosp' : livelloRitardo(eff.ritardo)}${eff.ritardo?.propagato && !sospesa ? ' prop' : ''}${perBis ? ' bis' : ''}">
@@ -528,7 +530,6 @@
     }
     else if (act === 'corsa-chiedi') { ui.sospCorsa = { code, corsa: button.dataset.corsa, modo: button.dataset.modo }; render(); }
     else if (act === 'corsa-annulla') { ui.sospCorsa = null; render(); }
-    else if (act === 'bis-tipo') { ui.bisTipo = button.dataset.v; render(); }
     else if (act === 'corsa-sospendi') {
       const corsa = button.dataset.corsa;
       const gia = sospRaw(code);
@@ -545,7 +546,7 @@
       const gia = sospRaw(code);
       const tutte = O.corseDelTurno(code, state.day).map(x => String(x.numero));
       const nuove = button.dataset.quali === 'succ' ? tutte.slice(tutte.indexOf(corsa)) : [corsa];
-      const aiuto = ui.bisTipo === 'aiuto';
+      const aiuto = false;
       const incarichi = [...(state.oggi.BIS?.incarichi || [])].filter(x => aiuto || !(x.tipo !== 'aiuto' && x.turno === code && O.corseIncarico(x, state.day).some(cc => nuove.includes(cc.numero))));
       incarichi.push({ tipo: aiuto ? 'aiuto' : 'sostituzione', turno: code, dalla: corsa, alla: aiuto || nuove[nuove.length - 1] !== tutte[tutte.length - 1] ? nuove[nuove.length - 1] : '' });
       ui.sospCorsa = null;
