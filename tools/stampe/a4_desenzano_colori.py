@@ -347,18 +347,18 @@ def fronte(c, x, y):
     """Navi in ordine di orario."""
     top = intestazione_carta(c, x, y, "DESENZANO · PONTILE", "Navi in ordine di orario  ·  O.d.S. n. 39/2026")
     L, R = x + 4 * mm, x + CW - 4 * mm
-    row_h = 5.2 * mm
+    row_h = 5.5 * mm
     yy = top - 4.6 * mm
-    # pause pranzo di AgB e PonD fra le corse, all'ora in cui iniziano
-    pause = sorted((tm(a.split(" – ")[1]), f"pausa {code}  {a.split(' – ')[1]} – {b.split(' – ')[0]}") for code, a, b, _ in SERVIZI)
+    # pause pranzo: le corse durante la pausa di AgB (arancio) e di PonD (viola) hanno la riga colorata
+    PAUSE_COL = {"AgB": HexColor("#fde2b8"), "PonD": HexColor("#e4dcfb")}
+    pause = [(code, tm(a.split(" – ")[1]), tm(b.split(" – ")[0])) for code, a, b, _ in SERVIZI]
     for i, (t, kind, code, run, where) in enumerate(ROWS):
-        while pause and pause[0][0] <= tm(t):
-            testo = pause.pop(0)[1]
-            ph = 3.9 * mm
-            c.setFillColor(ARANCIO); c.roundRect(L - 1 * mm, yy + row_h - 1.9 * mm - ph + 0.3 * mm, R - L + 2 * mm, ph - 0.6 * mm, 1.2 * mm, stroke=0, fill=1)
-            c.setFillColor(NOTTE); c.setFont("DVB", 6.8); c.drawCentredString((L + R) / 2, yy + row_h - 1.9 * mm - ph + 1.5 * mm, testo)
-            yy -= ph
-        if i % 2 == 0:
+        in_pausa = [p for p, da, a in pause if da <= tm(t) < a]
+        if in_pausa:
+            for k, p in enumerate(in_pausa):
+                c.setFillColor(PAUSE_COL[p])
+                c.rect(L - 1 * mm, yy - 1.9 * mm + k * row_h / len(in_pausa), R - L + 2 * mm, row_h / len(in_pausa), stroke=0, fill=1)
+        elif i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L - 1 * mm, yy - 1.9 * mm, R - L + 2 * mm, row_h, stroke=0, fill=1)
         if t == "14.30":
             c.setStrokeColor(TEAL_SCURO); c.setLineWidth(0.9)
@@ -381,7 +381,14 @@ def fronte(c, x, y):
         yy -= row_h
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
     c.drawString(L, y + 4 * mm, "B = bolgetta  ·  linea = mattina | pomeriggio  ·  dal 5/10/2026")
-    assert yy + row_h - 1.9 * mm > y + 6.5 * mm, (yy - y) / mm
+    # legenda delle pause pranzo
+    lx = L
+    for code, a, b, _ in SERVIZI:
+        testo = f"pausa {code} {a.split(' – ')[1]} – {b.split(' – ')[0]}"
+        c.setFillColor(PAUSE_COL[code]); c.roundRect(lx, y + 7.6 * mm, 4 * mm, 3 * mm, 0.8 * mm, stroke=0, fill=1)
+        c.setFillColor(INCHIOSTRO); c.setFont("DVB", 6.6); c.drawString(lx + 5.2 * mm, y + 8.2 * mm, testo)
+        lx += 5.2 * mm + pdfmetrics.stringWidth(testo, "DVB", 6.6) + 5 * mm
+    assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
 
 
 def retro(c, x, y, ormeggi, days, agenti=None):
