@@ -185,15 +185,6 @@ def evidenzia(c, x0, bw, gap, righe):
             c.restoreState()
 
 
-def legenda_servizi(c, x, y, size=6.6):
-    for code, a, b, _ in SERVIZI:
-        testo = f"{code} {a}  ·  {b}"
-        c.saveState(); c.setFillColor(SERV_COL[code]); c.setFillAlpha(0.6)
-        c.roundRect(x, y - 0.6 * mm, 4 * mm, 3 * mm, 0.8 * mm, stroke=0, fill=1); c.restoreState()
-        c.setFillColor(INCHIOSTRO); c.setFont("DVB", size); c.drawString(x + 5.2 * mm, y, testo)
-        x += 5.2 * mm + pdfmetrics.stringWidth(testo, "DVB", size) + 5 * mm
-
-
 # ------------------------------------------------------------------ A4 a colori
 def colori(out, ormeggi, lunedi):
     c = canvas.Canvas(out, pagesize=A4)
@@ -222,9 +213,9 @@ def colori(out, ormeggi, lunedi):
         c.setFillColor(RIGA); c.setStrokeColor(BORDO); c.setLineWidth(0.8)
         c.roundRect(x, box_top - box_h, bw, box_h, 3 * mm, stroke=1, fill=1)
         c.setFillColor(TEAL_SCURO); c.roundRect(x, box_top - box_h, 2.2 * mm, box_h, 1.1 * mm, stroke=0, fill=1)
-        c.setFillColor(NOTTE); c.setFont("DVB", 17)
+        c.setFillColor(SERV_COL.get(code, NOTTE)); c.setFont("DVB", 17)
         c.drawString(x + 6 * mm, box_top - 9 * mm, code)
-        c.setFont("DVB", 12.5)
+        c.setFillColor(NOTTE); c.setFont("DVB", 12.5)
         c.drawRightString(x + bw - 5 * mm, box_top - 7.5 * mm, a)
         c.drawRightString(x + bw - 5 * mm, box_top - 13 * mm, b)
         if code in ANTICIPO:  # AgB: 7.45 il lunedi' e il giovedi' (rifornimento D2)
@@ -261,11 +252,12 @@ def colori(out, ormeggi, lunedi):
         c.setFillColor(INCHIOSTRO); c.setFont("DV", 11.5)
         c.drawString(cols[3][1], y, run or "–")
         c.drawString(cols[4][1], y, where)
+    # orari di servizio di AgB (rosa) e PonD (arancio): barre dentro la tabella, a destra, sotto le bolgette
+    evidenzia(c, R - 7.6 * mm, 2.6 * mm, 1.4 * mm, righe)
+    for t, top, bot in righe:
+        run = next(r[3] for r in ROWS if r[0] == t)
         if run in BOLGETTE:
-            etichetta(c, R - 1 * mm, y, BOLGETTE[run], ARANCIO, NOTTE, size=8.6)
-    # orari di servizio di AgB e PonD, a destra della tabella (legenda sopra la tabella)
-    evidenzia(c, R + 2 * mm, 2.6 * mm, 1.4 * mm, righe)
-    legenda_servizi(c, L + 1 * mm, righe[0][1] + 2.1 * mm + 6.2 * mm, size=7)
+            etichetta(c, R - 1 * mm, bot + 2.1 * mm, BOLGETTE[run], ARANCIO, NOTTE, size=8.6)
 
     # ormeggi serali della settimana (nave e pontile della sera; R = rifornimento la mattina)
     days = [lunedi + datetime.timedelta(days=i) for i in range(7)]
@@ -390,7 +382,6 @@ def fronte(c, x, y):
     L, R = x + 4 * mm, x + CW - 4 * mm
     row_h = 5.5 * mm
     yy = top - 4.6 * mm
-    R -= 3 * mm   # a destra le barre degli orari di AgB e PonD
     righe = []
     for i, (t, kind, code, run, where) in enumerate(ROWS):
         righe.append((t, yy - 1.9 * mm + row_h, yy - 1.9 * mm))
@@ -411,15 +402,18 @@ def fronte(c, x, y):
         limite = R - (6 * mm if run in BOLGETTE else 0)
         assert L + 42 * mm + pdfmetrics.stringWidth(testo, "DV", 8) <= limite, testo
         c.drawString(L + 42 * mm, yy, testo)
-        if run in BOLGETTE:
-            c.setFillColor(ARANCIO); c.circle(R - 2.2 * mm, yy + 1 * mm, 2.2 * mm, stroke=0, fill=1)
-            c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, yy - 0.1 * mm, "B")
         yy -= row_h
+    # orari di AgB (rosa) e PonD (arancio): barre dentro la tabella, a destra, sotto le bolgette
+    evidenzia(c, R - 4.2 * mm, 1.5 * mm, 0.7 * mm, righe)
+    for t, top, bot in righe:
+        if next(r[3] for r in ROWS if r[0] == t) in BOLGETTE:
+            cy = bot + 1.9 * mm
+            c.setFillColor(ARANCIO); c.circle(R - 2.2 * mm, cy + 1 * mm, 2.2 * mm, stroke=0, fill=1)
+            c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, cy - 0.1 * mm, "B")
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
     c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB 7.45 Lun/Giov (rifornimento D2)")
-    evidenzia(c, R + 1.2 * mm, 1.5 * mm, 0.7 * mm, righe)
-    legenda_servizi(c, L, y + 8.2 * mm, size=6.2)
-    assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
+
+    assert yy + row_h - 1.9 * mm > y + 6.5 * mm, (yy - y) / mm
 
 
 RIF_FISSI = {"D1": (1, 4), "D2": (0, 3), "BIS": tuple(range(7))}   # giorni (0 = lunedi')
@@ -441,8 +435,8 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
         bx = L + i * (bw + 3 * mm)
         c.setFillColor(RIGA); c.setStrokeColor(BORDO); c.setLineWidth(0.5)
         c.roundRect(bx, yy - 11 * mm, bw, 11 * mm, 2 * mm, stroke=1, fill=1)
-        c.setFillColor(NOTTE); c.setFont("DVB", 10.5); c.drawString(bx + 2.5 * mm, yy - 6.8 * mm, code)
-        c.setFont("DVB", 7.6)
+        c.setFillColor(SERV_COL.get(code, NOTTE)); c.setFont("DVB", 10.5); c.drawString(bx + 2.5 * mm, yy - 6.8 * mm, code)
+        c.setFillColor(NOTTE); c.setFont("DVB", 7.6)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 4.4 * mm, a)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 8.6 * mm, b)
     yy -= 15 * mm
@@ -468,7 +462,7 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
         chi = agenti.get(d.isoformat(), {})
         for k, (sigla, dy) in enumerate((("AgB", 1.2), ("PonD", -2.3))):
             nomi = ", ".join(chi.get(sigla, []))
-            c.setFillColor(TEAL_SCURO); c.setFont("DVB", 5.6); c.drawString(AX, yy + dy * mm, sigla)
+            c.setFillColor(SERV_COL[sigla]); c.setFont("DVB", 5.6); c.drawString(AX, yy + dy * mm, sigla)
             if nomi:
                 size = 6.6
                 while size > 4.6 and pdfmetrics.stringWidth(nomi, "DV", size) > ag_w - 10 * mm:
