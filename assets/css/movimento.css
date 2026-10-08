@@ -449,3 +449,7 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:26px}
 @media(max-width:700px){.toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:20px}}
 @media(max-width:430px){.toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:16px}}
+.mov-sez{margin:20px 2px 8px;color:#7fb1b9;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.mov-turno.terra .mov-head{cursor:default}
+.chip[data-code="AgB"],.chip[data-code="AgM"],.chip[data-code="AgT"],.chip[data-code="AgT2"]{--c:#6eb1ff}
+.chip[data-code="PonD"]{--c:#fb9292}

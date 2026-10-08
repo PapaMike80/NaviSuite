@@ -122,7 +122,7 @@
     crew.forEach(m => { const r = tutti.find(a => String(a.agent.id) === String(m.id))?.residenza; if (r) conta[r] = (conta[r] || 0) + 1; });
     const top = Object.entries(conta).sort((a, b) => b[1] - a[1])[0]?.[0];
     if (top) return top;
-    const lettera = code[0] === 'D' ? 'DESENZANO' : /^[MT]/.test(code) ? 'MADERNO' : '';
+    const lettera = G.terraResidenza?.(code) || (code[0] === 'D' ? 'DESENZANO' : /^[MT]/.test(code) ? 'MADERNO' : '');
     return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
@@ -236,7 +236,7 @@
   }
   // Mette l'agente sul posto (chi c'era sbarca dove indicato) o toglie chi c'e'.
   async function cambiaPosto(code, valore, tipo) {
-    const crew = G.equipaggi(state.schedule, state.day).navi[code] || [];
+    const crew = equipaggioDi(code);
     const vecchio = posti(state.oggi[code]?.nave, state.day, crew)[ui.menu?.i]?.membro;
     ui.menu = null;
     if (tipo === 'out') { if (vecchio) await variazione(vecchio.id, valore, `${vecchio.name} tolto da ${code} (${valore}).`); return; }
@@ -263,6 +263,23 @@
     setStatus(`${code}: equipaggio ripristinato (${cambi.length} ${cambi.length === 1 ? 'cambio annullato' : 'cambi annullati'}).`, 'ok');
   }
 
+  // ---------------- Servizi a terra ----------------
+  // Agenti di servizio a terra del giorno: AgB e PonD (Desenzano), AgM e AgT (Maderno), con gli stessi pallini dell'equipaggio.
+  const SERVIZI_TERRA = [['AgB', 'DESENZANO'], ['PonD', 'DESENZANO'], ['AgM', 'MADERNO'], ['AgT', 'MADERNO']];
+  const membriTerra = (code, tutti) => tutti.filter(a => G.terraCode(a.turno) === code)
+    .map(a => ({ id: String(a.agent.id), name: String(a.agent.agente || ''), grado: G.gradoOf(a.agent) }))
+    .sort((a, b) => a.grado[2] - b.grado[2] || a.name.localeCompare(b.name, 'it'));
+  // Equipaggio di un turno nave o di un servizio a terra.
+  const equipaggioDi = code => (SERVIZI_TERRA.some(([cd]) => cd === code) ? membriTerra(code, agenti(state.day)) : G.equipaggi(state.schedule, state.day).navi[code] || []);
+  function cardTerra(code, res, day, crew) {
+    const orari = (T.DATA?.SERVIZI?.[res] || []).find(x => x[0] === code);
+    const lista = posti(null, day, crew);
+    return `<article class="mov-turno terra" data-turno="${code}"><div class="mov-head" role="group" aria-label="Servizio ${code}">
+      <span class="chip" data-code="${code}">${code}</span>
+      <span class="mov-sum"><b>${esc(titoloRes(res))}${orari ? ` · ${esc(orari[1])} / ${esc(orari[2])}` : ''}</b><small>${orari ? esc(orari[3]) : 'servizio a terra'}${crew.length ? '' : ' · nessun agente di turno'}</small></span>
+      <span class="mov-slots">${pallini(code, lista)}</span></div></article>`;
+  }
+
   // ---------------- Render ----------------
   function render() {
     const day = state.day;
@@ -280,6 +297,8 @@
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
     const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
+    const terraCrews = Object.fromEntries(SERVIZI_TERRA.map(([cd]) => [cd, membriTerra(cd, tutti)]));
+    const terra = `<h3 class="mov-sez">Servizi a terra</h3>` + SERVIZI_TERRA.map(([cd, res]) => cardTerra(cd, res, day, terraCrews[cd])).join('');
     const dmy = d => (d ? d.split('-').reverse().join('/') : '');
     const ferme = turniFermi(day).map(code => {
       // corse dell'orario estivo (O.d.S. 16/2026) o invernale di questo turno
@@ -290,11 +309,12 @@
       return `<article class="mov-turno ferma" data-turno="${code}"><div class="mov-head"><span class="chip" data-code="${code}">${code}</span><div class="mov-sum"><b>Corsa ferma</b><small>${esc(stato)}${info ? ` · ${esc(info)}` : ''}</small></div>` +
         `<button type="button" class="btn primary" data-act="stagione-riprendi" data-code="${code}" title="Rimette in servizio il turno ${code} da questo giorno">▶ Ripristina corsa</button></div></article>`;
     }).join('');
-    $('mov-list').innerHTML = datalists + (cards || '<p class="empty">Nessun turno nave in servizio in questo giorno.</p>') + ferme;
+    $('mov-list').innerHTML = datalists + (cards || '<p class="empty">Nessun turno nave in servizio in questo giorno.</p>') + terra + ferme;
     if (ui.menu) {
-      const c = ui.menu.code, crew = crews[c] || [];
-      const x = codes.includes(c) ? posti(oggi[c]?.nave, day, crew)[ui.menu.i] : null;
-      if (ui.menu.i === -1 && codes.includes(c)) { $('mov-list').insertAdjacentHTML('beforeend', popoverAggiunta(c, crew, tutti)); filtraPopover(); posizionaPopover(); $('pop-q')?.focus(); }
+      const c = ui.menu.code, crew = crews[c] || terraCrews[c] || [];
+      const attivo = codes.includes(c) || !!terraCrews[c];
+      const x = attivo ? posti(oggi[c]?.nave, day, crew)[ui.menu.i] : null;
+      if (ui.menu.i === -1 && attivo) { $('mov-list').insertAdjacentHTML('beforeend', popoverAggiunta(c, crew, tutti)); filtraPopover(); posizionaPopover(); $('pop-q')?.focus(); }
       else if (x) { $('mov-list').insertAdjacentHTML('beforeend', popoverPosto(c, crew, tutti, x)); filtraPopover(); posizionaPopover(); $('pop-q')?.focus(); } else ui.menu = null;
     }
   }
