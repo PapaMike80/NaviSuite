@@ -119,19 +119,7 @@ def main_traghetto(out):
     passeggeri.main_traghetto(S, out)
 
 
-def main_destinazioni(out):
-    passeggeri.main_destinazioni(S, out)
-
-
-def main_tascabile(out):
-    passeggeri.main_tascabile(S, out)
-
-
 if __name__ == "__main__":
-    # uso: a4_passeggeri_maderno.py navi.pdf traghetto.pdf [prossima_partenza.pdf] [tascabile.pdf]
+    # uso: a4_passeggeri_maderno.py navi.pdf traghetto.pdf
     print("misura orari / localita':", main(sys.argv[1]))
     main_traghetto(sys.argv[2])
-    if len(sys.argv) > 3:
-        main_destinazioni(sys.argv[3])
-    if len(sys.argv) > 4:
-        main_tascabile(sys.argv[4])

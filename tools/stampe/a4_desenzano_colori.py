@@ -40,8 +40,9 @@ TURNI = {"D1": "#3b6fe0", "R1": "#3b6fe0", "P1": "#3b6fe0", "T1": "#3b6fe0",
          "M1": "#e07b2a", "R3": "#e07b2a", "D3": "#e07b2a", "D4": "#c25bbd",
          "BIS": "#0e9fb3", "SR1": "#7c5ce0", "SR2": "#7c5ce0"}
 GIORNI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
-SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "dalle 7.45 con rifornimento D2  ·  assistenza alla c. 8"),
+SERVIZI = (("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30'"),
            ("PonD", "9.30 – 13.35", "15.00 – 19.50", "8 ore 55'"))
+ANTICIPO = {"AgB": "7.45 Lun/Giov"}   # inizio anticipato per il rifornimento D2
 VALIDITA = "Dal 5 ottobre all'1 novembre 2026 e dal 13 al 25 marzo 2027  ·  O.d.S. n. 39/2026"
 REGOLE_R = ("D1 martedì e venerdì  ·  D2 lunedì e giovedì (eventuale rabbocco il mercoledì avvisando la Direzione)",
             "D1 e D2: motorista mezz'ora prima del normale orario  ·  BIS tutti i giorni, liberato il pontile 5 o 3")
@@ -164,6 +165,35 @@ def agenti_settimana(days, dati=None):
     return out
 
 
+# Orari di servizio di AgB e PonD: barre tipo evidenziatore accanto alle corse che cadono nel loro
+# orario (interrotte nella pausa pranzo).
+SERV_COL = {"AgB": HexColor("#ec4899"), "PonD": HexColor("#f97316")}
+
+
+def evidenzia(c, x0, bw, gap, righe):
+    """righe: [(ora, y alto, y basso)] delle corse; per ogni servizio una barra per fascia oraria
+    (mattina e pomeriggio), sulle corse che cadono nella fascia."""
+    for k, (code, a, b, _) in enumerate(SERVIZI):
+        bx = x0 + k * (bw + gap)
+        for fascia in (a, b):
+            da, al = (tm(v) for v in fascia.split(" – "))
+            dentro = [r for r in righe if da <= tm(r[0]) <= al]
+            if not dentro:
+                continue
+            c.saveState(); c.setFillColor(SERV_COL[code]); c.setFillAlpha(0.6)
+            c.roundRect(bx, dentro[-1][2] + 0.4 * mm, bw, dentro[0][1] - dentro[-1][2] - 0.8 * mm, bw / 2, stroke=0, fill=1)
+            c.restoreState()
+
+
+def legenda_servizi(c, x, y, size=6.6):
+    for code, a, b, _ in SERVIZI:
+        testo = f"{code} {a}  ·  {b}"
+        c.saveState(); c.setFillColor(SERV_COL[code]); c.setFillAlpha(0.6)
+        c.roundRect(x, y - 0.6 * mm, 4 * mm, 3 * mm, 0.8 * mm, stroke=0, fill=1); c.restoreState()
+        c.setFillColor(INCHIOSTRO); c.setFont("DVB", size); c.drawString(x + 5.2 * mm, y, testo)
+        x += 5.2 * mm + pdfmetrics.stringWidth(testo, "DVB", size) + 5 * mm
+
+
 # ------------------------------------------------------------------ A4 a colori
 def colori(out, ormeggi, lunedi):
     c = canvas.Canvas(out, pagesize=A4)
@@ -197,8 +227,14 @@ def colori(out, ormeggi, lunedi):
         c.setFont("DVB", 12.5)
         c.drawRightString(x + bw - 5 * mm, box_top - 7.5 * mm, a)
         c.drawRightString(x + bw - 5 * mm, box_top - 13 * mm, b)
+        if code in ANTICIPO:  # AgB: 7.45 il lunedi' e il giovedi' (rifornimento D2)
+            c.setFont("DVB", 8.6); c.setFillColor(TEAL_SCURO)
+            c.drawRightString(x + bw - 7 * mm - pdfmetrics.stringWidth(a, "DVB", 12.5), box_top - 7.5 * mm, ANTICIPO[code])
         c.setFont("DV", 7.4); c.setFillColor(GRIGIO)
-        c.drawString(x + 6 * mm, box_top - 16.6 * mm, note)
+        # nota su due righe se serve: la prima sotto la sigla, accanto agli orari
+        righe = note.split("\n")
+        for k, riga in enumerate(righe):
+            c.drawString(x + 6 * mm, box_top - (16.6 - 3.4 * (len(righe) - 1 - k)) * mm, riga)
 
     # navi in ordine di orario
     cols = [("ORA", L + 3 * mm), ("", L + 25 * mm), ("TURNO", L + 55 * mm), ("CORSA", L + 77 * mm), ("DA / PER", L + 97 * mm)]
@@ -208,8 +244,10 @@ def colori(out, ormeggi, lunedi):
     for label, x in cols:
         c.drawString(x, y, label)
     row_h = 6.4 * mm
+    righe = []
     for i, (t, kind, code, run, where) in enumerate(ROWS):
         y -= row_h
+        righe.append((t, y - 2.1 * mm + row_h, y - 2.1 * mm))
         if i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L, y - 2.1 * mm, R - L, row_h, stroke=0, fill=1)
         if t == "14.30":  # stacco tra mattina e pomeriggio
@@ -225,6 +263,9 @@ def colori(out, ormeggi, lunedi):
         c.drawString(cols[4][1], y, where)
         if run in BOLGETTE:
             etichetta(c, R - 1 * mm, y, BOLGETTE[run], ARANCIO, NOTTE, size=8.6)
+    # orari di servizio di AgB e PonD, a destra della tabella (legenda sopra la tabella)
+    evidenzia(c, R + 2 * mm, 2.6 * mm, 1.4 * mm, righe)
+    legenda_servizi(c, L + 1 * mm, righe[0][1] + 2.1 * mm + 6.2 * mm, size=7)
 
     # ormeggi serali della settimana (nave e pontile della sera; R = rifornimento la mattina)
     days = [lunedi + datetime.timedelta(days=i) for i in range(7)]
@@ -349,16 +390,11 @@ def fronte(c, x, y):
     L, R = x + 4 * mm, x + CW - 4 * mm
     row_h = 5.5 * mm
     yy = top - 4.6 * mm
-    # pause pranzo: le corse durante la pausa di AgB (arancio) e di PonD (viola) hanno la riga colorata
-    PAUSE_COL = {"AgB": HexColor("#fde2b8"), "PonD": HexColor("#e4dcfb")}
-    pause = [(code, tm(a.split(" – ")[1]), tm(b.split(" – ")[0])) for code, a, b, _ in SERVIZI]
+    R -= 3 * mm   # a destra le barre degli orari di AgB e PonD
+    righe = []
     for i, (t, kind, code, run, where) in enumerate(ROWS):
-        in_pausa = [p for p, da, a in pause if da <= tm(t) < a]
-        if in_pausa:
-            for k, p in enumerate(in_pausa):
-                c.setFillColor(PAUSE_COL[p])
-                c.rect(L - 1 * mm, yy - 1.9 * mm + k * row_h / len(in_pausa), R - L + 2 * mm, row_h / len(in_pausa), stroke=0, fill=1)
-        elif i % 2 == 0:
+        righe.append((t, yy - 1.9 * mm + row_h, yy - 1.9 * mm))
+        if i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L - 1 * mm, yy - 1.9 * mm, R - L + 2 * mm, row_h, stroke=0, fill=1)
         if t == "14.30":
             c.setStrokeColor(TEAL_SCURO); c.setLineWidth(0.9)
@@ -380,14 +416,9 @@ def fronte(c, x, y):
             c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, yy - 0.1 * mm, "B")
         yy -= row_h
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
-    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  linea = mattina | pomeriggio  ·  dal 5/10/2026")
-    # legenda delle pause pranzo
-    lx = L
-    for code, a, b, _ in SERVIZI:
-        testo = f"pausa {code} {a.split(' – ')[1]} – {b.split(' – ')[0]}"
-        c.setFillColor(PAUSE_COL[code]); c.roundRect(lx, y + 7.6 * mm, 4 * mm, 3 * mm, 0.8 * mm, stroke=0, fill=1)
-        c.setFillColor(INCHIOSTRO); c.setFont("DVB", 6.6); c.drawString(lx + 5.2 * mm, y + 8.2 * mm, testo)
-        lx += 5.2 * mm + pdfmetrics.stringWidth(testo, "DVB", 6.6) + 5 * mm
+    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB 7.45 Lun/Giov (rifornimento D2)")
+    evidenzia(c, R + 1.2 * mm, 1.5 * mm, 0.7 * mm, righe)
+    legenda_servizi(c, L, y + 8.2 * mm, size=6.2)
     assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
 
 

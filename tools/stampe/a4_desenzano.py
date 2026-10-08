@@ -63,7 +63,7 @@ def main(out, ormeggi, lunedi):
     box_h = 20 * mm
     bw = (R - L - 6 * mm) / 2
     for i, (code, a, b, note) in enumerate((
-            ("AgB", "8.00 – 11.50", "12.50 – 17.30", "dalle 7.45 con rifornimento D2  ·  assistenza alla c. 8"),
+            ("AgB", "8.00 – 11.50", "12.50 – 17.30", "8 ore 30'  ·  lun e gio dalle 7.45 (rifornimento D2, 8 ore 45')"),
             ("PonD", "9.30 – 13.35", "15.00 – 19.50", "8 ore 55'"))):
         x = L + i * (bw + 6 * mm)
         c.setStrokeColor(BLUE); c.setLineWidth(1)

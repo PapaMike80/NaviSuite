@@ -4,15 +4,13 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 
 | File in `stampe/` | Contenuto |
 |---|---|
-| `Desenzano_pontile_AgB_A4.pdf` | AgB e PonD, navi in ordine di orario, ormeggi serali lun–dom con rifornimenti (R), nei colori di NaviSuite (`a4_desenzano_colori.py`) |
-| `Desenzano_pontile_tascabile_A4.pdf` | tascabile del pontilista: 2 pagine da stampare fronte/retro (lato lungo) e tagliare in 4 cartoncini A6; davanti le navi in ordine di orario, davanti le corse durante le pause pranzo di AgB e PonD colorate; dietro AgB/PonD, ormeggi serali della settimana con R, chi è di servizio AgB e PonD (dai turni pubblicati, altrimenti righe da compilare) e note su rifornimenti e bolgette |
+| `Desenzano_pontile_AgB_A4.pdf` | AgB e PonD, navi in ordine di orario con le barre degli orari di servizio di AgB e PonD, ormeggi serali lun–dom con rifornimenti (R), nei colori di NaviSuite (`a4_desenzano_colori.py`) |
+| `Desenzano_pontile_tascabile_A4.pdf` | tascabile del pontilista: 2 pagine da stampare fronte/retro (lato lungo) e tagliare in 4 cartoncini A6; davanti le navi in ordine di orario, davanti, a destra delle corse, le barre degli orari di servizio di AgB e PonD (interrotte nella pausa); dietro AgB/PonD, ormeggi serali della settimana con R, chi è di servizio AgB e PonD (dai turni pubblicati, altrimenti righe da compilare) e note su rifornimenti e bolgette |
 | `Desenzano_pontile_tascabile_vuoto_A4.pdf` | lo stesso tascabile pulito: senza date, pontili e agenti, da compilare a mano |
 | `Maderno_servizio_terra_A4.pdf` | AgM e AgT, navi di linea e traghetto Torri in ordine di orario |
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
-| `Maderno_prossima_partenza_A4.pdf` | per la biglietteria: "Prossima partenza per … / Next boat to … / Nächstes Schiff nach …", una riga per località, da Desenzano a Riva come nell'orario ufficiale |
-| `Maderno_tascabile_A4.pdf` | tascabile: A4 orizzontale, scali al centro, a sinistra le partenze da Maderno e a destra i ritorni a Maderno |
-| `Desenzano_passeggeri_A4.pdf`, `Desenzano_prossima_partenza_A4.pdf`, `Desenzano_tascabile_A4.pdf` | gli stessi fogli per i passeggeri di Desenzano |
+| `Desenzano_passeggeri_A4.pdf` | lo stesso foglio per i passeggeri di Desenzano |
 | `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
 

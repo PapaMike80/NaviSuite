@@ -12,10 +12,7 @@ Scrive in stampe/:
   Maderno_servizio_terra_A4.pdf         navi di linea + traghetto Torri
   Maderno_passeggeri_A4.pdf             per il pubblico: navi di linea, partenze e ritorni con coincidenze
   Maderno_traghetto_Torri_A4.pdf        per il pubblico: traghetto Maderno - Torri, andata e ritorno
-  Maderno_prossima_partenza_A4.pdf      per il pubblico: per ogni localita' le partenze da Maderno
-  Maderno_tascabile_A4.pdf              tascabile: A4 orizzontale, scali al centro, partenze | ritorni
-  Desenzano_passeggeri_A4.pdf, Desenzano_prossima_partenza_A4.pdf, Desenzano_tascabile_A4.pdf
-                                        gli stessi fogli per i passeggeri di Desenzano
+  Desenzano_passeggeri_A4.pdf           lo stesso foglio per i passeggeri di Desenzano
   Cover_*.pdf                           cover iPhone 15 (orario invernale)
   ormeggi.json                          dati estratti dagli O.d.S.
 
@@ -57,11 +54,7 @@ def main():
     a4_maderno.main(os.path.join(a.out, "Maderno_servizio_terra_A4.pdf"))
     a4_passeggeri_maderno.main(os.path.join(a.out, "Maderno_passeggeri_A4.pdf"))
     a4_passeggeri_maderno.main_traghetto(os.path.join(a.out, "Maderno_traghetto_Torri_A4.pdf"))
-    a4_passeggeri_maderno.main_destinazioni(os.path.join(a.out, "Maderno_prossima_partenza_A4.pdf"))
-    a4_passeggeri_maderno.main_tascabile(os.path.join(a.out, "Maderno_tascabile_A4.pdf"))
     a4_passeggeri_desenzano.main(os.path.join(a.out, "Desenzano_passeggeri_A4.pdf"))
-    a4_passeggeri_desenzano.main_destinazioni(os.path.join(a.out, "Desenzano_prossima_partenza_A4.pdf"))
-    a4_passeggeri_desenzano.main_tascabile(os.path.join(a.out, "Desenzano_tascabile_A4.pdf"))
     if not cover.genera(a.out):
         sys.exit("Cover: qualche testo finisce sotto MagSafe o fotocamera")
     print("Stampe aggiornate in", a.out)
