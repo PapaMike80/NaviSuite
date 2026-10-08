@@ -165,9 +165,9 @@ def agenti_settimana(days, dati=None):
     return out
 
 
-# Orari di servizio di AgB e PonD: barre tipo evidenziatore accanto alle corse che cadono nel loro
+# Orari di servizio di AgB (rosa) e PonD (viola): barre tipo evidenziatore accanto alle corse che cadono nel loro
 # orario (interrotte nella pausa pranzo).
-SERV_COL = {"AgB": HexColor("#ec4899"), "PonD": HexColor("#f97316")}
+SERV_COL = {"AgB": HexColor("#ec4899"), "PonD": HexColor("#7c3aed")}   # diversi dall'arancio delle bolgette
 
 
 def evidenzia(c, x0, bw, gap, righe):
@@ -252,8 +252,8 @@ def colori(out, ormeggi, lunedi):
         c.setFillColor(INCHIOSTRO); c.setFont("DV", 11.5)
         c.drawString(cols[3][1], y, run or "–")
         c.drawString(cols[4][1], y, where)
-    # orari di servizio di AgB (rosa) e PonD (arancio): barre dentro la tabella, a destra, sotto le bolgette
-    evidenzia(c, R - 7.6 * mm, 2.6 * mm, 1.4 * mm, righe)
+    # orari di servizio di AgB (rosa) e PonD (viola): barre dentro la tabella, a destra, sotto le bolgette
+    evidenzia(c, R - 11 * mm, 4.2 * mm, 1.6 * mm, righe)
     for t, top, bot in righe:
         run = next(r[3] for r in ROWS if r[0] == t)
         if run in BOLGETTE:
@@ -399,19 +399,17 @@ def fronte(c, x, y):
         c.drawString(L + 33.5 * mm, yy + 0.2 * mm, f"c. {run}" if run else "–")
         testo = where.replace(" (a disposizione)", " (a disp.)")
         c.setFillColor(INCHIOSTRO); c.setFont("DV", 8)
-        limite = R - (6 * mm if run in BOLGETTE else 0)
+        limite = R - (pdfmetrics.stringWidth(BOLGETTE[run], "DVB", 5.8) + 5 * mm if run in BOLGETTE else 0)
         assert L + 42 * mm + pdfmetrics.stringWidth(testo, "DV", 8) <= limite, testo
         c.drawString(L + 42 * mm, yy, testo)
         yy -= row_h
-    # orari di AgB (rosa) e PonD (arancio): barre dentro la tabella, a destra, sotto le bolgette
-    evidenzia(c, R - 4.2 * mm, 1.5 * mm, 0.7 * mm, righe)
+    # orari di AgB (rosa) e PonD (viola): barre dentro la tabella, a destra, sotto le bolgette
+    evidenzia(c, R - 5.6 * mm, 2.4 * mm, 0.8 * mm, righe)
     for t, top, bot in righe:
         if next(r[3] for r in ROWS if r[0] == t) in BOLGETTE:
-            cy = bot + 1.9 * mm
-            c.setFillColor(ARANCIO); c.circle(R - 2.2 * mm, cy + 1 * mm, 2.2 * mm, stroke=0, fill=1)
-            c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(R - 2.2 * mm, cy - 0.1 * mm, "B")
+            etichetta(c, R, bot + 1.9 * mm, BOLGETTE[next(r[3] for r in ROWS if r[0] == t)], ARANCIO, NOTTE, size=5.8, h=3.8 * mm)
     c.setFillColor(GRIGIO); c.setFont("DV", 6.2)
-    c.drawString(L, y + 4 * mm, "B = bolgetta  ·  AgB 7.45 Lun/Giov (rifornimento D2)")
+    c.drawString(L, y + 4 * mm, "AgB 7.45 Lun/Giov (rifornimento D2)")
 
     assert yy + row_h - 1.9 * mm > y + 6.5 * mm, (yy - y) / mm
 
@@ -423,10 +421,10 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
     """Servizi a terra, ormeggi serali della settimana con chi e' di servizio, note."""
     agenti = agenti or {}
     gruppi, ods = gruppi_settimana(ormeggi, days)
-    if vuoto:  # versione pulita da compilare a mano: niente date, pontili, O.d.S. e agenti
+    if vuoto:  # versione senza settimana: solo i rifornimenti fissi dell'O.d.S., niente pontili e agenti
         gruppi, ormeggi, agenti = ["D1", "D2", "BIS"], {}, {}
-    top = intestazione_carta(c, x, y, "ORMEGGI SERALI  ___ / ___ – ___ / ___" if vuoto else f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
-                             "pontile della sera  ·  R = rifornimento  ·  da compilare" if vuoto else "pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
+    top = intestazione_carta(c, x, y, "RIFORNIMENTI" if vuoto else f"ORMEGGI SERALI {days[0].day}/{days[0].month} – {days[-1].day}/{days[-1].month}",
+                             "R = rifornimento la mattina, prima delle corse  ·  O.d.S. n. 39/2026" if vuoto else "pontile della sera  ·  R = rifornimento  ·  O.d.S. " + (", ".join(map(str, ods)) or "–"))
     L, R = x + 4 * mm, x + CW - 4 * mm
     # servizi a terra: orario e pausa pranzo
     yy = top - 3 * mm
@@ -439,28 +437,33 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
         c.setFillColor(NOTTE); c.setFont("DVB", 7.6)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 4.4 * mm, a)
         c.drawRightString(bx + bw - 2.2 * mm, yy - 8.6 * mm, b)
+        if code in ANTICIPO:  # AgB: 7.45 lun e gio (rifornimento D2)
+            c.setFillColor(TEAL_SCURO); c.setFont("DVB", 5.6)
+            c.drawString(bx + 2.5 * mm, yy - 9.6 * mm, ANTICIPO[code])
     yy -= 15 * mm
     # ormeggi: una riga per giorno, una colonna per gruppo, poi chi e' di servizio AgB e PonD
     lab_w = 13 * mm
-    ag_w = 36 * mm
+    ag_w = 0 if vuoto else 36 * mm
     gw = (R - L - lab_w - ag_w) / len(gruppi)
     AX = R - ag_w + 1.5 * mm
     c.setFillColor(NOTTE2); c.roundRect(L, yy - 1.6 * mm, R - L, 5.6 * mm, 1.5 * mm, stroke=0, fill=1)
     for gi, g in enumerate(gruppi):
         chip(c, L + lab_w + gw * gi + (gw - 10 * mm) / 2, yy, g, size=7.2, h=4 * mm, w=min(10 * mm, gw - 1 * mm))
-    c.setFillColor(white); c.setFont("DVB", 6.8); c.drawString(AX, yy + 0.1 * mm, "AgB  ·  PonD")
+    if not vuoto:
+        c.setFillColor(white); c.setFont("DVB", 6.8); c.drawString(AX, yy + 0.1 * mm, "AgB  ·  PonD")
     rh = 8.6 * mm
     for i, d in enumerate(days):
         yy -= rh
         if i % 2 == 0:
             c.setFillColor(RIGA); c.rect(L, yy - 3.4 * mm, R - L, rh, stroke=0, fill=1)
         c.setFillColor(NOTTE); c.setFont("DVB", 8.2)
-        c.drawString(L + 1 * mm, yy + 0.4 * mm, GIORNI[i])
-        c.setFont("DV", 7); c.setFillColor(GRIGIO)
-        c.drawString(L + 1 * mm, yy - 2.4 * mm, "__/__" if vuoto else f"{d.day}/{d.month}")
+        c.drawString(L + 1 * mm, yy + (-0.8 if vuoto else 0.4) * mm, GIORNI[i])
+        if not vuoto:
+            c.setFont("DV", 7); c.setFillColor(GRIGIO)
+            c.drawString(L + 1 * mm, yy - 2.4 * mm, f"{d.day}/{d.month}")
         # chi e' di servizio (dai turni); se non ancora noti, righe da compilare a mano
         chi = agenti.get(d.isoformat(), {})
-        for k, (sigla, dy) in enumerate((("AgB", 1.2), ("PonD", -2.3))):
+        for k, (sigla, dy) in enumerate(() if vuoto else (("AgB", 1.2), ("PonD", -2.3))):
             nomi = ", ".join(chi.get(sigla, []))
             c.setFillColor(SERV_COL[sigla]); c.setFont("DVB", 5.6); c.drawString(AX, yy + dy * mm, sigla)
             if nomi:
@@ -473,12 +476,12 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
         for gi, g in enumerate(gruppi):
             cx = L + lab_w + gw * (gi + 0.5)
             if vuoto:
-                c.setStrokeColor(BORDO); c.setLineWidth(0.6)
-                c.roundRect(cx - 6 * mm, yy - 2.2 * mm, 8.5 * mm, 5.4 * mm, 1.2 * mm, stroke=1, fill=0)
                 # rifornimenti fissi dell'O.d.S.: D1 mar e ven, D2 lun e gio, BIS ogni giorno
                 if i in RIF_FISSI.get(g, ()):
-                    c.setFillColor(GIALLO); c.roundRect(cx + 3.2 * mm, yy - 1.2 * mm, 3.6 * mm, 3.8 * mm, 1 * mm, stroke=0, fill=1)
-                    c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(cx + 5 * mm, yy - 0.3 * mm, "R")
+                    c.setFillColor(GIALLO); c.roundRect(cx - 2.6 * mm, yy - 2 * mm, 5.2 * mm, 5.2 * mm, 1.3 * mm, stroke=0, fill=1)
+                    c.setFillColor(NOTTE); c.setFont("DVB", 9); c.drawCentredString(cx, yy - 0.6 * mm, "R")
+                else:
+                    c.setFillColor(BORDO); c.setFont("DV", 9); c.drawCentredString(cx, yy - 0.6 * mm, "–")
                 continue
             if d.isoformat() not in ormeggi:
                 if gi == 0:

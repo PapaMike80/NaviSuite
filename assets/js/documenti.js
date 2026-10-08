@@ -206,7 +206,7 @@ function pagesPdfUrl(path) {
 
 // Stampe generate da tools/stampe (cartella stampe/): titolo leggibile dal nome del file.
 const STAMPE_TITOLI = [
-  [/^Desenzano_pontile_tascabile_vuoto/i, 'Desenzano · tascabile del pontilista da compilare a mano'],
+  [/^Desenzano_pontile_tascabile_rifornimenti/i, 'Desenzano · tascabile del pontilista con i rifornimenti fissi'],
   [/^Desenzano_pontile_tascabile/i, 'Desenzano · tascabile del pontilista (4 cartoncini fronte/retro)'],
   [/^Desenzano_pontile/i, 'Servizi a terra Desenzano · pontile e AgB'],
   [/^Maderno_servizio_terra/i, 'Servizi a terra Maderno · AgM e AgT'],
