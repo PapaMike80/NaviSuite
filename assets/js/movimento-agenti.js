@@ -12,7 +12,7 @@
   const { G } = NM;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 
-  const ui = { res:'', q:'', aperto:'', chiuse:new Set() };
+  const ui = { res:'', q:'', aperto:'', aperte:new Set() };
   const titolo = text => String(text).charAt(0) + String(text).slice(1).toLowerCase();
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Comandante: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
@@ -55,8 +55,8 @@
       const lista = visibili.filter(r => r.residenza === res).sort((a, b) => (b.cambiato - a.cambiato) || a.grado[2] - b.grado[2] || anz(a) - anz(b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
       if (!lista.length) return '';
       const modificati = lista.filter(r => r.cambiato).length;
-      // la residenza e' richiudibile; cercando un nome resta aperta
-      const chiusa = ui.chiuse.has(res) && !q;
+      // con "Tutte" le residenze partono chiuse; scegliendone una si apre; cercando un nome restano aperte
+      const chiusa = !ui.aperte.has(res) && !q;
       const testata = `<button type="button" class="ag-res-head${chiusa ? ' chiusa' : ''}" data-act="res-toggle" data-res-nome="${esc(res)}" aria-expanded="${!chiusa}">` +
         `<span class="ag-freccia">${chiusa ? '▸' : '▾'}</span><span class="ag-res-nome">${esc(titolo(res))}</span><span class="count">${lista.length}</span>` +
         `${modificati ? `<span class="ag-modificato" title="Turni cambiati dal Movimento in questa residenza">modificato${modificati > 1 ? ` · ${modificati}` : ''}</span>` : ''}</button>`;
@@ -80,11 +80,16 @@
 
   view.addEventListener('click', event => {
     const res = event.target.closest('[data-res]');
-    if (res) { ui.res = res.dataset.res; ui.aperto = ''; render(); return; }
+    if (res) {
+      ui.res = res.dataset.res; ui.aperto = '';
+      // "Tutte": tutte chiuse; una residenza scelta: aperta
+      ui.aperte = new Set(ui.res ? [ui.res] : []);
+      render(); return;
+    }
     const toggle = event.target.closest('[data-act="res-toggle"]');
     if (toggle) {
       const nome = toggle.dataset.resNome;
-      if (ui.chiuse.has(nome)) ui.chiuse.delete(nome); else ui.chiuse.add(nome);
+      if (ui.aperte.has(nome)) ui.aperte.delete(nome); else ui.aperte.add(nome);
       ui.aperto = '';
       render();
       return;
