@@ -115,6 +115,17 @@
     return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
+  // Disponibilita' per la sostituzione: prima chi e' libero (LD), poi chi riposa, poi chi fa un servizio a terra,
+  // infine gli altri (ferie, malattia, congedo, altre corse...).
+  function disponibilita(turno) {
+    const t = String(turno || '').trim().toUpperCase();
+    if (/^(LD|DISP|LAV\.?)$/.test(t)) return 0;
+    if (!t || /^(RIP|RIPOSO|===|--+)$/.test(t)) return 1;
+    if (G.terraCode(t) || /^(PONTILE|TERRA)/.test(t)) return 2;
+    return 3;
+  }
+  const perDisponibilita = (a, b) => disponibilita(a.turno) - disponibilita(b.turno);
+
   // Menu del posto: gli agenti che lo possono coprire (stesso grado o superiore, mai inferiore), prima quelli della
   // residenza della corsa; in fondo si toglie chi c'e' (riposo, malattia, congedo, ferie).
   const puoCoprire = (ruoloAgente, ruoloPosto) => ruoloAgente === ruoloPosto || !!COPRE[ruoloAgente]?.includes(ruoloPosto);
@@ -127,7 +138,7 @@
     const residenze = [...new Set(candidati.map(a => a.residenza))].sort((a, b) => (b === casa) - (a === casa) || a.localeCompare(b, 'it'));
     const riga = a => { const g = G.gradoOf(a.agent); return `<button type="button" class="pop-agente" data-act="aggiungi" data-code="${code}" data-id="${esc(a.agent.id)}"><span class="pa-nome" style="color:${g[1]}">${esc(a.agent.agente)}</span><small>${esc(g[0] || '')}</small><span class="chip" data-code="${esc(a.turno || '—')}">${esc(a.turno || '—')}</span></button>`; };
     const gruppi = residenze.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` + candidati.filter(a => a.residenza === r)
-      .sort((a, b) => G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
+      .sort((a, b) => perDisponibilita(a, b) || G.gradoOf(a.agent)[2] - G.gradoOf(b.agent)[2] || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Aggiungi all'equipaggio">
       <div class="pop-head"><span class="pop-pallino" style="--g:#2dd4bf">+</span><div><b>Aggiungi all'equipaggio</b><small>${esc(code)} · ${crew.length} a bordo</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
       <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
@@ -150,7 +161,7 @@
       const dentro = candidati.filter(a => RUOLO[G.gradoOf(a.agent)[0]] === ruolo);
       const res = residenze.filter(r => dentro.some(a => a.residenza === r));
       return titolo + res.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
-        dentro.filter(a => a.residenza === r).sort((a, b) => String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
+        dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
     const dest = [...CAUSALI.map(([c, l]) => [c, c, l]), ...[...O.TURNI, 'BIS'].filter(c => c !== code).map(c => [c, c, `sulla ${c}`])];
     const chips = (act, scelto) => dest.map(([v, l, t]) => `<button type="button" class="pop-chip${scelto === v ? ' on' : ''}" data-act="${act}" data-code="${code}" data-v="${v}" title="${esc(t)}">${l}</button>`).join('');
