@@ -491,3 +491,4 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .sovr-tondo:hover{filter:brightness(1.2)}
 .sovr-usa{display:flex;align-items:center;gap:6px;color:#fde68a;font-size:13px}
 .pop-head small{display:block}
+.ag-undo{display:inline-flex;align-items:center;gap:5px}
