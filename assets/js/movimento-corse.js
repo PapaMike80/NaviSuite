@@ -152,7 +152,7 @@
     const gruppi = GERARCHIA.filter(ruolo => candidati.some(a => ruoloDi(a) === ruolo)).map(ruolo => {
       const dentro = candidati.filter(a => ruoloDi(a) === ruolo);
       const [, colore, nomeGrado] = RUOLO_INFO[ruolo];
-      return `<p class="pop-tier" style="--g:${colore}">${esc(nomeGrado)}</p>` + residenze.filter(r => dentro.some(a => a.residenza === r)).map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
+      return `<p class="pop-tier" style="--g:${colore}">${esc(nomeGrado)}</p>` + residenze.filter(r => dentro.some(a => a.residenza === r)).map(r => `<p class="pop-res sub" style="--g:${colore}">${esc(titoloRes(r))} · ${dentro.filter(a => a.residenza === r).length}${r === casa ? ' · residenza della corsa' : ''}</p>` +
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Aggiungi all'equipaggio">
@@ -176,7 +176,8 @@
       const titolo = `<p class="pop-tier" style="--g:${RUOLO_INFO[ruolo]?.[1] || '#e8f3f6'}">${ruolo === x.ruolo ? `Pari grado · ${esc(nomeGrado)}` : `Grado superiore · ${esc(nomeGrado)}`}</p>`;
       const dentro = candidati.filter(a => RUOLO[G.gradoOf(a.agent)[0]] === ruolo);
       const res = residenze.filter(r => dentro.some(a => a.residenza === r));
-      return titolo + res.map(r => `<p class="pop-res">${esc(titoloRes(r))}${r === casa ? ' · residenza della corsa' : ''}</p>` +
+      const colore = RUOLO_INFO[ruolo]?.[1] || '#e8f3f6';
+      return titolo + res.map(r => `<p class="pop-res sub" style="--g:${colore}">${esc(titoloRes(r))} · ${dentro.filter(a => a.residenza === r).length}${r === casa ? ' · residenza della corsa' : ''}</p>` +
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
     // dove va chi sbarca: di solito riposo; si cambia dal valore nella bolla (assenze, a terra, altre corse)

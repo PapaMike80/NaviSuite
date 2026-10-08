@@ -373,3 +373,4 @@ button.pop-bolla.b-togli{padding:0;border:0;background:none}
 span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .pop-togli{padding:5px 12px;border:0;border-radius:999px;background:transparent;color:var(--c);font:900 12px inherit;cursor:pointer}
 .pop-togli:hover{background:color-mix(in srgb,var(--c) 28%,transparent)}
+.pop-res.sub{--g:#7fb1b9;margin:8px 0 4px!important;padding-left:9px;border-left:3px solid var(--g);color:#cfe6ea!important;font-size:11px!important}
