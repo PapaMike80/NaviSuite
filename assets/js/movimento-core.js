@@ -133,7 +133,7 @@
   }
 
   // Variazione di turno di un agente (turnoNuovo vuoto = annulla quella del Movimento).
-  async function variazione(id, turnoNuovo, messaggio) {
+  async function variazione(id, turnoNuovo, messaggio, extra = {}) {
     if (state.busy) return;
     const item = agenti(state.day).find(a => String(a.agent.id) === String(id));
     if (!item) return;
@@ -142,7 +142,7 @@
     const prima = variazioneMovimento(state.day, id);
     const originale = prima?.turno_originale || item.turno;
     try {
-      const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`);
+      const rows = await window.NaviAdminFirebase.saveVariazioneMovimento(state.day, item.agent, turnoNuovo, originale, `Movimento (${autore})`, extra);
       // aggiorna subito i turni in pagina: tolte le variazioni del Movimento del giorno, aggiunte quelle salvate
       const day = state.day;
       state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === day)),

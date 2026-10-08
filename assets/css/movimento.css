@@ -278,3 +278,6 @@ html.navisuite-light .pop-agente{background:#f1f8f9!important}
 html.navisuite-light .pop-chip{background:#f4fafb!important;color:#17596a!important;border-color:#9fc5cc!important}
 .pop-tier{--g:#e8f3f6;margin:14px 0 2px!important;padding-bottom:3px;border-bottom:1px solid color-mix(in srgb,var(--g) 40%,transparent);color:var(--g)!important;font-size:11px!important;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .pop-tier+.pop-res{margin-top:6px!important}
+.slot.piu .slot-pallino{border-style:dashed;font-size:22px;font-weight:700}
+.slot.piu .slot-nome{color:#5eead4;font-weight:700}
+.slot.piu:hover .slot-pallino{background:rgba(45,212,191,.2)}

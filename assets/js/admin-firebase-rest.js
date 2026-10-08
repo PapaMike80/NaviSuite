@@ -257,7 +257,7 @@
   }
   // Equipaggio: le modifiche del Movimento sono variazioni manuali dei turni (ods "MOVIMENTO"), una
   // per agente e giorno; turnoNuovo vuoto annulla la variazione.
-  async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "") {
+  async function saveVariazioneMovimento(day, agent = {}, turnoNuovo = "", turnoOriginale = "", note = "", extra = {}) {
     const result = await databaseRequest("private/adminUpdates/manualVariations");
     const id = String(agent.id || "");
     const rows = (Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {}))
@@ -265,7 +265,9 @@
     if (turnoNuovo) rows.push({
       attiva:true, data:day, id_agente:id, agente:String(agent.agente || agent.name || ""),
       turno_originale:String(turnoOriginale || "").toUpperCase(), turno_nuovo:String(turnoNuovo).toUpperCase(),
-      ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString()
+      ods:"MOVIMENTO", tipo:"MANUALE", note:String(note || "Ufficio Movimento"), inserita_il:new Date().toISOString(),
+      // membro aggiunto dal "+" della corsa: in piu' del minimo, eventualmente sovrannumero
+      ...(extra.aggiunto ? { aggiunto:true } : {}), ...(extra.sovrannumero ? { sovrannumero:true } : {})
     });
     await databaseRequest("private/adminUpdates/manualVariations", { method:"PUT", body:JSON.stringify(rows) });
     await databaseRequest("private/adminUpdates/updatedAt", { method:"PUT", body:JSON.stringify(new Date().toISOString()) });
