@@ -43,19 +43,18 @@
     // cambiato = turno diverso da quello previsto per un cambio del Movimento
     const rows = NM.agenti(day).map(r => { const v = NM.variazioneMovimento(day, r.agent.id); return { ...r, grado:G.gradoOf(r.agent), v, cambiato: !!v && !stesso(v.turno_originale, r.turno) }; });
     const residenze = [...new Set(rows.map(r => r.residenza))].sort((a, b) => a.localeCompare(b, 'it'));
-    if (ui.res && !residenze.includes(ui.res)) ui.res = '';
     const q = G.norm(ui.q);
-    const visibili = rows.filter(r => (!ui.res || r.residenza === ui.res) && (!q || G.norm(r.agent.agente).includes(q)));
+    const visibili = rows.filter(r => !q || G.norm(r.agent.agente).includes(q));
     document.getElementById('agenti-count').textContent = String(visibili.length);
     const filtro = `<div class="toolbar">
-        <div class="agenti-res"><button type="button" class="nave-chip${ui.res ? '' : ' on'}" data-res="">Tutte</button>${residenze.map(r => `<button type="button" class="nave-chip${ui.res === r ? ' on' : ''}" data-res="${esc(r)}">${esc(titolo(r))}</button>`).join('')}</div>
+        <div class="agenti-res" title="Apre o chiude le residenze"><button type="button" class="nave-chip${residenze.length && residenze.every(r => ui.aperte.has(r)) ? ' on' : ''}" data-res="">Tutte</button>${residenze.map(r => `<button type="button" class="nave-chip${ui.aperte.has(r) ? ' on' : ''}" data-res="${esc(r)}">${esc(titolo(r))}</button>`).join('')}</div>
         <label>Cerca<input id="agenti-q" type="search" value="${esc(ui.q)}" placeholder="Nome agente" autocomplete="off"></label></div>`;
-    const gruppi = (ui.res ? [ui.res] : residenze).map(res => {
+    const gruppi = residenze.map(res => {
       // in alto chi ha avuto un cambio turno, poi per grado (capitano e capo timoniere pari grado) e anzianita' del prospetto
       const lista = visibili.filter(r => r.residenza === res).sort((a, b) => (b.cambiato - a.cambiato) || a.grado[2] - b.grado[2] || anz(a) - anz(b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
       if (!lista.length) return '';
       const modificati = lista.filter(r => r.cambiato).length;
-      // con "Tutte" le residenze partono chiuse; scegliendone una si apre; cercando un nome restano aperte
+      // le residenze partono chiuse; i pulsanti in alto e la testata le aprono o chiudono; cercando un nome restano aperte
       const chiusa = !ui.aperte.has(res) && !q;
       const testata = `<button type="button" class="ag-res-head${chiusa ? ' chiusa' : ''}" data-act="res-toggle" data-res-nome="${esc(res)}" aria-expanded="${!chiusa}">` +
         `<span class="ag-freccia">${chiusa ? '▸' : '▾'}</span><span class="ag-res-nome">${esc(titolo(res))}</span><span class="count">${lista.length}</span>` +
@@ -81,9 +80,12 @@
   view.addEventListener('click', event => {
     const res = event.target.closest('[data-res]');
     if (res) {
-      ui.res = res.dataset.res; ui.aperto = '';
-      // "Tutte": tutte chiuse; una residenza scelta: aperta
-      ui.aperte = new Set(ui.res ? [ui.res] : []);
+      // i pulsanti in alto aprono o chiudono la residenza (Tutte: tutte insieme), non filtrano l'elenco
+      const nome = res.dataset.res;
+      const tutte = [...new Set(NM.agenti(NM.state.day).map(r => r.residenza))];
+      if (!nome) ui.aperte = tutte.every(r => ui.aperte.has(r)) ? new Set() : new Set(tutte);
+      else if (ui.aperte.has(nome)) ui.aperte.delete(nome); else ui.aperte.add(nome);
+      ui.aperto = '';
       render(); return;
     }
     const toggle = event.target.closest('[data-act="res-toggle"]');
