@@ -32,7 +32,7 @@ assert.deepStrictEqual(t1[0], { numero: '201', turno: 'T1', scali: [['Maderno', 
 // Pagina Orario: tre viste, menu, Home e Impostazioni; Il mio turno usa lo stesso modulo.
 const page = fs.readFileSync('orario.html', 'utf8');
 ['orario-giorno.js', 'orario-corse.js', 'turni-giorno.js', 'orario-page.js'].forEach(script => assert.ok(page.includes(script), script));
-['data-view="lago"', 'data-view="viaggio"'].forEach(tab => assert.ok(page.includes(tab), tab));
+assert.ok(!page.includes('data-view='), 'niente tab: solo il lago');
 assert.ok(!page.includes('data-view="scalo"'), 'tab Scalo tolto');
 assert.match(page, /<h1 class="terra-title" id="orario-title">Scali<\/h1>/);
 const js = fs.readFileSync('assets/js/orario-page.js', 'utf8');

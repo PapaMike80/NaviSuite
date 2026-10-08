@@ -72,7 +72,7 @@
   document.addEventListener('toggle', event => { if (event.target.classList?.contains('or-equipaggio')) state.equipAperto = event.target.open; }, true);
   const state = {
     day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
-    view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
+    view: 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
     time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), giornatePassate: new Set(), scaloScelto: !!params.get('scalo'),
