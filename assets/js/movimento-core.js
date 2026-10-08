@@ -242,7 +242,15 @@
   // cliccando sulla data si apre il calendario
   $('mov-day-input').addEventListener('click', event => { try { event.target.showPicker?.(); } catch { /* il browser lo apre da solo */ } });
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-  $('mov-avviso')?.addEventListener('click', event => { if (event.target.closest('[data-vai]')) showTab('agenti'); });
+  // "Vedi": va al giorno della prima richiesta, apre le residenze interessate nel tab Agenti e segna le richieste come viste
+  $('mov-avviso')?.addEventListener('click', event => {
+    if (!event.target.closest('[data-vai]')) return;
+    const prima = richiesteNuove()[0] || richieste()[0];
+    if (prima && prima.day !== state.day) goToDay(prima.day);
+    segnaViste();
+    showTab('agenti');
+    document.dispatchEvent(new CustomEvent('mov:vedi-richieste'));
+  });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
   // Cambi turno fatti dagli agenti dalla propria Distinta da approvare (da oggi in poi): turno diverso da quello previsto,
@@ -270,6 +278,15 @@
     })      // diverso dal turno in vigore (la decisione del Movimento se c'e', altrimenti quello previsto)
       .filter(r => !r.chiusa && norm(r.turno) !== norm(r.deciso || r.previsto))
       .sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
+  }
+  // Quali richieste il Movimento ha gia' visto aprendo "Vedi": l'avviso rosso conta solo le nuove. Non toccare una richiesta vuol dire
+  // accettarla: il cambio dell'agente resta com'e'.
+  const CHIAVE_VISTE = 'navisuite.movimento.richiesteViste';
+  const chiaveRichiesta = r => `${r.agent.id}|${r.day}|${norm(r.turno)}`;
+  const visteSalvate = () => { try { return new Set(JSON.parse(localStorage.getItem(CHIAVE_VISTE) || '[]')); } catch { return new Set(); } };
+  const richiesteNuove = () => { const v = visteSalvate(); return richieste().filter(r => !v.has(chiaveRichiesta(r))); };
+  function segnaViste() {
+    try { localStorage.setItem(CHIAVE_VISTE, JSON.stringify([...new Set([...visteSalvate(), ...richieste().map(chiaveRichiesta)])].slice(-300))); } catch { /* memoria non disponibile */ }
   }
   // Decisione del Movimento su una richiesta di cambio turno: 'approva' (il turno dell'agente resta: si toglie l'eventuale
   // decisione del Movimento che lo copriva), 'rifiuta' (torna il turno previsto) oppure un altro turno scelto dal Movimento.
@@ -306,7 +323,7 @@
   }
   // Numero di richieste sul tab Agenti
   function aggiornaBadge() {
-    const n = state.schedule ? richieste().length : 0;
+    const n = state.schedule ? richiesteNuove().length : 0;
     const btn = document.querySelector('[data-tab="agenti"]');
     if (btn) btn.innerHTML = n ? `Agenti <span class="tab-badge" title="Richieste di cambio turno da approvare">${n}</span>` : 'Agenti';
     // avviso ben visibile in ogni tab: gli agenti si sono cambiati il turno dalla Distinta e il Movimento deve decidere
@@ -314,14 +331,14 @@
     if (avviso) {
       avviso.hidden = !n;
       if (n) {
-        const nomi = [...new Set(richieste().map(r => String(r.agent.agente || '').split(' ')[0]))].slice(0, 3).join(', ');
+        const nomi = [...new Set(richiesteNuove().map(r => String(r.agent.agente || '').split(' ')[0]))].slice(0, 3).join(', ');
         avviso.innerHTML = `<span>🔔 <b>${n} ${n === 1 ? 'richiesta' : 'richieste'} di cambio turno</b> da approvare${nomi ? ` · ${nomi}` : ''}</span><button type="button" class="btn primary" data-vai="agenti">Vedi</button>`;
       }
     }
   }
 
   window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
-    variazioneMovimento, richieste, turnoPrevisto, decidiRichiesta, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
+    variazioneMovimento, richieste, richiesteNuove, turnoPrevisto, decidiRichiesta, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.
   const avvia = () => {
