@@ -382,3 +382,19 @@ span.pop-bolla.b-togli{padding:3px 5px 3px 3px}
 .ag-anz{color:#9eb9c1;font-size:12px;font-weight:800;text-align:center}
 @media(max-width:850px){.ag-intest{display:none}.ag-list li{grid-template-columns:1fr auto}.ag-grado,.ag-anz{font-size:11px}.ag-turno{grid-column:1/-1}}
 .ag-list li.cambiato{background:rgba(250,204,21,.09);box-shadow:inset 3px 0 0 #facc15}
+
+/* Tab Agenti: residenze richiudibili, icone del grado e pastiglia del turno */
+.ag-res-head{display:flex;align-items:center;gap:10px;width:100%;margin:14px 0 6px;padding:9px 12px;border:1px solid #28515d;border-radius:12px;background:rgba(255,255,255,.04);color:#e8f7f7;font:900 14px inherit;text-align:left;cursor:pointer}
+.ag-res-head:hover{border-color:#3b707c}
+.ag-res-head.chiusa{opacity:.85}
+.ag-freccia{color:#7fb1b9;font-size:13px}
+.ag-res-nome{flex:0 0 auto}
+.ag-modificato{margin-left:auto;padding:3px 11px;border-radius:999px;background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.55);color:#facc15;font-size:11px;font-weight:900;letter-spacing:.04em}
+.ag-list li{display:block;padding:0}
+.ag-riga{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(110px,.8fr) 52px minmax(190px,1fr);align-items:center;gap:10px;padding:6px 10px}
+.ag-icona{--g:#e8f3f6;display:grid;place-items:center;justify-self:start;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:900 11px inherit}
+.ag-turno-btn{cursor:pointer;min-width:84px;font:900 12px inherit}
+.ag-turno-btn:hover{filter:brightness(1.2)}
+.ag-list li.aperto{background:rgba(45,212,191,.06)}
+.ag-dest{margin:0 10px 10px}
+@media(max-width:850px){.ag-riga{grid-template-columns:1fr auto 52px}.ag-riga .ag-turno{grid-column:1/-1}}
