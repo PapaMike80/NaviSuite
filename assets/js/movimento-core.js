@@ -222,6 +222,10 @@
       setStatus(`Turni nave non aggiornati: ${error.message}`, 'bad');
     }
   }
+  // Turni cambiati a mano dagli agenti dalla propria Distinta (come in Il mio turno, Scali e NaviTurni)
+  function caricaModifiche() {
+    return G.caricaModifiche(profile).then(() => { if (state.schedule && !state.busy && !editing()) render(); }).catch(() => {});
+  }
   function carica() {
     window.NaviSharedData?.loadCacheFirst?.((data, meta) => {
       state.schedule = data;
@@ -248,10 +252,12 @@
     setStatus('Caricamento turni e navi…');
     showTab(saved);
     carica();
+    caricaModifiche();
     aggiorna();
     // Le modifiche dei colleghi: turni nave ogni minuto, turni degli agenti ogni 5 minuti.
     setInterval(aggiorna, 60000);
     setInterval(carica, 5 * 60000);
+    setInterval(caricaModifiche, 2 * 60000);
   };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', avvia); else avvia();
 })();

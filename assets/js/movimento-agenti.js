@@ -44,7 +44,10 @@
     const day = NM.state.day;
     if (!NM.state.schedule) { view.innerHTML = '<p class="empty">Caricamento turni…</p>'; return; }
     // cambiato = turno diverso da quello previsto per un cambio del Movimento
-    const rows = NM.agenti(day).map(r => { const v = NM.variazioneMovimento(day, r.agent.id); return { ...r, grado:G.gradoOf(r.agent), v, cambiato: !!v && !stesso(v.turno_originale, r.turno) }; });
+    const rows = NM.agenti(day).map(r => { const v = NM.variazioneMovimento(day, r.agent.id); // anche il turno cambiato a mano dall'agente dalla sua Distinta conta come cambio (manuale)
+      const manuale = G.modificaManuale?.(r.agent.id, day);
+      const dist = manuale !== undefined && !stesso(manuale, r.agent.turni?.[day]);
+      return { ...r, grado:G.gradoOf(r.agent), v, dist, cambiato: (!!v && !stesso(v.turno_originale, r.turno)) || dist }; });
     const residenze = [...new Set(rows.map(r => r.residenza))].sort((a, b) => a.localeCompare(b, 'it'));
     const q = G.norm(ui.q);
     const visibili = rows.filter(r => !q || G.norm(r.agent.agente).includes(q));
@@ -64,7 +67,7 @@
         `${modificati ? `<span class="ag-modificato" title="Turni cambiati dal Movimento in questa residenza">modificato${modificati > 1 ? ` · ${modificati}` : ''}</span>` : ''}</button>`;
       if (chiusa) return testata;
       const righe = lista.map(r => {
-        const { v, cambiato } = r;
+        const { v, cambiato, dist } = r;
         const [sigla, colore] = ICONE[r.grado[0]] || ['?', '#94a3b8'];
         const aperto = ui.aperto === String(r.agent.id);
         return `<li class="${cambiato ? 'cambiato' : ''}${aperto ? ' aperto' : ''}"><div class="ag-riga">` +
@@ -72,7 +75,7 @@
           `<span class="ag-icona" style="--g:${colore}" title="${esc(r.grado[0] || r.agent.qualifica || '')}">${sigla}</span>` +
           `<span class="ag-anz" title="Anzianità nel prospetto dei turni">${anzTesto(r)}</span>` +
           `<span class="ag-turno"><button type="button" class="chip ag-turno-btn" data-code="${esc(r.turno || '—')}" data-act="turno-apri" data-id="${esc(r.agent.id)}" aria-expanded="${aperto}" aria-label="Turno di ${esc(r.agent.agente)}">${esc(nomeTurno(r.turno))} ▾</button>` +
-          `${cambiato ? `<button type="button" class="btn ghost" data-undo="${esc(r.agent.id)}" title="Torna al turno previsto (era ${esc(v.turno_originale || '—')})">↺ ${esc(nomeTurno(String(v.turno_originale || '').toUpperCase()))}</button>` : ''}</span></div>` +
+          `${dist && !(v && !stesso(v.turno_originale, r.turno)) ? `<span class="ag-dist" title="Turno cambiato dall'agente dalla sua Distinta (era ${esc(r.agent.turni?.[NM.state.day] || '—')})">Distinta</span>` : ''}${cambiato && v && !stesso(v.turno_originale, r.turno) ? `<button type="button" class="btn ghost" data-undo="${esc(r.agent.id)}" title="Torna al turno previsto (era ${esc(v.turno_originale || '—')})">↺ ${esc(nomeTurno(String(v.turno_originale || '').toUpperCase()))}</button>` : ''}</span></div>` +
           `${aperto ? destinazioni(rows, r) : ''}</li>`;
       }).join('');
       return `${testata}<div class="ag-intest"><span>Agente</span><span>Grado</span><span title="Posizione nel prospetto dei turni">Anz.</span><span>Turno del giorno</span></div><ul class="ag-list">${righe}</ul>`;

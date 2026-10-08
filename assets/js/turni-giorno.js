@@ -74,6 +74,8 @@
     modifiche = map;
     return map;
   }
+  // Turno modificato a mano dall'agente nella propria Distinta (NaviDiaria) in un giorno, se c'e'.
+  const modificaManuale = (agentId, day) => modifiche.get(`${String(agentId)}|${day}`);
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
   const turnoDi = (agent, day, map) => {
@@ -113,5 +115,5 @@
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche };
+  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche, modificaManuale };
 })(typeof window !== 'undefined' ? window : globalThis);
