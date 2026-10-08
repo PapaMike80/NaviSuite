@@ -391,6 +391,9 @@ def fronte(c, x, y):
     assert yy + row_h - 1.9 * mm > y + 11.5 * mm, (yy - y) / mm
 
 
+RIF_FISSI = {"D1": (1, 4), "D2": (0, 3), "BIS": tuple(range(7))}   # giorni (0 = lunedi')
+
+
 def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
     """Servizi a terra, ormeggi serali della settimana con chi e' di servizio, note."""
     agenti = agenti or {}
@@ -446,7 +449,11 @@ def retro(c, x, y, ormeggi, days, agenti=None, vuoto=False):
             cx = L + lab_w + gw * (gi + 0.5)
             if vuoto:
                 c.setStrokeColor(BORDO); c.setLineWidth(0.6)
-                c.roundRect(cx - 4.5 * mm, yy - 2.2 * mm, 9 * mm, 5.4 * mm, 1.2 * mm, stroke=1, fill=0)
+                c.roundRect(cx - 6 * mm, yy - 2.2 * mm, 8.5 * mm, 5.4 * mm, 1.2 * mm, stroke=1, fill=0)
+                # rifornimenti fissi dell'O.d.S.: D1 mar e ven, D2 lun e gio, BIS ogni giorno
+                if i in RIF_FISSI.get(g, ()):
+                    c.setFillColor(GIALLO); c.roundRect(cx + 3.2 * mm, yy - 1.2 * mm, 3.6 * mm, 3.8 * mm, 1 * mm, stroke=0, fill=1)
+                    c.setFillColor(NOTTE); c.setFont("DVB", 7); c.drawCentredString(cx + 5 * mm, yy - 0.3 * mm, "R")
                 continue
             if d.isoformat() not in ormeggi:
                 if gi == 0:
