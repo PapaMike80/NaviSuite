@@ -156,3 +156,4 @@ div.or-ship-row{cursor:default}
 .or-at-chiuso .terra-card-body{display:none}
 .or-at-chiuso .terra-card-head small{color:#e8f7f7;font-size:14px;font-weight:900}
 @media(max-width:860px){.or-lago #or-side{order:1}.or-lago>.terra-col:first-child{order:2}}
+.or-at-next{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;color:#e8f7f7;font-size:14px}

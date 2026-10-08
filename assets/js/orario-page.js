@@ -463,13 +463,15 @@
     // richiudibile cliccando "Allo scalo": chiuso resta solo il titolo con la prossima nave (es. "15.35 · Salò")
     const chiuso = !!state.scaloChiuso;
     const next = righe[prossima] || righe[righe.length - 1];
-    const lato = chiuso ? (next ? `${next.ora} · ${next.dove}` : '') : (righe.length ? `${righe.length} passaggi` : '');
+    const lato = chiuso ? '' : (righe.length ? `${righe.length} passaggi` : '');
+    // chiuso: turno, nave, ora e destinazione, corsa della prossima nave (es. T2 San Vigilio 15.05 per Torri · c. 12)
+    const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} <b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
     const scheda = card('Allo scalo', lato, `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
       `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, `or-at-card${chiuso ? ' or-at-chiuso' : ''}`);
-    return scheda.replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
+    return scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
   }
 
   function controlliTempo(t) {
