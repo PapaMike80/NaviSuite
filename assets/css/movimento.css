@@ -440,3 +440,12 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .toolbar .mov-day #mov-day-today{flex:0 0 auto;min-height:48px;padding:0 20px;border-radius:14px;font:900 clamp(18px,3.4vw,26px)/1.1 Manrope,Inter,sans-serif;text-transform:capitalize;white-space:nowrap}
 .toolbar .mov-day #mov-day-today.on{border:2px solid #2dd4bf;border-style:solid;background:rgba(45,212,191,.2);color:#99f6e4}
 @media(max-width:560px){.toolbar .mov-day #mov-day-today{padding:0 12px;font-size:17px}}
+/* Larghezza fissa della data (il piu' lungo e' "Mercoledi 30 Settembre"): le frecce non si spostano mai */
+.mov-day{flex-wrap:wrap;justify-content:center}
+.toolbar .mov-day .mov-day-current{flex:0 0 auto;width:15em;padding:0 .6em;font-size:clamp(15px,4.2vw,26px);justify-content:center}
+.mov-day-current>span{font-size:1em!important;overflow:hidden;text-overflow:ellipsis}
+.toolbar .mov-day #mov-day-today{flex:0 0 5em;padding:0;font-size:clamp(15px,4.2vw,26px)}
+/* corpo della data senza unita' viewport: grande di default, ridotto sui telefoni */
+.toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:26px}
+@media(max-width:700px){.toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:20px}}
+@media(max-width:430px){.toolbar .mov-day .mov-day-current,.toolbar .mov-day #mov-day-today{font-size:16px}}
