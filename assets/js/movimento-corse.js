@@ -206,9 +206,18 @@
     const bolle = x.membro ? `<div class="pop-bolle">` +
       `<span class="pop-bolla b-sost" title="Dove va ${esc(x.membro.name)} quando scegli un sostituto"><span>↪ Sostituito va in</span><button type="button" class="pop-val${per === 'sost' ? ' on' : ''}" data-act="dest-apri" data-per="sost">${esc(nomeDest(ui.sbarco))} ▾</button></span>` +
       `<span class="pop-bolla b-togli"><button type="button" class="pop-togli" data-act="togli-subito" data-code="${code}" title="Toglie ${esc(x.membro.name)} senza metterne un altro">✕ Toglilo</button><button type="button" class="pop-val${per === 'togli' ? ' on' : ''}" data-act="dest-apri" data-per="togli" title="Dove va se lo togli">${esc(nomeDest(ui.togliDest))} ▾</button></span></div>${destinazioni}` : '';
+    // sovrannumero: bolla per segnarlo o toglierlo (un sovrannumero tolto conta nell'organico e puo' coprire un posto scoperto)
+    const sovrBtn = (m, v, testo, titolo) => `<button type="button" class="pop-bolla b-sovr" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}">${testo}</button>`;
+    // membro: tondo giallo con l'asterisco accanto al nome del ruolo (toglie o mette il sovrannumero); posto scoperto: un tondo per ogni sovrannumero che lo puo' coprire
+    const tondo = (m, v, titolo) => `<button type="button" class="sovr-tondo${v ? '' : ' on'}" style="--g:${(RUOLO_INFO[RUOLO[m.grado[0]]] || RUOLO_INFO.marinaio)[1]}" data-act="sovr-set" data-code="${code}" data-id="${esc(m.id)}" data-v="${v ? 1 : 0}" title="${esc(titolo)}" aria-label="${esc(titolo)}">*</button>`;
+    let sovrBolle = '', sovrTondo = '';
+    if (x.membro) sovrTondo = tondo(x.membro, !x.sovr, x.sovr ? `${x.membro.name} e' in sovrannumero: clicca per toglierlo (entra nell'organico)` : `Metti ${x.membro.name} in sovrannumero (non conta nel minimo)`);
+    else posti(state.oggi[code]?.nave, state.day, crew).filter(p => p.sovr && p.membro && puoCoprire(p.ruolo, x.ruolo))
+      .forEach(p => { sovrBolle += `<span class="sovr-usa">${esc(cognome(p.membro.name))} e' a bordo in sovrannumero ${tondo(p.membro, false, `Usa ${p.membro.name} su questo posto: toglie il sovrannumero`)}</span>`; });
+    if (sovrBolle) sovrBolle = `<div class="pop-bolle">${sovrBolle}</div>`;
     return `<div class="slot-pop" id="slot-pop" role="dialog" aria-label="Cambia ${esc(nomeRuolo)}">
-      <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b><small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
-      ${bolle}
+      <div class="pop-head"><span class="pop-pallino" style="--g:${colore}">${sigla}</span><div><b style="color:${colore}">${esc(nomeRuolo)}</b>${sovrTondo}<small>${x.membro ? `ora ${esc(x.membro.name)}` : 'posto scoperto'}</small></div><button type="button" class="pop-x" data-act="menu-close" aria-label="Chiudi">✕</button></div>
+      ${bolle}${sovrBolle}
       <input id="pop-q" class="pop-q" type="search" placeholder="Cerca per nome…" autocomplete="off" value="${esc(ui.q)}" aria-label="Cerca un collega">
       ${gruppi || (x.extra ? '' : '<p class="pop-vuoto">Nessun agente disponibile per questo grado.</p>')}</div>`;
   }
@@ -289,6 +298,13 @@
   }
 
   // ---------------- Render ----------------
+  // Agenti che mancano ai minimi delle navi in servizio nel giorno (per il pallino rosso sul tab Corse)
+  NM.mancantiGiorno = day => {
+    const oggi = T.turniDelGiorno(righeNavi(), day);
+    const crews = G.equipaggi(state.schedule, day).navi;
+    return turniCodici(day).reduce((t, code) => t + (minimo((oggi[code] || {}).nave, day, crews[code] || [])?.mancano.reduce((u, x) => u + x.n - x.presenti, 0) || 0), 0);
+  };
+
   function render() {
     const day = state.day;
     if (!state.schedule) { $('mov-list').innerHTML = '<p class="empty">Caricamento turni…</p>'; return; }
@@ -304,7 +320,10 @@
       ...righe.flatMap(row => nomiNave(row?.nave))].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
-    const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
+    // le corse con l'equipaggio incompleto vanno in alto (a parita' resta l'ordine dei turni)
+    const mancanti = code => minimo((oggi[code] || {}).nave, day, crews[code] || [])?.mancano.reduce((t, x) => t + x.n - x.presenti, 0) || 0;
+    const cards = codes.map((code, i) => ({ code, i, m: mancanti(code) })).sort((x, y) => (y.m > 0) - (x.m > 0) || x.i - y.i)
+      .map(x => card(x.code, day, oggi[x.code] || {}, ieri[x.code] || {}, crews[x.code] || [], tutti)).join('');
     const terraCrews = Object.fromEntries(SERVIZI_TERRA.map(([cd]) => [cd, membriTerra(cd, tutti)]));
     const terra = `<h3 class="mov-sez">Servizi a terra</h3>` + [...new Set(SERVIZI_TERRA.map(x => x[1]))].map(res => cardTerraResidenza(res, day, terraCrews)).join('');
     const dmy = d => (d ? d.split('-').reverse().join('/') : '');
@@ -361,7 +380,7 @@
         <span class="chip" data-code="${code}">${code}</span>
         <span class="mov-sum"><b>${orari || 'a disposizione'}</b><small>${corse}${r.movimento && modificaOds(code, day, r) ? ' · <em>modificato dal Movimento</em>' : ''}${r.ritardi ? ` · <em class="mov-rit">⏱ ${ritardiTesto(r.ritardi)}</em>` : ''}${r.corseSospese?.length ? ` · ⏸ ${r.corseSospese.length} sospese` : ''}</small>${avviso ? `<small class="mov-sotto">⚠ Equipaggio sotto il minimo · manca ${esc(manca)}</small>` : ''}${bisBadge}</span>
         ${nave}${stato}
-        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}${avviso ? '<span class="mov-warn" title="Equipaggio sotto il minimo: manca ${esc(manca)}">⚠</span>' : ''}</span>
+        <span class="mov-slots">${r.nave || crew.length ? pallini(code, posti(r.nave, day, crew)) : ''}</span>
         <span class="mov-chev">${open ? '▴' : '▾'}</span>
       </div>
       ${open ? `<div class="mov-azioni">${azioni}</div>` : ''}
@@ -582,6 +601,12 @@
       ui.menu = null; ui.sovr = false;
       const nome = agenti(state.day).find(a => String(a.agent.id) === String(button.dataset.id))?.agent.agente || '';
       variazione(button.dataset.id, sovr ? `${code}*` : code, `${nome} aggiunto alla ${code}${sovr ? ' in sovrannumero (' + code + '*)' : ''}.`, { aggiunto: true, sovrannumero: sovr });
+    }
+    else if (act === 'sovr-set') {
+      const sovr = button.dataset.v === '1';
+      const m = equipaggioDi(code).find(y => String(y.id) === String(button.dataset.id));
+      ui.menu = null;
+      variazione(button.dataset.id, sovr ? `${code}*` : code, `${m?.name || ''}: ${sovr ? 'in sovrannumero' : 'sovrannumero tolto, ora in organico'} sulla ${code}.`, { sovrannumero: sovr });
     }
     else if (act === 'crew-reset') ripristinaEquipaggio(code);
     else if (act === 'corsa-bis-togli') {
