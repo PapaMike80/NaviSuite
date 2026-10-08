@@ -71,7 +71,7 @@
     const chiave = r => `${r.agent.id}|${r.day}`;
     const richieste = rich.length ? `<section class="ag-richieste"><h3>Richieste di cambio turno <span class="count">${rich.length}</span></h3>` +
       rich.map(r => { const [sigla, colore] = ICONE[G.gradoOf(r.agent)[0]] || ['?', '#94a3b8']; const k = chiave(r); return `<div class="ag-rich"><span class="ag-icona" style="--g:${colore}">${sigla}</span>` +
-        `<span class="ag-rich-testo"><b style="color:${colore}">${esc(r.agent.agente)}</b> · ${esc(dmy(r.day))}<small>dalla Distinta: <s>${esc(nomeTurno(r.previsto))}</s> → <b>${esc(nomeTurno(r.turno))}</b></small></span>` +
+        `<span class="ag-rich-testo"><b style="color:${colore}">${esc(r.agent.agente)}</b> · ${esc(dmy(r.day))}<small>dalla Distinta: <s>${esc(nomeTurno(r.deciso || r.previsto))}</s> → <b>${esc(nomeTurno(r.turno))}</b>${r.deciso ? ' · il Movimento aveva deciso ' + esc(nomeTurno(r.deciso)) : ''}</small></span>` +
         `<span class="ag-rich-azioni"><button type="button" class="btn primary" data-act="rich-approva" data-k="${esc(k)}">✓ Approva</button>` +
         `<button type="button" class="btn ghost" data-act="rich-modifica" data-k="${esc(k)}">Modifica…</button>` +
         `<button type="button" class="btn danger" data-act="rich-rifiuta" data-k="${esc(k)}" title="Resta il turno previsto: ${esc(nomeTurno(r.previsto))}">✗ Rifiuta</button></span>` +

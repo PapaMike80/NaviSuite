@@ -473,3 +473,6 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .ag-rich-testo small b{color:#facc15}
 .ag-rich-azioni{display:flex;flex-wrap:wrap;gap:6px}
 .ag-rich .ag-dest{flex-basis:100%;margin:4px 0 0}
+.mov-avviso{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin:8px 0;padding:10px 14px;border:2px solid #e11d48;border-radius:14px;background:rgba(225,29,72,.14);color:#fecdd3;font-size:14px}
+.mov-avviso[hidden]{display:none}
+.mov-avviso b{color:#fff}

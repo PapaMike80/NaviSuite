@@ -242,6 +242,7 @@
   // cliccando sulla data si apre il calendario
   $('mov-day-input').addEventListener('click', event => { try { event.target.showPicker?.(); } catch { /* il browser lo apre da solo */ } });
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
+  $('mov-avviso')?.addEventListener('click', event => { if (event.target.closest('[data-vai]')) showTab('agenti'); });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
   // Cambi turno fatti dagli agenti dalla propria Distinta da approvare (da oggi in poi): turno diverso da quello previsto,
@@ -251,39 +252,54 @@
     const ods = (state.schedule?.variazioni_ods || []).filter(v => v?.ods !== 'MOVIMENTO' && String(v.data).slice(0, 10) === day && String(v.id_agente) === String(agent.id)).pop();
     return String(ods ? (ods.turno_nuovo ?? ods.turno ?? '') : (agent.turni?.[day] ?? '')).trim();
   }
+  // Una richiesta e' un cambio fatto dall'agente nella Distinta (da oggi in poi) con un turno diverso da quello previsto e da quello
+  // che il Movimento ha eventualmente gia' deciso, e non ancora chiusa dal Movimento (approvata, rifiutata o modificata): anche
+  // dopo una decisione del Movimento, un nuovo cambio dell'agente e' una nuova richiesta.
   function richieste() {
     const oggi = iso(new Date());
     const agentiMap = new Map();
     Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => { if (agent?.id) agentiMap.set(String(agent.id), { agent, residenza }); }));
+    const chiave = (id, day) => `${String(id).replace(/[.#$\[\]/]/g, '-')}_${day}`;
     return G.modificheManuali().filter(m => m.day >= oggi && agentiMap.has(String(m.id))).map(m => {
       const { agent, residenza } = agentiMap.get(String(m.id));
       const previsto = turnoPrevisto(agent, m.day);
-      const approvata = state.approvazioni?.[`${String(m.id).replace(/[.#$\[\]/]/g, '-')}_${m.day}`];
+      const chiusa = state.approvazioni?.[chiave(m.id, m.day)];
       const deciso = variazioneMovimento(m.day, m.id);
-      return { agent, residenza, day: m.day, turno: m.turno, previsto, decisa: !!deciso, approvata: !!approvata && norm(approvata.turno) === norm(m.turno) };
-    }).filter(r => norm(r.turno) !== norm(r.previsto) && !r.decisa && !r.approvata).sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
+      return { agent, residenza, day: m.day, turno: m.turno, previsto, deciso: deciso ? String(deciso.turno_nuovo || '') : '',
+        chiusa: !!chiusa && norm(chiusa.turno) === norm(m.turno) };
+    })      // diverso dal turno in vigore (la decisione del Movimento se c'e', altrimenti quello previsto)
+      .filter(r => !r.chiusa && norm(r.turno) !== norm(r.deciso || r.previsto))
+      .sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
   }
-  // Decisione del Movimento su una richiesta di cambio turno: 'approva' (il turno dell'agente resta), 'rifiuta' (torna il turno
-  // previsto) oppure un altro turno scelto dal Movimento. Rifiuto e altro turno sono variazioni del Movimento, che vincono
-  // sul cambio fatto dall'agente nella Distinta.
+  // Decisione del Movimento su una richiesta di cambio turno: 'approva' (il turno dell'agente resta: si toglie l'eventuale
+  // decisione del Movimento che lo copriva), 'rifiuta' (torna il turno previsto) oppure un altro turno scelto dal Movimento.
+  // Rifiuto e altro turno sono variazioni del Movimento, che vincono sul cambio fatto dall'agente nella Distinta. In ogni caso la
+  // richiesta si chiude: un nuovo cambio dell'agente sara' una nuova richiesta.
   async function decidiRichiesta(r, scelta) {
     if (state.busy) return;
     state.busy = true;
     setStatus('Salvataggio…');
     const dmy = r.day.split('-').reverse().join('/');
+    const chiave = `${String(r.agent.id).replace(/[.#$\[\]/]/g, '-')}_${r.day}`;
+    const aggiorna = rows => {
+      state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))),
+        ...rows.filter(v => v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))];
+    };
     try {
       const provider = window.NaviAdminFirebase;
+      let esito = 'approvata';
       if (scelta === 'approva') {
-        const item = await provider.saveApprovazioneTurno(r.agent.id, r.day, r.turno, autore);
-        state.approvazioni = { ...state.approvazioni, [`${String(r.agent.id).replace(/[.#$\[\]/]/g, '-')}_${r.day}`]: item };
+        // il Movimento aveva deciso altro: quella decisione cade, vale il turno scelto dall'agente
+        if (variazioneMovimento(r.day, r.agent.id)) aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, '', r.turno, `Movimento (${autore})`));
         setStatus(`${r.agent.agente}: cambio turno del ${dmy} approvato (${r.turno}).`, 'ok');
       } else {
         const nuovo = scelta === 'rifiuta' ? (r.previsto || 'RIP') : scelta;
-        const rows = await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${scelta === 'rifiuta' ? 'rifiutata' : 'modificata'}`);
-        state.schedule.variazioni_ods = [...(state.schedule.variazioni_ods || []).filter(v => !(v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))),
-          ...rows.filter(v => v?.ods === 'MOVIMENTO' && String(v.data).slice(0, 10) === r.day && String(v.id_agente) === String(r.agent.id))];
+        esito = scelta === 'rifiuta' ? 'rifiutata' : 'modificata';
+        aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${esito}`));
         setStatus(`${r.agent.agente}: richiesta del ${dmy} ${scelta === 'rifiuta' ? `rifiutata, resta ${nuovo}` : `cambiata in ${nuovo}`}.`, 'ok');
       }
+      const item = await provider.saveApprovazioneTurno(r.agent.id, r.day, r.turno, autore, esito);
+      state.approvazioni = { ...state.approvazioni, [chiave]: item };
     } catch (error) {
       setStatus(`Non salvato: ${error.message}`, 'bad');
     } finally { state.busy = false; notify(); }
@@ -293,6 +309,15 @@
     const n = state.schedule ? richieste().length : 0;
     const btn = document.querySelector('[data-tab="agenti"]');
     if (btn) btn.innerHTML = n ? `Agenti <span class="tab-badge" title="Richieste di cambio turno da approvare">${n}</span>` : 'Agenti';
+    // avviso ben visibile in ogni tab: gli agenti si sono cambiati il turno dalla Distinta e il Movimento deve decidere
+    const avviso = $('mov-avviso');
+    if (avviso) {
+      avviso.hidden = !n;
+      if (n) {
+        const nomi = [...new Set(richieste().map(r => String(r.agent.agente || '').split(' ')[0]))].slice(0, 3).join(', ');
+        avviso.innerHTML = `<span>🔔 <b>${n} ${n === 1 ? 'richiesta' : 'richieste'} di cambio turno</b> da approvare${nomi ? ` · ${nomi}` : ''}</span><button type="button" class="btn primary" data-vai="agenti">Vedi</button>`;
+      }
+    }
   }
 
   window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
@@ -310,7 +335,9 @@
     // Le modifiche dei colleghi: turni nave ogni minuto, turni degli agenti ogni 5 minuti.
     setInterval(aggiorna, 60000);
     setInterval(carica, 5 * 60000);
-    setInterval(caricaModifiche, 2 * 60000);
+    setInterval(caricaModifiche, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) caricaModifiche(); });
+    window.addEventListener('focus', caricaModifiche);
   };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', avvia); else avvia();
 })();

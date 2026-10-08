@@ -280,8 +280,9 @@
     const result = await databaseRequest("private/adminUpdates/approvazioniTurni");
     return result.data && typeof result.data === "object" ? result.data : {};
   }
-  async function saveApprovazioneTurno(agentId, day, turno, approvataDa = "") {
-    const item = { agentId:String(agentId), data:day, turno:String(turno || "").toUpperCase(), approvata_da:String(approvataDa), approvata_il:new Date().toISOString() };
+  async function saveApprovazioneTurno(agentId, day, turno, approvataDa = "", stato = "approvata") {
+    // turno = quello chiesto dall'agente; stato = approvata | rifiutata | modificata (la richiesta e' chiusa in ogni caso)
+    const item = { agentId:String(agentId), data:day, turno:String(turno || "").toUpperCase(), stato, approvata_da:String(approvataDa), approvata_il:new Date().toISOString() };
     await databaseRequest(`private/adminUpdates/approvazioniTurni/${chiaveApprovazione(agentId, day)}`, { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
