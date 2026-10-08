@@ -26,7 +26,7 @@
   const NM = window.NaviMovimento;
   const view = document.getElementById('navi-view');
   if (!NM || !view) return;
-  const { O, T } = NM;
+  const { O, T, nomiNave, stessaNave } = NM;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const norm = value => String(value || '').trim().toUpperCase();
 
@@ -87,6 +87,7 @@
     const toolbar = `<div class="toolbar">
         <label>Nuova nave<input id="new-ship-name" type="text" placeholder="Es. Solferino" autocomplete="off"></label>
         <button id="add-ship" class="btn" type="button" data-act="add-ship">+ Aggiungi nave</button>
+        <button class="btn ghost" type="button" data-act="pulisci" title="Toglie (A), (B) e © dai nomi, divide i nomi doppi come «PARINI + D'ANNUNZIO» e unisce i duplicati">Pulisci nomi</button>
         <button id="import-ships" class="btn ghost" type="button" data-act="import" title="Legge i nomi già usati nelle assegnazioni nave/corsa">Importa nomi dai turni</button>
         <span class="spacer"></span>
         <button id="save-fleet" class="btn primary" type="button" data-act="save"${ui.dirty ? '' : ' disabled'}>Salva</button>
@@ -109,7 +110,7 @@
     // assegnazione alla corsa del giorno
     const oggi = T.turniDelGiorno(NM.righeNavi(), day);
     const codici = NM.turniCodici(day);
-    const attuale = codici.find(c => norm(oggi[c]?.nave).replace(/\s*(\([A-Z]\)|©)/g, '') === norm(ship.nome)) || '';
+    const attuale = codici.find(c => stessaNave(oggi[c]?.nave, ship.nome)) || '';
     const opzioni = `<option value="">— nessuna —</option>${codici.map(c => `<option value="${c}"${c === attuale ? ' selected' : ''}>${c}${oggi[c]?.nave && c !== attuale ? ` (ora: ${esc(oggi[c].nave)})` : ''}</option>`).join('')}`;
     const periodi = ship.periodi.length > 1 ? `<small class="periodi">Periodi: ${ship.periodi.map(q => `${q === p ? '<b>' : ''}${q.dal ? 'dal ' + esc(q.dal.split('-').reverse().join('/')) : 'da sempre'}${q === p ? '</b>' : ''}`).join(' · ')}</small>` : '';
     return `<div class="nave-det${ship.attiva ? '' : ' off'}">
@@ -152,7 +153,7 @@
     const day = NM.state.day;
     const oggi = T.turniDelGiorno(NM.righeNavi(), day);
     const nomeNave = ship.nome.trim();
-    const attuale = NM.turniCodici(day).find(c => norm(oggi[c]?.nave).replace(/\s*(\([A-Z]\)|©)/g, '') === norm(nomeNave));
+    const attuale = NM.turniCodici(day).find(c => stessaNave(oggi[c]?.nave, nomeNave));
     if (attuale && attuale !== code && !(await NM.salva(attuale, { nave:'' }, `${nomeNave} tolta dalla ${attuale}.`))) return;
     if (code) {
       const prima = oggi[code]?.nave;
@@ -168,6 +169,7 @@
     if (act === 'sel') { ui.sel = btn.dataset.ship; ui.circle = -1; render(); return; }
     if (act === 'save') { save(); return; }
     if (act === 'import') { importNames(); return; }
+    if (act === 'pulisci') { pulisci(); return; }
     if (act === 'add-ship') {
       const input = document.getElementById('new-ship-name');
       if (addShip(input.value)) { setDirty(true); NM.setStatus('Nave aggiunta: indica l\'equipaggio minimo e salva.'); render(); }
@@ -290,6 +292,40 @@
     }
   }
 
+  // Pulisce l'anagrafica: nome senza suffissi, nomi doppi divisi in due navi (ognuna con i periodi dell'originale),
+  // duplicati uniti (si tiene la nave con piu' periodi; gli equipaggi non si perdono).
+  function pulisci() {
+    const out = {};
+    let cambi = 0;
+    const metti = (nome, ship) => {
+      const id = Object.keys(out).find(k => out[k].nome.toUpperCase() === nome.toUpperCase());
+      if (!id) { out[slugIn(nome, out)] = { ...ship, nome }; return; }
+      cambi += 1;
+      const dst = out[id];
+      ship.periodi.forEach(p => { if (!dst.periodi.some(q => q.dal === p.dal)) dst.periodi.push(p); });
+      dst.attiva = dst.attiva || ship.attiva;
+      sortPeriods(dst);
+    };
+    Object.values(ui.navi).forEach(ship => {
+      const nomi = nomiNave(ship.nome);
+      if (!nomi.length) { out[slugIn('nave', out)] = ship; return; }
+      if (nomi.length > 1 || nomi[0] !== ship.nome.trim()) cambi += 1;
+      nomi.forEach(nome => metti(nome, { ...ship, periodi: ship.periodi.map(p => ({ ...p, equipaggio: { ...p.equipaggio } })) }));
+    });
+    if (!cambi) { NM.setStatus('I nomi delle navi sono già puliti.', 'ok'); return; }
+    ui.navi = out;
+    ui.sel = '';
+    setDirty(true);
+    render();
+    NM.setStatus(`Nomi puliti (${cambi} modifiche): controlla l'equipaggio minimo delle navi divise o unite e premi Salva.`, 'ok');
+  }
+  function slugIn(name, taken) {
+    const base = String(name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'nave';
+    let id = base, n = 2;
+    while (taken[id]) id = `${base}-${n++}`;
+    return id;
+  }
+
   // Nomi nave gia' presenti nelle assegnazioni nave/corsa (turniNavi). Le righe che sono codici turno si scartano.
   async function importNames() {
     try {
@@ -297,8 +333,7 @@
       const notShip = /\b(?:RIP|D[1-4]|BIS2?|P[1-3]|M1|R[1-4]|T[12]|CAR1?|CAP1?|SR[12])\b/i;
       const found = new Map();
       (updates.turniNavi || []).forEach(row => {
-        const name = String(row?.nave || '').trim();
-        if (name && !notShip.test(name) && !found.has(name.toLowerCase())) found.set(name.toLowerCase(), name);
+        nomiNave(row?.nave).forEach(name => { if (!notShip.test(name) && !found.has(name.toLowerCase())) found.set(name.toLowerCase(), name); });
       });
       const added = [...found.values()].filter(name => !nameTaken(name)).map(name => addShip(name)).filter(Boolean).length;
       if (added) { setDirty(true); render(); }

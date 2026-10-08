@@ -55,6 +55,12 @@
     return out.sort((a, b) => String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
   }
 
+  // Nomi nave puliti: tolti i suffissi degli O.d.S. ((A), (B), ©), "SAN" -> "S.", e un nome doppio
+  // ("PARINI + D'ANNUNZIO") diventa due navi.
+  const nomiNave = raw => String(raw || '').split('+').map(part => part.replace(/\s*(\([A-Za-z]\)|©)/g, '').replace(/\s+/g, ' ').trim()
+    .replace(/^SAN\s+/i, 'S. ').replace(/^S\s+(?=\S)/i, 'S. ').replace(/[’`]/g, "'")).filter(Boolean);
+  const stessaNave = (a, b) => nomiNave(a).some(x => nomiNave(b).some(y => x.toUpperCase() === y.toUpperCase()));
+
   // ---------------- Viste e giorno ----------------
   function render() {
     const d = parseIso(state.day);
@@ -175,7 +181,7 @@
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
-  window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti,
+  window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave,
     variazioneMovimento, salva, ripristina, variazione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.

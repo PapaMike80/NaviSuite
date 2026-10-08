@@ -246,3 +246,4 @@ select.mov-nave-tag{appearance:none;-webkit-appearance:none;max-width:150px;bord
 select.mov-nave-tag.vuota{border:1px dashed #315b66;background:transparent}
 select.mov-nave-tag option{background:#0b2731;color:#e8f7f7}
 html.navisuite-light select.mov-nave-tag option{background:#fff;color:#17323a}
+select.mov-nave-tag,select.mov-nave-tag option{font:900 12px/1.2 Inter,Arial,sans-serif}

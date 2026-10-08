@@ -15,7 +15,7 @@
 
   const NM = window.NaviMovimento;
   if (!NM || !document.getElementById('mov-list')) return;
-  const { O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, agenti, variazioneMovimento, salva, ripristina, variazione } = NM;
+  const { O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, agenti, nomiNave, stessaNave, variazioneMovimento, salva, ripristina, variazione } = NM;
   const C = window.NaviCourseInfo;
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -35,8 +35,7 @@
 
   // Equipaggio minimo della nave nel giorno (anagrafica navi) e ruoli che mancano.
   function minimo(nave, day, crew) {
-    const norm = value => String(value || '').trim().toUpperCase();
-    const ship = Object.values(state.fleet).find(item => norm(item?.nome) === norm(nave));
+    const ship = Object.values(state.fleet).find(item => stessaNave(item?.nome, nave));
     if (!ship) return null;
     const periodi = (Array.isArray(ship.periodi) ? ship.periodi : Object.values(ship.periodi || {})).filter(Boolean)
       .sort((a, b) => String(a.dal || '').localeCompare(String(b.dal || '')));
@@ -59,8 +58,7 @@
     motorista: ['Mot', '#a855f7', 'Motorista'], aiuto_motorista: ['AM', '#3b82f6', 'Aiuto motorista'], marinaio: ['Mar', '#e8f3f6', 'Marinaio'] };
   const cognome = name => { const w = String(name || '').trim().split(/\s+/)[0] || ''; return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
   function periodoNave(nave, day) {
-    const norm = value => String(value || '').trim().toUpperCase();
-    const ship = Object.values(state.fleet).find(item => norm(item?.nome) === norm(nave));
+    const ship = Object.values(state.fleet).find(item => stessaNave(item?.nome, nave));
     if (!ship) return null;
     const periodi = (Array.isArray(ship.periodi) ? ship.periodi : Object.values(ship.periodi || {})).filter(Boolean)
       .sort((a, b) => String(a.dal || '').localeCompare(String(b.dal || '')));
@@ -143,7 +141,7 @@
     const crews = G.equipaggi(state.schedule, day).navi;
     const tutti = agenti(day);
     const navi = [...new Set([...Object.values(state.fleet).filter(s => s?.attiva !== false).map(s => String(s.nome || '').trim()),
-      ...righe.map(row => String(row?.nave || '').replace(/\s*(\([A-Z]\)|©)/g, '').trim())].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
+      ...righe.flatMap(row => nomiNave(row?.nave))].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
     const datalists = `<datalist id="mov-navi">${navi.map(n => `<option value="${esc(n)}">`).join('')}</datalist>` +
       `<datalist id="mov-ormeggi">${PONTILI.map(p => `<option value="${p}">`).join('')}</datalist>`;
     const cards = codes.map(code => card(code, day, oggi[code] || {}, ieri[code] || {}, crews[code] || [], tutti)).join('');
@@ -176,9 +174,10 @@
     const bis = code === 'BIS' ? [] : (state.oggi.BIS?.incarichi || []).filter(inc => inc.turno === code);
     const bisBadge = bis.map(inc => `<span class="mov-bis-badge">BIS ${inc.tipo === 'aiuto' ? 'in aiuto' : 'al posto della nave'} · ${incaricoCorse(inc)}</span>`).join('');
     const attive = Object.values(state.fleet).filter(x => x?.attiva !== false).map(x => String(x.nome || '').trim()).filter(Boolean).sort((a, b) => a.localeCompare(b, 'it'));
-    const usate = Object.fromEntries(Object.entries(state.oggi).filter(([c, v]) => c !== code && v?.nave).map(([c, v]) => [String(v.nave).trim().toUpperCase(), c]));
-    const nomi = r.nave && !attive.some(n => n.toUpperCase() === String(r.nave).trim().toUpperCase()) ? [String(r.nave).trim(), ...attive] : attive;
-    const nave = `<select class="mov-nave-tag${r.nave ? '' : ' vuota'}" data-code="${code}" data-f="nave" aria-label="Nave della ${code}"><option value=""${r.nave ? '' : ' selected'}>nave da assegnare</option>${nomi.map(n => `<option value="${esc(n)}"${n.toUpperCase() === String(r.nave || '').trim().toUpperCase() ? ' selected' : ''}>${esc(n)}${usate[n.toUpperCase()] ? ` (ora ${usate[n.toUpperCase()]})` : ''}</option>`).join('')}</select>`;
+    const usate = Object.fromEntries(Object.entries(state.oggi).filter(([c, v]) => c !== code && v?.nave).flatMap(([c, v]) => nomiNave(v.nave).map(n => [n.toUpperCase(), c])));
+    const nomi = r.nave && !attive.some(n => stessaNave(n, r.nave)) ? [...nomiNave(r.nave), ...attive] : attive;
+    const ordinate = [...nomi.filter(n => !usate[n.toUpperCase()]), ...nomi.filter(n => usate[n.toUpperCase()])];
+    const nave = `<select class="mov-nave-tag${r.nave ? '' : ' vuota'}" data-code="${code}" data-f="nave" aria-label="Nave della ${code}"><option value=""${r.nave ? '' : ' selected'}>nave da assegnare</option>${ordinate.map(n => `<option value="${esc(n)}"${stessaNave(n, r.nave) ? ' selected' : ''}>${esc(n)}${usate[n.toUpperCase()] ? ` (ora ${usate[n.toUpperCase()]})` : ''}</option>`).join('')}</select>`;
     const stato = r.sospesa ? '<span class="mov-sospesa">SOSPESA</span>' : '';
     return `<article class="mov-turno${r.sospesa ? ' sospesa' : ''}${open ? ' open' : ''}" data-turno="${code}">
       <div class="mov-head" role="button" tabindex="0" data-act="open" data-code="${code}" aria-expanded="${open}">
