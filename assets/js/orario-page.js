@@ -553,7 +553,7 @@
       if (p.corsa === prima.corsa) return riga(p, rk(idx(p)), cls(p));
       const partenza = (g.programmate[`${code}|${p.corsa}`] || [])[0];
       if (partenza && partenza[0] === prima.scalo && minutes(partenza[1]) === prima.t) {
-        return sep(p) + riga({ ...prima, corsa: p.corsa }, rk(idx(prima)), cls(prima)) + riga(p, rk(idx(p)), cls(p));
+        return sep(p) + riga({ ...prima, corsa: p.corsa, sosp: !!p.sosp, da: p.sosp ? p.da : '' }, rk(idx(prima)), cls(prima)) + riga(p, rk(idx(p)), cls(p));
       }
       return sep(p) + riga(p, rk(idx(p)), cls(p));
     }).join('');

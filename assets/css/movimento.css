@@ -345,3 +345,5 @@ html.navisuite-light .rit-top b,html.navisuite-light .rit-rotta{color:#17323a!im
 .sp-riga em.bis{background:rgba(103,215,230,.2);color:#67d7e6}
 .sp-riga em.fatta{background:rgba(148,163,184,.2);color:#cbd5e1}
 html.navisuite-light .sp-riga{background:#fff!important}
+.rit-act{display:flex;flex-wrap:wrap;gap:6px}
+.rit-chiedi .pop-chips{margin:2px 0}

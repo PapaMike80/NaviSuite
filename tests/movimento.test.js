@@ -77,7 +77,7 @@ assert.strictEqual(lista.find(n => n.run === '15').title, 'D1 S. MARCO arriva al
 assert.ok(lista.some(n => n.code === 'BIS' && n.run === '33' && /in aiuto alla P2/.test(n.body)));
 assert.ok(lista.some(n => n.code === 'P2' && n.run === '33'));
 assert.match(rest, /incarichi:\(Array\.isArray\(values\.incarichi\)/);
-['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"', 'data-act="bis-form"'].forEach(act => assert.ok(page.includes(act), act));
+['data-act="bis-add"', 'data-act="bis-riprende"', 'data-act="bis-del"'].forEach(act => assert.ok(page.includes(act), act));
 // Ritardi per corsa: orari spostati; il ritardo passa alle corse dopo quanto la nave arriva tardi
 const conRit = rit => O.corseDelTurno('D1', day, rit).map(c => `${c.numero} ${c.scali[0][1]} ${O.testoRitardo(c.ritardo)}${c.ritardo?.propagato ? '*' : ''}`.trim());
 assert.deepStrictEqual(conRit({ 14: { minuti: 25 } }), ["14 9.40 +25'", "15 10.00 +25'*", "16 10.20 +15'*", '17 14.00', '18 17.05', '19 18.35']);
@@ -99,5 +99,5 @@ const rigaSosp = { data: day, corsa: 'D1', nave: 'S. MARCO', fonte: 'movimento',
 assert.deepStrictEqual(T.turniDelGiorno([rigaSosp], day).D1.corseSospese, ['16', '17']);
 assert.ok(!T.turniDelGiorno([rigaSosp], day).D1.sospesa);
 assert.match(rest, /corse_sospese:\(Array\.isArray\(values\.corse_sospese\)/);
-['data-act="sosp-sel"', 'data-act="bis-sel"', 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
+['data-act="corsa-chiedi"', "act === 'corsa-sospendi'", "act === 'corsa-bis'", 'data-act="corsa-riprendi"', 'data-act="corsa-bis-togli"'].forEach(act => assert.ok(page.includes(act), act));
 console.log('movimento ok');
