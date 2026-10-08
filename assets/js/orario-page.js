@@ -499,12 +499,17 @@
     const pos = posizione(punti, t);
     if (!pos) return '';
     const from = pos.stato === 'naviga' ? pos.i : pos.stato === 'fermo' ? pos.i + 1 : pos.stato === 'prima' ? 0 : punti.length;
+    // corse sostituite dal BIS o sospese: restano in elenco con la scritta accanto a ogni scalo
+    const bisCorse = new Set(O.corseDelTurno(code, g.day).filter(cc => O.bisPerCorsa(g.incarichi, code, cc.numero, g.day)).map(cc => String(cc.numero)));
+    const extra = (g.sospese || []).filter(x => x.turno === code)
+      .flatMap(x => x.scali.map(([scalo, ora, corsa]) => ({ scalo, t: minutes(ora), corsa, sosp: true, da: x.da })));
+    const tagDi = p => (p.sosp ? `<b class="sosp-tag">SOSPESA${p.da ? ` da ${esc(p.da)}` : ''}</b>` : bisCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' : '');
     const riga = (p, k, cls = '') => {
       // quanto manca (entro 2 ore); il primo scalo, se la nave naviga, e' "in arrivo"
       const min = p.t - t;
       const arriva = k === 0 && pos.stato === 'naviga';
-      const manca = cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
-      return `<li class="${p.scalo === state.scalo ? 'qui' : ''} ${cls}"><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}</span><small>c. ${esc(p.corsa)}</small></li>`;
+      const manca = !p.sosp && cls !== 'prec' && min >= 0 && min <= 120 ? badgeManca({ arriva, testo: arriva ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+      return `<li class="${p.scalo === state.scalo ? 'qui' : ''} ${cls}"><span>${hhmm(p.t)}</span><span class="or-next-nome">${esc(p.scalo)}${manca}${tagDi(p)}</span><small>c. ${esc(p.corsa)}</small></li>`;
     };
     // Se la nave passa dal mio scalo: solo il mio scalo (orario e quanto manca), con lo scalo precedente
     // in trasparenza; la freccia mostra tutti i prossimi scali.
@@ -530,23 +535,27 @@
     // prima di ogni corsa (anche la prima) una linea con il suo numero, come in Il mio turno; se la
     // corsa riparte subito dallo scalo d'arrivo della precedente (alla stessa ora, nei viaggi e' un
     // punto solo) lo scalo compare due volte: arrivo, linea, partenza della nuova corsa
-    const linea = numero => `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}</span></li>`;
+    const linea = (numero, tag = '') => `<li class="mt-sep or-sep" role="separator" aria-label="Corsa ${esc(numero)}"><span>${esc(numero)}${tag}</span></li>`;
     // le corse gia' finite restano nascoste (si possono mostrare)
     const fineCorsa = {};
-    punti.forEach(p => { fineCorsa[p.corsa] = p.t; });
+    const tutti = [...punti, ...extra].sort((a, b) => a.t - b.t || (a.sosp ? 1 : 0) - (b.sosp ? 1 : 0));
+    tutti.forEach(p => { fineCorsa[p.corsa] = Math.max(fineCorsa[p.corsa] || 0, p.t); });
     const finite = new Set(Object.keys(fineCorsa).filter(n => fineCorsa[n] < t));
     const mostraFinite = state.giornatePassate.has(code);
-    const giornataRighe = () => punti.map((p, k) => {
+    const giornataRighe = () => tutti.map((p, k) => {
       if (finite.has(p.corsa) && !mostraFinite) return '';
-      const cls = q => (q.t < t || k < from ? 'prec' : '');
-      if (!k) return linea(p.corsa) + riga(p, k - from, cls(p));
-      const prima = punti[k - 1];
-      if (p.corsa === prima.corsa) return riga(p, k - from, cls(p));
+      const idx = q => punti.indexOf(q);
+      const cls = q => (q.t < t || (idx(q) >= 0 && idx(q) < from) ? 'prec' : '');
+      const sep = q => linea(q.corsa, q.sosp || bisCorse.has(String(q.corsa)) ? tagDi(q) : '');
+      const rk = i => i - from;
+      if (!k) return sep(p) + riga(p, rk(idx(p)), cls(p));
+      const prima = tutti[k - 1];
+      if (p.corsa === prima.corsa) return riga(p, rk(idx(p)), cls(p));
       const partenza = (g.programmate[`${code}|${p.corsa}`] || [])[0];
       if (partenza && partenza[0] === prima.scalo && minutes(partenza[1]) === prima.t) {
-        return linea(p.corsa) + riga({ ...prima, corsa: p.corsa }, k - 1 - from, cls(prima)) + riga(p, k - from, cls(p));
+        return sep(p) + riga({ ...prima, corsa: p.corsa }, rk(idx(prima)), cls(prima)) + riga(p, rk(idx(p)), cls(p));
       }
-      return linea(p.corsa) + riga(p, k - from, cls(p));
+      return sep(p) + riga(p, rk(idx(p)), cls(p));
     }).join('');
     const toggleFinite = giornata && finite.size ? `<li class="or-finite"><button type="button" class="past-toggle" data-finite="${esc(code)}">${mostraFinite ? '▴ Nascondi le corse già fatte' : `▾ Mostra le corse già fatte (${finite.size})`}</button></li>` : '';
     const prossimi = giornata ? toggleFinite + giornataRighe()
@@ -559,7 +568,7 @@
     const cambiate = [...sospeseNave.map(x => ({ n: x.numero, scali: x.scali, tag: '<b class="sosp-tag">SOSPESA</b>' })),
       ...perBis.map(cc => ({ n: cc.numero, scali: cc.scali, tag: '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' }))]
       .sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
-    const sospBlocco = cambiate.length ? `<ul class="or-cambiate">${cambiate.map(x => `<li><b>c. ${esc(x.n)}</b> ${esc(x.scali[0][1])} ${esc(x.scali[0][0])} → ${esc(x.scali[x.scali.length - 1][1])} ${esc(x.scali[x.scali.length - 1][0])} ${x.tag}</li>`).join('')}</ul>` : '';
+    const sospBlocco = !giornata && cambiate.length ? `<ul class="or-cambiate">${cambiate.map(x => `<li><b>c. ${esc(x.n)}</b> ${esc(x.scali[0][1])} ${esc(x.scali[0][0])} → ${esc(x.scali[x.scali.length - 1][1])} ${esc(x.scali[x.scali.length - 1][0])} ${x.tag}</li>`).join('')}</ul>` : '';
     const freccia = punti.length > 2 ? `<button type="button" class="past-toggle" data-giornata="${esc(code)}">${giornata ? '▴ Meno scali' : `▾ Tutta la giornata (${punti.length} scali)`}</button>` : '';
     const c = chi(g, code, corsaPos(pos));
     const crew = g.crews[c] || [];
