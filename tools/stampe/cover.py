@@ -3,7 +3,8 @@ Coordinate in mm rispetto all'angolo alto-sinistro della cover (71.6 x 147.6).""
 import math, sys
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.colors import Color, HexColor, black
+from reportlab.lib.colors import Color, HexColor, black, white
+import os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import mm
 
@@ -15,15 +16,16 @@ KIND_COL = {"P": TEAL_SCURO, "A": AZZURRO, "▲": TEAL_SCURO, "▼": AZZURRO}
 TERRA_COL = {**SERV_COL, "AgM": TEAL_SCURO, "AgT": AZZURRO}
 
 
-FONDO = HexColor("#d9efed")              # fondo della cover, un po' piu' deciso delle righe
+SFONDO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cover_sfondo.jpg")   # foto di sfondo
 STRISCIA = HexColor("#ffffff")
 
 
-def striscia(c, x0, x1, y, h=3.3):
+def striscia(c, x0, x1, y, h=3.3, alpha=1.0):
     """Striscia bianca dietro una riga di orari (y = linea di base, mm)."""
-    c.setFillColor(STRISCIA)
+    c.saveState(); c.setFillColor(STRISCIA); c.setFillAlpha(alpha)
     px, py = P(x0, y + 0.95)
     c.roundRect(px, py, (x1 - x0) * mm, h * mm, 0.9 * mm, stroke=0, fill=1)
+    c.restoreState()
 
 
 def tinta(code):
@@ -81,10 +83,23 @@ def frame(c, code, sub, title_size=30, title_y=20.0, sub_y=27.5):
     c.setFont("DV", 8); c.setFillColor(black)
     c.drawCentredString(W / 2, H - 76.0, "Orario dal 5 ottobre 2026 (O.d.S. 39/2026) - stampa al 100% / dimensioni effettive")
     # fondo verde acqua chiaro, striscia di NaviSuite sotto la zona del titolo, anello MagSafe accennato
-    c.setStrokeColor(black); c.setLineWidth(0.35); c.setFillColor(FONDO)
-    c.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm, stroke=1, fill=1)
-    c.setStrokeColor(BORDO); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
+    # foto di sfondo (veliero al tramonto) ritagliata sulla cover, con una velatura chiara per i testi
+    c.saveState()
+    clip = c.beginPath()
+    clip.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm)
+    c.clipPath(clip, stroke=0, fill=0)
+    c.drawImage(SFONDO, CX0, H - CY0 - CH * mm, CW * mm, CH * mm)
+    c.setFillColor(white); c.setFillAlpha(0.42)
+    c.rect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, stroke=0, fill=1)
+    # velatura in piu' dove ci sono le tabelle: dentro l'anello e nella parte bassa
+    c.setFillAlpha(0.5)
+    c.circle(*P(*RING_C), (RING_R_IN - 0.5) * mm, stroke=0, fill=1)
+    c.rect(CX0, H - CY0 - CH * mm, CW * mm, (CH - 97.0) * mm, stroke=0, fill=1)
+    c.setStrokeColor(white); c.setStrokeAlpha(0.35); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
     c.circle(*P(*RING_C), (RING_R_IN + RING_R_OUT) / 2 * mm, stroke=1, fill=0)
+    c.restoreState()
+    c.setStrokeColor(black); c.setLineWidth(0.35)
+    c.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm, stroke=1, fill=0)
     c.setStrokeColor(TEAL); c.setLineWidth(1.4)
     c.line(*P(46.0, 43.6), *P(CW - 6.0, 43.6))
     # titolo nella zona accanto alla fotocamera
@@ -129,15 +144,25 @@ def trip_block(c, x, right, y, num, stops, step=3.55, head=4.6, nsz=6.4, center=
     y += head
     for i, (name, t, _) in enumerate(stops):
         y += step
-        if i % 2 == 0:
-            striscia(c, x - 1.0, right + 1.0, y, step)
+        striscia(c, x - 1.0, right + 1.0, y, step, alpha=1.0 if i % 2 == 0 else 0.6)
         txt(c, x, y, name, "DV", nsz)
         txt(c, right, y, t, "DVB", 6.6, color=NOTTE, align="r")
     return y + 1.6
 
 
+# Ore di servizio (presentazione e fine, durata) dei turni nave
+SERVIZIO = {"M1": ("8.15 – 19.40", "11 h 25'"), "T1": ("7.10 – 18.40", "11 h 30'"), "T2": ("7.45 – 19.18", "11 h 33'")}
+
+
+def servizio(c, code):
+    ore, durata = SERVIZIO[code]
+    txt(c, 56.5, 36.4, "SERVIZIO", "DVB", 4.6, color=TEAL_SCURO, align="c")
+    txt(c, 56.5, 39.8, f"{ore}  ·  {durata}", "DVB", 5.2, color=NOTTE, align="c")
+
+
 def m1_page(c):
     frame(c, "M1", ["dal 5/10 all'1/11/2026", "e dal 13 al 25/3/2027"])
+    servizio(c, "M1")
     # dentro l'anello: corsa 91
     m1 = tinta("M1")
     trip_block(c, 24.0, 47.6, 50.6, "91", M1["91"], step=3.3, head=3.4, nsz=6.0, center=True, color=m1)
@@ -162,8 +187,7 @@ def shuttle_page(c, code, out, back, pause, sub):
             if i == n_before:
                 y += 4.0
             y += 4.15
-            if i % 2 == 0:
-                striscia(c, x - 1.0, right + 1.0, y, 4.0)
+            striscia(c, x - 1.0, right + 1.0, y, 4.0, alpha=1.0 if i % 2 == 0 else 0.6)
             txt(c, x, y, n, "DVB", 8.6, color=tinta(code))
             txt(c, right, y, f"{dep} – {arr}", "DVB", 6.7, color=NOTTE, align="r")
     y_p = 105.4 + n_before * 4.15 + 3.3
@@ -199,6 +223,7 @@ def ring_note(c, lines):
 def t1_page(c):
     shuttle_page(c, "T1", T1_OUT, T1_BACK, (4, "PAUSA 13.20 – 14.20"),
                  ["dal 5 ottobre 2026", "al 25 marzo 2027"])
+    servizio(c, "T1")
     ring_note(c, [("MADERNO", "DVB", 8.5), ("⇄", "DVB", 9), ("TORRI", "DVB", 8.5),
                   ("8.10 – 18.30", "DV", 7), ("non effettuato il 25/12", "DV", 5)])
 
@@ -206,6 +231,7 @@ def t1_page(c):
 def t2_page(c):
     shuttle_page(c, "T2", T2_OUT, T2_BACK, (4, "PAUSA 13.20 – 14.20"),
                  ["dal 5/10 all'1/11/2026", "e dal 13 al 25/3/2027"])
+    servizio(c, "T2")
     ring_note(c, [("MADERNO", "DVB", 8.5), ("⇄", "DVB", 9), ("TORRI", "DVB", 8.5),
                   ("8.45 – 19.10", "DV", 7), ("sospeso dal 2/11 al 12/3", "DV", 5)])
 
@@ -251,8 +277,7 @@ def maderno_page(c):
         y = 57.4
         for i, (t, code, _, note, arrow) in enumerate(col):
             y += 3.75
-            if i % 2 == 0:
-                striscia(c, x0 - 1.4, x0 + 16.6, y, 3.6)
+            striscia(c, x0 - 1.4, x0 + 16.6, y, 3.6, alpha=1.0 if i % 2 == 0 else 0.6)
             txt(c, x0 + 5.6, y, t, "DVB", 5.9, color=NOTTE, align="r")
             txt(c, x0 + 6.0, y - 0.2, arrow, "DVB", 4.6, color=KIND_COL[arrow])
             w = txt(c, x0 + 8.1, y, code, "DVB", 6.4, color=tinta(code))
@@ -272,8 +297,7 @@ def maderno_page(c):
         for i, (t, kind, code) in enumerate(rows):
             sx = x0 + (13.4 if i >= 8 else 0)
             y = 107.4 + (i % 8) * 3.85
-            if i % 2 == 0:
-                striscia(c, sx - 0.6, sx + 12.4, y, 3.7)
+            striscia(c, sx - 0.6, sx + 12.4, y, 3.7, alpha=1.0 if i % 2 == 0 else 0.6)
             txt(c, sx + 6.9, y, t, "DVB", 6.6, color=NOTTE, align="r")
             txt(c, sx + 7.5, y, kind, "DVB", 5.4, color=KIND_COL[kind])
             txt(c, sx + 9.4, y, code, "DVB", 4.6, color=tinta(code))
@@ -322,8 +346,7 @@ def desenzano_page(c):
         y = 57.4
         for i, (t, kind, code, _) in enumerate(col):
             y += 3.75
-            if i % 2 == 0:
-                striscia(c, x0 - 1.4, x0 + 13.6, y, 3.6)
+            striscia(c, x0 - 1.4, x0 + 13.6, y, 3.6, alpha=1.0 if i % 2 == 0 else 0.6)
             entry(x0, y, t, kind, code)
     txt(c, RING_C[0], 84.0, "P partenza   A arrivo", "DV", 4.6, align="c")
 
@@ -335,8 +358,7 @@ def desenzano_page(c):
         y = 104.0
         for i, (t, kind, code, _) in enumerate(col):
             y += 5.0
-            if i % 2 == 0:
-                striscia(c, x0 - 1.0, x0 + 20.0, y, 4.6)
+            striscia(c, x0 - 1.0, x0 + 20.0, y, 4.6, alpha=1.0 if i % 2 == 0 else 0.6)
             txt(c, x0 + 7.6, y, t, "DVB", 8.0, color=NOTTE, align="r")
             txt(c, x0 + 8.4, y, kind, "DVB", 6.6, color=KIND_COL[kind])
             txt(c, x0 + 11.0, y, code, "DVB", 8.0, color=tinta(code))
