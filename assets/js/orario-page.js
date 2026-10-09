@@ -325,6 +325,43 @@
       $('orario-notice').textContent = `Pontile salvato solo su questo dispositivo (${error.message}).`;
     }
   }
+  // Ritardi: li inseriscono gli admin e l'utente di uno scalo (sul proprio scalo), solo nella giornata di oggi.
+  // Si salvano come quelli del Movimento (riga MOVIMENTO del turno nave): li vedono tutti e passano alle corse dopo.
+  const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
+  function puoRitardi() {
+    const p = profile(), R = window.NaviRoles || {};
+    if (!realToday() || !p?.id) return false;
+    return !!R.isAdminAgent?.(p) || (R.scaloOf?.(p) || '') === state.scalo;
+  }
+  function ritardoSelect(g, code, corsa) {
+    const proprio = g.navi[code]?.ritardi?.[corsa];
+    const valore = !proprio ? '' : proprio.oltre ? 'oltre' : String(proprio.minuti);
+    const testo = v => (v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
+    return `<label class="ritardo-sel${valore ? ' on' : ''}" title="Ritardo della corsa ${esc(corsa)}">⏱` +
+      `<select data-ritardo="${esc(code)}|${esc(corsa)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
+      `<option value="">${valore ? 'in orario' : '–'}</option>${RITARDI.map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
+  }
+  async function salvaRitardo(code, corsa, value) {
+    const provider = window.NaviAdminFirebase;
+    const day = today();
+    try {
+      await provider.ready;
+      const righe = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
+      const r = T.turniDelGiorno(righe, day)[code] || {};
+      const ritardi = Object.entries(r.ritardi || {}).map(([c, x]) => ({ corsa: c, minuti: x.minuti, oltre: !!x.oltre })).filter(x => x.corsa !== String(corsa));
+      if (value) ritardi.push({ corsa: String(corsa), minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
+      const p = profile();
+      state.firebaseNavi = await provider.saveTurnoNaveMovimento(day, code, {
+        nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
+        sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi, corse_sospese: r.corseSospeseRaw || []
+      }, `${p?.name || p?.id || ''}${window.NaviRoles?.scaloOf?.(p) ? ' (scalo)' : ''}`);
+    } catch (error) {
+      console.warn('Ritardo non salvato', error);
+      alert(`Ritardo non salvato: ${error.message}`);
+    }
+    render();
+  }
+
   function pontileSelect(keys, day, odsMooring, when) {
     const { value, source } = T.pontileFor(state.pontili[keys[0]], day, odsMooring);
     const options = ['', ...PONTILI];
@@ -421,6 +458,7 @@
     const lastPast = pastIdx[pastIdx.length - 1];
     const nascoste = Math.max(0, pastIdx.length - 1);
     const prossima = righe.findIndex(r => r.t >= t);
+    const ritardiOk = puoRitardi();
     const html = righe.map((r, i) => {
       if (r.t < t && i !== lastPast && !state.showPastLago) return '';
       const code = r.v.turno;
@@ -449,6 +487,7 @@
       } else if (odsMooring) {
         badges.push(`<b class="ormeggio" title="Ormeggio ${mattino ? 'del mattino' : 'serale'}">⚓ ${esc(T.pontLabel(odsMooring))}</b>`);
       }
+      if (ritardiOk && r.corsa && !r.propria) badges.push(ritardoSelect(g, code, r.corsa));
       // quanto manca: all'arrivo finche' la nave non e' arrivata, poi alla partenza
       const verso = r.arr && t < r.arr.t ? r.arr : r;
       const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
@@ -815,6 +854,7 @@
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; }
     else if (event.target.id === 'or-to') state.to = event.target.value;
     else if (event.target.matches('[data-pontile]')) { salvaPontile(event.target.dataset.pontile.split(' '), event.target.value); return; }
+    else if (event.target.matches('[data-ritardo]')) { const [code, corsa] = event.target.dataset.ritardo.split('|'); salvaRitardo(code, corsa, event.target.value); return; }
     else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); }
     else return;
     state.showPast = false;
@@ -828,7 +868,7 @@
       if (matchMedia('(max-width: 900px)').matches) document.querySelector('.or-at-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (event.target.closest('.pontile-sel')) return;
+    if (event.target.closest('.pontile-sel, .ritardo-sel')) return;
     if (event.target.closest('[data-at-toggle]')) { state.scaloChiuso = !state.scaloChiuso; render(); return; }
     if (event.target.closest('[data-past-lago]')) { state.showPastLago = !state.showPastLago; render(); return; }
     // intestazione della scheda della corsa: la richiude
@@ -881,6 +921,7 @@
   });
   content.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.target.closest('select')) return;
     const target = event.target.closest('[data-ship],[data-open],[data-port],.or-detail .terra-card-head');
     if (!target) return;
     event.preventDefault();
