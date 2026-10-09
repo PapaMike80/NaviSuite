@@ -183,5 +183,42 @@
     return out;
   }
 
-  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA, settimaneDi, competenze, COMPETENZE };
+
+  // Tabella dell'anno (NaviDiaria e pagina Distinte): una riga per mese con tutte le competenze; i mesi in `aperti`
+  // si espandono con giorni e settimane nelle STESSE colonne (Giorni = turno, ✓ per le competenze a conteggio).
+  const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const conTurnoL = e => !!String(e?.shift || '').trim() && lavoro(e);
+  function tabellaAnno(list, conv, anno, aperti = new Set()) {
+    const valore = (c, [k, , tipo]) => (tipo === 'h' ? ore(c[k]) : (c[k] || ''));
+    const cella = (k, v) => `<td${k === 'straordinari' ? ' class="forte"' : ''}>${v}</td>`;
+    const fmt = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
+    const annidato = ws => ws.map(w => w.giorni.map(e => {
+      const d = new Date(`${e.date}T12:00:00`), on = conTurnoL(e), c = causali(e);
+      const g = on ? competenze([e], {}, e.date, [{ giorni: [e], lavorate: 0, straordinario: 0 }]) : {};
+      const td = COMPETENZE.map(col => {
+        const k = col[0];
+        if (k === 'giorni') return `<td>${escH(e.shift || '')}</td>`;
+        if (!on) return k === 'banca' ? cella(k, ore(e.bank)) : '<td></td>';
+        if (k === 'lavorate') return cella(k, ore(lavorate(e)));
+        if (k === 'straordinari') return cella(k, ore(c.ritardo + c.cambio + c.sentine));
+        const v = valore(g, col);
+        return cella(k, escH(col[2] === 'h' ? v : (v ? '✓' : '')));
+      }).join('');
+      return `<tr class="giorno${on ? '' : ' rip'}"${e.note ? ` title="${escH(e.note)}"` : ''}><td class="fisso">${GIORNI[d.getDay()]} ${fmt(e.date)}</td>${td}</tr>`;
+    }).join('') + `<tr class="sett"><td class="fisso">Sett. ${fmt(w.dal)} – ${fmt(w.al)}</td>${COMPETENZE.map(([k]) =>
+      k === 'lavorate' ? cella(k, ore(w.lavorate)) : k === 'straordinari' ? cella(k, w.straordinario ? `<b>${ore(w.straordinario)}</b>` : '0:00') : '<td></td>').join('')}</tr>`).join('');
+    const sett = settimaneDi(list, anno);
+    const righe = MESI.map((nome, i) => {
+      const mese = `${anno}-${String(i + 1).padStart(2, '0')}`, ws = sett.filter(w => w.al.startsWith(mese));
+      const c = competenze(list, conv, mese, ws);
+      if (!c.giorni) { aperti.delete(mese); return `<tr class="vuoto"><td class="fisso">${escH(nome)}</td><td colspan="${COMPETENZE.length}">—</td></tr>`; }
+      const su = aperti.has(mese);
+      return `<tr class="mese${su ? ' aperto' : ''}" data-mese="${mese}" title="Tocca per vedere i giorni"><td class="fisso">${su ? '▾' : '▸'} ${escH(nome)}</td>${COMPETENZE.map(col => cella(col[0], escH(valore(c, col)))).join('')}</tr>` + (su ? annidato(ws) : '');
+    }).join('');
+    const tot = competenze(list, conv, anno, sett);
+    return `<table><thead><tr><th class="fisso">Mese</th>${COMPETENZE.map(([, t]) => `<th>${escH(t)}</th>`).join('')}</tr></thead>` +
+      `<tbody>${righe}<tr class="tot"><td class="fisso">Totale ${escH(anno)}</td>${COMPETENZE.map(col => cella(col[0], escH(valore(tot, col)))).join('')}</tr></tbody></table>`;
+  }
+
+  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA, settimaneDi, competenze, COMPETENZE, tabellaAnno };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -98,19 +98,18 @@
       ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))], ['Ticket', lav.filter(e => e.ticketPresence ?? e.mealUsed).length],
       ['Diarie', lav.filter(e => e.allowanceRate != null).length]]
       .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('');
-    // anno intero: riepilogo dei 12 mesi in una tabella, sopra ai giorni
-    let mensile = '';
+    // anno intero: la tabella dei 12 mesi (come in NaviDiaria); tocca un mese per aprire giorni e settimane
     if (periodo.length === 4) {
-      const righeMesi = MESI.map((nome, i) => {
-        const mese = `${periodo}-${String(i + 1).padStart(2, '0')}`, ws = settimane.filter(w => w.al.startsWith(mese));
-        if (!ws.some(w => w.giorni.some(lavoro))) return `<tr class="vuoto"><td class="fisso">${esc(nome)}</td><td colspan="${COMPETENZE.length}">—</td></tr>`;
-        return `<tr><td class="fisso">${esc(nome)}</td>${celle(competenze(a, mese, ws))}</tr>`;
-      });
-      mensile = `<h3 class="tit-mesi">Riepilogo mensile ${esc(periodo)}</h3><div class="wrap mesi"><table><thead><tr><th class="fisso">Mese</th>${intestazione()}</tr></thead><tbody>${righeMesi.join('')}` +
-        `<tr class="tot"><td class="fisso">Totale</td>${celle(competenze(a, periodo, settimane))}</tr></tbody></table></div>` +
-        '<h3 class="tit-mesi">Giorno per giorno</h3>';
+      if (dettaglio.agente !== a.id) { dettaglio.aperti = new Set(); dettaglio.agente = a.id; }
+      $('mensile').innerHTML = `<h3 class="tit-mesi">Riepilogo dell'anno ${esc(periodo)}</h3><p class="status">Tocca un mese per vedere i suoi giorni (colonna Giorni = turno; riga gialla = settimana, straordinario oltre 39 h).</p>` +
+        `<div class="wrap mesi diaria-anno">${B.tabellaAnno(a.entries, a.conversioni, periodo, dettaglio.aperti)}</div>`;
+      $('tabella').innerHTML = '';
+      $('tabella').parentElement.hidden = true;
+      $('dettaglio').hidden = false;
+      return;
     }
-    $('mensile').innerHTML = mensile;
+    $('mensile').innerHTML = '';
+    $('tabella').parentElement.hidden = false;
     const rigaGiorno = e => { const d = new Date(`${e.date}T12:00:00`), w = lavoro(e), c = B.causali(e);
       return `<tr class="${w ? '' : 'rip'}"><td>${GIORNI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}</td><td>${esc(e.shift || '')}</td><td>${w ? ore(B.servizio(e)) : ''}</td><td>${w ? ore(B.lavorate(e)) : ''}</td>` +
         `<td>${w && c.ritardo + c.cambio + c.sentine ? ore(c.ritardo + c.cambio + c.sentine) : ''}</td><td>${e.bank ? ore(e.bank) : ''}</td><td>${w && (e.ticketPresence ?? e.mealUsed) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
@@ -161,6 +160,12 @@
     B.scarica(`Distinte-${mese}.zip`, B.zip(files), 'application/zip');
   });
   $('agenti').addEventListener('click', event => { const b = event.target.closest('[data-id]'); if (!b) return; scelto = agenti.find(a => a.id === b.dataset.id); elenco(); dettaglio(); $('dettaglio').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('mensile').addEventListener('click', event => {
+    const r = event.target.closest('tr.mese[data-mese]');
+    if (!r || !dettaglio.aperti) return;
+    if (dettaglio.aperti.has(r.dataset.mese)) dettaglio.aperti.delete(r.dataset.mese); else dettaglio.aperti.add(r.dataset.mese);
+    dettaglio();
+  });
   $('cerca').addEventListener('input', elenco);
   $('mese').addEventListener('change', () => { elenco(); dettaglio(); riepilogoTutti(); });
   $('tutti-tabella').addEventListener('click', event => { const r = event.target.closest('tr[data-id]'); if (!r) return; scelto = agenti.find(a => a.id === r.dataset.id); elenco(); dettaglio(); $('dettaglio').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
