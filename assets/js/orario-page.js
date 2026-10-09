@@ -356,13 +356,15 @@
     const turno = state.schedule ? G.turnoAgente(state.schedule, p, today())?.turno : '';
     return BIGLIETTERIE[G.terraCode(turno)] === state.scalo;
   }
-  function ritardoSelect(g, code, corsa) {
+  // previsto: ora d'attracco da orario (HH:MM) allo scalo; "Attraccata ora" = adesso - previsto
+  function ritardoSelect(g, code, corsa, previsto = '') {
     const proprio = g.navi[code]?.ritardi?.[corsa];
     const valore = !proprio ? '' : proprio.oltre ? 'oltre' : String(proprio.minuti);
     const testo = v => (v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
     return `<label class="ritardo-sel${valore ? ' on' : ''}" title="Ritardo della corsa ${esc(corsa)}">⏱` +
-      `<select data-ritardo="${esc(code)}|${esc(corsa)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
-      `<option value="">${valore ? 'in orario' : '–'}</option>${RITARDI.map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
+      `<select data-ritardo="${esc(code)}|${esc(corsa)}" data-previsto="${esc(previsto)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
+      `${previsto ? '<option value="ora">⚓ Attraccata ora</option>' : ''}` +
+      `<option value=""${valore ? '' : ' selected'}>${valore ? 'in orario' : '–'}</option>${(valore && !RITARDI.includes(valore) ? [valore, ...RITARDI] : RITARDI).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
   }
   async function salvaRitardo(code, corsa, value) {
     const provider = window.NaviAdminFirebase;
@@ -510,7 +512,7 @@
       } else if (odsMooring) {
         badges.push(`<b class="ormeggio" title="Ormeggio ${mattino ? 'del mattino' : 'serale'}">⚓ ${esc(T.pontLabel(odsMooring))}</b>`);
       }
-      if (ritardiOk && r.corsa && !r.propria) badges.push(ritardoSelect(g, code, r.corsa));
+      if (ritardiOk && r.corsa && !r.propria) badges.push(ritardoSelect(g, code, r.corsa, (r.arr ? orarioProgrammato(g, code, r.arr.corsa, state.scalo, true) || r.arr.ora : orarioProgrammato(g, code, r.corsa, state.scalo, r.kind === 'A') || r.ora)));
       // quanto manca: all'arrivo finche' la nave non e' arrivata, poi alla partenza
       const verso = r.arr && t < r.arr.t ? r.arr : r;
       const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
@@ -877,7 +879,17 @@
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; }
     else if (event.target.id === 'or-to') state.to = event.target.value;
     else if (event.target.matches('[data-pontile]')) { salvaPontile(event.target.dataset.pontile.split(' '), event.target.value); return; }
-    else if (event.target.matches('[data-ritardo]')) { const [code, corsa] = event.target.dataset.ritardo.split('|'); salvaRitardo(code, corsa, event.target.value); return; }
+    else if (event.target.matches('[data-ritardo]')) {
+      const [code, corsa] = event.target.dataset.ritardo.split('|');
+      let value = event.target.value;
+      if (value === 'ora') {
+        // Attraccata ora: ritardo = ora attuale - attracco previsto (in orario se arriva prima o puntuale)
+        const [h, m] = String(event.target.dataset.previsto || '').split(/[:.]/).map(Number);
+        const minuti = nowMinutes() - (h * 60 + m);
+        value = !Number.isFinite(minuti) || minuti <= 0 ? '' : minuti > 120 ? 'oltre' : String(minuti);
+      }
+      salvaRitardo(code, corsa, value); return;
+    }
     else if (event.target.matches('[data-scalo]')) { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); }
     else return;
     state.showPast = false;
