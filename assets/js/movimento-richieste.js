@@ -1,6 +1,6 @@
 /*
  * NaviSuite · Movimento — tab Cambi richiesti: tutti i cambi turno fatti dagli agenti dalla propria Distinta, da oggi in poi,
- * ancora da decidere, in ordine di giorno. Per ognuno: approva, rifiuta (torna il turno previsto) o vai al giorno nel tab Agenti.
+ * in ordine di giorno: quelle da decidere e quelle gia' approvate (con il pulsante per ripristinare il turno di prima). Per ognuno: approva, rifiuta (torna il turno previsto) o vai al giorno nel tab Agenti.
  */
 (() => {
   'use strict';
@@ -17,20 +17,23 @@
   const titolo = text => String(text || '').charAt(0) + String(text || '').slice(1).toLowerCase();
 
   function render() {
-    const lista = NM.state.schedule ? NM.richieste() : [];
-    document.getElementById('richieste-count').textContent = String(lista.length);
+    const lista = NM.state.schedule ? NM.richieste({ conApprovate: true }) : [];
+    document.getElementById('richieste-count').textContent = String(lista.filter(r => !r.approvata).length);
     if (!NM.state.schedule) { view.innerHTML = '<p class="muted">Caricamento turni…</p>'; return; }
     if (!lista.length) { view.innerHTML = '<p class="muted">Nessun cambio turno da decidere.</p>'; return; }
     view.innerHTML = `<ul class="rich-list">${lista.map(r => {
       const k = esc(`${r.agent.id}|${r.day}`);
       const prima = r.deciso || r.previsto || r.da;
-      return `<li class="rich-item"><div class="rich-info"><b class="rich-giorno">${esc(giorno(r.day))}</b>` +
+      return `<li class="rich-item${r.approvata ? ' approvata' : ''}"><div class="rich-info"><b class="rich-giorno">${esc(giorno(r.day))}</b>` +
         `<span class="rich-nome">${esc(r.agent.agente)}</span><small>${esc(titolo(r.residenza))}${r.agent.qualifica ? ` · ${esc(r.agent.qualifica)}` : ''}</small></div>` +
         `<div class="rich-turni"><span class="rich-label">da</span><span class="chip" data-code="${esc(prima || '—')}">${esc(nomeTurno(prima))}</span>` +
         `<span class="rich-label">a</span><span class="chip" data-code="${esc(r.turno)}">${esc(nomeTurno(r.turno))}</span></div>` +
-        `<div class="rich-azioni"><button type="button" class="btn primary" data-act="approva" data-k="${k}">✓ Approva</button>` +
+        (r.approvata
+          ? `<div class="rich-azioni"><span class="rich-ok">✓ Approvato</span>` +
+            `<button type="button" class="btn" data-act="rifiuta" data-k="${k}">↺ Ripristina turno ${esc(nomeTurno(prima))}</button></div></li>`
+          : `<div class="rich-azioni"><button type="button" class="btn primary" data-act="approva" data-k="${k}">✓ Approva</button>` +
         `<button type="button" class="btn danger" data-act="rifiuta" data-k="${k}" title="Torna ${esc(nomeTurno(prima))}">✗ Rifiuta</button>` +
-        `<button type="button" class="btn" data-act="vai" data-k="${k}" title="Apri il giorno nel tab Agenti">Vai al giorno</button></div></li>`;
+        `<button type="button" class="btn" data-act="vai" data-k="${k}" title="Apri il giorno nel tab Agenti">Vai al giorno</button></div></li>`);
     }).join('')}</ul>`;
   }
 
@@ -38,7 +41,7 @@
     const btn = event.target.closest('[data-act]');
     if (!btn) return;
     const [id, day] = String(btn.dataset.k).split('|');
-    const r = NM.richieste().find(x => String(x.agent.id) === id && x.day === day);
+    const r = NM.richieste({ conApprovate: true }).find(x => String(x.agent.id) === id && x.day === day);
     if (!r) return;
     if (btn.dataset.act === 'vai') {
       NM.goToDay(day);

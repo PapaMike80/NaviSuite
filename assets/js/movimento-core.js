@@ -265,7 +265,8 @@
   // Una richiesta e' un cambio fatto dall'agente nella Distinta (da oggi in poi) con un turno diverso da quello previsto e da quello
   // che il Movimento ha eventualmente gia' deciso, e non ancora chiusa dal Movimento (approvata, rifiutata o modificata): anche
   // dopo una decisione del Movimento, un nuovo cambio dell'agente e' una nuova richiesta.
-  function richieste() {
+  // conApprovate: aggiunge anche le richieste gia' approvate (approvata: true), per mostrarle nel tab Cambi richiesti con il ripristino.
+  function richieste({ conApprovate = false } = {}) {
     const oggi = iso(new Date());
     const agentiMap = new Map();
     Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => { if (agent?.id) agentiMap.set(String(agent.id), { agent, residenza }); }));
@@ -278,10 +279,11 @@
       // chiusa: approvata/rifiutata/modificata dal Movimento, oppure gia' sovrascritta da una sua decisione
       const sovrascritta = !!deciso && norm(deciso.sovrascrive ?? '') === norm(m.turno);
       return { agent, residenza, day: m.day, turno: m.turno, previsto, da: m.da || '', deciso: deciso ? String(deciso.turno_nuovo || '') : '',
-        chiusa: (!!chiusa && norm(chiusa.turno) === norm(m.turno)) || sovrascritta };
+        chiusa: (!!chiusa && norm(chiusa.turno) === norm(m.turno)) || sovrascritta,
+        approvata: !sovrascritta && !!chiusa && norm(chiusa.turno) === norm(m.turno) && (chiusa.stato || 'approvata') === 'approvata' };
     })
       // un cambio dell'agente e' una richiesta se e' diverso dal turno previsto e da quello che il Movimento ha gia' deciso
-      .filter(r => !r.chiusa && norm(r.turno) !== norm(r.previsto) && !(r.deciso && norm(r.deciso) === norm(r.turno)))
+      .filter(r => (!r.chiusa || (conApprovate && r.approvata)) && norm(r.turno) !== norm(r.previsto) && !(r.deciso && norm(r.deciso) === norm(r.turno)))
       .sort((a, b) => a.day.localeCompare(b.day) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
   }
   // Quali richieste il Movimento ha gia' visto aprendo "Vedi": l'avviso rosso conta solo le nuove. Non toccare una richiesta vuol dire
