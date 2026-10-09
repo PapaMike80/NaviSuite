@@ -1,0 +1,8 @@
+services:
+  navisuite-arrivi:
+    build: .
+    container_name: navisuite-arrivi
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+      # - DRY_RUN=1        # prova: scrive nel log cosa manderebbe, senza mettere niente in coda
