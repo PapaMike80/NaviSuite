@@ -171,3 +171,8 @@ div.or-ship-row{cursor:default}
 .or-adesso.on{border-color:#2dd4bf;background:rgba(45,212,191,.22);color:#2dd4bf;cursor:default}
 html.navisuite-light #orario .terra-day-current,html.navisuite-light #mio-turno .terra-day-current{background:#e3f7f3!important;border-color:#087b6e!important}
 html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .terra-day-label{color:#0c3b36!important}
+/* Ritardo inserito allo scalo (admin e utenti scalo) */
+.ritardo-sel{display:inline-flex;align-items:center;gap:2px;padding:2px 5px 2px 7px;border:1px dashed #6b5a2a;border-radius:8px;color:#a08a4a;font-size:12px;font-weight:900;cursor:pointer}
+.ritardo-sel.on{border:1px solid #f59e0b;background:rgba(245,158,11,.18);color:#fbbf24}
+.ritardo-sel select{appearance:none;-webkit-appearance:none;padding:2px 3px;border:0;background:transparent;color:inherit;font:900 12px Manrope,sans-serif;cursor:pointer}
+.ritardo-sel select option{background:#0d1f27;color:#e8f3f6}
