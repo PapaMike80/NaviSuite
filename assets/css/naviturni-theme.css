@@ -101,3 +101,16 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 /* Avvisi in basso: sopra a tutto (anche alla tabella), centrati e a capo, leggibili sul telefono */
 .toast{z-index:100100;left:50%;right:auto;bottom:calc(24px + env(safe-area-inset-bottom));max-width:min(92vw,460px);width:max-content;transform:translate(-50%,15px);white-space:normal;text-align:center;line-height:1.35;font-size:15px;box-shadow:0 12px 34px rgba(0,0,0,.55)}
 .toast.show{transform:translate(-50%,0)}
+/* Riepilogo dell'anno (Distinta) */
+.diaria-anno{margin:14px 0 0;border:1px solid rgba(126,243,226,.28);border-radius:12px;background:rgba(7,23,32,.22)}
+.diaria-anno summary{padding:12px 14px;color:#5eead4;font:800 15px Manrope,sans-serif;cursor:pointer}
+.diaria-anno .anno-nota{margin:0 14px 8px;color:#9fb8c2;font-size:12px}
+.diaria-anno .anno-wrap{overflow:auto;margin:0 8px 10px;border:1px solid rgba(126,243,226,.18);border-radius:10px}
+.diaria-anno table{width:100%;border-collapse:collapse;font-size:13px;color:#e6f3f5}
+.diaria-anno th,.diaria-anno td{padding:7px 9px;border-bottom:1px solid rgba(126,243,226,.12);text-align:left;white-space:nowrap}
+.diaria-anno th{background:#0f303c;color:#9fb8c2;font:800 10.5px Manrope,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.diaria-anno .fisso{position:sticky;left:0;z-index:1;background:#0b2731;font-weight:800;text-transform:capitalize}
+.diaria-anno th.fisso{background:#0f303c}
+.diaria-anno td.forte{color:#fde68a;font-weight:800}
+.diaria-anno tr.vuoto td{color:#57737d}
+.diaria-anno tr.tot td{background:#123a40;font-weight:800}

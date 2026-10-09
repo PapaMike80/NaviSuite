@@ -59,39 +59,10 @@
     }).join('') || '<p class="status">Nessun agente trovato.</p>';
   }
 
-  // Settimane del periodo di un agente (solo quelle con dati): [{dal, al, lavorate, straordinario, giorni}]
-  function settimaneDi(a, periodo) {
-    const byDate = new Map(a.entries.map(e => [e.date, e]));
-    return B.domeniche(periodo).map(dom => {
-      const w = B.sett(a.entries, dom), giorni = [];
-      for (let d = new Date(`${w.dal}T12:00:00`); ; d.setDate(d.getDate() + 1)) {
-        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        giorni.push(byDate.get(iso) || { date: iso, shift: '' });
-        if (iso === dom) break;
-      }
-      return { ...w, giorni };
-    }).filter(w => w.giorni.some(e => e.shift));
-  }
-  // festivita' come nella Distinta: feste nazionali e Pasquetta (la domenica e' l'indennita' turno domenicale)
-  const FESTE = new Set(['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26']);
-  function pasquetta(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mese = Math.floor((h + l - 7 * m + 114) / 31), giorno = ((h + l - 7 * m + 114) % 31) + 1, x = new Date(y, mese - 1, giorno + 1, 12); return `${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; }
-  const festivo = e => (e.holidayWorked === undefined ? FESTE.has(e.date.slice(5)) || e.date.slice(5) === pasquetta(Number(e.date.slice(0, 4))) : !!e.holidayWorked);
-  // Tutte le competenze di un agente nel periodo (mese o anno)
-  const COMPETENZE = [['giorni', 'Giorni', 'n'], ['lavorate', 'Ore lavorate', 'h'], ['straordinari', 'Straordinari', 'h'], ['trasformati', 'Trasformati', 'h'], ['pagati', 'Str. pagati', 'h'],
-    ['banca', 'Banca ore', 'h'], ['ticket', 'Ticket', 'n'], ['ticket2', '2° ticket', 'n'], ['d9', 'Diaria 9%', 'n'], ['d24', 'Diaria 24%', 'n'], ['d50', 'Diaria 50%', 'n'],
-    ['pernotto', 'Pernotto 40%', 'n'], ['festivi', 'Festività', 'n'], ['domeniche', 'Ind. dom.', 'n'], ['imbarco', 'Imbarco', 'n'], ['denaro', 'Maneggio denaro', 'n'],
-    ['aliscafo', 'Aliscafo', 'n'], ['rf', 'Recupero forfait', 'n'], ['trasferte', 'Trasferte', 'n'], ['rifornimenti', 'Rifornimenti', 'n'], ['cambi', 'Cambi', 'h'], ['sentine', 'Sentine', 'h'], ['mancatiRiposi', 'Mancati riposi', 'n']];
-  function competenze(a, periodo, settimane = settimaneDi(a, periodo)) {
-    const gg = settimane.flatMap(w => w.giorni), lav = gg.filter(lavoro), n = f => lav.filter(f).length;
-    const straordinari = settimane.reduce((s, w) => s + w.straordinario, 0), trasformati = sommaConv(a, periodo);
-    return { giorni: lav.length, lavorate: settimane.reduce((s, w) => s + w.lavorate, 0), straordinari, trasformati, pagati: Math.max(0, straordinari - trasformati),
-      banca: gg.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(trasformati * 1.1),
-      ticket: n(e => e.ticketPresence ?? e.mealUsed), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
-      pernotto: n(e => e.overnight40), festivi: n(festivo), domeniche: n(e => new Date(`${e.date}T12:00:00`).getDay() === 0), imbarco: n(e => e.embark), denaro: n(e => e.cashHandling),
-      aliscafo: n(e => (e.hydrofoil === undefined ? String(e.shift).toUpperCase() === 'SR1' : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
-      rifornimenti: n(e => e.refuelDone === true || Number(e.refuel) > 0), cambi: lav.reduce((s, e) => s + B.causali(e).cambio, 0), sentine: lav.reduce((s, e) => s + B.causali(e).sentine, 0),
-      mancatiRiposi: lav.reduce((s, e) => s + (Number(e.missedRest) || 0), 0) };
-  }
+  // calcoli comuni (anche nella Distinta di ogni agente): assets/js/diaria-backup.js
+  const { COMPETENZE } = B;
+  const settimaneDi = (a, periodo) => B.settimaneDi(a.entries, periodo);
+  const competenze = (a, periodo, settimane) => B.competenze(a.entries, a.conversioni, periodo, settimane);
   const valore = (c, [k, , tipo]) => (tipo === 'h' ? (c[k] ? ore(c[k]) : '') : (c[k] || ''));
   const intestazione = () => COMPETENZE.map(([, t]) => `<th>${esc(t)}</th>`).join('');
   const celle = c => COMPETENZE.map(col => `<td${col[0] === 'straordinari' ? ' class="forte"' : ''}>${esc(valore(c, col))}</td>`).join('');

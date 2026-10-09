@@ -71,6 +71,7 @@
   }
 
   function aggiorna() {
+    setTimeout(() => window.NaviDiariaAnno?.render?.(), 0); // riepilogo dell'anno con le ore trasformate
     const t = window.NaviDiariaTotals;
     if (!t) return;
     // come la colonna TOT. MESE della Distinta (anche le settimane non ancora finite, previste dai turni)
