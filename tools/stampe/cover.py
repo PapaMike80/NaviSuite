@@ -16,7 +16,22 @@ KIND_COL = {"P": TEAL_SCURO, "A": AZZURRO, "▲": TEAL_SCURO, "▼": AZZURRO}
 TERRA_COL = {**SERV_COL, "AgM": TEAL_SCURO, "AgT": AZZURRO}
 
 
-SFONDO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cover_sfondo.jpg")   # foto di sfondo
+# Sfondo: il Lago di Garda dalla mappa dell'app (assets/js/orario-lago.js), adattato alla cover
+def _lago():
+    import json, re
+    src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "js", "orario-lago.js")
+    d = json.loads(re.search(r"root.NaviLagoMappa = (\{.*?\});", open(src, encoding="utf-8").read(), re.S).group(1))
+    pts = [tuple(map(float, q.split())) for q in d["costa"].strip("MZ ").replace("M", "").split(" L")]
+    xs, ys = [q[0] for q in pts], [q[1] for q in pts]
+    k = min(71.6 / (max(xs) - min(xs)), 147.6 / (max(ys) - min(ys)))
+    ox, oy = (71.6 - (max(xs) - min(xs)) * k) / 2 - min(xs) * k, (147.6 - (max(ys) - min(ys)) * k) / 2 - min(ys) * k
+    conv = lambda x, y: (ox + x * k, oy + y * k)
+    return [conv(*q) for q in pts], {n: conv(*v["porto"]) for n, v in d["scali"].items()}
+
+
+LAGO, PORTI = _lago()
+TERRA = HexColor("#eef2ea")             # sponde
+ACQUA_N, ACQUA_S = HexColor("#7fc3dc"), HexColor("#b9e2ee")   # lago, piu' scuro a nord
 STRISCIA = HexColor("#ffffff")
 
 
@@ -83,19 +98,29 @@ def frame(c, code, sub, title_size=30, title_y=20.0, sub_y=27.5):
     c.setFont("DV", 8); c.setFillColor(black)
     c.drawCentredString(W / 2, H - 76.0, "Orario dal 5 ottobre 2026 (O.d.S. 39/2026) - stampa al 100% / dimensioni effettive")
     # fondo verde acqua chiaro, striscia di NaviSuite sotto la zona del titolo, anello MagSafe accennato
-    # foto di sfondo (veliero al tramonto) ritagliata sulla cover, con una velatura chiara per i testi
+    # sfondo: il Lago di Garda (sponde chiare, acqua azzurra sfumata), con una velatura dove ci sono le tabelle
     c.saveState()
     clip = c.beginPath()
     clip.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm)
     c.clipPath(clip, stroke=0, fill=0)
-    c.drawImage(SFONDO, CX0, H - CY0 - CH * mm, CW * mm, CH * mm)
-    c.setFillColor(white); c.setFillAlpha(0.42)
-    c.rect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, stroke=0, fill=1)
-    # velatura in piu' dove ci sono le tabelle: dentro l'anello e nella parte bassa
-    c.setFillAlpha(0.5)
+    c.setFillColor(TERRA); c.rect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, stroke=0, fill=1)
+    c.saveState()
+    lago = c.beginPath()
+    lago.moveTo(*P(*LAGO[0]))
+    for q in LAGO[1:]:
+        lago.lineTo(*P(*q))
+    lago.close()
+    c.clipPath(lago, stroke=0, fill=0)
+    c.linearGradient(*P(0, 0), *P(0, CH), (ACQUA_N, ACQUA_S), extend=True)
+    c.restoreState()
+    c.setStrokeColor(HexColor("#5aa9c6")); c.setLineWidth(0.5)
+    c.drawPath(lago, stroke=1, fill=0)
+    for q in PORTI.values():   # pontili
+        c.setFillColor(white); c.circle(*P(*q), 0.5 * mm, stroke=0, fill=1)
+    c.setFillColor(white); c.setFillAlpha(0.35)
     c.circle(*P(*RING_C), (RING_R_IN - 0.5) * mm, stroke=0, fill=1)
     c.rect(CX0, H - CY0 - CH * mm, CW * mm, (CH - 97.0) * mm, stroke=0, fill=1)
-    c.setStrokeColor(white); c.setStrokeAlpha(0.35); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
+    c.setStrokeColor(white); c.setStrokeAlpha(0.3); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
     c.circle(*P(*RING_C), (RING_R_IN + RING_R_OUT) / 2 * mm, stroke=1, fill=0)
     c.restoreState()
     c.setStrokeColor(black); c.setLineWidth(0.35)
