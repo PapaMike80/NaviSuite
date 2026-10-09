@@ -36,4 +36,5 @@ Ogni giorno dopo le 2 il programma salva nella cartella `backup` accanto alla su
 - `NaviSuite-backup-AAAA-MM-GG.json`: copia completa (distinte di tutti, trasformazioni, profili, PIN, turni e variazioni), per ripristinare;
 - `NaviSuite-backup-AAAA-MM-GG-distinte.csv`: le distinte di tutti, da aprire con Excel.
 
-Tiene gli ultimi 60 giorni (`BACKUP_GIORNI` per cambiarli). Backup subito: `docker exec navisuite-arrivi node worker.js --backup`.
+Tiene gli ultimi 60 giorni (`BACKUP_GIORNI` per cambiarli). In `backup/codice` salva anche il codice dell'app
+(copia completa del repository GitHub e lo zip del sito). Piano di ripristino: `tools/RIPRISTINO.md`. Backup subito: `docker exec navisuite-arrivi node worker.js --backup`.
