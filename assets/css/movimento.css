@@ -492,3 +492,14 @@ html.navisuite-light .mov-day-current{background:#e3f7f3!important;border-color:
 .sovr-usa{display:flex;align-items:center;gap:6px;color:#fde68a;font-size:13px}
 .pop-head small{display:block}
 .ag-undo{display:inline-flex;align-items:center;gap:5px}
+/* tab Cambi richiesti */
+.rich-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rich-item{display:grid;grid-template-columns:minmax(0,1.4fr) auto auto;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-left:3px solid #e11d48;border-radius:12px;background:rgba(255,255,255,.03)}
+.rich-info{display:grid;gap:2px;min-width:0}
+.rich-giorno{color:var(--accent);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.rich-nome{font-weight:900}
+.rich-info small{color:var(--muted)}
+.rich-turni{display:flex;align-items:center;gap:6px}
+.rich-freccia{color:var(--muted);font-weight:900}
+.rich-azioni{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+@media(max-width:850px){.rich-item{grid-template-columns:1fr auto}.rich-azioni{grid-column:1/-1;justify-content:flex-start}}
