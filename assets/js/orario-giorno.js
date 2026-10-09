@@ -66,24 +66,38 @@
   // come 2 ore). La corsa in ritardo ha tutti gli orari spostati e il campo ritardo.
   // Il ritardo passa alle corse successive della stessa nave quanto la nave arriva dopo la loro partenza
   // (si recupera nelle soste): ritardo propagato = {minuti, oltre, propagato: true}.
+  // Ritardi segnati a uno scalo (proprio.scali): da quello scalo in poi la corsa ha quel ritardo (puo' crescere o
+  // calare; "in orario" lo azzera). c.ritardiScali = {scalo: r|null}: il ritardo a ogni scalo della corsa.
   function conRitardi(corse, ritardi) {
     if (!ritardi || !Object.keys(ritardi).length) return corse;
     let arrivo = -Infinity, oltre = false;
     return corse.map(c => {
       const proprio = ritardi[c.numero];
+      const perScalo = proprio?.scali || {};
       const partenza = minutes(c.scali[0][1]);
-      const portato = Math.max(0, arrivo - partenza);
-      const minuti = Math.max(proprio?.minuti || 0, portato);
-      const r = !minuti ? null : proprio && proprio.minuti >= portato ? proprio : { minuti, oltre: oltre && portato >= 120, propagato: true };
-      const out = r ? { ...c, ritardo: r, scali: c.scali.map(([s, t]) => [s, hhmm(minutes(t) + minuti)]) } : c;
-      arrivo = minutes(out.scali[out.scali.length - 1][1]);
-      oltre = !!r?.oltre;
+      // "in orario" segnato su questa corsa: il ritardo della corsa prima non passa
+      const portato = proprio?.inOrario ? 0 : Math.max(0, arrivo - partenza);
+      const base = proprio && !proprio.soloScali && !proprio.inOrario ? proprio : null;
+      const minuti = Math.max(base?.minuti || 0, portato);
+      const r = !minuti ? null : base && base.minuti >= portato ? base : { minuti, oltre: oltre && portato >= 120, propagato: true };
+      if (!r && !Object.keys(perScalo).length) { arrivo = minutes(c.scali[c.scali.length - 1][1]); oltre = false; return c; }
+      let cur = r, ritardiScali = {};
+      const scali = c.scali.map(([s, t]) => {
+        const x = perScalo[s];
+        if (x) cur = x.inOrario ? null : { minuti: x.minuti, oltre: !!x.oltre, scalo: s };
+        ritardiScali[s] = cur;
+        return [s, hhmm(minutes(t) + (cur?.minuti || 0))];
+      });
+      const out = { ...c, ritardo: r || Object.values(ritardiScali).find(Boolean) || null, ritardiScali, scali };
+      if (!out.ritardo) delete out.ritardo;
+      arrivo = minutes(scali[scali.length - 1][1]);
+      oltre = !!cur?.oltre;
       return out;
     });
   }
   const durata = n => (n < 60 ? `${n}'` : `${Math.floor(n / 60)}h${n % 60 ? ` ${String(n % 60).padStart(2, '0')}'` : ''}`);
   // "+15'", "+1h 05'", "oltre 2 ore"
-  const testoRitardo = r => (!r ? '' : r.oltre ? 'oltre 2 ore' : `+${durata(r.minuti)}`);
+  const testoRitardo = r => (!r ? '' : r.inOrario ? 'in orario' : r.oltre ? 'oltre 2 ore' : `+${durata(r.minuti)}`);
   // Ritardi di tutti i turni dai turni nave del giorno (NaviServiziTerra.turniDelGiorno): {turno: {numero: r}}.
   const ritardiDelGiorno = turni => Object.fromEntries(Object.entries(turni || {}).filter(([, v]) => v?.ritardi).map(([code, v]) => [code, v.ritardi]));
 

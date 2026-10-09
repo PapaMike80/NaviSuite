@@ -393,10 +393,11 @@
   // Ritardi: per ogni corsa del turno in orario, +5' ... +2h a scatti di 5 minuti, oltre 2 ore. Il
   // ritardo passa da solo alle corse successive se la nave arriva dopo la loro partenza.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
-  const ritardoValore = r => (!r ? '' : r.oltre ? 'oltre' : String(r.minuti));
+  const ritardoValore = r => (!r || r.soloScali || r.inOrario ? '' : r.oltre ? 'oltre' : String(r.minuti));
   // "c. 14 +1h" per i primi ritardi del turno, poi "+N".
   function ritardiTesto(map) {
-    const voci = Object.entries(map).map(([corsa, x]) => `c. ${corsa} ${O.testoRitardo(x)}`);
+    const voci = Object.entries(map).flatMap(([corsa, x]) => [...(x.soloScali ? [] : [`c. ${corsa} ${O.testoRitardo(x)}`]),
+      ...Object.entries(x.scali || {}).map(([s, y]) => `c. ${corsa} ${s} ${O.testoRitardo(y)}`)]);
     return voci.slice(0, 3).join(', ') + (voci.length > 3 ? ` +${voci.length - 3}` : '');
   }
   // Sospensione di una corsa gia' in viaggio: vale dallo scalo in cui la nave si trova adesso (oggi); se non e'
