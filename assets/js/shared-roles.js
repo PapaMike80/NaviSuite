@@ -53,32 +53,40 @@
   const scaloOf = agent => SCALI.find(nome => scaloId(nome) === idOf(agent).toUpperCase()) || '';
   const isScaloAgent = agent => !!scaloOf(agent);
 
-  // Gli utenti scalo possono aprire solo la pagina Scali (orario.html) del proprio scalo; il login (index.html) li porta li'.
-  try {
-    const session = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
-    const scalo = scaloOf(session);
-    const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    const pin = /[?&](open-)?pin=/.test(location.search);
-    if (scalo && !(file === 'orario.html' || file === 'index.html' || (file === 'navidiaria.html' && pin))) {
-      location.replace(`orario.html?scalo=${encodeURIComponent(scalo)}`);
-    }
-  } catch { /* sessione non leggibile */ }
-
-  // Accesso alle pagine scelto dagli admin (pagina Agenti): 'admin' = solo amministratori. L'ultima scelta
-  // nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
+  // Accesso alle pagine scelto dagli admin (pagina Agenti): per ogni pagina i ruoli che la possono aprire
+  // (gli admin sempre). Senza scelta valgono quelli di sempre: tutti tranne gli scali, che hanno solo Scali.
+  // L'ultima scelta nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
   const PAGINE = [['oggi.html', 'Oggi'], ['naviturni.html', 'NaviTurni'], ['navidiaria.html', 'Distinta'], ['documenti.html', 'Documenti'],
     ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Quiz'],
     ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta']];
+  const RUOLI = [['agenti', 'Agenti'], ['uffici', 'Uffici'], ['scali', 'Scali'], ['bariste', 'Bariste']];
+  const ruoloDi = agent => (isScaloAgent(agent) ? 'scali' : isBaristaAgent(agent) ? 'bariste'
+    : String(agent?.residence || agent?.residenza || '').toLowerCase() === 'uffici' ? 'uffici' : 'agenti');
+  const predefiniti = file => (file === 'orario.html' ? ['agenti', 'uffici', 'scali', 'bariste'] : ['agenti', 'uffici', 'bariste']);
   const ACCESS_KEY = 'navisuite.pageAccess';
   const accesso = () => { try { return JSON.parse(localStorage.getItem(ACCESS_KEY) || '{}') || {}; } catch { return {}; } };
   const sessione = () => { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { return null; } };
-  const puoAprire = (file, agent = sessione(), access = accesso()) => access[String(file).toLowerCase()] !== 'admin' || isAdminAgent(agent);
+  // ruoli che possono aprire la pagina ('admin' = la vecchia scelta "solo admin")
+  const consentiti = (file, access = accesso()) => { const v = access[file]; return Array.isArray(v) ? v : v === 'admin' ? [] : predefiniti(file); };
+  function puoAprire(file, agent = sessione(), access = accesso()) {
+    file = String(file || 'index.html').toLowerCase();
+    if (isAdminAgent(agent)) return true;
+    if (PAGINE.some(([f]) => f === file)) return consentiti(file, access).includes(ruoloDi(agent));
+    // le altre pagine (Home, cambio PIN, pagine admin con i loro controlli): agli scali solo Home e cambio PIN
+    return !isScaloAgent(agent) || ['index.html', 'cambia-pin.html', ''].includes(file);
+  }
+  const pagineAperte = (agent = sessione(), access = accesso()) => PAGINE.map(([f]) => f).filter(f => puoAprire(f, agent, access));
   function applicaAccesso(access) {
     const agent = sessione();
     if (!agent?.id) return;
     const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-    if (!puoAprire(file, agent, access)) { location.replace('index.html?home=1'); return; }
-    // link a pagine riservate: nascosti nel menu e nella Home
+    const pin = file === 'navidiaria.html' && /[?&](open-)?pin=/.test(location.search); // cambio PIN: sempre
+    if (!pin && !puoAprire(file, agent, access)) {
+      const scalo = scaloOf(agent), prima = pagineAperte(agent, access)[0];
+      location.replace(scalo && puoAprire('orario.html', agent, access) ? `orario.html?scalo=${encodeURIComponent(scalo)}` : scalo && prima ? prima : 'index.html?home=1');
+      return;
+    }
+    // link alle pagine chiuse: nascosti nel menu e nella Home
     const chiuse = PAGINE.map(([f]) => f).filter(f => !puoAprire(f, agent, access));
     let style = document.getElementById('navi-page-access');
     if (!style) { style = document.createElement('style'); style.id = 'navi-page-access'; (document.head || document.documentElement).appendChild(style); }
@@ -98,7 +106,12 @@
 
   window.NaviRoles = Object.freeze({
     PAGINE,
+    RUOLI,
+    ruoloDi,
+    predefiniti,
+    consentiti,
     puoAprire,
+    pagineAperte,
     applicaAccesso,
     isScaloAgent,
     scaloOf,

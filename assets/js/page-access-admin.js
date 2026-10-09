@@ -1,5 +1,5 @@
-// Pagina Agenti · sezione "Accesso alle pagine": per ogni pagina "Tutti" o "Solo admin".
-// Salva in private/adminUpdates/pageAccess; il controllo vale su ogni pagina (shared-roles.js).
+// Pagina Agenti · sezione "Accesso alle pagine": per ogni pagina i ruoli che la possono aprire (gli admin sempre).
+// Salva in private/adminUpdates/pageAccess {pagina: [ruoli]}; il controllo vale su ogni pagina (shared-roles.js).
 (() => {
   const list = document.getElementById('page-access-list');
   const R = window.NaviRoles;
@@ -8,25 +8,32 @@
   const count = document.getElementById('page-access-count');
   let access = {};
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const uguali = (a, b) => a.length === b.length && a.every(x => b.includes(x));
   function render() {
+    let cambiate = 0;
     list.innerHTML = R.PAGINE.map(([file, nome]) => {
-      const admin = access[file] === 'admin';
-      return `<label class="page-access-row${admin ? ' admin' : ''}"><strong>${esc(nome)}</strong>` +
-        `<select data-page="${esc(file)}" aria-label="Chi può aprire ${esc(nome)}"><option value="tutti"${admin ? '' : ' selected'}>Tutti</option><option value="admin"${admin ? ' selected' : ''}>Solo admin</option></select></label>`;
+      const ruoli = R.consentiti(file, access), diversa = !uguali(ruoli, R.predefiniti(file));
+      if (diversa) cambiate += 1;
+      return `<div class="page-access-row${diversa ? ' admin' : ''}"><strong>${esc(nome)}</strong><div class="page-access-roles">` +
+        '<label class="pa-role on fixed" title="Gli admin vedono sempre tutte le pagine"><input type="checkbox" checked disabled>Admin</label>' +
+        R.RUOLI.map(([ruolo, etichetta]) => `<label class="pa-role${ruoli.includes(ruolo) ? ' on' : ''}"><input type="checkbox" data-page="${esc(file)}" data-ruolo="${ruolo}"${ruoli.includes(ruolo) ? ' checked' : ''}>${esc(etichetta)}</label>`).join('') +
+        '</div></div>';
     }).join('');
-    count.textContent = String(R.PAGINE.filter(([file]) => access[file] === 'admin').length);
+    count.textContent = String(cambiate);
   }
   list.addEventListener('change', async event => {
-    const select = event.target.closest('[data-page]');
-    if (!select) return;
+    const box = event.target.closest('[data-ruolo]');
+    if (!box) return;
+    const file = box.dataset.page;
+    const ruoli = [...list.querySelectorAll(`[data-page="${file}"][data-ruolo]`)].filter(x => x.checked).map(x => x.dataset.ruolo);
     const prima = { ...access };
-    access = { ...access, [select.dataset.page]: select.value };
-    if (select.value !== 'admin') delete access[select.dataset.page];
+    const { updatedAt, ...resto } = access;
+    access = { ...resto, [file]: ruoli };
+    if (uguali(ruoli, R.predefiniti(file))) delete access[file]; // come di default: niente da salvare
     render();
     status.textContent = 'Salvataggio…';
     try {
-      const { updatedAt, ...pulito } = access;
-      access = await window.NaviAdminFirebase.savePageAccess(pulito);
+      access = await window.NaviAdminFirebase.savePageAccess(access);
       localStorage.setItem('navisuite.pageAccess', JSON.stringify(access));
       status.textContent = 'Salvato: vale per tutti dal prossimo caricamento della pagina.';
     } catch (error) {

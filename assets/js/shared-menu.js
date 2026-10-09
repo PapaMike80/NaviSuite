@@ -77,7 +77,8 @@
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const entries=roles.isScaloAgent?.(agent)?[['orario.html','⚓','Scali']]:[
+    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta']};
+    const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
       ['index.html?home=1','⌂','Home'],
       ...(isBarista&&!isHiba?[]:[['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
@@ -316,7 +317,8 @@
   if(Roles.isScaloAgent?.(sessionAgent)){
     document.body.classList.add('scalo-session');
     const style=document.createElement('style');
-    style.textContent='body.scalo-session nav a:not([href^="orario.html"]),body.scalo-session nav button,body.scalo-session nav .sidebar-menu-label,body.scalo-session nav .shifts-filter-block{display:none!important}';
+    const aperte=(Roles.pagineAperte?.(sessionAgent)||['orario.html']).map(f=>`:not([href^="${f}"])`).join('');
+    style.textContent=`body.scalo-session nav a${aperte},`+'body.scalo-session nav button,body.scalo-session nav .sidebar-menu-label,body.scalo-session nav .shifts-filter-block{display:none!important}';
     document.head.appendChild(style);
   }
   if(!canUseDiaria(sessionAgent))sidebar.querySelectorAll('a[href="navidiaria.html"],#diariaNavLink').forEach(link=>link.hidden=true);
