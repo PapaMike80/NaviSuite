@@ -3,7 +3,8 @@ Coordinate in mm rispetto all'angolo alto-sinistro della cover (71.6 x 147.6).""
 import math, sys
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.colors import Color, black
+from reportlab.lib.colors import Color, HexColor, black, white
+import os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.units import mm
 
@@ -13,6 +14,33 @@ from a4_desenzano_colori import NOTTE, TEAL, TEAL_SCURO, AZZURRO, INCHIOSTRO, GR
 BLUE = INCHIOSTRO                       # testo normale
 KIND_COL = {"P": TEAL_SCURO, "A": AZZURRO, "▲": TEAL_SCURO, "▼": AZZURRO}
 TERRA_COL = {**SERV_COL, "AgM": TEAL_SCURO, "AgT": AZZURRO}
+
+
+# Sfondo: il Lago di Garda dalla mappa dell'app (assets/js/orario-lago.js), adattato alla cover
+def _lago():
+    import json, re
+    src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "js", "orario-lago.js")
+    d = json.loads(re.search(r"root.NaviLagoMappa = (\{.*?\});", open(src, encoding="utf-8").read(), re.S).group(1))
+    pts = [tuple(map(float, q.split())) for q in d["costa"].strip("MZ ").replace("M", "").split(" L")]
+    xs, ys = [q[0] for q in pts], [q[1] for q in pts]
+    k = min(71.6 / (max(xs) - min(xs)), 147.6 / (max(ys) - min(ys)))
+    ox, oy = (71.6 - (max(xs) - min(xs)) * k) / 2 - min(xs) * k, (147.6 - (max(ys) - min(ys)) * k) / 2 - min(ys) * k
+    conv = lambda x, y: (ox + x * k, oy + y * k)
+    return [conv(*q) for q in pts], {n: conv(*v["porto"]) for n, v in d["scali"].items()}
+
+
+LAGO, PORTI = _lago()
+TERRA = HexColor("#eef2ea")             # sponde
+ACQUA_N, ACQUA_S = HexColor("#7fc3dc"), HexColor("#b9e2ee")   # lago, piu' scuro a nord
+STRISCIA = HexColor("#ffffff")
+
+
+def striscia(c, x0, x1, y, h=3.3, alpha=1.0):
+    """Striscia bianca dietro una riga di orari (y = linea di base, mm)."""
+    c.saveState(); c.setFillColor(STRISCIA); c.setFillAlpha(alpha)
+    px, py = P(x0, y + 0.95)
+    c.roundRect(px, py, (x1 - x0) * mm, h * mm, 0.9 * mm, stroke=0, fill=1)
+    c.restoreState()
 
 
 def tinta(code):
@@ -70,10 +98,33 @@ def frame(c, code, sub, title_size=30, title_y=20.0, sub_y=27.5):
     c.setFont("DV", 8); c.setFillColor(black)
     c.drawCentredString(W / 2, H - 76.0, "Orario dal 5 ottobre 2026 (O.d.S. 39/2026) - stampa al 100% / dimensioni effettive")
     # fondo verde acqua chiaro, striscia di NaviSuite sotto la zona del titolo, anello MagSafe accennato
-    c.setStrokeColor(black); c.setLineWidth(0.35); c.setFillColor(RIGA)
-    c.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm, stroke=1, fill=1)
-    c.setStrokeColor(BORDO); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
+    # sfondo: il Lago di Garda (sponde chiare, acqua azzurra sfumata), con una velatura dove ci sono le tabelle
+    c.saveState()
+    clip = c.beginPath()
+    clip.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm)
+    c.clipPath(clip, stroke=0, fill=0)
+    c.setFillColor(TERRA); c.rect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, stroke=0, fill=1)
+    c.saveState()
+    lago = c.beginPath()
+    lago.moveTo(*P(*LAGO[0]))
+    for q in LAGO[1:]:
+        lago.lineTo(*P(*q))
+    lago.close()
+    c.clipPath(lago, stroke=0, fill=0)
+    c.linearGradient(*P(0, 0), *P(0, CH), (ACQUA_N, ACQUA_S), extend=True)
+    c.restoreState()
+    c.setStrokeColor(HexColor("#5aa9c6")); c.setLineWidth(0.5)
+    c.drawPath(lago, stroke=1, fill=0)
+    for q in PORTI.values():   # pontili
+        c.setFillColor(white); c.circle(*P(*q), 0.5 * mm, stroke=0, fill=1)
+    c.setFillColor(white); c.setFillAlpha(0.35)
+    c.circle(*P(*RING_C), (RING_R_IN - 0.5) * mm, stroke=0, fill=1)
+    c.rect(CX0, H - CY0 - CH * mm, CW * mm, (CH - 97.0) * mm, stroke=0, fill=1)
+    c.setStrokeColor(white); c.setStrokeAlpha(0.3); c.setLineWidth((RING_R_OUT - RING_R_IN - 2) * mm)
     c.circle(*P(*RING_C), (RING_R_IN + RING_R_OUT) / 2 * mm, stroke=1, fill=0)
+    c.restoreState()
+    c.setStrokeColor(black); c.setLineWidth(0.35)
+    c.roundRect(CX0, H - CY0 - CH * mm, CW * mm, CH * mm, 12 * mm, stroke=1, fill=0)
     c.setStrokeColor(TEAL); c.setLineWidth(1.4)
     c.line(*P(46.0, 43.6), *P(CW - 6.0, 43.6))
     # titolo nella zona accanto alla fotocamera
@@ -116,15 +167,27 @@ def trip_block(c, x, right, y, num, stops, step=3.55, head=4.6, nsz=6.4, center=
     if note:
         txt(c, right, y + 2.6, f"sosta {note}", "DV", 5.6, color=TEAL_SCURO, align="r")
     y += head
-    for name, t, _ in stops:
+    for i, (name, t, _) in enumerate(stops):
         y += step
-        txt(c, x, y, name, "DVB", nsz)
-        txt(c, right, y, t, "DV", 6.4, align="r")
+        striscia(c, x - 1.0, right + 1.0, y, step, alpha=1.0 if i % 2 == 0 else 0.6)
+        txt(c, x, y, name, "DV", nsz)
+        txt(c, right, y, t, "DVB", 6.6, color=NOTTE, align="r")
     return y + 1.6
+
+
+# Ore di servizio (presentazione e fine, durata) dei turni nave
+SERVIZIO = {"M1": ("8.15 – 19.40", "11 h 25'"), "T1": ("7.10 – 18.40", "11 h 30'"), "T2": ("7.45 – 19.18", "11 h 33'")}
+
+
+def servizio(c, code):
+    ore, durata = SERVIZIO[code]
+    txt(c, 56.5, 36.4, "SERVIZIO", "DVB", 4.6, color=TEAL_SCURO, align="c")
+    txt(c, 56.5, 39.8, f"{ore}  ·  {durata}", "DVB", 5.2, color=NOTTE, align="c")
 
 
 def m1_page(c):
     frame(c, "M1", ["dal 5/10 all'1/11/2026", "e dal 13 al 25/3/2027"])
+    servizio(c, "M1")
     # dentro l'anello: corsa 91
     m1 = tinta("M1")
     trip_block(c, 24.0, 47.6, 50.6, "91", M1["91"], step=3.3, head=3.4, nsz=6.0, center=True, color=m1)
@@ -149,8 +212,9 @@ def shuttle_page(c, code, out, back, pause, sub):
             if i == n_before:
                 y += 4.0
             y += 4.15
+            striscia(c, x - 1.0, right + 1.0, y, 4.0, alpha=1.0 if i % 2 == 0 else 0.6)
             txt(c, x, y, n, "DVB", 8.6, color=tinta(code))
-            txt(c, right, y, f"{dep} – {arr}", "DV", 7.6, align="r")
+            txt(c, right, y, f"{dep} – {arr}", "DVB", 6.7, color=NOTTE, align="r")
     y_p = 105.4 + n_before * 4.15 + 3.3
     txt(c, CW / 2, y_p, label, "DVB", 5.6, color=TEAL_SCURO, align="c")
     c.setStrokeColor(TEAL_SCURO); c.setLineWidth(0.3); c.setDash(1.2, 1.2)
@@ -184,6 +248,7 @@ def ring_note(c, lines):
 def t1_page(c):
     shuttle_page(c, "T1", T1_OUT, T1_BACK, (4, "PAUSA 13.20 – 14.20"),
                  ["dal 5 ottobre 2026", "al 25 marzo 2027"])
+    servizio(c, "T1")
     ring_note(c, [("MADERNO", "DVB", 8.5), ("⇄", "DVB", 9), ("TORRI", "DVB", 8.5),
                   ("8.10 – 18.30", "DV", 7), ("non effettuato il 25/12", "DV", 5)])
 
@@ -191,6 +256,7 @@ def t1_page(c):
 def t2_page(c):
     shuttle_page(c, "T2", T2_OUT, T2_BACK, (4, "PAUSA 13.20 – 14.20"),
                  ["dal 5/10 all'1/11/2026", "e dal 13 al 25/3/2027"])
+    servizio(c, "T2")
     ring_note(c, [("MADERNO", "DVB", 8.5), ("⇄", "DVB", 9), ("TORRI", "DVB", 8.5),
                   ("8.45 – 19.10", "DV", 7), ("sospeso dal 2/11 al 12/3", "DV", 5)])
 
@@ -221,8 +287,8 @@ def maderno_page(c):
     for code, a, b in (("AgM", "9.00 – 11.50", "12.50 – 19.30"),
                        ("AgT", "7.50 – 13.00", "14.00 – 18.20")):
         txt(c, 56.5, y, code, "DVB", 7, color=tinta(code), align="c")
-        txt(c, 56.5, y + 3.4, a, "DV", 6.2, align="c")
-        txt(c, 56.5, y + 6.6, b, "DV", 6.2, align="c")
+        txt(c, 56.5, y + 3.4, a, "DVB", 6.2, color=NOTTE, align="c")
+        txt(c, 56.5, y + 6.6, b, "DVB", 6.2, color=NOTTE, align="c")
         y += 11.0
 
     # navi di linea dentro l'anello MagSafe
@@ -232,11 +298,12 @@ def maderno_page(c):
     rows = sorted([r + ("▲",) for r in LINE_NORD] + [r + ("▼",) for r in LINE_SUD],
                   key=lambda r: float(r[0]))
     half = (len(rows) + 1) // 2
-    for x0, col in ((17.6, rows[:half]), (37.0, rows[half:])):
+    for x0, col in ((18.4, rows[:half]), (37.0, rows[half:])):
         y = 57.4
-        for t, code, _, note, arrow in col:
+        for i, (t, code, _, note, arrow) in enumerate(col):
             y += 3.75
-            txt(c, x0 + 5.6, y, t, "DV", 6.4, align="r")
+            striscia(c, x0 - 1.4, x0 + 16.6, y, 3.6, alpha=1.0 if i % 2 == 0 else 0.6)
+            txt(c, x0 + 5.6, y, t, "DVB", 5.9, color=NOTTE, align="r")
             txt(c, x0 + 6.0, y - 0.2, arrow, "DVB", 4.6, color=KIND_COL[arrow])
             w = txt(c, x0 + 8.1, y, code, "DVB", 6.4, color=tinta(code))
             if note:
@@ -255,7 +322,8 @@ def maderno_page(c):
         for i, (t, kind, code) in enumerate(rows):
             sx = x0 + (13.4 if i >= 8 else 0)
             y = 107.4 + (i % 8) * 3.85
-            txt(c, sx + 6.9, y, t, "DV", 6.6, align="r")
+            striscia(c, sx - 0.6, sx + 12.4, y, 3.7, alpha=1.0 if i % 2 == 0 else 0.6)
+            txt(c, sx + 6.9, y, t, "DVB", 6.6, color=NOTTE, align="r")
             txt(c, sx + 7.5, y, kind, "DVB", 5.4, color=KIND_COL[kind])
             txt(c, sx + 9.4, y, code, "DVB", 4.6, color=tinta(code))
     txt(c, CW / 2, 138.0, "P partenza per Torri   A arrivo da Torri", "DV", 4.6, align="c")
@@ -282,15 +350,15 @@ def desenzano_page(c):
     txt(c, 56.5, 15.2, "dal 5/10 all'1/11/2026", "DV", 5.2, align="c")
     txt(c, 56.5, 18.4, "e dal 13 al 25/3/2027", "DV", 5.2, align="c")
     txt(c, 56.5, 22.8, "AgB", "DVB", 7, color=tinta("AgB"), align="c")
-    txt(c, 56.5, 26.0, "8.00 – 11.50", "DV", 6.2, align="c")
-    txt(c, 56.5, 29.0, "12.50 – 17.30", "DV", 6.2, align="c")
+    txt(c, 56.5, 26.0, "8.00 – 11.50", "DVB", 6.2, color=NOTTE, align="c")
+    txt(c, 56.5, 29.0, "12.50 – 17.30", "DVB", 6.2, color=NOTTE, align="c")
     txt(c, 56.5, 31.6, "7.45 Lun/Giov", "DVB", 4.6, color=TEAL_SCURO, align="c")
     txt(c, 56.5, 35.6, "PonD", "DVB", 7, color=tinta("PonD"), align="c")
-    txt(c, 56.5, 38.8, "9.30 – 13.35", "DV", 6.2, align="c")
-    txt(c, 56.5, 41.8, "15.00 – 19.50", "DV", 6.2, align="c")
+    txt(c, 56.5, 38.8, "9.30 – 13.35", "DVB", 6.2, color=NOTTE, align="c")
+    txt(c, 56.5, 41.8, "15.00 – 19.50", "DVB", 6.2, color=NOTTE, align="c")
 
     def entry(x0, y, t, kind, code, size=6.4):
-        txt(c, x0 + 5.6, y, t, "DV", size, align="r")
+        txt(c, x0 + 5.6, y, t, "DVB", size, color=NOTTE, align="r")
         txt(c, x0 + 6.3, y, kind, "DVB", size - 1.2, color=KIND_COL[kind])
         txt(c, x0 + 8.4, y, code, "DVB", size, color=tinta(code))
 
@@ -301,8 +369,9 @@ def desenzano_page(c):
     half = (len(morning) + 1) // 2
     for x0, col in ((19.0, morning[:half]), (37.4, morning[half:])):
         y = 57.4
-        for t, kind, code, _ in col:
+        for i, (t, kind, code, _) in enumerate(col):
             y += 3.75
+            striscia(c, x0 - 1.4, x0 + 13.6, y, 3.6, alpha=1.0 if i % 2 == 0 else 0.6)
             entry(x0, y, t, kind, code)
     txt(c, RING_C[0], 84.0, "P partenza   A arrivo", "DV", 4.6, align="c")
 
@@ -312,9 +381,10 @@ def desenzano_page(c):
     for x0, head, col in ((6.0, "POMERIGGIO", afternoon), (43.3, "SERA", evening)):
         txt(c, x0 + 10.0, 103.4, head, "DVB", 5.6, color=TEAL_SCURO, align="c")
         y = 104.0
-        for t, kind, code, _ in col:
+        for i, (t, kind, code, _) in enumerate(col):
             y += 5.0
-            txt(c, x0 + 7.6, y, t, "DV", 8.0, align="r")
+            striscia(c, x0 - 1.0, x0 + 20.0, y, 4.6, alpha=1.0 if i % 2 == 0 else 0.6)
+            txt(c, x0 + 7.6, y, t, "DVB", 8.0, color=NOTTE, align="r")
             txt(c, x0 + 8.4, y, kind, "DVB", 6.6, color=KIND_COL[kind])
             txt(c, x0 + 11.0, y, code, "DVB", 8.0, color=tinta(code))
     txt(c, CW / 2, 138.0, "BIS: pronti a muovere 8.30 verso Garda, rientro 18.40", "DV", 4.4, align="c")
