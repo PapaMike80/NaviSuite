@@ -7,7 +7,8 @@ const API_KEY = 'AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE';
 const DB = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app';
 const APP = 'https://papamike80.github.io/NaviSuite/mio-turno.html';
 
-const scritto = String(args.widgetParameter || AGENTE || '').trim();
+const q = args.queryParameters || {};
+const scritto = String(args.widgetParameter || q.agente || AGENTE || '').trim();
 let agente = '';
 const famiglia = config.widgetFamily || 'medium';
 const oggi = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -61,8 +62,9 @@ function righe(e) {
   return { grande: e.titolo.replace(/ (arriva|fa scalo) alle \d+\.\d+.*$/, ''), piccola: prima };
 }
 
+// Toccando il widget: si riapre questo script in Scriptable con il riepilogo della giornata (non il browser)
 const w = new ListWidget();
-w.url = APP;
+w.url = `scriptable:///run/${encodeURIComponent(Script.name())}?agente=${encodeURIComponent(scritto)}`;
 w.backgroundColor = new Color('#0b2731');
 const testo = (s, size, colore = '#ffffff', peso = 'bold') => { const t = w.addText(String(s)); t.font = peso === 'bold' ? Font.boldSystemFont(size) : Font.systemFont(size); t.textColor = new Color(colore); t.lineLimit = 1; t.minimumScaleFactor = 0.6; return t; };
 
@@ -103,5 +105,34 @@ if (famiglia === 'accessoryInline') {
 }
 // iPhone ricarica i widget quando vuole: chiediamo ogni 5 minuti
 w.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000);
-if (config.runsInWidget) Script.setWidget(w); else await w.presentMedium();
+if (config.runsInWidget) Script.setWidget(w);
+else await riepilogo();
+
+// Riepilogo della giornata: tutti i prossimi arrivi (a terra) o scali (a bordo), con pontile e dettagli
+async function riepilogo() {
+  const t = new UITable();
+  t.showSeparators = true;
+  const intest = new UITableRow();
+  intest.isHeader = true; intest.height = 60; intest.backgroundColor = new Color('#0b2731');
+  const h = intest.addText(`NaviSuite${turno ? ' · ' + turno : ''}`, errore || (prossimi.length ? 'Prossimi di oggi' : 'Niente altro oggi'));
+  h.titleColor = new Color('#2dd4bf'); h.titleFont = Font.boldSystemFont(20); h.subtitleColor = Color.white(); h.subtitleFont = Font.systemFont(13);
+  t.addRow(intest);
+  prossimi.forEach(e => {
+    const r = new UITableRow();
+    r.height = 86; r.cellSpacing = 10;
+    const manca = minuti(e.ora) - adesso();
+    const ora = r.addText(e.ora, manca <= 0 ? 'adesso' : manca < 60 ? `tra ${manca}'` : `tra ${Math.floor(manca / 60)} h ${manca % 60}'`);
+    ora.widthWeight = 22; ora.titleFont = Font.boldSystemFont(22); ora.subtitleFont = Font.systemFont(12); ora.subtitleColor = new Color('#0f766e');
+    const x = righe(e);
+    const det = r.addText(x.grande, String(e.testo || '').replace(/\n/g, ' · '));
+    det.widthWeight = 78; det.titleFont = Font.boldSystemFont(17); det.subtitleFont = Font.systemFont(13);
+    t.addRow(r);
+  });
+  const apri = new UITableRow();
+  apri.height = 52; apri.dismissOnSelect = false;
+  const c = apri.addText('Apri NaviSuite nel browser ›'); c.titleColor = new Color('#0f766e'); c.titleFont = Font.boldSystemFont(15);
+  apri.onSelect = () => Safari.open(APP);
+  t.addRow(apri);
+  await t.present(false);
+}
 Script.complete();

@@ -110,7 +110,7 @@ async function giro() {
   await widget(w, effective, pontili, oggi, ora);
 }
 
-// Widget (Scriptable su iPhone): per ogni agente i prossimi 3 eventi di oggi (arrivo della nave a terra, prossimo
+// Widget (Scriptable su iPhone): per ogni agente i prossimi eventi di oggi (fino a 15) (arrivo della nave a terra, prossimo
 // scalo a bordo) in private/adminUpdates/widget/<agente>. Si scrive solo quando cambia.
 const widgetScritti = new Map();
 async function widget(w, effective, pontili, oggi, ora) {
@@ -128,7 +128,7 @@ async function widget(w, effective, pontili, oggi, ora) {
       lista = w.NaviPushArrivi.notifiche(effective, id, oggi, { pontili, agentName: a.agente || '' });
     } catch (e) { continue; }
     const m = t => { const [h, mi] = String(t).split('.').map(Number); return h * 60 + mi; };
-    const prossimi = lista.filter(n => m(n.time) >= ora - 1).slice(0, 3)
+    const prossimi = lista.filter(n => m(n.time) >= ora - 1).slice(0, 15)
       .map(n => ({ ora: n.time, titolo: n.title, testo: n.body, codice: n.code, scalo: n.scalo || '', pontile: n.pontile || '' }));
     const valore = { data: oggi, turno, nome: a.agente || '', prossimi };
     const chiave = JSON.stringify(valore);

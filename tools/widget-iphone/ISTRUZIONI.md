@@ -12,4 +12,4 @@ Mostra la **prossima nave che arriva al tuo scalo** se sei a terra, oppure il **
 6. Schermata di blocco (facoltativo): tieni premuto sulla schermata bloccata → **Personalizza** → tocca sotto l'ora →
    **Scriptable** → scegli il riquadro rettangolare → toccalo → Script **NaviSuite**, Parameter = il tuo cognome.
 
-Toccando il widget si apre **Il mio turno**. L'iPhone aggiorna i widget da solo, di solito ogni 5–15 minuti.
+Toccando il widget si apre in Scriptable il riepilogo dei prossimi arrivi o scali della giornata. L'iPhone aggiorna i widget da solo, di solito ogni 5–15 minuti.
