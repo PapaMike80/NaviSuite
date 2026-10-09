@@ -105,7 +105,7 @@ try{(()=>{
   function openDayBubbleEditor(dateIso){
     window.NaviDayModal?.open({date:dateIso,showDiariaButton:false,showActions:false,shifts:SHIFTS,shiftFor,shiftColors,
       shipForService:(date,shift)=>(monthlyShipAssignments.get(`${date}|${String(shift||'').trim().toUpperCase()}`)||[]).join(' / '),refuelSuggestionMinutes:()=>0,changeSuggestionMinutes:entry=>window.NaviDiariaChange?.suggestionMinutes(entry)||0,
-      loadEntry:async()=>{await loadMonthlyShipAssignments();const existing=entries.find(e=>e.date===dateIso);return existing?{...existing}:defaultEntry(dateIso)},
+      loadEntry:async()=>{await Promise.race([loadMonthlyShipAssignments(),new Promise(r=>setTimeout(r,400))]);const existing=entries.find(e=>e.date===dateIso);return existing?{...existing}:defaultEntry(dateIso)},
       saveEntry:async draft=>{if(!draft.id){draft.id=crypto.randomUUID();draft.manualOverride=true;entries.push(draft)}else{const existing=entries.find(e=>e.id===draft.id)||entries.find(e=>e.date===draft.date);if(existing)Object.assign(existing,draft);else entries.push(draft)}persist();refreshMonthly();document.dispatchEvent(new CustomEvent('navidiaria:render'));try{const record=entries.find(e=>e.date===draft.date),node=grid.querySelector(`td[data-date="${draft.date}"][data-row="overtime"]`);console.log('[DIARIA A popup giornata]','saveEntry',draft.date,'componenti=',JSON.stringify(record?.overtimeComponents),'delay=',record?.delay,'oreLavorate=',record?.workedMinutes,'cella=',node?node.textContent:'(nessuna cella)')}catch(diagError){console.warn('[DIARIA A] diagnostica',diagError)}try{await window.NaviDiariaRuntime?.saveNow?.()}catch(syncError){console.warn('Sincronizzazione cloud non riuscita, dati locali gia\' salvati',syncError)}return draft},
       onClose:()=>document.dispatchEvent(new CustomEvent('navidiaria:render'))
     });
@@ -114,6 +114,7 @@ try{(()=>{
   grid.addEventListener('click',event=>{const head=event.target.closest('th[data-date]');if(head){openDayBubbleEditor(head.dataset.date);return}const cell=event.target.closest('td[data-date][data-row]');if(cell)editMonthlyCell(cell)});
   function refreshMonthly(){updateMonthButtons(monthDate());renderMonthly()}
   window.NaviDiariaRefreshMonthly=refreshMonthly;
+  setTimeout(()=>loadMonthlyShipAssignments().catch(()=>{}),1500); // nomi delle navi pronti prima di aprire una giornata
   function printMonthlySheet(){
     const period=competencePeriod(),table=grid.querySelector('.monthly-table');if(!table||!period.start||!period.end)return;
     const agent=document.getElementById('sidebarAgentName')?.textContent?.trim()||'',label=title.textContent;
