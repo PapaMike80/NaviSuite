@@ -93,7 +93,21 @@
     if (!style) { style = document.createElement('style'); style.id = 'navi-page-access'; (document.head || document.documentElement).appendChild(style); }
     style.textContent = chiuse.map(f => `a[href^="${f}"]`).join(',') + (chiuse.length ? '{display:none!important}' : '');
   }
-  try { applicaAccesso(accesso()); } catch { /* niente */ }
+  // Prima pagina imposta dagli admin: a ogni nuovo reset (ts) si cancellano le scelte personali del telefono e
+  // vale la pagina scelta, se il ruolo la puo' aprire (altrimenti la predefinita). Gli scali aprono sempre il loro scalo.
+  const RESET_KEY = 'navisuite.startPageReset', FORZATA_KEY = 'navisuite.startPageForzata';
+  function applicaPaginaIniziale(dato = (() => { try { return JSON.parse(localStorage.getItem(FORZATA_KEY) || 'null'); } catch { return null; } })()) {
+    if (!dato?.ts) return;
+    try {
+      if (localStorage.getItem(RESET_KEY) === dato.ts) return;
+      Object.keys(localStorage).filter(k => k.startsWith('navisuite.startPage.')).forEach(k => localStorage.removeItem(k));
+      const agent = sessione(), pagina = dato.pagina === 'auto' || dato.pagina === 'index' ? dato.pagina : `${dato.pagina}.html`;
+      const file = pagina === 'index' ? 'index.html' : pagina;
+      if (agent?.id && (file === 'auto' || puoAprire(file, agent))) localStorage.setItem(`navisuite.startPage.${agent.id}`, file);
+      localStorage.setItem(RESET_KEY, dato.ts);
+    } catch { /* niente */ }
+  }
+  try { applicaAccesso(accesso()); applicaPaginaIniziale(); } catch { /* niente */ }
   window.addEventListener?.('load', async () => {
     try {
       const api = window.NaviAdminFirebase;
@@ -102,6 +116,10 @@
       const access = await api.getPageAccess();
       localStorage.setItem(ACCESS_KEY, JSON.stringify(access || {}));
       applicaAccesso(access || {});
+      if (api.getPaginaIniziale) {
+        const dato = await api.getPaginaIniziale();
+        if (dato?.ts) { localStorage.setItem(FORZATA_KEY, JSON.stringify(dato)); applicaPaginaIniziale(dato); }
+      }
     } catch (error) { console.warn('Accesso pagine non aggiornato', error); }
   });
 
@@ -114,6 +132,7 @@
     puoAprire,
     pagineAperte,
     applicaAccesso,
+    applicaPaginaIniziale,
     isScaloAgent,
     scaloOf,
     scaloAgents,

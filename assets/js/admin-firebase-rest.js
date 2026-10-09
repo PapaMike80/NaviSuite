@@ -877,6 +877,18 @@
     return { ...access, updatedAt:item.updatedAt };
   }
 
+  // Prima pagina imposta dagli admin a tutti (Impostazioni): {pagina, ts, da}; ogni nuovo ts azzera le scelte personali.
+  async function getPaginaIniziale() {
+    const result = await databaseRequest("private/adminUpdates/paginaIniziale");
+    return result.data || null;
+  }
+  async function savePaginaIniziale(pagina, da = "") {
+    await ensureAuth();
+    const item = { pagina:String(pagina || "auto").replace(/\.html$/, ""), ts:new Date().toISOString(), da:String(da || "") };
+    await databaseRequest("private/adminUpdates/paginaIniziale", { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
   // Backup centrale (pagina Agenti): distinte di tutti, trasformazioni, profili, turni e variazioni.
   async function getBackupCentrale() {
     const chiavi = ["diaria", "diariaConversioni", "agentProfiles", "pageAccess", "scheduleImports", "odsVariations", "manualVariations",
@@ -1033,6 +1045,8 @@
     saveDiaria,
     getDiariaConversioni,
     getPageAccess,
+    getPaginaIniziale,
+    savePaginaIniziale,
     getBackupCentrale,
     savePageAccess,
     saveDiariaConversioni,
