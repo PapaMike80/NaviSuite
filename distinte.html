@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>NaviSuite Distinte</title>
+  <meta name="theme-color" content="#071b24">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="assets/css/shared-menu.css">
+  <style>
+    :root{--bg:#071b24;--card:#0c2530;--line:#24505c;--ink:#e6f3f5;--muted:#8fb0b8;--accent:#2dd4bf;--gold:#fde68a}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 'DM Sans',system-ui,sans-serif}
+    main{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+    .eyebrow{color:var(--accent);font:800 11px Manrope,sans-serif;letter-spacing:.16em}
+    h1{margin:6px 0 4px;font:800 26px Manrope,sans-serif}.sub{margin:0;color:var(--muted)}
+    .card{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+    .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 14px;border:1px solid var(--accent);border-radius:10px;background:rgba(45,212,191,.14);color:#e6fffb;font:800 14px Manrope,sans-serif;cursor:pointer;text-decoration:none}
+    .btn.ghost{border-color:var(--line);background:transparent;color:var(--ink)}.btn:disabled{opacity:.45;cursor:default}
+    .status{margin:10px 0 0;color:var(--muted);font-size:13px}
+    input[type=search],select{min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#061d26;color:#fff;font:600 14px 'DM Sans',sans-serif}
+    input[type=search]{flex:1;min-width:200px}
+    .agenti{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:12px}
+    .agente{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#071f29;text-align:left;color:var(--ink);cursor:pointer}
+    .agente.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(45,212,191,.25)}
+    .agente b{font:800 15px Manrope,sans-serif}.agente small{color:var(--muted)}
+    .agente .stato{font-size:12px;color:var(--gold)}.agente .stato.ok{color:#4ade80}
+    table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #1b3c46;text-align:left;white-space:nowrap}
+    th{position:sticky;top:0;background:#0f303c;color:var(--muted);font:800 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+    tr.tot td{background:rgba(45,212,191,.1);font-weight:800}td.forte{color:#fde68a;font-weight:800}.fisso{position:sticky;left:0;z-index:1;background:#0c2530}th.fisso{z-index:2;background:#0f303c}tr.tot .fisso{background:#123a40}#tutti-tabella tbody tr[data-id]{cursor:pointer}#tutti-tabella tbody tr[data-id]:hover td{background:#123540}td small{color:var(--muted)}tr.vuoto td{color:#4f6d76}.wrap.mesi{max-height:none}.tit-mesi{margin:18px 0 0;font:800 15px Manrope,sans-serif;color:var(--accent)}tr.sett td{background:rgba(253,230,138,.07);color:#fde68a;font-size:12px}tr.sett b{color:#fff}tr.rip td{color:var(--muted)}tr.mese{cursor:pointer}tr.mese:hover td,tr.mese.aperto td{background:#123540}tr.giorno td{font-size:12.5px;background:#071b24}tr.giorno td.fisso{padding-left:22px;font-weight:400;text-transform:capitalize}tr.giorno.rip td{color:#57737d}tr.sett td.fisso{background:#1d2a1f}.diaria-anno .fisso{text-transform:capitalize}
+    .wrap{overflow:auto;max-height:65vh;margin-top:12px;border:1px solid var(--line);border-radius:10px}
+    .riepilogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
+    .riepilogo div{padding:10px;border:1px solid var(--line);border-radius:10px}.riepilogo small{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
+    .riepilogo b{font:800 18px Manrope,sans-serif;color:var(--gold)}
+    [hidden]{display:none!important}
+  </style>
+</head>
+<body class="distinte-page">
+  <aside class="app-sidebar" id="distinte-sidebar"></aside>
+  <main>
+    <p class="eyebrow">AMMINISTRAZIONE</p>
+    <h1>Distinte degli agenti</h1>
+    <p class="sub">Leggi le distinte dal database o da un file di backup e manda a ogni agente la sua.</p>
+
+    <section class="card">
+      <div class="row">
+        <button class="btn" id="da-firebase" type="button">⟳ Leggi dal database</button>
+        <button class="btn ghost" id="da-file" type="button">⤒ Apri un file di backup</button>
+        <input type="file" id="file" accept=".zip,.json,application/zip,application/json" hidden>
+        <select id="mese" aria-label="Mese"></select>
+      </div>
+      <p class="status" id="status">Scegli da dove leggere le distinte: il database (serve la connessione) oppure un file .zip/.json di backup (anche senza connessione).</p>
+    </section>
+
+    <section class="card" id="elenco" hidden>
+      <div class="row"><input type="search" id="cerca" placeholder="Cerca agente…" aria-label="Cerca agente"><button class="btn ghost" id="tutti" type="button">⤓ Scarica le distinte di tutti</button></div>
+      <div class="agenti" id="agenti"></div>
+    </section>
+
+    <section class="card" id="tutti-card" hidden>
+      <div class="row" style="justify-content:space-between"><h1 id="tutti-titolo" style="font-size:20px;margin:0"></h1><button class="btn ghost" id="tutti-csv" type="button">⤓ Scarica (Excel)</button></div>
+      <p class="status">Tocca un agente per vedere la sua distinta. Straordinari: ore oltre le 39 settimanali.</p>
+      <div class="wrap"><table id="tutti-tabella"></table></div>
+    </section>
+
+    <section class="card" id="dettaglio" hidden>
+      <div class="row" style="justify-content:space-between">
+        <div><p class="eyebrow" id="det-numero"></p><h1 id="det-nome" style="font-size:22px"></h1></div>
+        <div class="row"><button class="btn" id="invia" type="button">✉ Invia all'agente</button><button class="btn ghost" id="scarica" type="button">⤓ Scarica</button></div>
+      </div>
+      <div class="riepilogo" id="riepilogo"></div>
+      <div id="mensile"></div>
+      <div class="wrap"><table id="tabella"></table></div>
+    </section>
+  </main>
+  <script src="assets/js/shared-roles.js?v=5"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=59"></script>
+  <script src="assets/js/shared-menu.js?v=1.65"></script>
+  <script src="assets/js/shared-data.js?v=126"></script>
+  <script src="assets/js/shift-competence.js?v=3"></script>
+  <script src="assets/js/diaria-backup.js?v=6"></script>
+  <script src="assets/js/distinte-page.js?v=8"></script>
+</body>
+</html>

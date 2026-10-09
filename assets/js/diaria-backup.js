@@ -22,14 +22,71 @@
     const C = root.NaviShiftCompetence;
     return C ? Math.round((Number(C.shiftForCode(e.shift, e.date)?.hours) || 0) * 60) : 0;
   }
+  // Ore lavorate con la stessa formula della Distinta (navidiaria-monthly.js): quelle salvate, altrimenti
+  // servizio + straordinario (record vecchi: + cambio)
   function lavorate(e) {
     if (!lavoro(e)) return 0;
-    if (Number.isFinite(Number(e.workedMinutes)) && Number(e.workedMinutes) >= 0) return min(e.workedMinutes);
-    const c = causali(e);
-    return servizio(e) + c.ritardo + c.cambio + c.sentine + min(e.refuelWorked);
+    const c = e.overtimeComponents, strutturato = !!c && typeof c === 'object' && !Array.isArray(c), k = causali(e);
+    const manuale = Number(e.workedMinutes);
+    const base = Number.isFinite(manuale) && manuale >= 0 ? manuale : servizio(e) + (strutturato ? k.ritardo + k.cambio + k.sentine : k.ritardo);
+    return base + (strutturato ? 0 : k.cambio);
   }
 
-  const COLONNE = ['Data', 'Giorno', 'Turno', 'Ore servizio', 'Ore lavorate', 'Straordinario del giorno', 'di cui ritardo', 'di cui cambio',
+  // Straordinario come nella Distinta: per settimana (lunedi'-domenica) le ore lavorate oltre le 39, contate nel mese
+  // della domenica. sett(entries, domenica) -> {dal, al, lavorate, straordinario}
+  const SOGLIA = 39 * 60;
+  const isoD = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  function sett(entries, domenica) {
+    const fine = new Date(`${domenica}T12:00:00`), inizio = new Date(fine); inizio.setDate(fine.getDate() - 6);
+    const dal = isoD(inizio), lav = (entries || []).filter(e => e?.date >= dal && e.date <= domenica).reduce((s, e) => s + lavorate(e), 0);
+    return { dal, al: domenica, lavorate: lav, straordinario: Math.max(0, lav - SOGLIA) };
+  }
+  // domeniche di un mese ("2026-10") o di un anno ("2026")
+  function domeniche(periodo) {
+    const y = Number(periodo.slice(0, 4)), out = [];
+    for (let d = new Date(y, periodo.length === 4 ? 0 : Number(periodo.slice(5)) - 1, 1, 12); d.getFullYear() === y && (periodo.length === 4 || isoD(d).startsWith(periodo)); d.setDate(d.getDate() + 1))
+      if (d.getDay() === 0) out.push(isoD(d));
+    return out;
+  }
+  const straordinarioPeriodo = (entries, periodo) => domeniche(periodo).reduce((s, dom) => s + sett(entries, dom).straordinario, 0);
+
+  // giorno di lavoro con un turno (i giorni senza dati non contano)
+  const conTurno = e => !!String(e?.shift || '').trim() && lavoro(e);
+  // Settimane del periodo di un agente (solo quelle con dati): [{dal, al, lavorate, straordinario, giorni}]
+  function settimaneDi(entries, periodo) {
+    const byDate = new Map((entries || []).filter(e => e?.date).map(e => [e.date, e]));
+    return domeniche(periodo).map(dom => {
+      const w = sett(entries, dom), giorni = [];
+      for (let d = new Date(`${w.dal}T12:00:00`); ; d.setDate(d.getDate() + 1)) {
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        giorni.push(byDate.get(iso) || { date: iso, shift: '' });
+        if (iso === dom) break;
+      }
+      return { ...w, giorni };
+    }).filter(w => w.giorni.some(e => e.shift));
+  }
+  // festivita' come nella Distinta: feste nazionali e Pasquetta (la domenica e' l'indennita' turno domenicale)
+  const FESTE = new Set(['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26']);
+  function pasquetta(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mese = Math.floor((h + l - 7 * m + 114) / 31), giorno = ((h + l - 7 * m + 114) % 31) + 1, x = new Date(y, mese - 1, giorno + 1, 12); return `${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; }
+  const festivo = e => (e.holidayWorked === undefined ? FESTE.has(e.date.slice(5)) || e.date.slice(5) === pasquetta(Number(e.date.slice(0, 4))) : !!e.holidayWorked);
+  // Tutte le competenze di un agente nel periodo (mese o anno)
+  const COMPETENZE = [['giorni', 'Giorni', 'n'], ['lavorate', 'Ore lavorate', 'h'], ['straordinari', 'Straordinari', 'h'], ['trasformati', 'Trasformati', 'h'], ['pagati', 'Str. pagati', 'h'],
+    ['banca', 'Banca ore', 'h'], ['ticket', 'Ticket', 'n'], ['ticket2', '2° ticket', 'n'], ['d9', 'Diaria 9%', 'n'], ['d24', 'Diaria 24%', 'n'], ['d50', 'Diaria 50%', 'n'],
+    ['pernotto', 'Pernotto 40%', 'n'], ['festivi', 'Festività', 'n'], ['domeniche', 'Ind. dom.', 'n'], ['imbarco', 'Imbarco', 'n'], ['denaro', 'Maneggio denaro', 'n'],
+    ['aliscafo', 'Aliscafo', 'n'], ['rf', 'Recupero forfait', 'n'], ['trasferte', 'Trasferte', 'n'], ['rifornimenti', 'Rifornimenti', 'n'], ['cambi', 'Cambi', 'h'], ['sentine', 'Sentine', 'h'], ['mancatiRiposi', 'Mancati riposi', 'n']];
+  function competenze(entries, conversioni, periodo, settimane = settimaneDi(entries, periodo)) {
+    const gg = settimane.flatMap(w => w.giorni), lav = gg.filter(conTurno), n = f => lav.filter(f).length;
+    const straordinari = settimane.reduce((s, w) => s + w.straordinario, 0), trasformati = Object.entries(conversioni || {}).filter(([k]) => k.startsWith(periodo)).reduce((s, [, v]) => s + (Number(v) || 0), 0);
+    return { giorni: lav.length, lavorate: settimane.reduce((s, w) => s + w.lavorate, 0), straordinari, trasformati, pagati: Math.max(0, straordinari - trasformati),
+      banca: gg.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(trasformati * 1.1),
+      ticket: n(e => e.ticketPresence ?? e.mealUsed), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
+      pernotto: n(e => e.overnight40), festivi: n(festivo), domeniche: n(e => new Date(`${e.date}T12:00:00`).getDay() === 0), imbarco: n(e => e.embark), denaro: n(e => e.cashHandling),
+      aliscafo: n(e => (e.hydrofoil === undefined ? String(e.shift).toUpperCase() === 'SR1' : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
+      rifornimenti: n(e => e.refuelDone === true || Number(e.refuel) > 0), cambi: lav.reduce((s, e) => s + causali(e).cambio, 0), sentine: lav.reduce((s, e) => s + causali(e).sentine, 0),
+      mancatiRiposi: lav.reduce((s, e) => s + (Number(e.missedRest) || 0), 0) };
+  }
+
+  const COLONNE = ['Data', 'Giorno', 'Turno', 'Ore servizio', 'Ore lavorate', 'Straordinario del giorno (totale: oltre 39 ore settimanali)', 'di cui ritardo', 'di cui cambio',
     'di cui sentine', 'Banca ore', 'Rifornimento (anticipo)', 'Ticket', '2° ticket', 'Diaria %', 'Pernotto 40%', 'Imbarco', 'Festività',
     'Maneggio denaro', 'Trasferta', 'Note'];
   function riga(e) {
@@ -43,21 +100,30 @@
   const linea = valori => valori.map(cella).join(';');
 
   // CSV di una o piu' distinte: una riga per giorno, dopo ogni mese i totali (con le ore trasformate in banca ore).
-  // agenti: [{id, nome, entries, conversioni: {'2026-10': minuti}}]; con piu' agenti si aggiungono le colonne Agente e Numero.
+  // agenti: [{id, nome, entries, conversioni: {'2026-10': minuti}, periodo?: '2026' | '2026-10'}]; mesi di competenza (settimane
+  // con la domenica nel mese, come la Distinta); con piu' agenti si aggiungono le colonne Agente e Numero.
   function csv(agenti) {
     const multi = agenti.length > 1;
     const out = [linea([...(multi ? ['Agente', 'Numero'] : []), ...COLONNE])];
     agenti.forEach(a => {
       const pre = multi ? [a.nome || '', a.id || ''] : [];
       const giorni = (a.entries || []).filter(e => e?.date).sort((x, y) => x.date.localeCompare(y.date));
-      const mesi = [...new Set(giorni.map(e => e.date.slice(0, 7)))];
+      // mese di competenza come nella Distinta: quello della domenica della settimana del giorno
+      const competenza = iso => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + (7 - d.getDay()) % 7); return isoD(d).slice(0, 7); };
+      const mesi = [...new Set(giorni.map(e => competenza(e.date)))].filter(m => !a.periodo || m.startsWith(a.periodo));
       mesi.forEach(mese => {
-        const lista = giorni.filter(e => e.date.startsWith(mese));
-        lista.forEach(e => out.push(linea([...pre, ...riga(e)])));
+        const lista = giorni.filter(e => competenza(e.date) === mese);
+        lista.forEach(e => {
+          out.push(linea([...pre, ...riga(e)]));
+          if (new Date(`${e.date}T12:00:00`).getDay() === 0) {
+            const w = sett(giorni, e.date);
+            out.push(linea([...pre, `Settimana ${w.dal.slice(8)}/${w.dal.slice(5, 7)}-${w.al.slice(8)}/${w.al.slice(5, 7)}`, '', '', '', ore(w.lavorate), '', '', '', '', '', '', '', '', '', '', '', '', '', '', `straordinario oltre 39 ore: ${ore(w.straordinario) || '0:00'}`]));
+          }
+        });
         const lav = lista.filter(lavoro), tot = f => lav.reduce((s, e) => s + f(e), 0);
         const [y, m] = mese.split('-').map(Number);
         out.push(linea([...pre, `TOTALE ${MESI[m - 1]} ${y}`, '', `${lav.length} gg`, ore(tot(servizio)), ore(tot(lavorate)),
-          ore(tot(e => { const c = causali(e); return c.ritardo + c.cambio + c.sentine; })), '', '', '', ore((a.entries || []).filter(e => e?.date?.startsWith(mese)).reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0)),
+          ore(straordinarioPeriodo(giorni, mese)), '', '', '', ore(lista.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0)),
           '', String(lav.filter(e => e.ticketPresence ?? e.mealUsed).length), '', String(lav.filter(e => e.allowanceRate != null).length), '', String(lav.filter(e => e.embark).length), '', '', '', '']));
         const conv = Number(a.conversioni?.[mese]) || 0;
         if (conv) out.push(linea([...pre, `Trasformati in banca ore ${MESI[m - 1]} ${y}`, '', '', '', '', ore(conv), '', '', '', `+${ore(Math.round(conv * 1.1))}`]));
@@ -117,5 +183,42 @@
     return out;
   }
 
-  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip };
+
+  // Tabella dell'anno (NaviDiaria e pagina Distinte): una riga per mese con tutte le competenze; i mesi in `aperti`
+  // si espandono con giorni e settimane nelle STESSE colonne (Giorni = turno, ✓ per le competenze a conteggio).
+  const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const conTurnoL = e => !!String(e?.shift || '').trim() && lavoro(e);
+  function tabellaAnno(list, conv, anno, aperti = new Set()) {
+    const valore = (c, [k, , tipo]) => (tipo === 'h' ? ore(c[k]) : (c[k] || ''));
+    const cella = (k, v) => `<td${k === 'straordinari' ? ' class="forte"' : ''}>${v}</td>`;
+    const fmt = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
+    const annidato = ws => ws.map(w => w.giorni.map(e => {
+      const d = new Date(`${e.date}T12:00:00`), on = conTurnoL(e), c = causali(e);
+      const g = on ? competenze([e], {}, e.date, [{ giorni: [e], lavorate: 0, straordinario: 0 }]) : {};
+      const td = COMPETENZE.map(col => {
+        const k = col[0];
+        if (k === 'giorni') return `<td>${escH(e.shift || '')}</td>`;
+        if (!on) return k === 'banca' ? cella(k, ore(e.bank)) : '<td></td>';
+        if (k === 'lavorate') return cella(k, ore(lavorate(e)));
+        if (k === 'straordinari') return cella(k, ore(c.ritardo + c.cambio + c.sentine));
+        const v = valore(g, col);
+        return cella(k, escH(col[2] === 'h' ? v : (v ? '✓' : '')));
+      }).join('');
+      return `<tr class="giorno${on ? '' : ' rip'}"${e.note ? ` title="${escH(e.note)}"` : ''}><td class="fisso">${GIORNI[d.getDay()]} ${fmt(e.date)}</td>${td}</tr>`;
+    }).join('') + `<tr class="sett"><td class="fisso">Sett. ${fmt(w.dal)} – ${fmt(w.al)}</td>${COMPETENZE.map(([k]) =>
+      k === 'lavorate' ? cella(k, ore(w.lavorate)) : k === 'straordinari' ? cella(k, w.straordinario ? `<b>${ore(w.straordinario)}</b>` : '0:00') : '<td></td>').join('')}</tr>`).join('');
+    const sett = settimaneDi(list, anno);
+    const righe = MESI.map((nome, i) => {
+      const mese = `${anno}-${String(i + 1).padStart(2, '0')}`, ws = sett.filter(w => w.al.startsWith(mese));
+      const c = competenze(list, conv, mese, ws);
+      if (!c.giorni) { aperti.delete(mese); return `<tr class="vuoto"><td class="fisso">${escH(nome)}</td><td colspan="${COMPETENZE.length}">—</td></tr>`; }
+      const su = aperti.has(mese);
+      return `<tr class="mese${su ? ' aperto' : ''}" data-mese="${mese}" title="Tocca per vedere i giorni"><td class="fisso">${su ? '▾' : '▸'} ${escH(nome)}</td>${COMPETENZE.map(col => cella(col[0], escH(valore(c, col)))).join('')}</tr>` + (su ? annidato(ws) : '');
+    }).join('');
+    const tot = competenze(list, conv, anno, sett);
+    return `<table><thead><tr><th class="fisso">Mese</th>${COMPETENZE.map(([, t]) => `<th>${escH(t)}</th>`).join('')}</tr></thead>` +
+      `<tbody>${righe}<tr class="tot"><td class="fisso">Totale ${escH(anno)}</td>${COMPETENZE.map(col => cella(col[0], escH(valore(tot, col)))).join('')}</tr></tbody></table>`;
+  }
+
+  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA, settimaneDi, competenze, COMPETENZE, tabellaAnno };
 })(typeof window !== 'undefined' ? window : globalThis);
