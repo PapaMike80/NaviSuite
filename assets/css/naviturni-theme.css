@@ -72,3 +72,9 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .icon-only-button{display:inline-grid;place-items:center;width:32px;height:32px;padding:0;border-radius:50%;font-size:15px}.table-wrap th:last-child,.table-wrap td:last-child{width:48px;padding-left:8px;padding-right:8px}
 #registroBody th:not(:last-child),#registroBody td:not(:last-child){width:132px;min-width:132px;max-width:132px;padding-left:10px;padding-right:10px}#registroBody .header-pill{width:130px;min-width:130px;padding-left:6px;padding-right:6px}
 .sidebar .app-switch-link{margin:5px 0 9px;border:1px solid rgba(45,212,191,.45);background:rgba(45,212,191,.08);color:var(--accent)}.sidebar .app-switch-link:hover{border-color:var(--accent);background:rgba(45,212,191,.15);color:#fff}
+.hero-convert{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin:0 0 12px;max-width:760px;border:1px solid rgba(126,243,226,.28);border-radius:12px;overflow:hidden;grid-column:1/-1}
+.hero-convert .hc-row{display:flex;flex-direction:column;gap:5px;padding:10px 12px;background:rgba(7,23,32,.22)}
+.hero-convert small{color:#9fb8c2;font-size:9px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.hero-convert b{color:#fff;font-size:15px}
+.hero-convert input{width:100%;max-width:110px;padding:4px 8px;border:1px solid #2dd4bf;border-radius:8px;background:rgba(45,212,191,.12);color:#fff;font:800 15px Manrope,sans-serif}
+@media(max-width:720px){.hero-convert{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-convert b,.hero-convert input{font-size:13px}}
