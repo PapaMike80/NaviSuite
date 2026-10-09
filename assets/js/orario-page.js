@@ -368,10 +368,13 @@
     const proprio = g.navi[code]?.ritardi?.[corsa];
     const valore = !proprio ? '' : proprio.oltre ? 'oltre' : String(proprio.minuti);
     const testo = v => (v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
-    return `<label class="ritardo-sel${valore ? ' on' : ''}" title="Ritardo della corsa ${esc(corsa)}">⏱` +
+    // ritardo arrivato dalla corsa prima (non segnato su questa): si mostra nel riquadro, senza salvarlo
+    const eff = !valore ? ritardoDi(g, code, corsa) : null;
+    const vuota = valore ? 'in orario' : eff ? O.testoRitardo(eff) : '–';
+    return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}" title="${eff ? 'Ritardo passato dalla corsa prima' : `Ritardo della corsa ${esc(corsa)}`}">⏱` +
       `<select data-ritardo="${esc(code)}|${esc(corsa)}" data-previsto="${esc(previsto)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
       `${previsto ? '<option value="ora">⚓ Attraccata ora</option>' : ''}` +
-      `<option value=""${valore ? '' : ' selected'}>${valore ? 'in orario' : '–'}</option>${(valore && !RITARDI.includes(valore) ? [valore, ...RITARDI] : RITARDI).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
+      `<option value=""${valore ? '' : ' selected'}>${esc(vuota)}</option>${(valore && !RITARDI.includes(valore) ? [valore, ...RITARDI] : RITARDI).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
   }
   async function salvaRitardo(code, corsa, value) {
     const provider = window.NaviAdminFirebase;
