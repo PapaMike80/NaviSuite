@@ -12,7 +12,8 @@ const DB = (process.env.FIREBASE_DB || 'https://navisuite-f116f-default-rtdb.eur
 const API_KEY = process.env.FIREBASE_API_KEY || '';
 const DRY_RUN = /^(1|true|si|yes)$/i.test(process.env.DRY_RUN || '');
 const SCRIPTS = ['assets/js/shared-roles.js', 'assets/js/shared-data.js', 'assets/js/course-info.js', 'assets/js/orario-corse.js',
-  'assets/js/servizi-terra-a4.js', 'assets/js/turni-giorno.js', 'assets/js/orario-giorno.js', 'assets/js/push-summary.js', 'assets/js/push-arrivi.js'];
+  'assets/js/servizi-terra-a4.js', 'assets/js/turni-giorno.js', 'assets/js/orario-giorno.js', 'assets/js/push-summary.js', 'assets/js/push-arrivi.js',
+  'assets/js/shift-competence.js', 'assets/js/diaria-backup.js'];
 const log = (...a) => console.log(new Date().toISOString(), '[arrivi]', ...a);
 
 // --- Firebase (accesso anonimo come l'app) ---
@@ -153,8 +154,42 @@ async function widget(w, effective, pontili, oggi, ora) {
   }
 }
 
+// Backup notturno: ogni giorno dopo le 2 una copia completa in BACKUP_DIR (JSON per ripristinare + CSV delle distinte),
+// tenendo gli ultimi BACKUP_GIORNI giorni.
+const BACKUP_DIR = process.env.BACKUP_DIR || '/backup';
+const BACKUP_GIORNI = Math.max(1, Number(process.env.BACKUP_GIORNI || 60));
+async function backupNotturno(w, forza = false) {
+  if (!fs.existsSync(BACKUP_DIR)) return;
+  const oggi = romeDay();
+  if (!forza && (romeMinutes() < 120 || fs.existsSync(path.join(BACKUP_DIR, `NaviSuite-backup-${oggi}.json`)))) return;
+  const chiavi = ['diaria', 'diariaConversioni', 'agentProfiles', 'pageAccess', 'scheduleImports', 'odsVariations', 'manualVariations',
+    'turniNavi', 'approvazioniTurni', 'userRegistry', 'userAuth', 'baristas', 'pontiliCorse'];
+  const parti = await Promise.all(chiavi.map(k => fb(`private/adminUpdates/${k}`).catch(() => null)));
+  const adminUpdates = Object.fromEntries(chiavi.map((k, i) => [k, parti[i]]));
+  const schedule = await fb('public/schedule').catch(() => null);
+  const json = JSON.stringify({ tipo: 'navisuite-backup-centrale', versione: 1, creato: new Date().toISOString(), adminUpdates, schedule });
+  fs.writeFileSync(path.join(BACKUP_DIR, `NaviSuite-backup-${oggi}.json`), json);
+  const nomi = new Map();
+  Object.values(schedule?.residenze || {}).forEach(l => (l || []).forEach(a => { if (a?.id) nomi.set(String(a.id), a.agente || ''); if (a?.agent_uid) nomi.set(String(a.agent_uid), a.agente || ''); }));
+  Object.values(adminUpdates.userRegistry || {}).forEach(u => u?.id && u.name && !nomi.has(String(u.id)) && nomi.set(String(u.id), u.name));
+  Object.values(adminUpdates.agentProfiles || {}).forEach(p => p?.id && p.name && !nomi.has(String(p.id)) && nomi.set(String(p.id), p.name));
+  const agenti = Object.entries(adminUpdates.diaria || {}).map(([id, r]) => ({ id: String(r?.agentId || id), nome: nomi.get(String(r?.agentId || id)) || String(r?.agentId || id).replace(/^AG_/, '').replace(/_([A-Z])$/, ' $1.').replace(/_/g, ' '),
+    entries: Array.isArray(r?.entries) ? r.entries.filter(Boolean) : [], conversioni: adminUpdates.diariaConversioni?.[id]?.map || {} }))
+    .filter(a => a.entries.length).sort((a, b) => a.nome.localeCompare(b.nome, 'it'));
+  fs.writeFileSync(path.join(BACKUP_DIR, `NaviSuite-backup-${oggi}-distinte.csv`), w.NaviDiariaBackup.csv(agenti));
+  // i piu' vecchi di BACKUP_GIORNI giorni
+  const limite = new Date(Date.now() - BACKUP_GIORNI * 864e5).toISOString().slice(0, 10);
+  fs.readdirSync(BACKUP_DIR).filter(f => /^NaviSuite-backup-\d{4}-\d{2}-\d{2}/.test(f) && f.slice(17, 27) < limite).forEach(f => fs.unlinkSync(path.join(BACKUP_DIR, f)));
+  log(`backup salvato: ${agenti.length} distinte, ${(json.length / 1048576).toFixed(1)} MB`);
+}
+
 async function main() {
   log(`avvio${DRY_RUN ? ' (prova: non mette niente in coda)' : ''} · sito ${SITE}`);
+  if (process.argv.includes('--backup')) {
+    // backup subito: node worker.js --backup
+    const w = await app(); fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    await backupNotturno(w, true); return;
+  }
   if (process.argv.includes('--elenco')) {
     // stampa gli avvisi di oggi per un agente: node worker.js --elenco <id>
     const w = await app(); const { effective, pontili } = await data(w);
@@ -164,6 +199,7 @@ async function main() {
   }
   for (;;) {
     try { await giro(); } catch (e) { log('errore:', e.message); }
+    try { await backupNotturno(await app()); } catch (e) { log('backup non riuscito:', e.message); }
     await new Promise(r => setTimeout(r, 60 * 1000 - (Date.now() % (60 * 1000)) + 2000));
   }
 }

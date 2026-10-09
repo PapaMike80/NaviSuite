@@ -3,6 +3,8 @@ services:
     build: .
     container_name: navisuite-arrivi
     restart: unless-stopped
+    volumes:
+      - ../backup:/backup   # backup notturno in /mnt/nas/Navigarda/backup (ultimi 60 giorni)
     environment:
       - TZ=Europe/Rome
       # - DRY_RUN=1        # prova: scrive nel log cosa manderebbe, senza mettere niente in coda
