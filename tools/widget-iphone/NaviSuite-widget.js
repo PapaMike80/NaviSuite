@@ -1,12 +1,14 @@
 // NaviSuite · widget per iPhone (app Scriptable, gratuita)
 // A terra: la prossima nave che arriva al tuo scalo. A bordo: il prossimo scalo.
-// Nel widget, in "Parameter", scrivi il tuo numero di agente (es. 92). Oppure scrivilo qui sotto.
+// Nel widget, in "Parameter", scrivi il tuo cognome (es. Pedroni; con omonimi anche l'iniziale: Pedroni M.)
+// oppure il tuo numero di agente. Oppure scrivilo qui sotto.
 const AGENTE = '';
 const API_KEY = 'AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE';
 const DB = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app';
 const APP = 'https://papamike80.github.io/NaviSuite/mio-turno.html';
 
-const agente = String(args.widgetParameter || AGENTE || '').trim();
+const scritto = String(args.widgetParameter || AGENTE || '').trim();
+let agente = '';
 const famiglia = config.widgetFamily || 'medium';
 const oggi = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const minuti = t => { const [h, m] = String(t).split('.').map(Number); return h * 60 + m; };
@@ -31,8 +33,24 @@ async function token() {
   return j.idToken;
 }
 
+// cognome -> numero di agente (elenco preparato dal TrueNAS), ricordato sul telefono
+async function numeroAgente(tok) {
+  if (/^\d+$/.test(scritto) || /^[A-Z]+_[A-Z]+$/.test(scritto)) return scritto;
+  const norm = String(scritto).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const K = `navisuite.widget.agente.${norm}`;
+  if (Keychain.contains(K)) return Keychain.get(K);
+  const nomi = await new Request(`${DB}/private/adminUpdates/widgetNomi.json?auth=${tok}`).loadJSON() || {};
+  const id = nomi[norm.replace(/ /g, '_')] || nomi[norm];
+  if (id === 'PIU') throw new Error('omonimi');
+  if (!id) throw new Error('nome');
+  Keychain.set(K, String(id));
+  return String(id);
+}
+
 async function dati() {
-  const r = new Request(`${DB}/private/adminUpdates/widget/${encodeURIComponent(agente)}.json?auth=${await token()}`);
+  const tok = await token();
+  agente = await numeroAgente(tok);
+  const r = new Request(`${DB}/private/adminUpdates/widget/${encodeURIComponent(agente)}.json?auth=${tok}`);
   return r.loadJSON();
 }
 
@@ -49,14 +67,14 @@ w.backgroundColor = new Color('#0b2731');
 const testo = (s, size, colore = '#ffffff', peso = 'bold') => { const t = w.addText(String(s)); t.font = peso === 'bold' ? Font.boldSystemFont(size) : Font.systemFont(size); t.textColor = new Color(colore); t.lineLimit = 1; t.minimumScaleFactor = 0.6; return t; };
 
 let prossimi = [], turno = '', errore = '';
-if (!agente) errore = 'Scrivi il tuo numero di agente in Parameter';
+if (!scritto) errore = 'Scrivi il tuo cognome in Parameter';
 else {
   try {
     const d = await dati();
     if (!d) errore = 'Agente non trovato';
     else if (d.data !== oggi()) errore = 'Dati di oggi non ancora pronti';
     else { turno = d.turno || ''; prossimi = (d.prossimi || []).filter(e => minuti(e.ora) >= adesso()); }
-  } catch (e) { errore = 'Nessuna connessione'; }
+  } catch (e) { errore = e.message === 'omonimi' ? `Più agenti "${scritto}": aggiungi l'iniziale` : e.message === 'nome' ? `Non trovo "${scritto}"` : 'Nessuna connessione'; }
 }
 
 const lockscreen = famiglia.startsWith('accessory');
