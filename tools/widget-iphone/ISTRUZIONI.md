@@ -8,8 +8,8 @@ Mostra la **prossima nave che arriva al tuo scalo** se sei a terra, oppure il **
 3. Apri Scriptable → **+** in alto a destra → incolla → in alto rinomina lo script in **NaviSuite** → **Fine**.
 4. Tocca lo script per provarlo: compare un'anteprima.
 5. Schermata Home: tieni premuto → **Modifica** → **Aggiungi widget** → **Scriptable** → scegli la misura → **Aggiungi widget**.
-   Tieni premuto il widget → **Modifica widget**: Script = **NaviSuite**, Parameter = **il tuo numero di agente** (es. 92).
+   Tieni premuto il widget → **Modifica widget**: Script = **NaviSuite**, Parameter = **il tuo cognome** (es. Pedroni; con omonimi anche l'iniziale: Pedroni M.), oppure il numero di agente.
 6. Schermata di blocco (facoltativo): tieni premuto sulla schermata bloccata → **Personalizza** → tocca sotto l'ora →
-   **Scriptable** → scegli il riquadro rettangolare → toccalo → Script **NaviSuite**, Parameter = il tuo numero.
+   **Scriptable** → scegli il riquadro rettangolare → toccalo → Script **NaviSuite**, Parameter = il tuo cognome.
 
 Toccando il widget si apre **Il mio turno**. L'iPhone aggiorna i widget da solo, di solito ogni 5–15 minuti.

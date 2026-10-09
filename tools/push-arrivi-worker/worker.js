@@ -138,6 +138,19 @@ async function widget(w, effective, pontili, oggi, ora) {
     scritti++;
   }
   if (scritti) log(`widget aggiornati: ${scritti}`);
+  // Elenco nomi -> numero, per scrivere nel widget il cognome invece del numero: "PEDRONI M" e "PEDRONI" (se unico).
+  const norm = v => String(v || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const nomi = {};
+  for (const [id, a] of agenti) {
+    const pieno = norm(a.agente), cognome = pieno.split(' ')[0];
+    if (pieno) nomi[pieno.replace(/ /g, '_')] = id;
+    if (cognome) nomi[cognome] = nomi[cognome] && nomi[cognome] !== id ? 'PIU' : id;
+  }
+  const chiaveNomi = JSON.stringify(nomi);
+  if (widgetScritti.get('__nomi') !== chiaveNomi) {
+    if (!DRY_RUN) await fb('private/adminUpdates/widgetNomi', { method: 'PUT', body: chiaveNomi });
+    widgetScritti.set('__nomi', chiaveNomi);
+  }
 }
 
 async function main() {
