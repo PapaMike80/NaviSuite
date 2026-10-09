@@ -151,7 +151,7 @@ function previousMonthCarryRow(){
   const diaria=Object.entries(allowanceRates).map(([rate,count])=>`${count}×${rate}%`).join(' · ')||'—';return `<tr class="previous-month-row"><td><small>RIPORTATO DA ${previousMonthLabel.toUpperCase()}</small><strong>${range}</strong></td><td><span class="shift-with-hours"><span class="carry-badge">RIPORTO</span><small>${minutesToText(work)}</small></span></td><td>${dataPill(minutesToText(extra),'pill-overtime')}</td><td>${dataPill(minutesToText(bank),'pill-bank')}</td><td>${dataPill(bpSummary(mealsUsed,mealsCredit),'pill-bp')}</td><td>${dataPill(embarks||'—','pill-embark')}</td><td>${dataPill(diaria,'pill-allowance')}</td><td>${dataPill(travels||'—','pill-travel')}</td><td></td></tr>`;
 }
 function persist(){writeEntriesLocal('modifica giornata');markCloudDirty();render()}
-function notify(message){$('toast').textContent=message;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
+function notify(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('toast').classList.remove('show'),Math.max(2200,String(message).length*70))}
 let firebaseAuthenticated=false;
 let cloudUiResetTimer=null;
 let undoSnapshot=null,lastKnownEntriesSnapshot=JSON.stringify(entries);

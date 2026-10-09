@@ -98,3 +98,6 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .hero-convert .hc-anno b{color:#5eead4;font-size:18px}
 .hero-convert .hc-anno p{margin:0;color:#fbbf24;font-size:13px;font-weight:700}
 .hero-convert .hc-testo{white-space:pre-line}
+/* Avvisi in basso: sopra a tutto (anche alla tabella), centrati e a capo, leggibili sul telefono */
+.toast{z-index:100100;left:50%;right:auto;bottom:calc(24px + env(safe-area-inset-bottom));max-width:min(92vw,460px);width:max-content;transform:translate(-50%,15px);white-space:normal;text-align:center;line-height:1.35;font-size:15px;box-shadow:0 12px 34px rgba(0,0,0,.55)}
+.toast.show{transform:translate(-50%,0)}
