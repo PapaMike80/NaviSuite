@@ -116,10 +116,8 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .diaria-anno tr.tot td{background:#123a40;font-weight:800}
 .diaria-anno tr.mese{cursor:pointer}
 .diaria-anno tr.mese:hover td,.diaria-anno tr.mese.aperto td{background:#123540}
-.diaria-anno tr.annidato>td{padding:0;background:#071b24}
-.diaria-anno .annidato-box{position:sticky;left:0;max-width:calc(100vw - 40px);padding:8px}
-.diaria-anno table.giorni{width:auto;min-width:100%;font-size:12.5px}
-.diaria-anno table.giorni th{background:#0b2731}
-.diaria-anno table.giorni tr.rip td{color:#57737d}
-.diaria-anno table.giorni tr.sett td{background:rgba(253,230,138,.08);color:#fde68a}
-.diaria-anno table.giorni tr.sett b{color:#fff}
+.diaria-anno tr.giorno td{font-size:12.5px;background:#071b24}
+.diaria-anno tr.giorno td.fisso{padding-left:22px;font-weight:400}
+.diaria-anno tr.giorno.rip td{color:#57737d}
+.diaria-anno tr.sett td{background:#1d2a1f;color:#fde68a;font-size:12.5px}
+.diaria-anno tr.sett b{color:#fff}
