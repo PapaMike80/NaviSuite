@@ -4,6 +4,7 @@
 // mette nella coda private/adminUpdates/pushQueue: li spedisce il push-worker gia' attivo su TrueNAS.
 // Nessuna chiave VAPID qui: serve solo l'accesso a Firebase (lo stesso anonimo dell'app).
 const vm = require('vm');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -181,6 +182,21 @@ async function backupNotturno(w, forza = false) {
   const limite = new Date(Date.now() - BACKUP_GIORNI * 864e5).toISOString().slice(0, 10);
   fs.readdirSync(BACKUP_DIR).filter(f => /^NaviSuite-backup-\d{4}-\d{2}-\d{2}/.test(f) && f.slice(17, 27) < limite).forEach(f => fs.unlinkSync(path.join(BACKUP_DIR, f)));
   log(`backup salvato: ${agenti.length} distinte, ${(json.length / 1048576).toFixed(1)} MB`);
+  try { backupCodice(oggi); } catch (e) { log('copia del codice non riuscita:', e.message); }
+}
+
+// Copia del codice dell'app (repository GitHub con tutta la storia) in BACKUP_DIR/codice: NaviSuite.git si aggiorna
+// ogni notte, e un .zip del sito pronto da pubblicare (ultimi 14 giorni). Se GitHub sparisse l'app resta qui.
+const REPO = process.env.REPO_URL || 'https://github.com/PapaMike80/NaviSuite.git';
+function backupCodice(oggi) {
+  const dir = path.join(BACKUP_DIR, 'codice'), mirror = path.join(dir, 'NaviSuite.git');
+  fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(mirror)) execFileSync('git', ['--git-dir', mirror, 'remote', 'update', '--prune'], { stdio: 'ignore', timeout: 300000 });
+  else execFileSync('git', ['clone', '--mirror', REPO, mirror], { stdio: 'ignore', timeout: 600000 });
+  execFileSync('git', ['--git-dir', mirror, 'archive', '--format=zip', '-o', path.join(dir, `NaviSuite-sito-${oggi}.zip`), 'main'], { timeout: 300000 });
+  const limite = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+  fs.readdirSync(dir).filter(f => /^NaviSuite-sito-\d{4}-\d{2}-\d{2}\.zip$/.test(f) && f.slice(15, 25) < limite).forEach(f => fs.unlinkSync(path.join(dir, f)));
+  log('copia del codice aggiornata');
 }
 
 async function main() {
