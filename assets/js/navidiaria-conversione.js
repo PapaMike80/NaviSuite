@@ -2,7 +2,7 @@
 // degli straordinari maturati trasformare. Quelle ore non sono pagate e vanno in banca ore con il 10% in piu'.
 // Salvate per mese sul telefono e su Firebase (private/adminUpdates/diariaConversioni/<agente>).
 (() => {
-  // sopra la Distinta mensile (la tabella del mese)
+  // sotto la Distinta mensile (la tabella del mese)
   const grid = document.getElementById('monthlySheetGrid');
   if (!grid) return;
   const MAGGIORAZIONE = 1.10;
@@ -25,9 +25,32 @@
   box.innerHTML = '<span class="hc-row"><small>Straordinari maturati</small><b data-hc="maturati">—</b></span>' +
     '<label class="hc-row"><small>Trasformati in banca ore</small><input data-hc="input" inputmode="decimal" placeholder="0:00" aria-label="Ore di straordinario da trasformare in banca ore"></label>' +
     '<span class="hc-row"><small>In banca ore (+10%)</small><b data-hc="bonus">—</b></span>' +
-    '<span class="hc-row"><small>Straordinari pagati</small><b data-hc="pagati">—</b></span>';
-  grid.insertAdjacentElement('beforebegin', box);
+    '<span class="hc-row"><small>Straordinari pagati</small><b data-hc="pagati">—</b></span>' +
+    '<div class="hc-note"><b>Come chiedere la trasformazione (O.d.S. 40, 5/3°)</b>' +
+    '<p>Dal 1° novembre 2026 la richiesta si manda <b>solo via e-mail</b> a <a href="mailto:pers.navigarda@navigazionelaghi.it">pers.navigarda@navigazionelaghi.it</a>, ' +
+    '<b>entro il 5 del mese successivo</b> (per ottobre entro il 5 novembre). Una richiesta per ogni mese, con solo le ore da trasformare: ' +
+    'non valgono richieste di più mesi insieme o scritte diversamente.</p>' +
+    '<p class="hc-scadenza" data-hc="scadenza"></p>' +
+    '<p class="hc-testo" data-hc="testo"></p>' +
+    '<div class="hc-azioni"><a class="hc-mail" data-hc="mail" href="#">✉ Prepara e-mail</a><button type="button" class="hc-copia" data-hc="copia">Copia testo</button></div></div>';
+  grid.insertAdjacentElement('afterend', box);
   const $ = name => box.querySelector(`[data-hc="${name}"]`);
+
+  const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+  const EMAIL = 'pers.navigarda@navigazionelaghi.it';
+  // "Mario Rossi" dal nome dell'anagrafica ("ROSSI MARIO" / "ROSSI M.")
+  const nome = () => { const n = String(agent()?.name || '').trim().split(/\s+/).map(p => p.charAt(0) + p.slice(1).toLowerCase()); return n.length > 1 ? [...n.slice(1), n[0]].join(' ') : n.join(' '); };
+  const oreTesto = m => { const h = Math.floor(m / 60), r = m % 60; return `${h} ${h === 1 ? 'ora' : 'ore'}${r ? ` e ${r} minuti` : ''}`; };
+  function richiesta(month, scelti) {
+    const [y, m] = month.split('-').map(Number);
+    return `Io sottoscritto ${nome()} chiede di trasformare numero ${oreTesto(scelti)} di straordinarie maturate nel mese di ${MESI[m - 1]} ${y}.`;
+  }
+  function scadenza(month) {
+    const [y, m] = month.split('-').map(Number);
+    const fine = new Date(y, m, 5, 23, 59); // il 5 del mese dopo
+    const testo = `${fine.getDate()} ${MESI[fine.getMonth()]} ${fine.getFullYear()}`;
+    return new Date() > fine ? `⚠ Termine scaduto il ${testo}.` : `Da inviare entro il ${testo}.`;
+  }
 
   function aggiorna() {
     const t = window.NaviDiariaTotals;
@@ -39,6 +62,14 @@
     $('bonus').textContent = scelti ? `+${testo(bonus)}` : '—';
     $('pagati').textContent = testo(maturati - scelti);
     if (document.activeElement !== $('input')) $('input').value = scelti ? testo(scelti) : '';
+    $('scadenza').textContent = scadenza(t.month);
+    const corpo = scelti ? richiesta(t.month, scelti) : '';
+    $('testo').textContent = corpo ? `«${corpo}»` : 'Scrivi qui sopra le ore da trasformare: il testo della richiesta si prepara da solo.';
+    const [y, m] = t.month.split('-').map(Number);
+    $('mail').href = corpo ? `mailto:${EMAIL}?subject=${encodeURIComponent(`Trasformazione straordinari in banca ore - ${MESI[m - 1]} ${y} - ${nome()}`)}&body=${encodeURIComponent(corpo)}` : '#';
+    $('mail').classList.toggle('off', !corpo);
+    $('copia').disabled = !corpo;
+    $('copia').dataset.testo = corpo;
     // nel riepilogo: straordinari pagati e banca ore con le ore trasformate
     const hero = document.getElementById('heroOvertime'), banca = document.getElementById('heroBank');
     if (hero && typeof minutesToText === 'function') hero.textContent = minutesToText(maturati - scelti) + (scelti ? ' pagati' : '');
@@ -67,6 +98,12 @@
     if (typeof render === 'function') render(); else aggiorna();
   });
   $('input').addEventListener('keydown', event => { if (event.key === 'Enter') event.target.blur(); });
+  $('mail').addEventListener('click', event => { if ($('mail').classList.contains('off')) event.preventDefault(); });
+  $('copia').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('copia').dataset.testo || ''); $('copia').textContent = 'Copiato ✓'; }
+    catch { $('copia').textContent = 'Copia non riuscita'; }
+    setTimeout(() => { $('copia').textContent = 'Copia testo'; }, 1800);
+  });
   document.addEventListener('navidiaria:render', aggiorna);
   aggiorna();
 
