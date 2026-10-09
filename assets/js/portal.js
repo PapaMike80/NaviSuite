@@ -100,6 +100,9 @@ function showChoice(agent) {
   $('appChoice').hidden = false;
   $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
+  // Utente di uno scalo: solo la pagina Scali del proprio scalo
+  const scalo=window.NaviRoles?.scaloOf?.(agent);
+  if(scalo){location.replace(`orario.html?scalo=${encodeURIComponent(scalo)}`);return;}
   const allowedStartPages=new Set(['auto','index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','mio-turno.html','orario.html','impostazioni.html','aggiornamenti.html','agenti.html']);
   // Prima pagina: quella scelta in Impostazioni; chi non ha mai scelto ha "Automatica" (Scali se oggi e'
   // di turno a terra, altrimenti Il mio turno), tranne le bariste. Servizi a terra e' ora in Scali.

@@ -158,6 +158,12 @@
       });
     });
 
+    // Residenza "Scali": un utente fisso per ogni scalo (assets/js/shared-roles.js), solo per il login.
+    (window.NaviRoles?.scaloAgents?.() || []).forEach(item => {
+      const uid = stableAgentUid(item.name);
+      if (!byId.has(uid)) byId.set(uid, { id:item.id, agent_uid:uid, name:item.name, qualifica:item.qualifica, residence:item.residence, role:item.role });
+    });
+
     return [...byId.values()].sort((a, b) => {
       const baristaA = String(a.role || a.qualifica || '').toLowerCase() === 'barista' ? 1 : 0;
       const baristaB = String(b.role || b.qualifica || '').toLowerCase() === 'barista' ? 1 : 0;

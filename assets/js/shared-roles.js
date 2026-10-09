@@ -44,7 +44,31 @@
     return isBaristaAgent(agent) && label === 'HIBA';
   }
 
+  // Residenza "Scali": un utente per ogni scalo (SCALO_DESENZANO, ...), che vede solo la pagina Scali del proprio scalo.
+  const SCALI_RESIDENCE = 'Scali';
+  const SCALI = ['Desenzano', 'Peschiera', 'Sirmione', 'Lazise', 'Bardolino', 'Garda', 'Torri', 'Portese', 'Salò',
+    'Gardone', 'Maderno', 'Gargnano', 'Brenzone', 'Malcesine', 'Limone', 'Torbole', 'Riva'];
+  const scaloId = nome => 'SCALO_' + nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const scaloAgents = () => SCALI.map(nome => ({ id: scaloId(nome), name: `SCALO ${nome.toLocaleUpperCase('it')}`, qualifica: 'scalo', residence: SCALI_RESIDENCE, role: 'scalo', scalo: nome }));
+  const scaloOf = agent => SCALI.find(nome => scaloId(nome) === idOf(agent).toUpperCase()) || '';
+  const isScaloAgent = agent => !!scaloOf(agent);
+
+  // Gli utenti scalo possono aprire solo la pagina Scali (orario.html) del proprio scalo; il login (index.html) li porta li'.
+  try {
+    const session = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
+    const scalo = scaloOf(session);
+    const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const pin = /[?&](open-)?pin=/.test(location.search);
+    if (scalo && !(file === 'orario.html' || file === 'index.html' || (file === 'navidiaria.html' && pin))) {
+      location.replace(`orario.html?scalo=${encodeURIComponent(scalo)}`);
+    }
+  } catch { /* sessione non leggibile */ }
+
   window.NaviRoles = Object.freeze({
+    isScaloAgent,
+    scaloOf,
+    scaloAgents,
+    SCALI_RESIDENCE,
     isAdminAgent,
     isAdminOrSuperUser,
     isBaristaAgent,
