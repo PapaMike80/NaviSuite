@@ -258,7 +258,7 @@
       `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
       `${decoro}<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${percorso}${porti}${marker}</svg>`;
     const dettaglio = aperte.map(code => dettaglioNave(g, code, t)).join('');
-    const side = (dettaglio || '') + alloScalo(g, t, aperte, navi);
+    const side = (aperte.includes('BIS') ? '' : schedaBisDisposizione(g, t)) + (dettaglio || '') + alloScalo(g, t, aperte, navi);
     return { t, svg, side };
   }
 
@@ -288,6 +288,23 @@
     if (qui.length) return qui;
     const prossima = eventiScalo(g, state.scalo).find(e => e.t >= t);
     return prossima ? [prossima.v.turno] : [];
+  }
+
+  // BIS a disposizione (senza corse di linea): a Desenzano la sua scheda come le altre navi, quando esce la
+  // mattina (pronto alle 8.30) o rientra la sera (18.40), da 2 ore prima a 10 minuti dopo.
+  function schedaBisDisposizione(g, t) {
+    if (state.scalo !== 'Desenzano' || !g.bisAttivo || state.embed?.modo === 'nave' || state.chiuse.has('BIS-disposizione')) return '';
+    const ev = D.NAVI.DESENZANO.filter(row => row[2] === 'BIS' && !row[3]).map(([ora, kind, , , dove]) => ({ ora, kind, dove: String(dove || '').replace(/\s*\*$/, '').replace(/\s*\(a disposizione\)/, ''), t: minutes(ora) }))
+      .find(e => e.t - t <= 120 && t - e.t < DOPO_PARTENZA);
+    if (!ev) return '';
+    const min = ev.t - t, arrivo = ev.kind === 'A';
+    const quando = min >= 0 ? traMin(min) : `${arrivo ? 'arrivata' : 'partita'} da ${-min} min`;
+    const nave = naveDi(g, 'BIS'), cte = G.comandante(g.crews.BIS);
+    const title = `BIS${nave ? ` ${nave}` : ''} · ${arrivo ? 'rientro a Desenzano' : 'esce da Desenzano'} ${quando}`;
+    const manca = min >= 0 && min <= 60 ? badgeManca({ arriva: arrivo, testo: arrivo ? `in arrivo · ${traMin(min)}` : traMin(min) }) : '';
+    const riga = `<li class="qui"><span>${esc(ev.ora)}</span><span class="or-next-nome">Desenzano${manca}</span><small>${arrivo ? 'arrivo' : 'partenza'}</small></li>`;
+    const body = `<p class="or-status">A disposizione dell'Ufficio Movimento${ev.dove ? ` · ${esc(ev.dove)}` : ''}</p><p class="or-sub">A Desenzano</p><ol class="mt-scali or-next">${riga}</ol>`;
+    return card(title, cte || '', body, 'or-detail', 'data-detail="BIS-disposizione"');
   }
 
   // ---------------- Allo scalo (come Servizi a terra) ----------------
