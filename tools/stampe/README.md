@@ -11,7 +11,7 @@ Genera i PDF da stampare (laser bianco/nero) e le cover per iPhone 15:
 | `Maderno_passeggeri_A4.pdf` | per la biglietteria (2 pagine): navi di linea, partenze da Maderno e ritorno a Maderno, con le coincidenze, in italiano, inglese e tedesco |
 | `Maderno_traghetto_Torri_A4.pdf` | per la biglietteria: traghetto Maderno ⇄ Torri del Benaco, andata e ritorno |
 | `Desenzano_passeggeri_A4.pdf` | lo stesso foglio per i passeggeri di Desenzano |
-| `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) |
+| `Cover_*.pdf` | cover iPhone 15 (M1, T1, T2, Maderno, Desenzano) nei colori di NaviSuite |
 | `ormeggi.json` | navi, pontili e rifornimenti estratti dagli O.d.S. |
 
 ## Dall'app: tasto "Genera Servizi a terra"
