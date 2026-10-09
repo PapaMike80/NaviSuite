@@ -62,6 +62,8 @@
     (entries || []).forEach(entry => {
       if (!entry?.date || !entry?.shift || entry.manualOverride !== true || entry.manualModified !== true) return;
       map.set(`${String(agentId)}|${String(entry.date).slice(0, 10)}`, String(entry.shift));
+      // il turno da cui l'agente e' partito (per mostrare "da ... a ..." nelle richieste del Movimento)
+      if (entry.manualFrom) (map.da = map.da || new Map()).set(`${String(agentId)}|${String(entry.date).slice(0, 10)}`, String(entry.manualFrom));
     });
   }
   // Le modifiche di tutti da Firebase piu' le proprie salvate sul dispositivo (non ancora sincronizzate).
@@ -84,7 +86,7 @@
   // Turno modificato a mano dall'agente nella propria Distinta (NaviDiaria) in un giorno, se c'e'.
   const modificaManuale = (agentId, day) => modifiche.get(`${String(agentId)}|${day}`);
   // Tutti i cambi fatti a mano dagli agenti: [{id, day, turno}]
-  const modificheManuali = () => [...modifiche.entries()].map(([key, turno]) => { const [id, day] = key.split('|'); return { id, day, turno }; });
+  const modificheManuali = () => [...modifiche.entries()].map(([key, turno]) => { const [id, day] = key.split('|'); return { id, day, turno, da: modifiche.da?.get(key) || '' }; });
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
   const turnoDi = (agent, day, map) => {

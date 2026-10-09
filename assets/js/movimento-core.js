@@ -16,7 +16,7 @@
   const addDays = (value, days) => { const d = parseIso(value); d.setDate(d.getDate() + days); return iso(d); };
   const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
   const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
-  const TABS = ['corse', 'navi', 'agenti'];
+  const TABS = ['corse', 'navi', 'agenti', 'richieste'];
 
   let profile = null;
   try { profile = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { profile = null; }
@@ -247,14 +247,11 @@
   // cliccando sulla data si apre il calendario
   $('mov-day-input').addEventListener('click', event => { try { event.target.showPicker?.(); } catch { /* il browser lo apre da solo */ } });
   $('mov-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
-  // "Vedi": va al giorno della prima richiesta, apre le residenze interessate nel tab Agenti e segna le richieste come viste
+  // "Vedi": apre il tab Cambi richiesti e segna le richieste come viste
   $('mov-avviso')?.addEventListener('click', event => {
     if (!event.target.closest('[data-vai]')) return;
-    const prima = richiesteNuove()[0] || richieste()[0];
-    if (prima && prima.day !== state.day) goToDay(prima.day);
     segnaViste();
-    showTab('agenti');
-    document.dispatchEvent(new CustomEvent('mov:vedi-richieste'));
+    showTab('richieste');
   });
   $('mov-tabs').addEventListener('click', event => { const btn = event.target.closest('[data-tab]'); if (btn) showTab(btn.dataset.tab); });
 
@@ -280,7 +277,7 @@
       const deciso = variazioneMovimento(m.day, m.id);
       // chiusa: approvata/rifiutata/modificata dal Movimento, oppure gia' sovrascritta da una sua decisione
       const sovrascritta = !!deciso && norm(deciso.sovrascrive ?? '') === norm(m.turno);
-      return { agent, residenza, day: m.day, turno: m.turno, previsto, deciso: deciso ? String(deciso.turno_nuovo || '') : '',
+      return { agent, residenza, day: m.day, turno: m.turno, previsto, da: m.da || '', deciso: deciso ? String(deciso.turno_nuovo || '') : '',
         chiusa: (!!chiusa && norm(chiusa.turno) === norm(m.turno)) || sovrascritta };
     })
       // un cambio dell'agente e' una richiesta se e' diverso dal turno previsto e da quello che il Movimento ha gia' deciso
@@ -318,7 +315,7 @@
         if (variazioneMovimento(r.day, r.agent.id)) aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, '', r.turno, `Movimento (${autore})`));
         setStatus(`${r.agent.agente}: cambio turno del ${dmy} approvato (${r.turno}).`, 'ok');
       } else {
-        const nuovo = scelta === 'rifiuta' ? (r.previsto || 'RIP') : scelta;
+        const nuovo = scelta === 'rifiuta' ? (r.previsto || r.da || 'RIP') : scelta;
         esito = scelta === 'rifiuta' ? 'rifiutata' : 'modificata';
         aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${esito}`, { sovrascrive: r.turno }));
         setStatus(`${r.agent.agente}: richiesta del ${dmy} ${scelta === 'rifiuta' ? `rifiutata, resta ${nuovo}` : `cambiata in ${nuovo}`}.`, 'ok');
@@ -344,8 +341,14 @@
       const tutte = state.schedule ? richieste() : [];
       const conRichiesta = new Set(tutte.filter(r => r.day === state.day).map(r => String(r.agent.id)));
       const modificati = state.schedule ? agenti(state.day).filter(a => norm(a.turno) !== norm(turnoPrevisto(a.agent, state.day)) && !conRichiesta.has(String(a.agent.id))).length : 0;
-      btn.innerHTML = 'Agenti' + (tutte.length ? ` <span class="tab-badge rosso" title="Richieste di cambio turno da approvare: ${tutte.length}">${tutte.length}</span>` : '') +
+      btn.innerHTML = 'Agenti' + (conRichiesta.size ? ` <span class="tab-badge rosso" title="Richieste di cambio turno in questo giorno: ${conRichiesta.size}">${conRichiesta.size}</span>` : '') +
         (modificati ? ` <span class="tab-badge arancio" title="Turni modificati in questo giorno: ${modificati}">${modificati}</span>` : '');
+    }
+    // tab Cambi richiesti: tutte le richieste ancora da decidere, di qualunque giorno
+    const btnRich = document.querySelector('[data-tab="richieste"]');
+    if (btnRich) {
+      const tutte = state.schedule ? richieste() : [];
+      btnRich.innerHTML = 'Cambi richiesti' + (tutte.length ? ` <span class="tab-badge rosso" title="Richieste di cambio turno da approvare: ${tutte.length}">${tutte.length}</span>` : '');
     }
     const n = nuove;
     // avviso ben visibile in ogni tab: gli agenti si sono cambiati il turno dalla Distinta e il Movimento deve decidere
@@ -354,13 +357,13 @@
       avviso.hidden = !n;
       if (n) {
         const nomi = [...new Set(richiesteNuove().map(r => String(r.agent.agente || '').split(' ')[0]))].slice(0, 3).join(', ');
-        avviso.innerHTML = `<span>🔔 <b>${n} ${n === 1 ? 'richiesta' : 'richieste'} di cambio turno</b> da approvare${nomi ? ` · ${nomi}` : ''}</span><button type="button" class="btn primary" data-vai="agenti">Vedi</button>`;
+        avviso.innerHTML = `<span>🔔 <b>${n} ${n === 1 ? 'richiesta' : 'richieste'} di cambio turno</b> da approvare${nomi ? ` · ${nomi}` : ''}</span><button type="button" class="btn primary" data-vai="richieste">Vedi</button>`;
       }
     }
   }
 
   window.NaviMovimento = { state, profile, autore, O, G, T, iso, parseIso, addDays, setStatus, righeNavi, turniCodici, turniFermi, TUTTI_I_TURNI, agenti, nomiNave, stessaNave, modificaOds,
-    variazioneMovimento, richieste, richiesteNuove, turnoPrevisto, decidiRichiesta, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
+    variazioneMovimento, richieste, richiesteNuove, turnoPrevisto, decidiRichiesta, goToDay, showTab, salva, ripristina, variazione, salvaStagione, notify, vista, editing };
 
   // Le viste si registrano dopo questo script: il primo disegno parte a pagina caricata.
   const avvia = () => {

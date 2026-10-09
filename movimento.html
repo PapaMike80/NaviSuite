@@ -10,7 +10,7 @@
   <title>NaviSuite Movimento</title>
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css">
-  <link rel="stylesheet" href="assets/css/movimento.css?v=53">
+  <link rel="stylesheet" href="assets/css/movimento.css?v=55">
 </head>
 <body class="movimento-page">
   <aside class="app-sidebar" id="admin-sidebar"></aside>
@@ -31,6 +31,7 @@
       <button type="button" role="tab" data-tab="corse">Corse</button>
       <button type="button" role="tab" data-tab="navi">Navi</button>
       <button type="button" role="tab" data-tab="agenti">Agenti</button>
+      <button type="button" role="tab" data-tab="richieste">Cambi richiesti</button>
     </nav>
 
     <section class="section mov-panel" id="mov-corse" data-panel="corse">
@@ -47,6 +48,11 @@
       <div class="section-head"><div><h2>Agenti</h2><p>Per residenza e grado, con il turno del giorno scelto: cambialo dal menu.</p></div><span id="agenti-count" class="count">0</span></div>
       <div id="agenti-view"></div>
     </section>
+
+    <section class="section mov-panel" id="mov-richieste" data-panel="richieste" hidden>
+      <div class="section-head"><div><h2>Cambi richiesti</h2><p>Tutti i cambi turno fatti dagli agenti dalla loro Distinta, da oggi in poi, ancora da decidere. Se non fai niente il cambio resta.</p></div><span id="richieste-count" class="count">0</span></div>
+      <div id="richieste-view"></div>
+    </section>
   </main>
   <script src="assets/js/shared-roles.js?v=1"></script>
   <script src="assets/js/admin-firebase-rest.js?v=55"></script>
@@ -54,13 +60,14 @@
   <script src="assets/js/firebase-auth.js?v=2"></script>
   <script src="assets/js/shared-menu.js?v=1.63"></script>
   <script src="assets/js/course-info.js?v=1"></script>
-  <script src="assets/js/turni-giorno.js?v=7"></script>
+  <script src="assets/js/turni-giorno.js?v=8"></script>
   <script src="assets/js/servizi-terra-a4.js?v=19"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=4"></script>
-  <script src="assets/js/movimento-core.js?v=19"></script>
+  <script src="assets/js/movimento-core.js?v=21"></script>
   <script src="assets/js/movimento-corse.js?v=50"></script>
   <script src="assets/js/movimento.js?v=3"></script>
-  <script src="assets/js/movimento-agenti.js?v=17"></script>
+  <script src="assets/js/movimento-agenti.js?v=18"></script>
+  <script src="assets/js/movimento-richieste.js?v=3"></script>
 </body>
 </html>
