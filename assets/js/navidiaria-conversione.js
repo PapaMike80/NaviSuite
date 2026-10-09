@@ -62,7 +62,7 @@
     return mese == null ? v : Math.min(v, mese);
   }
   // Banca ore dell'anno: quella di ogni giorno dell'anno (anche quella usata, in negativo) + le trasformazioni dei
-  // mesi dell'anno con il 10% in piu'. Va usata entro il 31 dicembre.
+  // mesi dell'anno con il 10% in piu'. Va usata entro il 31 marzo dell'anno dopo.
   function bancaAnno(year) {
     const giorni = (typeof entries !== 'undefined' ? entries : []).filter(e => String(e.date || '').startsWith(`${year}-`))
       .reduce((sum, e) => sum + (Math.round(Number(e.bank) || 0)), 0);
@@ -86,7 +86,10 @@
     const anno = t.month.slice(0, 4), bancaTot = bancaAnno(anno);
     $('anno-label').textContent = `Banca ore ${anno}`;
     $('anno').textContent = `${bancaTot < 0 ? '-' : ''}${testo(Math.abs(bancaTot))}`;
-    $('anno-nota').textContent = `Le ore in banca vanno usate entro il 31 dicembre ${anno}.`;
+    // da gennaio a marzo vale ancora la banca ore dell'anno prima (scade il 31 marzo)
+    const prec = Number(anno) - 1, meseNum = Number(t.month.slice(5, 7)), residuo = meseNum <= 3 ? bancaAnno(String(prec)) : 0;
+    $('anno-nota').textContent = `Le ore in banca del ${anno} vanno usate entro il 31 marzo ${Number(anno) + 1}.` +
+      (residuo ? ` Banca ore ${prec}: ${residuo < 0 ? '-' : ''}${testo(Math.abs(residuo))}, da usare entro il 31 marzo ${anno}.` : '');
     const corpo = scelti ? richiesta(t.month, scelti) : '';
     $('testo').textContent = corpo || 'Scrivi qui sopra le ore da trasformare: il testo della richiesta si prepara da solo.';
     const [y, m] = t.month.split('-').map(Number);
