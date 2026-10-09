@@ -97,3 +97,4 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .hero-convert .hc-anno span{display:flex;flex-direction:column;gap:4px}
 .hero-convert .hc-anno b{color:#5eead4;font-size:18px}
 .hero-convert .hc-anno p{margin:0;color:#fbbf24;font-size:13px;font-weight:700}
+.hero-convert .hc-testo{white-space:pre-line}

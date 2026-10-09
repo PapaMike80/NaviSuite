@@ -46,7 +46,7 @@
   const oreTesto = m => { const h = Math.floor(m / 60), r = m % 60; return `${h} ${h === 1 ? 'ora' : 'ore'}${r ? ` e ${r} minuti` : ''}`; };
   function richiesta(month, scelti) {
     const [y, m] = month.split('-').map(Number);
-    return `Io sottoscritto ${nome()} chiede di trasformare numero ${oreTesto(scelti)} di straordinarie maturate nel mese di ${MESI[m - 1]} ${y}.`;
+    return `Alla cortese attenzione Direzione NLG ufficio Personale\n\nIo sottoscritto ${nome()} chiedo di trasformare ${oreTesto(scelti)} di straordinarie maturate nel mese di ${MESI[m - 1]} ${y} in banca ore.\n\nDistinti saluti`;
   }
   function scadenza(month) {
     const [y, m] = month.split('-').map(Number);
