@@ -23,7 +23,9 @@
   const box = document.createElement('div');
   box.className = 'hero-convert';
   box.innerHTML = '<span class="hc-row"><small>Straordinari del mese</small><b data-hc="maturati">—</b></span>' +
-    '<label class="hc-row"><small>Trasformati in banca ore</small><input data-hc="input" inputmode="decimal" placeholder="0:00" aria-label="Ore di straordinario da trasformare in banca ore"></label>' +
+    '<label class="hc-row"><small>Trasformati in banca ore</small><span class="hc-campo"><input data-hc="input" inputmode="decimal" placeholder="0:00" aria-label="Ore di straordinario da trasformare in banca ore"><button type="button" class="hc-trasforma" data-hc="apri">Trasforma</button></span>' +
+    '<span class="hc-perc" data-hc="perc" hidden><button type="button" data-pct="50">50%</button><button type="button" data-pct="100">100%</button>' +
+    '<input data-hc="pct" inputmode="numeric" placeholder="%" aria-label="Percentuale da trasformare"><button type="button" data-hc="applica">OK</button></span></label>' +
     '<span class="hc-row"><small>In banca ore (+10%)</small><b data-hc="bonus">—</b></span>' +
     '<span class="hc-row"><small>Straordinari pagati</small><b data-hc="pagati">—</b></span>' +
     '<div class="hc-note"><b>Come chiedere la trasformazione (O.d.S. 40, 5/3°)</b>' +
@@ -100,6 +102,24 @@
     if (typeof render === 'function') render(); else aggiorna();
   });
   $('input').addEventListener('keydown', event => { if (event.key === 'Enter') event.target.blur(); });
+  // Trasforma: una percentuale degli straordinari del mese (50%, 100% o scritta a mano)
+  const totaleMese = t => (window.NaviDiariaMese?.month === t.month ? window.NaviDiariaMese.totale : (t.overtime || 0));
+  function trasformaPercentuale(pct) {
+    const t = window.NaviDiariaTotals;
+    if (!t || !(pct >= 0)) return;
+    salva(t.month, Math.round(totaleMese(t) * Math.min(100, pct) / 100));
+    $('perc').hidden = true;
+    if (typeof render === 'function') render(); else aggiorna();
+  }
+  $('apri').addEventListener('click', event => { event.preventDefault(); $('perc').hidden = !$('perc').hidden; if (!$('perc').hidden) $('pct').value = ''; });
+  $('perc').addEventListener('click', event => {
+    const b = event.target.closest('[data-pct]');
+    if (b) { event.preventDefault(); trasformaPercentuale(Number(b.dataset.pct)); }
+  });
+  const applicaPct = () => { const v = Number(String($('pct').value).replace('%', '').replace(',', '.')); if (Number.isFinite(v) && v >= 0) trasformaPercentuale(v); };
+  $('applica').addEventListener('click', event => { event.preventDefault(); applicaPct(); });
+  $('pct').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); applicaPct(); } });
+
   $('mail').addEventListener('click', event => { if ($('mail').classList.contains('off')) event.preventDefault(); });
   $('copia').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText($('copia').dataset.testo || ''); $('copia').textContent = 'Copiato ✓'; }
