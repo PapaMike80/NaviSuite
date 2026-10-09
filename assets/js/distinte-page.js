@@ -46,6 +46,7 @@
     $('elenco').hidden = !agenti.length;
     status(`${agenti.length} distinte lette${dati?.creato ? ` · backup del ${String(dati.creato).slice(0, 10)}` : ''}.`);
     elenco();
+    riepilogoTutti();
   }
 
   function elenco() {
@@ -58,13 +59,10 @@
     }).join('') || '<p class="status">Nessun agente trovato.</p>';
   }
 
-  // Periodo di competenza come nella Distinta: le settimane (lunedi'-domenica) la cui domenica cade nel mese (o nell'anno).
-  // Lo straordinario e' quello oltre le 39 ore di ogni settimana.
-  function dettaglio() {
-    const a = scelto, periodo = $('mese').value;
-    if (!a) { $('dettaglio').hidden = true; return; }
+  // Settimane del periodo di un agente (solo quelle con dati): [{dal, al, lavorate, straordinario, giorni}]
+  function settimaneDi(a, periodo) {
     const byDate = new Map(a.entries.map(e => [e.date, e]));
-    const settimane = B.domeniche(periodo).map(dom => {
+    return B.domeniche(periodo).map(dom => {
       const w = B.sett(a.entries, dom), giorni = [];
       for (let d = new Date(`${w.dal}T12:00:00`); ; d.setDate(d.getDate() + 1)) {
         const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -72,7 +70,52 @@
         if (iso === dom) break;
       }
       return { ...w, giorni };
-    }).filter(w => w.giorni.some(e => e.shift)); // settimane senza dati (prima di giugno 2026) fuori
+    }).filter(w => w.giorni.some(e => e.shift));
+  }
+  // festivita' come nella Distinta: feste nazionali e Pasquetta (la domenica e' l'indennita' turno domenicale)
+  const FESTE = new Set(['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26']);
+  function pasquetta(y) { const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mese = Math.floor((h + l - 7 * m + 114) / 31), giorno = ((h + l - 7 * m + 114) % 31) + 1, x = new Date(y, mese - 1, giorno + 1, 12); return `${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; }
+  const festivo = e => (e.holidayWorked === undefined ? FESTE.has(e.date.slice(5)) || e.date.slice(5) === pasquetta(Number(e.date.slice(0, 4))) : !!e.holidayWorked);
+  // Tutte le competenze di un agente nel periodo (mese o anno)
+  const COMPETENZE = [['giorni', 'Giorni', 'n'], ['lavorate', 'Ore lavorate', 'h'], ['straordinari', 'Straordinari', 'h'], ['trasformati', 'Trasformati', 'h'], ['pagati', 'Str. pagati', 'h'],
+    ['banca', 'Banca ore', 'h'], ['ticket', 'Ticket', 'n'], ['ticket2', '2° ticket', 'n'], ['d9', 'Diaria 9%', 'n'], ['d24', 'Diaria 24%', 'n'], ['d50', 'Diaria 50%', 'n'],
+    ['pernotto', 'Pernotto 40%', 'n'], ['festivi', 'Festività', 'n'], ['domeniche', 'Ind. dom.', 'n'], ['imbarco', 'Imbarco', 'n'], ['denaro', 'Maneggio denaro', 'n'],
+    ['aliscafo', 'Aliscafo', 'n'], ['rf', 'Recupero forfait', 'n'], ['trasferte', 'Trasferte', 'n'], ['rifornimenti', 'Rifornimenti', 'n'], ['cambi', 'Cambi', 'h'], ['sentine', 'Sentine', 'h'], ['mancatiRiposi', 'Mancati riposi', 'n']];
+  function competenze(a, periodo, settimane = settimaneDi(a, periodo)) {
+    const gg = settimane.flatMap(w => w.giorni), lav = gg.filter(lavoro), n = f => lav.filter(f).length;
+    const straordinari = settimane.reduce((s, w) => s + w.straordinario, 0), trasformati = sommaConv(a, periodo);
+    return { giorni: lav.length, lavorate: settimane.reduce((s, w) => s + w.lavorate, 0), straordinari, trasformati, pagati: Math.max(0, straordinari - trasformati),
+      banca: gg.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(trasformati * 1.1),
+      ticket: n(e => e.ticketPresence ?? e.mealUsed), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
+      pernotto: n(e => e.overnight40), festivi: n(festivo), domeniche: n(e => new Date(`${e.date}T12:00:00`).getDay() === 0), imbarco: n(e => e.embark), denaro: n(e => e.cashHandling),
+      aliscafo: n(e => (e.hydrofoil === undefined ? String(e.shift).toUpperCase() === 'SR1' : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
+      rifornimenti: n(e => e.refuelDone === true || Number(e.refuel) > 0), cambi: lav.reduce((s, e) => s + B.causali(e).cambio, 0), sentine: lav.reduce((s, e) => s + B.causali(e).sentine, 0),
+      mancatiRiposi: lav.reduce((s, e) => s + (Number(e.missedRest) || 0), 0) };
+  }
+  const valore = (c, [k, , tipo]) => (tipo === 'h' ? (c[k] ? ore(c[k]) : '') : (c[k] || ''));
+  const intestazione = () => COMPETENZE.map(([, t]) => `<th>${esc(t)}</th>`).join('');
+  const celle = c => COMPETENZE.map(col => `<td${col[0] === 'straordinari' ? ' class="forte"' : ''}>${esc(valore(c, col))}</td>`).join('');
+
+  // Riepilogo di tutti gli agenti nel periodo scelto: un agente per riga, tutte le competenze
+  function riepilogoTutti() {
+    const periodo = $('mese').value;
+    if (!agenti.length || !periodo) { $('tutti-card').hidden = true; return; }
+    const righe = agenti.map(a => ({ a, c: competenze(a, periodo) })).filter(x => x.c.giorni);
+    const somma = Object.fromEntries(COMPETENZE.map(([k]) => [k, righe.reduce((s, x) => s + (Number(x.c[k]) || 0), 0)]));
+    $('tutti-titolo').textContent = `Riepilogo di tutti · ${etichetta(periodo)}`;
+    $('tutti-tabella').innerHTML = `<thead><tr><th class="fisso">Agente</th>${intestazione()}</tr></thead><tbody>` +
+      righe.map(({ a, c }) => `<tr data-id="${esc(a.id)}"><td class="fisso"><b>${esc(a.nome)}</b> <small>${esc(a.id)}</small></td>${celle(c)}</tr>`).join('') +
+      `<tr class="tot"><td class="fisso">Totale · ${righe.length} agenti</td>${celle(somma)}</tr></tbody>`;
+    $('tutti-card').hidden = false;
+    riepilogoTutti.righe = righe;
+  }
+
+  // Periodo di competenza come nella Distinta: le settimane (lunedi'-domenica) la cui domenica cade nel mese (o nell'anno).
+  // Lo straordinario e' quello oltre le 39 ore di ogni settimana.
+  function dettaglio() {
+    const a = scelto, periodo = $('mese').value;
+    if (!a) { $('dettaglio').hidden = true; return; }
+    const settimane = settimaneDi(a, periodo);
     const giorni = settimane.flatMap(w => w.giorni), lav = giorni.filter(lavoro);
     const tot = f => lav.reduce((s, e) => s + f(e), 0);
     const straord = settimane.reduce((s, w) => s + w.straordinario, 0), conv = sommaConv(a, periodo);
@@ -89,14 +132,11 @@
     if (periodo.length === 4) {
       const righeMesi = MESI.map((nome, i) => {
         const mese = `${periodo}-${String(i + 1).padStart(2, '0')}`, ws = settimane.filter(w => w.al.startsWith(mese));
-        const gm = ws.flatMap(w => w.giorni), lm = gm.filter(lavoro);
-        if (!lm.length) return `<tr class="vuoto"><td>${esc(nome)}</td><td colspan="9">—</td></tr>`;
-        const st = ws.reduce((s, w) => s + w.straordinario, 0), cv = Number(a.conversioni?.[mese]) || 0;
-        return `<tr><td>${esc(nome)}</td><td>${lm.length}</td><td>${ore(ws.reduce((s, w) => s + w.lavorate, 0))}</td><td><b>${ore(st)}</b></td><td>${cv ? ore(cv) : ''}</td><td>${ore(Math.max(0, st - cv))}</td>` +
-          `<td>${ore(gm.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(cv * 1.1))}</td><td>${lm.filter(e => e.ticketPresence ?? e.mealUsed).length}</td><td>${lm.filter(e => e.allowanceRate != null).length}</td><td>${lm.filter(e => e.embark).length}</td></tr>`;
+        if (!ws.some(w => w.giorni.some(lavoro))) return `<tr class="vuoto"><td class="fisso">${esc(nome)}</td><td colspan="${COMPETENZE.length}">—</td></tr>`;
+        return `<tr><td class="fisso">${esc(nome)}</td>${celle(competenze(a, mese, ws))}</tr>`;
       });
-      mensile = `<h3 class="tit-mesi">Riepilogo mensile ${esc(periodo)}</h3><div class="wrap mesi"><table><thead><tr><th>Mese</th><th>Giorni</th><th>Ore lavorate</th><th>Straordinari</th><th>Trasformati</th><th>Pagati</th><th>Banca ore</th><th>Ticket</th><th>Diarie</th><th>Imbarchi</th></tr></thead><tbody>${righeMesi.join('')}` +
-        `<tr class="tot"><td>Totale</td><td>${lav.length}</td><td>${ore(tot(B.lavorate))}</td><td><b>${ore(straord)}</b></td><td>${conv ? ore(conv) : ''}</td><td>${ore(Math.max(0, straord - conv))}</td><td>${ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))}</td><td>${lav.filter(e => e.ticketPresence ?? e.mealUsed).length}</td><td>${lav.filter(e => e.allowanceRate != null).length}</td><td>${lav.filter(e => e.embark).length}</td></tr></tbody></table></div>` +
+      mensile = `<h3 class="tit-mesi">Riepilogo mensile ${esc(periodo)}</h3><div class="wrap mesi"><table><thead><tr><th class="fisso">Mese</th>${intestazione()}</tr></thead><tbody>${righeMesi.join('')}` +
+        `<tr class="tot"><td class="fisso">Totale</td>${celle(competenze(a, periodo, settimane))}</tr></tbody></table></div>` +
         '<h3 class="tit-mesi">Giorno per giorno</h3>';
     }
     $('mensile').innerHTML = mensile;
@@ -151,7 +191,14 @@
   });
   $('agenti').addEventListener('click', event => { const b = event.target.closest('[data-id]'); if (!b) return; scelto = agenti.find(a => a.id === b.dataset.id); elenco(); dettaglio(); $('dettaglio').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   $('cerca').addEventListener('input', elenco);
-  $('mese').addEventListener('change', () => { elenco(); dettaglio(); });
+  $('mese').addEventListener('change', () => { elenco(); dettaglio(); riepilogoTutti(); });
+  $('tutti-tabella').addEventListener('click', event => { const r = event.target.closest('tr[data-id]'); if (!r) return; scelto = agenti.find(a => a.id === r.dataset.id); elenco(); dettaglio(); $('dettaglio').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('tutti-csv').addEventListener('click', () => {
+    const periodo = $('mese').value, cella = v => (/[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+    const testo = '\ufeff' + [['Agente', 'Numero', ...COMPETENZE.map(([, t]) => t)], ...(riepilogoTutti.righe || []).map(({ a, c }) => [a.nome, a.id, ...COMPETENZE.map(col => valore(c, col))])]
+      .map(r => r.map(cella).join(';')).join('\r\n');
+    B.scarica(`Riepilogo-competenze-${periodo}.csv`, testo, 'text/csv;charset=utf-8');
+  });
   $('da-firebase').addEventListener('click', async () => {
     status('Leggo le distinte dal database…');
     try { await window.NaviAdminFirebase.ready; carica(await window.NaviAdminFirebase.getBackupCentrale()); }

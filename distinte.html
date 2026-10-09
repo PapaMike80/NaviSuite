@@ -27,7 +27,7 @@
     .agente .stato{font-size:12px;color:var(--gold)}.agente .stato.ok{color:#4ade80}
     table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #1b3c46;text-align:left;white-space:nowrap}
     th{position:sticky;top:0;background:#0f303c;color:var(--muted);font:800 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-    tr.tot td{background:rgba(45,212,191,.1);font-weight:800}tr.vuoto td{color:#4f6d76}.wrap.mesi{max-height:none}.tit-mesi{margin:18px 0 0;font:800 15px Manrope,sans-serif;color:var(--accent)}tr.sett td{background:rgba(253,230,138,.07);color:#fde68a;font-size:12px}tr.sett b{color:#fff}tr.rip td{color:var(--muted)}
+    tr.tot td{background:rgba(45,212,191,.1);font-weight:800}td.forte{color:#fde68a;font-weight:800}.fisso{position:sticky;left:0;z-index:1;background:#0c2530}th.fisso{z-index:2;background:#0f303c}tr.tot .fisso{background:#123a40}#tutti-tabella tbody tr[data-id]{cursor:pointer}#tutti-tabella tbody tr[data-id]:hover td{background:#123540}td small{color:var(--muted)}tr.vuoto td{color:#4f6d76}.wrap.mesi{max-height:none}.tit-mesi{margin:18px 0 0;font:800 15px Manrope,sans-serif;color:var(--accent)}tr.sett td{background:rgba(253,230,138,.07);color:#fde68a;font-size:12px}tr.sett b{color:#fff}tr.rip td{color:var(--muted)}
     .wrap{overflow:auto;max-height:65vh;margin-top:12px;border:1px solid var(--line);border-radius:10px}
     .riepilogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
     .riepilogo div{padding:10px;border:1px solid var(--line);border-radius:10px}.riepilogo small{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
@@ -57,6 +57,12 @@
       <div class="agenti" id="agenti"></div>
     </section>
 
+    <section class="card" id="tutti-card" hidden>
+      <div class="row" style="justify-content:space-between"><h1 id="tutti-titolo" style="font-size:20px;margin:0"></h1><button class="btn ghost" id="tutti-csv" type="button">⤓ Scarica (Excel)</button></div>
+      <p class="status">Tocca un agente per vedere la sua distinta. Straordinari: ore oltre le 39 settimanali.</p>
+      <div class="wrap"><table id="tutti-tabella"></table></div>
+    </section>
+
     <section class="card" id="dettaglio" hidden>
       <div class="row" style="justify-content:space-between">
         <div><p class="eyebrow" id="det-numero"></p><h1 id="det-nome" style="font-size:22px"></h1></div>
@@ -73,6 +79,6 @@
   <script src="assets/js/shared-data.js?v=126"></script>
   <script src="assets/js/shift-competence.js?v=3"></script>
   <script src="assets/js/diaria-backup.js?v=4"></script>
-  <script src="assets/js/distinte-page.js?v=5"></script>
+  <script src="assets/js/distinte-page.js?v=6"></script>
 </body>
 </html>
