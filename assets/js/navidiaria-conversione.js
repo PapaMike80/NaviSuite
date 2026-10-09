@@ -22,7 +22,7 @@
 
   const box = document.createElement('div');
   box.className = 'hero-convert';
-  box.innerHTML = '<span class="hc-row"><small>Straordinari maturati</small><b data-hc="maturati">—</b></span>' +
+  box.innerHTML = '<span class="hc-row"><small>Straordinari del mese</small><b data-hc="maturati">—</b></span>' +
     '<label class="hc-row"><small>Trasformati in banca ore</small><input data-hc="input" inputmode="decimal" placeholder="0:00" aria-label="Ore di straordinario da trasformare in banca ore"></label>' +
     '<span class="hc-row"><small>In banca ore (+10%)</small><b data-hc="bonus">—</b></span>' +
     '<span class="hc-row"><small>Straordinari pagati</small><b data-hc="pagati">—</b></span>' +
@@ -55,10 +55,12 @@
   function aggiorna() {
     const t = window.NaviDiariaTotals;
     if (!t) return;
-    const maturati = t.overtime || 0;
+    // come la colonna TOT. MESE della Distinta (anche le settimane non ancora finite, previste dai turni)
+    const mese = window.NaviDiariaMese?.month === t.month ? window.NaviDiariaMese : null;
+    const maturati = mese ? mese.totale : (t.overtime || 0), previsti = mese ? mese.previsti : 0;
     const scelti = Math.min(stato.map[t.month] || 0, maturati);
     const bonus = Math.round(scelti * MAGGIORAZIONE);
-    $('maturati').textContent = testo(maturati);
+    $('maturati').textContent = testo(maturati) + (previsti ? ` (di cui ${testo(previsti)} previsti)` : '');
     $('bonus').textContent = scelti ? `+${testo(bonus)}` : '—';
     $('pagati').textContent = testo(maturati - scelti);
     if (document.activeElement !== $('input')) $('input').value = scelti ? testo(scelti) : '';
@@ -93,7 +95,7 @@
     if (!t) return;
     const value = minuti(event.target.value);
     if (!Number.isFinite(value)) { event.target.value = ''; return; }
-    salva(t.month, Math.min(value, t.overtime || 0));
+    salva(t.month, Math.min(value, window.NaviDiariaMese?.month === t.month ? window.NaviDiariaMese.totale : (t.overtime || 0)));
     event.target.blur();
     if (typeof render === 'function') render(); else aggiorna();
   });
@@ -105,6 +107,7 @@
     setTimeout(() => { $('copia').textContent = 'Copia testo'; }, 1800);
   });
   document.addEventListener('navidiaria:render', aggiorna);
+  window.NaviDiariaConversione = { aggiorna };
   aggiorna();
 
   // copia su Firebase: vince la piu' recente
