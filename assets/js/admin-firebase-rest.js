@@ -861,14 +861,20 @@
 
   // Accesso alle pagine: {pagina: 'tutti' | 'admin'} (sezione della pagina Agenti)
   async function getPageAccess() {
+    // in Firebase le chiavi non possono contenere il punto: "quiz" -> "quiz.html"
     const result = await databaseRequest("private/adminUpdates/pageAccess");
-    return result.data || {};
+    const out = {};
+    Object.entries(result.data || {}).forEach(([key, value]) => { out[key === "updatedAt" ? key : `${key}.html`] = value; });
+    return out;
   }
   async function savePageAccess(access = {}) {
     await ensureAuth();
-    const item = { ...access, updatedAt:new Date().toISOString() };
+    const item = {};
+    // una lista vuota (solo admin) Firebase la cancellerebbe: si salva come "admin"
+    Object.entries(access).forEach(([key, value]) => { if (key !== "updatedAt") item[key.replace(/\.html$/, "")] = Array.isArray(value) && !value.length ? "admin" : value; });
+    item.updatedAt = new Date().toISOString();
     await databaseRequest("private/adminUpdates/pageAccess", { method:"PUT", body:JSON.stringify(item) });
-    return item;
+    return { ...access, updatedAt:item.updatedAt };
   }
 
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
