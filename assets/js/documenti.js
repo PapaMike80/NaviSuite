@@ -6,7 +6,7 @@ const CONFIG = {
   branch: 'main',
   folders: ['turni', 'ods', 'stampe'],
   metadataFile: 'documenti.json',
-  version: 'v1.13'
+  version: 'v1.14'
 };
 
 const state = {
@@ -213,7 +213,7 @@ const STAMPE_TITOLI = [
   [/_passeggeri_/i, 'Partenze e ritorni per i passeggeri'],
   [/_traghetto_Torri/i, 'Traghetto Maderno – Torri (passeggeri)'],
   [/^Cover_/i, 'Cover iPhone 15 da ritagliare'],
-  [/^Schemi_corse_invernali/i, 'Schemi corse invernali · incroci, coincidenze, durata e diaria (D1, D2, P1, P2, SR1, SR2, M1, R1, R2, R3)']
+  [/^Schemi_corse_invernali/i, 'Schemi corse invernali · incroci, coincidenze, durata e diaria (D1, D2, P1, P2, SR1, SR2, M1, R1, R2, R3) · A4 fronte-retro da piegare a metà']
 ];
 
 function stampaDocument(file) {
