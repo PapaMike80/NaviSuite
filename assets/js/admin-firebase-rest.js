@@ -234,9 +234,11 @@
       corse_sospese:(Array.isArray(values.corse_sospese) ? values.corse_sospese : []).map(x => (x && typeof x === "object"
         ? { corsa:String(x.corsa || ""), da:String(x.da || ""), scalo:String(x.scalo || "") } : { corsa:String(x), da:"", scalo:"" })).filter(x => x.corsa),
       // ritardi per corsa (a scatti di 5 minuti fino a 2 ore, oppure oltre 2 ore)
-      ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre || r.inOrario)).map(r => (r.inOrario
-        ? { corsa:String(r.corsa), minuti:0, oltre:false, inOrario:true }
-        : { corsa:String(r.corsa), minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true })),
+      // con "scalo": ritardo da quello scalo in poi nella corsa; "inOrario": in orario (ferma il ritardo della corsa prima)
+      ritardi:(Array.isArray(values.ritardi) ? values.ritardi : []).filter(r => r && r.corsa && (Number(r.minuti) > 0 || r.oltre || r.inOrario)).map(r => ({
+        corsa:String(r.corsa), ...(r.scalo ? { scalo:String(r.scalo) } : {}),
+        ...(r.inOrario ? { minuti:0, oltre:false, inOrario:true } : { minuti:r.oltre ? 120 : Math.min(120, Number(r.minuti)), oltre:r.oltre === true })
+      })),
       // BIS: incarichi del giorno (sostituisce un turno nave o fa corse in aiuto)
       incarichi:(Array.isArray(values.incarichi) ? values.incarichi : []).filter(inc => inc && inc.turno && inc.dalla).map(inc => ({
         tipo:inc.tipo === "aiuto" ? "aiuto" : "sostituzione", turno:String(inc.turno).toUpperCase(),

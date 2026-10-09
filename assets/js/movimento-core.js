@@ -114,7 +114,9 @@
   }
 
   // ---------------- Salvataggi ----------------
-  const ritardiLista = map => Object.entries(map || {}).map(([corsa, x]) => (x.inOrario ? { corsa, minuti: 0, oltre: false, inOrario: true } : { corsa, minuti: x.minuti, oltre: !!x.oltre }));
+  const ritardiLista = map => Object.entries(map || {}).flatMap(([corsa, x]) => [
+    ...(x.soloScali ? [] : [x.inOrario ? { corsa, minuti: 0, oltre: false, inOrario: true } : { corsa, minuti: x.minuti, oltre: !!x.oltre }]),
+    ...Object.entries(x.scali || {}).map(([scalo, y]) => (y.inOrario ? { corsa, scalo, minuti: 0, oltre: false, inOrario: true } : { corsa, scalo, minuti: y.minuti, oltre: !!y.oltre }))]);
 
   // Riga dell'O.d.S. del turno nel giorno (anche quella sostituita dal Movimento), come sarebbe senza modifiche.
   function baseOds(code, day) {

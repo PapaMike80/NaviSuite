@@ -108,7 +108,7 @@
     const bis = bisAttivo ? O.viaggiBis(incarichi, day, ritardi) : [];
     const ritardo = {};
     [...O.corseDelGiorno(day, ritardi), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day, ritardi) : [])]
-      .forEach(c => { if (c.ritardo) ritardo[`${c.turno}|${c.numero}`] = c.ritardo; });
+      .forEach(c => { if (c.ritardo) ritardo[`${c.turno}|${c.numero}`] = c.ritardo; Object.entries(c.ritardiScali || {}).forEach(([s, r]) => { ritardo[`${c.turno}|${c.numero}|${s}`] = r; }); });
     // corse come da orario (senza ritardi): chiavi dei pontili condivise con Servizi a terra
     const programmate = {};
     [...O.corseDelGiorno(day), ...(bisAttivo ? O.corseBis(incarichi.filter(inc => inc.tipo === 'aiuto'), day) : [])]
@@ -149,8 +149,9 @@
     return [c !== code ? 'BIS' : '', naveDi(g, c), G.comandante(g.crews[c])].filter(Boolean).join(' · ');
   };
   // Ritardo della corsa (Movimento): "+15'" in arancio.
-  const ritardoDi = (g, turno, corsa) => g.ritardo?.[`${turno}|${corsa}`] || null;
-  const badgeRitardo = (g, turno, corsa) => { const r = ritardoDi(g, turno, corsa); return r ? `<b class="or-rit" title="Ritardo">${esc(O.testoRitardo(r))}</b>` : ''; };
+  // con lo scalo: il ritardo a quello scalo (null = in orario li'), se la corsa ha ritardi per scalo
+  const ritardoDi = (g, turno, corsa, scalo) => { const k = `${turno}|${corsa}|${scalo}`; return scalo && g.ritardo && k in g.ritardo ? g.ritardo[k] : g.ritardo?.[`${turno}|${corsa}`] || null; };
+  const badgeRitardo = (g, turno, corsa, scalo) => { const r = ritardoDi(g, turno, corsa, scalo); return r ? `<b class="or-rit" title="Ritardo">${esc(O.testoRitardo(r))}</b>` : ''; };
   const corsaPos = pos => pos?.a?.corsa || pos?.fino?.corsa || pos?.prossimo?.corsa || pos?.ultimo?.corsa || '';
 
   // ---------------- Lago ----------------
@@ -365,13 +366,14 @@
   }
   // previsto: ora d'attracco da orario (HH:MM) allo scalo; "Attraccata ora" = adesso - previsto
   function ritardoSelect(g, code, corsa, previsto = '') {
-    const proprio = g.navi[code]?.ritardi?.[corsa];
+    const tutto = g.navi[code]?.ritardi?.[corsa];
+    const proprio = tutto?.scali?.[state.scalo] || null;
     const valore = !proprio ? '' : proprio.inOrario ? 'orario' : proprio.oltre ? 'oltre' : String(proprio.minuti);
     const testo = v => (v === 'orario' ? '✓ in orario' : v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
     // ritardo arrivato dalla corsa prima (non segnato su questa): si mostra nel riquadro, senza salvarlo
-    const eff = !valore ? ritardoDi(g, code, corsa) : null;
+    const eff = !valore ? ritardoDi(g, code, corsa, state.scalo) : null;
     const vuota = valore ? 'nessun ritardo' : eff ? O.testoRitardo(eff) : '–';
-    return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}" title="${eff ? 'Ritardo passato dalla corsa prima' : `Ritardo della corsa ${esc(corsa)}`}">⏱` +
+    return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}" title="${eff ? (eff.scalo ? `Ritardo segnato a ${esc(eff.scalo)}` : 'Ritardo passato dalla corsa prima o dal Movimento') : `Ritardo della corsa ${esc(corsa)}`}">⏱` +
       `<select data-ritardo="${esc(code)}|${esc(corsa)}" data-previsto="${esc(previsto)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
       `${previsto ? '<option value="ora">⚓ Attraccata ora</option>' : ''}` +
       `<option value=""${valore ? '' : ' selected'}>${esc(vuota)}</option>${(valore && !RITARDI.includes(valore) && valore !== 'orario' ? ['orario', valore, ...RITARDI] : ['orario', ...RITARDI]).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
@@ -383,9 +385,14 @@
       await provider.ready;
       const righe = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
       const r = T.turniDelGiorno(righe, day)[code] || {};
-      const ritardi = Object.entries(r.ritardi || {}).map(([c, x]) => (x.inOrario ? { corsa: c, minuti: 0, oltre: false, inOrario: true } : { corsa: c, minuti: x.minuti, oltre: !!x.oltre })).filter(x => x.corsa !== String(corsa));
-      if (value === 'orario') ritardi.push({ corsa: String(corsa), minuti: 0, oltre: false, inOrario: true });
-      else if (value) ritardi.push({ corsa: String(corsa), minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
+      const scalo = state.scalo;
+      // ritardo segnato a QUESTO scalo: vale da qui in poi nella corsa (gli altri scali e il Movimento restano)
+      const ritardi = Object.entries(r.ritardi || {}).flatMap(([c, x]) => [
+        ...(x.soloScali ? [] : [x.inOrario ? { corsa: c, minuti: 0, oltre: false, inOrario: true } : { corsa: c, minuti: x.minuti, oltre: !!x.oltre }]),
+        ...Object.entries(x.scali || {}).map(([s, y]) => (y.inOrario ? { corsa: c, scalo: s, minuti: 0, oltre: false, inOrario: true } : { corsa: c, scalo: s, minuti: y.minuti, oltre: !!y.oltre }))])
+        .filter(x => !(x.corsa === String(corsa) && x.scalo === scalo));
+      if (value === 'orario') ritardi.push({ corsa: String(corsa), scalo, minuti: 0, oltre: false, inOrario: true });
+      else if (value) ritardi.push({ corsa: String(corsa), scalo, minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
       const p = profile();
       state.firebaseNavi = await provider.saveTurnoNaveMovimento(day, code, {
         nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
@@ -532,7 +539,7 @@
       const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${r.t < t ? ' past' : ''}${i === prossima ? ' next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(code) ? ' active' : ''}`;
       const arrivo = r.arr ? `<small class="arr" title="Arrivo">arr. ${esc(r.arr.ora)}</small>` : '';
       return `<div class="${cls}"${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
-        `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa)}</span>` +
+        `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa, state.scalo)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : code !== 'BIS' && (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(r.corsa))) ? '<b class="sosp-tag bis" title="Il BIS fa la corsa in aiuto">BIS IN AIUTO</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
         `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
@@ -604,7 +611,7 @@
     const tagDi = p => (p.sosp ? `<b class="sosp-tag">SOSPESA${p.da ? ` da ${esc(p.da)}` : ''}</b>` : bisCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">SOSTITUITA DAL BIS</b>' : aiutoCorse.has(String(p.corsa)) ? '<b class="sosp-tag bis">BIS IN AIUTO</b>' : '');
     // ritardo del Movimento: "+1h" accanto allo scalo (con l'ora prevista) e accanto al numero della corsa
     const ritTag = (p, breve = false) => {
-      const r = p.sosp ? null : ritardoDi(g, code, p.corsa);
+      const r = p.sosp ? null : ritardoDi(g, code, p.corsa, p.scalo);
       if (!r) return '';
       return `<b class="or-rit" title="Ritardo${r.propagato ? ' passato dalla corsa prima' : ''}">${breve ? '⏱ ' : ''}${esc(O.testoRitardo(r))}${breve ? '' : ` · era ${hhmm(p.t - r.minuti)}`}</b>`;
     };
@@ -658,7 +665,7 @@
       if (p.corsa === prima.corsa) return riga(p, rk(idx(p)), cls(p));
       const partenza = (g.programmate[`${code}|${p.corsa}`] || [])[0];
       // l'orario programmato va spostato del ritardo della corsa (anche quello passato dalla corsa prima)
-      const spostamento = ritardoDi(g, code, p.corsa)?.minuti || 0;
+      const spostamento = ritardoDi(g, code, p.corsa, partenza?.[0])?.minuti || 0;
       if (partenza && partenza[0] === prima.scalo && minutes(partenza[1]) + spostamento === prima.t) {
         return sep(p) + riga({ ...prima, corsa: p.corsa, sosp: !!p.sosp, da: p.sosp ? p.da : '' }, rk(idx(prima)), cls(prima)) + riga(p, rk(idx(p)), cls(p));
       }
