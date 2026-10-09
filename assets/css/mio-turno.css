@@ -48,3 +48,6 @@
 /* fra una corsa e l'altra: linea con il numero della nuova corsa */
 .mt-sep{display:flex;align-items:center;gap:10px;margin:6px 4px 2px;color:#5eead4;font:900 12px Manrope,sans-serif;letter-spacing:.06em}
 .mt-sep::before,.mt-sep::after{content:"";flex:1;height:2px;border-radius:1px;background:linear-gradient(90deg,transparent,#2f6f73 18%,#2f6f73 82%,transparent)}
+.mt-servizio { margin:.35rem 0 0; font-size:1.05rem; }
+.mt-servizio b { font-variant-numeric:tabular-nums; }
+.mt-resto { display:inline-block; padding:.05rem .5rem; border-radius:999px; background:#ffe08a; color:#5a4300; font-weight:700; }

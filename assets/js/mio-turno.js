@@ -70,6 +70,22 @@
     return card('Turno', '', head + crewHtml);
   }
 
+  // Intestazione: ore del servizio e, oggi, quanto manca all'inizio o alla fine della giornata.
+  function servizioHeader(inizio, fine, day) {
+    const el = $('turno-servizio');
+    if (!el) return;
+    if (!inizio || !fine) { el.hidden = true; el.textContent = ''; return; }
+    const durata = m => `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}'` : ''}`;
+    let resto = '';
+    if (day === iso(new Date())) {
+      const now = new Date(), n = now.getHours() * 60 + now.getMinutes();
+      const a = minutes(ora(inizio)), b = minutes(ora(fine));
+      resto = n < a ? `inizia tra ${durata(a - n)}` : n < b ? `fine tra ${durata(b - n)}` : 'giornata finita';
+    }
+    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b>${resto ? ` · <span class="mt-resto">${esc(resto)}</span>` : ''}`;
+    el.hidden = false;
+  }
+
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
     const oggi = T.turniDelGiorno(turniNavi, day)[code] || {};
@@ -143,6 +159,7 @@
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
+    servizioHeader(info.presentation, info.lastArrival, day);
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
@@ -156,6 +173,7 @@
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
     // A terra: la pagina Scali del mio scalo (mappa, navi allo scalo con pontili, ormeggi, agenti), poi la scheda Turno.
     $('turno-content').innerHTML = '';
+    if (servizio) servizioHeader(servizio[1].split(' – ')[0], servizio[2].split(' – ')[1], day);
     $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-scali').hidden = false;
     window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
@@ -188,6 +206,7 @@
     $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
     $('turno-after').innerHTML = '';
+    servizioHeader('', '', day);
     const me = profile();
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
     renderTestSelect(found ? (G.naveCode(found.turno) || G.terraCode(found.turno) || found.turno) : '');
