@@ -391,7 +391,18 @@
         ...(x.soloScali ? [] : [x.inOrario ? { corsa: c, minuti: 0, oltre: false, inOrario: true } : { corsa: c, minuti: x.minuti, oltre: !!x.oltre }]),
         ...Object.entries(x.scali || {}).map(([s, y]) => (y.inOrario ? { corsa: c, scalo: s, minuti: 0, oltre: false, inOrario: true } : { corsa: c, scalo: s, minuti: y.minuti, oltre: !!y.oltre }))])
         .filter(x => !(x.corsa === String(corsa) && x.scalo === scalo));
-      if (value === 'orario') ritardi.push({ corsa: String(corsa), scalo, minuti: 0, oltre: false, inOrario: true });
+      if (value === 'orario') {
+        // in orario: si azzerano anche i ritardi segnati dopo (scali seguenti della corsa e corse successive della nave)
+        const ordine = O.corseDelTurno(code, day);
+        const ic = ordine.findIndex(c => String(c.numero) === String(corsa));
+        const posScalo = (c, s) => (ordine[c]?.scali || []).findIndex(([n]) => n === s);
+        const is = posScalo(ic, scalo);
+        if (ic >= 0) {
+          const dopo = x => { const j = ordine.findIndex(c => String(c.numero) === String(x.corsa)); return j > ic || (j === ic && x.scalo && posScalo(j, x.scalo) > is); };
+          for (let k = ritardi.length - 1; k >= 0; k--) if (dopo(ritardi[k])) ritardi.splice(k, 1);
+        }
+        ritardi.push({ corsa: String(corsa), scalo, minuti: 0, oltre: false, inOrario: true });
+      }
       else if (value) ritardi.push({ corsa: String(corsa), scalo, minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
       const p = profile();
       state.firebaseNavi = await provider.saveTurnoNaveMovimento(day, code, {
