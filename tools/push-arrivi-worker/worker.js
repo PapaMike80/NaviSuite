@@ -107,6 +107,37 @@ async function giro() {
     }
   }
   if (messi) log(`${messi} avvisi in coda`);
+  await widget(w, effective, pontili, oggi, ora);
+}
+
+// Widget (Scriptable su iPhone): per ogni agente i prossimi 3 eventi di oggi (arrivo della nave a terra, prossimo
+// scalo a bordo) in private/adminUpdates/widget/<agente>. Si scrive solo quando cambia.
+const widgetScritti = new Map();
+async function widget(w, effective, pontili, oggi, ora) {
+  const G = w.NaviTurniGiorno;
+  const agenti = new Map();
+  Object.entries(effective.residenze || {}).forEach(([res, list]) => {
+    if (/^(uffici|bariste)$/i.test(res)) return;
+    (list || []).forEach(a => { if (a?.id && !agenti.has(String(a.id))) agenti.set(String(a.id), a); });
+  });
+  let scritti = 0;
+  for (const [id, a] of agenti) {
+    let lista = [], turno = '';
+    try {
+      turno = G.turnoAgente(effective, { id, name: a.agente || '' }, oggi)?.turno || '';
+      lista = w.NaviPushArrivi.notifiche(effective, id, oggi, { pontili, agentName: a.agente || '' });
+    } catch (e) { continue; }
+    const m = t => { const [h, mi] = String(t).split('.').map(Number); return h * 60 + mi; };
+    const prossimi = lista.filter(n => m(n.time) >= ora - 1).slice(0, 3)
+      .map(n => ({ ora: n.time, titolo: n.title, testo: n.body, codice: n.code, scalo: n.scalo || '', pontile: n.pontile || '' }));
+    const valore = { data: oggi, turno, nome: a.agente || '', prossimi };
+    const chiave = JSON.stringify(valore);
+    if (widgetScritti.get(id) === chiave) continue;
+    if (!DRY_RUN) await fb(`private/adminUpdates/widget/${safe(id)}`, { method: 'PUT', body: JSON.stringify({ ...valore, aggiornato: new Date().toISOString() }) });
+    widgetScritti.set(id, chiave);
+    scritti++;
+  }
+  if (scritti) log(`widget aggiornati: ${scritti}`);
 }
 
 async function main() {
