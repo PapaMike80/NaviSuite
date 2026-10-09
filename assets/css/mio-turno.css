@@ -52,3 +52,7 @@
 .mt-servizio b { font-variant-numeric:tabular-nums; }
 .mt-resto { display:inline-block; padding:.05rem .5rem; border-radius:999px; background:#ffe08a; color:#5a4300; font-weight:700; }
 .mt-durata { opacity:.8; }
+/* Distinta: in alto a destra, accanto al menu */
+.mio-turno-page .page-header{position:relative}
+.mt-distinta{position:absolute;top:12px;right:76px;display:inline-flex;align-items:center;gap:4px;padding:9px 14px;border:1px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.14);color:#a7fff0;font:800 14px Manrope,sans-serif;text-decoration:none}
+.mt-distinta:hover{background:rgba(45,212,191,.24)}

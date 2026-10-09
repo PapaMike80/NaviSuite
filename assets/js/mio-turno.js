@@ -205,6 +205,8 @@
     $('turno-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
     $('turno-day-input').value = day;
+    // Distinta: apre la giornata mostrata (come da Turni)
+    if ($('turno-distinta')) $('turno-distinta').href = `navidiaria.html?editDate=${encodeURIComponent(day)}`;
     $('turno-day-today').hidden = false;
     $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
