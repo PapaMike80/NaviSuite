@@ -19,8 +19,7 @@
         .filter(a => a.entries.length).sort((a, b) => a.nome.localeCompare(b.nome, 'it'));
       const base = `NaviSuite-backup-${B.oggi()}`;
       const json = JSON.stringify({ tipo: 'navisuite-backup-centrale', versione: 1, creato: new Date().toISOString(), ...dati });
-      B.scarica(`${base}.json`, json, 'application/json');
-      setTimeout(() => B.scarica(`${base}-distinte.csv`, B.csv(agenti), 'text/csv;charset=utf-8'), 700);
+      B.scarica(`${base}.zip`, B.zip([{ name: `${base}.json`, data: json }, { name: `${base}-distinte.csv`, data: B.csv(agenti) }]), 'application/zip');
       status.textContent = `Scaricato: ${agenti.length} distinte, ${(json.length / 1048576).toFixed(1)} MB.`;
     } catch (error) { status.textContent = `Backup non riuscito: ${error.message}`; }
     btn.disabled = false;

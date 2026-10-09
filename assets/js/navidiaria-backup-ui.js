@@ -1,4 +1,4 @@
-// NaviDiaria · backup personale: "Scarica backup" (JSON per ripristinare + CSV leggibile) e "Carica backup".
+// NaviDiaria · backup personale: "Scarica backup" (uno .zip con il JSON per ripristinare e il CSV leggibile) e "Carica backup".
 (() => {
   const B = window.NaviDiariaBackup;
   const barra = document.getElementById('monthlyVerifyPayslip')?.parentElement;
@@ -11,7 +11,7 @@
   const caricaBtn = document.createElement('button');
   caricaBtn.type = 'button'; caricaBtn.className = 'monthly-today-button'; caricaBtn.textContent = '⤒ Carica backup';
   const file = document.createElement('input');
-  file.type = 'file'; file.accept = '.json,application/json'; file.hidden = true;
+  file.type = 'file'; file.accept = '.zip,.json,application/zip,application/json'; file.hidden = true;
   barra.append(scaricaBtn, caricaBtn, file);
 
   scaricaBtn.addEventListener('click', () => {
@@ -22,9 +22,9 @@
     const base = `Distinta-${B.nomeFile(a.name)}-${B.oggi()}`;
     const json = { tipo: 'navidiaria-backup', versione: 1, creato: new Date().toISOString(),
       agente: { id: String(a.id), nome: a.name || '', residenza: a.residence || '' }, entries: lista, conversioni };
-    B.scarica(`${base}.json`, JSON.stringify(json, null, 1), 'application/json');
-    // il secondo file poco dopo: alcuni browser bloccano due download nello stesso istante
-    setTimeout(() => B.scarica(`${base}.csv`, B.csv([{ id: a.id, nome: a.name, entries: lista, conversioni }]), 'text/csv;charset=utf-8'), 700);
+    // un solo file .zip con dentro il .json (per ripristinare) e il .csv (da aprire con Excel)
+    B.scarica(`${base}.zip`, B.zip([{ name: `${base}.json`, data: JSON.stringify(json, null, 1) },
+      { name: `${base}.csv`, data: B.csv([{ id: a.id, nome: a.name, entries: lista, conversioni }]) }]), 'application/zip');
     avviso(`Backup scaricato: ${lista.length} giorni`);
   });
 
@@ -33,8 +33,14 @@
     const f = file.files?.[0];
     if (!f) return;
     let dati;
-    try { dati = JSON.parse(await f.text()); } catch { return avviso('File non leggibile: scegli il file .json del backup'); }
-    if (dati?.tipo !== 'navidiaria-backup' || !Array.isArray(dati.entries)) return avviso('Non è un backup della Distinta (file .json)');
+    try {
+      if (/\.zip$/i.test(f.name) || f.type.includes('zip')) {
+        const files = B.unzip(new Uint8Array(await f.arrayBuffer())), json = Object.keys(files).find(n => /\.json$/i.test(n));
+        if (!json) return avviso('Nello zip non c\'è il file .json del backup');
+        dati = JSON.parse(files[json]);
+      } else dati = JSON.parse(await f.text());
+    } catch (error) { return avviso(`File non leggibile: ${error.message}`); }
+    if (dati?.tipo !== 'navidiaria-backup' || !Array.isArray(dati.entries)) return avviso('Non è un backup della Distinta');
     const a = agente();
     if (dati.agente?.id && a?.id && String(dati.agente.id) !== String(a.id) &&
       !confirm(`Il backup è di ${dati.agente.nome || dati.agente.id}, non tuo. Caricarlo lo stesso nella tua distinta?`)) return;
