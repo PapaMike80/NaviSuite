@@ -88,3 +88,8 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .hero-convert .hc-mail,.hero-convert .hc-copia{display:inline-flex;align-items:center;padding:8px 14px;border:1px solid #2dd4bf;border-radius:10px;background:rgba(45,212,191,.16);color:#e6fffb;font:800 13px Manrope,sans-serif;text-decoration:none;cursor:pointer}
 .hero-convert .hc-mail.off,.hero-convert .hc-copia:disabled{opacity:.45;cursor:default}
 .hero-convert .hc-note b{font-size:inherit;color:#fff}
+.hero-convert .hc-campo{display:flex;gap:6px;align-items:center}
+.hero-convert .hc-trasforma,.hero-convert .hc-perc button{padding:4px 10px;border:1px solid #f59e0b;border-radius:8px;background:rgba(245,158,11,.16);color:#fde68a;font:800 12px Manrope,sans-serif;cursor:pointer}
+.hero-convert .hc-perc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.hero-convert .hc-perc[hidden]{display:none}
+.hero-convert .hc-perc input{max-width:64px}
