@@ -62,7 +62,8 @@
   const RUOLI = [['agenti', 'Agenti'], ['uffici', 'Uffici'], ['scali', 'Scali'], ['bariste', 'Bariste']];
   const ruoloDi = agent => (isScaloAgent(agent) ? 'scali' : isBaristaAgent(agent) ? 'bariste'
     : String(agent?.residence || agent?.residenza || '').toLowerCase() === 'uffici' ? 'uffici' : 'agenti');
-  const predefiniti = file => (file === 'orario.html' ? ['agenti', 'uffici', 'scali', 'bariste'] : ['agenti', 'uffici', 'bariste']);
+  // Verifica busta: di norma solo admin
+  const predefiniti = file => (file === 'orario.html' ? ['agenti', 'uffici', 'scali', 'bariste'] : file === 'verifica-busta.html' ? [] : ['agenti', 'uffici', 'bariste']);
   const ACCESS_KEY = 'navisuite.pageAccess';
   const accesso = () => { try { return JSON.parse(localStorage.getItem(ACCESS_KEY) || '{}') || {}; } catch { return {}; } };
   const sessione = () => { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { return null; } };
