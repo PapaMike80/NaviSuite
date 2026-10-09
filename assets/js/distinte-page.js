@@ -10,7 +10,8 @@
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const ore = m => { const n = Math.round(Number(m) || 0), a = Math.abs(n); return n ? `${n < 0 ? '-' : ''}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}` : '—'; };
-  const lavoro = e => !!e && !['RIP', 'RIPOSO', 'MALATTIA'].includes(String(e.shift || '').toUpperCase());
+  // giorno di lavoro: con un turno e non riposo o malattia (i giorni senza dati non contano)
+  const lavoro = e => !!e && !!String(e.shift || '').trim() && !['RIP', 'RIPOSO', 'MALATTIA'].includes(String(e.shift || '').toUpperCase());
   const status = t => { $('status').textContent = t; };
   let agenti = [], scelto = null;
   // periodo scelto: un mese ("2026-10") o un anno intero ("2026")
@@ -71,7 +72,7 @@
         if (iso === dom) break;
       }
       return { ...w, giorni };
-    });
+    }).filter(w => w.giorni.some(e => e.shift)); // settimane senza dati (prima di giugno 2026) fuori
     const giorni = settimane.flatMap(w => w.giorni), lav = giorni.filter(lavoro);
     const tot = f => lav.reduce((s, e) => s + f(e), 0);
     const straord = settimane.reduce((s, w) => s + w.straordinario, 0), conv = sommaConv(a, periodo);
@@ -83,6 +84,22 @@
       ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))], ['Ticket', lav.filter(e => e.ticketPresence ?? e.mealUsed).length],
       ['Diarie', lav.filter(e => e.allowanceRate != null).length]]
       .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('');
+    // anno intero: riepilogo dei 12 mesi in una tabella, sopra ai giorni
+    let mensile = '';
+    if (periodo.length === 4) {
+      const righeMesi = MESI.map((nome, i) => {
+        const mese = `${periodo}-${String(i + 1).padStart(2, '0')}`, ws = settimane.filter(w => w.al.startsWith(mese));
+        const gm = ws.flatMap(w => w.giorni), lm = gm.filter(lavoro);
+        if (!lm.length) return `<tr class="vuoto"><td>${esc(nome)}</td><td colspan="9">—</td></tr>`;
+        const st = ws.reduce((s, w) => s + w.straordinario, 0), cv = Number(a.conversioni?.[mese]) || 0;
+        return `<tr><td>${esc(nome)}</td><td>${lm.length}</td><td>${ore(ws.reduce((s, w) => s + w.lavorate, 0))}</td><td><b>${ore(st)}</b></td><td>${cv ? ore(cv) : ''}</td><td>${ore(Math.max(0, st - cv))}</td>` +
+          `<td>${ore(gm.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(cv * 1.1))}</td><td>${lm.filter(e => e.ticketPresence ?? e.mealUsed).length}</td><td>${lm.filter(e => e.allowanceRate != null).length}</td><td>${lm.filter(e => e.embark).length}</td></tr>`;
+      });
+      mensile = `<h3 class="tit-mesi">Riepilogo mensile ${esc(periodo)}</h3><div class="wrap mesi"><table><thead><tr><th>Mese</th><th>Giorni</th><th>Ore lavorate</th><th>Straordinari</th><th>Trasformati</th><th>Pagati</th><th>Banca ore</th><th>Ticket</th><th>Diarie</th><th>Imbarchi</th></tr></thead><tbody>${righeMesi.join('')}` +
+        `<tr class="tot"><td>Totale</td><td>${lav.length}</td><td>${ore(tot(B.lavorate))}</td><td><b>${ore(straord)}</b></td><td>${conv ? ore(conv) : ''}</td><td>${ore(Math.max(0, straord - conv))}</td><td>${ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))}</td><td>${lav.filter(e => e.ticketPresence ?? e.mealUsed).length}</td><td>${lav.filter(e => e.allowanceRate != null).length}</td><td>${lav.filter(e => e.embark).length}</td></tr></tbody></table></div>` +
+        '<h3 class="tit-mesi">Giorno per giorno</h3>';
+    }
+    $('mensile').innerHTML = mensile;
     const rigaGiorno = e => { const d = new Date(`${e.date}T12:00:00`), w = lavoro(e), c = B.causali(e);
       return `<tr class="${w ? '' : 'rip'}"><td>${GIORNI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}</td><td>${esc(e.shift || '')}</td><td>${w ? ore(B.servizio(e)) : ''}</td><td>${w ? ore(B.lavorate(e)) : ''}</td>` +
         `<td>${w && c.ritardo + c.cambio + c.sentine ? ore(c.ritardo + c.cambio + c.sentine) : ''}</td><td>${e.bank ? ore(e.bank) : ''}</td><td>${w && (e.ticketPresence ?? e.mealUsed) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
