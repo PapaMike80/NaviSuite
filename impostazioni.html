@@ -117,14 +117,14 @@
         <button type="button" class="pref-tile" data-start-page="orario.html" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pref-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span><span><span class="pref-label">Scali</span><span class="pref-desc">Navi sul lago e allo scalo, pontili e agenti.</span></span></button>
         <button type="button" class="pref-tile" data-start-page="cambi_turno.html" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg></span><span class="pref-check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></span><span><span class="pref-label">Cambio</span><span class="pref-desc">Richieste di cambio turno.</span></span></button>
       </div>
-    </section>
-    <section class="pref-card" id="pagina-tutti" hidden aria-labelledby="pagina-tutti-title">
-      <div class="pref-head"><span class="pref-num" aria-hidden="true">★</span><div><h2 id="pagina-tutti-title">Prima pagina per tutti (admin)</h2><p>Azzera la prima pagina scelta da ogni agente e imposta questa. Chi non può aprirla per il suo ruolo avrà quella predefinita; gli scali aprono sempre il loro scalo. Ognuno potrà poi cambiarla.</p></div></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
-        <select id="pagina-tutti-select" aria-label="Prima pagina per tutti" style="min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#0b2129;color:inherit;font:inherit"></select>
-        <button type="button" id="pagina-tutti-btn" style="min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid #2dd4bf;background:#103a3d;color:#a7fff0;font-weight:800;cursor:pointer">Reset per tutti</button>
+      <div id="pagina-tutti" hidden style="margin-top:18px;padding-top:16px;border-top:1px dashed rgba(126,243,226,.3)">
+        <h3 style="margin:0 0 4px;font-size:16px">Per tutti gli agenti <small style="color:#5eead4">· solo admin</small></h3><p style="margin:0;color:#9fb8c2;font-size:13px">Azzera la prima pagina scelta da ogni agente e imposta questa. Chi non può aprirla per il suo ruolo avrà quella predefinita; gli scali aprono sempre il loro scalo. Ognuno potrà poi cambiarla.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px">
+          <select id="pagina-tutti-select" aria-label="Prima pagina per tutti" style="max-width:100%;flex:1 1 220px;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#0b2129;color:inherit;font:inherit"></select>
+          <button type="button" id="pagina-tutti-btn" style="min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid #2dd4bf;background:#103a3d;color:#a7fff0;font-weight:800;cursor:pointer">Reset per tutti</button>
+        </div>
+        <p id="pagina-tutti-stato" style="margin:10px 0 0;font-size:13px;color:#9fb8c2"></p>
       </div>
-      <p id="pagina-tutti-stato" style="margin:10px 0 0;font-size:13px;color:#9fb8c2"></p>
     </section>
     <section class="pref-card" id="ticket-preference" aria-labelledby="ticket-preference-title">
       <div class="pref-head"><span class="pref-num" aria-hidden="true">02</span><div><h2 id="ticket-preference-title">Ticket</h2><p>Come impostare il Ticket quando NaviDiaria crea o importa automaticamente una giornata.</p></div></div>
