@@ -329,8 +329,8 @@
   // Si salvano come quelli del Movimento (riga MOVIMENTO del turno nave): li vedono tutti e passano alle corse dopo.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
   // Possono segnarli: admin e Uffici (ogni scalo), l'utente di uno scalo (il suo scalo) e le biglietterie di oggi:
-  // AgB a Desenzano, AgM e AgT (AgT1, AgT2) a Maderno.
-  const BIGLIETTERIE = { AgB: 'Desenzano', AgM: 'Maderno', AgT: 'Maderno', AgT2: 'Maderno' };
+  // AgB e PonD a Desenzano, AgM, AgT (AgT1, AgT2) e PonM a Maderno.
+  const BIGLIETTERIE = { AgB: 'Desenzano', PonD: 'Desenzano', AgM: 'Maderno', AgT: 'Maderno', AgT2: 'Maderno', PonM: 'Maderno' };
   function puoRitardi() {
     const p = profile(), R = window.NaviRoles || {};
     if (!realToday() || !p?.id) return false;
