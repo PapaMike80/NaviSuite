@@ -325,13 +325,19 @@
       $('orario-notice').textContent = `Pontile salvato solo su questo dispositivo (${error.message}).`;
     }
   }
-  // Ritardi: li inseriscono gli admin e l'utente di uno scalo (sul proprio scalo), solo nella giornata di oggi.
+  // Ritardi: li inseriscono admin, Uffici, utenti scalo e biglietterie (vedi puoRitardi), solo nella giornata di oggi.
   // Si salvano come quelli del Movimento (riga MOVIMENTO del turno nave): li vedono tutti e passano alle corse dopo.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
+  // Possono segnarli: admin e Uffici (ogni scalo), l'utente di uno scalo (il suo scalo) e le biglietterie di oggi:
+  // AgB e PonD a Desenzano, AgM, AgT (AgT1, AgT2) e PonM a Maderno.
+  const BIGLIETTERIE = { AgB: 'Desenzano', PonD: 'Desenzano', AgM: 'Maderno', AgT: 'Maderno', AgT2: 'Maderno', PonM: 'Maderno' };
   function puoRitardi() {
     const p = profile(), R = window.NaviRoles || {};
     if (!realToday() || !p?.id) return false;
-    return !!R.isAdminAgent?.(p) || (R.scaloOf?.(p) || '') === state.scalo;
+    if (R.isAdminAgent?.(p) || String(p.residence || p.residenza || '').toLowerCase() === 'uffici') return true;
+    if ((R.scaloOf?.(p) || '') === state.scalo) return true;
+    const turno = state.schedule ? G.turnoAgente(state.schedule, p, today())?.turno : '';
+    return BIGLIETTERIE[G.terraCode(turno)] === state.scalo;
   }
   function ritardoSelect(g, code, corsa) {
     const proprio = g.navi[code]?.ritardi?.[corsa];
