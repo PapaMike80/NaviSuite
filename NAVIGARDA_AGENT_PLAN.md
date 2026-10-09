@@ -92,6 +92,23 @@ Il nuovo servizio seguirà lo stesso schema (Dockerfile + `.env.example` + istru
 | Social (Facebook/Instagram/X) | *non verificato* | Confidence 40; API a pagamento/ToS restrittivi. Opzionale, ultima |
 | **Fonte interna NaviSuite** | **disponibile** | Gli agenti a terra (AgB, PonD…) vedono arrivi/partenze reali: un tasto "nave arrivata / partita" nel frontend è la fonte **più affidabile e gratuita** (proposta confidence 98, `source = "operator"`) |
 
+## 3-bis. Verifica go/no-go sul tempo reale (2026-10-09)
+
+Criterio: **senza una fonte live il modulo è inutile** (rischio R1). Esito dei controlli aggiuntivi:
+
+| Fonte | Esito |
+|---|---|
+| App **DreamLake** (ufficiale) | Orari, biglietti, mappa dei punti di interesse, realtà aumentata, news. **Nessun tracciamento dei battelli** nelle schede ufficiali (non ho potuto aprire l'app) |
+| **VesselFinder** (ricerca per nome) | BALDO → solo un tanker e un "pleasure craft"; MINCIO, ADAMELLO → nessuna nave del Garda; **nessun battello Navigarda confermato** |
+| **MarineTraffic** | 403 al bot, non verificabile senza browser/account |
+| Feed GTFS / GTFS-realtime | nessuno trovato |
+
+**Verdetto provvisorio: nessuna fonte live pubblica confermata.** Restano due strade reali:
+1. **Operatore interno NaviSuite**: tasto "arrivata/partita" per gli agenti a terra (dato reale, gratuito, immediato).
+2. **Ricevitore AIS proprio** o richiesta ufficiale a Navigazione Laghi, solo se i battelli hanno un transponder.
+
+Fino a una di queste, **non si procede alla Fase 2**.
+
 ---
 
 ## 4. Architettura proposta
