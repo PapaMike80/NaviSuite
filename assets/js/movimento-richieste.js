@@ -23,11 +23,11 @@
     if (!lista.length) { view.innerHTML = '<p class="muted">Nessun cambio turno da decidere.</p>'; return; }
     view.innerHTML = `<ul class="rich-list">${lista.map(r => {
       const k = esc(`${r.agent.id}|${r.day}`);
-      const prima = r.deciso || r.previsto;
+      const prima = r.deciso || r.previsto || r.da;
       return `<li class="rich-item"><div class="rich-info"><b class="rich-giorno">${esc(giorno(r.day))}</b>` +
         `<span class="rich-nome">${esc(r.agent.agente)}</span><small>${esc(titolo(r.residenza))}${r.agent.qualifica ? ` · ${esc(r.agent.qualifica)}` : ''}</small></div>` +
-        `<div class="rich-turni"><span class="chip" data-code="${esc(prima || '—')}">${esc(nomeTurno(prima))}</span><span class="rich-freccia">→</span>` +
-        `<span class="chip" data-code="${esc(r.turno)}">${esc(nomeTurno(r.turno))}</span></div>` +
+        `<div class="rich-turni"><span class="rich-label">da</span><span class="chip" data-code="${esc(prima || '—')}">${esc(nomeTurno(prima))}</span>` +
+        `<span class="rich-label">a</span><span class="chip" data-code="${esc(r.turno)}">${esc(nomeTurno(r.turno))}</span></div>` +
         `<div class="rich-azioni"><button type="button" class="btn primary" data-act="approva" data-k="${k}">✓ Approva</button>` +
         `<button type="button" class="btn danger" data-act="rifiuta" data-k="${k}" title="Torna ${esc(nomeTurno(prima))}">✗ Rifiuta</button>` +
         `<button type="button" class="btn" data-act="vai" data-k="${k}" title="Apri il giorno nel tab Agenti">Vai al giorno</button></div></li>`;

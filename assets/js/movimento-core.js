@@ -277,7 +277,7 @@
       const deciso = variazioneMovimento(m.day, m.id);
       // chiusa: approvata/rifiutata/modificata dal Movimento, oppure gia' sovrascritta da una sua decisione
       const sovrascritta = !!deciso && norm(deciso.sovrascrive ?? '') === norm(m.turno);
-      return { agent, residenza, day: m.day, turno: m.turno, previsto, deciso: deciso ? String(deciso.turno_nuovo || '') : '',
+      return { agent, residenza, day: m.day, turno: m.turno, previsto, da: m.da || '', deciso: deciso ? String(deciso.turno_nuovo || '') : '',
         chiusa: (!!chiusa && norm(chiusa.turno) === norm(m.turno)) || sovrascritta };
     })
       // un cambio dell'agente e' una richiesta se e' diverso dal turno previsto e da quello che il Movimento ha gia' deciso
@@ -315,7 +315,7 @@
         if (variazioneMovimento(r.day, r.agent.id)) aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, '', r.turno, `Movimento (${autore})`));
         setStatus(`${r.agent.agente}: cambio turno del ${dmy} approvato (${r.turno}).`, 'ok');
       } else {
-        const nuovo = scelta === 'rifiuta' ? (r.previsto || 'RIP') : scelta;
+        const nuovo = scelta === 'rifiuta' ? (r.previsto || r.da || 'RIP') : scelta;
         esito = scelta === 'rifiuta' ? 'rifiutata' : 'modificata';
         aggiorna(await provider.saveVariazioneMovimento(r.day, r.agent, nuovo, r.turno, `Movimento (${autore}): richiesta di cambio turno ${esito}`, { sovrascrive: r.turno }));
         setStatus(`${r.agent.agente}: richiesta del ${dmy} ${scelta === 'rifiuta' ? `rifiutata, resta ${nuovo}` : `cambiata in ${nuovo}`}.`, 'ok');
