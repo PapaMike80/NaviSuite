@@ -71,7 +71,7 @@
   }
 
   // Intestazione: ore del servizio e, oggi, quanto manca all'inizio o alla fine della giornata.
-  function servizioHeader(inizio, fine, day) {
+  function servizioHeader(inizio, fine, day, code = '') {
     const el = $('turno-servizio');
     if (!el) return;
     if (!inizio || !fine) { el.hidden = true; el.textContent = ''; return; }
@@ -82,7 +82,10 @@
       const a = minutes(ora(inizio)), b = minutes(ora(fine));
       resto = n < a ? `inizia tra ${durata(a - n)}` : n < b ? `fine tra ${durata(b - n)}` : 'giornata finita';
     }
-    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b>${resto ? ` · <span class="mt-resto">${esc(resto)}</span>` : ''}`;
+    // durata: le ore del turno (senza le pause), altrimenti da inizio a fine
+    const ore = Number(C?.shiftForCode(code, day)?.hours) || 0;
+    const tot = ore > 0 ? durata(Math.round(ore * 60)) : durata(minutes(ora(fine)) - minutes(ora(inizio)));
+    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b> <span class="mt-durata">(${esc(tot)})</span>${resto ? ` · <span class="mt-resto">${esc(resto)}</span>` : ''}`;
     el.hidden = false;
   }
 
@@ -159,7 +162,7 @@
           `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
-    servizioHeader(info.presentation, info.lastArrival, day);
+    servizioHeader(info.presentation, info.lastArrival, day, code);
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
@@ -173,7 +176,7 @@
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
     // A terra: la pagina Scali del mio scalo (mappa, navi allo scalo con pontili, ormeggi, agenti), poi la scheda Turno.
     $('turno-content').innerHTML = '';
-    if (servizio) servizioHeader(servizio[1].split(' – ')[0], servizio[2].split(' – ')[1], day);
+    if (servizio) servizioHeader(servizio[1].split(' – ')[0], servizio[2].split(' – ')[1], day, code);
     $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-scali').hidden = false;
     window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });

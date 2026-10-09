@@ -51,3 +51,4 @@
 .mt-servizio { margin:.35rem 0 0; font-size:1.05rem; }
 .mt-servizio b { font-variant-numeric:tabular-nums; }
 .mt-resto { display:inline-block; padding:.05rem .5rem; border-radius:999px; background:#ffe08a; color:#5a4300; font-weight:700; }
+.mt-durata { opacity:.8; }
