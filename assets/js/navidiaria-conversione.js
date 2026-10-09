@@ -151,7 +151,16 @@
     setTimeout(() => { $('copia').textContent = 'Copia testo'; }, 1800);
   });
   document.addEventListener('navidiaria:render', aggiorna);
-  window.NaviDiariaConversione = { aggiorna, trasformati };
+  // ripristino da un backup: unisce le ore trasformate del file a quelle presenti
+  function importa(map = {}) {
+    stato = { map: { ...stato.map, ...map }, updatedAt: new Date().toISOString() };
+    try { localStorage.setItem(key(), JSON.stringify(stato)); } catch { /* memoria piena */ }
+    const id = agent()?.id;
+    if (id) window.NaviAdminFirebase?.saveDiariaConversioni?.(String(id), stato).catch(error => console.warn('Trasformazione non salvata su Firebase', error));
+    window.NaviDiariaRefreshMonthly?.();
+    aggiorna();
+  }
+  window.NaviDiariaConversione = { aggiorna, trasformati, importa, mappa: () => ({ ...stato.map }) };
   aggiorna();
 
   // copia su Firebase: vince la piu' recente

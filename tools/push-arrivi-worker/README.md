@@ -28,3 +28,12 @@ In alternativa, dall'interfaccia di TrueNAS: *Apps → Discover → Custom App*,
 - `node worker.js --elenco 112`: elenca gli avvisi di oggi per l'agente 112.
 
 Ogni avviso ha un codice fisso in coda: anche dopo un riavvio non arriva due volte.
+
+## Backup notturno
+
+Ogni giorno dopo le 2 il programma salva nella cartella `backup` accanto alla sua (`/mnt/nas/Navigarda/backup`):
+
+- `NaviSuite-backup-AAAA-MM-GG.json`: copia completa (distinte di tutti, trasformazioni, profili, PIN, turni e variazioni), per ripristinare;
+- `NaviSuite-backup-AAAA-MM-GG-distinte.csv`: le distinte di tutti, da aprire con Excel.
+
+Tiene gli ultimi 60 giorni (`BACKUP_GIORNI` per cambiarli). Backup subito: `docker exec navisuite-arrivi node worker.js --backup`.

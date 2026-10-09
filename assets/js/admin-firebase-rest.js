@@ -877,6 +877,15 @@
     return { ...access, updatedAt:item.updatedAt };
   }
 
+  // Backup centrale (pagina Agenti): distinte di tutti, trasformazioni, profili, turni e variazioni.
+  async function getBackupCentrale() {
+    const chiavi = ["diaria", "diariaConversioni", "agentProfiles", "pageAccess", "scheduleImports", "odsVariations", "manualVariations",
+      "turniNavi", "approvazioniTurni", "userRegistry", "baristas", "pontiliCorse"];
+    const parti = await Promise.all(chiavi.map(k => databaseRequest(`private/adminUpdates/${k}`).then(r => r.data ?? null).catch(() => null)));
+    const schedule = await databaseRequest("public/schedule").then(r => r.data ?? null).catch(() => null);
+    return { adminUpdates:Object.fromEntries(chiavi.map((k, i) => [k, parti[i]])), schedule };
+  }
+
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
   async function getDiariaConversioni(agentId) {
     const result = await databaseRequest(`private/adminUpdates/diariaConversioni/${safeUserKey(agentId)}`);
@@ -1024,6 +1033,7 @@
     saveDiaria,
     getDiariaConversioni,
     getPageAccess,
+    getBackupCentrale,
     savePageAccess,
     saveDiariaConversioni,
     provider:"Firebase REST"
