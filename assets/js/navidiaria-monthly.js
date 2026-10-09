@@ -76,7 +76,17 @@ try{(()=>{
     default:return '';
   }}
   function weeklyTotal(row,date){return summarizedTotal(row,[entriesInWeek(date)])}
-  function monthlyTotal(row,sundays){return summarizedTotal(row,sundays.map(entriesInWeek))}
+  // Totale del mese: con le ore trasformate in banca ore (riquadro sotto la tabella) gli straordinari calano e la
+  // banca ore cresce del 10% in piu'.
+  function monthlyTotal(row,sundays){
+    const base=summarizedTotal(row,sundays.map(entriesInWeek));
+    if(row.key!=='overtime'&&row.key!=='bank')return base;
+    const conv=window.NaviDiariaConversione?.trasformati?.(document.getElementById('monthFilter').value)||0;
+    if(!conv)return base;
+    if(row.key==='overtime'){const rest=Math.max(0,straordinariMese(sundays).totale-conv);return rest?clock(rest):''}
+    const bank=sundays.map(entriesInWeek).flat().filter(isWorking).reduce((sum,e)=>sum+(Number(e.bank)||0),0)+Math.round(conv*1.1);
+    return bank?signedClock(bank):'';
+  }
   // Straordinari del mese come nella colonna TOT. MESE (settimane del periodo oltre 39 ore), per il riquadro della
   // trasformazione in banca ore: totale e parte delle settimane non ancora finite (prevista dai turni).
   function straordinariMese(sundays){let totale=0,previsti=0;const oggi=todayIso();sundays.forEach(sunday=>{const m=Math.max(0,entriesInWeek(sunday).filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60);totale+=m;if(iso(sunday)>=oggi)previsti+=m});return {totale,previsti}}
@@ -103,6 +113,7 @@ try{(()=>{
   window.NaviDiariaDayEditor={open:openDayBubbleEditor};
   grid.addEventListener('click',event=>{const head=event.target.closest('th[data-date]');if(head){openDayBubbleEditor(head.dataset.date);return}const cell=event.target.closest('td[data-date][data-row]');if(cell)editMonthlyCell(cell)});
   function refreshMonthly(){updateMonthButtons(monthDate());renderMonthly()}
+  window.NaviDiariaRefreshMonthly=refreshMonthly;
   function printMonthlySheet(){
     const period=competencePeriod(),table=grid.querySelector('.monthly-table');if(!table||!period.start||!period.end)return;
     const agent=document.getElementById('sidebarAgentName')?.textContent?.trim()||'',label=title.textContent;
