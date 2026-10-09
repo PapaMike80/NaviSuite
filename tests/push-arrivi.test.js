@@ -43,8 +43,14 @@ const agt = A.notifiche(data, '9', T);
 assert.ok(agt.length && agt.every(n => /^T[12]$/.test(n.code) && n.body.includes('da Torri')));
 // SR solo fino all'11/10
 assert.ok(!A.notifiche({ ...data, residenze: { MADERNO: [{ id: '8', agente: 'BLU', turni: { '2026-10-20': 'AGM' } }] } }, '8', '2026-10-20').some(n => /^SR/.test(n.code)));
-// a bordo nessuna notifica di arrivo
-assert.deepStrictEqual(A.notifiche(data, '1', T), []);
+// a bordo (P2): il prossimo scalo 10 minuti prima, per ogni scalo d'arrivo delle corse del turno
+const bordo = A.notifiche(data, '1', T);
+assert.ok(bordo.length > 10);
+assert.strictEqual(bordo[0].title, 'P2 CATULLO · prossimo scalo Lazise alle 8.53');
+assert.strictEqual(bordo[0].quando, '8.43');
+assert.strictEqual(bordo[0].body, 'corsa 30\npoi Bardolino alle 9.10');
+assert.strictEqual(bordo.at(-1).body, 'corsa 39\nultimo scalo della giornata');
+assert.ok(bordo.every(n => n.tag.startsWith('navisuite-scalo-')));
 // da mandare adesso: dall'ora di avviso per 5 minuti
 assert.deepStrictEqual(A.dovute(pond, 12 * 60 + 7).map(n => n.code), ['M1']);
 assert.deepStrictEqual(A.dovute(pond, 12 * 60 + 11), []);

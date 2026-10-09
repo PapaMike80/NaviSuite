@@ -16,6 +16,9 @@ Chi decide quali notifiche mandare è il modulo `assets/js/push-arrivi.js`. È u
 
 Le notifiche dell'app e quelle del worker hanno lo stesso `tag`, quindi non arrivano doppie.
 
+> **Pronto da installare:** `tools/push-arrivi-worker` (arrivi per chi è a terra e prossimo scalo per chi è a
+> bordo). Mette gli avvisi nella coda del push-worker: le istruzioni sono nel suo README.
+
 ## Cosa aggiungere al worker
 
 Il worker scarica già `course-info.js` e `push-summary.js` da GitHub Pages. Per gli arrivi servono anche

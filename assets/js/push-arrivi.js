@@ -1,4 +1,5 @@
-// Notifiche degli arrivi per chi lavora a terra: il pontilista deve essere sul pontile 10 minuti
+// Notifiche degli arrivi per chi lavora a terra e, per chi e' a bordo, del prossimo scalo (notificheNave).
+// Chi lavora a terra: il pontilista deve essere sul pontile 10 minuti
 // prima dell'arrivo della nave. Per la giornata a terra dell'agente (AgB, PonD, AgM, AgT...) elenca
 // le navi in arrivo nelle ore del suo servizio, con nave, pontile (scelto in Servizi a terra o
 // dall'O.d.S.) e comandante, e l'ora a cui avvisare.
@@ -52,7 +53,7 @@
   function notifiche(data, agentId, day, options = {}) {
     const turno = G().turnoAgente(data, { id: agentId, name: options.agentName || '' }, day);
     const servizio = G().terraCode(turno?.turno);
-    if (!servizio) return [];
+    if (!servizio) return notificheNave(data, G().naveCode?.(turno?.turno), day, options);
     const anticipo = Number(options.anticipo) || ANTICIPO;
     const navi = T().turniDelGiorno(data?.turni_navi || [], day);
     const crews = G().equipaggi(data, day).navi;
@@ -100,8 +101,50 @@
     });
   }
 
+  // A bordo: il prossimo scalo, `anticipo` minuti prima di arrivarci, per ogni scalo d'arrivo delle corse del turno
+  // (con i ritardi del Movimento, senza le corse sospese e quelle fatte dal BIS al posto della nave).
+  function notificheNave(data, code, day, options = {}) {
+    const OG = root.NaviOrarioGiorno;
+    if (!code || !OG || (code !== 'BIS' && !inServizio(code, day))) return [];
+    const anticipo = Number(options.anticipo) || ANTICIPO;
+    const navi = T().turniDelGiorno(data?.turni_navi || [], day);
+    if (navi[code]?.sospesa) return [];
+    const ritardi = OG.ritardiDelGiorno ? OG.ritardiDelGiorno(navi) : {};
+    const incarichi = navi.BIS?.incarichi || [];
+    const sospese = navi[code]?.corseSospeseRaw || [];
+    const corse = (code === 'BIS' ? OG.corseBis(incarichi, day, ritardi) : OG.corseDelTurno(code, day, ritardi[code]))
+      .filter(c => code === 'BIS' || !OG.bisPerCorsa?.(incarichi, code, c.numero, day));
+    const nave = navi[code]?.nave || '';
+    const pontili = options.pontili || {};
+    const scali = [];
+    corse.forEach(c => c.scali.forEach(([scalo, ora], j) => {
+      if (j === 0) return;
+      const sosp = sospese.find(x => x.corsa === String(c.numero));
+      if (sosp && (!sosp.da || minutes(ora) >= minutes(sosp.da))) return;
+      if (scali.some(x => x.scalo === scalo && x.time === ora)) return;
+      scali.push({ scalo, time: ora, run: c.numero, ritardo: c.ritardo || null });
+    }));
+    scali.sort((a, b) => minutes(a.time) - minutes(b.time));
+    const prima = code === 'BIS' ? [] : OG.corseDelTurno(code, day);
+    return scali.map((x, i) => {
+      const dopo = scali[i + 1];
+      // pontile a Desenzano: quello scelto in Servizi a terra per l'arrivo (ora d'orario, senza ritardo)
+      let pontile = '';
+      if (x.scalo === 'Desenzano' && T().pontileFor) {
+        const orario = prima.find(c => c.numero === String(x.run))?.scali.find(([s]) => s === 'Desenzano')?.[1] || x.time;
+        pontile = T().pontileFor(pontili[T().courseKey(orario, code, x.run)], day, '').value || '';
+      }
+      const title = `${code}${nave ? ` ${nave}` : ''} · prossimo scalo ${x.scalo} alle ${x.time}${x.ritardo ? ` (${OG.testoRitardo(x.ritardo)})` : ''}`;
+      const body = [[pontile ? `⚓ Pontile ${pontile}` : '', `corsa ${x.run}`].filter(Boolean).join(' · '),
+        dopo ? `poi ${dopo.scalo} alle ${dopo.time}` : 'ultimo scalo della giornata'].join('\n');
+      const at = minutes(x.time) - anticipo;
+      return { at, quando: hhmm(at), time: x.time, code, run: x.run, scalo: x.scalo, nave, pontile, title, body,
+        tag: `navisuite-scalo-${day}-${code}-${x.run}-${x.scalo}${x.ritardo ? `-r${x.ritardo.minuti}` : ''}`, url: 'mio-turno.html', ritardo: x.ritardo };
+    });
+  }
+
   // Notifiche da mandare adesso: l'ora di avviso e' passata da meno di `finestra` minuti.
   const dovute = (lista, ora, finestra = 5) => (lista || []).filter(item => ora >= item.at && ora < item.at + finestra);
 
-  return { ANTICIPO, arriviDelServizio, notifiche, dovute };
+  return { ANTICIPO, arriviDelServizio, notifiche, notificheNave, dovute };
 });
