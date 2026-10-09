@@ -6,7 +6,7 @@ const CONFIG = {
   branch: 'main',
   folders: ['turni', 'ods', 'stampe'],
   metadataFile: 'documenti.json',
-  version: 'v1.14'
+  version: 'v1.15'
 };
 
 const state = {
