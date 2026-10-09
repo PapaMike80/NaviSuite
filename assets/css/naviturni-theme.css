@@ -93,3 +93,7 @@ th{background:#0d222d;color:var(--ink-dim)}th,td{border-color:var(--line)}td{col
 .hero-convert .hc-perc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .hero-convert .hc-perc[hidden]{display:none}
 .hero-convert .hc-perc input{max-width:64px}
+.hero-convert .hc-anno{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:10px 14px;background:rgba(94,234,212,.08)}
+.hero-convert .hc-anno span{display:flex;flex-direction:column;gap:4px}
+.hero-convert .hc-anno b{color:#5eead4;font-size:18px}
+.hero-convert .hc-anno p{margin:0;color:#fbbf24;font-size:13px;font-weight:700}

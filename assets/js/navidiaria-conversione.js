@@ -28,6 +28,7 @@
     '<input data-hc="pct" inputmode="numeric" placeholder="%" aria-label="Percentuale da trasformare"><button type="button" data-hc="applica">OK</button></span></label>' +
     '<span class="hc-row"><small>In banca ore (+10%)</small><b data-hc="bonus">—</b></span>' +
     '<span class="hc-row"><small>Straordinari pagati</small><b data-hc="pagati">—</b></span>' +
+    '<div class="hc-anno"><span><small data-hc="anno-label">Banca ore dell\'anno</small><b data-hc="anno">—</b></span><p data-hc="anno-nota"></p></div>' +
     '<div class="hc-note"><b>Come chiedere la trasformazione (O.d.S. 40, 5/3°)</b>' +
     '<p>Dal 1° novembre 2026 la richiesta si manda <b>solo via e-mail</b> a <a href="mailto:pers.navigarda@navigazionelaghi.it">pers.navigarda@navigazionelaghi.it</a>, ' +
     '<b>entro il 5 del mese successivo</b> (per ottobre entro il 5 novembre). Una richiesta per ogni mese, con solo le ore da trasformare: ' +
@@ -54,6 +55,21 @@
     return new Date() > fine ? `⚠ Termine scaduto il ${testo}.` : `Da inviare entro il ${testo}.`;
   }
 
+  // ore trasformate del mese (al massimo gli straordinari del mese, se noti)
+  function trasformati(month) {
+    const v = stato.map[month] || 0;
+    const mese = window.NaviDiariaMese?.month === month ? window.NaviDiariaMese.totale : null;
+    return mese == null ? v : Math.min(v, mese);
+  }
+  // Banca ore dell'anno: quella di ogni giorno dell'anno (anche quella usata, in negativo) + le trasformazioni dei
+  // mesi dell'anno con il 10% in piu'. Va usata entro il 31 dicembre.
+  function bancaAnno(year) {
+    const giorni = (typeof entries !== 'undefined' ? entries : []).filter(e => String(e.date || '').startsWith(`${year}-`))
+      .reduce((sum, e) => sum + (Math.round(Number(e.bank) || 0)), 0);
+    const conv = Object.keys(stato.map).filter(k => k.startsWith(`${year}-`)).reduce((sum, k) => sum + Math.round(trasformati(k) * MAGGIORAZIONE), 0);
+    return giorni + conv;
+  }
+
   function aggiorna() {
     const t = window.NaviDiariaTotals;
     if (!t) return;
@@ -67,6 +83,10 @@
     $('pagati').textContent = testo(maturati - scelti);
     if (document.activeElement !== $('input')) $('input').value = scelti ? testo(scelti) : '';
     $('scadenza').textContent = scadenza(t.month);
+    const anno = t.month.slice(0, 4), bancaTot = bancaAnno(anno);
+    $('anno-label').textContent = `Banca ore ${anno}`;
+    $('anno').textContent = `${bancaTot < 0 ? '-' : ''}${testo(Math.abs(bancaTot))}`;
+    $('anno-nota').textContent = `Le ore in banca vanno usate entro il 31 dicembre ${anno}.`;
     const corpo = scelti ? richiesta(t.month, scelti) : '';
     $('testo').textContent = corpo || 'Scrivi qui sopra le ore da trasformare: il testo della richiesta si prepara da solo.';
     const [y, m] = t.month.split('-').map(Number);
@@ -85,6 +105,7 @@
     stato = { map: { ...stato.map, [month]: value }, updatedAt: new Date().toISOString() };
     if (!value) delete stato.map[month];
     try { localStorage.setItem(key(), JSON.stringify(stato)); } catch { /* memoria piena */ }
+    window.NaviDiariaRefreshMonthly?.(); // colonna TOT. MESE con la trasformazione
     clearTimeout(timer);
     timer = setTimeout(() => {
       const id = agent()?.id;
@@ -127,7 +148,7 @@
     setTimeout(() => { $('copia').textContent = 'Copia testo'; }, 1800);
   });
   document.addEventListener('navidiaria:render', aggiorna);
-  window.NaviDiariaConversione = { aggiorna };
+  window.NaviDiariaConversione = { aggiorna, trasformati };
   aggiorna();
 
   // copia su Firebase: vince la piu' recente
@@ -140,6 +161,7 @@
       if (remoto?.updatedAt && (!stato.updatedAt || remoto.updatedAt > stato.updatedAt)) {
         stato = { map: remoto.map || {}, updatedAt: remoto.updatedAt };
         localStorage.setItem(key(), JSON.stringify(stato));
+        window.NaviDiariaRefreshMonthly?.();
         if (typeof render === 'function') render(); else aggiorna();
       } else if (stato.updatedAt && (!remoto || remoto.updatedAt < stato.updatedAt)) {
         await window.NaviAdminFirebase.saveDiariaConversioni(String(id), stato);
