@@ -22,14 +22,35 @@
     const C = root.NaviShiftCompetence;
     return C ? Math.round((Number(C.shiftForCode(e.shift, e.date)?.hours) || 0) * 60) : 0;
   }
+  // Ore lavorate con la stessa formula della Distinta (navidiaria-monthly.js): quelle salvate, altrimenti
+  // servizio + straordinario (record vecchi: + cambio)
   function lavorate(e) {
     if (!lavoro(e)) return 0;
-    if (Number.isFinite(Number(e.workedMinutes)) && Number(e.workedMinutes) >= 0) return min(e.workedMinutes);
-    const c = causali(e);
-    return servizio(e) + c.ritardo + c.cambio + c.sentine + min(e.refuelWorked);
+    const c = e.overtimeComponents, strutturato = !!c && typeof c === 'object' && !Array.isArray(c), k = causali(e);
+    const manuale = Number(e.workedMinutes);
+    const base = Number.isFinite(manuale) && manuale >= 0 ? manuale : servizio(e) + (strutturato ? k.ritardo + k.cambio + k.sentine : k.ritardo);
+    return base + (strutturato ? 0 : k.cambio);
   }
 
-  const COLONNE = ['Data', 'Giorno', 'Turno', 'Ore servizio', 'Ore lavorate', 'Straordinario del giorno', 'di cui ritardo', 'di cui cambio',
+  // Straordinario come nella Distinta: per settimana (lunedi'-domenica) le ore lavorate oltre le 39, contate nel mese
+  // della domenica. sett(entries, domenica) -> {dal, al, lavorate, straordinario}
+  const SOGLIA = 39 * 60;
+  const isoD = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  function sett(entries, domenica) {
+    const fine = new Date(`${domenica}T12:00:00`), inizio = new Date(fine); inizio.setDate(fine.getDate() - 6);
+    const dal = isoD(inizio), lav = (entries || []).filter(e => e?.date >= dal && e.date <= domenica).reduce((s, e) => s + lavorate(e), 0);
+    return { dal, al: domenica, lavorate: lav, straordinario: Math.max(0, lav - SOGLIA) };
+  }
+  // domeniche di un mese ("2026-10") o di un anno ("2026")
+  function domeniche(periodo) {
+    const y = Number(periodo.slice(0, 4)), out = [];
+    for (let d = new Date(y, periodo.length === 4 ? 0 : Number(periodo.slice(5)) - 1, 1, 12); d.getFullYear() === y && (periodo.length === 4 || isoD(d).startsWith(periodo)); d.setDate(d.getDate() + 1))
+      if (d.getDay() === 0) out.push(isoD(d));
+    return out;
+  }
+  const straordinarioPeriodo = (entries, periodo) => domeniche(periodo).reduce((s, dom) => s + sett(entries, dom).straordinario, 0);
+
+  const COLONNE = ['Data', 'Giorno', 'Turno', 'Ore servizio', 'Ore lavorate', 'Straordinario del giorno (totale: oltre 39 ore settimanali)', 'di cui ritardo', 'di cui cambio',
     'di cui sentine', 'Banca ore', 'Rifornimento (anticipo)', 'Ticket', '2° ticket', 'Diaria %', 'Pernotto 40%', 'Imbarco', 'Festività',
     'Maneggio denaro', 'Trasferta', 'Note'];
   function riga(e) {
@@ -43,21 +64,30 @@
   const linea = valori => valori.map(cella).join(';');
 
   // CSV di una o piu' distinte: una riga per giorno, dopo ogni mese i totali (con le ore trasformate in banca ore).
-  // agenti: [{id, nome, entries, conversioni: {'2026-10': minuti}}]; con piu' agenti si aggiungono le colonne Agente e Numero.
+  // agenti: [{id, nome, entries, conversioni: {'2026-10': minuti}, periodo?: '2026' | '2026-10'}]; mesi di competenza (settimane
+  // con la domenica nel mese, come la Distinta); con piu' agenti si aggiungono le colonne Agente e Numero.
   function csv(agenti) {
     const multi = agenti.length > 1;
     const out = [linea([...(multi ? ['Agente', 'Numero'] : []), ...COLONNE])];
     agenti.forEach(a => {
       const pre = multi ? [a.nome || '', a.id || ''] : [];
       const giorni = (a.entries || []).filter(e => e?.date).sort((x, y) => x.date.localeCompare(y.date));
-      const mesi = [...new Set(giorni.map(e => e.date.slice(0, 7)))];
+      // mese di competenza come nella Distinta: quello della domenica della settimana del giorno
+      const competenza = iso => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + (7 - d.getDay()) % 7); return isoD(d).slice(0, 7); };
+      const mesi = [...new Set(giorni.map(e => competenza(e.date)))].filter(m => !a.periodo || m.startsWith(a.periodo));
       mesi.forEach(mese => {
-        const lista = giorni.filter(e => e.date.startsWith(mese));
-        lista.forEach(e => out.push(linea([...pre, ...riga(e)])));
+        const lista = giorni.filter(e => competenza(e.date) === mese);
+        lista.forEach(e => {
+          out.push(linea([...pre, ...riga(e)]));
+          if (new Date(`${e.date}T12:00:00`).getDay() === 0) {
+            const w = sett(giorni, e.date);
+            out.push(linea([...pre, `Settimana ${w.dal.slice(8)}/${w.dal.slice(5, 7)}-${w.al.slice(8)}/${w.al.slice(5, 7)}`, '', '', '', ore(w.lavorate), '', '', '', '', '', '', '', '', '', '', '', '', '', '', `straordinario oltre 39 ore: ${ore(w.straordinario) || '0:00'}`]));
+          }
+        });
         const lav = lista.filter(lavoro), tot = f => lav.reduce((s, e) => s + f(e), 0);
         const [y, m] = mese.split('-').map(Number);
         out.push(linea([...pre, `TOTALE ${MESI[m - 1]} ${y}`, '', `${lav.length} gg`, ore(tot(servizio)), ore(tot(lavorate)),
-          ore(tot(e => { const c = causali(e); return c.ritardo + c.cambio + c.sentine; })), '', '', '', ore((a.entries || []).filter(e => e?.date?.startsWith(mese)).reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0)),
+          ore(straordinarioPeriodo(giorni, mese)), '', '', '', ore(lista.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0)),
           '', String(lav.filter(e => e.ticketPresence ?? e.mealUsed).length), '', String(lav.filter(e => e.allowanceRate != null).length), '', String(lav.filter(e => e.embark).length), '', '', '', '']));
         const conv = Number(a.conversioni?.[mese]) || 0;
         if (conv) out.push(linea([...pre, `Trasformati in banca ore ${MESI[m - 1]} ${y}`, '', '', '', '', ore(conv), '', '', '', `+${ore(Math.round(conv * 1.1))}`]));
@@ -117,5 +147,5 @@
     return out;
   }
 
-  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip };
+  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA };
 })(typeof window !== 'undefined' ? window : globalThis);

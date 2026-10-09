@@ -57,27 +57,50 @@
     }).join('') || '<p class="status">Nessun agente trovato.</p>';
   }
 
+  // Periodo di competenza come nella Distinta: le settimane (lunedi'-domenica) la cui domenica cade nel mese (o nell'anno).
+  // Lo straordinario e' quello oltre le 39 ore di ogni settimana.
   function dettaglio() {
-    const a = scelto, mese = $('mese').value;
+    const a = scelto, periodo = $('mese').value;
     if (!a) { $('dettaglio').hidden = true; return; }
-    const giorni = a.entries.filter(e => e.date.startsWith(mese)), lav = giorni.filter(lavoro);
-    const tot = f => lav.reduce((s, e) => s + f(e), 0), caus = e => { const c = B.causali(e); return c.ritardo + c.cambio + c.sentine; };
-    const conv = sommaConv(a, mese);
-    $('det-numero').textContent = `AGENTE N. ${a.id} · ${etichetta(mese).toUpperCase()}`;
+    const byDate = new Map(a.entries.map(e => [e.date, e]));
+    const settimane = B.domeniche(periodo).map(dom => {
+      const w = B.sett(a.entries, dom), giorni = [];
+      for (let d = new Date(`${w.dal}T12:00:00`); ; d.setDate(d.getDate() + 1)) {
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        giorni.push(byDate.get(iso) || { date: iso, shift: '' });
+        if (iso === dom) break;
+      }
+      return { ...w, giorni };
+    });
+    const giorni = settimane.flatMap(w => w.giorni), lav = giorni.filter(lavoro);
+    const tot = f => lav.reduce((s, e) => s + f(e), 0);
+    const straord = settimane.reduce((s, w) => s + w.straordinario, 0), conv = sommaConv(a, periodo);
+    const fmt = iso => `${Number(iso.slice(8))}/${Number(iso.slice(5, 7))}`;
+    $('det-numero').textContent = `AGENTE N. ${a.id} · ${etichetta(periodo).toUpperCase()}${settimane.length ? ` · DAL ${fmt(settimane[0].dal)} AL ${fmt(settimane.at(-1).al)}` : ''}`;
     $('det-nome').textContent = a.nome;
-    $('riepilogo').innerHTML = [['Giorni lavorati', lav.length], ['Ore lavorate', ore(tot(B.lavorate))], ['Straordinari del giorno', ore(tot(caus))],
-      ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0))], ['Ticket', lav.filter(e => e.ticketPresence ?? e.mealUsed).length],
-      ['Diarie', lav.filter(e => e.allowanceRate != null).length], ...(conv ? [['Trasformati in banca ore', `${ore(conv)} → +${ore(Math.round(conv * 1.1))}`]] : [])]
+    $('riepilogo').innerHTML = [['Giorni lavorati', lav.length], ['Ore lavorate', ore(tot(B.lavorate))], ['Straordinari (oltre 39 h a settimana)', ore(straord)],
+      ...(conv ? [['Trasformati in banca ore', `${ore(conv)} → +${ore(Math.round(conv * 1.1))}`], ['Straordinari pagati', ore(Math.max(0, straord - conv))]] : []),
+      ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))], ['Ticket', lav.filter(e => e.ticketPresence ?? e.mealUsed).length],
+      ['Diarie', lav.filter(e => e.allowanceRate != null).length]]
       .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('');
-    $('tabella').innerHTML = `<thead><tr><th>Data</th><th>Turno</th><th>Servizio</th><th>Lavorate</th><th>Straord.</th><th>Banca</th><th>Ticket</th><th>Diaria</th><th>Imbarco</th><th>Note</th></tr></thead><tbody>` +
-      giorni.map((e, i) => { const d = new Date(`${e.date}T12:00:00`), w = lavoro(e);
-        const fineMese = mese.length === 4 && (i === giorni.length - 1 || giorni[i + 1].date.slice(0, 7) !== e.date.slice(0, 7));
-        const lm = fineMese ? giorni.filter(x => x.date.startsWith(e.date.slice(0, 7)) && lavoro(x)) : [];
-        const totMese = fineMese ? `<tr class="tot"><td>${esc(MESI[d.getMonth()])}</td><td>${lm.length} gg</td><td>${ore(lm.reduce((s, x) => s + B.servizio(x), 0))}</td><td>${ore(lm.reduce((s, x) => s + B.lavorate(x), 0))}</td><td>${ore(lm.reduce((s, x) => s + caus(x), 0))}</td><td>${ore(giorni.filter(x => x.date.startsWith(e.date.slice(0, 7))).reduce((s, x) => s + (Math.round(Number(x.bank) || 0)), 0))}</td><td>${lm.filter(x => x.ticketPresence ?? x.mealUsed).length}</td><td>${lm.filter(x => x.allowanceRate != null).length}</td><td>${lm.filter(x => x.embark).length}</td><td></td></tr>` : '';
-        return `<tr class="${w ? '' : 'rip'}"><td>${GIORNI[d.getDay()]} ${d.getDate()}</td><td>${esc(e.shift || '')}</td><td>${w ? ore(B.servizio(e)) : ''}</td><td>${w ? ore(B.lavorate(e)) : ''}</td>` +
-          `<td>${w ? ore(caus(e)) : ''}</td><td>${ore(e.bank)}</td><td>${w && (e.ticketPresence ?? e.mealUsed) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
-          `<td>${w && e.embark ? 'sì' : ''}</td><td>${esc(e.note || '')}</td></tr>` + totMese; }).join('') +
-      `<tr class="tot"><td>Totale ${mese.length === 4 ? 'anno' : ''}</td><td>${lav.length} gg</td><td>${ore(tot(B.servizio))}</td><td>${ore(tot(B.lavorate))}</td><td>${ore(tot(caus))}</td><td></td><td>${lav.filter(e => e.ticketPresence ?? e.mealUsed).length}</td><td>${lav.filter(e => e.allowanceRate != null).length}</td><td>${lav.filter(e => e.embark).length}</td><td></td></tr></tbody>`;
+    const rigaGiorno = e => { const d = new Date(`${e.date}T12:00:00`), w = lavoro(e), c = B.causali(e);
+      return `<tr class="${w ? '' : 'rip'}"><td>${GIORNI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}</td><td>${esc(e.shift || '')}</td><td>${w ? ore(B.servizio(e)) : ''}</td><td>${w ? ore(B.lavorate(e)) : ''}</td>` +
+        `<td>${w && c.ritardo + c.cambio + c.sentine ? ore(c.ritardo + c.cambio + c.sentine) : ''}</td><td>${e.bank ? ore(e.bank) : ''}</td><td>${w && (e.ticketPresence ?? e.mealUsed) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
+        `<td>${w && e.embark ? 'sì' : ''}</td><td>${esc(e.note || '')}</td></tr>`; };
+    const rigaSett = w => `<tr class="sett"><td colspan="3">Settimana ${fmt(w.dal)} – ${fmt(w.al)}</td><td>${ore(w.lavorate)}</td><td colspan="6">${w.straordinario ? `straordinario <b>${ore(w.straordinario)}</b> (oltre 39 h)` : 'nessuno straordinario (39 h)'}</td></tr>`;
+    const righe = [];
+    settimane.forEach((w, i) => {
+      w.giorni.forEach(e => righe.push(rigaGiorno(e)));
+      righe.push(rigaSett(w));
+      // anno intero: totale del mese dopo la sua ultima settimana
+      const mese = w.al.slice(0, 7);
+      if (periodo.length === 4 && (i === settimane.length - 1 || settimane[i + 1].al.slice(0, 7) !== mese)) {
+        const ws = settimane.filter(x => x.al.startsWith(mese)), gm = ws.flatMap(x => x.giorni).filter(lavoro);
+        righe.push(`<tr class="tot"><td colspan="3">${esc(MESI[Number(mese.slice(5)) - 1])} · ${gm.length} gg</td><td>${ore(ws.reduce((s, x) => s + x.lavorate, 0))}</td><td colspan="6">straordinario ${ore(ws.reduce((s, x) => s + x.straordinario, 0))}</td></tr>`);
+      }
+    });
+    $('tabella').innerHTML = `<thead><tr><th>Data</th><th>Turno</th><th>Servizio</th><th>Lavorate</th><th>Straord. giorno</th><th>Banca</th><th>Ticket</th><th>Diaria</th><th>Imbarco</th><th>Note</th></tr></thead><tbody>` +
+      righe.join('') + `<tr class="tot"><td colspan="3">Totale ${periodo.length === 4 ? 'anno' : 'mese'} · ${lav.length} gg</td><td>${ore(tot(B.lavorate))}</td><td colspan="6">straordinario ${ore(straord)} (oltre 39 h a settimana)</td></tr></tbody>`;
     $('dettaglio').hidden = false;
   }
 
@@ -85,8 +108,7 @@
   function zipAgente(a) {
     const mese = $('mese').value, base = `Distinta-${B.nomeFile(a.nome)}-${mese}`;
     const json = { tipo: 'navidiaria-backup', versione: 1, creato: new Date().toISOString(), agente: { id: a.id, nome: a.nome }, entries: a.entries, conversioni: a.conversioni };
-    const delMese = a.entries.filter(e => e.date.startsWith(mese));
-    return { nome: `${base}.zip`, dati: B.zip([{ name: `${base}.csv`, data: B.csv([{ id: a.id, nome: a.nome, entries: delMese, conversioni: convPeriodo(a, mese) }]) },
+    return { nome: `${base}.zip`, dati: B.zip([{ name: `${base}.csv`, data: B.csv([{ id: a.id, nome: a.nome, entries: a.entries, periodo: mese, conversioni: convPeriodo(a, mese) }]) },
       { name: `Distinta-${B.nomeFile(a.nome)}-backup.json`, data: JSON.stringify(json) }]) };
   }
 
@@ -107,7 +129,7 @@
   });
   $('scarica').addEventListener('click', () => { if (scelto) { const z = zipAgente(scelto); B.scarica(z.nome, z.dati, 'application/zip'); } });
   $('tutti').addEventListener('click', () => {
-    const mese = $('mese').value, files = agenti.map(a => ({ name: `Distinta-${B.nomeFile(a.nome)}-${mese}.csv`, data: B.csv([{ id: a.id, nome: a.nome, entries: a.entries.filter(e => e.date.startsWith(mese)), conversioni: convPeriodo(a, mese) }]) }));
+    const mese = $('mese').value, files = agenti.map(a => ({ name: `Distinta-${B.nomeFile(a.nome)}-${mese}.csv`, data: B.csv([{ id: a.id, nome: a.nome, entries: a.entries, periodo: mese, conversioni: convPeriodo(a, mese) }]) }));
     B.scarica(`Distinte-${mese}.zip`, B.zip(files), 'application/zip');
   });
   $('agenti').addEventListener('click', event => { const b = event.target.closest('[data-id]'); if (!b) return; scelto = agenti.find(a => a.id === b.dataset.id); elenco(); dettaglio(); $('dettaglio').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
