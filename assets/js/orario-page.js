@@ -342,7 +342,8 @@
       $('orario-notice').textContent = `Pontile salvato solo su questo dispositivo (${error.message}).`;
     }
   }
-  // Ritardi: li inseriscono admin, Uffici, utenti scalo e biglietterie (vedi puoRitardi), solo nella giornata di oggi.
+  // Ritardi: li inseriscono admin, Uffici, utenti scalo e biglietterie (vedi puoRitardi) e ogni agente per la sua nave
+  // di oggi (miaNaveOggi), solo nella giornata di oggi.
   // Si salvano come quelli del Movimento (riga MOVIMENTO del turno nave): li vedono tutti e passano alle corse dopo.
   const RITARDI = [...Array.from({ length: 24 }, (_, i) => String((i + 1) * 5)), 'oltre'];
   // Possono segnarli: admin e Uffici (ogni scalo), l'utente di uno scalo (il suo scalo) e le biglietterie di oggi:
@@ -355,6 +356,12 @@
     if ((R.scaloOf?.(p) || '') === state.scalo) return true;
     const turno = state.schedule ? G.turnoAgente(state.schedule, p, today())?.turno : '';
     return BIGLIETTERIE[G.terraCode(turno)] === state.scalo;
+  }
+  // Ogni agente puo' segnare i ritardi della SUA nave di oggi (es. di turno D1: solo le corse del D1).
+  function miaNaveOggi() {
+    const p = profile();
+    if (!realToday() || !p?.id || !state.schedule) return '';
+    return G.naveCode(G.turnoAgente(state.schedule, p, today())?.turno) || '';
   }
   // previsto: ora d'attracco da orario (HH:MM) allo scalo; "Attraccata ora" = adesso - previsto
   function ritardoSelect(g, code, corsa, previsto = '') {
@@ -483,7 +490,7 @@
     const lastPast = pastIdx[pastIdx.length - 1];
     const nascoste = Math.max(0, pastIdx.length - 1);
     const prossima = righe.findIndex(r => r.t >= t);
-    const ritardiOk = puoRitardi();
+    const ritardiOk = puoRitardi(), miaNave = miaNaveOggi();
     const html = righe.map((r, i) => {
       if (r.t < t && i !== lastPast && !state.showPastLago) return '';
       const code = r.v.turno;
@@ -512,7 +519,7 @@
       } else if (odsMooring) {
         badges.push(`<b class="ormeggio" title="Ormeggio ${mattino ? 'del mattino' : 'serale'}">⚓ ${esc(T.pontLabel(odsMooring))}</b>`);
       }
-      if (ritardiOk && r.corsa && !r.propria) badges.push(ritardoSelect(g, code, r.corsa, (r.arr ? orarioProgrammato(g, code, r.arr.corsa, state.scalo, true) || r.arr.ora : orarioProgrammato(g, code, r.corsa, state.scalo, r.kind === 'A') || r.ora)));
+      if ((ritardiOk || (miaNave && code === miaNave)) && r.corsa && !r.propria) badges.push(ritardoSelect(g, code, r.corsa, (r.arr ? orarioProgrammato(g, code, r.arr.corsa, state.scalo, true) || r.arr.ora : orarioProgrammato(g, code, r.corsa, state.scalo, r.kind === 'A') || r.ora)));
       // quanto manca: all'arrivo finche' la nave non e' arrivata, poi alla partenza
       const verso = r.arr && t < r.arr.t ? r.arr : r;
       const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
