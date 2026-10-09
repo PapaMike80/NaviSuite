@@ -32,14 +32,14 @@
     'non valgono richieste di più mesi insieme o scritte diversamente.</p>' +
     '<p class="hc-scadenza" data-hc="scadenza"></p>' +
     '<p class="hc-testo" data-hc="testo"></p>' +
-    '<div class="hc-azioni"><a class="hc-mail" data-hc="mail" href="#">✉ Prepara e-mail</a><button type="button" class="hc-copia" data-hc="copia">Copia testo</button></div></div>';
+    '<div class="hc-azioni"><a class="hc-mail" data-hc="mail" href="#">✉ Invia mail</a><button type="button" class="hc-copia" data-hc="copia">Copia testo</button></div></div>';
   grid.insertAdjacentElement('afterend', box);
   const $ = name => box.querySelector(`[data-hc="${name}"]`);
 
   const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
   const EMAIL = 'pers.navigarda@navigazionelaghi.it';
-  // "Mario Rossi" dal nome dell'anagrafica ("ROSSI MARIO" / "ROSSI M.")
-  const nome = () => { const n = String(agent()?.name || '').trim().split(/\s+/).map(p => p.charAt(0) + p.slice(1).toLowerCase()); return n.length > 1 ? [...n.slice(1), n[0]].join(' ') : n.join(' '); };
+  // nome dell'agente collegato come in anagrafica, con le maiuscole giuste ("PEDRONI MARCO" -> "Pedroni Marco")
+  const nome = () => String(agent()?.name || '').trim().split(/\s+/).map(p => p.charAt(0) + p.slice(1).toLocaleLowerCase('it')).join(' ');
   const oreTesto = m => { const h = Math.floor(m / 60), r = m % 60; return `${h} ${h === 1 ? 'ora' : 'ore'}${r ? ` e ${r} minuti` : ''}`; };
   function richiesta(month, scelti) {
     const [y, m] = month.split('-').map(Number);
@@ -64,7 +64,7 @@
     if (document.activeElement !== $('input')) $('input').value = scelti ? testo(scelti) : '';
     $('scadenza').textContent = scadenza(t.month);
     const corpo = scelti ? richiesta(t.month, scelti) : '';
-    $('testo').textContent = corpo ? `«${corpo}»` : 'Scrivi qui sopra le ore da trasformare: il testo della richiesta si prepara da solo.';
+    $('testo').textContent = corpo || 'Scrivi qui sopra le ore da trasformare: il testo della richiesta si prepara da solo.';
     const [y, m] = t.month.split('-').map(Number);
     $('mail').href = corpo ? `mailto:${EMAIL}?subject=${encodeURIComponent(`Trasformazione straordinari in banca ore - ${MESI[m - 1]} ${y} - ${nome()}`)}&body=${encodeURIComponent(corpo)}` : '#';
     $('mail').classList.toggle('off', !corpo);
