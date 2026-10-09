@@ -64,7 +64,42 @@
     }
   } catch { /* sessione non leggibile */ }
 
+  // Accesso alle pagine scelto dagli admin (pagina Agenti): 'admin' = solo amministratori. L'ultima scelta
+  // nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
+  const PAGINE = [['oggi.html', 'Oggi'], ['naviturni.html', 'NaviTurni'], ['navidiaria.html', 'Distinta'], ['documenti.html', 'Documenti'],
+    ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Quiz'],
+    ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta']];
+  const ACCESS_KEY = 'navisuite.pageAccess';
+  const accesso = () => { try { return JSON.parse(localStorage.getItem(ACCESS_KEY) || '{}') || {}; } catch { return {}; } };
+  const sessione = () => { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch { return null; } };
+  const puoAprire = (file, agent = sessione(), access = accesso()) => access[String(file).toLowerCase()] !== 'admin' || isAdminAgent(agent);
+  function applicaAccesso(access) {
+    const agent = sessione();
+    if (!agent?.id) return;
+    const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    if (!puoAprire(file, agent, access)) { location.replace('index.html?home=1'); return; }
+    // link a pagine riservate: nascosti nel menu e nella Home
+    const chiuse = PAGINE.map(([f]) => f).filter(f => !puoAprire(f, agent, access));
+    let style = document.getElementById('navi-page-access');
+    if (!style) { style = document.createElement('style'); style.id = 'navi-page-access'; (document.head || document.documentElement).appendChild(style); }
+    style.textContent = chiuse.map(f => `a[href^="${f}"]`).join(',') + (chiuse.length ? '{display:none!important}' : '');
+  }
+  try { applicaAccesso(accesso()); } catch { /* niente */ }
+  window.addEventListener?.('load', async () => {
+    try {
+      const api = window.NaviAdminFirebase;
+      if (!api?.getPageAccess) return;
+      await api.ready;
+      const access = await api.getPageAccess();
+      localStorage.setItem(ACCESS_KEY, JSON.stringify(access || {}));
+      applicaAccesso(access || {});
+    } catch (error) { console.warn('Accesso pagine non aggiornato', error); }
+  });
+
   window.NaviRoles = Object.freeze({
+    PAGINE,
+    puoAprire,
+    applicaAccesso,
     isScaloAgent,
     scaloOf,
     scaloAgents,

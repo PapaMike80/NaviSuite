@@ -859,6 +859,18 @@
     };
   }
 
+  // Accesso alle pagine: {pagina: 'tutti' | 'admin'} (sezione della pagina Agenti)
+  async function getPageAccess() {
+    const result = await databaseRequest("private/adminUpdates/pageAccess");
+    return result.data || {};
+  }
+  async function savePageAccess(access = {}) {
+    await ensureAuth();
+    const item = { ...access, updatedAt:new Date().toISOString() };
+    await databaseRequest("private/adminUpdates/pageAccess", { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
   async function getDiariaConversioni(agentId) {
     const result = await databaseRequest(`private/adminUpdates/diariaConversioni/${safeUserKey(agentId)}`);
@@ -1005,6 +1017,8 @@
     loadAllDiaria,
     saveDiaria,
     getDiariaConversioni,
+    getPageAccess,
+    savePageAccess,
     saveDiariaConversioni,
     provider:"Firebase REST"
   };
