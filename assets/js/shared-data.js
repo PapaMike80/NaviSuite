@@ -176,7 +176,7 @@
   // allinea a quella in vigore oggi, cosi' Turni e Cambi aprono quella giusta.
   const LOGGED_AGENT_KEYS = ['naviturni_logged_agent', 'navidiaria.activeAgent'];
   function syncLoggedResidence(list) {
-    const fixed = ['uffici', 'bariste'];
+    const fixed = ['uffici', 'bariste', 'scali'];
     LOGGED_AGENT_KEYS.forEach(key => {
       try {
         const profile = JSON.parse(localStorage.getItem(key) || 'null');
@@ -287,7 +287,7 @@
     const extras = Object.values(data.agentProfileOverrides || {})
       .filter(item => item && String(item.id || "").trim() &&
         String(item.residence || "").trim() &&
-        String(item.residence || "").trim().toLowerCase() !== "uffici");
+        !["uffici", "scali"].includes(String(item.residence || "").trim().toLowerCase()));
     if (!extras.length) return data;
     data.residenze = data.residenze || {};
     extras.forEach(item => {
