@@ -46,6 +46,7 @@
       if(roles.isAdminAgent(agent))return 'admin';
       if(String(agent?.qualifica||agent?.office||'').toLowerCase().includes('movimento'))return 'movimento';
       if(roles.isBaristaAgent(agent))return 'barista';
+      if(roles.isScaloAgent?.(agent))return 'scalo';
       return 'agente';
     };
     const ruolo=roleOf(sessionAgent);
@@ -76,7 +77,7 @@
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const entries=[
+    const entries=roles.isScaloAgent?.(agent)?[['orario.html','⚓','Scali']]:[
       ['index.html?home=1','⌂','Home'],
       ...(isBarista&&!isHiba?[]:[['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
@@ -311,6 +312,13 @@
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
   sidebar.innerHTML=`<a class="shared-sidebar-brand" href="${brandHref}"><span class="shared-brand-mark">N</span><strong>${brandTitle}</strong></a><nav>${common}${specific}</nav>${user}${status}${version}`;
+  // Utente di uno scalo: nel menu solo Scali
+  if(Roles.isScaloAgent?.(sessionAgent)){
+    document.body.classList.add('scalo-session');
+    const style=document.createElement('style');
+    style.textContent='body.scalo-session nav a:not([href^="orario.html"]),body.scalo-session nav button,body.scalo-session nav .sidebar-menu-label,body.scalo-session nav .shifts-filter-block{display:none!important}';
+    document.head.appendChild(style);
+  }
   if(!canUseDiaria(sessionAgent))sidebar.querySelectorAll('a[href="navidiaria.html"],#diariaNavLink').forEach(link=>link.hidden=true);
   setTimeout(()=>installUnifiedMenu(sessionAgent),0);
 

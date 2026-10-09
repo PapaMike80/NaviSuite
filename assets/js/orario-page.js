@@ -64,7 +64,7 @@
     try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; }
   }
   const SCALO_RESIDENZA = { DESENZANO: 'Desenzano', MADERNO: 'Maderno', RIVA: 'Riva', PESCHIERA: 'Peschiera' };
-  const mioScalo = () => SCALO_RESIDENZA[String(profile()?.residence || '').toUpperCase()] || 'Desenzano';
+  const mioScalo = () => window.NaviRoles?.scaloOf?.(profile()) || SCALO_RESIDENZA[String(profile()?.residence || '').toUpperCase()] || 'Desenzano';
 
   const params = new URLSearchParams(location.search);
   const scaloValido = value => (POS[value] ? value : '');
