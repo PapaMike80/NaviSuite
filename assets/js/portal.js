@@ -107,6 +107,9 @@ function showChoice(agent) {
   // Prima pagina: quella scelta in Impostazioni; chi non ha mai scelto ha "Automatica" (Scali se oggi e'
   // di turno a terra, altrimenti Il mio turno), tranne le bariste. Servizi a terra e' ora in Scali.
   const barista=isBaristaAgent(agent)&&!isHibaBarista(agent);
+  // Reset deciso dagli admin (ottobre 2026): una volta per dispositivo la prima pagina torna a quella
+  // predefinita (Automatica); poi ognuno puo' sceglierla di nuovo in Impostazioni.
+  try{const RESET='navisuite.startPageReset',V='2026-10-09';if(localStorage.getItem(RESET)!==V){Object.keys(localStorage).filter(k=>k.startsWith('navisuite.startPage.')).forEach(k=>localStorage.removeItem(k));localStorage.setItem(RESET,V);}}catch(_){}
   let savedStartPage=null;try{savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));}catch(_){}
   savedStartPage=(savedStartPage==null?(barista?'index.html':'auto'):savedStartPage).replace(/^servizi-terra\.html$/,'orario.html');
   const preferred=allowedStartPages.has(savedStartPage)&&!(barista&&savedStartPage==='auto')?savedStartPage:'index.html';
