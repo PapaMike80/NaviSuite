@@ -72,7 +72,8 @@
     return corse.map(c => {
       const proprio = ritardi[c.numero];
       const partenza = minutes(c.scali[0][1]);
-      const portato = Math.max(0, arrivo - partenza);
+      // "in orario" segnato su questa corsa: il ritardo della corsa prima non passa
+      const portato = proprio?.inOrario ? 0 : Math.max(0, arrivo - partenza);
       const minuti = Math.max(proprio?.minuti || 0, portato);
       const r = !minuti ? null : proprio && proprio.minuti >= portato ? proprio : { minuti, oltre: oltre && portato >= 120, propagato: true };
       const out = r ? { ...c, ritardo: r, scali: c.scali.map(([s, t]) => [s, hhmm(minutes(t) + minuti)]) } : c;
@@ -83,7 +84,7 @@
   }
   const durata = n => (n < 60 ? `${n}'` : `${Math.floor(n / 60)}h${n % 60 ? ` ${String(n % 60).padStart(2, '0')}'` : ''}`);
   // "+15'", "+1h 05'", "oltre 2 ore"
-  const testoRitardo = r => (!r ? '' : r.oltre ? 'oltre 2 ore' : `+${durata(r.minuti)}`);
+  const testoRitardo = r => (!r ? '' : r.inOrario ? 'in orario' : r.oltre ? 'oltre 2 ore' : `+${durata(r.minuti)}`);
   // Ritardi di tutti i turni dai turni nave del giorno (NaviServiziTerra.turniDelGiorno): {turno: {numero: r}}.
   const ritardiDelGiorno = turni => Object.fromEntries(Object.entries(turni || {}).filter(([, v]) => v?.ritardi).map(([code, v]) => [code, v.ritardi]));
 

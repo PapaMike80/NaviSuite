@@ -366,15 +366,15 @@
   // previsto: ora d'attracco da orario (HH:MM) allo scalo; "Attraccata ora" = adesso - previsto
   function ritardoSelect(g, code, corsa, previsto = '') {
     const proprio = g.navi[code]?.ritardi?.[corsa];
-    const valore = !proprio ? '' : proprio.oltre ? 'oltre' : String(proprio.minuti);
-    const testo = v => (v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
+    const valore = !proprio ? '' : proprio.inOrario ? 'orario' : proprio.oltre ? 'oltre' : String(proprio.minuti);
+    const testo = v => (v === 'orario' ? '✓ in orario' : v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
     // ritardo arrivato dalla corsa prima (non segnato su questa): si mostra nel riquadro, senza salvarlo
     const eff = !valore ? ritardoDi(g, code, corsa) : null;
-    const vuota = valore ? 'in orario' : eff ? O.testoRitardo(eff) : '–';
+    const vuota = valore ? 'nessun ritardo' : eff ? O.testoRitardo(eff) : '–';
     return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}" title="${eff ? 'Ritardo passato dalla corsa prima' : `Ritardo della corsa ${esc(corsa)}`}">⏱` +
       `<select data-ritardo="${esc(code)}|${esc(corsa)}" data-previsto="${esc(previsto)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
       `${previsto ? '<option value="ora">⚓ Attraccata ora</option>' : ''}` +
-      `<option value=""${valore ? '' : ' selected'}>${esc(vuota)}</option>${(valore && !RITARDI.includes(valore) ? [valore, ...RITARDI] : RITARDI).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
+      `<option value=""${valore ? '' : ' selected'}>${esc(vuota)}</option>${(valore && !RITARDI.includes(valore) && valore !== 'orario' ? ['orario', valore, ...RITARDI] : ['orario', ...RITARDI]).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
   }
   async function salvaRitardo(code, corsa, value) {
     const provider = window.NaviAdminFirebase;
@@ -383,8 +383,9 @@
       await provider.ready;
       const righe = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
       const r = T.turniDelGiorno(righe, day)[code] || {};
-      const ritardi = Object.entries(r.ritardi || {}).map(([c, x]) => ({ corsa: c, minuti: x.minuti, oltre: !!x.oltre })).filter(x => x.corsa !== String(corsa));
-      if (value) ritardi.push({ corsa: String(corsa), minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
+      const ritardi = Object.entries(r.ritardi || {}).map(([c, x]) => (x.inOrario ? { corsa: c, minuti: 0, oltre: false, inOrario: true } : { corsa: c, minuti: x.minuti, oltre: !!x.oltre })).filter(x => x.corsa !== String(corsa));
+      if (value === 'orario') ritardi.push({ corsa: String(corsa), minuti: 0, oltre: false, inOrario: true });
+      else if (value) ritardi.push({ corsa: String(corsa), minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
       const p = profile();
       state.firebaseNavi = await provider.saveTurnoNaveMovimento(day, code, {
         nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
@@ -896,7 +897,7 @@
         // Attraccata ora: ritardo = ora attuale - attracco previsto (in orario se arriva prima o puntuale)
         const [h, m] = String(event.target.dataset.previsto || '').split(/[:.]/).map(Number);
         const minuti = nowMinutes() - (h * 60 + m);
-        value = !Number.isFinite(minuti) || minuti <= 0 ? '' : minuti > 120 ? 'oltre' : String(minuti);
+        value = !Number.isFinite(minuti) || minuti <= 0 ? 'orario' : minuti > 120 ? 'oltre' : String(minuti);
       }
       salvaRitardo(code, corsa, value); return;
     }
