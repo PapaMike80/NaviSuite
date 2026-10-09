@@ -63,7 +63,12 @@ function ordinaryOvertimeMinutes(entry){return overtimeComponents?.ordinary(entr
 function baseWorkedMinutes(entry){const manual=Number(entry?.workedMinutes);return Number.isFinite(manual)&&manual>=0?manual:Math.max(0,Math.round((Number(shiftFor(entry?.shift,entry?.date).hours)||0)*60))+(overtimeComponents?.structured(entry)?overtimeMinutes(entry):ordinaryOvertimeMinutes(entry))}
 function effectiveWorkedMinutes(entry){return baseWorkedMinutes(entry)+(overtimeComponents?.structured(entry)?0:changeMinutes(entry))}
 function serviceResidenceForShift(code){return CHANGE_SERVICE_RESIDENCES[String(scheduleAssignment(code).shift||code||'').trim().toUpperCase()]||''}
-function changeSuggestionMinutes(entry){if(!entry||!shiftFor(entry.shift,entry.date).hours||changeMinutes(entry)>0)return 0;const home=residenceKey(entry.agentResidence||activeAgent?.residence),service=residenceKey(serviceResidenceForShift(entry.shift)||entry.serviceResidence);return entry.travel===true||home&&service&&home!==service?120:0}
+// Residenza dell'agente IN QUEL GIORNO: con un cambio di residenza (es. Desenzano
+// fino a settembre, poi Maderno) i giorni passati restano della residenza di allora.
+// 1) cambio registrato nel turno (residenzaDal); 2) altrimenti la residenza dei
+// servizi di bordo svolti nelle 2 settimane attorno; 3) la residenza attuale.
+function homeResidenceOn(date){const a=activeAgent||{},d=String(date||'');if(a.residenzaDal&&a.residenzaNuova&&a.residenzaPrecedente)return d&&d<a.residenzaDal?a.residenzaPrecedente:a.residenzaNuova;const t=Date.parse(d+'T12:00:00');if(t){const conta={};(typeof entries!=='undefined'?entries:[]).forEach(e=>{const x=Date.parse(String(e.date)+'T12:00:00');if(!x||Math.abs(x-t)>14*864e5)return;const r=residenceKey(CHANGE_SERVICE_RESIDENCES[String(e.shift||'').trim().toUpperCase()]);if(r)conta[r]=(conta[r]||0)+1});const top=Object.entries(conta).sort((p,q)=>q[1]-p[1])[0];if(top&&top[1]>=3)return top[0]}return a.residence}
+function changeSuggestionMinutes(entry){if(!entry||!shiftFor(entry.shift,entry.date).hours||changeMinutes(entry)>0)return 0;const home=residenceKey(entry.agentResidence||homeResidenceOn(entry.date)),service=residenceKey(serviceResidenceForShift(entry.shift)||entry.serviceResidence);return entry.travel===true||home&&service&&home!==service?120:0}
 // La trasferta non da' ore in banca: vale 2 ore di cambio, assegnate dal
 // popup giornata (applyAutoChange in day-popup.js).
 function travelCredit(entry){return 0}
@@ -210,7 +215,7 @@ async function syncCurrentAgent(force=false){
     const previousEntries=JSON.stringify(entries),data=await NaviSharedData.load(TURNS_URL,{force});let agent=null;
     Object.values(data.residenze||{}).some(list=>{agent=(list||[]).find(a=>String(a.id)===String(activeAgent.id));return !!agent});
     if(!agent)throw new Error('Agente non trovato');const variations=variationsForAgent(data);let added=0,updated=0;
-    activeAgent={...activeAgent,name:agent.agente||activeAgent.name,qualifica:agent.qualifica||'marinaio'};localStorage.setItem(SESSION_KEY,JSON.stringify(activeAgent));updateWelcome();
+    activeAgent={...activeAgent,name:agent.agente||activeAgent.name,qualifica:agent.qualifica||'marinaio',residenzaDal:agent.residenzaDal||'',residenzaPrecedente:agent.residenzaPrecedente||'',residenzaNuova:agent.residenzaNuova||''};localStorage.setItem(SESSION_KEY,JSON.stringify(activeAgent));updateWelcome();
     Object.entries(agent.turni||{}).forEach(([date,raw])=>{
       const baseAssignment=scheduleAssignment(raw),odsRaw=variations.get(date),assignment=odsRaw?scheduleAssignment(odsRaw):baseAssignment,baseShift=baseAssignment.shift,shift=assignment.shift,travel=baseAssignment.travel||assignment.travel,supernumerary=odsRaw?assignment.supernumerary:baseAssignment.supernumerary,variationFrom=odsRaw&&shift!==baseShift?baseShift:null,cashDuty=cashHandlingDuty(data,date,shift),existing=entries.find(e=>e.date===date);
       // una decisione dell'Ufficio Movimento vale anche sul turno che l'agente si era cambiato a mano: il cambio manuale decade
