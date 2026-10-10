@@ -390,9 +390,8 @@
     if (directConfiguration && Object.keys(directConfiguration).length) {
       return { configurations:directConfiguration, updatedAt:String(direct.updatedAt || "") };
     }
-    const result = await databaseRequest("private/adminUpdates");
-    const value = result.data && typeof result.data === "object" ? result.data : {};
-    return { configurations:value.gestioneNaviConfig || {}, updatedAt:String(value.updatedAt || "") };
+    const [config, updatedAt] = await Promise.all(["gestioneNaviConfig", "updatedAt"].map(key => databaseRequest(`private/adminUpdates/${key}`).then(r => r.data).catch(() => null)));
+    return { configurations:config || {}, updatedAt:String(updatedAt || "") };
   }
 
   async function saveShipConfigurations(configurations = {}) {
@@ -661,8 +660,10 @@
   }
 
   async function getAgentAdminData() {
-    const result = await databaseRequest("private/adminUpdates");
-    const value = result.data || {};
+    // solo i rami che servono: l'intero adminUpdates (distinte di tutti) supera i 25 MB
+    const [users, profiles, auth, legacy] = await Promise.all(["userRegistry", "agentProfiles", "userAuth", "legacyUsersImportedAt"]
+      .map(key => databaseRequest(`private/adminUpdates/${key}`).then(r => r.data)));
+    const value = { userRegistry:users, agentProfiles:profiles, userAuth:auth, legacyUsersImportedAt:legacy };
     return {
       users:Object.values(value.userRegistry || {}).filter(Boolean),
       profiles:value.agentProfiles || {},
