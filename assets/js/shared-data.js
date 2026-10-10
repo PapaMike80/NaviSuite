@@ -191,6 +191,26 @@
     });
   }
 
+  // Copia veloce (localStorage, poco spazio su iPhone): turni da una settimana fa in poi.
+  // Copia completa, con tutto il passato: nella Cache Storage del browser, letta solo quando serve (senza rete).
+  const GIORNI_PASSATI = 7;
+  const COMPLETA_CACHE = 'navi-dati-v1', COMPLETA_URL = '/__dati/turni-completi';
+  function leggero(data) {
+    const d = new Date(); d.setDate(d.getDate() - GIORNI_PASSATI);
+    const cut = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const out = { ...data, __leggeroDal: cut };
+    out.date = (data.date || []).filter(x => !x?.iso || x.iso >= cut);
+    out.residenze = Object.fromEntries(Object.entries(data.residenze || {}).map(([r, list]) => [r, (list || []).map(a =>
+      (a && a.turni ? { ...a, turni: Object.fromEntries(Object.entries(a.turni).filter(([k]) => k >= cut)) } : a))]));
+    return out;
+  }
+  function salvaCompleta(serialized) {
+    try { caches.open(COMPLETA_CACHE).then(c => c.put(COMPLETA_URL + cacheSuffix(), new Response(serialized, { headers: { 'Content-Type': 'application/json' } }))).catch(() => {}); } catch (_) {}
+  }
+  async function leggiCompleta() {
+    try { const r = await (await caches.open(COMPLETA_CACHE)).match(COMPLETA_URL + cacheSuffix()); return r ? normalizeScheduleAgents(normalizeScheduleShifts(await r.json())) : null; } catch (_) { return null; }
+  }
+
   // Aggiorna solo l'elenco agenti (per l'accesso), senza toccare la copia completa dei turni
   function soloElenco(data) {
     normalizeScheduleAgents(data);
@@ -203,7 +223,8 @@
     normalizeScheduleAgents(data);
     normalizeScheduleShifts(data);
     injectProfileAgents(data);
-    const serialized = JSON.stringify(data);
+    const serialized = JSON.stringify(leggero(data));
+    if (!data.__leggeroDal) salvaCompleta(JSON.stringify(data)); // mai sovrascrivere la completa con una copia leggera
     const directoryList = directoryFrom(data);
     const directory = JSON.stringify(directoryList);
     syncLoggedResidence(directoryList);
@@ -593,12 +614,13 @@
       lastSource = 'pocketbase';
       return save(base);
     }
-    return mergeAdminUpdates(base).then(data => {
+    return mergeAdminUpdates(base).then(async data => {
       // Rete lenta o assente: gli aggiornamenti (turni importati, O.d.S.) non sono arrivati. Si tiene l'ultima
       // copia completa salvata invece di mostrare (e salvare) il solo turno base.
       if (data?.__senzaAggiornamenti) {
         delete data.__senzaAggiornamenti;
-        if (completoPrima && !completoPrima.__soloBase) { lastSource = 'local'; window.NaviOffline?.segnaCopiaLocale?.(true); return save(completoPrima); }
+        const completa = await leggiCompleta();
+        if (completa || completoPrima) { lastSource = 'local'; window.NaviOffline?.segnaCopiaLocale?.(true); return completa || completoPrima; }
       }
       lastSource = 'firebase';
       window.NaviOffline?.segnaCopiaLocale?.(false);
@@ -639,7 +661,8 @@
       const data = cached();
       if (data) {
         lastSource = 'local';
-        return data;
+        // copia recente: si usa quella completa (con il passato, es. per la Distinta) se c'e'
+        return (await leggiCompleta()) || data;
       }
     }
     if (pending) return pending;
@@ -652,8 +675,8 @@
         if (src !== 'pocketbase' && cached(true)) return soloElenco(data);
         return save(data);
       })
-      .catch(error => {
-        const fallback = cached(true);
+      .catch(async error => {
+        const fallback = await leggiCompleta() || cached(true);
         if (fallback) { lastSource = 'local'; window.NaviOffline?.segnaCopiaLocale?.(true); return fallback; }
         throw error;
       })
