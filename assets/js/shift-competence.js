@@ -1,7 +1,7 @@
 // Ore/pasto/imbarco/diaria per ogni codice turno, con possibilita' di far
 // decorrere valori diversi da una data (es. il turno del 05/10/2026 accorcia
 // gli orari a Desenzano/Riva/Peschiera). Un solo posto per app.js,
-// navidistinta-app.js, day-popup.js, navidiaria-*.js, naviturni.html e
+// day-popup.js, navidiaria-*.js, naviturni.html e
 // cambi_turno.html, cosi' non restano piu' copie disallineate della stessa
 // tabella.
 (function (root) {

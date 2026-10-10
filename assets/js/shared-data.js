@@ -7,12 +7,8 @@
   // Sorgente dati commutabile (test admin). Firebase resta il default.
   const PB_DEFAULT_BASE = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT_BASE).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT_BASE; } };
-  // NaviDistinta usa sempre PocketBase, ma solo per se': prima scriveva il
-  // flag in localStorage e cosi' anche NaviTurni/Oggi passavano a PocketBase
-  // (turni incompleti). Il flag resta per il toggle di test in Impostazioni.
-  const isDistintaPage = () => /(^|\/)navidistinta\.html$/.test(location.pathname);
   try {
-    // Una sola volta: azzera il flag lasciato dalle vecchie versioni di NaviDistinta.
+    // Una sola volta: azzera il flag sorgente lasciato dalle vecchie versioni.
     if (!localStorage.getItem('navisuite.dataSourceReset.v1')) {
       localStorage.removeItem('navisuite.dataSource');
       // e la copia dei turni che potrebbe venire da PocketBase.
@@ -21,9 +17,9 @@
       localStorage.setItem('navisuite.dataSourceReset.v1', '1');
     }
   } catch (_) {}
-  const dataSource = () => { if (isDistintaPage()) return 'pocketbase'; try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
-  // Copie locali separate per sorgente: i turni PocketBase di NaviDistinta
-  // non devono comparire in NaviTurni/Oggi (e viceversa).
+  const dataSource = () => { try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
+  // Copie locali separate per sorgente: i turni PocketBase (toggle di test)
+  // non devono mescolarsi con quelli Firebase.
   const cacheSuffix = () => (dataSource() === 'pocketbase' ? '.pb' : '');
   const scheduleUrl = () => (dataSource() === 'pocketbase' ? `${pbBase()}/api/navisuite-v2/schedule` : FIREBASE_SCHEDULE_URL);
   let pending = null;

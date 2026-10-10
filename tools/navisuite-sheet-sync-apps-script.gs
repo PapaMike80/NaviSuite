@@ -482,7 +482,7 @@ function stableAgentUid_(value) {
 }
 
 // ---- Modifiche dalle app (NaviSuite -> foglio) ----------------------------
-// Il popup giornata di NaviDiaria/NaviDistinta/NaviTurni salva il turno
+// Il popup giornata di NaviDiaria/NaviTurni salva il turno
 // modificato a mano nell'archivio diaria dell'agente
 // (private/adminUpdates/diaria/<id>, voci con manualOverride). Qui quelle
 // voci vengono scritte nella cella del foglio, con trasferta (CxxC) e
