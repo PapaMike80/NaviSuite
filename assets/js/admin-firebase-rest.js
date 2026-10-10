@@ -70,6 +70,8 @@
       expiresAt:Date.now() + Number(data.expires_in || 3600) * 1000
     });
     } catch (error) {
+      // Senza rete (o rete lentissima) si tiene il token: crearne uno nuovo non servirebbe e farebbe un altro account
+      if (!navigator.onLine || error?.name === 'TypeError' || error?.name === 'AbortError') throw error;
       // Un token locale vecchio non deve poter bloccare l'intera applicazione.
       localStorage.removeItem(AUTH_KEY);
       return signUp();
@@ -123,7 +125,9 @@
     const auth = await ensureAuth();
     const url = `${DATABASE_URL}/${String(path).replace(/^\/+/, "")}.json?auth=${encodeURIComponent(auth.idToken)}`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    // letture: 8 s (con segnale debole si usa la copia salvata); scritture: 15 s
+    const attesa = String(options.method || "GET").toUpperCase() === "GET" ? 8000 : 15000;
+    const timeout = setTimeout(() => controller.abort(), attesa);
     try {
       const response = await fetch(url, {
         ...options,
@@ -146,7 +150,7 @@
       }
       return { data, auth };
     } catch (error) {
-      if (error?.name === "AbortError") throw new Error("Firebase non risponde entro 15 secondi");
+      if (error?.name === "AbortError") { const e = new Error(`Firebase non risponde entro ${attesa / 1000} secondi`); e.name = "AbortError"; throw e; }
       throw error;
     } finally {
       clearTimeout(timeout);
@@ -238,9 +242,14 @@
   }
 
   // Solo i turni nave (nave, ormeggio serale, rifornimento) degli O.d.S.: per la pagina Servizi a terra.
+  // Turni nave (navi, ormeggi, ritardi): copia sul telefono per aprire subito Scali e Il mio turno anche senza rete
+  const TURNI_NAVI_KEY = "navisuite.turniNavi.v1";
+  function turniNaviSalvati() { try { return JSON.parse(localStorage.getItem(TURNI_NAVI_KEY) || "null")?.righe || null; } catch { return null; } }
   async function getTurniNavi() {
     const result = await databaseRequest("private/adminUpdates/turniNavi");
-    return Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
+    const righe = Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
+    try { localStorage.setItem(TURNI_NAVI_KEY, JSON.stringify({ t:Date.now(), righe })); } catch { /* niente */ }
+    return righe;
   }
 
   // Ufficio Movimento (pagina movimento.html): nave, ormeggi, rifornimento e corse sospese di un turno
@@ -1058,6 +1067,7 @@
     clearPendingConnectionAlerts,
     getAdminDocuments,
     getTurniNavi,
+    turniNaviSalvati,
     saveTurnoNaveMovimento,
     ripristinaTurnoNave,
     saveVariazioneMovimento,
