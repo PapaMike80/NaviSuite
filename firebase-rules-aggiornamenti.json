@@ -6,7 +6,10 @@
     },
     "public": {
       ".read": true,
-      ".write": false
+      ".write": false,
+      "schedule": {
+        ".write": "auth != null"
+      }
     },
     "private": {
       "changeRequests": {

@@ -98,6 +98,10 @@
             <summary><h3>Alleggerisci le importazioni</h3></summary><div class="import-inner">
             <p>Le importazioni <b>disattivate</b> (sostituite da altre) si scaricano comunque su ogni telefono a ogni apertura. Qui si spostano in un archivio nel database, che le pagine non scaricano: i turni restano identici. Prima viene scaricata anche una copia sul tuo dispositivo.</p>
             <div class="actions"><button id="compatta-import" type="button">Archivia le importazioni disattivate</button></div>
+            <hr style="border:0;border-top:1px dashed rgba(126,243,226,.3);margin:14px 0">
+            <p><b>Consolida il turno</b>: unisce il turno base con tutte le importazioni e lo pubblica come nuovo turno base. Così i telefoni scaricano un solo turno già completo (e con poca rete non tornano al turno vecchio). Le importazioni passano in archivio; resta solo il Foglio Google collegato. Fallo dopo ogni nuovo turno importato. Prima scarica una copia di sicurezza.</p>
+            <div class="actions"><button id="consolida-turno" type="button">Consolida il turno</button></div>
+            <p id="consolida-esito" class="hint"></p>
             <p id="compatta-esito" class="hint"></p>
           </div></details>
           <details class="import-box full-upload foldable">
@@ -159,7 +163,7 @@
   </nav>
   <script src="assets/js/shared-roles.js?v=6"></script>
   <script src="assets/js/turni-shared.js?v=1"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=70"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=71"></script>
   <script src="assets/js/shared-menu.js?v=1.66"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/shared-data.js?v=132"></script>
@@ -629,6 +633,38 @@
         await save();
         esito.textContent=`✓ Archiviate ${via.length} importazioni (${kb} KB). Restano ${state.scheduleImports.length} importazioni attive.`;
       }catch(error){state.scheduleImports=prima;esito.textContent=`Non riuscito: ${error.message}`;}
+    });
+    // Consolida: turno base + importazioni attive -> nuovo turno base; importazioni in archivio (resta il Foglio Google collegato)
+    document.getElementById('consolida-turno')?.addEventListener('click',async()=>{
+      const esito=$('consolida-esito'),api=window.NaviAdminFirebase,SD=window.NaviSharedData;
+      const scarica=(nome,dati)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(dati)],{type:'application/json'}));a.download=nome;document.body.appendChild(a);a.click();a.remove();};
+      try{
+        esito.textContent='Leggo il turno base…';
+        const base=await api.getTurnoBase();
+        if(!base?.residenze)throw new Error('turno base non leggibile');
+        const attive=(state.scheduleImports||[]).filter(x=>x&&x.attiva!==false);
+        if(!attive.length){esito.textContent='Nessuna importazione attiva da consolidare.';return;}
+        const ordinate=[...attive].sort((a,b)=>String(a.importedAt||'').localeCompare(String(b.importedAt||'')));
+        const foglio=ordinate.filter(x=>x.source==='google_sheet').slice(-1);
+        const oggi=new Date().toISOString().slice(0,10),copia=x=>JSON.parse(JSON.stringify(x));
+        const unito=SD.applyScheduleImports(copia(base),copia(attive),{today:oggi});
+        // controllo: il nuovo base (+ il Foglio Google che resta) deve dare esattamente lo stesso turno di oggi
+        const conIlFoglio=SD.applyScheduleImports(copia(unito),copia(foglio),{today:oggi});
+        if(JSON.stringify(conIlFoglio.residenze)!==JSON.stringify(unito.residenze))throw new Error('il controllo di coerenza non torna: nessuna modifica fatta');
+        const date=(unito.date||[]).map(d=>d.iso).filter(Boolean).sort();
+        unito.data_fine=date.at(-1)||unito.data_fine;unito.aggiornato_il=new Date().toISOString();unito.consolidato={il:unito.aggiornato_il,importazioni:attive.length,da:profile()?.name||''};
+        const kb=n=>Math.round(JSON.stringify(n).length/1024);
+        if(!confirm(`Pubblicare il turno consolidato fino al ${unito.data_fine} (${kb(unito)} KB) e archiviare ${attive.length-foglio.length} importazioni? Prima scarico una copia di sicurezza.`)){esito.textContent='Annullato.';return;}
+        scarica(`turno-base-backup-${oggi}.json`,base);scarica(`importazioni-backup-${oggi}.json`,state.scheduleImports);
+        esito.textContent='Pubblico il turno consolidato…';
+        await api.pubblicaTurnoBase(unito);
+        const via=(state.scheduleImports||[]).filter(x=>x&&!foglio.includes(x));
+        await api.archiviaImportazioni(via);
+        state.scheduleImports=foglio;
+        await save();
+        SD.clear?.();
+        esito.textContent=`✓ Turno consolidato fino al ${unito.data_fine}. Archiviate ${via.length} importazioni; i telefoni scaricano ora un solo turno.`;
+      }catch(error){esito.textContent=`Non riuscito: ${error.message}`+(/permess|Permission/i.test(error.message)?' — serve la regola di scrittura per public/schedule (vedi istruzioni).':'');}
     });
     async function save(){
       setStatus('Salvataggio su Firebase…');
