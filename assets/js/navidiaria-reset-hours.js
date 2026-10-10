@@ -320,7 +320,37 @@
     const close = doc.querySelector('[data-close]');
     if (!sheet) return;
 
-    print?.addEventListener('click', () => { popup.focus(); popup.print(); });
+    // iPhone/iPad (soprattutto con l'app installata): window.print non apre nulla. Si crea un PDF A4 orizzontale
+    // del foglio e si apre la condivisione di iOS, da cui si sceglie Stampa (o Salva su File / Mail).
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const carica = src => new Promise((ok, ko) => { const el = doc.createElement('script'); el.src = new URL(src, location.href).href; el.onload = ok; el.onerror = () => ko(new Error('libreria PDF non caricata')); doc.head.appendChild(el); });
+    async function pdf() {
+      if (!popup.html2canvas) await carica('vendor/pdf/html2canvas.min.js');
+      if (!popup.jspdf) await carica('vendor/pdf/jspdf.umd.min.js');
+      const salvato = sheet.getAttribute('style') || '';
+      sheet.setAttribute('style', 'position:absolute;left:0;top:0;width:283mm;transform:none;box-shadow:none');
+      try {
+        const canvas = await popup.html2canvas(sheet, { scale: 2.5, backgroundColor: '#ffffff', useCORS: true });
+        const { jsPDF } = popup.jspdf;
+        const out = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const k = Math.min(283 / canvas.width, 198 / canvas.height), w = canvas.width * k, h = canvas.height * k;
+        out.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (297 - w) / 2, (210 - h) / 2, w, h);
+        return out.output('blob');
+      } finally { sheet.setAttribute('style', salvato); fit(); }
+    }
+    print?.addEventListener('click', async () => {
+      if (!ios) { popup.focus(); popup.print(); return; }
+      const testo = print.textContent;
+      print.disabled = true; print.textContent = 'Preparo il PDF…';
+      try {
+        const nome = `${(doc.title || 'Distinta').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-')}.pdf`;
+        const file = new File([await pdf()], nome, { type: 'application/pdf' });
+        if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: nome });
+        else { const a = doc.createElement('a'); a.href = URL.createObjectURL(file); a.download = nome; doc.body.appendChild(a); a.click(); a.remove(); }
+      } catch (error) {
+        if (error?.name !== 'AbortError') popup.alert(`Stampa non riuscita: ${error.message || error}`);
+      } finally { print.disabled = false; print.textContent = testo; }
+    });
     close?.addEventListener('click', () => (onClose ? onClose() : popup.close()));
 
     const fit = () => {
