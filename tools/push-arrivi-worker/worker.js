@@ -1,5 +1,5 @@
 'use strict';
-// NaviSuite · avvisi a telefono bloccato: arrivo delle navi (chi e' a terra) e prossimo scalo (chi e' a bordo),
+// NaviSuite · turno pronto per l'app (public/turnoFuturo) e avvisi a telefono bloccato: arrivo delle navi (chi e' a terra) e prossimo scalo (chi e' a bordo),
 // 10 minuti prima. Ogni minuto calcola gli avvisi con gli stessi file dell'app (scaricati da GitHub Pages) e li
 // mette nella coda private/adminUpdates/pushQueue: li spedisce il push-worker gia' attivo su TrueNAS.
 // Nessuna chiave VAPID qui: serve solo l'accesso a Firebase (lo stesso anonimo dell'app).
@@ -45,7 +45,7 @@ async function app() {
   if (ctx && Date.now() - ctxAt < 30 * 60 * 1000) return ctx;
   const store = new Map();
   const sandbox = {
-    console, setTimeout, clearTimeout, setInterval: () => 0, fetch, URL, URLSearchParams, TextEncoder,
+    console, setTimeout, clearTimeout, setInterval: () => 0, fetch, URL, URLSearchParams, TextEncoder, AbortController, Response,
     localStorage: { getItem: k => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) },
     sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     location: { pathname: '/worker', search: '', href: 'https://worker/' },
@@ -78,6 +78,38 @@ async function data(w) {
   dati = { effective, pontili: u.pontiliCorse?.DESENZANO || {}, subs: u.pushSubscriptions || {} };
   datiAt = Date.now();
   return dati;
+}
+
+// --- Turno pronto per l'app (public/turnoFuturo): da una settimana fa in poi, gia' unito con importazioni, O.d.S.,
+// profili e turni nave, calcolato con lo stesso codice dell'app. Il telefono scarica solo questo (apertura veloce,
+// poca rete). Si rifa' quando cambia il segno degli aggiornamenti admin, o comunque ogni 10 minuti.
+let prontoSegno = '', prontoAt = 0;
+async function turnoPronto(w) {
+  const [updatedAt, versione] = await Promise.all([fb('private/adminUpdates/updatedAt'), fb('private/adminUpdates/versione')]);
+  const v = versione || {};
+  const segno = [String(updatedAt || ''), ...Object.keys(v).sort().map(k => `${k}:${v[k]}`)].join('|'); // come segnoDa() dell'app
+  if (segno === prontoSegno && Date.now() - prontoAt < 10 * 60 * 1000) return;
+  const names = ['scheduleImports', 'agentProfiles', 'odsVariations', 'manualVariations', 'turniNavi', 'baristas', 'approvedChangeRequests', 'dismissedOdsApprovals'];
+  const parts = await Promise.all(names.map(n => fb(`private/adminUpdates/${n}`)));
+  const lista = x => Array.isArray(x) ? x.filter(Boolean) : Object.values(x || {}).filter(Boolean);
+  const u = Object.fromEntries(names.map((n, i) => [n, parts[i]]));
+  const updates = { scheduleImports: lista(u.scheduleImports), agentProfiles: u.agentProfiles || {}, odsVariations: lista(u.odsVariations),
+    manualVariations: lista(u.manualVariations), turniNavi: lista(u.turniNavi), baristas: lista(u.baristas),
+    approvedChangeRequests: lista(u.approvedChangeRequests), dismissedOdsApprovals: lista(u.dismissedOdsApprovals) };
+  // l'app nel NAS legge gli aggiornamenti da qui, come farebbe da Firebase
+  w.NaviAdminFirebase = { ready: Promise.resolve(), getAdminUpdates: async () => updates };
+  w.NaviSharedData.clear?.();
+  const completo = await w.NaviSharedData.load('', { force: true });
+  const leggero = w.NaviSharedData.leggero(completo);
+  const dal = leggero.__leggeroDal;
+  // turni nave da una settimana fa in poi (le righe senza data restano)
+  leggero.turni_navi = (leggero.turni_navi || []).filter(r => !r?.data || String(r.data) >= dal);
+  const item = { creato: new Date().toISOString(), segno, dal, data: leggero };
+  if (process.env.PRONTO_FILE) fs.writeFileSync(process.env.PRONTO_FILE, JSON.stringify(item));
+  if (DRY_RUN) log('[prova] turno pronto', Math.round(JSON.stringify(item).length / 1024), 'KB dal', dal);
+  else await fb('public/turnoFuturo', { method: 'PUT', body: JSON.stringify(item) });
+  prontoSegno = segno; prontoAt = Date.now();
+  log(`turno pronto pubblicato (${Math.round(JSON.stringify(item).length / 1024)} KB, dal ${dal})`);
 }
 
 const romeDay = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' });
@@ -206,6 +238,10 @@ async function main() {
     const w = await app(); fs.mkdirSync(BACKUP_DIR, { recursive: true });
     await backupNotturno(w, true); return;
   }
+  if (process.argv.includes('--pronto')) {
+    // prepara e pubblica subito il turno pronto: node worker.js --pronto  (con DRY_RUN=1 solo prova)
+    await turnoPronto(await app()); return;
+  }
   if (process.argv.includes('--elenco')) {
     // stampa gli avvisi di oggi per un agente: node worker.js --elenco <id>
     const w = await app(); const { effective, pontili } = await data(w);
@@ -215,6 +251,7 @@ async function main() {
   }
   for (;;) {
     try { await giro(); } catch (e) { log('errore:', e.message); }
+    try { await turnoPronto(await app()); } catch (e) { log('turno pronto non riuscito:', e.message); }
     try { await backupNotturno(await app()); } catch (e) { log('backup non riuscito:', e.message); }
     await new Promise(r => setTimeout(r, 60 * 1000 - (Date.now() % (60 * 1000)) + 2000));
   }

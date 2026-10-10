@@ -9,6 +9,9 @@
       ".write": false,
       "schedule": {
         ".write": "auth != null"
+      },
+      "turnoFuturo": {
+        ".write": "auth != null"
       }
     },
     "private": {
