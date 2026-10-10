@@ -419,6 +419,14 @@
     return { baristas:rows, updatedAt:new Date().toISOString() };
   }
 
+  // Turno base (public/schedule): lettura e pubblicazione del turno consolidato (serve la regola di scrittura per gli admin)
+  async function getTurnoBase() { return (await databaseRequest("public/schedule", { timeout:60000 })).data || null; }
+  async function pubblicaTurnoBase(data) {
+    await ensureAuth();
+    await databaseRequest("public/schedule", { method:"PUT", body:JSON.stringify(data), timeout:60000 });
+    return true;
+  }
+
   // Archivio delle importazioni disattivate: si aggiungono (non si sovrascrivono) e le pagine non lo scaricano
   async function archiviaImportazioni(items = []) {
     await ensureAuth();
@@ -1081,6 +1089,8 @@
     deleteChangeRequest,
     getAdminUpdates,
     archiviaImportazioni,
+    getTurnoBase,
+    pubblicaTurnoBase,
     saveAdminUpdates,
     getSheetSync,
     requestSheetSync,
