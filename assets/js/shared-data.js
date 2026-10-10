@@ -581,9 +581,10 @@
       // copia completa salvata invece di mostrare (e salvare) il solo turno base.
       if (data?.__senzaAggiornamenti) {
         delete data.__senzaAggiornamenti;
-        if (completoPrima && !completoPrima.__soloBase) { lastSource = 'local'; return save(completoPrima); }
+        if (completoPrima && !completoPrima.__soloBase) { lastSource = 'local'; window.NaviOffline?.segnaCopiaLocale?.(true); return save(completoPrima); }
       }
       lastSource = 'firebase';
+      window.NaviOffline?.segnaCopiaLocale?.(false);
       return save(data);
     });
   }
@@ -633,7 +634,7 @@
       })
       .catch(error => {
         const fallback = cached(true);
-        if (fallback) { lastSource = 'local'; return fallback; }
+        if (fallback) { lastSource = 'local'; window.NaviOffline?.segnaCopiaLocale?.(true); return fallback; }
         throw error;
       })
       .finally(() => {

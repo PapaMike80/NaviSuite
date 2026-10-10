@@ -49,10 +49,12 @@
   function gestore(tipo, fn) { gestori[tipo] = fn; setTimeout(svuota, 500); }
 
   // Barra di stato
-  let barra = null;
+  let barra = null, copiaLocale = false;
+  // rete lenta: i dati non sono arrivati e si usa la copia sul telefono (anche se il telefono risulta online)
+  function segnaCopiaLocale(si) { copiaLocale = !!si; aggiornaBarra(); }
   function aggiornaBarra() {
     if (!document.body) return;
-    const coda = leggi().length, offline = !navigator.onLine;
+    const coda = leggi().length, offline = !navigator.onLine || copiaLocale;
     if (!offline && !coda) { barra?.remove(); barra = null; return; }
     if (!barra) {
       barra = document.createElement('div');
@@ -63,7 +65,7 @@
     }
     const quando = Number(localStorage.getItem('navi.sharedDataTime.v1') || 0);
     const parti = [];
-    if (offline) parti.push(`Senza rete${quando ? ` · dati delle ${hhmm(quando)}` : ''}`);
+    if (offline) parti.push(`OFFLINE · copia locale${quando ? ` delle ${hhmm(quando)}` : ''}, si aggiorna al ritorno della rete`);
     if (coda) parti.push(`⏳ ${coda} ${coda === 1 ? 'modifica' : 'modifiche'} in attesa di invio`);
     barra.textContent = parti.join(' · ');
     barra.style.background = offline ? '#3f2a07' : '#0f303c';
@@ -71,11 +73,11 @@
     barra.style.border = `1px solid ${offline ? '#f59e0b' : '#2dd4bf'}`;
   }
 
-  root.addEventListener('online', () => { aggiornaBarra(); svuota(); });
+  root.addEventListener('online', () => { copiaLocale = false; aggiornaBarra(); svuota(); });
   root.addEventListener('offline', aggiornaBarra);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') svuota(); });
   setInterval(svuota, 30000);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aggiornaBarra); else aggiornaBarra();
 
-  root.NaviOffline = { datiInAttesa, accoda, gestore, svuota, inAttesa, erroreDiRete, aggiornaBarra };
+  root.NaviOffline = { segnaCopiaLocale, datiInAttesa, accoda, gestore, svuota, inAttesa, erroreDiRete, aggiornaBarra };
 })(window);
