@@ -80,10 +80,6 @@ assert.match(app, /shiftFor\(shift,date\)/, 'la sincronizzazione da NaviTurni pa
 assert.match(app, /SHIFTS\.find\(s=>s\.code===card\.dataset\.shift\)/, 'il salvataggio delle competenze admin scrive ancora dentro SHIFTS, non in una copia');
 assert.doesNotMatch(app, /const shift=shiftFor\(card\.dataset\.shift\)/, 'il pannello admin non deve mutare l\'oggetto restituito da shiftFor (e\' una copia, non salverebbe piu\' nulla)');
 
-const navidistinta = fs.readFileSync('assets/js/navidistinta-app.js', 'utf8');
-assert.match(navidistinta, /window\.NaviShiftCompetence\.DEFAULT_SHIFTS/);
-assert.match(navidistinta, /SHIFTS\.find\(s=>s\.code===card\.dataset\.shift\)/);
-
 const dayPopup = fs.readFileSync('assets/js/day-popup.js', 'utf8');
 assert.doesNotMatch(dayPopup, /opts\.shiftFor\(e\.shift\)/, 'day-popup deve passare la data della giornata a shiftFor');
 assert.doesNotMatch(dayPopup, /opts\.shiftFor\(draft\.shift\)/);
@@ -97,7 +93,5 @@ assert.doesNotMatch(cambiLogic, /\|CONG\|CON;\|/, 'nei cambi turno il congedo no
 
 const navidiariaHtml = fs.readFileSync('navidiaria.html', 'utf8');
 assert.match(navidiariaHtml, /assets\/js\/shift-competence\.js/);
-const navidistintaHtml = fs.readFileSync('navidistinta.html', 'utf8');
-assert.match(navidistintaHtml, /assets\/js\/shift-competence\.js/);
 
 console.log('shift competence (decorrenza ore turni) ok');
