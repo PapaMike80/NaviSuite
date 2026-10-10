@@ -212,6 +212,15 @@
       localStorage.setItem(TIME_KEY_BASE + cacheSuffix(), String(Date.now()));
       localStorage.setItem(DIRECTORY_KEY, directory);
     } catch (error) {
+      // Spazio pieno (iPhone ~5 MB): si liberano le copie accessorie e si riprova, prima di rinunciare alla copia completa
+      try {
+        ['navisuite.turniNavi.v1', DATA_KEY_BASE + '.pb', TIME_KEY_BASE + '.pb'].forEach(k => localStorage.removeItem(k));
+        Object.keys(localStorage).filter(k => /^navisuite\.adm\.|^navi\.cache\.|^navidiaria\.backup/.test(k)).forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(DATA_KEY_BASE + cacheSuffix(), serialized);
+        localStorage.setItem(TIME_KEY_BASE + cacheSuffix(), String(Date.now()));
+        localStorage.setItem(DIRECTORY_KEY, directory);
+        return data;
+      } catch (_) { /* proprio non c'e' spazio */ }
       // La cache è un'accelerazione, non un requisito: Safari/Chrome possono
       // esaurire la quota locale. In quel caso i dati appena letti restano
       // utilizzabili in memoria e la pagina non deve fermarsi al turno base.

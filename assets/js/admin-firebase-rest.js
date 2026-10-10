@@ -263,7 +263,9 @@
   async function getTurniNavi() {
     const result = await databaseRequest("private/adminUpdates/turniNavi");
     const righe = Array.isArray(result.data) ? result.data.filter(Boolean) : Object.values(result.data || {});
-    try { localStorage.setItem(TURNI_NAVI_KEY, JSON.stringify({ t:Date.now(), righe })); } catch { /* niente */ }
+    // sul telefono solo da ieri in poi (la copia serve per oggi): poche decine di KB invece di centinaia
+    const ieri = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    try { localStorage.setItem(TURNI_NAVI_KEY, JSON.stringify({ t:Date.now(), righe:righe.filter(r => String(r?.data || "9") >= ieri) })); } catch { /* niente */ }
     return righe;
   }
 

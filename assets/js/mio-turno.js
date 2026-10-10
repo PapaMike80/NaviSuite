@@ -184,6 +184,14 @@
 
   function renderAltro(turno, day) {
     const label = turno ? String(turno).toUpperCase() : '';
+    // Nessun turno per il giorno nella copia salvata: non e' un riposo. Se i dati si stanno aggiornando
+    // si dice che si sta caricando; se aggiornati, che il turno non c'e' ancora.
+    if (!label && !state.test) {
+      $('turno-title').textContent = state.fresco === 'offline' ? 'Turno non disponibile' : state.fresco ? 'Turno non pubblicato' : 'Carico il turno…';
+      $('turno-context').textContent = state.fresco === 'offline' ? 'Non è nella copia salvata: serve la rete' : state.fresco ? 'Per questo giorno non c\'è ancora un turno' : 'Aggiornamento dei dati in corso';
+      $('turno-content').innerHTML = '';
+      return;
+    }
     const riposo = !label || /^(RIP|RIPOSO|CON|F\.?P\.?|MALATTIA|L\.?D\.?)$/.test(label);
     $('turno-title').textContent = riposo ? (label && label !== 'RIP' && label !== 'RIPOSO' ? label : 'Riposo') : label;
     $('turno-context').textContent = riposo ? 'Nessuna corsa in questo giorno' : 'Turno senza corse in orario';
@@ -263,7 +271,8 @@
   });
 
   render();
-  window.NaviSharedData?.loadCacheFirst?.(data => { state.schedule = data || { residenze: {} }; render(); })
+  window.NaviSharedData?.loadCacheFirst?.((data, meta) => { state.schedule = data || { residenze: {} }; state.fresco = !meta?.stale; render(); })
+    .then(fresh => { if (!fresh && state.schedule) { state.fresco = 'offline'; render(); } })
     .catch(error => { console.warn('Il mio turno: dati non disponibili', error); if (!state.schedule) notice('Non riesco a caricare i turni.'); });
   (async () => {
     try {
