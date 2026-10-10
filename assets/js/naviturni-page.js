@@ -2526,8 +2526,21 @@
       }
     }
 
+    // Il turno pronto (veloce) parte da una settimana fa: con "Mostra passato" si carica tutto lo storico, da giugno
+    let storicoCaricato = false;
+    function caricaStorico() {
+      if (storicoCaricato || !globalData?.__leggeroDal || !window.NaviSharedData?.loadCompleto) return;
+      storicoCaricato = true;
+      const stato = document.getElementById("upload-status");
+      if (stato) stato.textContent = "⏳ Carico i turni passati…";
+      const mostra = dati => { if (!dati || dati.__leggeroDal) return; processJSONData(dati, { soft: true }); if (showPastColumns) { hidePastColumns(); renderTable(); } };
+      NaviSharedData.loadCompleto({ onLocale: mostra })
+        .then(dati => { mostra(dati); if (stato) stato.textContent = "✓ Turni passati caricati"; })
+        .catch(() => { storicoCaricato = false; if (stato) stato.textContent = "Turni passati non disponibili senza rete"; });
+    }
     function togglePastColumns() {
       showPastColumns = !showPastColumns;
+      if (showPastColumns) caricaStorico();
       if (!showPastColumns) {
         automaticPastFromTime = null;
         updateAutomaticPastWindow(dateCalendario.find(cal => cal.col === selectedCol));
@@ -3104,6 +3117,8 @@
           document.getElementById("upload-status").textContent = "⚡ Turni aperti dalla memoria locale; controllo aggiornamenti…";
           return;
         }
+        // passato visibile: un aggiornamento "veloce" (da una settimana fa) non deve togliere lo storico
+        if (showPastColumns && storicoCaricato && datiJson?.__leggeroDal) { storicoCaricato = false; caricaStorico(); return; }
         if (signature !== lastLoadedDataSignature) {
           lastLoadedDataSignature = signature;
           saveTurniCache(signature).catch(error =>
