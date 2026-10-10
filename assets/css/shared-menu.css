@@ -489,3 +489,10 @@ body.turni-page #modal-residence-buttons.modal-buttons-grid {
 		box-sizing:border-box!important;
 	}
 }
+
+/* App installata sulla Home (iPhone, barra di stato trasparente): il contenuto parte sotto l'ora e la batteria */
+@media (display-mode: standalone) {
+  html { padding-top: env(safe-area-inset-top, 0px); background: #061820; }
+  .app-sidebar { padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important; }
+  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: #061820; z-index: 100040; pointer-events: none; }
+}
