@@ -225,25 +225,41 @@
     return true;
   }
 
+  // Ogni ramo per conto suo: se uno non arriva (rete lenta) si usa la sua ultima copia, senza perdere gli altri.
+  // Prima bastava un ramo in ritardo per perdere tutti i turni importati (si vedeva solo il turno base).
+  async function ramoFresco(ramo, timeout = 30000) {
+    try {
+      const data = (await databaseRequest(`private/adminUpdates/${ramo}`, { timeout })).data;
+      copiaScrivi(`fresco-${ramo}`, { t:Date.now(), data });
+      return { data, ok:true };
+    } catch (error) {
+      const c = await copiaLeggi(`fresco-${ramo}`);
+      if (c) return { data:c.data, ok:false };
+      return { data:null, ok:false, error };
+    }
+  }
   async function getAdminUpdates() {
+    const auth = await ensureAuth();
     const ver = await versioni();
-    const daCache = ramo => leggiRamo(ramo, ver).then(data => ({ data }));
+    const daCache = ramo => leggiRamo(ramo, ver).then(data => ({ data, ok:true })).catch(error => ({ data:null, ok:false, error }));
     const [owner, updated, ods, manual, baristas, approvals, dismissedOds, scheduleImports, turniNavi, profili] = await Promise.all([
-      databaseRequest("private/adminUpdates/ownerUid"),
-      databaseRequest("private/adminUpdates/updatedAt"),
-      databaseRequest("private/adminUpdates/odsVariations"),
-      databaseRequest("private/adminUpdates/manualVariations"),
+      ramoFresco("ownerUid", 15000),
+      ramoFresco("updatedAt", 15000),
+      ramoFresco("odsVariations"),
+      ramoFresco("manualVariations"),
       daCache("baristas"),
       daCache("approvedChangeRequests"),
       daCache("dismissedOdsApprovals"),
       daCache("scheduleImports"),
-      databaseRequest("private/adminUpdates/turniNavi"),
+      ramoFresco("turniNavi"),
       daCache("agentProfiles")
     ]);
+    // senza i turni importati (e senza alcuna copia) non ha senso continuare: chi chiama usa la copia completa
+    if (scheduleImports.data == null && scheduleImports.error) throw scheduleImports.error;
     const asArray = input => Array.isArray(input) ? input.filter(Boolean) : Object.values(input || {});
     return {
       ownerUid:String(owner.data || ""),
-      currentUid:owner.auth.uid,
+      currentUid:auth.uid,
       updatedAt:String(updated.data || ""),
       odsVariations:asArray(ods.data),
       manualVariations:asArray(manual.data),

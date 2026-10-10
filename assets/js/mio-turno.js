@@ -188,7 +188,7 @@
     // si dice che si sta caricando; se aggiornati, che il turno non c'e' ancora.
     if (!label && !state.test) {
       $('turno-title').textContent = state.fresco === 'offline' ? 'Turno non disponibile' : state.fresco ? 'Turno non pubblicato' : 'Carico il turno…';
-      $('turno-context').textContent = state.fresco === 'offline' ? 'Non è nella copia salvata: serve la rete' : state.fresco ? 'Per questo giorno non c\'è ancora un turno' : 'Aggiornamento dei dati in corso';
+      $('turno-context').textContent = state.fresco === 'offline' ? 'Non è nella copia salvata: serve la rete' : state.fresco ? (localStorage.getItem('navisuite.erroreAggiornamenti') ? `Aggiornamento non riuscito (${localStorage.getItem('navisuite.erroreAggiornamenti')})` : 'Per questo giorno non c\'è ancora un turno') : 'Aggiornamento dei dati in corso';
       $('turno-content').innerHTML = '';
       return;
     }
