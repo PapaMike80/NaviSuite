@@ -141,6 +141,16 @@
       const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${initialPin?`<button class="copy-initial-pin" type="button" data-pin="${esc(initialPin)}">Copia PIN</button>`:''}<button class="generate-pin" type="button">${initialPin?'Rigenera PIN':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
       return `<article class="agent-row${online?' latest':''}${agentiAperti.has(String(agent.id))?'':' chiuso'}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name" role="button" tabindex="0" title="Tocca per aprire o chiudere"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small><span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${user&&(user.lastAccess||user.onlineAt)?`<small class="ultimo-accesso">${online?'Online':'Ultimo accesso'}: ${esc(fmt(online?user.onlineAt:user.lastAccess))}${user.lastPage?` · ${esc(user.lastPage)}`:''}</small>`:''}${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}${residenceMoveBlock(agent)}</article>`;
     }
+    // PIN e registrazioni aggiornati quando si torna sulla pagina (es. un altro admin ha appena generato un PIN)
+    let ricaricoAdmin=0;
+    async function ricaricaDatiAdmin(){
+      if(Date.now()-ricaricoAdmin<5000||!window.NaviAdminFirebase||document.activeElement?.matches?.('input,select,textarea'))return;
+      ricaricoAdmin=Date.now();
+      try{const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};refreshInitialPins(data.auth||{});render();}catch(error){console.warn('Dati agenti non aggiornati',error);}
+    }
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')ricaricaDatiAdmin();});
+    window.addEventListener('focus',ricaricaDatiAdmin);
+    setInterval(()=>{if(document.visibilityState==='visible')ricaricaDatiAdmin();},60000);
     function refreshInitialPins(authRecords={}){
       const ids=new Map(directory.map(agent=>[String(agent.id),agent]));
       registry.forEach(user=>{if(!ids.has(String(user.id)))ids.set(String(user.id),{id:String(user.id)})});
