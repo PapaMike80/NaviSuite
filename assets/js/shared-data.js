@@ -623,8 +623,8 @@
     } catch (_) { return null; }
   }
 
-  async function load(_url, { force = false } = {}) {
-    if (force) {
+  async function load(_url, { force = false, completo = false } = {}) {
+    if (force && !completo) {
       const pronto = await turnoPronto();
       if (pronto) {
         lastSource = 'firebase';
@@ -724,7 +724,14 @@
     localStorage.removeItem('navi.agentDirectory.v1');
   }
 
+  // Tutto lo storico (es. "Mostra passato"): subito la copia completa sul telefono, se c'e', poi quella dalla rete
+  async function loadCompleto({ onLocale } = {}) {
+    const locale = await leggiCompleta();
+    if (locale && onLocale) { try { onLocale(locale); } catch (_) {} }
+    try { return await load('', { force: true, completo: true }); } catch (error) { if (locale) return locale; throw error; }
+  }
   window.NaviSharedData = {
+    loadCompleto,
     leggero,
     load,
     loadBase,
