@@ -95,7 +95,7 @@
     $('det-nome').textContent = a.nome;
     $('riepilogo').innerHTML = [['Giorni lavorati', lav.length], ['Ore lavorate', ore(tot(B.lavorate))], ['Straordinari (oltre 39 h a settimana)', ore(straord)],
       ...(conv ? [['Trasformati in banca ore', `${ore(conv)} → +${ore(Math.round(conv * 1.1))}`], ['Straordinari pagati', ore(Math.max(0, straord - conv))]] : []),
-      ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))], ['Ticket', lav.filter(e => e.ticketPresence ?? e.mealUsed).length],
+      ['Banca ore', ore(giorni.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(conv * 1.1))], ['Ticket da liquidare', lav.filter(B.ticketDaLiquidare).length],
       ['Diarie', lav.filter(e => e.allowanceRate != null).length]]
       .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v)}</b></div>`).join('');
     // anno intero: la tabella dei 12 mesi (come in NaviDiaria); tocca un mese per aprire giorni e settimane
@@ -112,7 +112,7 @@
     $('tabella').parentElement.hidden = false;
     const rigaGiorno = e => { const d = new Date(`${e.date}T12:00:00`), w = lavoro(e), c = B.causali(e);
       return `<tr class="${w ? '' : 'rip'}"><td>${GIORNI[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}</td><td>${esc(e.shift || '')}</td><td>${w ? ore(B.servizio(e)) : ''}</td><td>${w ? ore(B.lavorate(e)) : ''}</td>` +
-        `<td>${w && c.ritardo + c.cambio + c.sentine ? ore(c.ritardo + c.cambio + c.sentine) : ''}</td><td>${e.bank ? ore(e.bank) : ''}</td><td>${w && (e.ticketPresence ?? e.mealUsed) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
+        `<td>${w && c.ritardo + c.cambio + c.sentine ? ore(c.ritardo + c.cambio + c.sentine) : ''}</td><td>${e.bank ? ore(e.bank) : ''}</td><td>${w && B.ticketDaLiquidare(e) ? 'sì' : ''}</td><td>${w && e.allowanceRate != null ? `${e.allowanceRate}%` : ''}</td>` +
         `<td>${w && e.embark ? 'sì' : ''}</td><td>${esc(e.note || '')}</td></tr>`; };
     const rigaSett = w => `<tr class="sett"><td colspan="3">Settimana ${fmt(w.dal)} – ${fmt(w.al)}</td><td>${ore(w.lavorate)}</td><td colspan="6">${w.straordinario ? `straordinario <b>${ore(w.straordinario)}</b> (oltre 39 h)` : 'nessuno straordinario (39 h)'}</td></tr>`;
     const righe = [];
@@ -126,7 +126,7 @@
         righe.push(`<tr class="tot"><td colspan="3">${esc(MESI[Number(mese.slice(5)) - 1])} · ${gm.length} gg</td><td>${ore(ws.reduce((s, x) => s + x.lavorate, 0))}</td><td colspan="6">straordinario ${ore(ws.reduce((s, x) => s + x.straordinario, 0))}</td></tr>`);
       }
     });
-    $('tabella').innerHTML = `<thead><tr><th>Data</th><th>Turno</th><th>Servizio</th><th>Lavorate</th><th>Straord. giorno</th><th>Banca</th><th>Ticket</th><th>Diaria</th><th>Imbarco</th><th>Note</th></tr></thead><tbody>` +
+    $('tabella').innerHTML = `<thead><tr><th>Data</th><th>Turno</th><th>Servizio</th><th>Lavorate</th><th>Straord. giorno</th><th>Banca</th><th>Ticket da liq.</th><th>Diaria</th><th>Imbarco</th><th>Note</th></tr></thead><tbody>` +
       righe.join('') + `<tr class="tot"><td colspan="3">Totale ${periodo.length === 4 ? 'anno' : 'mese'} · ${lav.length} gg</td><td>${ore(tot(B.lavorate))}</td><td colspan="6">straordinario ${ore(straord)} (oltre 39 h a settimana)</td></tr></tbody>`;
     $('dettaglio').hidden = false;
   }

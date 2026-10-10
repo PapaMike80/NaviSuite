@@ -71,15 +71,24 @@
   const festivo = e => (e.holidayWorked === undefined ? FESTE.has(e.date.slice(5)) || e.date.slice(5) === pasquetta(Number(e.date.slice(0, 4))) : !!e.holidayWorked);
   // Tutte le competenze di un agente nel periodo (mese o anno)
   const COMPETENZE = [['giorni', 'Giorni', 'n'], ['lavorate', 'Ore lavorate', 'h'], ['straordinari', 'Straordinari', 'h'], ['trasformati', 'Trasformati', 'h'], ['pagati', 'Str. pagati', 'h'],
-    ['banca', 'Banca ore', 'h'], ['ticket', 'Ticket', 'n'], ['ticket2', '2° ticket', 'n'], ['d9', 'Diaria 9%', 'n'], ['d24', 'Diaria 24%', 'n'], ['d50', 'Diaria 50%', 'n'],
+    ['banca', 'Banca ore', 'h'], ['ticket', 'Ticket da liquidare', 'n'], ['ticket2', '2° ticket', 'n'], ['d9', 'Diaria 9%', 'n'], ['d24', 'Diaria 24%', 'n'], ['d50', 'Diaria 50%', 'n'],
     ['pernotto', 'Pernotto 40%', 'n'], ['festivi', 'Festività', 'n'], ['domeniche', 'Ind. dom.', 'n'], ['imbarco', 'Imbarco', 'n'], ['denaro', 'Maneggio denaro', 'n'],
     ['aliscafo', 'Aliscafo', 'n'], ['rf', 'Recupero forfait', 'n'], ['trasferte', 'Trasferte', 'n'], ['rifornimenti', 'Rifornimenti', 'n'], ['cambi', 'Cambi', 'h'], ['sentine', 'Sentine', 'h'], ['mancatiRiposi', 'Mancati riposi', 'n']];
+  // Ticket: dovuto se il turno del giorno da' il pasto (tabella turni); da liquidare = dovuto e non usato (mensa).
+  const ticketUsato = e => !!(e?.ticketPresence ?? e?.mealUsed);
+  function ticketDovuto(e) {
+    if (!conTurno(e)) return false;
+    const SC = root.NaviShiftCompetence;
+    if (!SC?.shiftForCode) return e.ticketPresence !== undefined || !!e.mealUsed;
+    return !!SC.shiftForCode(e.shift, e.date, SC.DEFAULT_SHIFTS)?.meal;
+  }
+  const ticketDaLiquidare = e => ticketDovuto(e) && !ticketUsato(e);
   function competenze(entries, conversioni, periodo, settimane = settimaneDi(entries, periodo)) {
     const gg = settimane.flatMap(w => w.giorni), lav = gg.filter(conTurno), n = f => lav.filter(f).length;
     const straordinari = settimane.reduce((s, w) => s + w.straordinario, 0), trasformati = Object.entries(conversioni || {}).filter(([k]) => k.startsWith(periodo)).reduce((s, [, v]) => s + (Number(v) || 0), 0);
     return { giorni: lav.length, lavorate: settimane.reduce((s, w) => s + w.lavorate, 0), straordinari, trasformati, pagati: Math.max(0, straordinari - trasformati),
       banca: gg.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(trasformati * 1.1),
-      ticket: n(e => e.ticketPresence ?? e.mealUsed), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
+      ticket: n(ticketDaLiquidare), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
       pernotto: n(e => e.overnight40), festivi: n(festivo), domeniche: n(e => new Date(`${e.date}T12:00:00`).getDay() === 0), imbarco: n(e => e.embark), denaro: n(e => e.cashHandling),
       aliscafo: n(e => (e.hydrofoil === undefined ? String(e.shift).toUpperCase() === 'SR1' : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
       rifornimenti: n(e => e.refuelDone === true || Number(e.refuel) > 0), cambi: lav.reduce((s, e) => s + causali(e).cambio, 0), sentine: lav.reduce((s, e) => s + causali(e).sentine, 0),
@@ -87,13 +96,13 @@
   }
 
   const COLONNE = ['Data', 'Giorno', 'Turno', 'Ore servizio', 'Ore lavorate', 'Straordinario del giorno (totale: oltre 39 ore settimanali)', 'di cui ritardo', 'di cui cambio',
-    'di cui sentine', 'Banca ore', 'Rifornimento (anticipo)', 'Ticket', '2° ticket', 'Diaria %', 'Pernotto 40%', 'Imbarco', 'Festività',
+    'di cui sentine', 'Banca ore', 'Rifornimento (anticipo)', 'Ticket da liquidare', '2° ticket', 'Diaria %', 'Pernotto 40%', 'Imbarco', 'Festività',
     'Maneggio denaro', 'Trasferta', 'Note'];
   function riga(e) {
     const d = new Date(`${e.date}T12:00:00`), c = causali(e), w = lavoro(e);
     return [e.date, GIORNI[d.getDay()], e.shift || '', ore(servizio(e)), ore(lavorate(e)), w ? ore(c.ritardo + c.cambio + c.sentine) : '',
       w ? ore(c.ritardo) : '', w ? ore(c.cambio) : '', w ? ore(c.sentine) : '', ore(e.bank), w ? ore(e.refuel) : '',
-      w ? si(e.ticketPresence ?? e.mealUsed) : '', w ? si(Number(e.secondMeal) > 0) : '', w && e.allowanceRate != null ? String(e.allowanceRate) : '',
+      w ? si(ticketDaLiquidare(e)) : '', w ? si(Number(e.secondMeal) > 0) : '', w && e.allowanceRate != null ? String(e.allowanceRate) : '',
       w ? si(e.overnight40) : '', w ? si(e.embark) : '', w ? si(e.holidayWorked) : '', w ? si(e.cashHandling) : '', si(e.travel), e.note || ''];
   }
   const cella = v => { const s = String(v ?? ''); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -124,7 +133,7 @@
         const [y, m] = mese.split('-').map(Number);
         out.push(linea([...pre, `TOTALE ${MESI[m - 1]} ${y}`, '', `${lav.length} gg`, ore(tot(servizio)), ore(tot(lavorate)),
           ore(straordinarioPeriodo(giorni, mese)), '', '', '', ore(lista.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0)),
-          '', String(lav.filter(e => e.ticketPresence ?? e.mealUsed).length), '', String(lav.filter(e => e.allowanceRate != null).length), '', String(lav.filter(e => e.embark).length), '', '', '', '']));
+          '', String(lav.filter(ticketDaLiquidare).length), '', String(lav.filter(e => e.allowanceRate != null).length), '', String(lav.filter(e => e.embark).length), '', '', '', '']));
         const conv = Number(a.conversioni?.[mese]) || 0;
         if (conv) out.push(linea([...pre, `Trasformati in banca ore ${MESI[m - 1]} ${y}`, '', '', '', '', ore(conv), '', '', '', `+${ore(Math.round(conv * 1.1))}`]));
       });
@@ -220,5 +229,5 @@
       `<tbody>${righe}<tr class="tot"><td class="fisso">Totale ${escH(anno)}</td>${COMPETENZE.map(col => cella(col[0], escH(valore(tot, col)))).join('')}</tr></tbody></table>`;
   }
 
-  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA, settimaneDi, competenze, COMPETENZE, tabellaAnno };
+  root.NaviDiariaBackup = { COLONNE, riga, csv, oggi, nomeFile, scarica, lavorate, servizio, causali, zip, unzip, sett, domeniche, straordinarioPeriodo, SOGLIA, settimaneDi, competenze, COMPETENZE, tabellaAnno, ticketDovuto, ticketUsato, ticketDaLiquidare };
 })(typeof window !== 'undefined' ? window : globalThis);
