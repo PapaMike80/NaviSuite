@@ -31,7 +31,7 @@
     '<div class="hc-anno"><span><small data-hc="anno-label">Banca ore dell\'anno</small><b data-hc="anno">—</b></span><p data-hc="anno-nota"></p></div>' +
     '<div class="hc-note"><b>Come chiedere la trasformazione (O.d.S. 40, 5/3°)</b>' +
     '<p>Dal 1° novembre 2026 la richiesta si manda <b>solo via e-mail</b> a <a href="mailto:pers.navigarda@navigazionelaghi.it">pers.navigarda@navigazionelaghi.it</a>, ' +
-    '<b>entro il 5 del mese successivo</b> (per ottobre entro il 5 novembre). Una richiesta per ogni mese, con solo le ore da trasformare: ' +
+    '<b>entro il 5 del mese successivo</b> (<span data-hc="esempio">per ottobre entro il 5 novembre</span>). Una richiesta per ogni mese, con solo le ore da trasformare: ' +
     'non valgono richieste di più mesi insieme o scritte diversamente.</p>' +
     '<p class="hc-scadenza" data-hc="scadenza"></p>' +
     '<p class="hc-testo" data-hc="testo"></p>' +
@@ -78,6 +78,8 @@
     const mese = window.NaviDiariaMese?.month === t.month ? window.NaviDiariaMese : null;
     const maturati = mese ? mese.totale : (t.overtime || 0), previsti = mese ? mese.previsti : 0;
     const scelti = Math.min(stato.map[t.month] || 0, maturati);
+    // esempio col mese della Distinta: "per settembre entro il 5 ottobre"
+    if (/^\d{4}-\d{2}$/.test(t.month || '')) { const m = Number(t.month.slice(5)); $('esempio').textContent = `per ${MESI[m - 1]} entro il 5 ${MESI[m % 12]}`; }
     const bonus = Math.round(scelti * MAGGIORAZIONE);
     $('maturati').textContent = testo(maturati) + (previsti ? ` (di cui ${testo(previsti)} previsti)` : '');
     $('bonus').textContent = scelti ? `+${testo(bonus)}` : '—';
