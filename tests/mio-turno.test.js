@@ -73,7 +73,7 @@ assert.match(fs.readFileSync('assets/js/portal.js', 'utf8'), /'mio-turno\.html'/
 const js = fs.readFileSync('assets/js/mio-turno.js', 'utf8');
 assert.match(js, /NaviOrarioPage\?\.show\(\{ modo: 'terra', scalo: residenza === 'MADERNO' \? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio \? servizio\[1\]\.split\(' – '\)\[0\] : '' \}\)/); // a terra: la pagina Scali del mio scalo
 assert.match(js, /NaviOrarioPage\?\.show\(\{ modo: 'nave', turno: nave, day \}\)/); // in linea: la mappa con la mia corsa
-assert.ok((js.match(/location\.replace/g) || []).length === 1 && /params\.get\('auto'\) === '1'/.test(js)); // solo per la prima pagina Automatica (a terra -> Scali)
+assert.ok(!/location\.replace/.test(js) && /params\.get\('auto'\) === '1'/.test(js)); // Automatica: resta su Il mio turno anche a terra
 assert.match(page, /window\.NaviOrarioEmbed = true/);
 assert.match(page, /id="orario-content"/);
 const ordine = name => page.indexOf(`<script src="assets/js/${name}`);

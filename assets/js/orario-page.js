@@ -339,6 +339,7 @@
       await provider.ready;
       for (const key of keys) await provider.savePontileCorsa('DESENZANO', key, day, value || '-');
     } catch (error) {
+      if (window.NaviOffline?.erroreDiRete(error)) { keys.forEach(key => NaviOffline.accoda('pontile', { key, day, value: value || '-' }, `${day}|${key}`)); return; }
       $('orario-notice').hidden = false;
       $('orario-notice').textContent = `Pontile salvato solo su questo dispositivo (${error.message}).`;
     }
@@ -366,26 +367,49 @@
   }
   // previsto: ora d'attracco da orario (HH:MM) allo scalo; "Attraccata ora" = adesso - previsto
   function ritardoSelect(g, code, corsa, previsto = '') {
+    // in attesa di invio (senza rete): si mostra il valore scelto, con ⏳
+    const attesa = window.NaviOffline?.datiInAttesa('ritardo', `${today()}|${code}|${corsa}|${state.scalo}`);
     const tutto = g.navi[code]?.ritardi?.[corsa];
     const proprio = tutto?.scali?.[state.scalo] || null;
-    const valore = !proprio ? '' : proprio.inOrario ? 'orario' : proprio.oltre ? 'oltre' : String(proprio.minuti);
+    const valore = attesa ? String(attesa.value === 'ora' ? '' : attesa.value || '') : !proprio ? '' : proprio.inOrario ? 'orario' : proprio.oltre ? 'oltre' : String(proprio.minuti);
     const testo = v => (v === 'orario' ? '✓ in orario' : v === 'oltre' ? 'oltre 2 ore' : O.testoRitardo({ minuti: Number(v) }));
     // ritardo arrivato dalla corsa prima (non segnato su questa): si mostra nel riquadro, senza salvarlo
     const eff = !valore ? ritardoDi(g, code, corsa, state.scalo) : null;
     const vuota = valore ? 'nessun ritardo' : eff ? O.testoRitardo(eff) : '–';
-    return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}" title="${eff ? (eff.scalo ? `Ritardo segnato a ${esc(eff.scalo)}` : 'Ritardo passato dalla corsa prima o dal Movimento') : `Ritardo della corsa ${esc(corsa)}`}">⏱` +
+    return `<label class="ritardo-sel${valore ? ' on' : eff ? ' on prop' : ''}${attesa ? ' attesa' : ''}" title="${attesa ? 'In attesa di invio: parte da solo quando torna la rete' : eff ? (eff.scalo ? `Ritardo segnato a ${esc(eff.scalo)}` : 'Ritardo passato dalla corsa prima o dal Movimento') : `Ritardo della corsa ${esc(corsa)}`}">${attesa ? '⏳' : '⏱'}` +
       `<select data-ritardo="${esc(code)}|${esc(corsa)}" data-previsto="${esc(previsto)}" aria-label="Ritardo della corsa ${esc(corsa)} del ${esc(code)}">` +
       `${previsto ? '<option value="ora">⚓ Attraccata ora</option>' : ''}` +
       `<option value=""${valore ? '' : ' selected'}>${esc(vuota)}</option>${(valore && !RITARDI.includes(valore) && valore !== 'orario' ? ['orario', valore, ...RITARDI] : ['orario', ...RITARDI]).map(v => `<option value="${v}"${v === valore ? ' selected' : ''}>${esc(testo(v))}</option>`).join('')}</select></label>`;
   }
   async function salvaRitardo(code, corsa, value) {
+    const day = today(), scalo = state.scalo, p = profile();
+    const dati = { day, code, corsa: String(corsa), scalo, value, autore: `${p?.name || p?.id || ''}${window.NaviRoles?.scaloOf?.(p) ? ' (scalo)' : ''}` };
+    try { await inviaRitardo(dati); }
+    catch (error) {
+      if (window.NaviOffline?.erroreDiRete(error)) NaviOffline.accoda('ritardo', dati, `${day}|${code}|${corsa}|${scalo}`);
+      else { console.warn('Ritardo non salvato', error); alert(`Ritardo non salvato: ${error.message}`); }
+    }
+    render();
+  }
+  // Senza rete il ritardo resta in coda e parte da solo quando torna il segnale (con i turni nave appena riletti)
+  window.NaviOffline?.gestore('ritardo', async dati => {
     const provider = window.NaviAdminFirebase;
-    const day = today();
-    try {
+    await provider.ready;
+    state.firebaseNavi = await provider.getTurniNavi();
+    await inviaRitardo(dati);
+    render();
+  });
+  window.NaviOffline?.gestore('pontile', async ({ key, day, value }) => {
+    const provider = window.NaviAdminFirebase;
+    await provider.ready;
+    await provider.savePontileCorsa('DESENZANO', key, day, value);
+  });
+  async function inviaRitardo({ day, code, corsa, scalo, value, autore }) {
+    const provider = window.NaviAdminFirebase;
+    {
       await provider.ready;
       const righe = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
       const r = T.turniDelGiorno(righe, day)[code] || {};
-      const scalo = state.scalo;
       // ritardo segnato a QUESTO scalo: vale da qui in poi nella corsa (gli altri scali e il Movimento restano)
       const ritardi = Object.entries(r.ritardi || {}).flatMap(([c, x]) => [
         ...(x.soloScali ? [] : [x.inOrario ? { corsa: c, minuti: 0, oltre: false, inOrario: true } : { corsa: c, minuti: x.minuti, oltre: !!x.oltre }]),
@@ -404,16 +428,11 @@
         ritardi.push({ corsa: String(corsa), scalo, minuti: 0, oltre: false, inOrario: true });
       }
       else if (value) ritardi.push({ corsa: String(corsa), scalo, minuti: value === 'oltre' ? 120 : Number(value), oltre: value === 'oltre' });
-      const p = profile();
       state.firebaseNavi = await provider.saveTurnoNaveMovimento(day, code, {
         nave: r.nave || '', ormeggio_mattino: r.ormeggioMattino || '', ormeggio_serale: r.ormeggio || '', rifornimento_mattina: !!r.rif,
         sospesa: !!r.sospesa, sospesa_motivo: r.motivo || '', incarichi: r.incarichi || [], ritardi, corse_sospese: r.corseSospeseRaw || []
-      }, `${p?.name || p?.id || ''}${window.NaviRoles?.scaloOf?.(p) ? ' (scalo)' : ''}`);
-    } catch (error) {
-      console.warn('Ritardo non salvato', error);
-      alert(`Ritardo non salvato: ${error.message}`);
+      }, autore);
     }
-    render();
   }
 
   function pontileSelect(keys, day, odsMooring, when) {
@@ -1021,6 +1040,9 @@
   (async () => {
     try {
       const provider = window.NaviAdminFirebase;
+      // subito la copia salvata (anche senza rete), poi quella aggiornata
+      const salvati = provider?.turniNaviSalvati?.();
+      if (salvati && !state.firebaseNavi.length) { state.firebaseNavi = salvati; if (state.schedule) render(); }
       await provider.ready;
       state.firebaseNavi = await provider.getTurniNavi();
       render();

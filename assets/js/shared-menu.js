@@ -80,11 +80,11 @@
     const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
       ['index.html?home=1','⌂','Home'],
-      ...(isBarista&&!isHiba?[]:[['oggi.html','☀','Oggi']]),
+      // pagine principali: Il mio turno e Scali
+      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
-      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali']]),
       ['cambi_turno.html','⇄','Cambio'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
@@ -258,12 +258,12 @@
     const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
     return [
       ['index.html?home=1','⌂','Home',''],
+      ['mio-turno.html','⚑','Il mio turno','mioTurnoNavLink'],
+      ['orario.html','⚓','Scali','orarioNavLink'],
       ['oggi.html','☀','Oggi','oggiNav'],
       ['naviturni.html','▦','NaviTurni',''],
       ['navidiaria.html','≈','Distinta','diariaNavLink'],
       ['documenti.html','▤','Documenti','archiveNavLink'],
-      ['mio-turno.html','⚑','Il mio turno','mioTurnoNavLink'],
-      ['orario.html','⚓','Scali','orarioNavLink'],
       ['impostazioni.html','⚙','Impostazioni',''],
       ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
     ].map(([href,icon,label,id])=>{

@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v470-archivia-import';
+const CACHE_VERSION = 'navisuite-v472-turno-completo';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -32,6 +32,10 @@ const CORE_ASSETS = [
   './naviturni.html',
   './cambi_turno.html',
   './navidiaria.html',
+  // pagine principali: Scali e Il mio turno (e Documenti), disponibili anche senza rete
+  './orario.html',
+  './mio-turno.html',
+  './documenti.html',
   './navidistinta.html',
   './verifica-busta.html',
   './manifest.json',
@@ -57,6 +61,10 @@ const CORE_ASSETS = [
   './assets/js/busta-compare.js',
   './assets/js/verifica-busta.js',
   './v2/assets/pb.js',
+  './assets/css/orario.css', './assets/css/mio-turno.css', './assets/css/servizi-terra.css', './assets/css/turni.css',
+  './assets/js/orario-page.js', './assets/js/orario-giorno.js', './assets/js/orario-corse.js', './assets/js/orario-lago.js',
+  './assets/js/mio-turno.js', './assets/js/turni-giorno.js', './assets/js/servizi-terra-a4.js', './assets/js/arrivi-avvisi.js',
+  './assets/js/push-arrivi.js', './assets/js/shift-competence.js', './assets/js/documenti.js', './assets/js/offline.js',
   './assets/images/favicon.svg',
   './assets/images/icona_192.png',
   './assets/images/icona_512.png',
@@ -83,9 +91,17 @@ async function fetchAndCache(request, options = {}) {
   return cachePut(request, response);
 }
 
+// Rete prima, ma con segnale debole non si aspetta: dopo LENTO ms si usa la copia salvata (se c'e')
+// e la risposta della rete, quando arriva, aggiorna la copia per la prossima apertura.
+const LENTO = 3500;
 async function networkFirst(request, fallbackUrl = '') {
+  const rete = fetchAndCache(request);
   try {
-    return await fetchAndCache(request);
+    const veloce = await Promise.race([rete, new Promise(resolve => setTimeout(() => resolve('lento'), LENTO))]);
+    if (veloce !== 'lento') return veloce;
+    const cached = await cachedResponse(request);
+    if (cached) { rete.catch(() => null); return cached; }
+    return await rete;
   } catch (error) {
     const cached = await cachedResponse(request);
     if (cached) return cached;

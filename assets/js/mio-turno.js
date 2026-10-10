@@ -268,6 +268,9 @@
   (async () => {
     try {
       const provider = window.NaviAdminFirebase;
+      // subito la copia salvata (anche senza rete), poi quella aggiornata
+      const salvati = provider?.turniNaviSalvati?.();
+      if (salvati && !state.firebaseNavi.length) { state.firebaseNavi = salvati; if (state.schedule) render(); }
       await provider.ready;
       state.firebaseNavi = await provider.getTurniNavi();
       if (state.schedule) render();
