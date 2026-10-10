@@ -93,6 +93,32 @@
     finally { pendingAuth = null; }
   }
 
+  // Rami pesanti e che cambiano di rado: si tengono sul telefono e si riscaricano solo quando cambiano
+  // (private/adminUpdates/versione/<ramo> = ora dell'ultima modifica, aggiornata a ogni scrittura).
+  // Con segnale debole in mezzo al lago si risparmiano ~2,5 MB a ogni apertura.
+  const RAMI_CACHE = ["scheduleImports", "agentProfiles", "baristas", "approvedChangeRequests", "dismissedOdsApprovals"];
+  const CACHE_MAX = 6 * 3600 * 1000;
+  function ramiScritti(path, options) {
+    const m = String(path).replace(/^\/+/, "").match(/^private\/adminUpdates(?:\/([^/]+))?/);
+    if (!m) return [];
+    if (m[1]) return RAMI_CACHE.includes(m[1]) ? [m[1]] : [];
+    try { return Object.keys(JSON.parse(options.body || "{}")).filter(k => RAMI_CACHE.includes(k)); } catch { return []; }
+  }
+  async function versioni() {
+    try { return (await databaseRequest("private/adminUpdates/versione")).data || {}; } catch { return {}; }
+  }
+  async function leggiRamo(ramo, ver) {
+    const key = `navisuite.adm.${ramo}`, v = ver?.[ramo];
+    if (v) {
+      try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c && c.v === v && Date.now() - (c.t || 0) < CACHE_MAX) return c.data; } catch { /* niente */ }
+    }
+    const data = (await databaseRequest(`private/adminUpdates/${ramo}`)).data;
+    let nv = v;
+    if (!nv) { nv = Date.now(); databaseRequest("private/adminUpdates/versione", { method:"PATCH", body:JSON.stringify({ [ramo]:nv }) }).catch(() => {}); }
+    try { localStorage.setItem(key, JSON.stringify({ v:nv, t:Date.now(), data })); } catch { try { localStorage.removeItem(key); } catch { /* niente */ } }
+    return data;
+  }
+
   async function databaseRequest(path, options = {}) {
     const auth = await ensureAuth();
     const url = `${DATABASE_URL}/${String(path).replace(/^\/+/, "")}.json?auth=${encodeURIComponent(auth.idToken)}`;
@@ -108,6 +134,15 @@
       if (!response.ok) {
         const message = data?.error || `Firebase HTTP ${response.status}`;
         throw new Error(message === "Permission denied" ? "Permesso negato dalle regole Firebase" : message);
+      }
+      const metodo = String(options.method || "GET").toUpperCase();
+      if (metodo !== "GET") {
+        const rami = ramiScritti(path, options);
+        if (rami.length) {
+          const ora = Date.now();
+          rami.forEach(r => { try { localStorage.removeItem(`navisuite.adm.${r}`); } catch { /* niente */ } });
+          databaseRequest("private/adminUpdates/versione", { method:"PATCH", body:JSON.stringify(Object.fromEntries(rami.map(r => [r, ora]))) }).catch(() => {});
+        }
       }
       return { data, auth };
     } catch (error) {
@@ -172,16 +207,19 @@
   }
 
   async function getAdminUpdates() {
-    const [owner, updated, ods, manual, baristas, approvals, dismissedOds, scheduleImports, turniNavi] = await Promise.all([
+    const ver = await versioni();
+    const daCache = ramo => leggiRamo(ramo, ver).then(data => ({ data }));
+    const [owner, updated, ods, manual, baristas, approvals, dismissedOds, scheduleImports, turniNavi, profili] = await Promise.all([
       databaseRequest("private/adminUpdates/ownerUid"),
       databaseRequest("private/adminUpdates/updatedAt"),
       databaseRequest("private/adminUpdates/odsVariations"),
       databaseRequest("private/adminUpdates/manualVariations"),
-      databaseRequest("private/adminUpdates/baristas"),
-      databaseRequest("private/adminUpdates/approvedChangeRequests"),
-      databaseRequest("private/adminUpdates/dismissedOdsApprovals"),
-      databaseRequest("private/adminUpdates/scheduleImports"),
-      databaseRequest("private/adminUpdates/turniNavi")
+      daCache("baristas"),
+      daCache("approvedChangeRequests"),
+      daCache("dismissedOdsApprovals"),
+      daCache("scheduleImports"),
+      databaseRequest("private/adminUpdates/turniNavi"),
+      daCache("agentProfiles")
     ]);
     const asArray = input => Array.isArray(input) ? input.filter(Boolean) : Object.values(input || {});
     return {
@@ -195,7 +233,7 @@
       dismissedOdsApprovals:asArray(dismissedOds.data)
       ,scheduleImports:asArray(scheduleImports.data)
       ,turniNavi:asArray(turniNavi.data)
-      ,agentProfiles:(await databaseRequest("private/adminUpdates/agentProfiles")).data || {}
+      ,agentProfiles:profili.data || {}
     };
   }
 
