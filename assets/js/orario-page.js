@@ -706,8 +706,12 @@
       manca = ferma ? `riparte ${traMin(min)}`
         : iQui === 0 && pos.stato === 'naviga' ? `in arrivo ${traMin(min)}` : `a ${state.scalo} ${traMin(min)}`;
     }
+    // ritardo veloce della corsa al mio scalo (chi puo' segnarlo: puoRitardi o la propria nave di oggi)
+    const pq = partita || (iQui >= 0 ? resto[iQui] : null);
+    const ritBox = pq?.corsa && !pq.sosp && realToday() && (puoRitardi() || miaNaveOggi() === code)
+      ? `<div class="or-rit-veloce"><span>Ritardo a ${esc(state.scalo)} · corsa ${esc(pq.corsa)}</span>${ritardoSelect(g, code, pq.corsa, orarioProgrammato(g, code, pq.corsa, state.scalo, false) || hhmm(pq.t))}</div>` : '';
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${sospBlocco}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${ritBox}${sospBlocco}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------

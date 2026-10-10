@@ -177,3 +177,6 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 .ritardo-sel.prop{border-style:dashed;background:rgba(245,158,11,.08)}
 .ritardo-sel select{appearance:none;-webkit-appearance:none;padding:2px 3px;border:0;background:transparent;color:inherit;font:900 12px Manrope,sans-serif;cursor:pointer}
 .ritardo-sel select option{background:#0d1f27;color:#e8f3f6}
+
+.or-rit-veloce{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 4px;padding:8px 10px;border:1px solid rgba(245,158,11,.35);border-radius:10px;background:rgba(245,158,11,.06);font-size:13px;font-weight:800;color:#fbbf24}
+.or-rit-veloce .ritardo-sel{font-size:15px;padding:6px 10px}.or-rit-veloce .ritardo-sel select{font-size:15px}
