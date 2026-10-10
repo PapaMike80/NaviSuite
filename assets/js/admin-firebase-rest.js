@@ -114,7 +114,13 @@
     if (v) {
       try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c && c.v === v && Date.now() - (c.t || 0) < CACHE_MAX) return c.data; } catch { /* niente */ }
     }
-    const data = (await databaseRequest(`private/adminUpdates/${ramo}`)).data;
+    let data;
+    try { data = (await databaseRequest(`private/adminUpdates/${ramo}`, { timeout:60000 })).data; } // rami grandi: anche con rete lenta
+    catch (error) {
+      // rete lenta/assente: meglio la copia salvata (anche vecchia) che niente
+      try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c) return c.data; } catch { /* niente */ }
+      throw error;
+    }
     let nv = v;
     if (!nv) { nv = Date.now(); databaseRequest("private/adminUpdates/versione", { method:"PATCH", body:JSON.stringify({ [ramo]:nv }) }).catch(() => {}); }
     try { localStorage.setItem(key, JSON.stringify({ v:nv, t:Date.now(), data })); } catch { try { localStorage.removeItem(key); } catch { /* niente */ } }
@@ -126,7 +132,7 @@
     const url = `${DATABASE_URL}/${String(path).replace(/^\/+/, "")}.json?auth=${encodeURIComponent(auth.idToken)}`;
     const controller = new AbortController();
     // letture: 8 s (con segnale debole si usa la copia salvata); scritture: 15 s
-    const attesa = String(options.method || "GET").toUpperCase() === "GET" ? 8000 : 15000;
+    const attesa = options.timeout || (String(options.method || "GET").toUpperCase() === "GET" ? 8000 : 15000);
     const timeout = setTimeout(() => controller.abort(), attesa);
     try {
       const response = await fetch(url, {

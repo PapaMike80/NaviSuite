@@ -539,6 +539,7 @@
       }
     }
     console.warn('Aggiornamenti amministrativi Firebase non disponibili.', lastError);
+    data.__senzaAggiornamenti = true; // solo turno base: non deve sostituire la copia completa salvata
     return data;
   }
 
@@ -567,6 +568,7 @@
   }
 
   async function load(_url, { force = false } = {}) {
+    const completoPrima = cached(true); // copia completa (con turni importati) prima di riscaricare il turno base
     const base = await loadBase(_url, { force });
     // In modalita' PocketBase la route /schedule restituisce gia' il dataset
     // completo (variazioni ODS, profili, bariste): niente merge Firebase.
@@ -575,6 +577,12 @@
       return save(base);
     }
     return mergeAdminUpdates(base).then(data => {
+      // Rete lenta o assente: gli aggiornamenti (turni importati, O.d.S.) non sono arrivati. Si tiene l'ultima
+      // copia completa salvata invece di mostrare (e salvare) il solo turno base.
+      if (data?.__senzaAggiornamenti) {
+        delete data.__senzaAggiornamenti;
+        if (completoPrima && !completoPrima.__soloBase) { lastSource = 'local'; return save(completoPrima); }
+      }
       lastSource = 'firebase';
       return save(data);
     });
