@@ -322,7 +322,8 @@
 
     // iPhone/iPad (soprattutto con l'app installata): window.print non apre nulla. Si crea un PDF A4 orizzontale
     // del foglio e si apre la condivisione di iOS, da cui si sceglie Stampa (o Salva su File / Mail).
-    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    // su ogni telefono/tablet (anche Chrome su iPhone o "sito desktop") si passa dal PDF: la stampa diretta prendeva tutta la pagina
+    const ios = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0 || popup.matchMedia?.('(pointer:coarse)').matches;
     const carica = src => new Promise((ok, ko) => { const el = doc.createElement('script'); el.src = new URL(src, location.href).href; el.onload = ok; el.onerror = () => ko(new Error('libreria PDF non caricata')); doc.head.appendChild(el); });
     async function pdf() {
       if (!popup.html2canvas) await carica('vendor/pdf/html2canvas.min.js');
@@ -404,6 +405,12 @@
     frame.style.cssText = 'border:0;width:100%;height:100%;display:block;background:#d8dde2';
     overlay.appendChild(frame);
     document.body.appendChild(overlay);
+    // se il browser stampa la pagina invece del riquadro: si stampa solo la distinta
+    if (!document.getElementById('distinta-anteprima-print')) {
+      const st = document.createElement('style'); st.id = 'distinta-anteprima-print';
+      st.textContent = '@media print{body:has(#distinta-anteprima)>*:not(#distinta-anteprima){display:none!important}#distinta-anteprima{position:static!important}#distinta-anteprima iframe{height:100vh!important}}';
+      document.head.appendChild(st);
+    }
     const chiudi = () => overlay.remove();
     frame.addEventListener('load', () => installLandscapePreview(frame.contentWindow, chiudi), { once:true });
     frame.srcdoc = documentHtml;
