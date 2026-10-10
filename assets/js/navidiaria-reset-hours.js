@@ -297,7 +297,8 @@
       const hasValue = row.type === 'text'
         ? [...dayValues.values()].some(value => String(value || '').trim() !== '') || String(carryValue || '').trim() !== ''
         : [...dayValues.values()].some(value => n(value) > 0) || n(carryValue) > 0;
-      if (!hasValue) return '';
+      // distinta completa: tutte le voci, anche quelle senza valori nel mese
+      void hasValue;
       const result = row.type === 'hours' ? clock(weekValues.reduce((sum,value) => sum + n(value),0))
         : row.type === 'count' ? (weekValues.reduce((sum,value) => sum + n(value),0) || '')
         : '';
@@ -312,26 +313,26 @@
 </style></head><body><div class="print-actions" aria-label="Comandi distinta"><button type="button" data-print>Stampa</button><button type="button" class="close-button" data-close>Chiudi</button></div><div class="sheet"><div class="top"><div class="company">NAVIGAZIONE LAGO DI GARDA<br>GESTIONE GOVERNATIVA</div><div class="field"><b>DISTINTA MESE DI</b><span>${html(monthLabel)}</span></div><div class="field"><b>AGENTE</b><span>${html(agent.name.toUpperCase())}</span></div><div class="field"><b>QUALIFICA</b><span>${html(agent.qualifica.toUpperCase())}</span></div></div><table class="distinta"><colgroup><col class="voice-col"><col class="unit-col"><col class="carry-col">${colgroupCells}<col class="result-col"></colgroup><thead><tr><th class="voices-head">V O C I</th><th></th><th>RIP</th>${headCells}<th>TOT</th></tr></thead><tbody>${body}</tbody></table><div class="footer"><div class="date-box">DATA</div><div class="signature"><span>FIRMA DELL'AGENTE</span></div><div class="signature"><span>IL CAPO CANTIERE</span></div><div class="signature"><span>IL LIQUIDATORE</span></div><div class="signature"><span>IL DIRETTORE DI ESERCIZIO</span></div></div></div></body></html>`;
   }
 
-  function installLandscapePreview(popup) {
+  function installLandscapePreview(popup, onClose) {
     const doc = popup.document;
     const sheet = doc.querySelector('.sheet');
     const print = doc.querySelector('[data-print]');
     const close = doc.querySelector('[data-close]');
     if (!sheet) return;
 
-    print?.addEventListener('click', () => popup.print());
-    close?.addEventListener('click', () => popup.close());
+    print?.addEventListener('click', () => { popup.focus(); popup.print(); });
+    close?.addEventListener('click', () => (onClose ? onClose() : popup.close()));
 
     const fit = () => {
       if (popup.closed) return;
       const viewport = popup.visualViewport;
       const vw = Math.max(240, Math.floor(viewport?.width || popup.innerWidth || doc.documentElement.clientWidth));
       const vh = Math.max(320, Math.floor(viewport?.height || popup.innerHeight || doc.documentElement.clientHeight));
-      const margin = 10;
+      const margin = 10, barra = 76; // spazio per i pulsanti Stampa/Chiudi in alto
 
       sheet.style.position = 'absolute';
       sheet.style.left = '50%';
-      sheet.style.top = '50%';
+      sheet.style.top = `calc(50% + ${barra / 2}px)`;
       sheet.style.width = '283mm';
       sheet.style.transform = 'none';
       sheet.style.boxShadow = '0 8px 28px rgba(0,0,0,.18)';
@@ -340,8 +341,8 @@
       const pageH = sheet.offsetHeight;
       const portrait = vh > vw;
       const scale = portrait
-        ? Math.min((vw - margin * 2) / pageH, (vh - margin * 2) / pageW)
-        : Math.min((vw - margin * 2) / pageW, (vh - margin * 2) / pageH);
+        ? Math.min((vw - margin * 2) / pageH, (vh - barra - margin * 2) / pageW)
+        : Math.min((vw - margin * 2) / pageW, (vh - barra - margin * 2) / pageH);
 
       sheet.style.transform = portrait
         ? `translate(-50%,-50%) rotate(90deg) scale(${scale})`
@@ -362,14 +363,20 @@
     event?.stopImmediatePropagation();
     const documentHtml = buildOfficialSheet();
     if (!documentHtml) return;
-    const popup = window.open('', '_blank');
-    if (!popup) return;
-    popup.opener = null;
-    popup.document.open();
-    popup.document.write(documentHtml);
-    popup.document.close();
-    installLandscapePreview(popup);
-    popup.focus();
+    // Anteprima in un riquadro a tutto schermo nella stessa pagina (non una finestra nuova): su iPhone,
+    // soprattutto con l'app installata, la stampa da una finestra aperta con window.open non parte.
+    document.getElementById('distinta-anteprima')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'distinta-anteprima';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#d8dde2';
+    const frame = document.createElement('iframe');
+    frame.title = 'Distinta';
+    frame.style.cssText = 'border:0;width:100%;height:100%;display:block;background:#d8dde2';
+    overlay.appendChild(frame);
+    document.body.appendChild(overlay);
+    const chiudi = () => overlay.remove();
+    frame.addEventListener('load', () => installLandscapePreview(frame.contentWindow, chiudi), { once:true });
+    frame.srcdoc = documentHtml;
   }
 
   printButton.addEventListener('click', printOfficialMonthlySheet, true);
