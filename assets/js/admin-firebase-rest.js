@@ -377,6 +377,15 @@
     return { baristas:rows, updatedAt:new Date().toISOString() };
   }
 
+  // Archivio delle importazioni disattivate: si aggiungono (non si sovrascrivono) e le pagine non lo scaricano
+  async function archiviaImportazioni(items = []) {
+    await ensureAuth();
+    const patch = {};
+    items.forEach((item, i) => { patch[`${Date.now()}_${i}`] = item; });
+    await databaseRequest("private/adminUpdates/scheduleImportsArchivio", { method:"PATCH", body:JSON.stringify(patch) });
+    return items.length;
+  }
+
   async function saveAdminUpdates(payload = {}) {
     const auth = await ensureAuth();
     const item = {
@@ -1029,6 +1038,7 @@
     saveChangeRequest,
     deleteChangeRequest,
     getAdminUpdates,
+    archiviaImportazioni,
     saveAdminUpdates,
     getSheetSync,
     requestSheetSync,

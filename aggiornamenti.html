@@ -95,6 +95,12 @@
             </details>
           </div></details>
           <details class="import-box full-upload foldable">
+            <summary><h3>Alleggerisci le importazioni</h3></summary><div class="import-inner">
+            <p>Le importazioni <b>disattivate</b> (sostituite da altre) si scaricano comunque su ogni telefono a ogni apertura. Qui si spostano in un archivio nel database, che le pagine non scaricano: i turni restano identici. Prima viene scaricata anche una copia sul tuo dispositivo.</p>
+            <div class="actions"><button id="compatta-import" type="button">Archivia le importazioni disattivate</button></div>
+            <p id="compatta-esito" class="hint"></p>
+          </div></details>
+          <details class="import-box full-upload foldable">
             <summary><h3>Foglio Google dei turni</h3></summary><div class="import-inner">
             <p>Usa un identificativo stabile per agente. Scarica il CSV attuale, importalo in Google Fogli e incolla qui il collegamento del foglio pubblicato come CSV.</p>
             <div class="field"><label for="turn-sheet-url">Collegamento Foglio Google</label><input id="turn-sheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/…/edit#gid=0"></div>
@@ -153,7 +159,7 @@
   </nav>
   <script src="assets/js/shared-roles.js?v=6"></script>
   <script src="assets/js/turni-shared.js?v=1"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=64"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=65"></script>
   <script src="assets/js/shared-menu.js?v=1.65"></script>
   <script src="assets/js/shared-data.js?v=126"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
@@ -606,6 +612,23 @@
         setStatus('✓ Documento eliminato.','ok');
       }));
     }
+    // Importazioni disattivate -> private/adminUpdates/scheduleImportsArchivio (copia anche sul dispositivo)
+    document.getElementById('compatta-import')?.addEventListener('click',async()=>{
+      const via=(state.scheduleImports||[]).filter(item=>item&&item.attiva===false);
+      const esito=$('compatta-esito');
+      if(!via.length){esito.textContent='Nessuna importazione disattivata da archiviare.';return;}
+      const kb=Math.round(JSON.stringify(via).length/1024);
+      if(!confirm(`Archiviare ${via.length} importazioni disattivate (circa ${kb} KB in meno da scaricare)? I turni non cambiano.`))return;
+      const copia=new Blob([JSON.stringify(state.scheduleImports)],{type:'application/json'}),a=document.createElement('a');
+      a.href=URL.createObjectURL(copia);a.download=`importazioni-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();
+      const prima=[...state.scheduleImports];
+      try{
+        await window.NaviAdminFirebase.archiviaImportazioni(via);
+        state.scheduleImports=prima.filter(item=>item&&item.attiva!==false);
+        await save();
+        esito.textContent=`✓ Archiviate ${via.length} importazioni (${kb} KB). Restano ${state.scheduleImports.length} importazioni attive.`;
+      }catch(error){state.scheduleImports=prima;esito.textContent=`Non riuscito: ${error.message}`;}
+    });
     async function save(){
       setStatus('Salvataggio su Firebase…');
       try{
