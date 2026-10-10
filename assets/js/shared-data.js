@@ -571,12 +571,14 @@
       // turni fermati o ripresi dal Movimento (righe con "stagione"): servono a NaviOrarioGiorno.inServizio
       try { window.NaviOrarioGiorno?.stagioneDaRighe?.(data.turni_navi); } catch { /* orario non caricato */ }
       data.dismissedOdsApprovals = Array.isArray(updates.dismissedOdsApprovals) ? updates.dismissedOdsApprovals : [];
+        try { localStorage.removeItem('navisuite.erroreAggiornamenti'); } catch (_) {}
         return data;
       } catch (error) {
         lastError = error;
       }
     }
     console.warn('Aggiornamenti amministrativi Firebase non disponibili.', lastError);
+    try { localStorage.setItem('navisuite.erroreAggiornamenti', `${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} · ${lastError?.message || lastError || 'errore'}`); } catch (_) {}
     data.__senzaAggiornamenti = true; // solo turno base: non deve sostituire la copia completa salvata
     return data;
   }
