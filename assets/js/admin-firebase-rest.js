@@ -109,21 +109,30 @@
   async function versioni() {
     try { return (await databaseRequest("private/adminUpdates/versione")).data || {}; } catch { return {}; }
   }
+  // Copia dei rami nella Cache Storage del browser (spazio ampio), non in localStorage: su iPhone localStorage
+  // ha ~5 MB e i turni importati lo riempivano, facendo perdere la copia completa dei turni.
+  const DATI_CACHE = "navi-dati-v1"; // non "navisuite-": il service worker cancella quelle cache a ogni versione
+  try { Object.keys(localStorage).filter(k => k.startsWith("navisuite.adm.")).forEach(k => localStorage.removeItem(k)); } catch { /* niente */ }
+  async function copiaLeggi(ramo) {
+    try { const c = await caches.open(DATI_CACHE); const r = await c.match(`/__dati/${ramo}`); return r ? await r.json() : null; } catch { return null; }
+  }
+  async function copiaScrivi(ramo, valore) {
+    try { const c = await caches.open(DATI_CACHE); await c.put(`/__dati/${ramo}`, new Response(JSON.stringify(valore), { headers:{ "Content-Type":"application/json" } })); } catch { /* niente */ }
+  }
+  async function copiaTogli(ramo) { try { const c = await caches.open(DATI_CACHE); await c.delete(`/__dati/${ramo}`); } catch { /* niente */ } }
   async function leggiRamo(ramo, ver) {
-    const key = `navisuite.adm.${ramo}`, v = ver?.[ramo];
-    if (v) {
-      try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c && c.v === v && Date.now() - (c.t || 0) < CACHE_MAX) return c.data; } catch { /* niente */ }
-    }
+    const v = ver?.[ramo];
+    const salvata = await copiaLeggi(ramo);
+    if (v && salvata && salvata.v === v && Date.now() - (salvata.t || 0) < CACHE_MAX) return salvata.data;
     let data;
     try { data = (await databaseRequest(`private/adminUpdates/${ramo}`, { timeout:60000 })).data; } // rami grandi: anche con rete lenta
     catch (error) {
-      // rete lenta/assente: meglio la copia salvata (anche vecchia) che niente
-      try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c) return c.data; } catch { /* niente */ }
+      if (salvata) return salvata.data; // rete lenta/assente: meglio la copia salvata (anche vecchia) che niente
       throw error;
     }
     let nv = v;
     if (!nv) { nv = Date.now(); databaseRequest("private/adminUpdates/versione", { method:"PATCH", body:JSON.stringify({ [ramo]:nv }) }).catch(() => {}); }
-    try { localStorage.setItem(key, JSON.stringify({ v:nv, t:Date.now(), data })); } catch { try { localStorage.removeItem(key); } catch { /* niente */ } }
+    await copiaScrivi(ramo, { v:nv, t:Date.now(), data });
     return data;
   }
 
@@ -150,7 +159,7 @@
         const rami = ramiScritti(path, options);
         if (rami.length) {
           const ora = Date.now();
-          rami.forEach(r => { try { localStorage.removeItem(`navisuite.adm.${r}`); } catch { /* niente */ } });
+          rami.forEach(r => copiaTogli(r));
           databaseRequest("private/adminUpdates/versione", { method:"PATCH", body:JSON.stringify(Object.fromEntries(rami.map(r => [r, ora]))) }).catch(() => {});
         }
       }

@@ -191,6 +191,14 @@
     });
   }
 
+  // Aggiorna solo l'elenco agenti (per l'accesso), senza toccare la copia completa dei turni
+  function soloElenco(data) {
+    normalizeScheduleAgents(data);
+    normalizeScheduleShifts(data);
+    injectProfileAgents(data);
+    try { localStorage.setItem(DIRECTORY_KEY, JSON.stringify(directoryFrom(data))); } catch (_) {}
+    return data;
+  }
   function save(data) {
     normalizeScheduleAgents(data);
     normalizeScheduleShifts(data);
@@ -630,6 +638,9 @@
     pending = fetchJson(scheduleUrl(), 8000)
       .then(data => {
         lastSource = src === 'pocketbase' ? 'pocketbase' : 'firebase';
+        // Il turno base (fino all'ultima pubblicazione) NON deve sostituire la copia completa salvata
+        // (con i turni importati): con rete lenta o app chiusa a meta' restava solo il turno base.
+        if (src !== 'pocketbase' && cached(true)) return soloElenco(data);
         return save(data);
       })
       .catch(error => {
