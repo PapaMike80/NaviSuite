@@ -218,15 +218,8 @@
     if (!state.schedule && !state.test) { $('turno-content').innerHTML = ''; return; }
     const turno = state.test || found?.turno || '';
     const nave = G.naveCode(turno), terra = G.terraCode(turno);
-    // Prima pagina "Automatica": oggi a terra -> pagina Scali sul mio scalo, altrimenti resta Il mio turno
-    if (params.get('auto') === '1' && found && !state.test) {
-      params.delete('auto');
-      if (terra && realToday) {
-        const res = G.terraResidenza(terra) || String(found.residenza || '').toUpperCase();
-        location.replace(`orario.html?scalo=${res === 'MADERNO' ? 'Maderno' : 'Desenzano'}`);
-        return;
-      }
-    }
+    // Prima pagina "Automatica": sempre Il mio turno, anche a terra (AgB, PonD, AgM, AgT...). Scali e' per gli scali.
+    if (params.get('auto') === '1') params.delete('auto');
     const messages = [];
     if (state.test) messages.push(`Prova con il turno ${state.test === 'RIP' ? 'Riposo' : state.test}: i tuoi dati non cambiano.`);
     else if (!found) messages.push('Non trovo il tuo turno nei dati di NaviTurni.');

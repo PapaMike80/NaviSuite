@@ -103,12 +103,12 @@ assert.match(js, /savePontileCorsa\('DESENZANO', key, day/);
 assert.match(js, /class="arr" title="Arrivo">arr\./);
 assert.match(js, /Agenti di servizio/);
 assert.ok(!/card\('Navi'/.test(js), 'sezione Navi tolta');
-// Prima pagina Automatica: Scali nei giorni a terra, altrimenti Il mio turno (solo all'apertura, non da Home)
+// Prima pagina Automatica: sempre Il mio turno, anche a terra (solo all'apertura, non da Home); Scali solo per gli scali
 const portal = fs.readFileSync('assets/js/portal.js', 'utf8');
 assert.match(portal, /location\.href=preferred==='auto'\?'mio-turno\.html\?auto=1':preferred/);
 assert.match(portal, /homeRichiesta=new URLSearchParams\(location\.search\)\.has\('home'\)/);
 assert.match(portal, /navisuite\.startDone/);
-assert.match(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=\$\{res === 'MADERNO' \? 'Maderno' : 'Desenzano'\}`\)/);
+assert.doesNotMatch(fs.readFileSync('assets/js/mio-turno.js', 'utf8'), /location\.replace\(`orario\.html\?scalo=/);
 assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="auto"/);
 assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
 assert.match(js, /while \(resto\[fine \+ 1\]\?\.scalo === state\.scalo\) fine \+= 1;/); // sosta: arrivo e ripartenza, poi lo scalo dopo

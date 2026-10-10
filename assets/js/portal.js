@@ -104,8 +104,8 @@ function showChoice(agent) {
   const scalo=window.NaviRoles?.scaloOf?.(agent);
   if(scalo){location.replace(`orario.html?scalo=${encodeURIComponent(scalo)}`);return;}
   const allowedStartPages=new Set(['auto','index.html','oggi.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','mio-turno.html','orario.html','impostazioni.html','aggiornamenti.html','agenti.html']);
-  // Prima pagina: quella scelta in Impostazioni; chi non ha mai scelto ha "Automatica" (Scali se oggi e'
-  // di turno a terra, altrimenti Il mio turno), tranne le bariste. Servizi a terra e' ora in Scali.
+  // Prima pagina: quella scelta in Impostazioni; chi non ha mai scelto ha "Automatica" (sempre Il mio turno,
+  // anche a terra: Scali e' solo per gli scali), tranne le bariste. Servizi a terra e' ora in Scali.
   const barista=isBaristaAgent(agent)&&!isHibaBarista(agent);
   let savedStartPage=null;try{savedStartPage=localStorage.getItem('navisuite.startPage.'+String(agent.id||''));}catch(_){}
   savedStartPage=(savedStartPage==null?(barista?'index.html':'auto'):savedStartPage).replace(/^servizi-terra\.html$/,'orario.html');
