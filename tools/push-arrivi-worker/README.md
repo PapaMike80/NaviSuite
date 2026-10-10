@@ -38,3 +38,18 @@ Ogni giorno dopo le 2 il programma salva nella cartella `backup` accanto alla su
 
 Tiene gli ultimi 60 giorni (`BACKUP_GIORNI` per cambiarli). In `backup/codice` salva anche il codice dell'app
 (copia completa del repository GitHub e lo zip del sito). Piano di ripristino: `tools/RIPRISTINO.md`. Backup subito: `docker exec navisuite-arrivi node worker.js --backup`.
+
+## Turno pronto per l'app (dalla versione 1.6)
+
+Ogni minuto controlla se un admin ha cambiato qualcosa (turni importati, O.d.S., profili…). Se sì, o comunque ogni
+10 minuti, prepara il **turno pronto**: da una settimana fa in poi, già unito con importazioni, O.d.S., profili e
+turni nave, calcolato con lo stesso codice dell'app. Lo pubblica in `public/turnoFuturo` (circa 25 KB compressi).
+
+I telefoni scaricano solo quello, invece di turno base + importazioni + variazioni (oltre 1 MB): apertura veloce
+anche con poca rete. Se il turno pronto è più vecchio dell'ultimo salvataggio admin, o il NAS è fermo da ore,
+l'app torna da sola al percorso completo.
+
+Prova senza pubblicare: `docker exec -e DRY_RUN=1 navisuite-arrivi node worker.js --pronto`.
+Pubblica subito: `docker exec navisuite-arrivi node worker.js --pronto`.
+
+Serve la regola di scrittura per `public/turnoFuturo` (vedi `firebase-rules-aggiornamenti.json`).

@@ -419,6 +419,17 @@
     return { baristas:rows, updatedAt:new Date().toISOString() };
   }
 
+  // Segno degli ultimi salvataggi admin (updatedAt + versioni dei rami): se coincide con quello del turno pronto del NAS,
+  // il turno pronto e' aggiornato. Pochi byte.
+  async function getSegnoAggiornamenti() {
+    const [u, v] = await Promise.all([databaseRequest("private/adminUpdates/updatedAt", { timeout:8000 }), databaseRequest("private/adminUpdates/versione", { timeout:8000 })]);
+    return segnoDa(u.data, v.data);
+  }
+  function segnoDa(updatedAt, versione) {
+    const v = versione || {};
+    return [String(updatedAt || ""), ...Object.keys(v).sort().map(k => `${k}:${v[k]}`)].join("|");
+  }
+
   // Turno base (public/schedule): lettura e pubblicazione del turno consolidato (serve la regola di scrittura per gli admin)
   async function getTurnoBase() { return (await databaseRequest("public/schedule", { timeout:60000 })).data || null; }
   async function pubblicaTurnoBase(data) {
@@ -1090,6 +1101,8 @@
     getAdminUpdates,
     archiviaImportazioni,
     getTurnoBase,
+    getSegnoAggiornamenti,
+    segnoDa,
     pubblicaTurnoBase,
     saveAdminUpdates,
     getSheetSync,

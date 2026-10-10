@@ -607,7 +607,32 @@
     }
   }
 
+  // Turno pronto preparato dal NAS ogni pochi minuti (public/turnoFuturo): da una settimana fa in poi, gia' unito con
+  // importazioni e O.d.S. Si usa se e' aggiornato rispetto agli ultimi salvataggi admin (updatedAt e versioni):
+  // un solo download piccolo invece di turno base + importazioni + variazioni.
+  const PRONTO_URL = 'https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app/public/turnoFuturo.json';
+  async function turnoPronto() {
+    const api = window.NaviAdminFirebase;
+    if (dataSource() === 'pocketbase' || !api?.getSegnoAggiornamenti) return null;
+    try {
+      const [pronto, segno] = await Promise.all([fetchJson(PRONTO_URL, 8000), api.getSegnoAggiornamenti()]);
+      if (!pronto?.data?.residenze || !segno) return null;
+      if (Date.now() - Date.parse(pronto.creato || 0) > 3 * 3600 * 1000) return null; // NAS fermo da ore: meglio il percorso completo
+      if (String(pronto.segno || '') !== String(segno)) return null; // un admin ha appena cambiato qualcosa: percorso completo
+      return pronto.data;
+    } catch (_) { return null; }
+  }
+
   async function load(_url, { force = false } = {}) {
+    if (force) {
+      const pronto = await turnoPronto();
+      if (pronto) {
+        lastSource = 'firebase';
+        window.NaviOffline?.segnaCopiaLocale?.(false);
+        try { localStorage.removeItem('navisuite.erroreAggiornamenti'); } catch (_) {}
+        return save(pronto); // e' gia' leggero (__leggeroDal): non sostituisce la copia completa del passato
+      }
+    }
     const completoPrima = cached(true); // copia completa (con turni importati) prima di riscaricare il turno base
     const base = await loadBase(_url, { force });
     // In modalita' PocketBase la route /schedule restituisce gia' il dataset
@@ -700,6 +725,7 @@
   }
 
   window.NaviSharedData = {
+    leggero,
     load,
     loadBase,
     loadCacheFirst,
