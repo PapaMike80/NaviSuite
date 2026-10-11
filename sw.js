@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v498-richieste-accesso';
+const CACHE_VERSION = 'navisuite-v500-accesso-telefono';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -327,6 +327,8 @@ self.addEventListener('fetch', event => {
       if(popup.hidden) return;
       const dialog=popup.querySelector('.ns-menu-dialog');
       if(!dialog) return;
+      // da computer il menu resta centrato come nelle altre pagine
+      if((window.visualViewport?.width||window.innerWidth)>850){['position','left','right','top','bottom','width','min-width','max-width','height','max-height','margin','transform'].forEach(prop=>dialog.style.removeProperty(prop));return;}
       const vv=window.visualViewport;
       const vw=Math.max(240,Math.floor(vv?.width || document.documentElement.clientWidth || window.innerWidth));
       const vh=Math.max(320,Math.floor(vv?.height || document.documentElement.clientHeight || window.innerHeight));

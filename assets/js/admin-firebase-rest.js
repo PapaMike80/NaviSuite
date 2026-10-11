@@ -1093,6 +1093,17 @@
     const result = await databaseRequest("private/adminUpdates/richiesteAccesso");
     return Object.values(result.data || {}).filter(Boolean).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   }
+  // Primo accesso completato: il numero passa nel profilo dell'agente e le sue richieste spariscono.
+  async function chiudiRichiesteAccesso(agentId) {
+    const id = String(agentId || "").trim();
+    if (!id) return null;
+    const mie = (await listRichiesteAccesso()).filter(r => String(r.agentId) === id);
+    if (!mie.length) return null;
+    const telefono = mie.find(r => r.telefono)?.telefono || "";
+    if (telefono) await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify({ id, telefono, telefonoDal:new Date().toISOString() }) });
+    await Promise.all(mie.map(r => deleteRichiestaAccesso(r.id)));
+    return telefono;
+  }
   async function deleteRichiestaAccesso(id) {
     await databaseRequest(`private/adminUpdates/richiesteAccesso/${safeUserKey(id)}`, { method:"DELETE" });
   }
@@ -1200,6 +1211,7 @@
     richiestaAccesso,
     listRichiesteAccesso,
     deleteRichiestaAccesso,
+    chiudiRichiesteAccesso,
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
