@@ -132,6 +132,14 @@
       .ns-tile.active{border-color:#45d9c7;background:rgba(45,212,191,.14)}
       .ns-saluto{display:flex;align-items:center;gap:10px;min-width:0;color:#eafffb;font-size:23px}
       .ns-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:34px;height:34px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px;font-weight:900;line-height:1}
+      #navisuite-popup .ns-tile{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;text-align:left!important;gap:6px!important;padding:13px 12px!important;border:1px solid #285560!important;border-radius:16px!important;background:rgba(255,255,255,.025)!important;color:#e8f7f7!important;text-decoration:none!important;min-height:0!important;box-shadow:none!important;opacity:1!important}
+      #navisuite-popup .ns-tile.active{border-color:#45d9c7!important;background:rgba(45,212,191,.14)!important}
+      #navisuite-popup .ns-tile.ns-wide{flex-direction:row!important;align-items:center!important;gap:12px!important}
+      #navisuite-popup .ns-grid-small .ns-tile{align-items:center!important;text-align:center!important;padding:10px 4px!important;gap:4px!important}
+      #navisuite-popup .ns-tile b{color:#e8f7f7!important;font:800 17px/1.15 Manrope,system-ui,sans-serif!important}
+      #navisuite-popup .ns-tile small{color:#9fb8c2!important;font:600 12.5px/1.3 "DM Sans",system-ui,sans-serif!important}
+      #navisuite-popup .ns-tile.ns-wide b{font-size:21px!important}
+      #navisuite-popup .ns-grid-small .ns-tile b{font-size:12.5px!important}
       #navisuite-popup .ns-tile>span{flex:0 0 auto!important;width:38px!important;min-width:38px!important;height:38px!important;margin:0!important;padding:0!important;font-family:system-ui,sans-serif;font-variant-emoji:text}
       #navisuite-popup .ns-tile.ns-wide>span{width:46px!important;min-width:46px!important;height:46px!important}
       #navisuite-popup .ns-grid-small .ns-tile>span{width:32px!important;min-width:32px!important;height:32px!important}
@@ -140,7 +148,7 @@
       .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}
       .ns-menu-foot a,.ns-menu-foot button{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.05);color:#d9eff0;text-decoration:none;font:800 14px/1 Manrope,system-ui,sans-serif;cursor:pointer}
       .ns-menu-foot .ns-menu-exit{border-color:rgba(251,113,133,.52);background:rgba(251,113,133,.09);color:#fdb2ba}
-      @media(min-width:851px){.ns-menu-dialog{left:50%;right:auto;width:min(980px,calc(100vw - 48px));transform:translateX(-50%);top:40px}.ns-grid-main{grid-template-columns:repeat(5,1fr)}.ns-tile.ns-wide{grid-column:auto;flex-direction:column;align-items:flex-start;gap:6px}.ns-tile.ns-wide>span{width:38px;height:38px;font-size:19px}.ns-tile.ns-wide b{font-size:17px}.ns-grid-small{grid-template-columns:repeat(6,1fr)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}}
+      @media(min-width:851px){#navisuite-popup .ns-tile.ns-wide{flex-direction:column!important;align-items:flex-start!important;gap:6px!important}#navisuite-popup .ns-tile.ns-wide b{font-size:17px!important}#navisuite-popup .ns-tile.ns-wide>span{width:38px!important;min-width:38px!important;height:38px!important}.ns-menu-dialog{left:50%;right:auto;width:min(980px,calc(100vw - 48px));transform:translateX(-50%);top:40px}.ns-grid-main{grid-template-columns:repeat(5,1fr)}.ns-tile.ns-wide{grid-column:auto;flex-direction:column;align-items:flex-start;gap:6px}.ns-tile.ns-wide>span{width:38px;height:38px;font-size:19px}.ns-tile.ns-wide b{font-size:17px}.ns-grid-small{grid-template-columns:repeat(6,1fr)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}}
     `;
     document.head.appendChild(style);
     // Intestazione: "Ciao Pedroni M." con il distintivo del grado come in Movimento
