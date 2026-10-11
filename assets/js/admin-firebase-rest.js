@@ -138,7 +138,7 @@
 
   async function databaseRequest(path, options = {}) {
     const auth = await ensureAuth();
-    const url = `${DATABASE_URL}/${String(path).replace(/^\/+/, "")}.json?auth=${encodeURIComponent(auth.idToken)}`;
+    const url = `${DATABASE_URL}/${String(path).replace(/^\/+/, "")}.json?auth=${encodeURIComponent(auth.idToken)}${options.query ? `&${options.query}` : ""}`;
     const controller = new AbortController();
     // letture: 8 s (con segnale debole si usa la copia salvata); scritture: 15 s
     const attesa = options.timeout || (String(options.method || "GET").toUpperCase() === "GET" ? 8000 : 15000);
@@ -1060,6 +1060,17 @@
     await Promise.all(oldKeys.map(key => databaseRequest(`private/adminUpdates/diariaBackups/${safeUserKey(id)}/${key}`, { method:"DELETE" })));
   }
 
+  // Ritardi dell'equipaggio: chi segna un ritardo lo passa ai colleghi con lo stesso turno quel giorno.
+  // ritardiEquipaggio/<giorno>/<TURNO>/<agente> = { minuti, nome, t }
+  async function getRitardiEquipaggio(dal) {
+    const result = await databaseRequest("private/adminUpdates/ritardiEquipaggio", { query:`orderBy=${encodeURIComponent('"$key"')}&startAt=${encodeURIComponent(JSON.stringify(String(dal)))}` });
+    return result.data || {};
+  }
+  async function saveRitardoEquipaggio(day, turno, agentId, value) {
+    const path = `private/adminUpdates/ritardiEquipaggio/${safeUserKey(day)}/${safeUserKey(String(turno).toUpperCase())}/${safeUserKey(agentId)}`;
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(value) });
+  }
+
   async function saveDiaria(agentId, entries = []) {
     const auth = await ensureAuth();
     const id = String(agentId || "").trim();
@@ -1160,6 +1171,8 @@
     loadDiaria,
     loadAllDiaria,
     saveDiaria,
+    getRitardiEquipaggio,
+    saveRitardoEquipaggio,
     getDiariaConversioni,
     getPageAccess,
     getPaginaIniziale,
