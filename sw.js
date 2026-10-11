@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v489-rete-2s';
+const CACHE_VERSION = 'navisuite-v490-rete-1s';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -93,7 +93,7 @@ async function fetchAndCache(request, options = {}) {
 
 // Rete prima, ma con segnale debole non si aspetta: dopo LENTO ms si usa la copia salvata (se c'e')
 // e la risposta della rete, quando arriva, aggiorna la copia per la prossima apertura.
-const LENTO = 2000; // oltre 2 secondi la rete conta come assente: si usa la copia salvata
+const LENTO = 1000; // oltre 1 secondo la rete conta come assente: si usa la copia salvata
 async function networkFirst(request, fallbackUrl = '') {
   const rete = fetchAndCache(request);
   try {
