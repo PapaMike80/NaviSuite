@@ -180,3 +180,20 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 
 .or-rit-veloce{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 4px;padding:8px 10px;border:1px solid rgba(245,158,11,.35);border-radius:10px;background:rgba(245,158,11,.06);font-size:13px;font-weight:800;color:#fbbf24}
 .or-rit-veloce .ritardo-sel{font-size:15px;padding:6px 10px}.or-rit-veloce .ritardo-sel select{font-size:15px}
+
+/* Da → A: mappa con la rotta del viaggio scelto */
+.or-viaggio-mappa{margin:12px 0;border:1px solid #234a55;border-radius:14px;background:#0a1f28;overflow:hidden}
+.or-map-viaggio{max-height:62vh}
+.or-path-viaggio .done{stroke-width:1.1}
+.or-port.da circle{fill:#2dd4bf}
+.or-port.a circle{fill:#facc15}
+.or-port.cambio circle{fill:#f97316}
+.or-trip[data-trip]{cursor:pointer}
+.or-trip.scelto{outline:2px solid #2dd4bf;outline-offset:-2px}
+.or-map-viaggio .or-port{cursor:pointer}
+.or-port.raggiungibile circle{fill:#facc15;stroke:#fff;stroke-width:.4}
+.or-port.raggiungibile text{fill:#fde68a}
+.or-port.spento{opacity:.35}
+.or-map-tip{margin:0;padding:6px 10px 8px;color:#9fb8c2;font-size:12px;text-align:center}
+.or-map-nota{margin:4px 2px 0}
+.or-port .or-hit{fill:transparent!important;stroke:none!important;pointer-events:all}
