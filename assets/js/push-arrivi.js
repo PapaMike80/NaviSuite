@@ -89,9 +89,10 @@
       const nave = navi[chi]?.nave || '';
       const comandante = G().comandante(crews[chi]);
       const percorso = kind === 'S' ? `scalo ${where.replace('›', '→')}` : where;
-      const title = `${code}${chi !== code ? ' · BIS' : ''}${nave ? ` ${nave}` : ''} ${kind === 'S' ? 'fa scalo' : 'arriva'} alle ${time}${ritardo ? ` (${OG.testoRitardo(ritardo)})` : ''}`;
-      const body = [[pontile ? `⚓ Pontile ${pontile}` : '', percorso, run ? `corsa ${run}` : ''].filter(Boolean).join(' · '),
-        comandante ? `Comandante ${comandante}` : ''].filter(Boolean).join('\n');
+      // compatta: si legge tutta nella notifica chiusa (titolo + una riga)
+      const title = `${time}${ritardo ? ` ${OG.testoRitardo(ritardo)}` : ''} · ${code}${chi !== code ? '/BIS' : ''}${nave ? ` ${nave}` : ''}`;
+      const body = [pontile ? `⚓${String(pontile).replace(/^pont(ile|\.)?\s*/i, '')}` : '', percorso.replace(/^scalo /, ''), run ? `c.${run}` : '',
+        comandante ? `Cte ${comandante}` : ''].filter(Boolean).join(' · ');
       const at = minutes(time) - anticipo;
       return {
         at, quando: hhmm(at), time, code, run, servizio, pontile, nave, comandante, title, body,
@@ -134,9 +135,9 @@
         const orario = prima.find(c => c.numero === String(x.run))?.scali.find(([s]) => s === 'Desenzano')?.[1] || x.time;
         pontile = T().pontileFor(pontili[T().courseKey(orario, code, x.run)], day, '').value || '';
       }
-      const title = `${code}${nave ? ` ${nave}` : ''} · prossimo scalo ${x.scalo} alle ${x.time}${x.ritardo ? ` (${OG.testoRitardo(x.ritardo)})` : ''}`;
-      const body = [[pontile ? `⚓ Pontile ${pontile}` : '', `corsa ${x.run}`].filter(Boolean).join(' · '),
-        dopo ? `poi ${dopo.scalo} alle ${dopo.time}` : 'ultimo scalo della giornata'].join('\n');
+      const title = `${x.time}${x.ritardo ? ` ${OG.testoRitardo(x.ritardo)}` : ''} · ${x.scalo}`;
+      const body = [`${code}${nave ? ` ${nave}` : ''}`, pontile ? `⚓${pontile}` : '', `c.${x.run}`,
+        dopo ? `poi ${dopo.scalo} ${dopo.time}` : 'ultimo scalo'].filter(Boolean).join(' · ');
       const at = minutes(x.time) - anticipo;
       return { at, quando: hhmm(at), time: x.time, code, run: x.run, scalo: x.scalo, nave, pontile, title, body,
         tag: `navisuite-scalo-${day}-${code}-${x.run}-${x.scalo}${x.ritardo ? `-r${x.ritardo.minuti}` : ''}`, url: 'mio-turno.html', ritardo: x.ritardo };

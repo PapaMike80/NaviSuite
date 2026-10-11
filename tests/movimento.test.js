@@ -71,9 +71,9 @@ assert.deepStrictEqual(T.turniDelGiorno([bisRow], day).BIS.incarichi, incarichi)
 const dataBis = { residenze: { DESENZANO: [{ id: '4', agente: 'NERI', turni: { [day]: 'POND' } }, { id: '7', agente: 'MORO', qualifica: 'capitano', turni: { [day]: 'BIS' } }] },
   turni_navi: [bisRow, { data: day, corsa: 'D1', nave: 'S. MARCO', ods: 'ODS 39/2026' }] };
 const lista = A.notifiche(dataBis, '4', day);
-assert.strictEqual(lista.find(n => n.run === '17').title, 'D1 · BIS BRESCIA arriva alle 16.55');
-assert.match(lista.find(n => n.run === '17').body, /Comandante MORO/);
-assert.strictEqual(lista.find(n => n.run === '15').title, 'D1 S. MARCO arriva alle 9.55');
+assert.strictEqual(lista.find(n => n.run === '17').title, '16.55 · D1/BIS BRESCIA');
+assert.match(lista.find(n => n.run === '17').body, /Cte MORO/);
+assert.strictEqual(lista.find(n => n.run === '15').title, '9.55 · D1 S. MARCO');
 assert.ok(lista.some(n => n.code === 'BIS' && n.run === '33' && /in aiuto alla P2/.test(n.body)));
 assert.ok(lista.some(n => n.code === 'P2' && n.run === '33'));
 assert.match(rest, /incarichi:\(Array\.isArray\(values\.incarichi\)/);
@@ -89,7 +89,7 @@ assert.deepStrictEqual(O.ritardiDelGiorno(T.turniDelGiorno([ritRow], day)), { D1
 // notifica spostata con l'arrivo, nuovo tag con il ritardo
 const conRitardo = A.notifiche({ ...data, turni_navi: [ritRow] }, '4', day);
 const n15 = conRitardo.find(n => n.run === '15');
-assert.strictEqual(n15.title, "D1 S. MARCO arriva alle 10.15 (+20')");
+assert.strictEqual(n15.title, "10.15 +20' · D1 S. MARCO");
 assert.strictEqual(n15.quando, '10.05');
 assert.match(n15.tag, /-15-r20$/);
 assert.match(rest, /ritardi:\(Array\.isArray\(values\.ritardi\)/);
