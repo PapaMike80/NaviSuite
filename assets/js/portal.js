@@ -98,7 +98,11 @@ function showChoice(agent) {
   $('loginForm').hidden = true;
   $('firstPinForm').hidden = true;
   $('appChoice').hidden = false;
-  $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
+  // Grado con lo stesso distintivo di Movimento (cerchio colorato con la sigla)
+  const qualifica=String(agent.qualifica||agent.grado||(typeof agents!=='undefined'?agents:[]).find(a=>String(a.id)===String(agent.id))?.qualifica||'');
+  const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6'],[/motorista/i,'Motorista','Mot','#a855f7'],[/timoniere/i,'Timoniere','Tim','#22c55e'],[/marinaio/i,'Marinaio','Mar','#e8f3f6']].find(([re])=>re.test(qualifica));
+  const welcome=$('welcomeUser');welcome.textContent=`Ciao ${formatName(agent.name)}`;
+  if(grado){const b=document.createElement('span');b.className='home-grado';b.style.setProperty('--g',grado[3]);b.title=grado[1];b.textContent=grado[2];welcome.appendChild(b);}
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
   // Utente di uno scalo: solo la pagina Scali del proprio scalo
   const scalo=window.NaviRoles?.scaloOf?.(agent);
