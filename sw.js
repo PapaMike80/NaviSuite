@@ -8,16 +8,16 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v484-pallini-css';
+const CACHE_VERSION = 'navisuite-v485-pallini-terra';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
 const PAGE_ASSETS = [
-  './assets/css/naviturni-page.css?v=3',
+  './assets/css/naviturni-page.css?v=4',
   './assets/css/naviturni-page-fixes.css?v=1',
   './assets/js/naviturni-page.js?v=16',
   './assets/js/naviturni-change-requests.js?v=1',
-  './assets/css/cambi-turno-page.css?v=2',
+  './assets/css/cambi-turno-page.css?v=3',
   './assets/css/cambi-turno-page-fixes.css?v=1',
   './assets/js/cambi-turno-page.js?v=4',
   './assets/css/cambi-turno-logic.css?v=1',
