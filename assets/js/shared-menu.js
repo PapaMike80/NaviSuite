@@ -79,7 +79,6 @@
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
     const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
-      ['index.html?home=1','⌂','Home'],
       // pagine principali: Il mio turno e Scali
       ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
