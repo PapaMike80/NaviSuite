@@ -1083,10 +1083,18 @@
       id, status:"pending", kind:"access-request", source:"navisuite-access", ownerUid:auth.uid || "", targetAgentId:"92",
       title:"NaviSuite · richiesta di accesso",
       body:`${richiesta.nome || "Agente"} chiede l'accesso · tel. ${richiesta.telefono}${richiesta.nota ? ` · ${richiesta.nota}` : ""}`,
-      url:"agenti.html", createdAt:richiesta.createdAt
+      url:"agenti.html#richieste-accesso", createdAt:richiesta.createdAt
     };
     await databaseRequest(`private/adminUpdates/pushQueue/${id}`, { method:"PUT", body:JSON.stringify(push) });
     return richiesta;
+  }
+
+  async function listRichiesteAccesso() {
+    const result = await databaseRequest("private/adminUpdates/richiesteAccesso");
+    return Object.values(result.data || {}).filter(Boolean).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  }
+  async function deleteRichiestaAccesso(id) {
+    await databaseRequest(`private/adminUpdates/richiesteAccesso/${safeUserKey(id)}`, { method:"DELETE" });
   }
 
   async function saveDiaria(agentId, entries = []) {
@@ -1190,6 +1198,8 @@
     loadAllDiaria,
     saveDiaria,
     richiestaAccesso,
+    listRichiesteAccesso,
+    deleteRichiestaAccesso,
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
