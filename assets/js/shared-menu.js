@@ -172,7 +172,7 @@
       location.href='index.html';
     });
     // Condividi: locandina con QR code da far girare ai colleghi
-    const TESTO_CONDIVIDI=["⚓ *NaviSuite* – la nostra app di lavoro","Turni, distinta, il mio turno, navi e scali sempre in tasca. Funziona anche con poca rete 🌊","","👉 https://papamike80.github.io/NaviSuite/","","🔑 *Primo accesso*","1. Apri il link e premi *«Non hai il PIN? Chiedi accesso»*","2. Scegli il tuo cognome dall'elenco e lascia il numero di telefono","3. Riceverai su WhatsApp il PIN iniziale: al primo accesso ne scegli uno personale","","📲 *Installala come app*","• iPhone: Safari → Condividi ⬆️ → Aggiungi alla schermata Home","• Android: Chrome → menu ⋮ → Installa app","","Fallo girare ai colleghi! 🚢"].join("\n");
+    const TESTO_CONDIVIDI=["⚓ Ti presento *NaviSuite*","L'app per noi del lago: il tuo turno, la distinta, le navi e gli scali, tutto in un posto.","","👉 https://papamike80.github.io/NaviSuite/","","🔑 *Primo accesso*","1. Apri il link e premi *«Non hai il PIN? Chiedi accesso»*","2. Scegli il tuo cognome dall'elenco e lascia il numero di telefono","3. Riceverai su WhatsApp il PIN iniziale: al primo accesso ne scegli uno personale","","📲 *Installala come app*","• iPhone: Safari → Condividi ⬆️ → Aggiungi alla schermata Home","• Android: Chrome → menu ⋮ → Installa app","","Fallo girare ai colleghi! 🚢"].join("\n");
     const IMG_LOCANDINA='assets/images/navisuite-locandina.png';
     const apriCondividi=()=>{
       close();
