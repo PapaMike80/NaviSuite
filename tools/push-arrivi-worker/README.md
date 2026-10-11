@@ -61,3 +61,11 @@ turno (O.d.S. e Movimento), da oggi in poi: `📋 ODS 40/26 · dom 11/10` — `M
 avviso. Nuove = inserite dopo l'ultimo controllo (`private/adminUpdates/pushOdsDa`); al primo avvio si parte da adesso.
 
 Prova senza mandare: `docker exec -e DRY_RUN=1 navisuite-arrivi node worker.js --ods 2026-10-08T00:00:00Z`.
+
+## Cambi turno (dalla versione 1.8)
+
+A chi ha acceso "Cambi turno": al **collega** la nuova richiesta (`⇄ Cambio turno da PEDRONI M.` — `lun 12/10 T1→RIP`),
+a **entrambi** l'approvazione (`✅ Cambio turno approvato` — `con TURRINI M. · dom 11/10 M1→RIP`). Le richieste
+cancellate non vengono avvisate. Al primo avvio si parte da adesso (`private/adminUpdates/pushCambiDa`).
+
+Prova senza mandare: `docker exec -e DRY_RUN=1 navisuite-arrivi node worker.js --cambi 2026-10-01T00:00:00Z`.
