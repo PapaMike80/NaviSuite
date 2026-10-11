@@ -38,10 +38,32 @@
   </main>
   <script src="assets/js/shared-roles.js?v=6"></script>
   <script src="assets/js/admin-firebase-rest.js?v=76"></script>
-  <script src="assets/js/shared-menu.js?v=1.67"></script>
+  <script src="assets/js/shared-menu.js?v=1.68"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/shared-data.js?v=136"></script>
   <script>
+    // Messaggio WhatsApp di benvenuto con PIN iniziale e istruzioni principali
+    window.messaggioBenvenuto=(nomeAgente,pin,sito)=>{const nome=String(nomeAgente||'').toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());return [
+`Ciao ${nome}! 👋 Ecco il tuo accesso a *NaviSuite* ⚓`,
+'',
+`👉 ${sito}`,
+`👤 Cognome: *${String(nomeAgente||'').toUpperCase()}*`,
+`🔑 PIN iniziale: *${pin||'____'}*`,
+'',
+'*Primo accesso*',
+'1. Apri il link, scrivi il cognome e scegli il tuo nome dall\'elenco',
+'2. Inserisci il PIN iniziale',
+'3. Scegli un PIN personale (4–8 cifre) e ricordalo',
+'',
+'📲 *Installala come app*',
+'• iPhone: apri con Safari → Condividi ⬆️ → Aggiungi alla schermata Home',
+'• Android: apri con Chrome → menu ⋮ → Installa app',
+'',
+'🔔 Dentro l\'app vai su Impostazioni → Notifiche e attiva le notifiche (cambi turno, ODS, arrivi)',
+'',
+'Dal menu ☰ trovi Distinta, Il mio turno, Turni, Oggi e Scali. Funziona anche con poca rete 🌊',
+'Per problemi scrivimi pure qui. Buon lavoro! 🚢'].join('\n')};
+
   (()=>{
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null');
     const isAdmin=window.NaviRoles.isAdminAgent(profile);
@@ -92,7 +114,7 @@
       const close=document.createElement('button');close.type='button';close.className='pin-copy-close';close.textContent='Chiudi';
       const copy=document.createElement('button');copy.type='button';copy.className='pin-copy-confirm';copy.textContent='Copia PIN';
       const dismiss=()=>overlay.remove();close.addEventListener('click',dismiss);overlay.addEventListener('click',event=>{if(event.target===overlay)dismiss();});
-      copy.addEventListener('click',async()=>{try{const siteUrl=new URL('.',location.href).href;const message=`Ciao ${agentName}. Il tuo pin iniziale è ${pin}. Vai su ${siteUrl} per iniziare ad utilizzare NaviSuite`;await copyText(message);copy.textContent='Copiato ✓';$('status').className='status ok';$('status').textContent=`Messaggio di invito per ${agentName} copiato negli appunti.`;}catch(error){copy.textContent='Copia non riuscita';$('status').className='status bad';$('status').textContent=error.message||'Impossibile copiare il messaggio.';}});
+      copy.addEventListener('click',async()=>{try{const siteUrl=new URL('.',location.href).href;const message=window.messaggioBenvenuto(agentName,pin,siteUrl);await copyText(message);copy.textContent='Copiato ✓';$('status').className='status ok';$('status').textContent=`Messaggio di invito per ${agentName} copiato negli appunti.`;}catch(error){copy.textContent='Copia non riuscita';$('status').className='status bad';$('status').textContent=error.message||'Impossibile copiare il messaggio.';}});
       actions.append(close,copy);card.append(title,name,value,actions);overlay.append(card);document.body.append(overlay);copy.focus();
     }
     const rankOf=agent=>gradeRank[String(agent.qualifica||'marinaio').trim().toLowerCase()]||99;
@@ -162,7 +184,7 @@
         let num=String(r.telefono||'').replace(/[^\d+]/g,'');if(num.startsWith('+'))num=num.slice(1);else if(num.startsWith('00'))num=num.slice(2);else if(!num.startsWith('39')||num.length<=10)num='39'+num;
         const pin=(typeof initialPins!=='undefined'&&initialPins[String(r.agentId)])||'';
         const nome=String(r.nome||'').toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
-        const testo=`Ciao ${nome}, ecco l'accesso a NaviSuite: ${sito}\nCognome: ${r.nome||''}\nPIN iniziale: ${pin||'____'}\nAl primo accesso ti chiederà di sceglierne uno personale.`;
+        const testo=window.messaggioBenvenuto(r.nome,pin,sito);
         const quando=r.createdAt?new Date(r.createdAt).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
         return `<div class="agent-card" style="display:grid;gap:8px;padding:12px"><div><strong>${esc(r.nome)}</strong> <small>· tel. ${esc(r.telefono)} · ${esc(quando)}</small>${r.nota?`<p style="margin:4px 0 0">${esc(r.nota)}</p>`:''}${pin?'':'<p style="margin:4px 0 0;color:#fbbf24">Nessun PIN iniziale: generalo in “PIN primo accesso” prima di rispondere.</p>'}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="save-agent" style="display:inline-flex;align-items:center;text-decoration:none;background:#25d366;color:#05230f" target="_blank" rel="noopener" href="https://wa.me/${num}?text=${encodeURIComponent(testo)}">WhatsApp</a><button class="save-agent" type="button" data-richiesta-fatta="${esc(r.id)}">Fatto, togli</button></div></div>`;
       }).join('');
