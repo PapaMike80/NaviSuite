@@ -26,18 +26,18 @@ const pontili = { '11-20_P2_33': { '2026-10-05': '2' }, '12-15_M1_91': { [T]: '3
 const pond = A.notifiche(data, '4', T, { pontili });
 const m1 = pond.find(n => n.code === 'M1');
 assert.strictEqual(m1.quando, '12.05');
-assert.strictEqual(m1.title, 'M1 MANTOVA arriva alle 12.15');
-assert.strictEqual(m1.body, '⚓ Pontile 3 · da Maderno · corsa 91\nComandante VIOLA');
+assert.strictEqual(m1.title, '12.15 · M1 MANTOVA');
+assert.strictEqual(m1.body, '⚓3 · da Maderno · c.91 · Cte VIOLA');
 assert.strictEqual(pond.find(n => n.run === '33').pontile, '2', 'pontile del giorno prima');
 assert.strictEqual(pond.find(n => n.run === '19').pontile, '4', 'ormeggio serale dall\'O.d.S.');
-assert.match(pond.find(n => n.run === '15').body, /Comandante BETTINI/, 'capo timoniere');
+assert.match(pond.find(n => n.run === '15').body, /Cte BETTINI/, 'capo timoniere');
 assert.ok(pond.every(n => A.ANTICIPO === 10 && n.tag.startsWith(`navisuite-arrivo-${T}-`)));
 // AgB fino alle 17.30: niente arrivi della sera; nessuna partenza
 const agb = A.notifiche(data, '3', T, { pontili });
 assert.ok(agb.length && agb.every(n => n.time !== '19.40' && n.time !== '12.15'));
 // AgM: arrivi e scali delle navi di linea a Maderno; AgT: traghetto da Torri
 const agm = A.notifiche(data, '8', T);
-assert.ok(agm.some(n => n.title === 'R1 fa scalo alle 11.03'));
+assert.ok(agm.some(n => n.title === '11.03 · R1'));
 assert.strictEqual(agm.find(n => n.time === '19.25').pontile, '1');
 const agt = A.notifiche(data, '9', T);
 assert.ok(agt.length && agt.every(n => /^T[12]$/.test(n.code) && n.body.includes('da Torri')));
@@ -46,10 +46,10 @@ assert.ok(!A.notifiche({ ...data, residenze: { MADERNO: [{ id: '8', agente: 'BLU
 // a bordo (P2): il prossimo scalo 10 minuti prima, per ogni scalo d'arrivo delle corse del turno
 const bordo = A.notifiche(data, '1', T);
 assert.ok(bordo.length > 10);
-assert.strictEqual(bordo[0].title, 'P2 CATULLO · prossimo scalo Lazise alle 8.53');
+assert.strictEqual(bordo[0].title, '8.53 · Lazise');
 assert.strictEqual(bordo[0].quando, '8.43');
-assert.strictEqual(bordo[0].body, 'corsa 30\npoi Bardolino alle 9.10');
-assert.strictEqual(bordo.at(-1).body, 'corsa 39\nultimo scalo della giornata');
+assert.strictEqual(bordo[0].body, 'P2 CATULLO · c.30 · poi Bardolino 9.10');
+assert.strictEqual(bordo.at(-1).body, 'P2 CATULLO · c.39 · ultimo scalo');
 assert.ok(bordo.every(n => n.tag.startsWith('navisuite-scalo-')));
 // da mandare adesso: dall'ora di avviso per 5 minuti
 assert.deepStrictEqual(A.dovute(pond, 12 * 60 + 7).map(n => n.code), ['M1']);
