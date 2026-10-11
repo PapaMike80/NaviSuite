@@ -1409,3 +1409,6 @@
       stroke-linejoin:round;
       pointer-events:none;
     }
+    /* pallini tolti: equipaggio sotto/sopra il minimo e giorno coperto da ODS */
+    .upper-cell-indicator.incomplete, .upper-cell-indicator.overstaffed, .date-head-ods { display:none !important; }
+    .coverage-indicator.complete, .coverage-indicator.incomplete, .coverage-indicator.overstaffed { display:none !important; }
