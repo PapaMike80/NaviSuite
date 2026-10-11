@@ -112,6 +112,25 @@
     .pref-label{font-size:15px!important}
     .pref-desc{font-size:12px!important;margin-top:2px!important}
     @media(max-width:520px){.pref-tiles{grid-template-columns:1fr 1fr!important}}
+
+    /* Stessi colori e caratteri del menu e della Home */
+    body.impostazioni-page{--pref-bg:#071923;--pref-card:#0f2b36;--pref-line:#234a55;--pref-ink:#e8f7f7;--pref-muted:#9fb8c2;--pref-intro:#9fb8c2;--pref-accent:#2dd4bf;--pref-chip:rgba(45,212,191,.14);--pref-edge:#2e6971;--pref-tile:#0b222c;--pref-tile-on:rgba(45,212,191,.14);--pref-icon:rgba(45,212,191,.12);--card:#0f2b36;--line:#234a55;--accent:#2dd4bf;
+      background:radial-gradient(900px 500px at 80% -10%,rgba(45,212,191,.10),transparent 60%),linear-gradient(165deg,#0c2631,#061820)!important;background-attachment:fixed!important;font-family:"DM Sans",system-ui,sans-serif!important}
+    body.impostazioni-page>header{background:transparent!important;border-bottom-color:#173542!important}
+    body.impostazioni-page>header small{color:#2dd4bf!important}
+    body.impostazioni-page>header h1,.pref-head h2,.pref-label,.pref-num,body.impostazioni-page .section-head h2,body.impostazioni-page h3{font-family:Manrope,system-ui,sans-serif!important;font-weight:800!important}
+    body.impostazioni-page>header h1 span{color:#9fb8c2!important;font-weight:700!important}
+    .pref-card,body.impostazioni-page main>section.section{background:linear-gradient(165deg,#102e39,#0a222c)!important;border:1px solid var(--pref-line)!important;border-radius:18px!important;box-shadow:0 10px 26px rgba(0,0,0,.22)}
+    .pref-num{background:var(--pref-chip)!important;color:#2dd4bf!important;border-radius:12px!important}
+    .ns-sez-riepilogo{color:#5eead4!important}
+    .ns-sez-freccia{background:rgba(45,212,191,.1)!important;color:#5eead4!important}
+    .pref-tile{background:var(--pref-tile)!important;border:1px solid #285560!important}
+    .pref-tile[aria-pressed="true"]{border-color:#45d9c7!important;background:var(--pref-tile-on)!important}
+    .pref-tile[aria-pressed="true"] .pref-icon,.pref-check{background:#2dd4bf!important;color:#04221f!important}
+    body.impostazioni-page .badge{background:rgba(45,212,191,.14)!important;color:#5eead4!important;border:0!important}
+    body.impostazioni-page .btn.primary,body.impostazioni-page #push-enable{background:#2dd4bf!important;color:#04221f!important;border:0!important}
+    body.impostazioni-page .btn{border-radius:12px!important}
+    body.impostazioni-page input:not([type=checkbox]):not([type=radio]),body.impostazioni-page select{background:#0b222c!important;border:1px solid #285560!important;border-radius:12px!important;color:#e8f7f7!important}
   </style>
 </head>
 <body class="impostazioni-page turni-page">
@@ -203,7 +222,7 @@
   <script src="assets/js/shared-roles.js?v=6"></script>
   <script src="assets/js/admin-firebase-rest.js?v=76"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.71"></script>
+  <script src="assets/js/shared-menu.js?v=1.72"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
   <script src="assets/js/calendar-settings-v2.js?v=5"></script>
