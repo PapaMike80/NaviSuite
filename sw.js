@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v491-pagine-memoria';
+const CACHE_VERSION = 'navisuite-v492-cambio-pagina';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -124,6 +124,27 @@ async function paginaDaMemoria(event, fallbackUrl = '') {
   }
 }
 
+// Font Google (altro dominio): copia salvata subito; senza copia e con rete lenta la pagina
+// non aspetta, si usa il font del telefono (stile vuoto).
+const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+async function fontDaMemoria(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_VERSION);
+  const cached = await cache.match(request);
+  const rete = fetch(request).then(async response => {
+    if (response && (response.ok || response.type === 'opaque')) { try { await cache.put(request, response.clone()); } catch (_) {} }
+    return response;
+  });
+  if (cached) { event.waitUntil(rete.catch(() => null)); return cached; }
+  const vuoto = () => new Response('', { status:200, headers:{ 'Content-Type': request.destination === 'style' ? 'text/css' : 'font/woff2' } });
+  try {
+    const veloce = await Promise.race([rete, new Promise(resolve => setTimeout(() => resolve('lento'), LENTO))]);
+    if (veloce !== 'lento') return veloce;
+    event.waitUntil(rete.catch(() => null));
+    return vuoto();
+  } catch (_) { return vuoto(); }
+}
+
 async function staleWhileRevalidate(event) {
   const request = event.request;
   const cache = await caches.open(CACHE_VERSION);
@@ -149,8 +170,14 @@ async function versionedCacheFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
   const exact = await cache.match(request);
   if (exact) return exact;
+  const rete = fetchAndCache(request);
   try {
-    return await fetchAndCache(request);
+    // rete lenta: dopo LENTO ms si usa la versione salvata precedente, la nuova si salva quando arriva
+    const veloce = await Promise.race([rete, new Promise(resolve => setTimeout(() => resolve('lento'), LENTO))]);
+    if (veloce !== 'lento') return veloce;
+    const any = await cache.match(request, { ignoreSearch:true });
+    if (any) { rete.catch(() => null); return any; }
+    return await rete;
   } catch (error) {
     const any = await cache.match(request, { ignoreSearch:true });
     if (any) return any;
@@ -210,6 +237,7 @@ async function transformedScript(request, transform) {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
+  if (FONT_HOSTS.includes(url.hostname)) { event.respondWith(fontDaMemoria(event)); return; }
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname.endsWith('/assets/css/shared-menu.css')) {
