@@ -1759,7 +1759,8 @@
         const odsVariation = agenteObj.variazioni_ods?.[cal.iso] || null;
         const shipInfo = getShipDayInfo(cal, turnoVal);
         const hasRefuel = /^(sì|si|true|1)$/i.test(String(shipInfo?.rifornimento_mattina || "").trim());
-        const hasCrewIndicators = crewStatus.incomplete || crewStatus.overstaffed || crewStatus.hasTransfer || odsVariation;
+        // tolti i pallini equipaggio sotto/sopra il minimo: restano trasferta e variazione O.d.S.
+        const hasCrewIndicators = crewStatus.hasTransfer || odsVariation;
         if (hasCrewIndicators) tdClasses.push("has-crew-indicators");
         if (hasRefuel) tdClasses.push("has-refuel-indicator");
         td.className = tdClasses.join(" ");
@@ -1776,7 +1777,7 @@
           td.appendChild(input);
         } else {
           const crewIndicators = hasCrewIndicators
-            ? `<span class="upper-cell-indicators">${crewStatus.incomplete ? '<span class="upper-cell-indicator incomplete"></span>' : ''}${crewStatus.overstaffed ? '<span class="upper-cell-indicator overstaffed"></span>' : ''}${crewStatus.hasTransfer ? '<span class="upper-cell-indicator transfer"></span>' : ''}${odsVariation ? '<span class="upper-cell-indicator ods"></span>' : ''}</span>`
+            ? `<span class="upper-cell-indicators">${crewStatus.hasTransfer ? '<span class="upper-cell-indicator transfer"></span>' : ''}${odsVariation ? '<span class="upper-cell-indicator ods"></span>' : ''}</span>`
             : "";
           const refuelIndicator = hasRefuel ? '<span class="upper-cell-refuel" aria-label="Rifornimento"></span>' : '';
           td.innerHTML = `${crewIndicators}${refuelIndicator}${pill(turnoVal)}`;

@@ -240,7 +240,7 @@
       margin:3px auto 0;
     }
     .date-head-ods {
-      display:block;
+      display:none; /* pallino verde "giorno coperto da ODS" tolto */
       width:7px;
       height:7px;
       border-radius:50%;
