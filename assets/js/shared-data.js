@@ -668,10 +668,10 @@
       try { onData(local, { stale: true, hadLocal: true }); }
       catch (error) { console.warn('Render dalla copia locale non riuscito', error); }
     }
-    // Rete lenta = rete assente: se in 2 secondi non arriva niente si resta sulla copia salvata con il banner
+    // Rete lenta = rete assente: se in 1 secondo non arriva niente si resta sulla copia salvata con il banner
     // OFFLINE; il download continua in silenzio e, quando arriva, aggiorna la pagina e toglie il banner.
     let arrivato = false;
-    const lento = hadLocal ? setTimeout(() => { if (!arrivato) window.NaviOffline?.segnaCopiaLocale?.(true); }, 2000) : 0;
+    const lento = hadLocal ? setTimeout(() => { if (!arrivato) window.NaviOffline?.segnaCopiaLocale?.(true); }, 1000) : 0;
     return load(url, { force: true })
       .then(fresh => {
         arrivato = true; clearTimeout(lento);
