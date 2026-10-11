@@ -53,6 +53,16 @@
     #appChoice .app-altre .app-card strong{font-size:12.5px !important}
     #appChoice .app-card[hidden]{display:none !important}
     #appChoice #logoutButton{margin-top:16px}
+    body:has(#appChoice:not([hidden])) .portal-shell{display:block !important;grid-template-columns:none !important}
+    body:has(#appChoice:not([hidden])) .portal-panel{max-width:1180px;margin:0 auto !important;width:100% !important;box-sizing:border-box}
+    @media (min-width:900px){
+      #appChoice.choice-card{padding:28px !important}
+      #appChoice .app-principali{grid-template-columns:repeat(5,1fr) !important}
+      #appChoice .app-principali .app-card.diaria{grid-column:auto;flex-direction:column !important;align-items:flex-start !important;gap:6px !important}
+      #appChoice .app-principali .app-card.diaria .app-icon{width:40px !important;height:40px !important;font-size:20px !important}
+      #appChoice .app-principali .app-card.diaria strong{font-size:18px !important}
+      #appChoice .app-altre{grid-template-columns:repeat(6,1fr) !important}
+    }
     #appChoice #welcomeUser{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .home-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px !important;font-weight:900;line-height:1;letter-spacing:0}
     body:has(#appChoice:not([hidden])) .portal-intro{display:none !important}
