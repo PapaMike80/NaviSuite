@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="NaviDiaria">
   <meta name="theme-color" content="#002b5e">
   <link rel="manifest" href="manifest.json">
@@ -66,7 +66,13 @@
     #appChoice #welcomeUser{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .home-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px !important;font-weight:900;line-height:1;letter-spacing:0}
     body:has(#appChoice:not([hidden])) .portal-intro{display:none !important}
-    body:has(#appChoice:not([hidden])) .portal-panel{padding-top:max(12px,env(safe-area-inset-top)) !important}
+    body:has(#appChoice:not([hidden])) .portal-shell{min-height:0 !important}
+    body:has(#appChoice:not([hidden])) .portal-panel{place-items:start center !important;align-content:start !important;padding-top:12px !important}
+    /* App installata: barra di stato scura e contenuto subito sotto l'ora */
+    @media (display-mode: standalone){
+      html{padding-top:env(safe-area-inset-top,0px);background:#061820}
+      body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#061820;z-index:100040;pointer-events:none}
+    }
   </style>
 </head>
 <body>
