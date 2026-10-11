@@ -102,7 +102,7 @@
     const ordine=e=>PRINCIPALI[e[0].split('?')[0].toLowerCase()]?.[2];
     const principali=entries.filter(e=>ordine(e)!==undefined).sort((a,b)=>ordine(a)-ordine(b)),altre=entries.filter(e=>ordine(e)===undefined);
     const pastTile=onTurni?pastHtml.replace('<a ','<a class="ns-tile" style="--c:#2dd4bf" ').replace('<b>','<i><b>').replace('</b>','</b></i>'):'';
-    const linksHtml=`<div class="ns-grid ns-grid-main">${principali.map(linkHtml).join('')}</div>${altre.length||pastTile?`<p class="ns-altre">ALTRE PAGINE</p><div class="ns-grid ns-grid-small">${pastTile}${altre.map(linkHtml).join('')}<a href="#" class="ns-tile" style="--c:#25d366" data-ns-condividi><span>⤴</span><i><b>Condividi</b></i></a></div>`:''}`;
+    const linksHtml=`<div class="ns-grid ns-grid-main">${principali.map(linkHtml).join('')}</div>${altre.length||pastTile?`<p class="ns-altre">ALTRE PAGINE</p><div class="ns-grid ns-grid-small">${pastTile}${altre.map(linkHtml).join('')}<a href="#" class="ns-tile" style="--c:#25d366" data-ns-condividi><span><img src="assets/images/qr-verde.svg" alt="" style="width:24px;height:24px;display:block"></span><i><b>Condividi</b></i></a></div>`:''}`;
 
     const style=document.createElement('style');
     style.id='navisuite-unified-menu-style';
@@ -172,7 +172,7 @@
       location.href='index.html';
     });
     // Condividi: locandina con QR code da far girare ai colleghi
-    const TESTO_CONDIVIDI="⚓ NaviSuite – turni, distinta, il mio turno, navi e scali sempre in tasca.\n👉 https://papamike80.github.io/NaviSuite/\n\niPhone: Safari → Condividi → Aggiungi alla schermata Home\nAndroid: Chrome → ⋮ → Installa app\n\nNon hai il PIN? Premi «Chiedi accesso».";
+    const TESTO_CONDIVIDI=["⚓ Scarica *NaviSuite*: il tuo turno e la tua distinta sempre con te","","👉 https://papamike80.github.io/NaviSuite/","","🔑 *Primo accesso*","1. Apri il link e premi *«Non hai il PIN? Chiedi accesso»*","2. Scegli il tuo cognome dall'elenco e lascia il numero di telefono","3. Riceverai su WhatsApp il PIN iniziale: al primo accesso ne scegli uno personale","","📲 *Installala come app*","• iPhone: Safari → Condividi ⬆️ → Aggiungi alla schermata Home","• Android: Chrome → menu ⋮ → Installa app","","Fallo girare ai colleghi! 🚢"].join("\n");
     const IMG_LOCANDINA='assets/images/navisuite-locandina.png';
     const apriCondividi=()=>{
       close();
@@ -180,21 +180,10 @@
       if(!box){
         box=document.createElement('div');box.id='ns-condividi';
         box.style.cssText='position:fixed;inset:0;z-index:10001;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;background:rgba(2,12,17,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)';
-        box.innerHTML=`<div style="position:relative;width:min(420px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px"><button type="button" data-chiudi aria-label="Chiudi" style="position:absolute;top:8px;right:8px;width:42px;height:42px;border:1px solid rgba(126,243,226,.35);border-radius:13px;background:rgba(6,24,32,.75);color:#eafffb;font-size:26px;cursor:pointer">×</button><img src="${IMG_LOCANDINA}" alt="Locandina NaviSuite con QR code" style="width:100%;min-height:0;object-fit:contain;border-radius:20px;border:1px solid #2e6971"><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px"><button type="button" data-condividi style="min-height:48px;border:0;border-radius:14px;background:#25d366;color:#05230f;font:800 15px Manrope,system-ui,sans-serif;cursor:pointer">Condividi</button><a href="${IMG_LOCANDINA}" download="NaviSuite.png" style="display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.05);color:#d9eff0;text-decoration:none;font:800 15px Manrope,system-ui,sans-serif">Scarica</a></div><p data-esito style="margin:0;color:#9fb8c2;font:600 13px system-ui,sans-serif;text-align:center"></p></div>`;
+        box.innerHTML=`<div style="position:relative;width:min(420px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px"><button type="button" data-chiudi aria-label="Chiudi" style="position:absolute;top:8px;right:8px;width:42px;height:42px;border:1px solid rgba(126,243,226,.35);border-radius:13px;background:rgba(6,24,32,.75);color:#eafffb;font-size:26px;cursor:pointer">×</button><img src="${IMG_LOCANDINA}" alt="Locandina NaviSuite con QR code" style="width:100%;min-height:0;object-fit:contain;border-radius:20px;border:1px solid #2e6971"><a data-condividi target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(TESTO_CONDIVIDI)}" style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border-radius:14px;background:#25d366;color:#05230f;text-decoration:none;font:800 16px Manrope,system-ui,sans-serif">Condividi via WhatsApp</a></div>`;
         document.body.appendChild(box);
         box.addEventListener('click',e=>{if(e.target===box||e.target.closest('[data-chiudi]'))box.hidden=true;});
-        box.querySelector('[data-condividi]').addEventListener('click',async()=>{
-          const esito=box.querySelector('[data-esito]');
-          try{
-            const blob=await (await fetch(IMG_LOCANDINA)).blob();
-            const file=new File([blob],'NaviSuite.png',{type:'image/png'});
-            if(navigator.canShare?.({files:[file]}))await navigator.share({files:[file],text:TESTO_CONDIVIDI,title:'NaviSuite'});
-            else if(navigator.share)await navigator.share({text:TESTO_CONDIVIDI,title:'NaviSuite'});
-            else{await navigator.clipboard.writeText(TESTO_CONDIVIDI);esito.textContent='Messaggio copiato: incollalo su WhatsApp insieme alla locandina (Scarica).';}
-          }catch(error){if(error?.name!=='AbortError'){try{await navigator.clipboard.writeText(TESTO_CONDIVIDI);esito.textContent='Messaggio copiato: incollalo su WhatsApp.';}catch{esito.textContent='Condivisione non disponibile: usa Scarica.';}}}
-        });
       }
-      box.querySelector('[data-esito]').textContent='';
       box.hidden=false;
     };
     popup.querySelector('[data-ns-condividi]')?.addEventListener('click',event=>{event.preventDefault();apriCondividi();});
