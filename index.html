@@ -53,6 +53,8 @@
     #appChoice .app-altre .app-card strong{font-size:12.5px !important}
     #appChoice .app-card[hidden]{display:none !important}
     #appChoice #logoutButton{margin-top:16px}
+    #appChoice #welcomeUser{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .home-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px !important;font-weight:900;line-height:1;letter-spacing:0}
     body:has(#appChoice:not([hidden])) .portal-intro{display:none !important}
     body:has(#appChoice:not([hidden])) .portal-panel{padding-top:max(12px,env(safe-area-inset-top)) !important}
   </style>
@@ -126,7 +128,7 @@
   <script src="assets/js/admin-firebase-rest.js?v=73"></script>
   <script src="assets/js/shared-data.js?v=136"></script>
   <script src="assets/js/firebase-auth.js?v=2.js"></script>
-  <script src="assets/js/portal.js?v=110"></script>
+  <script src="assets/js/portal.js?v=111"></script>
   <script src="assets/js/shared-menu.js?v=1.66"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/announcements-recovered.js?v=4"></script>
