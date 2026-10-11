@@ -37,7 +37,7 @@ assert.match(s.body,/Nave non ancora assegnata/);
 
 // Riposo.
 s=Summary.buildSummary(base,'1','2026-10-07',opts);
-assert.equal(s.body,'RIP');
+assert.equal(s.body,'Riposo');
 console.log('riepilogo push ok');
 
 // Turno effettivo dai dati grezzi: import, variazioni ODS (la piu' recente
@@ -59,6 +59,6 @@ console.log('riepilogo push ok');
   s=Summary.buildSummary(data,'1','2026-10-03',opts);
   assert.equal(s.title,'NaviSuite · sab 3 ott · D2 · SOLFERINO');
   const manual=Summary.effectiveData(raw,{odsVariations:[{data:'2026-10-03',id_agente:'1',turno_nuovo:'D2',ods:'ODS 39'}],manualVariations:[{data:'2026-10-03',id_agente:'1',turno_nuovo:'RIP',tipo:'MANUALE'}]},shared);
-  assert.equal(Summary.buildSummary(manual,'1','2026-10-03',opts).body,'RIP');
+  assert.equal(Summary.buildSummary(manual,'1','2026-10-03',opts).body,'Riposo');
 }
 console.log('turno effettivo ok');

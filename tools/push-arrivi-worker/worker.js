@@ -135,7 +135,7 @@ async function variazioni(oggi) {
     if (!mie.length) continue;
     const fonte = [...new Set(mie.map(v => (/MOVIMENTO/i.test(v.ods) ? 'Movimento' : v.ods ? `ODS ${v.ods}` : 'Variazione')))].join(', ');
     const title = `📋 ${fonte} · ${mie.length === 1 ? giorno(String(mie[0].data).slice(0, 10)) : `${mie.length} variazioni`}`;
-    const body = mie.slice(0, 4).map(v => `${giorno(String(v.data).slice(0, 10))} ${v.turno_originale ? `${v.turno_originale}→` : ''}${v.turno_nuovo ?? v.turno}`).join(' · ') + (mie.length > 4 ? ` · +${mie.length - 4}` : '');
+    const body = mie.slice(0, 4).map(v => `${giorno(String(v.data).slice(0, 10))} ${v.turno_originale ? `${turnoLabel(v.turno_originale)}→` : ''}${turnoLabel(v.turno_nuovo ?? v.turno)}`).join(' · ') + (mie.length > 4 ? ` · +${mie.length - 4}` : '');
     const firma = mie.map(v => `${v.data}${v.turno_nuovo ?? v.turno}${v.inserita_il}`).join('|');
     for (const sub of disp) {
       const id = safe(`ODS_${agentId}_${sub.deviceId}_${Buffer.from(firma).toString('base64').slice(-40)}`).slice(0, 700);
@@ -164,7 +164,7 @@ async function cambi() {
   const tolte = new Set(lista(cancellate).map(x => String(x.requestId)));
   const perId = new Map(lista(richieste).map(r => [String(r.id), r]));
   const giorno = iso => { const d = new Date(`${iso}T12:00:00`); return `${['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'][d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`; };
-  const cambiTesto = r => (Array.isArray(r?.changes) ? r.changes : []).slice(0, 3).map(c => `${giorno(String(c.date).slice(0, 10))} ${c.from}→${c.to}`).join(' · ');
+  const cambiTesto = r => (Array.isArray(r?.changes) ? r.changes : []).slice(0, 3).map(c => `${giorno(String(c.date).slice(0, 10))} ${turnoLabel(c.from)}→${turnoLabel(c.to)}`).join(' · ');
   const avvisi = []; // {agentId, title, body, chiave}
   lista(richieste).filter(r => String(r.sentAt || '') > String(da) && !tolte.has(String(r.id)) && r.colleagueId).forEach(r =>
     avvisi.push({ agentId: String(r.colleagueId), title: `⇄ Cambio turno da ${r.agentName || r.agentId}`, body: cambiTesto(r) || 'Apri Cambio turno per rispondere', chiave: `R_${r.id}` }));
@@ -189,6 +189,9 @@ async function cambi() {
   if (!DRY_RUN) await fb('private/adminUpdates/pushCambiDa', { method: 'PUT', body: JSON.stringify(ora) });
   if (messi) log(`${messi} avvisi cambi turno in coda`);
 }
+
+// Nei testi degli avvisi "Riposo" per esteso, mai RIP
+const turnoLabel = t => (/^RIP(OSO)?$/i.test(String(t || '').trim()) ? 'Riposo' : String(t ?? ''));
 
 const romeDay = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' });
 const romeMinutes = () => { const [h, m] = new Date().toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour12: false }).split(':').map(Number); return h * 60 + m; };
@@ -242,7 +245,7 @@ async function widget(w, effective, pontili, oggi, ora) {
     const m = t => { const [h, mi] = String(t).split('.').map(Number); return h * 60 + mi; };
     const prossimi = lista.filter(n => m(n.time) >= ora - 1).slice(0, 15)
       .map(n => ({ ora: n.time, titolo: n.title, testo: n.body, codice: n.code, scalo: n.scalo || '', pontile: n.pontile || '' }));
-    const valore = { data: oggi, turno, nome: a.agente || '', prossimi };
+    const valore = { data: oggi, turno: turnoLabel(turno), nome: a.agente || '', prossimi };
     const chiave = JSON.stringify(valore);
     if (widgetScritti.get(id) === chiave) continue;
     if (!DRY_RUN) await fb(`private/adminUpdates/widget/${safe(id)}`, { method: 'PUT', body: JSON.stringify({ ...valore, aggiornato: new Date().toISOString() }) });

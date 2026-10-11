@@ -113,8 +113,10 @@
     const day = dayDetails(data, agentId, iso, options);
     if (!day) throw new Error('Agente non trovato nel turno corrente.');
     const { shift, working, vessel, berth, refuel, times, crew } = day;
-    const title = `NaviSuite · ${dateLabel(iso)} · ${shift || 'N/D'}${working && vessel ? ` · ${vessel}` : ''}`;
-    if (!working) return { title, body: shift || 'Nessun servizio assegnato.', shift: shift || '', iso, presentation: '' };
+    // "Riposo" per esteso nei testi, mai RIP
+    const shiftLabel = shift === 'RIP' ? 'Riposo' : shift;
+    const title = `NaviSuite · ${dateLabel(iso)} · ${shiftLabel || 'N/D'}${working && vessel ? ` · ${vessel}` : ''}`;
+    if (!working) return { title, body: shiftLabel || 'Nessun servizio assegnato.', shift: shift || '', iso, presentation: '' };
     const lines = [];
     if (times?.presentation) lines.push(`Presentarsi alle ${times.presentation}${refuel ? ' · ⛽ rifornimento' : ''}`);
     else if (refuel) lines.push('⛽ Rifornimento in mattinata');
