@@ -615,7 +615,7 @@
     const api = window.NaviAdminFirebase;
     if (dataSource() === 'pocketbase' || !api?.getSegnoAggiornamenti) return null;
     try {
-      const [pronto, segno] = await Promise.all([fetchJson(PRONTO_URL, 8000), api.getSegnoAggiornamenti()]);
+      const [pronto, segno] = await Promise.all([fetchJson(PRONTO_URL, 20000), api.getSegnoAggiornamenti()]);
       if (!pronto?.data?.residenze || !segno) return null;
       if (Date.now() - Date.parse(pronto.creato || 0) > 3 * 3600 * 1000) return null; // NAS fermo da ore: meglio il percorso completo
       if (String(pronto.segno || '') !== String(segno)) return null; // un admin ha appena cambiato qualcosa: percorso completo
@@ -668,14 +668,22 @@
       try { onData(local, { stale: true, hadLocal: true }); }
       catch (error) { console.warn('Render dalla copia locale non riuscito', error); }
     }
+    // Rete lenta = rete assente: se in 2 secondi non arriva niente si resta sulla copia salvata con il banner
+    // OFFLINE; il download continua in silenzio e, quando arriva, aggiorna la pagina e toglie il banner.
+    let arrivato = false;
+    const lento = hadLocal ? setTimeout(() => { if (!arrivato) window.NaviOffline?.segnaCopiaLocale?.(true); }, 2000) : 0;
     return load(url, { force: true })
       .then(fresh => {
+        arrivato = true; clearTimeout(lento);
+        if (lastSource !== 'local') window.NaviOffline?.segnaCopiaLocale?.(false);
         try { onData(fresh, { stale: false, hadLocal }); }
         catch (error) { console.warn('Render dei dati aggiornati non riuscito', error); }
         return fresh;
       })
       .catch(error => {
+        arrivato = true; clearTimeout(lento);
         if (hadLocal) {
+          window.NaviOffline?.segnaCopiaLocale?.(true);
           console.warn('Aggiornamento in background non riuscito; resta la copia locale.', error);
           return null;
         }
