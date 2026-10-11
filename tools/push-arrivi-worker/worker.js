@@ -27,11 +27,11 @@ async function auth() {
   token = j.idToken; tokenExp = Date.now() + 50 * 60 * 1000;
   return token;
 }
-async function fb(p, options = {}) {
+let fb = async function fbReale(p, options = {}) {
   const r = await fetch(`${DB}/${p}.json?auth=${await auth()}`, options);
   if (!r.ok) throw new Error(`Firebase ${p}: HTTP ${r.status}`);
   return r.json();
-}
+};
 
 // --- codice dell'app (ricaricato ogni 30 minuti, cosi' segue gli aggiornamenti) ---
 let ctx = null, ctxAt = 0;
@@ -110,6 +110,46 @@ async function turnoPronto(w) {
   else await fb('public/turnoFuturo', { method: 'PUT', body: JSON.stringify(item) });
   prontoSegno = segno; prontoAt = Date.now();
   log(`turno pronto pubblicato (${Math.round(JSON.stringify(item).length / 1024)} KB, dal ${dal})`);
+}
+
+// --- ODS e variazioni (preferenza "ODS e variazioni"): a ogni agente le variazioni nuove del suo turno, da oggi in poi.
+// Nuove = inserite dopo l'ultimo controllo (private/adminUpdates/pushOdsDa). Al primo avvio si parte da adesso,
+// senza mandare le vecchie. Piu' variazioni dello stesso agente arrivano in un solo avviso.
+async function variazioni(oggi) {
+  const da = await fb('private/adminUpdates/pushOdsDa');
+  if (!da) { if (!DRY_RUN) await fb('private/adminUpdates/pushOdsDa', { method: 'PUT', body: JSON.stringify(new Date().toISOString()) }); return; }
+  const [ods, manuali, subs] = await Promise.all(['odsVariations', 'manualVariations', 'pushSubscriptions'].map(n => fb(`private/adminUpdates/${n}`)));
+  const lista = x => Array.isArray(x) ? x.filter(Boolean) : Object.values(x || {}).filter(Boolean);
+  const nuove = [...lista(ods), ...lista(manuali)].filter(v => v.attiva !== false && v.inserita_il && String(v.inserita_il) > String(da)
+    && String(v.data || '').slice(0, 10) >= oggi && (v.turno_nuovo ?? v.turno));
+  if (!nuove.length) return;
+  const norm = t => String(t || '').trim().toUpperCase();
+  const giorno = iso => { const d = new Date(`${iso}T12:00:00`); return `${['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'][d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`; };
+  let messi = 0;
+  for (const [agentKey, devices] of Object.entries(subs || {})) {
+    const disp = Object.values(devices || {}).filter(sub => sub && sub.enabled !== false && sub.preferences?.ods !== false);
+    if (!disp.length) continue;
+    const agentId = String(disp[0].agentId || agentKey), nome = norm(disp[0].agentName);
+    const mie = nuove.filter(v => String(v.id_agente || '') === agentId || (!v.id_agente && nome && norm(v.agente) === nome))
+      .sort((a, b) => String(a.data).localeCompare(String(b.data)));
+    if (!mie.length) continue;
+    const fonte = [...new Set(mie.map(v => (/MOVIMENTO/i.test(v.ods) ? 'Movimento' : v.ods ? `ODS ${v.ods}` : 'Variazione')))].join(', ');
+    const title = `📋 ${fonte} · ${mie.length === 1 ? giorno(String(mie[0].data).slice(0, 10)) : `${mie.length} variazioni`}`;
+    const body = mie.slice(0, 4).map(v => `${giorno(String(v.data).slice(0, 10))} ${v.turno_originale ? `${v.turno_originale}→` : ''}${v.turno_nuovo ?? v.turno}`).join(' · ') + (mie.length > 4 ? ` · +${mie.length - 4}` : '');
+    const firma = mie.map(v => `${v.data}${v.turno_nuovo ?? v.turno}${v.inserita_il}`).join('|');
+    for (const sub of disp) {
+      const id = safe(`ODS_${agentId}_${sub.deviceId}_${Buffer.from(firma).toString('base64').slice(-40)}`).slice(0, 700);
+      if (await fb(`private/adminUpdates/pushQueue/${id}`)) continue;
+      const item = { id, status: 'pending', kind: 'ods', requestedByAgentId: 'system', requestedByName: 'NaviSuite ODS', targetAgentId: agentId,
+        targetDeviceId: String(sub.deviceId || ''), title, body, url: 'naviturni.html', meta: { automatic: true, date: oggi }, createdAt: new Date().toISOString() };
+      if (DRY_RUN) log('[prova] ODS', agentId, '→', title, '|', body);
+      else await fb(`private/adminUpdates/pushQueue/${id}`, { method: 'PUT', body: JSON.stringify(item) });
+      messi++;
+    }
+  }
+  const ultima = nuove.map(v => String(v.inserita_il)).sort().pop();
+  if (!DRY_RUN) await fb('private/adminUpdates/pushOdsDa', { method: 'PUT', body: JSON.stringify(ultima) });
+  if (messi) log(`${messi} avvisi ODS in coda`);
 }
 
 const romeDay = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' });
@@ -238,6 +278,12 @@ async function main() {
     const w = await app(); fs.mkdirSync(BACKUP_DIR, { recursive: true });
     await backupNotturno(w, true); return;
   }
+  if (process.argv.includes('--ods')) {
+    // prova degli avvisi ODS da una data: DRY_RUN=1 node worker.js --ods 2026-10-08T00:00:00Z
+    const da = process.argv[process.argv.indexOf('--ods') + 1];
+    const orig = fb; if (da) fb = async (p, o) => (p === 'private/adminUpdates/pushOdsDa' && !o ? da : orig(p, o));
+    await app(); await variazioni(romeDay()); return;
+  }
   if (process.argv.includes('--pronto')) {
     // prepara e pubblica subito il turno pronto: node worker.js --pronto  (con DRY_RUN=1 solo prova)
     await turnoPronto(await app()); return;
@@ -252,6 +298,7 @@ async function main() {
   for (;;) {
     try { await giro(); } catch (e) { log('errore:', e.message); }
     try { await turnoPronto(await app()); } catch (e) { log('turno pronto non riuscito:', e.message); }
+    try { await variazioni(romeDay()); } catch (e) { log('avvisi ODS non riusciti:', e.message); }
     try { await backupNotturno(await app()); } catch (e) { log('backup non riuscito:', e.message); }
     await new Promise(r => setTimeout(r, 60 * 1000 - (Date.now() % (60 * 1000)) + 2000));
   }

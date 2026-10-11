@@ -53,3 +53,11 @@ Prova senza pubblicare: `docker exec -e DRY_RUN=1 navisuite-arrivi node worker.j
 Pubblica subito: `docker exec navisuite-arrivi node worker.js --pronto`.
 
 Serve la regola di scrittura per `public/turnoFuturo` (vedi `firebase-rules-aggiornamenti.json`).
+
+## ODS e variazioni (dalla versione 1.7)
+
+Ogni minuto, a chi ha acceso "ODS e variazioni" in Impostazioni arriva un avviso con le variazioni **nuove** del suo
+turno (O.d.S. e Movimento), da oggi in poi: `📋 ODS 40/26 · dom 11/10` — `M1→RIP`. Più variazioni insieme in un solo
+avviso. Nuove = inserite dopo l'ultimo controllo (`private/adminUpdates/pushOdsDa`); al primo avvio si parte da adesso.
+
+Prova senza mandare: `docker exec -e DRY_RUN=1 navisuite-arrivi node worker.js --ods 2026-10-08T00:00:00Z`.
