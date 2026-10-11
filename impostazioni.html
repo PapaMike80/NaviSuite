@@ -131,6 +131,25 @@
     body.impostazioni-page .btn.primary,body.impostazioni-page #push-enable{background:#2dd4bf!important;color:#04221f!important;border:0!important}
     body.impostazioni-page .btn{border-radius:12px!important}
     body.impostazioni-page input:not([type=checkbox]):not([type=radio]),body.impostazioni-page select{background:#0b222c!important;border:1px solid #285560!important;border-radius:12px!important;color:#e8f7f7!important}
+
+    /* Stile della pagina Agenti: riquadri piatti, titolo + descrizione, freccina a destra; senza numeri */
+    body.impostazioni-page .pref-num{display:none!important}
+    body.impostazioni-page main{gap:14px!important}
+    .pref-card,body.impostazioni-page main>section.section{background:rgba(12,37,48,.94)!important;border:1px solid #234a55!important;border-radius:15px!important;box-shadow:none!important;padding:0!important}
+    .pref-head,body.impostazioni-page main>section.ns-sez>.section-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:16px 18px!important;margin:0!important;cursor:pointer}
+    .pref-head h2,body.impostazioni-page main>section.section .section-head h2{font:800 20px/1.2 "DM Sans",system-ui,sans-serif!important;margin:0!important;color:#e8f7f7!important}
+    .ns-sez .pref-head p,body.impostazioni-page main>section.section .section-head p{display:block!important;margin:4px 0 0!important;color:#9fb8c2!important;font-size:13.5px!important;line-height:1.35!important}
+    .ns-sez-riepilogo{margin-top:6px!important;font-size:12.5px!important}
+    .ns-sez-freccia{width:auto!important;height:auto!important;background:none!important;color:#9fb8c2!important;font-size:12px!important;transform:rotate(-90deg)}
+    .ns-sez:not(.chiusa) .ns-sez-freccia{transform:rotate(0deg)!important}
+    body.impostazioni-page main>section.ns-sez .badge{flex:none;align-self:center}
+    .ns-sez.chiusa>:not(.pref-head):not(.section-head){display:none!important}
+    .ns-sez:not(.chiusa)>:not(.pref-head):not(.section-head){margin-left:18px!important;margin-right:18px!important}
+    body.impostazioni-page main>section.section:not(.ns-sez){padding:16px 18px!important}
+    body.impostazioni-page main>section.section .section-head{flex-wrap:wrap}
+    body.impostazioni-page main>section.section .section-head>div{flex:1 1 200px;min-width:0}
+    body.impostazioni-page main>section.section .badge{white-space:normal!important;max-width:100%}
+    body.impostazioni-page .settings-chevron{border:0!important;width:auto!important;height:auto!important;color:#9fb8c2!important;font-size:12px!important}
   </style>
 </head>
 <body class="impostazioni-page turni-page">
@@ -463,8 +482,9 @@
   (function(){
     const riepilogo=sez=>[...sez.querySelectorAll('[aria-pressed="true"] .pref-label,[aria-pressed="true"]')].map(el=>(el.querySelector?.('.pref-label')||el).textContent.trim()).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).join(' · ');
     function prepara(sez){
-      if(sez.classList.contains('ns-sez'))return;
-      const head=sez.querySelector(':scope>.pref-head');if(!head)return;
+      if(sez.classList.contains('ns-sez')||(sez.matches('section.section')&&sez.dataset.accordionReady))return;
+      if(sez.matches('section.section'))sez.dataset.accordionReady='true';
+      const head=sez.querySelector(':scope>.pref-head,:scope>.section-head');if(!head)return;
       sez.classList.add('ns-sez','chiusa');
       const titolo=head.querySelector('h2');
       if(titolo&&!head.querySelector('.ns-sez-riepilogo')){const r=document.createElement('div');r.className='ns-sez-riepilogo';titolo.after(r);}
@@ -477,7 +497,7 @@
       aggiorna(sez);
     }
     function aggiorna(sez){const r=sez.querySelector('.ns-sez-riepilogo');if(r)r.textContent=riepilogo(sez);}
-    const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card').forEach(prepara);
+    const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card,body.impostazioni-page main>section.section:not(.settings-foldable)').forEach(prepara);
     tutte();
     new MutationObserver(tutte).observe(document.querySelector('main')||document.body,{childList:true});
   })();
