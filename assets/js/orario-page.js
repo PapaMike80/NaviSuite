@@ -793,22 +793,19 @@
     ? `<p class="or-gps">📍 Sei a ${state.gps.km < 1 ? `${Math.round(state.gps.km * 1000)} m` : `${state.gps.km.toFixed(1).replace('.', ',')} km`} da ${esc(state.gps.nome)}</p>` : '');
 
   // Mappa del viaggio: lago, scali scelti e rotta del viaggio selezionato (ogni tratta col colore della nave)
-  function mappaViaggio(sol) {
+  function mappaViaggio(sol, raggiungibili = null) {
     const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
     const tratte = sol ? sol.legs.map(l => ({ r: rotta(l.from, l.to), c: COLORI[l.v.turno] || '#2dd4bf' })) : (state.from !== state.to ? [{ r: rotta(state.from, state.to), c: '#94a3b8', vuota: true }] : []);
-    const tutti = tratte.flatMap(t => t.r).concat([MAPPA.scali[state.from].porto, MAPPA.scali[state.to].porto]);
-    let [x0, y0, x1, y1] = [Math.min(...tutti.map(p => p[0])), Math.min(...tutti.map(p => p[1])), Math.max(...tutti.map(p => p[0])), Math.max(...tutti.map(p => p[1]))];
-    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, w = Math.max(x1 - x0 + 26, 50), h = Math.max(y1 - y0 + 18, 40);
-    const vb = `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;
+    const vb = '-12 -3 102 148'; // tutto il lago: ogni scalo si puo' toccare
     const cambi = sol ? sol.legs.slice(1).map(l => l.from) : [];
     const porti = SCALI.map(nome => {
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;
       const [tx, ty, anchor] = lato[0] === 'o' ? [x - 2.4, y + 1 + dy, 'end'] : lato[0] === 'e' ? [x + 2.4, y + 1 + dy, 'start'] : lato[0] === 's' ? [x, y + 4.4, 'middle'] : [x, y - 2.6, 'middle'];
-      const tipo = nome === state.from ? ' da' : nome === state.to ? ' a' : cambi.includes(nome) ? ' cambio' : '';
-      return `<g class="or-port${tipo ? ' selected' + tipo : ''}"><circle cx="${x}" cy="${y}" r="${tipo ? 1.7 : 1.1}"/><text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
+      const tipo = raggiungibili ? (nome === state.from ? ' da' : raggiungibili.has(nome) ? ' raggiungibile' : ' spento') : nome === state.from ? ' da' : nome === state.to ? ' a' : cambi.includes(nome) ? ' cambio' : '';
+      return `<g class="or-port${tipo ? ' selected' + tipo : ''}" data-viaggio-scalo="${esc(nome)}" role="button" tabindex="0" aria-label="${esc(nome)}"><circle class="or-hit" cx="${x}" cy="${y}" r="4.2"/><circle cx="${x}" cy="${y}" r="${tipo && tipo !== ' spento' ? 1.7 : 1.1}"/><text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}">${esc(nome)}</text></g>`;
     }).join('');
-    const rotte = tratte.map(t => `<g class="or-path or-path-viaggio" style="--c:${t.c}"><path class="${t.vuota ? 'todo' : 'done'}" d="${linea(t.r)}"/></g>`).join('');
+    const rotte = raggiungibili ? '' : tratte.map(t => `<g class="or-path or-path-viaggio" style="--c:${t.c}"><path class="${t.vuota ? 'todo' : 'done'}" d="${linea(t.r)}"/></g>`).join('');
     return `<svg class="or-map or-map-viaggio" viewBox="${vb}" role="img" aria-label="Rotta da ${esc(state.from)} a ${esc(state.to)}">` +
       `<defs><linearGradient id="or-water" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#1d6f8c"/><stop offset="1" stop-color="#1a8aa3"/></linearGradient></defs>` +
       `<path class="or-shore" d="${MAPPA.costa}"/><path class="or-lake" d="${MAPPA.costa}"/>${rotte}${porti}</svg>`;
@@ -822,6 +819,13 @@
       `<button type="button" class="or-swap" data-swap aria-label="Inverti">⇅</button>` +
       `<label><span>A</span><select id="or-to">${opzioni(state.to)}</select></label></div>` +
       gpsHint(state.from);
+    if (state.sceltaArrivo) {
+      const ora0 = realToday() ? nowMinutes() : -1;
+      const raggiungibili = new Set(SCALI.filter(nome => nome !== state.from && soluzioni(g, state.from, nome).some(x => state.showPast || x.dep >= ora0)));
+      const nota = `<p class="legend or-map-nota">Partenza: <b>${esc(state.from)}</b>. ${raggiungibili.size ? `Tocca uno scalo illuminato (${raggiungibili.size}) per vedere gli orari.` : 'Nessuno scalo raggiungibile in questo giorno.'}</p>`;
+      $('orario-content').innerHTML = `<div class="or-single or-viaggio">${card('Da scalo a scalo', 'tocca la partenza, poi l’arrivo', form + `<div class="or-viaggio-mappa">${mappaViaggio(null, raggiungibili)}</div>` + nota)}</div>`;
+      return;
+    }
     const tutte = state.from === state.to ? [] : soluzioni(g, state.from, state.to);
     const ora = realToday() ? nowMinutes() : -1;
     const passate = tutte.filter(s => s.dep < ora);
@@ -836,7 +840,7 @@
         `<span>${durata >= 60 ? `${Math.floor(durata / 60)}h${String(durata % 60).padStart(2, '0')}` : `${durata}min`} · ${s.legs.length === 1 ? 'diretta' : `1 cambio a ${esc(s.legs[0].to)}`}</span></div>${tratte}</div>`;
     }).join('');
     const vuoto = state.from === state.to ? 'Scegli due scali diversi.' : tutte.length ? 'Nessun altro viaggio oggi.' : 'Nessun collegamento in questo giorno.';
-    const mappa = state.from === state.to ? '' : `<div class="or-viaggio-mappa">${mappaViaggio(visibili[scelta] || null)}</div>`;
+    const mappa = state.from === state.to ? '' : `<div class="or-viaggio-mappa">${mappaViaggio(visibili[scelta] || null)}<p class="or-map-tip">Tocca uno scalo sulla mappa per sceglierlo come partenza</p></div>`;
     $('orario-content').innerHTML = `<div class="or-single or-viaggio">${card('Da scalo a scalo', 'dirette e con un cambio', form + mappa + toggle + (righe || `<p class="legend">${vuoto}</p>`))}</div>`;
   }
 
@@ -952,8 +956,8 @@
     }
   });
   content.addEventListener('change', event => {
-    if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; state.viaggioScelto = 0; }
-    else if (event.target.id === 'or-to') { state.to = event.target.value; state.viaggioScelto = 0; }
+    if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; state.viaggioScelto = 0; state.sceltaArrivo = false; }
+    else if (event.target.id === 'or-to') { state.to = event.target.value; state.viaggioScelto = 0; state.sceltaArrivo = false; }
     else if (event.target.matches('[data-pontile]')) { salvaPontile(event.target.dataset.pontile.split(' '), event.target.value); return; }
     else if (event.target.matches('[data-ritardo]')) {
       const [code, corsa] = event.target.dataset.ritardo.split('|');
@@ -1026,6 +1030,13 @@
       return;
     }
     if (event.target.closest('[data-swap]')) { [state.from, state.to] = [state.to, state.from]; state.fromScelto = true; state.viaggioScelto = 0; render(); return; }
+    const scaloMappa = event.target.closest('[data-viaggio-scalo]');
+    if (scaloMappa) {
+      const nome = scaloMappa.dataset.viaggioScalo;
+      if (state.sceltaArrivo && scaloMappa.classList.contains('raggiungibile')) { state.to = nome; state.sceltaArrivo = false; }
+      else { state.from = nome; state.fromScelto = true; state.sceltaArrivo = true; }
+      state.viaggioScelto = 0; render(); return;
+    }
     const viaggio = event.target.closest('[data-trip]');
     if (viaggio) { state.viaggioScelto = Number(viaggio.dataset.trip); render(); document.querySelector('.or-viaggio-mappa')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
     if (event.target.closest('[data-past]')) { state.showPast = !state.showPast; state.viaggioScelto = 0; render(); return; }
