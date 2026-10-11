@@ -130,6 +130,8 @@
       .ns-grid-small .ns-tile>span{width:32px;height:32px;font-size:16px;border-radius:10px}
       .ns-grid-small .ns-tile b{font-size:12.5px}
       .ns-tile.active{border-color:#45d9c7;background:rgba(45,212,191,.14)}
+      .ns-saluto{display:flex;align-items:center;gap:10px;min-width:0;color:#eafffb;font-size:23px}
+      .ns-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:34px;height:34px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px;font-weight:900;line-height:1}
       .ns-altre{margin:16px 2px 8px;color:#66818d;font:900 10px/1 Manrope,system-ui,sans-serif;letter-spacing:.16em}
       .ns-grid-main+.ns-grid-small{margin-top:9px}
       .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}
@@ -138,10 +140,15 @@
       @media(min-width:851px){.ns-menu-dialog{left:50%;right:auto;width:min(980px,calc(100vw - 48px));transform:translateX(-50%);top:40px}.ns-grid-main{grid-template-columns:repeat(5,1fr)}.ns-tile.ns-wide{grid-column:auto;flex-direction:column;align-items:flex-start;gap:6px}.ns-tile.ns-wide>span{width:38px;height:38px;font-size:19px}.ns-tile.ns-wide b{font-size:17px}.ns-grid-small{grid-template-columns:repeat(6,1fr)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}}
     `;
     document.head.appendChild(style);
+    // Intestazione: "Ciao Pedroni M." con il distintivo del grado come in Movimento
+    const nome=String(agent?.name||agent?.agente||'').trim().toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
+    const qualifica=String(agent?.qualifica||agent?.grado||(window.NaviSharedData?.directory?.()||[]).find(a=>String(a.id)===String(agent?.id))?.qualifica||'');
+    const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6'],[/motorista/i,'Motorista','Mot','#a855f7'],[/timoniere/i,'Timoniere','Tim','#22c55e'],[/marinaio/i,'Marinaio','Mar','#e8f3f6']].find(([re])=>re.test(qualifica));
+    const saluto=`<span class="ns-saluto">${nome?`Ciao ${escapeText(nome)}`:'Menu'}${grado?`<span class="ns-grado" style="--g:${grado[3]}" title="${grado[1]}">${grado[2]}</span>`:''}</span>`;
     const popup=document.createElement('div');
     popup.id='navisuite-popup';
     popup.hidden=true;
-    popup.innerHTML=`<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">Menu <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><nav class="ns-menu-links">${linksHtml}</nav><div class="ns-menu-foot"><a href="navidiaria.html?open-pin=1">Cambia PIN</a><button type="button" class="ns-menu-exit">Esci</button></div></section>`;
+    popup.innerHTML=`<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">${saluto} <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><nav class="ns-menu-links">${linksHtml}</nav><div class="ns-menu-foot"><a href="navidiaria.html?open-pin=1">Cambia PIN</a><button type="button" class="ns-menu-exit">Esci</button></div></section>`;
     document.body.appendChild(popup);
     const pastLink=popup.querySelector('[data-turni-main-past]');
     const syncPastLabel=()=>{
