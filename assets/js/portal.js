@@ -281,6 +281,7 @@ $('firstPinForm').addEventListener('submit', async event => {
     localStorage.setItem(DIARIA_SESSION, JSON.stringify(agent));
     localStorage.setItem(TURNI_SESSION, JSON.stringify({ id:agent.id, name:agent.name, residence:agent.residence, qualifica:agent.qualifica, role:agent.role || '' }));
     window.NaviAdminFirebase?.recordUserAccess?.(agent).catch(() => {});
+    window.NaviAdminFirebase?.chiudiRichiesteAccesso?.(agent.id).catch(error => console.warn('Richiesta di accesso non chiusa', error));
     pendingFirstLogin = null;
     $('firstPinMessage').textContent = '';
     showChoice(agent);
