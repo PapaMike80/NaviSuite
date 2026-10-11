@@ -63,6 +63,21 @@
       #appChoice .app-principali .app-card.diaria strong{font-size:18px !important}
       #appChoice .app-altre{grid-template-columns:repeat(6,1fr) !important}
     }
+    /* Pagina di accesso compatta, nello stile della Home */
+    .portal-intro{display:none !important}
+    .portal-shell{display:block !important;min-height:0 !important}
+    .portal-panel{place-items:start center !important;align-content:start !important;padding-top:max(16px,4vh) !important;max-width:560px;margin:0 auto !important;width:100% !important;box-sizing:border-box}
+    body:has(#appChoice:not([hidden])) .portal-panel{max-width:1180px}
+    .access-card{padding:22px 18px !important;width:100% !important;box-sizing:border-box}
+    .access-card h2{font-size:clamp(24px,7vw,32px) !important;margin:6px 0 4px !important}
+    .access-card>p:not(.form-message){margin:0 0 14px !important}
+    .login-brand{display:flex;align-items:center;gap:10px;color:#a7fff0;font:800 16px/1 Manrope,system-ui,sans-serif;margin-bottom:14px}
+    .login-brand span{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#2dd4bf,#14b8a6);color:#04221f;font-size:18px}
+    .access-card label{margin-bottom:10px !important}
+    .login-secondary{display:block;width:100%;margin-top:10px !important;padding:12px !important;border:1px solid rgba(148,212,205,.25) !important;border-radius:14px !important;background:transparent !important;color:#cfe9ea !important;font:700 14px/1.2 "DM Sans",system-ui,sans-serif !important;box-shadow:none !important;cursor:pointer}
+    .login-secondary b{color:#5eead4}
+    html.navisuite-light .login-secondary{color:#17323a !important;border-color:#bdd8dc !important}
+    html.navisuite-light .login-secondary b,html.navisuite-light .login-brand{color:#087b6e}
     #appChoice #welcomeUser{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .home-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px !important;font-weight:900;line-height:1;letter-spacing:0}
     body:has(#appChoice:not([hidden])) .portal-intro{display:none !important}
@@ -89,9 +104,9 @@
 
     <section class="portal-panel">
       <form id="loginForm" class="access-card">
-        <p class="eyebrow">ACCESSO PERSONALE</p>
-        <h2>Bentornato a bordo</h2>
-        <p>Inserisci il cognome e il tuo PIN personale.</p>
+        <div class="login-brand"><span>N</span>NaviSuite</div>
+        <h2>Accedi</h2>
+        <p>Scrivi il tuo cognome e il PIN.</p>
         <label>Cognome
           <input id="agentSearch" type="text" autocomplete="off" placeholder="Inizia a digitare il cognome…" required>
           <datalist id="agentSuggestions"></datalist>
@@ -101,6 +116,26 @@
         </label>
         <p id="loginMessage" class="form-message" aria-live="polite"></p>
         <button id="loginSubmit" type="submit">Accedi <span>→</span></button>
+        <button id="accessRequestOpen" class="login-secondary" type="button">Non hai il PIN? <b>Chiedi accesso</b></button>
+      </form>
+
+      <form id="accessRequestForm" class="access-card" hidden>
+        <div class="login-brand"><span>N</span>NaviSuite</div>
+        <h2>Chiedi accesso</h2>
+        <p>Scegli il tuo cognome e lascia il numero di telefono: l'amministratore ti contatterà con il PIN.</p>
+        <label>Cognome
+          <input id="accessName" type="text" list="accessSuggestions" autocomplete="off" placeholder="Inizia a digitare il cognome…" required>
+          <datalist id="accessSuggestions"></datalist>
+        </label>
+        <label>Numero di telefono
+          <input id="accessPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Es. 333 1234567" pattern="[0-9 +]{6,20}" required>
+        </label>
+        <label>Note (facoltative)
+          <input id="accessNote" type="text" maxlength="100" autocomplete="off" placeholder="Es. nuovo assunto, ho perso il PIN…">
+        </label>
+        <p id="accessMessage" class="form-message" aria-live="polite"></p>
+        <button id="accessSubmit" type="submit">Invia richiesta <span>→</span></button>
+        <button id="accessBack" class="login-secondary" type="button">← Torna all'accesso</button>
       </form>
 
       <form id="firstPinForm" class="access-card" hidden>
@@ -141,10 +176,10 @@
     </section>
   </main>
   <script src="assets/js/shared-roles.js?v=6"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=73"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=74"></script>
   <script src="assets/js/shared-data.js?v=136"></script>
   <script src="assets/js/firebase-auth.js?v=2.js"></script>
-  <script src="assets/js/portal.js?v=111"></script>
+  <script src="assets/js/portal.js?v=112"></script>
   <script src="assets/js/shared-menu.js?v=1.67"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/announcements-recovered.js?v=4"></script>
