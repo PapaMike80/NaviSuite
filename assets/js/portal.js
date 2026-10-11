@@ -296,3 +296,34 @@ $('logoutButton').addEventListener('click', () => {
   localStorage.removeItem(TURNI_SESSION);
   location.reload();
 });
+
+// Chiedi accesso: cognome dall'elenco agenti + telefono; la richiesta arriva all'admin come notifica.
+(function () {
+  const form = document.getElementById('accessRequestForm');
+  if (!form) return;
+  const login = document.getElementById('loginForm');
+  const nome = document.getElementById('accessName'), tel = document.getElementById('accessPhone'), nota = document.getElementById('accessNote');
+  const lista = document.getElementById('accessSuggestions'), msg = document.getElementById('accessMessage'), invia = document.getElementById('accessSubmit');
+  const mostra = richiesta => { form.hidden = !richiesta; login.hidden = richiesta; msg.textContent = ''; if (richiesta) { nome.value = document.getElementById('agentSearch')?.value || ''; nome.focus(); } };
+  document.getElementById('accessRequestOpen')?.addEventListener('click', () => mostra(true));
+  document.getElementById('accessBack')?.addEventListener('click', () => mostra(false));
+  nome.addEventListener('input', () => {
+    const q = nome.value.trim().toLocaleLowerCase('it');
+    lista.innerHTML = q ? agents.filter(a => a.name.toLocaleLowerCase('it').includes(q)).slice(0, 12).map(a => `<option value="${a.name.replace(/"/g, '&quot;')}">`).join('') : '';
+  });
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const scelto = agents.find(a => a.name.toLocaleLowerCase('it') === nome.value.trim().toLocaleLowerCase('it'));
+    if (!scelto) { msg.textContent = 'Scegli il tuo cognome dall\'elenco.'; return; }
+    if (tel.value.replace(/\D/g, '').length < 6) { msg.textContent = 'Scrivi un numero di telefono valido.'; return; }
+    invia.disabled = true; msg.textContent = 'Invio in corso…';
+    try {
+      await window.NaviAdminFirebase.ready;
+      await window.NaviAdminFirebase.richiestaAccesso({ agentId: scelto.id, nome: scelto.name, telefono: tel.value.trim(), nota: nota.value });
+      form.querySelectorAll('label,#accessSubmit').forEach(el => { el.hidden = true; });
+      msg.textContent = '✓ Richiesta inviata. Verrai contattato al più presto con il PIN.';
+    } catch (error) {
+      msg.textContent = navigator.onLine ? `Richiesta non inviata: ${error.message}` : 'Senza rete: riprova quando torna il segnale.';
+    } finally { invia.disabled = false; }
+  });
+})();

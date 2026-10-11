@@ -1071,6 +1071,32 @@
     await databaseRequest(path, { method:"PUT", body:JSON.stringify(value) });
   }
 
+  // Richiesta di accesso dalla pagina di login: arriva come notifica all'admin (nessun numero pubblicato).
+  async function richiestaAccesso({ agentId = "", nome = "", telefono = "", nota = "" } = {}) {
+    const auth = await ensureAuth();
+    const stamp = Date.now();
+    const id = `ACCESSO_${stamp}_${Math.random().toString(36).slice(2, 8)}`;
+    const pulito = v => String(v || "").trim().slice(0, 120);
+    const richiesta = { id, agentId:pulito(agentId), nome:pulito(nome), telefono:pulito(telefono), nota:pulito(nota), createdAt:new Date(stamp).toISOString(), ownerUid:auth.uid || "" };
+    await databaseRequest(`private/adminUpdates/richiesteAccesso/${id}`, { method:"PUT", body:JSON.stringify(richiesta) });
+    const push = {
+      id, status:"pending", kind:"access-request", source:"navisuite-access", ownerUid:auth.uid || "", targetAgentId:"92",
+      title:"NaviSuite · richiesta di accesso",
+      body:`${richiesta.nome || "Agente"} chiede l'accesso · tel. ${richiesta.telefono}${richiesta.nota ? ` · ${richiesta.nota}` : ""}`,
+      url:"agenti.html#richieste-accesso", createdAt:richiesta.createdAt
+    };
+    await databaseRequest(`private/adminUpdates/pushQueue/${id}`, { method:"PUT", body:JSON.stringify(push) });
+    return richiesta;
+  }
+
+  async function listRichiesteAccesso() {
+    const result = await databaseRequest("private/adminUpdates/richiesteAccesso");
+    return Object.values(result.data || {}).filter(Boolean).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  }
+  async function deleteRichiestaAccesso(id) {
+    await databaseRequest(`private/adminUpdates/richiesteAccesso/${safeUserKey(id)}`, { method:"DELETE" });
+  }
+
   async function saveDiaria(agentId, entries = []) {
     const auth = await ensureAuth();
     const id = String(agentId || "").trim();
@@ -1171,6 +1197,9 @@
     loadDiaria,
     loadAllDiaria,
     saveDiaria,
+    richiestaAccesso,
+    listRichiesteAccesso,
+    deleteRichiestaAccesso,
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,

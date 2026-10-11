@@ -25,6 +25,7 @@
   <aside class="app-sidebar" id="admin-sidebar"></aside>
   <main>
     <header class="hero"><div class="eyebrow">NAVISUITE ADMIN</div><h1>Gestione agenti</h1><p>Anagrafica completa, registrazioni e ultimo accesso.</p></header>
+    <section class="section" id="richieste-accesso" hidden><div class="section-head" style="cursor:default"><div><h2>Richieste di accesso</h2><p>Rispondi su WhatsApp: si apre la chat con il messaggio già scritto (con il PIN iniziale, se c'è).</p></div><span id="richieste-count" class="count">0</span></div><div id="richieste-lista" class="agent-list"></div></section>
     <section class="section" id="agent-search-section"><div class="section-head" style="cursor:default"><div><h2>Ricerca agente</h2><p>Scegli un agente dall’elenco per raggiungere subito la sua scheda.</p></div></div><input id="agent-search-input" class="agent-search-input" list="agent-search-options" type="search" autocomplete="off" placeholder="Inizia a digitare nome o ID…" aria-label="Cerca agente"><datalist id="agent-search-options"></datalist></section>
     <div id="status" class="status">Caricamento dati da Firebase…</div>
     <section class="section collapsed"><div class="section-head"><div><h2>Connessi adesso</h2><p>Utenti attivi su NaviSuite negli ultimi due minuti.</p></div><span id="online-count" class="count">0</span><span class="chevron">▾</span></div><div class="section-body"><div id="latest-user" class="agent-list"><div class="empty">Caricamento…</div></div></div></section>
@@ -36,7 +37,7 @@
     <section class="section collapsed"><div class="section-head"><div><h2>Nuovo agente</h2><p>Crea un agente nella residenza scelta (o nella residenza Uffici) e genera un PIN iniziale casuale di 4 cifre.</p></div><span class="chevron">▾</span></div><div class="section-body"><div class="new-agent-form"><label>Cognome e nome<input id="new-agent-name" type="text" placeholder="Es. ROSSI M."></label><label>ID agente<input id="new-agent-id" type="text" inputmode="numeric" placeholder="Vuoto = automatico"></label><label>Residenza<select id="new-agent-residence"></select></label><label>Ruolo<select id="new-agent-role"><option value="">Agente standard</option><option value="admin">Amministratore</option></select></label><label id="office-field">Ufficio<select id="new-agent-office"><option value="movimento">Movimento</option><option value="amministrazione">Amministrazione</option><option value="personale">Personale</option><option value="controllo">Controllo</option><option value="direzione">Direzione</option></select></label><label id="grade-field" class="hidden">Grado<select id="new-agent-grade"></select></label><button id="save-new-agent" class="save-agent" type="button">Crea agente</button></div></div></section>
   </main>
   <script src="assets/js/shared-roles.js?v=6"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=73"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=75"></script>
   <script src="assets/js/shared-menu.js?v=1.67"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/shared-data.js?v=136"></script>
@@ -149,6 +150,30 @@
       ricaricoAdmin=Date.now();
       try{const data=await NaviAdminFirebase.getAgentAdminData();registry=data.users||[];profiles=data.profiles||{};refreshInitialPins(data.auth||{});render();}catch(error){console.warn('Dati agenti non aggiornati',error);}
     }
+    // Richieste di accesso dalla pagina di login: risposta su WhatsApp con il messaggio pronto.
+    async function caricaRichiesteAccesso(){
+      const box=document.getElementById('richieste-accesso'),lista=document.getElementById('richieste-lista');
+      if(!box||!window.NaviAdminFirebase?.listRichiesteAccesso)return;
+      let richieste=[];try{await NaviAdminFirebase.ready;richieste=await NaviAdminFirebase.listRichiesteAccesso();}catch(error){console.warn('Richieste di accesso non lette',error);return;}
+      box.hidden=!richieste.length;document.getElementById('richieste-count').textContent=richieste.length;
+      const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const sito=location.href.replace(/[^/]*$/,'');
+      lista.innerHTML=richieste.map(r=>{
+        let num=String(r.telefono||'').replace(/[^\d+]/g,'');if(num.startsWith('+'))num=num.slice(1);else if(num.startsWith('00'))num=num.slice(2);else if(!num.startsWith('39')||num.length<=10)num='39'+num;
+        const pin=(typeof initialPins!=='undefined'&&initialPins[String(r.agentId)])||'';
+        const nome=String(r.nome||'').toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
+        const testo=`Ciao ${nome}, ecco l'accesso a NaviSuite: ${sito}\nCognome: ${r.nome||''}\nPIN iniziale: ${pin||'____'}\nAl primo accesso ti chiederà di sceglierne uno personale.`;
+        const quando=r.createdAt?new Date(r.createdAt).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+        return `<div class="agent-card" style="display:grid;gap:8px;padding:12px"><div><strong>${esc(r.nome)}</strong> <small>· tel. ${esc(r.telefono)} · ${esc(quando)}</small>${r.nota?`<p style="margin:4px 0 0">${esc(r.nota)}</p>`:''}${pin?'':'<p style="margin:4px 0 0;color:#fbbf24">Nessun PIN iniziale: generalo in “PIN primo accesso” prima di rispondere.</p>'}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="save-agent" style="display:inline-flex;align-items:center;text-decoration:none;background:#25d366;color:#05230f" target="_blank" rel="noopener" href="https://wa.me/${num}?text=${encodeURIComponent(testo)}">WhatsApp</a><button class="save-agent" type="button" data-richiesta-fatta="${esc(r.id)}">Fatto, togli</button></div></div>`;
+      }).join('');
+    }
+    document.getElementById('richieste-lista')?.addEventListener('click',async event=>{
+      const id=event.target.closest('[data-richiesta-fatta]')?.dataset.richiestaFatta;if(!id)return;
+      try{await NaviAdminFirebase.deleteRichiestaAccesso(id);}catch(error){alert(`Non tolta: ${error.message}`);}
+      caricaRichiesteAccesso();
+    });
+    setTimeout(caricaRichiesteAccesso,1200);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')caricaRichiesteAccesso();});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')ricaricaDatiAdmin();});
     window.addEventListener('focus',ricaricaDatiAdmin);
     setInterval(()=>{if(document.visibilityState==='visible')ricaricaDatiAdmin();},60000);
