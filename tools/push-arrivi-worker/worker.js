@@ -152,6 +152,44 @@ async function variazioni(oggi) {
   if (messi) log(`${messi} avvisi ODS in coda`);
 }
 
+// --- Cambi turno (preferenza "Cambi turno"): al collega la nuova richiesta, a entrambi l'approvazione.
+// Nuovi = dopo l'ultimo controllo (private/adminUpdates/pushCambiDa); al primo avvio si parte da adesso.
+async function cambi() {
+  const da = await fb('private/adminUpdates/pushCambiDa');
+  const ora = new Date().toISOString();
+  if (!da) { if (!DRY_RUN) await fb('private/adminUpdates/pushCambiDa', { method: 'PUT', body: JSON.stringify(ora) }); return; }
+  const [richieste, approvate, cancellate, subs] = await Promise.all([fb('private/changeRequests'), fb('private/adminUpdates/approvedChangeRequests'),
+    fb('private/adminUpdates/deletedChangeRequests'), fb('private/adminUpdates/pushSubscriptions')]);
+  const lista = x => Array.isArray(x) ? x.filter(Boolean) : Object.values(x || {}).filter(Boolean);
+  const tolte = new Set(lista(cancellate).map(x => String(x.requestId)));
+  const perId = new Map(lista(richieste).map(r => [String(r.id), r]));
+  const giorno = iso => { const d = new Date(`${iso}T12:00:00`); return `${['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'][d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`; };
+  const cambiTesto = r => (Array.isArray(r?.changes) ? r.changes : []).slice(0, 3).map(c => `${giorno(String(c.date).slice(0, 10))} ${c.from}→${c.to}`).join(' · ');
+  const avvisi = []; // {agentId, title, body, chiave}
+  lista(richieste).filter(r => String(r.sentAt || '') > String(da) && !tolte.has(String(r.id)) && r.colleagueId).forEach(r =>
+    avvisi.push({ agentId: String(r.colleagueId), title: `⇄ Cambio turno da ${r.agentName || r.agentId}`, body: cambiTesto(r) || 'Apri Cambio turno per rispondere', chiave: `R_${r.id}` }));
+  lista(approvate).filter(a => String(a.approvedAt || '') > String(da)).forEach(a => {
+    const r = perId.get(String(a.requestId)) || {};
+    [[a.agentId, r.colleagueName || a.colleagueId], [a.colleagueId, r.agentName || a.agentId]].forEach(([id, con]) => id && avvisi.push({
+      agentId: String(id), title: '✅ Cambio turno approvato', body: [`con ${con}`, cambiTesto(r)].filter(Boolean).join(' · '), chiave: `A_${a.requestId}` }));
+  });
+  let messi = 0;
+  for (const av of avvisi) {
+    const disp = Object.values(subs?.[av.agentId] || {}).filter(sub => sub && sub.enabled !== false && sub.preferences?.shiftChanges !== false);
+    for (const sub of disp) {
+      const id = safe(`CAMBIO_${av.chiave}_${av.agentId}_${sub.deviceId}`).slice(0, 700);
+      if (await fb(`private/adminUpdates/pushQueue/${id}`)) continue;
+      const item = { id, status: 'pending', kind: 'cambio-turno', requestedByAgentId: 'system', requestedByName: 'NaviSuite cambi', targetAgentId: av.agentId,
+        targetDeviceId: String(sub.deviceId || ''), title: av.title, body: av.body, url: 'cambi_turno.html', meta: { automatic: true }, createdAt: ora };
+      if (DRY_RUN) log('[prova] cambio', av.agentId, '→', av.title, '|', av.body);
+      else await fb(`private/adminUpdates/pushQueue/${id}`, { method: 'PUT', body: JSON.stringify(item) });
+      messi++;
+    }
+  }
+  if (!DRY_RUN) await fb('private/adminUpdates/pushCambiDa', { method: 'PUT', body: JSON.stringify(ora) });
+  if (messi) log(`${messi} avvisi cambi turno in coda`);
+}
+
 const romeDay = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' });
 const romeMinutes = () => { const [h, m] = new Date().toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour12: false }).split(':').map(Number); return h * 60 + m; };
 const safe = v => String(v).replace(/[.#$\[\]\/]/g, '_');
@@ -284,6 +322,12 @@ async function main() {
     const orig = fb; if (da) fb = async (p, o) => (p === 'private/adminUpdates/pushOdsDa' && !o ? da : orig(p, o));
     await app(); await variazioni(romeDay()); return;
   }
+  if (process.argv.includes('--cambi')) {
+    // prova degli avvisi cambi turno da una data: DRY_RUN=1 node worker.js --cambi 2026-10-01T00:00:00Z
+    const da = process.argv[process.argv.indexOf('--cambi') + 1];
+    const orig = fb; if (da) fb = async (p, o) => (p === 'private/adminUpdates/pushCambiDa' && !o ? da : orig(p, o));
+    await app(); await cambi(); return;
+  }
   if (process.argv.includes('--pronto')) {
     // prepara e pubblica subito il turno pronto: node worker.js --pronto  (con DRY_RUN=1 solo prova)
     await turnoPronto(await app()); return;
@@ -299,6 +343,7 @@ async function main() {
     try { await giro(); } catch (e) { log('errore:', e.message); }
     try { await turnoPronto(await app()); } catch (e) { log('turno pronto non riuscito:', e.message); }
     try { await variazioni(romeDay()); } catch (e) { log('avvisi ODS non riusciti:', e.message); }
+    try { await cambi(); } catch (e) { log('avvisi cambi turno non riusciti:', e.message); }
     try { await backupNotturno(await app()); } catch (e) { log('backup non riuscito:', e.message); }
     await new Promise(r => setTimeout(r, 60 * 1000 - (Date.now() % (60 * 1000)) + 2000));
   }
