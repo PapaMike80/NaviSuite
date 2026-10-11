@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v490-rete-1s';
+const CACHE_VERSION = 'navisuite-v491-pagine-memoria';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -114,12 +114,23 @@ async function networkFirst(request, fallbackUrl = '') {
   }
 }
 
+// Pagine: SEMPRE la copia in memoria subito; la rete aggiorna in silenzio la copia per la prossima apertura.
+async function paginaDaMemoria(event, fallbackUrl = '') {
+  try { return await staleWhileRevalidate(event); } catch (error) {
+    const cache = await caches.open(CACHE_VERSION);
+    const fallback = fallbackUrl && await cache.match(fallbackUrl, { ignoreSearch:true });
+    if (fallback) return fallback;
+    throw error;
+  }
+}
+
 async function staleWhileRevalidate(event) {
   const request = event.request;
   const cache = await caches.open(CACHE_VERSION);
   const exact = await cache.match(request);
   const fallback = exact || await cache.match(request, { ignoreSearch:true });
-  const refresh = fetch(request, { cache:'reload' })
+  // una richiesta di navigazione non si puo' rifare con opzioni: si usa il suo indirizzo
+  const refresh = (request.mode === 'navigate' ? fetch(request.url, { cache:'reload', credentials:'same-origin' }) : fetch(request, { cache:'reload' }))
     .then(response => cachePut(request, response))
     .catch(() => null);
   if (fallback) {
@@ -202,14 +213,14 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (url.pathname.endsWith('/assets/css/shared-menu.css')) {
-    event.respondWith(networkFirst(event.request));
+    event.respondWith(staleWhileRevalidate(event));
     return;
   }
 
   // oggi.js: sempre rete-prima, cosi' il selettore giornata e le altre
   // modifiche arrivano subito senza aspettare la rotazione della cache.
   if (url.pathname.endsWith('/assets/js/oggi.js')) {
-    event.respondWith(networkFirst(event.request));
+    event.respondWith(staleWhileRevalidate(event));
     return;
   }
 
@@ -372,11 +383,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Le pagine HTML provano prima la rete per ricevere subito gli aggiornamenti;
-  // se manca la connessione, usano la copia locale. Se la pagina richiesta non
-  // e' mai stata aperta, torniamo almeno all'Index gia' precaricato.
+  // Le pagine HTML si aprono SEMPRE dalla copia in memoria (istantanee) e la rete
+  // aggiorna la copia in silenzio. Se la pagina non e' mai stata aperta, si scarica;
+  // senza rete si torna almeno all'Index gia' precaricato.
   if (event.request.mode === 'navigate') {
-    event.respondWith(networkFirst(event.request, './index.html'));
+    event.respondWith(paginaDaMemoria(event, './index.html'));
     return;
   }
 
