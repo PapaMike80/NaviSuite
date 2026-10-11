@@ -98,7 +98,7 @@ function showChoice(agent) {
   $('loginForm').hidden = true;
   $('firstPinForm').hidden = true;
   $('appChoice').hidden = false;
-  $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}, dove vuoi andare?`;
+  $('welcomeUser').textContent = `Ciao ${formatName(agent.name)}`;
   document.dispatchEvent(new CustomEvent('navisuite-login-complete', { detail:{ agentId:String(agent.id||'') } }));
   // Utente di uno scalo: solo la pagina Scali del proprio scalo
   const scalo=window.NaviRoles?.scaloOf?.(agent);

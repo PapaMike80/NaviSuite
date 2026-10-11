@@ -34,6 +34,27 @@
     html.navisuite-light .app-card:hover,
     body.navisuite-light .app-card:hover,
     html[data-theme="light"] .app-card:hover{background:#fff !important}
+    /* Home compatta: le 5 pagine piu' usate in riquadri a due colonne, le altre in una lista piccola. */
+    #appChoice.choice-card{padding:18px 16px !important;box-sizing:border-box}
+    #appChoice .eyebrow{margin:0 0 4px}
+    #appChoice h2{font-size:clamp(22px,6vw,30px) !important;line-height:1.15 !important;margin:0 0 14px !important}
+    #appChoice .app-grid{display:grid !important;grid-template-columns:1fr 1fr !important;gap:10px !important;margin:0 !important}
+    #appChoice .app-card{min-height:0 !important;padding:14px 12px !important;border-radius:16px !important;display:flex !important;flex-direction:column !important;align-items:flex-start !important;gap:6px !important;text-decoration:none}
+    #appChoice .app-card .app-icon{width:40px !important;height:40px !important;font-size:20px !important;border-radius:12px !important;margin:0 !important;display:grid;place-items:center}
+    #appChoice .app-card strong{font-size:18px !important;margin:0 !important;line-height:1.15}
+    #appChoice .app-card p{font-size:13px !important;line-height:1.3 !important;margin:0 !important;opacity:.85}
+    #appChoice .app-principali .app-card.diaria{grid-column:1 / -1;flex-direction:row !important;align-items:center !important;gap:12px !important}
+    #appChoice .app-principali .app-card.diaria .app-icon{width:48px !important;height:48px !important;font-size:24px !important}
+    #appChoice .app-principali .app-card.diaria strong{font-size:22px !important}
+    #appChoice .app-altre-titolo{margin:18px 2px 8px !important;font-size:11px;font-weight:800;letter-spacing:.14em;opacity:.7}
+    #appChoice .app-altre{grid-template-columns:repeat(3,1fr) !important;gap:8px !important}
+    #appChoice .app-altre .app-card{padding:10px 6px !important;align-items:center !important;text-align:center;gap:4px !important}
+    #appChoice .app-altre .app-card .app-icon{width:32px !important;height:32px !important;font-size:16px !important}
+    #appChoice .app-altre .app-card strong{font-size:12.5px !important}
+    #appChoice .app-card[hidden]{display:none !important}
+    #appChoice #logoutButton{margin-top:16px}
+    body:has(#appChoice:not([hidden])) .portal-intro{display:none !important}
+    body:has(#appChoice:not([hidden])) .portal-panel{padding-top:max(12px,env(safe-area-inset-top)) !important}
   </style>
 </head>
 <body>
@@ -81,19 +102,21 @@
       <div id="appChoice" class="choice-card" hidden>
         <p class="eyebrow">BENTORNATO</p>
         <h2 id="welcomeUser">Dove vuoi andare?</h2>
-        <p>Scegli l’area da aprire. Potrai passare da una all’altra senza accedere di nuovo.</p>
-        <div class="app-grid">
-          <a class="app-card mioturno" href="mio-turno.html" data-navi-tab="NaviMioTurnoTab"><span class="app-icon">⚑</span><small>LA MIA GIORNATA</small><strong>Il mio turno</strong><p>Nave, ormeggi, colleghi e scali del tuo turno.</p><b>Apri Il mio turno →</b></a>
-          <a class="app-card orario" href="orario.html" data-navi-tab="NaviOrarioTab"><span class="app-icon">⚓</span><small>LAGO, PONTILI E BIGLIETTERIA</small><strong>Scali</strong><p>Navi sul lago e allo scalo: pontili, ormeggi, bolgette e agenti di servizio.</p><b>Apri Scali →</b></a>
-          <a class="app-card oggi" href="oggi.html" data-navi-tab="NaviOggiTab"><span class="app-icon">☀</span><small>GIORNATA OPERATIVA</small><strong>Oggi</strong><p>Vedi corse, navi ed equipaggi della giornata.</p><b>Apri Oggi →</b></a>
-          <a class="app-card turni" href="naviturni.html" data-navi-tab="NaviTurniTab"><span class="app-icon">▦</span><small>PIANIFICAZIONE</small><strong>NaviTurni</strong><p>Consulta turni, equipaggi e coperture.</p><b>Apri NaviTurni →</b></a>
-          <a class="app-card trova" href="cambi_turno.html" data-navi-tab="NaviTrovaTurnoTab"><span class="app-icon">⇄</span><small>CAMBI TURNO</small><strong>Trova turno</strong><p>Cerca e confronta i cambi disponibili.</p><b>Apri Trova turno →</b></a>
-          <a class="app-card diaria" href="navidiaria.html" data-navi-tab="NaviDiariaTab"><span class="app-icon">≈</span><small>REGISTRO PERSONALE</small><strong>NaviDiaria</strong><p>Gestisci ore, competenze e diaria.</p><b>Apri NaviDiaria →</b></a>
-          <a class="app-card docs" href="documenti.html" data-navi-tab="NaviOdsTab"><span class="app-icon">▤</span><small>ARCHIVIO PDF</small><strong>NaviOds</strong><p>Consulta turni, bozze e ordini di servizio.</p><b>Apri l’archivio →</b></a>
-          <a class="app-card settings" href="impostazioni.html" data-navi-tab="NaviImpostazioniTab"><span class="app-icon">⚙</span><small>PREFERENZE</small><strong>Impostazioni</strong><p>Gestisci preferenze, settimane e profilo.</p><b>Apri Impostazioni →</b></a>
-          <a class="app-card updates" href="aggiornamenti.html" data-navi-tab="NaviAggiornamentiTab" hidden><span class="app-icon">↻</span><small>AMMINISTRAZIONE</small><strong>Aggiornamenti</strong><p>Importa ODS, turni, bozze e variazioni.</p><b>Apri Aggiornamenti →</b></a>
-          <a class="app-card agents" href="agenti.html" data-navi-tab="NaviAgentiTab" hidden><span class="app-icon">♙</span><small>AMMINISTRAZIONE</small><strong>Agenti</strong><p>Gestisci accessi, ruoli e gradi del personale.</p><b>Apri Gestione agenti →</b></a>
-          <a class="app-card movimento" href="movimento.html" data-navi-tab="NaviMovimentoTab" hidden><span class="app-icon">⚓</span><small>AMMINISTRAZIONE</small><strong>Movimento</strong><p>Gestisci navi ed equipaggi minimi.</p><b>Apri Movimento →</b></a>
+        <div class="app-grid app-principali">
+          <a class="app-card diaria" href="navidiaria.html" data-navi-tab="NaviDiariaTab"><span class="app-icon">≈</span><span><strong>Distinta</strong><p>Ore, ritardi e competenze</p></span></a>
+          <a class="app-card mioturno" href="mio-turno.html" data-navi-tab="NaviMioTurnoTab"><span class="app-icon">⚑</span><strong>Il mio turno</strong><p>Nave, corse e colleghi</p></a>
+          <a class="app-card turni" href="naviturni.html" data-navi-tab="NaviTurniTab"><span class="app-icon">▦</span><strong>Turni</strong><p>Turni di tutti gli agenti</p></a>
+          <a class="app-card oggi" href="oggi.html" data-navi-tab="NaviOggiTab"><span class="app-icon">☀</span><strong>Oggi</strong><p>Navi ed equipaggi del giorno</p></a>
+          <a class="app-card orario" href="orario.html" data-navi-tab="NaviOrarioTab"><span class="app-icon">⚓</span><strong>Scali</strong><p>Navi allo scalo, pontili, ritardi</p></a>
+        </div>
+        <p class="app-altre-titolo">ALTRE PAGINE</p>
+        <div class="app-grid app-altre">
+          <a class="app-card trova" href="cambi_turno.html" data-navi-tab="NaviTrovaTurnoTab"><span class="app-icon">⇄</span><strong>Cambio turno</strong></a>
+          <a class="app-card docs" href="documenti.html" data-navi-tab="NaviOdsTab"><span class="app-icon">▤</span><strong>Documenti</strong></a>
+          <a class="app-card settings" href="impostazioni.html" data-navi-tab="NaviImpostazioniTab"><span class="app-icon">⚙</span><strong>Impostazioni</strong></a>
+          <a class="app-card updates" href="aggiornamenti.html" data-navi-tab="NaviAggiornamentiTab" hidden><span class="app-icon">↻</span><strong>Aggiornamenti</strong></a>
+          <a class="app-card agents" href="agenti.html" data-navi-tab="NaviAgentiTab" hidden><span class="app-icon">♙</span><strong>Agenti</strong></a>
+          <a class="app-card movimento" href="movimento.html" data-navi-tab="NaviMovimentoTab" hidden><span class="app-icon">⚓</span><strong>Movimento</strong></a>
         </div>
         <button id="logoutButton" class="text-button" type="button">Esci e cambia utente</button>
       </div>
@@ -103,7 +126,7 @@
   <script src="assets/js/admin-firebase-rest.js?v=73"></script>
   <script src="assets/js/shared-data.js?v=136"></script>
   <script src="assets/js/firebase-auth.js?v=2.js"></script>
-  <script src="assets/js/portal.js?v=109"></script>
+  <script src="assets/js/portal.js?v=110"></script>
   <script src="assets/js/shared-menu.js?v=1.66"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/announcements-recovered.js?v=4"></script>
