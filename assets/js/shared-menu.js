@@ -79,7 +79,6 @@
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
     const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
-      ['index.html?home=1','⌂','Home'],
       // pagine principali: Il mio turno e Scali
       ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
@@ -91,12 +90,19 @@
       ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[])
     ];
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+    // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
+    const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2],'oggi.html':['Navi ed equipaggi del giorno','#facc15',3],'orario.html':['Navi allo scalo, pontili, ritardi','#38bdf8',4]};
+    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','verifica-busta.html':'#4ade80'};
     const linkHtml=([href,icon,label])=>{
-      const active=href.split('?')[0].toLowerCase()===file;
-      return `<a class="nav-link${active?' active':''}" href="${href}"${active?' aria-current="page"':''}><span>${icon}</span>${escapeText(label)}</a>`;
+      const key=href.split('?')[0].toLowerCase(),active=key===file,main=PRINCIPALI[key];
+      const colore=main?.[1]||COLORI[key]||'#94a3b8';
+      return `<a class="nav-link ns-tile${main?' ns-main':''}${key==='navidiaria.html'?' ns-wide':''}${active?' active':''}" href="${href}" style="--c:${colore}"${active?' aria-current="page"':''}><span>${icon}</span><i><b>${escapeText(label)}</b>${main?`<small>${main[0]}</small>`:''}</i></a>`;
     };
     const pastHtml='<a href="#" data-turni-main-past><span>◷</span><b>Mostra passato</b></a>';
-    const linksHtml=entries.map(entry=>linkHtml(entry)+(onTurni&&entry[0]==='naviturni.html'?pastHtml:'')).join('');
+    const ordine=e=>PRINCIPALI[e[0].split('?')[0].toLowerCase()]?.[2];
+    const principali=entries.filter(e=>ordine(e)!==undefined).sort((a,b)=>ordine(a)-ordine(b)),altre=entries.filter(e=>ordine(e)===undefined);
+    const pastTile=onTurni?pastHtml.replace('<a ','<a class="ns-tile" style="--c:#2dd4bf" ').replace('<b>','<i><b>').replace('</b>','</b></i>'):'';
+    const linksHtml=`<div class="ns-grid ns-grid-main">${principali.map(linkHtml).join('')}</div>${altre.length||pastTile?`<p class="ns-altre">ALTRE PAGINE</p><div class="ns-grid ns-grid-small">${pastTile}${altre.map(linkHtml).join('')}</div>`:''}`;
 
     const style=document.createElement('style');
     style.id='navisuite-unified-menu-style';
@@ -105,24 +111,44 @@
       @media(max-width:950px){.mobile-liquid-nav{display:none!important}}
       #navisuite-popup[hidden]{display:none!important}
       #navisuite-popup{position:fixed;inset:0;z-index:10000;background:rgba(2,12,17,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-      .ns-menu-dialog{position:fixed;top:16px;left:12px;right:12px;box-sizing:border-box;width:auto;max-width:none;margin:0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e6971;border-radius:26px;background:linear-gradient(165deg,#102e39,#0a222c);box-shadow:0 22px 56px rgba(0,0,0,.5)}
+      .ns-menu-dialog{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;box-sizing:border-box;width:auto;max-width:none;margin:0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #2e6971;border-radius:26px;background:linear-gradient(165deg,#102e39,#0a222c);box-shadow:0 22px 56px rgba(0,0,0,.5)}
       .ns-menu-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;color:#a7fff0;font:900 26px/1 Manrope,system-ui,sans-serif}
       .ns-menu-close{width:44px;height:44px;border:1px solid rgba(126,243,226,.35);border-radius:14px;background:rgba(255,255,255,.06);color:#eafffb;font-size:30px;line-height:1;cursor:pointer}
-      .ns-menu-links{display:grid;gap:8px;overflow:auto;padding:0 18px 14px;-webkit-overflow-scrolling:touch}
-      .ns-menu-links a{display:flex;align-items:center;gap:13px;min-height:52px;padding:0 16px;border:1px solid #285560;border-radius:16px;background:rgba(255,255,255,.025);color:#e8f7f7;text-decoration:none;font:800 17px/1.15 Manrope,system-ui,sans-serif}
-      .ns-menu-links a span{width:23px;color:#55e6d3;font-size:23px;text-align:center}
-      .ns-menu-links a b{font:inherit}
-      .ns-menu-links a.active{border-color:#45d9c7;background:rgba(45,212,191,.14);color:#cafff7}
+      .ns-menu-links{display:block;overflow:auto;padding:0 16px 14px;-webkit-overflow-scrolling:touch}
+      .ns-grid{display:grid;gap:9px}
+      .ns-grid-main{grid-template-columns:1fr 1fr}
+      .ns-grid-small{grid-template-columns:repeat(3,1fr);gap:8px}
+      .ns-tile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:13px 12px;border:1px solid #285560;border-radius:16px;background:rgba(255,255,255,.025);color:#e8f7f7;text-decoration:none;min-width:0}
+      .ns-tile>span{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);font-size:19px;flex:none}
+      .ns-tile i{display:grid;gap:3px;font-style:normal;min-width:0}
+      .ns-tile b{font:800 17px/1.15 Manrope,system-ui,sans-serif}
+      .ns-tile small{font:600 12.5px/1.3 "DM Sans",system-ui,sans-serif;color:#9fb8c2}
+      .ns-tile.ns-wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:12px}
+      .ns-tile.ns-wide>span{width:46px;height:46px;font-size:23px}
+      .ns-tile.ns-wide b{font-size:21px}
+      .ns-grid-small .ns-tile{align-items:center;text-align:center;padding:10px 4px;gap:4px}
+      .ns-grid-small .ns-tile>span{width:32px;height:32px;font-size:16px;border-radius:10px}
+      .ns-grid-small .ns-tile b{font-size:12.5px}
+      .ns-tile.active{border-color:#45d9c7;background:rgba(45,212,191,.14)}
+      .ns-saluto{display:flex;align-items:center;gap:10px;min-width:0;color:#eafffb;font-size:23px}
+      .ns-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:34px;height:34px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px;font-weight:900;line-height:1}
+      .ns-altre{margin:16px 2px 8px;color:#66818d;font:900 10px/1 Manrope,system-ui,sans-serif;letter-spacing:.16em}
+      .ns-grid-main+.ns-grid-small{margin-top:9px}
       .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}
       .ns-menu-foot a,.ns-menu-foot button{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.05);color:#d9eff0;text-decoration:none;font:800 14px/1 Manrope,system-ui,sans-serif;cursor:pointer}
       .ns-menu-foot .ns-menu-exit{border-color:rgba(251,113,133,.52);background:rgba(251,113,133,.09);color:#fdb2ba}
-      @media(min-width:851px){.ns-menu-dialog{left:50%;right:auto;width:min(430px,calc(100vw - 24px));transform:translateX(-50%)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}.ns-menu-links a{min-height:49px;font-size:16px}}
+      @media(min-width:851px){.ns-menu-dialog{left:50%;right:auto;width:min(980px,calc(100vw - 48px));transform:translateX(-50%);top:40px}.ns-grid-main{grid-template-columns:repeat(5,1fr)}.ns-tile.ns-wide{grid-column:auto;flex-direction:column;align-items:flex-start;gap:6px}.ns-tile.ns-wide>span{width:38px;height:38px;font-size:19px}.ns-tile.ns-wide b{font-size:17px}.ns-grid-small{grid-template-columns:repeat(6,1fr)}} @media(max-width:480px){.ns-menu-dialog{border-radius:23px}.ns-menu-head{font-size:24px}}
     `;
     document.head.appendChild(style);
+    // Intestazione: "Ciao Pedroni M." con il distintivo del grado come in Movimento
+    const nome=String(agent?.name||agent?.agente||'').trim().toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
+    const qualifica=String(agent?.qualifica||agent?.grado||(window.NaviSharedData?.directory?.()||[]).find(a=>String(a.id)===String(agent?.id))?.qualifica||'');
+    const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6'],[/motorista/i,'Motorista','Mot','#a855f7'],[/timoniere/i,'Timoniere','Tim','#22c55e'],[/marinaio/i,'Marinaio','Mar','#e8f3f6']].find(([re])=>re.test(qualifica));
+    const saluto=`<span class="ns-saluto">${nome?`Ciao ${escapeText(nome)}`:'Menu'}${grado?`<span class="ns-grado" style="--g:${grado[3]}" title="${grado[1]}">${grado[2]}</span>`:''}</span>`;
     const popup=document.createElement('div');
     popup.id='navisuite-popup';
     popup.hidden=true;
-    popup.innerHTML=`<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">Menu <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><nav class="ns-menu-links">${linksHtml}</nav><div class="ns-menu-foot"><a href="navidiaria.html?open-pin=1">Cambia PIN</a><button type="button" class="ns-menu-exit">Esci</button></div></section>`;
+    popup.innerHTML=`<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">${saluto} <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><nav class="ns-menu-links">${linksHtml}</nav><div class="ns-menu-foot"><a href="navidiaria.html?open-pin=1">Cambia PIN</a><button type="button" class="ns-menu-exit">Esci</button></div></section>`;
     document.body.appendChild(popup);
     const pastLink=popup.querySelector('[data-turni-main-past]');
     const syncPastLabel=()=>{
