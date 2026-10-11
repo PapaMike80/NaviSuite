@@ -132,6 +132,9 @@
       .ns-tile.active{border-color:#45d9c7;background:rgba(45,212,191,.14)}
       .ns-saluto{display:flex;align-items:center;gap:10px;min-width:0;color:#eafffb;font-size:23px}
       .ns-grado{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:34px;height:34px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px;font-weight:900;line-height:1}
+      #navisuite-popup .ns-tile>span{flex:0 0 auto!important;width:38px!important;min-width:38px!important;height:38px!important;margin:0!important;padding:0!important;font-family:system-ui,sans-serif;font-variant-emoji:text}
+      #navisuite-popup .ns-tile.ns-wide>span{width:46px!important;min-width:46px!important;height:46px!important}
+      #navisuite-popup .ns-grid-small .ns-tile>span{width:32px!important;min-width:32px!important;height:32px!important}
       .ns-altre{margin:16px 2px 8px;color:#66818d;font:900 10px/1 Manrope,system-ui,sans-serif;letter-spacing:.16em}
       .ns-grid-main+.ns-grid-small{margin-top:9px}
       .ns-menu-foot{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(126,243,226,.16)}

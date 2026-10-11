@@ -88,6 +88,30 @@
       .pref-tiles.ticket{grid-template-columns:1fr}
       .pref-tile{min-height:132px;padding:16px}
     }
+
+    /* Sezioni chiudibili, chiuse all'apertura, stile compatto */
+    body.impostazioni-page main{gap:12px!important}
+    body.impostazioni-page .intro{display:none}
+    .pref-card{padding:0!important;gap:0!important;overflow:hidden;border-radius:18px!important}
+    .pref-head{display:flex!important;align-items:center!important;gap:12px!important;padding:14px 16px!important;margin:0!important;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+    .pref-head>div{flex:1;min-width:0}
+    .pref-num{width:38px!important;height:38px!important;font-size:13px!important}
+    .pref-head h2{margin:0!important;font-size:17px!important;line-height:1.25!important}
+    .pref-head p{font-size:13px!important;margin:4px 0 0!important}
+    .ns-sez-riepilogo{display:none;margin-top:3px;color:var(--pref-accent,#7ce0c3);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ns-sez-freccia{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.05);color:var(--pref-accent,#7ce0c3);font-size:16px;transition:transform .2s}
+    .ns-sez:not(.chiusa) .ns-sez-freccia{transform:rotate(180deg)}
+    .ns-sez.chiusa>:not(.pref-head){display:none!important}
+    .ns-sez.chiusa .pref-head p{display:none}
+    .ns-sez.chiusa .ns-sez-riepilogo{display:block}
+    .ns-sez:not(.chiusa)>:not(.pref-head){margin-left:16px!important;margin-right:16px!important}
+    .ns-sez:not(.chiusa)>:last-child{margin-bottom:16px!important}
+    .pref-tiles{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:10px!important}
+    .pref-tile{min-height:0!important;padding:12px!important;gap:8px!important;border-radius:14px!important}
+    .pref-icon{width:36px!important;height:36px!important}
+    .pref-label{font-size:15px!important}
+    .pref-desc{font-size:12px!important;margin-top:2px!important}
+    @media(max-width:520px){.pref-tiles{grid-template-columns:1fr 1fr!important}}
   </style>
 </head>
 <body class="impostazioni-page turni-page">
@@ -179,7 +203,7 @@
   <script src="assets/js/shared-roles.js?v=6"></script>
   <script src="assets/js/admin-firebase-rest.js?v=76"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
-  <script src="assets/js/shared-menu.js?v=1.70"></script>
+  <script src="assets/js/shared-menu.js?v=1.71"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
   <script src="assets/js/calendar-settings-v2.js?v=5"></script>
@@ -414,5 +438,30 @@
     loadDraftPeriod();
   </script>
   <script src="assets/js/announcements-recovered.js?v=4"></script>
+
+  <script>
+  // Impostazioni: ogni sezione si apre e chiude toccando il titolo; all'apertura sono tutte chiuse.
+  (function(){
+    const riepilogo=sez=>[...sez.querySelectorAll('[aria-pressed="true"] .pref-label,[aria-pressed="true"]')].map(el=>(el.querySelector?.('.pref-label')||el).textContent.trim()).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).join(' · ');
+    function prepara(sez){
+      if(sez.classList.contains('ns-sez'))return;
+      const head=sez.querySelector(':scope>.pref-head');if(!head)return;
+      sez.classList.add('ns-sez','chiusa');
+      const titolo=head.querySelector('h2');
+      if(titolo&&!head.querySelector('.ns-sez-riepilogo')){const r=document.createElement('div');r.className='ns-sez-riepilogo';titolo.after(r);}
+      const f=document.createElement('span');f.className='ns-sez-freccia';f.setAttribute('aria-hidden','true');f.textContent='▾';head.appendChild(f);
+      head.setAttribute('role','button');head.tabIndex=0;head.setAttribute('aria-expanded','false');
+      const giro=()=>{const chiusa=sez.classList.toggle('chiusa');head.setAttribute('aria-expanded',String(!chiusa));aggiorna(sez);};
+      head.addEventListener('click',e=>{if(e.target.closest('a,button,select,input'))return;giro();});
+      head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();giro();}});
+      new MutationObserver(()=>aggiorna(sez)).observe(sez,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+      aggiorna(sez);
+    }
+    function aggiorna(sez){const r=sez.querySelector('.ns-sez-riepilogo');if(r)r.textContent=riepilogo(sez);}
+    const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card').forEach(prepara);
+    tutte();
+    new MutationObserver(tutte).observe(document.querySelector('main')||document.body,{childList:true});
+  })();
+  </script>
 </body>
 </html>
