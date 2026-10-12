@@ -1,6 +1,6 @@
 {
-  "name": "NaviDiaria - Registro Navigazione Laghi",
-  "short_name": "NaviDiaria",
+  "name": "NaviSuite - Registro Navigazione Laghi",
+  "short_name": "NaviSuite",
   "description": "Diario di navigazione per Gestione Navigazione Laghi.",
   "start_url": "./index.html",
   "display": "standalone",
