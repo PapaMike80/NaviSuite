@@ -113,4 +113,85 @@ assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="aut
 assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
 assert.match(js, /while \(resto\[fine \+ 1\]\?\.scalo === state\.scalo\) fine \+= 1;/); // sosta: arrivo e ripartenza, poi lo scalo dopo
 assert.match(js, /riga\(dopo, fine \+ 1\)/); // scalo dopo il mio, con quanto manca
+
+// GPS autoselezione dello scalo di partenza "Da"
+assert.match(js, /!state\.fromScelto && !state\.fromGpsFatto/);
+assert.match(js, /state\.fromGpsFatto = true;/);
+assert.match(js, /fromGpsFatto: false/);
+
+const SCALI_LIST = ['Desenzano', 'Peschiera', 'Sirmione', 'Lazise', 'Bardolino', 'Garda', 'Torri', 'Portese', 'Salò',
+  'Gardone', 'Maderno', 'Gargnano', 'Brenzone', 'Malcesine', 'Limone', 'Torbole', 'Riva'];
+function trovaScaloVicino(lat, lon) {
+  const km = ([a, b]) => {
+    const r = Math.PI / 180, dLat = (a - lat) * r, dLon = (b - lon) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat * r) * Math.cos(a * r) * Math.sin(dLon / 2) ** 2;
+    return 12742 * Math.asin(Math.sqrt(h));
+  };
+  return SCALI_LIST.map(nome => ({ nome, km: km(M.scali[nome].geo) })).sort((a, b) => a.km - b.km)[0];
+}
+
+// 1. GPS vicino a Desenzano -> "Da" = Desenzano
+assert.strictEqual(trovaScaloVicino(45.47, 10.54).nome, 'Desenzano');
+
+// 2. GPS vicino a Maderno -> "Da" = Maderno
+assert.strictEqual(trovaScaloVicino(45.64, 10.60).nome, 'Maderno');
+
+// 3. GPS vicino a Riva -> "Da" = Riva
+assert.strictEqual(trovaScaloVicino(45.88, 10.84).nome, 'Riva');
+
+// Workflow GPS su state:
+function creaSimulazione(daIniziale = 'Desenzano', fromScelto = false) {
+  const s = { from: daIniziale, to: daIniziale === 'Desenzano' ? 'Sirmione' : 'Desenzano', fromScelto, fromGpsFatto: false, gps: null, scaloScelto: false, scalo: daIniziale };
+  let renderChiamato = 0;
+  const render = () => { renderChiamato += 1; };
+  const onGpsPos = pos => {
+    const vicino = trovaScaloVicino(pos.coords.latitude, pos.coords.longitude);
+    s.gps = vicino;
+    if (!s.fromScelto && !s.fromGpsFatto) {
+      if (s.to === vicino.nome) s.to = s.from !== vicino.nome ? s.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
+      s.from = vicino.nome;
+      s.fromGpsFatto = true;
+    }
+    if (vicino.km > 3) { render(); return; }
+    if (!s.scaloScelto) { s.scalo = vicino.nome; }
+    render();
+  };
+  return { s, onGpsPos, getRenderCount: () => renderChiamato };
+}
+
+// Autoselezione con GPS disponibile
+const simMaderno = creaSimulazione('Desenzano');
+simMaderno.onGpsPos({ coords: { latitude: 45.64, longitude: 10.60 } });
+assert.strictEqual(simMaderno.s.from, 'Maderno', 'GPS vicino a Maderno imposta Da = Maderno');
+assert.ok(simMaderno.getRenderCount() > 0, 'Ricerca e mappa aggiornate subito');
+
+// Autoselezione con GPS vicino a Riva
+const simRiva = creaSimulazione('Desenzano');
+simRiva.onGpsPos({ coords: { latitude: 45.88, longitude: 10.84 } });
+assert.strictEqual(simRiva.s.from, 'Riva', 'GPS vicino a Riva imposta Da = Riva');
+
+// Dopo aver scelto manualmente un altro scalo, il GPS non deve più modificarlo
+simMaderno.s.from = 'Torri';
+simMaderno.s.fromScelto = true;
+simMaderno.onGpsPos({ coords: { latitude: 45.47, longitude: 10.54 } });
+assert.strictEqual(simMaderno.s.from, 'Torri', 'Scelta manuale non sovrascritta dal GPS');
+
+// Se l’utente modifica manualmente Da prima che arrivi la posizione GPS
+const simManuale = creaSimulazione('Desenzano');
+simManuale.s.from = 'Garda';
+simManuale.s.fromScelto = true;
+simManuale.onGpsPos({ coords: { latitude: 45.88, longitude: 10.84 } });
+assert.strictEqual(simManuale.s.from, 'Garda', 'Scelta manuale precedente non sovrascritta dal GPS');
+
+// Autoselezione avviene una sola volta
+const simUnaVolta = creaSimulazione('Desenzano');
+simUnaVolta.onGpsPos({ coords: { latitude: 45.64, longitude: 10.60 } });
+assert.strictEqual(simUnaVolta.s.from, 'Maderno');
+simUnaVolta.onGpsPos({ coords: { latitude: 45.88, longitude: 10.84 } });
+assert.strictEqual(simUnaVolta.s.from, 'Maderno', 'Non modifica continuamente Da ad aggiornamenti GPS');
+
+// Se il GPS non è disponibile, mantenere il comportamento attuale
+const simNoGps = creaSimulazione('Desenzano');
+assert.strictEqual(simNoGps.s.from, 'Desenzano', 'Senza GPS resta invariato');
+
 console.log('orario ok');
