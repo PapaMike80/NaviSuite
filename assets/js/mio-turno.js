@@ -27,7 +27,7 @@
     ['Desenzano', ['D1', 'D2', 'BIS', 'AgB', 'PonD']],
     ['Maderno', ['T1', 'T2', 'M1', 'AgM', 'AgT']],
     ['Riva', ['R1', 'R2', 'R3']],
-    ['Peschiera', ['P1', 'P2', 'SR1', 'SR2']],
+    ['Peschiera', ['P1', 'P2', 'SR1', 'SR2', 'IE']],
     ['Altro', ['RIP']]
   ];
 
@@ -41,7 +41,7 @@
   const params = new URLSearchParams(location.search);
   // «Prova turno» (provare la pagina con un altro turno) solo per gli admin
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
-  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false } };
+  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
   if (!admin) document.querySelector('.mt-test')?.remove();
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
@@ -77,9 +77,10 @@
     const comp = C?.shiftForCode(code === 'RIP' ? 'Riposo' : code, day) || {};
     const lavoro = code !== 'RIP' && Number(comp.hours) > 0;
     const orario = inizio && fine ? `<span class="mt-orario">${esc(ora(inizio))} → ${esc(ora(fine))}</span>` : '';
+    const modHtml = state.isModified ? `<div class="mt-card-mod"><span class="mt-badge-mod">Modificato da: ${esc(state.modifiedBy)}</span><button type="button" class="mt-restore-btn" data-act="restore-original">Ripristina turno originale</button></div>` : '';
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
       `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
-      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>`;
+      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>` + modHtml;
     return card('Il mio turno', '', head + crewHtml);
   }
 
@@ -220,6 +221,43 @@
     select.closest('.mt-test').classList.toggle('active', !!state.test);
   }
 
+  function updateShift(newData, source) {
+    if (state.originalShift === null || state.originalShift === undefined) {
+      const day = today();
+      const me = profile();
+      const current = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
+      state.originalShift = current ? JSON.parse(JSON.stringify(current)) : { turno: state.test || '' };
+    }
+    const shiftData = typeof newData === 'string' ? { turno: newData } : (newData && typeof newData === 'object' ? { ...newData } : {});
+    state.currentShift = { ...(state.currentShift || {}), ...shiftData };
+    if (state.currentShift.turno) {
+      state.test = state.currentShift.turno;
+    }
+    state.isModified = true;
+    state.modifiedBy = source || null;
+    if (typeof state.currentShift.updateShift === 'function') {
+      state.currentShift.updateShift(newData, source);
+    }
+    render();
+  }
+
+  function restoreOriginalShift() {
+    if (state.originalShift !== null && state.originalShift !== undefined) {
+      const orig = typeof state.originalShift === 'string' ? { turno: state.originalShift } : JSON.parse(JSON.stringify(state.originalShift));
+      state.currentShift = orig;
+      state.test = orig.turno || '';
+    } else {
+      state.currentShift = null;
+      state.test = '';
+    }
+    state.isModified = false;
+    state.modifiedBy = null;
+    if (state.currentShift && typeof state.currentShift.restoreOriginalShift === 'function') {
+      state.currentShift.restoreOriginalShift();
+    }
+    render();
+  }
+
   function render() {
     const day = today(), shown = parseIso(day), realToday = day === iso(new Date());
     const clock = new Date();
@@ -236,9 +274,37 @@
     servizioHeader('', '', day);
     const me = profile();
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
+    if (state._dayLoaded !== day) {
+      state._dayLoaded = day;
+      if (found) {
+        state.originalShift = found.originalShift ? JSON.parse(JSON.stringify(found.originalShift)) : { ...found };
+        state.currentShift = found;
+        state.isModified = Boolean(found.isModified);
+        state.modifiedBy = found.modifiedBy || null;
+      } else {
+        state.originalShift = null;
+        state.currentShift = null;
+        state.isModified = false;
+        state.modifiedBy = null;
+      }
+    }
+    const modBar = $('turno-modified-bar');
+    const modBadge = $('turno-modified-badge');
+    const modByEl = $('turno-modified-by');
+    const restoreBtn = $('turno-restore-btn');
+    if (modBar) modBar.hidden = !state.isModified;
+    if (modBadge) {
+      modBadge.hidden = !state.isModified;
+      if (modByEl) modByEl.textContent = state.modifiedBy || '';
+      else modBadge.textContent = state.isModified ? `Modificato da: ${state.modifiedBy}` : '';
+    }
+    if (restoreBtn) {
+      restoreBtn.hidden = !state.isModified;
+      restoreBtn.disabled = !state.isModified;
+    }
     renderTestSelect(found ? (G.naveCode(found.turno) || G.terraCode(found.turno) || found.turno) : '');
-    if (!state.schedule && !state.test) { $('turno-content').innerHTML = ''; return; }
-    const turno = state.test || found?.turno || '';
+    if (!state.schedule && !state.test && !state.currentShift) { $('turno-content').innerHTML = ''; return; }
+    const turno = (state.isModified && state.currentShift?.turno) ? state.currentShift.turno : (state.test || found?.turno || '');
     const nave = G.naveCode(turno), terra = G.terraCode(turno);
     // Prima pagina "Automatica": sempre Il mio turno, anche a terra (AgB, PonD, AgM, AgT...). Scali e' per gli scali.
     if (params.get('auto') === '1') params.delete('auto');
@@ -283,6 +349,24 @@
     state.showPast = !state.showPast;
     render();
   });
+
+  $('turno-restore-btn')?.addEventListener('click', () => {
+    if (state.isModified) restoreOriginalShift();
+  });
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-act="restore-original"]')) {
+      if (state.isModified) restoreOriginalShift();
+    }
+  });
+
+  window.updateShift = updateShift;
+  window.restoreOriginalShift = restoreOriginalShift;
+  window.NaviMioTurno = {
+    state,
+    updateShift,
+    restoreOriginalShift,
+    render
+  };
 
   render();
   window.NaviSharedData?.loadCacheFirst?.((data, meta) => { state.schedule = data || { residenze: {} }; state.fresco = !meta?.stale; render(); })

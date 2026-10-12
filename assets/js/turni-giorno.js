@@ -122,7 +122,7 @@
   function creaTurno(baseData) {
     const originalShift = baseData && typeof baseData === 'object'
       ? JSON.parse(JSON.stringify(baseData))
-      : baseData;
+      : { turno: baseData };
     const shift = {
       ...(typeof baseData === 'object' && baseData !== null ? baseData : { turno: baseData }),
       originalShift,
@@ -182,11 +182,17 @@
           modifiedBy = 'ODs';
         }
 
+        const originalShiftBackup = {
+          agent,
+          residenza,
+          turno: original
+        };
+
         const shiftObj = {
           agent,
           residenza,
           turno: currentTurno,
-          originalShift: original,
+          originalShift: originalShiftBackup,
           isModified,
           modifiedBy
         };
