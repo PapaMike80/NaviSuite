@@ -793,9 +793,25 @@
     ? `<p class="or-gps">📍 Sei a ${state.gps.km < 1 ? `${Math.round(state.gps.km * 1000)} m` : `${state.gps.km.toFixed(1).replace('.', ',')} km`} da ${esc(state.gps.nome)}</p>` : '');
 
   // Mappa del viaggio: lago, scali scelti e rotta del viaggio selezionato (ogni tratta col colore della nave)
+  function rottaScali(scali) {
+    if (!Array.isArray(scali) || scali.length < 2 || scali.some(nome => !POS[nome])) return null;
+    const punti = [];
+    for (let i = 0; i < scali.length - 1; i += 1) {
+      const tratto = rotta(scali[i], scali[i + 1]);
+      punti.push(...(i ? tratto.slice(1) : tratto));
+    }
+    return punti;
+  }
+  function scaliDellaTratta(l) {
+    const scali = l.v?.scali;
+    const inizio = scali?.findIndex(([nome, ora]) => nome === l.from && minutes(ora) === l.dep);
+    if (inizio == null || inizio < 0) return null;
+    const fine = scali.findIndex(([nome, ora], i) => i > inizio && nome === l.to && minutes(ora) === l.arr);
+    return fine < 0 ? null : scali.slice(inizio, fine + 1).map(([nome]) => nome);
+  }
   function mappaViaggio(sol, raggiungibili = null) {
     const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
-    const tratte = sol ? sol.legs.map(l => ({ r: rotta(l.from, l.to), c: COLORI[l.v.turno] || '#2dd4bf' })) : (state.from !== state.to ? [{ r: rotta(state.from, state.to), c: '#94a3b8', vuota: true }] : []);
+    const tratte = sol ? sol.legs.map(l => ({ r: rottaScali(scaliDellaTratta(l)) || rotta(l.from, l.to), c: COLORI[l.v.turno] || '#2dd4bf' })) : (state.from !== state.to ? [{ r: rotta(state.from, state.to), c: '#94a3b8', vuota: true }] : []);
     const vb = '-12 -3 102 148'; // tutto il lago: ogni scalo si puo' toccare
     const cambi = sol ? sol.legs.slice(1).map(l => l.from) : [];
     const porti = SCALI.map(nome => {
