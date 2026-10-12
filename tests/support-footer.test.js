@@ -15,7 +15,7 @@ assert.match(menu,/min-height:44px/);
 assert.doesNotMatch(menu,/\.navisuite-support-footer\{[^}]*position:\s*(?:fixed|sticky)/);
 
 const settings=fs.readFileSync('impostazioni.html','utf8');
-assert.match(settings,/href="https:\/\/ko-fi\.com\/papamike80" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite Ko-fi"/);
+assert.match(settings,/<a href="https:\/\/ko-fi\.com\/papamike80" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite Ko-fi">/);
 assert.doesNotMatch(settings,/paypal/i);
 
 for(const file of ['index.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','agenti.html','impostazioni.html','aggiornamenti.html','quiz.html','cambia-pin.html','movimento.html','mio-turno.html','orario.html']){

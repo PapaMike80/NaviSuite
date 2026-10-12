@@ -41,14 +41,27 @@
   const params = new URLSearchParams(location.search);
   // «Prova turno» (provare la pagina con un altro turno) solo per gli admin
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
-  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '' };
+  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false } };
   if (!admin) document.querySelector('.mt-test')?.remove();
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
 
-  function card(title, side, body, cls = '') {
-    return `<section class="terra-card ${cls}"><div class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</div><div class="terra-card-body">${body}</div></section>`;
+  function card(title, side, body, cls = '', section = 'turno') {
+    return `<details class="terra-card ${cls}" data-mt-section="${section}"${state.sections[section] ? ' open' : ''}><summary class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</summary><div class="terra-card-body">${body}</div></details>`;
   }
+
+  function sectionToggle(event) {
+    const section = event.target.dataset?.mtSection;
+    if (!event.target.isConnected || !Object.hasOwn(state.sections, section)) return;
+    const wasOpen = state.sections[section];
+    state.sections[section] = event.target.open;
+    // Solo il passaggio chiuso -> aperto delle corse apre anche la mappa.
+    if (section === 'corse' && !wasOpen && event.target.open) {
+      state.sections.mappa = true;
+      $('turno-map').open = true;
+    }
+  }
+  ['turno-content', 'turno-after', 'turno-scali'].forEach(id => $(id).addEventListener('toggle', sectionToggle, true));
 
   // Bolgette (O.d.S. 39/2026): scali in cui la corsa carica o consegna la bolgetta.
   // Maderno e Riva <-> Direzione con la R1 (c. 7 e 8); Cantiere Peschiera con le c. 30-31 e 38-39.
@@ -67,7 +80,7 @@
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
       `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
       `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>`;
-    return card('Turno', '', head + crewHtml);
+    return card('Il mio turno', '', head + crewHtml);
   }
 
   // Intestazione: ore del servizio e, oggi, quanto manca all'inizio o alla fine della giornata.
@@ -164,7 +177,7 @@
 
     servizioHeader(info.presentation, info.lastArrival, day, code);
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
-    const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card');
+    const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse, 'mt-corse-card', 'corse');
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
     $('turno-content').innerHTML = `<div class="terra-col">${right}</div>`;
     $('turno-after').innerHTML = `<div class="terra-col">${left}</div>`;
@@ -218,6 +231,7 @@
     $('turno-day-today').hidden = false;
     $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
+    $('turno-map').open = state.sections.mappa;
     $('turno-after').innerHTML = '';
     servizioHeader('', '', day);
     const me = profile();
