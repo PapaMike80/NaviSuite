@@ -59,6 +59,11 @@ assert.strictEqual(G.turnoAgente(data, { id: '1' }, day).turno, 'D1');
   const css = fs.readFileSync(file, 'utf8');
   assert.strictEqual((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length, `parentesi non bilanciate in ${file}`);
 });
+// La scheda corse chiusa non deve mostrare il corpo (display: none), ma grid quando aperta.
+const mioTurnoCss = fs.readFileSync('assets/css/mio-turno.css', 'utf8');
+assert.match(mioTurnoCss, /\.mt-corse-card\[open\] \.terra-card-body\{display:grid;gap:8px\}/);
+assert.match(mioTurnoCss, /\.mt-corse-card:not\(\[open\]\) \.terra-card-body\{display:none\}/);
+assert.doesNotMatch(mioTurnoCss, /\.mt-corse-card \.terra-card-body\{display:grid/);
 
 // Pagina, menu, Home e Impostazioni.
 const page = fs.readFileSync('mio-turno.html', 'utf8');
