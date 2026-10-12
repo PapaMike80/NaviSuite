@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=17">
   <link rel="stylesheet" href="assets/css/orario.css?v=33">
-  <link rel="stylesheet" href="assets/css/mio-turno.css?v=16">
+  <link rel="stylesheet" href="assets/css/mio-turno.css?v=17">
 </head>
 <body class="servizi-terra-page mio-turno-page">
   <aside class="app-sidebar" id="mio-turno-sidebar"></aside>
@@ -47,8 +47,13 @@
     <!-- La pagina Scali incorporata (assets/js/orario-page.js): a terra tutta la vista Lago del mio
          scalo, in linea la mappa con la mia corsa -->
     <section id="turno-scali" hidden>
-      <div class="terra-notice" id="orario-notice" hidden></div>
-      <div id="orario-content"></div>
+      <details class="terra-card" id="turno-map" data-mt-section="mappa">
+        <summary class="terra-card-head"><h2>Mappa</h2></summary>
+        <div class="terra-card-body">
+          <div class="terra-notice" id="orario-notice" hidden></div>
+          <div id="orario-content"></div>
+        </div>
+      </details>
     </section>
     <div class="terra-grid" id="turno-after"></div>
   </main>
@@ -68,7 +73,7 @@
   <script>window.NaviOrarioEmbed = true;</script>
   <script src="assets/js/orario-page.js?v=67"></script>
   <script src="assets/js/shift-competence.js?v=3"></script>
-  <script src="assets/js/mio-turno.js?v=31"></script>
+  <script src="assets/js/mio-turno.js?v=32"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>

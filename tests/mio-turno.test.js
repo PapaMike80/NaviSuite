@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
+const vm = require('node:vm');
 
 ['assets/js/mio-turno.js', 'assets/js/turni-giorno.js', 'assets/js/orario-corse.js']
   .forEach(file => execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' }));
@@ -92,4 +93,70 @@ assert.match(scaliJs, /window\.NaviOrarioPage = \{/);
 assert.match(scaliJs, /if \(EMBED && !state\.embed\) return;/);
 assert.match(js, /const admin = !!window\.NaviRoles\?\.isAdminAgent\?\.\(profile\(\)\);/); // «Prova turno» solo per gli admin
 assert.match(js, /if \(!admin\) document\.querySelector\('\.mt-test'\)\?\.remove\(\);/);
+
+// Le sezioni mantengono lo stato nei render, senza una dipendenza inversa dalla mappa.
+const listeners = {};
+const map = { dataset: { mtSection: 'mappa' }, open: false, isConnected: true };
+const elements = Object.fromEntries(['turno-content', 'turno-after', 'turno-scali'].map(id => [id, {
+  addEventListener(type, handler, capture) {
+    assert.strictEqual(type, 'toggle');
+    assert.strictEqual(capture, true); // toggle non propaga in bubbling
+    listeners[id] = handler;
+  }
+}]));
+elements['turno-map'] = map;
+const context = {
+  window: { NaviOrarioGiorno: {} },
+  document: { getElementById: id => elements[id], querySelector: () => null },
+  localStorage: { getItem: () => null },
+  location: { search: '' },
+  URLSearchParams
+};
+// Esegue l'inizializzazione e gli handler reali, prima della logica dei dati del turno.
+vm.runInNewContext(js.slice(0, js.indexOf('  // Bolgette')) +
+  'window.testSections = { state, card }; })();', context);
+const { state: sectionState, card: sectionCard } = context.window.testSections;
+const states = () => [sectionState.sections.turno, sectionState.sections.corse, sectionState.sections.mappa];
+const corse = { dataset: { mtSection: 'corse' }, open: false, isConnected: true };
+const turno = { dataset: { mtSection: 'turno' }, open: true, isConnected: true };
+const toggle = (element, open, parent) => {
+  element.open = open;
+  listeners[parent]({ target: element });
+};
+assert.deepStrictEqual(states(), [true, false, false]);
+assert.match(sectionCard('Il mio turno', '', ''), /data-mt-section="turno" open/);
+assert.doesNotMatch(sectionCard('Corse e scali', '', '', '', 'corse'), / open/);
+assert.match(page, /<details class="terra-card" id="turno-map" data-mt-section="mappa">/);
+assert.match(js, /\$\('turno-map'\)\.open = state\.sections\.mappa;/);
+
+toggle(map, true, 'turno-scali');
+assert.deepStrictEqual(states(), [true, false, true]);
+toggle(map, false, 'turno-scali');
+assert.deepStrictEqual(states(), [true, false, false]);
+toggle(turno, false, 'turno-after');
+toggle(corse, true, 'turno-content');
+assert.deepStrictEqual(states(), [false, true, true]);
+assert.strictEqual(map.open, true);
+// L'evento automatico della mappa non modifica le altre sezioni.
+listeners['turno-scali']({ target: map });
+assert.deepStrictEqual(states(), [false, true, true]);
+toggle(map, false, 'turno-scali');
+assert.deepStrictEqual(states(), [false, true, false]);
+// Un evento iniziale da un render di corse gia' aperte non riapre la mappa.
+listeners['turno-content']({ target: corse });
+assert.deepStrictEqual(states(), [false, true, false]);
+assert.match(sectionCard('Corse e scali', '', '', '', 'corse'), /data-mt-section="corse" open/);
+assert.doesNotMatch(sectionCard('Il mio turno', '', ''), / open/);
+toggle(corse, false, 'turno-content');
+assert.deepStrictEqual(states(), [false, false, false]);
+toggle(corse, true, 'turno-content');
+assert.deepStrictEqual(states(), [false, true, true]);
+toggle(corse, false, 'turno-content');
+assert.deepStrictEqual(states(), [false, false, true]); // chiudere corse non chiude mappa
+toggle(turno, true, 'turno-after');
+assert.deepStrictEqual(states(), [true, false, true]);
+toggle(map, false, 'turno-scali');
+listeners['turno-content']({ target: { ...corse, open: true, isConnected: false } });
+listeners['turno-scali']({ target: { dataset: {}, open: true, isConnected: true } });
+assert.deepStrictEqual(states(), [true, false, false]);
 console.log('mio-turno ok');

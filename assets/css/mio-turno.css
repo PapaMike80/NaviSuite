@@ -1,6 +1,11 @@
 /* Il mio turno: stesse schede di Servizi a terra (servizi-terra.css) piu' questi elementi. */
 .mio-turno-page .terra-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .mio-turno-page .terra-title .chip{font-size:16px;padding:6px 12px}
+.mio-turno-page summary.terra-card-head{cursor:pointer;list-style:none}
+.mio-turno-page summary.terra-card-head::-webkit-details-marker{display:none}
+.mio-turno-page summary.terra-card-head::before{content:"▸"}
+.mio-turno-page details[open]>summary.terra-card-head::before{content:"▾"}
+.mio-turno-page summary.terra-card-head h2{flex:1}
 .mt-crew{margin:0;padding:0;list-style:none;display:grid;gap:5px}
 .mt-crew li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.025)}
 .mt-crew li b{font-size:14px}
