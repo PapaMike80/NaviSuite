@@ -6,12 +6,12 @@
 
   // Turni a terra negli orari degli agenti (AGB, POND, AGT...) e sigla del servizio.
   // AGT e AGT1 sono lo stesso servizio: AgT.
-  const SIGLE_TERRA = { AGB: 'AgB', POND: 'PonD', DT: 'DT', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT', AGT2: 'AgT2', PONM: 'PonM' };
-  const TERRA_RESIDENZA = { DESENZANO: ['AgB', 'PonD', 'DT'], MADERNO: ['AgM', 'AgT', 'AgT2', 'PonM'] };
+  const SIGLE_TERRA = { AGB: 'AgB', POND: 'PonD', DT: 'DT', AGM: 'AgM', AGT: 'AgT', AGT1: 'AgT', AGT2: 'AgT2', PONM: 'PonM', IE: 'IE' };
+  const TERRA_RESIDENZA = { DESENZANO: ['AgB', 'PonD', 'DT'], MADERNO: ['AgM', 'AgT', 'AgT2', 'PonM'], PESCHIERA: ['IE'] };
   const norm = value => String(value || '').trim().toLocaleUpperCase('it').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/g, ' ').trim();
   function terraCode(value) {
     const raw = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const code = raw.match(/^C?(AGB|POND|DT|AGM|AGT[12]?|PONM)C?$/)?.[1];
+    const code = raw.match(/^C?(AGB|POND|DT|AGM|AGT[12]?|PONM|IE)C?$/)?.[1];
     return code ? SIGLE_TERRA[code] : '';
   }
   // Residenza di un servizio a terra (AgB -> DESENZANO).
@@ -119,15 +119,106 @@
     return { terra, navi };
   }
 
+  function creaTurno(baseData) {
+    const originalShift = baseData && typeof baseData === 'object'
+      ? JSON.parse(JSON.stringify(baseData))
+      : baseData;
+    const shift = {
+      ...(typeof baseData === 'object' && baseData !== null ? baseData : { turno: baseData }),
+      originalShift,
+      isModified: false,
+      modifiedBy: null
+    };
+    shift.updateShift = function (newData, source) {
+      if (newData && typeof newData === 'object') {
+        Object.assign(shift, newData);
+      } else {
+        shift.turno = newData;
+      }
+      shift.isModified = true;
+      shift.modifiedBy = source ?? null;
+      return shift;
+    };
+    shift.restoreOriginalShift = function () {
+      if (shift.originalShift && typeof shift.originalShift === 'object') {
+        Object.assign(shift, JSON.parse(JSON.stringify(shift.originalShift)));
+      } else {
+        shift.turno = shift.originalShift;
+      }
+      shift.isModified = false;
+      shift.modifiedBy = null;
+      return shift;
+    };
+    return shift;
+  }
+
   // Turno di un agente (profilo di sessione: id e nome) in un giorno: {agent, residenza, turno}.
   function turnoAgente(data, profile, day) {
     const id = String(profile?.id || ''), name = norm(profile?.name || profile?.agente || profile?.cognome);
     for (const [residenza, list] of Object.entries(data?.residenze || {})) {
       const agent = (list || []).find(item => (id && String(item?.id || '') === id) || (!id && norm(item?.agente) === name));
-      if (agent) return { agent, residenza, turno: String(turnoDi(agent, day, variazioni(data, day)) ?? '').trim() };
+      if (agent) {
+        const vMap = variazioni(data, day);
+        const decisione = vMap.movimento?.get(`id:${agent?.id}`) ?? vMap.movimento?.get(`name:${norm(agent?.agente)}`);
+        const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
+        const variation = vMap.get(`id:${agent?.id}`) ?? vMap.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
+        const original = agent?.turni?.[day] !== undefined ? String(agent.turni[day]).trim() : '';
+
+        let currentTurno = original;
+        let isModified = false;
+        let modifiedBy = null;
+
+        if (decisione && (manual === undefined || String(manual).trim().toUpperCase() === String(decisione.sovrascrive ?? '').trim().toUpperCase())) {
+          currentTurno = String(decisione.shift ?? '').trim();
+          isModified = true;
+          modifiedBy = 'Movimento';
+        } else if (manual !== undefined) {
+          currentTurno = String(manual).trim();
+          isModified = true;
+          modifiedBy = 'Utente';
+        } else if (variation !== undefined) {
+          currentTurno = String(variation).trim();
+          isModified = true;
+          modifiedBy = 'ODs';
+        }
+
+        const shiftObj = {
+          agent,
+          residenza,
+          turno: currentTurno,
+          originalShift: original,
+          isModified,
+          modifiedBy
+        };
+
+        shiftObj.updateShift = function(newData, source) {
+          if (newData && typeof newData === 'object') {
+            if (newData.turno !== undefined) shiftObj.turno = newData.turno;
+            Object.assign(shiftObj, newData);
+          } else {
+            shiftObj.turno = String(newData ?? '');
+          }
+          shiftObj.isModified = true;
+          shiftObj.modifiedBy = source ?? null;
+          return shiftObj;
+        };
+
+        shiftObj.restoreOriginalShift = function() {
+          if (shiftObj.originalShift && typeof shiftObj.originalShift === 'object') {
+            Object.assign(shiftObj, JSON.parse(JSON.stringify(shiftObj.originalShift)));
+          } else {
+            shiftObj.turno = String(shiftObj.originalShift ?? '');
+          }
+          shiftObj.isModified = false;
+          shiftObj.modifiedBy = null;
+          return shiftObj;
+        };
+
+        return shiftObj;
+      }
     }
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
+  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
 })(typeof window !== 'undefined' ? window : globalThis);
