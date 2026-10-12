@@ -44,6 +44,19 @@
     const via = MAPPA.rotte[`${a}|${b}`] || (MAPPA.rotte[`${b}|${a}`] || []).slice().reverse();
     return [POS[a], ...via, POS[b]];
   }
+  // Rotta concatenata passando da una sequenza ordinata di scali (evita duplicati tra segmenti consecutivi).
+  function rottaScali(scali) {
+    if (!Array.isArray(scali) || scali.length < 2) return null;
+    const list = scali.map(s => Array.isArray(s) ? s[0] : s).filter((s, i, a) => s && POS[s] && (!i || s !== a[i - 1]));
+    if (list.length < 2) return null;
+    const punti = [];
+    for (let i = 0; i < list.length - 1; i += 1) {
+      const r = rotta(list[i], list[i + 1]);
+      if (!r || !r.length) continue;
+      punti.push(...(punti.length ? r.slice(1) : r));
+    }
+    return punti.length >= 2 ? punti : null;
+  }
   // Punto a frazione f della rotta (per lunghezza); con parte=true la rotta fin li'.
   function lungoRotta(punti, f, parte = false) {
     const tratti = punti.slice(1).map((p, i) => Math.hypot(p[0] - punti[i][0], p[1] - punti[i][1]));
@@ -739,7 +752,15 @@
     const legs = [];
     // la corsa di una tratta e' quella con cui la nave lascia lo scalo (lo scalo successivo)
     g.viaggi.forEach(v => v.scali.forEach(([scalo, ora], i) => {
-      v.scali.slice(i + 1).forEach(([scalo2, ora2]) => legs.push({ v, from: scalo, dep: minutes(ora), to: scalo2, arr: minutes(ora2), corsa: v.scali[i + 1][2] }));
+      v.scali.slice(i + 1).forEach(([scalo2, ora2], k) => legs.push({
+        v,
+        from: scalo,
+        dep: minutes(ora),
+        to: scalo2,
+        arr: minutes(ora2),
+        corsa: v.scali[i + 1][2],
+        scali: v.scali.slice(i, i + k + 2).map(s => s[0])
+      }));
     }));
     // dirette: dallo scalo di partenza al primo passaggio dallo scalo d'arrivo
     legs.filter(l => l.from === from && l.to === to).forEach(l => out.push({ dep: l.dep, arr: l.arr, legs: [l] }));
@@ -795,9 +816,22 @@
   // Mappa del viaggio: lago, scali scelti e rotta del viaggio selezionato (ogni tratta col colore della nave)
   function mappaViaggio(sol, raggiungibili = null) {
     const linea = punti => punti.map(([x, y], k) => `${k ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
-    const tratte = sol ? sol.legs.map(l => ({ r: rotta(l.from, l.to), c: COLORI[l.v.turno] || '#2dd4bf' })) : (state.from !== state.to ? [{ r: rotta(state.from, state.to), c: '#94a3b8', vuota: true }] : []);
+    const scaliLeg = l => {
+      if (l.scali?.length >= 2) return l.scali;
+      if (l.v?.scali) {
+        const vs = l.v.scali;
+        const i = vs.findIndex((s, idx) => s[0] === l.from && (l.dep == null || minutes(s[1]) === l.dep) && vs.slice(idx + 1).some(s2 => s2[0] === l.to));
+        if (i >= 0) {
+          const j = vs.slice(i + 1).findIndex(s2 => s2[0] === l.to && (l.arr == null || minutes(s2[1]) === l.arr));
+          if (j >= 0) return vs.slice(i, i + 1 + j + 1).map(s => s[0]);
+        }
+      }
+      return null;
+    };
+    const legs = sol ? (sol.legs || (sol.scali ? [{ scali: sol.scali, from: sol.scali[0], to: sol.scali[sol.scali.length - 1], v: sol.v || { turno: sol.turno } }] : [])) : null;
+    const tratte = legs ? legs.map(l => ({ r: (scaliLeg(l) && rottaScali(scaliLeg(l))) || rotta(l.from, l.to), c: COLORI[l.v?.turno] || '#2dd4bf' })) : (state.from !== state.to ? [{ r: rotta(state.from, state.to), c: '#94a3b8', vuota: true }] : []);
     const vb = '-12 -3 102 148'; // tutto il lago: ogni scalo si puo' toccare
-    const cambi = sol ? sol.legs.slice(1).map(l => l.from) : [];
+    const cambi = legs ? legs.slice(1).map(l => l.from) : [];
     const porti = SCALI.map(nome => {
       const { porto: [x, y], lato } = MAPPA.scali[nome];
       const dy = lato[1] === '+' ? 1.6 : lato[1] === '-' ? -1.6 : 0;

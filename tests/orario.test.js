@@ -113,4 +113,40 @@ assert.match(fs.readFileSync('impostazioni.html', 'utf8'), /data-start-page="aut
 assert.match(js, /manca = ferma \? `riparte \$\{traMin\(min\)\}`/);
 assert.match(js, /while \(resto\[fine \+ 1\]\?\.scalo === state\.scalo\) fine \+= 1;/); // sosta: arrivo e ripartenza, poi lo scalo dopo
 assert.match(js, /riga\(dopo, fine \+ 1\)/); // scalo dopo il mio, con quanto manca
+
+// Rotta Da -> A: segue gli scali intermedi concatenando le rotte senza duplicare i punti di giunzione
+assert.match(js, /function rottaScali\(scali\)/);
+const rottaScaliMatch = js.match(/function rottaScali\(scali\) \{[\s\S]*?\n  \}/);
+assert.ok(rottaScaliMatch, 'rottaScali definita');
+const rottaScali = new Function('scali', 'rotta', 'POS', `${rottaScaliMatch[0]}; return rottaScali(scali);`);
+const POS_MAP = Object.fromEntries(Object.keys(M.scali).map(nome => [nome, M.scali[nome].boa]));
+
+['Desenzano', 'Sirmione', 'Garda', 'Torri', 'Malcesine', 'Riva'].forEach(s => assert.ok(POS_MAP[s]));
+const desRiva = rottaScali(['Desenzano', 'Sirmione', 'Garda', 'Torri', 'Malcesine', 'Riva'], rotta, POS_MAP);
+assert.ok(desRiva.length >= 6);
+assert.deepStrictEqual(desRiva[0], POS_MAP.Desenzano);
+assert.deepStrictEqual(desRiva[desRiva.length - 1], POS_MAP.Riva);
+for (let i = 1; i < desRiva.length; i += 1) {
+  assert.ok(desRiva[i][0] !== desRiva[i - 1][0] || desRiva[i][1] !== desRiva[i - 1][1], 'nessun punto duplicato consecutivo');
+}
+// Test coppie richieste
+const gTest = { viaggi: O.viaggiDelGiorno('2026-10-06') };
+const soluzioniMatch = js.match(/function soluzioni\(g, from, to\) \{[\s\S]*?\n  \}/);
+assert.ok(soluzioniMatch, 'soluzioni definita');
+const soluzioniFn = new Function('g', 'from', 'to', 'minutes', `${soluzioniMatch[0]}; return soluzioni(g, from, to);`);
+[['Desenzano', 'Riva'], ['Riva', 'Desenzano'], ['Salò', 'Limone'], ['Garda', 'Malcesine']].forEach(([da, a]) => {
+  const sol = soluzioniFn(gTest, da, a, O.minutes);
+  assert.ok(sol.length > 0, `soluzione trovata per ${da} -> ${a}`);
+  sol.forEach(s => {
+    s.legs.forEach(l => {
+      assert.ok(Array.isArray(l.scali) && l.scali.length >= 2, `scali della leg presenti per ${l.from} -> ${l.to}`);
+      const poly = rottaScali(l.scali, rotta, POS_MAP);
+      assert.ok(poly && poly.length >= 2, `polyline calcolata per ${l.from} -> ${l.to}`);
+      for (let k = 1; k < poly.length; k += 1) {
+        assert.ok(poly[k][0] !== poly[k - 1][0] || poly[k][1] !== poly[k - 1][1], 'punti consecutivi non duplicati');
+      }
+    });
+  });
+});
+
 console.log('orario ok');
