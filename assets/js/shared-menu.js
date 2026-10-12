@@ -1,6 +1,6 @@
 (function(){
   const APP_VERSION='v1.48';
-  const NAVISUITE_PAYPAL_URL='https://www.paypal.me/PapaMike80/1EUR';
+  const NAVISUITE_KOFI_URL='https://ko-fi.com/papamike80';
   function installSupportFooter(){
     if(document.getElementById('navisuite-support-footer'))return;
     const style=document.createElement('style');
@@ -10,7 +10,7 @@
     const footer=document.createElement('footer');
     footer.id='navisuite-support-footer';
     footer.className='navisuite-support-footer';
-    footer.innerHTML='<p>☕ NaviSuite ti è utile?</p><a href="'+NAVISUITE_PAYPAL_URL+'" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite PayPal">☕ Offrimi un caffè · 1 €</a>';
+    footer.innerHTML='<p>☕ NaviSuite ti è utile?</p><a href="'+NAVISUITE_KOFI_URL+'" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite Ko-fi">☕ Offrimi un caffè · 1 €</a>';
     document.body.appendChild(footer);
   }
   installSupportFooter();
