@@ -75,7 +75,7 @@
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
-    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), giornatePassate: new Set(), scaloScelto: !!params.get('scalo'),
+    time: null, playing: null, selected: '', open: '', showPast: false, gps: null, fromScelto: !!params.get('da'), fromGpsFatto: false, auto: true, chiuse: new Set(), dettagli: new Set(), giornate: new Set(), giornatePassate: new Set(), scaloScelto: !!params.get('scalo'),
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
@@ -778,11 +778,14 @@
     navigator.geolocation.getCurrentPosition(pos => {
       const vicino = scaloVicino(pos.coords.latitude, pos.coords.longitude);
       state.gps = vicino;
-      if (vicino.km > 3) return;
-      if (!state.fromScelto) {
+      if (!state.fromScelto && !state.fromGpsFatto) {
         if (state.to === vicino.nome) state.to = state.from !== vicino.nome ? state.from : vicino.nome === 'Desenzano' ? 'Sirmione' : 'Desenzano';
         state.from = vicino.nome;
+        state.fromGpsFatto = true;
+        state.viaggioScelto = 0;
+        state.sceltaArrivo = false;
       }
+      if (vicino.km > 3) { render(); return; }
       if (!state.scaloScelto) { state.scalo = vicino.nome; state.open = ''; nuovoScalo(); }
       render();
     }, () => { state.gps = { errore: true }; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60000 });
