@@ -101,7 +101,7 @@
     .secondary-button:hover { background: var(--border-color); color: var(--text-main); }
 
     /* GRIGLIE FORM */
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .form-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; transition: opacity 0.3s; }
     .form-box.transparent { background: transparent; border: none; padding: 0; }
     .box-val { font: 800 22px Manrope; text-align: right; color: var(--text-main); margin-top: 4px; }
@@ -125,7 +125,6 @@
     table { width: 100%; border-collapse: collapse; }
     th, td { text-align: right; padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 500; color: var(--text-main); }
     th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; text-align: right; background: rgba(255,255,255,0.02); }
-    th:first-child, td:first-child { text-align: left; font-weight: 700; color: var(--cyan-accent); }
     table tr.total-row td { font-weight: 800; background: rgba(255,255,255,0.03); font-size: 15px; border-top: 2px solid var(--border-color); border-bottom: none; color: var(--text-main); }
 
     /* BADGES */
@@ -153,15 +152,15 @@
     .box-highlight-blue .box-val { color: var(--cyan-accent); }
     .box-highlight-green { border-left: 4px solid var(--accent-green); }
     .box-highlight-green .box-val { color: var(--accent-green); }
-    .box-highlight-orange { border-left: 4px solid var(--ok-color); }
-    .box-highlight-orange .box-val { color: var(--ok-color); }
+    .box-highlight-orange { border-left: 4px solid var(--ok-color); background: rgba(245, 176, 65, 0.05); }
+    .box-highlight-orange .box-val { color: var(--ok-color); font-size: 26px; }
 
     /* RIEPILOGO 31 RIGHE */
     .riepilogo-31 { background: rgba(39, 169, 182, 0.05); border: 1px solid var(--cyan-accent); border-radius: 12px; padding: 20px; margin-top: 30px; }
     .riepilogo-31 h4 { color: var(--text-main); font-family: Manrope; font-size: 18px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;}
-    .riepilogo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
-    .riepilogo-item label { font-size: 10px; margin-bottom: 4px; color: var(--text-muted); }
+    .riepilogo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .riepilogo-item label { font-size: 10px; margin-bottom: 6px; color: var(--text-muted); }
     .riepilogo-item .val { font-size: 18px; font-weight: 800; color: var(--cyan-accent); font-family: Manrope; }
   </style>
 </head>
@@ -260,21 +259,25 @@
       <div class="form-grid">
         <div class="form-box">
           <label for="totale-giornaliero-diurno">Totale Sistema (€)</label>
-          <input type="number" id="totale-giornaliero-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+          <input type="number" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
         </div>
         <div class="form-box">
           <label for="pos-giornaliero-diurno">Incasso POS (€)</label>
-          <input type="number" id="pos-giornaliero-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+          <input type="number" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
         </div>
         <div class="form-box">
           <label for="da-stornare-diurno">Da Stornare (€)</label>
           <input type="number" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
-          <small>Biglietti non incassati</small>
         </div>
-        <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent);">
-          <label style="color: var(--text-main);">Contanti Attesi Ora</label>
-          <div class="box-val" id="contanti-attesi-calc-diurno" style="color: var(--cyan-accent);">€ 400,00</div>
-          <small style="color: var(--text-muted);">Fondo + (Tot - POS - Storni)</small>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere Ora in Cassa:</label>
+            <small style="color: var(--text-muted); margin: 0;">Fondo + (Totale Sistema - POS - Storni)</small>
+          </div>
+          <div class="box-val" id="contanti-attesi-calc-diurno" style="color: var(--cyan-accent); font-size: 24px; margin: 0;">€ 400,00</div>
         </div>
       </div>
 
@@ -294,7 +297,7 @@
     </div>
   </div>
 
-  <!-- STEP 3: CHIUSURA SERALE & VERSAMENTO (Unificato) -->
+  <!-- STEP 3: CHIUSURA SERALE & VERSAMENTO -->
   <div class="panel" id="step-3" style="display:none;">
     <div class="panel-heading">
       <h3>3. Chiusura Serale & Versamento</h3>
@@ -303,29 +306,20 @@
     <div class="panel-body">
       
       <!-- SEZIONE A: DATI DI SISTEMA -->
-      <div class="section-title">
-        <span>A. Dati di Sistema (Fine Turno)</span>
-      </div>
+      <div class="section-title"><span>A. Dati di Sistema (Fine Turno)</span></div>
       
       <div class="form-grid">
         <div class="form-box">
           <label for="totale-giornaliero-sera">Totale Incasso Finale (€)</label>
-          <input type="number" id="totale-giornaliero-sera" step="0.01" value="0.00" oninput="calculateAll()">
-          <small>Corrispettivo di fine giornata</small>
+          <input type="number" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
         </div>
         <div class="form-box">
           <label for="pos-giornaliero-sera">Incasso POS Finale (€)</label>
-          <input type="number" id="pos-giornaliero-sera" step="0.01" value="0.00" oninput="calculateAll()">
+          <input type="number" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
         <div class="form-box">
           <label for="da-stornare-sera">Da Stornare (€)</label>
           <input type="number" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
-          <small>Biglietti non incassati</small>
-        </div>
-        <div class="form-box">
-          <label>Incasso Contanti Calcolato</label>
-          <div class="box-val" id="incasso-contanti-calc-sera">€ 0,00</div>
-          <small>Tot - POS - Storni</small>
         </div>
       </div>
 
@@ -334,7 +328,7 @@
           <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere in Cassa:</label>
           <small style="color: var(--text-muted); margin: 0;">Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
         </div>
-        <div class="box-val" style="color: var(--cyan-accent); font-size: 28px; margin: 0;" id="contanti-attesi-calc-sera">€ 400,00</div>
+        <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent); font-size: 28px; margin: 0;">€ 400,00</div>
       </div>
 
 
@@ -354,65 +348,69 @@
       </div>
 
 
-      <!-- SEZIONE C: VERSAMENTO -->
-      <div class="section-title">
-        <span>C. Proposta di Versamento</span>
-        <span id="badge-fondo-domani" class="tag tag-ok">FONDO PRONTO</span>
-      </div>
+      <!-- SEZIONE C: VERSAMENTO E RIPARTIZIONE -->
+      <div class="section-title"><span>C. Ripartizione Contanti: Busta vs Fondo Domani</span></div>
 
       <div class="switch-wrapper">
         <div>
           <label>Usa Gestione "Resto Monete"</label>
-          <small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso.</small>
+          <small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small>
         </div>
         <label class="switch">
-          <input type="checkbox" id="usa-resto-monete" onchange="calculateAll()">
+          <input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()">
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="form-grid">
         <div class="form-box box-highlight-orange">
-          <label id="label-versamento">Da Versare (Solo Banconote)</label>
+          <label>TOTALE CONTANTI (SALDO)</label>
           <div class="box-val" id="box-versamento">€ 0,00</div>
-          <small>Quota da depositare</small>
-        </div>
-        <div class="form-box box-highlight-green">
-          <label>Fondo Base (Nel Cassetto)</label>
-          <div class="box-val" id="box-trattenuto">€ 0,00</div>
-          <small>Obiettivo cassa ripristinato</small>
         </div>
         <div class="form-box box-highlight-blue" id="box-resto-monete-container">
-          <label>Resto Monete (Da Separare)</label>
+          <label>Totale Resto Monete</label>
           <div class="box-val" id="box-resto-monete">€ 0,00</div>
-          <small>Monete in eccesso non versabili</small>
+        </div>
+        <div class="form-box box-highlight-green">
+          <label>Totale in Cassetto (Domani)</label>
+          <div class="box-val" id="box-trattenuto">€ 0,00</div>
         </div>
       </div>
-      
-      <div style="text-align: right; margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 11px; border: 1px solid var(--border-color);">
-        <span style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 700;">Totale fisico nel cassetto per domani: </span> 
-        <span id="tot-cassetto-domani" style="font-size: 22px; font-weight: 800; color: var(--cyan-accent); margin-left: 12px; font-family: Manrope;">€ 0,00</span>
+
+      <!-- TABELLA DETTAGLIO PEZZI (DA VERSARE / RESTO / FONDO) -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: left;">Taglio Denaro</th>
+              <th>Da Versare (Contanti)</th>
+              <th>Resto Monete (A parte)</th>
+              <th>Fondo Cassa (Domani)</th>
+            </tr>
+          </thead>
+          <tbody id="distinta-pezzi-body"></tbody>
+        </table>
       </div>
 
       <!-- RIEPILOGO PER 31 RIGHE -->
       <div class="riepilogo-31">
         <h4>📋 Dati da copiare sul foglio "31 Righe"</h4>
-        <p style="color: var(--text-muted); font-size: 12px; margin-top: 0; margin-bottom: 16px;">
-          Ecco i valori esatti da trascrivere nelle colonne del registro cartaceo. 
-          <em>Nota: Se avete fatto degli acconti intermedi (Acconto 1 / Acconto 2), sottraeteli dal "Totale Contanti Versati" per ottenere il Saldo.</em>
-        </p>
         <div class="riepilogo-grid">
           <div class="riepilogo-item">
             <label>Totale giornaliero</label>
-            <div class="val" id="riepilogo-totale">€ 0,00</div>
+            <div class="val" id="riepilogo-totale" style="color: var(--text-main);">€ 0,00</div>
+          </div>
+          <div class="riepilogo-item" style="border-color: var(--ok-color); background: rgba(245, 176, 65, 0.05);">
+            <label style="color: var(--ok-color);">Saldo Busta</label>
+            <div class="val" id="riepilogo-saldo" style="color: var(--ok-color);">€ 0,00</div>
           </div>
           <div class="riepilogo-item">
             <label>POS</label>
-            <div class="val" id="riepilogo-pos" style="color: var(--text-main);">€ 0,00</div>
+            <div class="val" id="riepilogo-pos">€ 0,00</div>
           </div>
-          <div class="riepilogo-item" style="border-color: var(--ok-color);">
-            <label>Tot. Contanti Versati<br><small>(Acconti + Saldo)</small></label>
-            <div class="val" id="riepilogo-contanti" style="color: var(--ok-color);">€ 0,00</div>
+          <div class="riepilogo-item" style="border-color: var(--cyan-accent);">
+            <label style="color: var(--cyan-accent);">Totale Versamenti</label>
+            <div class="val" id="riepilogo-tot-vers">€ 0,00</div>
           </div>
           <div class="riepilogo-item" style="border-color: var(--teal-dark);">
             <label>Resto moneta</label>
@@ -448,14 +446,21 @@
   const DENOMINATIONS = [...MONETE, ...BANCONOTE];
 
   const countsMattina = { 10: 0, 20: 0, 50: 0, 100: 20, 200: 15, 500: 30, 1000: 10, 2000: 5, 5000: 0, 10000: 0 };
-  const countsDiurno = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0, 500: 0, 1000: 0, 2000: 0, 5000: 0, 10000: 0 }; 
-  const countsSera = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0, 500: 0, 1000: 0, 2000: 0, 5000: 0, 10000: 0 };
+  const countsDiurno = { 10: 0, 20: 0, 50: 0, 100: 20, 200: 15, 500: 30, 1000: 10, 2000: 5, 5000: 0, 10000: 0 }; 
+  const countsSera = { 10: 34, 20: 40, 50: 16, 100: 28, 200: 18, 500: 23, 1000: 13, 2000: 5, 5000: 2, 10000: 1 };
 
-  // Dati Globali per Salvataggio DB
   let datiChiusura = {};
 
+  // Funzione di parsing universale che gestisce numeri, stringhe, virgole o punti
+  function parseMoney(val) {
+    if (val === undefined || val === null || val === '') return 0;
+    const str = val.toString().replace(',', '.').trim();
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : Math.round(num * 100);
+  }
+
   function formatEuro(cents) {
-    return (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+    return (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: 2 });
   }
 
   function goToStep(step) {
@@ -467,6 +472,7 @@
           else btn.classList.remove('active');
       }
     }
+    calculateAll();
   }
 
   function updateBtnStatus(stepNum, diffAmount) {
@@ -478,7 +484,6 @@
       else btn.classList.add('status-danger');
   }
 
-  // Generatore di griglie affiancate
   function renderCashGrid(containerId, stepPrefix, dataObj, onInputFnName) {
     let html = '<div class="cash-split">';
     
@@ -518,19 +523,17 @@
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
 
-    // Imposta data odierna di default
     document.getElementById('data-turno').valueAsDate = new Date();
-    impostaRegoleScalo(); // Imposta regole iniziali per Maderno/Desenzano
+    impostaRegoleScalo(); 
   }
 
-  // Automazione Scalo: Maderno non usa il resto monete, Desenzano sì
   function impostaRegoleScalo() {
     const scalo = document.getElementById("scalo-selezionato").value;
     const toggleMonete = document.getElementById("usa-resto-monete");
     
     if(scalo === "Maderno") {
       toggleMonete.checked = false; 
-    } else if(scalo === "Desenzano") {
+    } else {
       toggleMonete.checked = true;
     }
     calculateAll();
@@ -589,135 +592,147 @@
   }
 
   function calculateAll() {
-    const targetFondoCents = Math.round(parseFloat(document.getElementById("fondo-target").value || 0) * 100);
+    const targetFondoCents = parseMoney(document.getElementById("fondo-target").value || 400);
     
-    // --- 1. CALCOLO MATTINA ---
+    // --- 1. MATTINA ---
     const totFisiciMattinaCents = calculateSection("mattina", countsMattina);
     document.getElementById("fondo-mattina-calc").textContent = formatEuro(totFisiciMattinaCents);
-
     const diffMattina = totFisiciMattinaCents - targetFondoCents;
     document.getElementById("diff-mattina").textContent = formatEuro(diffMattina);
-    const descAp = document.getElementById("diff-desc-mattina");
-
     updateBtnStatus(1, diffMattina); 
 
-    if (diffMattina === 0) { setBadge("badge-apertura", "ok", "CONFORME"); descAp.textContent = "Nessuna discrepanza"; }
-    else if (diffMattina > 0) { setBadge("badge-apertura", "warn", "ESUBERO"); descAp.textContent = `Eccedenza di +${formatEuro(diffMattina)}`; }
-    else { setBadge("badge-apertura", "danger", "AMMANCO"); descAp.textContent = `Ammanco di ${formatEuro(diffMattina)}`; }
+    if (diffMattina === 0) setBadge("badge-apertura", "ok", "CONFORME");
+    else if (diffMattina > 0) setBadge("badge-apertura", "warn", "ESUBERO");
+    else setBadge("badge-apertura", "danger", "AMMANCO");
 
-    // --- 2. CALCOLO DIURNO ---
+    // --- VARIABILI COMUNI INCASSI ---
+    const totGiornoCents = parseMoney(document.getElementById("totale-giornaliero-sera").value);
+    const posGiornoCents = parseMoney(document.getElementById("pos-giornaliero-sera").value);
+    const storniSeraCents = parseMoney(document.getElementById("da-stornare-sera").value);
+
+    // --- 2. DIURNO ---
     const totFisiciDiurnoCents = calculateSection("diurno", countsDiurno);
+    const tG_D = parseMoney(document.getElementById("totale-giornaliero-diurno").value);
+    const pG_D = parseMoney(document.getElementById("pos-giornaliero-diurno").value);
+    const sG_D = parseMoney(document.getElementById("da-stornare-diurno").value);
 
-    const totDiurnoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero-diurno").value || 0) * 100);
-    const posDiurnoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero-diurno").value || 0) * 100);
-    const storniDiurnoCents = Math.round(parseFloat(document.getElementById("da-stornare-diurno").value || 0) * 100);
-    
-    const incassoContantiDiurno = totDiurnoCents - posDiurnoCents - storniDiurnoCents;
+    const incassoContantiDiurno = tG_D - pG_D - sG_D;
     const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno;
-    
     document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
-
     const diffDiurno = totFisiciDiurnoCents - contantiAttesiDiurno;
     document.getElementById("ctrl-differenza-diurno").textContent = formatEuro(diffDiurno);
-    
     updateBtnStatus(2, diffDiurno); 
-    
     if (diffDiurno === 0) setBadge("badge-quadratura-diurno", "ok", "CASSA QUADRATA");
-    else if (diffDiurno > 0) setBadge("badge-quadratura-diurno", "warn", `ESUBERO (+${formatEuro(diffDiurno)})`);
-    else setBadge("badge-quadratura-diurno", "danger", `AMMANCO (${formatEuro(diffDiurno)})`);
+    else if (diffDiurno > 0) setBadge("badge-quadratura-diurno", "warn", "ESUBERO");
+    else setBadge("badge-quadratura-diurno", "danger", "AMMANCO");
 
-    // --- 3. CALCOLO SERA ---
+    // --- 3. SERA ---
     const totFisiciSeraCents = calculateSection("sera", countsSera);
     document.getElementById("badge-tot-sera").textContent = formatEuro(totFisiciSeraCents);
-
-    const totGiornoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero-sera").value || 0) * 100);
-    const posGiornoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero-sera").value || 0) * 100);
-    const storniSeraCents = Math.round(parseFloat(document.getElementById("da-stornare-sera").value || 0) * 100);
     
+    // Formula esatta: Fondo Mattina + (Totale Sistema - POS - Storni)
     const incassoContantiSera = totGiornoCents - posGiornoCents - storniSeraCents;
     const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera;
 
-    document.getElementById("incasso-contanti-calc-sera").textContent = formatEuro(incassoContantiSera);
-    document.getElementById("contanti-attesi-calc-sera").textContent = formatEuro(contantiAttesiSera);
     document.getElementById("box-fm-sera").textContent = formatEuro(totFisiciMattinaCents);
     document.getElementById("box-ic-sera").textContent = formatEuro(incassoContantiSera);
+    document.getElementById("contanti-attesi-calc-sera").textContent = formatEuro(contantiAttesiSera);
 
     const diffSera = totFisiciSeraCents - contantiAttesiSera;
     document.getElementById("ctrl-differenza-sera").textContent = formatEuro(diffSera);
-
     updateBtnStatus(3, diffSera); 
-
     if (diffSera === 0) setBadge("badge-quadratura-sera", "ok", "CASSA QUADRATA");
-    else if (diffSera > 0) setBadge("badge-quadratura-sera", "warn", `ESUBERO (+${formatEuro(diffSera)})`);
-    else setBadge("badge-quadratura-sera", "danger", `AMMANCO (${formatEuro(diffSera)})`);
+    else if (diffSera > 0) setBadge("badge-quadratura-sera", "warn", "ESUBERO");
+    else setBadge("badge-quadratura-sera", "danger", "AMMANCO");
 
-    // --- PROPOSTA VERSAMENTO ---
+    // --- LOGICA RIPARTIZIONE PEZZI (Busta, Resto, Fondo Domani) ---
     const usaRestoMonete = document.getElementById("usa-resto-monete").checked;
-    const boxRestoMoneteEl = document.getElementById("box-resto-monete-container");
-    const labelVersamentoEl = document.getElementById("label-versamento");
+    let rimastoDaSmaltire = Math.max(0, totFisiciSeraCents - targetFondoCents);
     
-    if (usaRestoMonete) {
-      boxRestoMoneteEl.style.opacity = "1";
-      labelVersamentoEl.textContent = "Da Versare (Solo Banconote)";
-    } else {
-      boxRestoMoneteEl.style.opacity = "0.4";
-      labelVersamentoEl.textContent = "Da Versare (Tutto)";
-    }
+    let pezziBusta = {};
+    let pezziResto = {};
+    let pezziFondo = {};
 
-    let rimastoDaVersare = Math.max(0, totFisiciSeraCents - targetFondoCents);
-    const pezziVersare = {};
-
-    [...DENOMINATIONS].reverse().forEach(d => {
+    // 1. Riempiamo la Busta con banconote
+    DENOMINATIONS.slice().reverse().forEach(d => {
       const avail = countsSera[d.val] || 0;
       const puoVersare = usaRestoMonete ? (d.val >= 500) : true;
-      if (puoVersare && avail > 0 && rimastoDaVersare > 0) {
-        const take = Math.min(avail, Math.floor(rimastoDaVersare / d.val));
-        pezziVersare[d.val] = take; rimastoDaVersare -= take * d.val;
-      } else { pezziVersare[d.val] = 0; }
-    });
-
-    if (!usaRestoMonete && rimastoDaVersare > 0) {
-      for (const d of DENOMINATIONS) {
-        const rem = (countsSera[d.val] || 0) - (pezziVersare[d.val] || 0);
-        if (rem > 0 && rimastoDaVersare > 0) {
-          const take = Math.min(rem, Math.ceil(rimastoDaVersare / d.val));
-          pezziVersare[d.val] += take; rimastoDaVersare -= take * d.val;
-          if (rimastoDaVersare <= 0) break;
-        }
+      if (puoVersare && avail > 0 && rimastoDaSmaltire > 0) {
+        const take = Math.min(avail, Math.floor(rimastoDaSmaltire / d.val));
+        pezziBusta[d.val] = take;
+        rimastoDaSmaltire -= take * d.val;
+      } else {
+        pezziBusta[d.val] = 0;
       }
-    }
-
-    let totPVersare = 0; let totQVersare = 0; let totPFondo = 0; let totQFondo = 0;
-    DENOMINATIONS.forEach(d => {
-      const pVers = pezziVersare[d.val] || 0;
-      const pFond = Math.max(0, (countsSera[d.val] || 0) - pVers);
-      totPVersare += pVers; totQVersare += pVers * d.val;
-      totPFondo += pFond; totQFondo += pFond * d.val;
     });
 
-    let restoMoneteCents = 0;
-    let fondoBaseCents = totQFondo;
-
-    if (usaRestoMonete) {
-      restoMoneteCents = Math.max(0, totQFondo - targetFondoCents);
-      fondoBaseCents = totQFondo - restoMoneteCents; 
+    // Se a Maderno si versa tutto anche in monete
+    if (!usaRestoMonete && rimastoDaSmaltire > 0) {
+      DENOMINATIONS.forEach(d => {
+        const avail = (countsSera[d.val] || 0) - (pezziBusta[d.val] || 0);
+        if (avail > 0 && rimastoDaSmaltire > 0) {
+          const take = Math.min(avail, Math.ceil(rimastoDaSmaltire / d.val));
+          pezziBusta[d.val] = (pezziBusta[d.val] || 0) + take;
+          rimastoDaSmaltire -= take * d.val;
+        }
+      });
     }
 
-    document.getElementById("box-versamento").textContent = formatEuro(totQVersare);
-    document.getElementById("box-trattenuto").textContent = formatEuro(fondoBaseCents);
-    document.getElementById("box-resto-monete").textContent = formatEuro(restoMoneteCents);
-    document.getElementById("tot-cassetto-domani").textContent = formatEuro(fondoBaseCents);
+    // 2. Isoliamo il Resto Monete
+    let rimastoMoneteEccedenza = usaRestoMonete ? Math.max(0, totFisiciSeraCents - Object.entries(pezziBusta).reduce((acc, [k,v]) => acc + v*k, 0) - targetFondoCents) : 0;
+    
+    MONETE.slice().reverse().forEach(d => {
+      const avail = (countsSera[d.val] || 0) - (pezziBusta[d.val] || 0);
+      if (avail > 0 && rimastoMoneteEccedenza > 0) {
+        const take = Math.min(avail, Math.floor(rimastoMoneteEccedenza / d.val));
+        pezziResto[d.val] = take;
+        rimastoMoneteEccedenza -= take * d.val;
+      } else {
+        pezziResto[d.val] = 0;
+      }
+    });
 
-    if (fondoBaseCents === targetFondoCents) setBadge("badge-fondo-domani", "ok", `FONDO OK (${formatEuro(fondoBaseCents)})`);
-    else setBadge("badge-fondo-domani", "danger", `FONDO INSUFFICIENTE (${formatEuro(fondoBaseCents)})`);
+    let valBustaCents = 0;
+    let valResto0Cents = 0;
+    let valFondoCents = 0;
 
-    // AGGIORNAMENTO DATI RIEPILOGO 31 RIGHE
+    const tbodyDistinta = document.getElementById("distinta-pezzi-body");
+    tbodyDistinta.innerHTML = "";
+
+    DENOMINATIONS.forEach(d => {
+      const pB = pezziBusta[d.val] || 0;
+      const pR = pezziResto[d.val] || 0;
+      const pTotPresenti = countsSera[d.val] || 0;
+      const pF = Math.max(0, pTotPresenti - pB - pR);
+
+      pezziFondo[d.val] = pF;
+
+      valBustaCents += pB * d.val;
+      valResto0Cents += pR * d.val;
+      valFondoCents += pF * d.val;
+
+      tbodyDistinta.innerHTML += `
+        <tr>
+          <td style="text-align: left; font-weight: 700; color: var(--cyan-accent);">${d.label}</td>
+          <td style="color: var(--ok-color);">${pB > 0 ? pB + ' pz (' + formatEuro(pB * d.val) + ')' : '-'}</td>
+          <td style="color: var(--cyan-accent);">${pR > 0 ? pR + ' pz (' + formatEuro(pR * d.val) + ')' : '-'}</td>
+          <td style="color: var(--accent-green);">${pF > 0 ? pF + ' pz (' + formatEuro(pF * d.val) + ')' : '-'}</td>
+        </tr>`;
+    });
+
+    document.getElementById("box-versamento").textContent = formatEuro(valBustaCents);
+    document.getElementById("box-resto-monete").textContent = formatEuro(valResto0Cents);
+    document.getElementById("box-trattenuto").textContent = formatEuro(valFondoCents);
+
+    // --- RIEPILOGO 31 RIGHE ---
     document.getElementById("riepilogo-totale").textContent = formatEuro(totGiornoCents);
+    document.getElementById("riepilogo-saldo").textContent = formatEuro(valBustaCents);
     document.getElementById("riepilogo-pos").textContent = formatEuro(posGiornoCents);
-    document.getElementById("riepilogo-contanti").textContent = formatEuro(totQVersare);
-    document.getElementById("riepilogo-resto").textContent = formatEuro(restoMoneteCents);
+    
+    const totaleVersamentiRegistro = valBustaCents + posGiornoCents;
+    document.getElementById("riepilogo-tot-vers").textContent = formatEuro(totaleVersamentiRegistro);
+    document.getElementById("riepilogo-resto").textContent = formatEuro(valResto0Cents);
 
-    // PREPARAZIONE OGGETTO JSON PER SALVATAGGIO IN POCKETBASE
     datiChiusura = {
       data_turno: document.getElementById("data-turno").value,
       agente: document.getElementById("agente-nome").value || "Sconosciuto",
@@ -725,25 +740,22 @@
       postazione: document.getElementById("postazione-selezionata").value,
       totale_sistema: totGiornoCents / 100,
       totale_pos: posGiornoCents / 100,
-      totale_storni: storniSeraCents / 100,
-      versamento_contanti: totQVersare / 100,
-      resto_monete: restoMoneteCents / 100,
-      discrepanza_serale: diffSera / 100
+      saldo_versato: valBustaCents / 100,
+      resto_monete: valResto0Cents / 100,
+      discrepanza: diffSera / 100
     };
   }
 
-  // Funzione che verrà collegata a PocketBase in futuro
   function preparaSalvataggio() {
-    calculateAll(); // Assicura che i dati siano aggiornati all'ultimo istante
-    console.log("Dati pronti per PocketBase:", JSON.stringify(datiChiusura, null, 2));
-    alert(`Riepilogo salvato per l'agente ${datiChiusura.agente} (${datiChiusura.scalo} - ${datiChiusura.postazione}).\n\nVersamento: ${datiChiusura.versamento_contanti}€\n(Apri la console per vedere il JSON pronto per PocketBase!)`);
+    calculateAll(); 
+    alert(`Riepilogo pronto per il salvataggio!\n\nAgente: ${datiChiusura.agente}\nScalo: ${datiChiusura.scalo} (${datiChiusura.postazione})\nSaldo in Busta: ${formatEuro(datiChiusura.saldo_versato * 100)}`);
   }
 
-  // All'avvio della pagina
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
+    calculateAll(); 
   });
 </script>
 
