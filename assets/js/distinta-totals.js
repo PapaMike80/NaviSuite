@@ -11,7 +11,7 @@
   // Stessi valori di app.js.
   const SHIFTS_STORAGE = 'navidiaria.shifts.v1';
   const COMPETENCE_VERSION = 'terra-rinominato-lav-2026-09-17';
-  const GROUND_SHIFTS = new Set(['AGB', 'POND', 'DT', 'PT', 'AGM', 'AGT', 'PONM', 'LD', 'LAV', 'MALATTIA', 'RIPOSO']);
+  const GROUND_SHIFTS = new Set(['AGB', 'POND', 'DT', 'PT', 'AGM', 'AGT', 'PONM', 'LD', 'LAV', 'MALATTIA', 'RIPOSO', 'IE']);
   const NOT_WORKING = ['RIPOSO', 'RIP', 'MALATTIA'];
   const fixedHolidays = new Set(['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26']);
 

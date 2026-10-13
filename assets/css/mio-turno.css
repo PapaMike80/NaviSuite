@@ -61,3 +61,9 @@
 .mio-turno-page .page-header{position:relative}
 .mt-distinta{position:absolute;top:12px;right:76px;display:inline-flex;align-items:center;gap:4px;padding:9px 14px;border:1px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.14);color:#a7fff0;font:800 14px Manrope,sans-serif;text-decoration:none}
 .mt-distinta:hover{background:rgba(45,212,191,.24)}
+.mt-mod-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:8px 12px;border:1px solid #f59e0b;border-radius:10px;background:rgba(245,158,11,.1)}
+.mt-badge-mod{display:inline-flex;align-items:center;gap:6px;color:#fcd34d;font:800 13px Manrope,sans-serif}
+.mt-restore-btn{min-height:32px;padding:4px 12px;border:1px solid #f59e0b;border-radius:8px;background:rgba(245,158,11,.2);color:#fff;font:800 12px DM Sans,sans-serif;cursor:pointer}
+.mt-restore-btn:hover:not(:disabled){background:rgba(245,158,11,.35)}
+.mt-restore-btn:disabled{opacity:.4;cursor:not-allowed}
+.mt-card-mod{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,.3);flex-wrap:wrap}

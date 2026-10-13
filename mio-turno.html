@@ -42,6 +42,10 @@
         <select id="turno-test" aria-label="Prova con un altro turno"></select>
       </label>
     </div>
+    <div class="mt-mod-bar" id="turno-modified-bar" hidden>
+      <span class="mt-badge-mod" id="turno-modified-badge">Modificato da: <strong id="turno-modified-by"></strong></span>
+      <button type="button" class="mt-restore-btn" id="turno-restore-btn" disabled>Ripristina turno originale</button>
+    </div>
     <div class="terra-notice" id="turno-notice" hidden></div>
     <div class="terra-grid" id="turno-content"></div>
     <!-- La pagina Scali incorporata (assets/js/orario-page.js): a terra tutta la vista Lago del mio

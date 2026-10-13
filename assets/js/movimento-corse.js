@@ -276,8 +276,8 @@
   }
 
   // ---------------- Servizi a terra ----------------
-  // Agenti di servizio a terra del giorno: AgB e PonD (Desenzano), AgM e AgT (Maderno), con gli stessi pallini dell'equipaggio.
-  const SERVIZI_TERRA = [['AgB', 'DESENZANO'], ['PonD', 'DESENZANO'], ['AgM', 'MADERNO'], ['AgT', 'MADERNO']];
+  // Agenti di servizio a terra del giorno: AgB e PonD (Desenzano), AgM e AgT (Maderno), IE (Peschiera), con gli stessi pallini dell'equipaggio.
+  const SERVIZI_TERRA = [['AgB', 'DESENZANO'], ['PonD', 'DESENZANO'], ['AgM', 'MADERNO'], ['AgT', 'MADERNO'], ['IE', 'PESCHIERA']];
   const membriTerra = (code, tutti) => tutti.filter(a => G.terraCode(a.turno) === code)
     .map(a => ({ id: String(a.agent.id), name: String(a.agent.agente || ''), grado: G.gradoOf(a.agent) }))
     .sort((a, b) => a.grado[2] - b.grado[2] || a.name.localeCompare(b.name, 'it'));

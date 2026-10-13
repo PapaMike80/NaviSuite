@@ -543,10 +543,11 @@
 
     const serviziTerraPerResidenza = {
       DESENZANO: ["AGB", "DT", "POND"],
-      MADERNO: ["AGM", "AGT", "AGT1", "AGT2", "PONM"]
+      MADERNO: ["AGM", "AGT", "AGT1", "AGT2", "PONM"],
+      PESCHIERA: ["IE"]
     };
-    const ordineServiziTerra = { DT: 1, AGB: 2, POND: 3, AGM: 1, AGT: 2, AGT1: 3, AGT2: 4, PONM: 5 };
-    const etichetteServiziTerra = { AGB: "AgB", DT: "DT", POND: "PonD", AGM: "AgM", AGT: "AgT", AGT1: "AgT1", AGT2: "AgT2", PONM: "PonM" };
+    const ordineServiziTerra = { DT: 1, AGB: 2, POND: 3, AGM: 1, AGT: 2, AGT1: 3, AGT2: 4, PONM: 5, IE: 6 };
+    const etichetteServiziTerra = { AGB: "AgB", DT: "DT", POND: "PonD", AGM: "AgM", AGT: "AgT", AGT1: "AgT1", AGT2: "AgT2", PONM: "PonM", IE: "IE" };
 
     function getCrewShiftKey(shiftValue) {
       const cleanShift = ottieniTurnoPulito(shiftValue).toUpperCase();

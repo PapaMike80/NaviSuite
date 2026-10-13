@@ -17,7 +17,7 @@ let SHIFTS=localStorage.getItem('navidiaria.competenceVersion')===COMPETENCE_VER
 if(!SHIFTS){SHIFTS=DEFAULT_SHIFTS.map(s=>({...s}));localStorage.setItem(SHIFTS_STORAGE,JSON.stringify(SHIFTS));localStorage.setItem('navidiaria.competenceVersion',COMPETENCE_VERSION)}
 DEFAULT_SHIFTS.forEach(defaultShift=>{if(!SHIFTS.some(s=>s.code===defaultShift.code))SHIFTS.push({...defaultShift})});
 SHIFTS.forEach(s=>{if(Number(s.allowanceRate)===25)s.allowanceRate=24;if(![0,9,12,24].includes(Number(s.allowanceRate)))s.allowanceRate=24});
-const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','LAV','MALATTIA','RIPOSO']);
+const GROUND_SHIFTS=new Set(['AGB','POND','DT','PT','AGM','AGT','PONM','LD','LAV','MALATTIA','RIPOSO','IE']);
 SHIFTS.forEach(s=>{if(s.embark===undefined)s.embark=!GROUND_SHIFTS.has(String(s.code).toUpperCase())});
 SHIFTS.forEach(s=>{const code=String(s.code).toUpperCase();if(GROUND_SHIFTS.has(code)&&!['RIPOSO','MALATTIA'].includes(code))s.meal=true});
 const TURNS_URL='';
