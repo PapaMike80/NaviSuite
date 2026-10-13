@@ -1,647 +1,108 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NaviSuite • Procedura Guidata Gestione Cassa</title>
-  <style>
-    :root {
-      --primary: #1b4d3e;
-      --primary-light: #e8f5e9;
-      --primary-dark: #12342a;
-      --accent-green: #2e7d32;
-      --accent-amber: #d97706;
-      --accent-red: #c62828;
-      --bg-body: #f4f6f8;
-      --bg-card: #ffffff;
-      --border-color: #dcdfe4;
-      --text-main: #212529;
-      --text-muted: #6c757d;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font-family);
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 950px;
-      margin: 0 auto;
-    }
-
-    /* HEADER */
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 20px 24px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header h1 { font-size: 1.35rem; text-transform: uppercase; letter-spacing: 0.5px; }
-
-    /* WIZARD TABS */
-    .wizard-steps {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      background: #e9ecef;
-      padding: 6px;
-      border-radius: 10px;
-    }
-
-    .step-btn {
-      flex: 1;
-      padding: 10px 8px;
-      border: none;
-      background: transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      transition: all 0.2s;
-      text-align: center;
-    }
-
-    .step-btn.active {
-      background: var(--bg-card);
-      color: var(--primary);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-
-    /* CARD CONTENITORE PASSO */
-    .step-card {
-      background: var(--bg-card);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      padding: 26px;
-      margin-bottom: 20px;
-    }
-
-    .step-header {
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .step-header h2 {
-      font-size: 1.15rem;
-      color: var(--primary);
-    }
-
-    /* FORM & CAMPI */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .form-box {
-      background: #f8faf9;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .form-box label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .form-box input {
-      width: 100%;
-      padding: 10px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      text-align: right;
-      outline: none;
-    }
-
-    .form-box input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(27,77,62,0.15);
-    }
-
-    .box-val {
-      font-size: 1.35rem;
-      font-weight: 800;
-      text-align: right;
-      color: var(--text-main);
-      margin-top: 4px;
-    }
-
-    /* TABELLA TAGLI */
-    table.cash-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 10px;
-    }
-
-    table.cash-table th, table.cash-table td {
-      padding: 9px 8px;
-      text-align: right;
-      border-bottom: 1px solid #edf0f2;
-    }
-
-    table.cash-table th:first-child, table.cash-table td:first-child {
-      text-align: left;
-      font-weight: 600;
-    }
-
-    table.cash-table th {
-      background-color: var(--primary-light);
-      color: var(--primary-dark);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-    }
-
-    table.cash-table input.qty-input {
-      width: 70px;
-      padding: 6px;
-      text-align: right;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      font-weight: 700;
-    }
-
-    table.cash-table tr.total-row td {
-      font-weight: 800;
-      background: #fafbfc;
-      border-top: 2px solid var(--primary);
-      border-bottom: 2px solid var(--primary);
-      font-size: 0.95rem;
-    }
-
-    /* BADGES */
-    .badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-    .badge-ok { background: #d1e7dd; color: #0f5132; }
-    .badge-warn { background: #fff3cd; color: #664d03; }
-    .badge-danger { background: #f8d7da; color: #842029; }
-
-    /* FOOTER NAVIGAZIONE */
-    .wizard-nav {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-    }
-
-    .btn-prev { background: #e2e8f0; color: #334155; }
-    .btn-prev:hover { background: #cbd5e1; }
-    .btn-next { background: var(--primary); color: white; }
-    .btn-next:hover { background: var(--primary-dark); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteggio Apertura Cassa</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        .result { margin-top: 20px; text-align: center; font-size: 1.2em; font-weight: bold; }
+        .match { color: green; }
+        .mismatch { color: red; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  
-  <div class="header">
-    <div>
-      <h1>NaviSuite • Gestione & Controllo Cassa</h1>
-      <small style="opacity: 0.85;">Procedura guidata apertura, controllo diurno e chiusura serale</small>
-    </div>
-  </div>
-
-  <!-- SELETTORE STEP -->
-  <div class="wizard-steps">
-    <button class="step-btn active" id="btn-step-1" onclick="goToStep(1)">1. Apertura Mattina</button>
-    <button class="step-btn" id="btn-step-2" onclick="goToStep(2)">2. Conteggio Contanti</button>
-    <button class="step-btn" id="btn-step-3" onclick="goToStep(3)">3. Incassi & Controllo</button>
-    <button class="step-btn" id="btn-step-4" onclick="goToStep(4)">4. Proposta Versamento</button>
-  </div>
-
-  <!-- STEP 1: APERTURA -->
-  <div class="step-card" id="step-1">
-    <div class="step-header">
-      <h2>1. Verifica Fondo Cassa di Apertura</h2>
-      <span id="badge-apertura" class="badge badge-ok">CONFORME</span>
+    <h1>Apertura Cassa</h1>
+    
+    <div class="form-group">
+        <label for="fondoCassa">Fondo Cassa Voluto (€):</label>
+        <input type="number" id="fondoCassa" step="0.01" value="400.00" oninput="calcola()">
     </div>
 
-    <div class="form-grid">
-      <div class="form-box">
-        <label for="fondo-target">Fondo Cassa Obiettivo / Richiesto (€)</label>
-        <input type="number" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Quota fissa standard da mantenere in cassa</small>
-      </div>
+    <hr>
 
-      <div class="form-box">
-        <label for="fondo-mattina-contato">Fondo Cassa Contato all'Apertura (€)</label>
-        <input type="number" id="fondo-mattina-contato" step="0.01" value="400.00" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Denaro effettivamente contato la mattina</small>
-      </div>
-
-      <div class="form-box">
-        <label>Differenza Fondo Mattutino</label>
-        <div class="box-val" id="diff-mattina">€ 0,00</div>
-        <small id="diff-desc-mattina" style="color:var(--text-muted); display:block; margin-top:5px;">Nessuna discrepanza</small>
-      </div>
+    <h3>Conteggio Monete</h3>
+    <div class="form-group">
+        <label>0,10 €:</label>
+        <input type="number" class="denominazione" data-valore="0.10" value="0" min="0" oninput="calcola()">
+    </div>
+    <div class="form-group">
+        <label>0,20 €:</label>
+        <input type="number" class="denominazione" data-valore="0.20" value="0" min="0" oninput="calcola()">
+    </div>
+    <div class="form-group">
+        <label>0,50 €:</label>
+        <input type="number" class="denominazione" data-valore="0.50" value="0" min="0" oninput="calcola()">
+    </div>
+    <div class="form-group">
+        <label>1,00 €:</label>
+        <input type="number" class="denominazione" data-valore="1.00" value="0" min="0" oninput="calcola()">
+    </div>
+    <div class="form-group">
+        <label>2,00 €:</label>
+        <input type="number" class="denominazione" data-valore="2.00" value="0" min="0" oninput="calcola()">
     </div>
 
-    <div class="wizard-nav">
-      <div></div>
-      <button class="btn btn-next" onclick="goToStep(2)">Avanti: Conta Contanti →</button>
+    <h3>Conteggio Banconote</h3>
+    <div class="form-group">
+        <label>5,00 €:</label>
+        <input type="number" class="denominazione" data-valore="5.00" value="0" min="0" oninput="calcola()">
     </div>
-  </div>
-
-  <!-- STEP 2: CONTEGGIO CONTANTI FISICI -->
-  <div class="step-card" id="step-2" style="display:none;">
-    <div class="step-header">
-      <h2>2. Conteggio Denaro Fisico nel Cassetto</h2>
-      <div>
-        <span>Totale Contato: </span>
-        <strong style="color: var(--primary); font-size: 1.15rem;" id="header-tot-contato">€ 0,00</strong>
-      </div>
+    <div class="form-group">
+        <label>10,00 €:</label>
+        <input type="number" class="denominazione" data-valore="10.00" value="0" min="0" oninput="calcola()">
     </div>
-
-    <table class="cash-table">
-      <thead>
-        <tr>
-          <th>Taglio Denaro</th>
-          <th>Pezzi Contati</th>
-          <th>Subtotale (€)</th>
-        </tr>
-      </thead>
-      <tbody id="cash-table-body">
-        <!-- Righe generate via JS -->
-      </tbody>
-      <tfoot>
-        <tr class="total-row">
-          <td>TOTALE CONTANTI NEL CASSETTO</td>
-          <td id="tot-pezzi">0</td>
-          <td id="tot-valore">€ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(1)">← Indietro</button>
-      <button class="btn btn-next" onclick="goToStep(3)">Avanti: Controllo Incassi →</button>
+    <div class="form-group">
+        <label>20,00 €:</label>
+        <input type="number" class="denominazione" data-valore="20.00" value="0" min="0" oninput="calcola()">
     </div>
-  </div>
-
-  <!-- STEP 3: INCASSI & CONTROLLO CASSA -->
-  <div class="step-card" id="step-3" style="display:none;">
-    <div class="step-header">
-      <h2>3. Registrazione Incassi & Contanti Attesi</h2>
-      <span id="badge-quadratura" class="badge badge-ok">CASSA QUADRATA</span>
+    <div class="form-group">
+        <label>50,0,00 €:</label>
+        <input type="number" class="denominazione" data-valore="50.00" value="0" min="0" oninput="calcola()">
+    </div>
+    <div class="form-group">
+        <label>100,00 €:</label>
+        <input type="number" class="denominazione" data-valore="100.00" value="0" min="0" oninput="calcola()">
     </div>
 
-    <div class="form-grid">
-      <div class="form-box">
-        <label for="totale-giornaliero">Totale Incasso della Giornata (€)</label>
-        <input type="number" id="totale-giornaliero" step="0.01" value="318.80" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Corrispettivo totale da registro/RT</small>
-      </div>
-
-      <div class="form-box">
-        <label for="pos-giornaliero">Incasso POS (Carte / Elettronico) (€)</label>
-        <input type="number" id="pos-giornaliero" step="0.01" value="225.40" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Transazioni elettroniche</small>
-      </div>
-
-      <div class="form-box">
-        <label>Incasso Contanti Calcolato (Totale - POS)</label>
-        <div class="box-val" id="incasso-contanti-calc">€ 93,40</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Contante incassato dai clienti</small>
-      </div>
+    <div class="result" id="risultato">
+        Totale Contato: 0,00 €
     </div>
-
-    <!-- BOX CENTRALE CONTANTI ATTESI -->
-    <div style="background: var(--primary-light); border: 2px solid var(--primary); padding: 18px; border-radius: 8px; margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <div>
-          <h3 style="color: var(--primary-dark); font-size: 1.05rem; text-transform: uppercase;">Contanti che Devi Avere in Cassa:</h3>
-          <small style="color: var(--primary-dark);">Fondo Mattina (<span id="box-fm">€ 400,00</span>) + Incasso Contanti (<span id="box-ic">€ 93,40</span>)</small>
-        </div>
-        <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark);" id="contanti-attesi-calc">€ 493,40</div>
-      </div>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-box">
-        <label>Contanti Fisici Contati (Passo 2)</label>
-        <div class="box-val" id="ctrl-fisici">€ 0,00</div>
-      </div>
-      <div class="form-box">
-        <label>Discrepanza / Differenza di Cassa</label>
-        <div class="box-val" id="ctrl-differenza">€ 0,00</div>
-      </div>
-    </div>
-
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(2)">← Indietro</button>
-      <button class="btn btn-next" onclick="goToStep(4)">Avanti: Proposta Versamento Serale →</button>
-    </div>
-  </div>
-
-  <!-- STEP 4: PROPOSTA VERSAMENTO SERALE -->
-  <div class="step-card" id="step-4" style="display:none;">
-    <div class="step-header">
-      <h2>4. Proposta di Versamento & Fondo Cassa di Domani</h2>
-      <span id="badge-fondo-domani" class="badge badge-ok">FONDO PRONTO</span>
-    </div>
-
-    <div class="form-grid" style="margin-bottom: 16px;">
-      <div class="form-box" style="border-left: 5px solid var(--accent-amber);">
-        <label>Soldi da Versare Stasera (in Cassaforte/Banca)</label>
-        <div class="box-val" style="color: var(--accent-amber);" id="box-versamento">€ 0,00</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Eccedenza oltre il fondo stabilito</small>
-      </div>
-
-      <div class="form-box" style="border-left: 5px solid var(--accent-green);">
-        <label>Fondo Cassa Trattenuto nel Cassetto</label>
-        <div class="box-val" style="color: var(--accent-green);" id="box-trattenuto">€ 0,00</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Composto prioritariamente dai tagli più piccoli</small>
-      </div>
-    </div>
-
-    <h3 style="font-size:0.95rem; color:var(--primary); margin-bottom: 10px; text-transform:uppercase;">Dettaglio Ripartizione Monete e Banconote:</h3>
-    <table class="cash-table">
-      <thead>
-        <tr>
-          <th>Taglio</th>
-          <th>Pezzi da Versare</th>
-          <th>Quota Versamento</th>
-          <th>Pezzi Lasciati (Fondo)</th>
-          <th>Quota Fondo</th>
-        </tr>
-      </thead>
-      <tbody id="distribution-table-body">
-        <!-- Righe generate via JS -->
-      </tbody>
-      <tfoot>
-        <tr class="total-row">
-          <td>TOTALE</td>
-          <td id="tot-p-versare">0</td>
-          <td id="tot-q-versare" style="color: var(--accent-amber);">€ 0,00</td>
-          <td id="tot-p-fondo">0</td>
-          <td id="tot-q-fondo" style="color: var(--accent-green);">€ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(3)">← Indietro</button>
-      <button class="btn btn-next" style="background:#2e7d32;" onclick="alert('Riepilogo cassa confermato con successo!')">Conferma & Salva Cassa</button>
-    </div>
-  </div>
-
 </div>
 
 <script>
-  const DENOMINATIONS = [
-    { label: "Moneta € 0,10", val: 10 },
-    { label: "Moneta € 0,20", val: 20 },
-    { label: "Moneta € 0,50", val: 50 },
-    { label: "Moneta € 1,00", val: 100 },
-    { label: "Moneta € 2,00", val: 200 },
-    { label: "Banconota € 5", val: 500 },
-    { label: "Banconota € 10", val: 1000 },
-    { label: "Banconota € 20", val: 2000 },
-    { label: "Banconota € 50", val: 5000 },
-    { label: "Banconota € 100", val: 10000 }
-  ];
+    function calcola() {
+        const fondoCassa = parseFloat(document.getElementById('fondoCassa').value) || 0;
+        const denominazioni = document.getElementsByClassName('denominazione');
+        let totale = 0;
 
-  // Dati di default iniziali
-  const counts = {
-    10: 34, 20: 40, 50: 16, 100: 29, 200: 20,
-    500: 25, 1000: 13, 2000: 5, 5000: 1, 10000: 0
-  };
-
-  function formatEuro(cents) {
-    return (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
-  }
-
-  function goToStep(step) {
-    for (let i = 1; i <= 4; i++) {
-      document.getElementById(`step-${i}`).style.display = (i === step) ? 'block' : 'none';
-      document.getElementById(`btn-step-${i}`).classList.toggle('active', i === step);
-    }
-  }
-
-  function initTables() {
-    const cashBody = document.getElementById("cash-table-body");
-    const distBody = document.getElementById("distribution-table-body");
-    cashBody.innerHTML = "";
-    distBody.innerHTML = "";
-
-    DENOMINATIONS.forEach(d => {
-      // Tabella Step 2
-      const tr2 = document.createElement("tr");
-      tr2.innerHTML = `
-        <td>${d.label}</td>
-        <td><input type="number" min="0" class="qty-input" id="qty-${d.val}" value="${counts[d.val] || 0}" oninput="updateCountsAndCalc()"></td>
-        <td id="subtot-${d.val}">€ 0,00</td>
-      `;
-      cashBody.appendChild(tr2);
-
-      // Tabella Step 4
-      const tr4 = document.createElement("tr");
-      tr4.innerHTML = `
-        <td>${d.label}</td>
-        <td id="dist-p-versare-${d.val}">0</td>
-        <td id="dist-q-versare-${d.val}">€ 0,00</td>
-        <td id="dist-p-fondo-${d.val}">0</td>
-        <td id="dist-q-fondo-${d.val}">€ 0,00</td>
-      `;
-      distBody.appendChild(tr4);
-    });
-  }
-
-  function updateCountsAndCalc() {
-    DENOMINATIONS.forEach(d => {
-      counts[d.val] = parseInt(document.getElementById(`qty-${d.val}`).value || 0, 10);
-    });
-    calculateAll();
-  }
-
-  function calculateAll() {
-    // 1. APERTURA
-    const targetFondoCents = Math.round(parseFloat(document.getElementById("fondo-target").value || 0) * 100);
-    const fondoMattinaCents = Math.round(parseFloat(document.getElementById("fondo-mattina-contato").value || 0) * 100);
-    const diffMattina = fondoMattinaCents - targetFondoCents;
-
-    document.getElementById("diff-mattina").textContent = formatEuro(diffMattina);
-    const badgeAp = document.getElementById("badge-apertura");
-    const descAp = document.getElementById("diff-desc-mattina");
-
-    if (diffMattina === 0) {
-      badgeAp.className = "badge badge-ok";
-      badgeAp.textContent = "CONFORME";
-      descAp.textContent = "Nessuna discrepanza";
-    } else if (diffMattina > 0) {
-      badgeAp.className = "badge badge-warn";
-      badgeAp.textContent = "ESUBERO";
-      descAp.textContent = `Eccedenza di +${formatEuro(diffMattina)}`;
-    } else {
-      badgeAp.className = "badge badge-danger";
-      badgeAp.textContent = "AMMANCO";
-      descAp.textContent = `Ammanco di ${formatEuro(diffMattina)}`;
-    }
-
-    // 2. CONTEGGIO DENARO FISICO
-    let totPezzi = 0;
-    let totFisiciCents = 0;
-
-    DENOMINATIONS.forEach(d => {
-      const q = counts[d.val] || 0;
-      const sub = q * d.val;
-      totPezzi += q;
-      totFisiciCents += sub;
-      const subEl = document.getElementById(`subtot-${d.val}`);
-      if (subEl) subEl.textContent = formatEuro(sub);
-    });
-
-    document.getElementById("tot-pezzi").textContent = totPezzi;
-    document.getElementById("tot-valore").textContent = formatEuro(totFisiciCents);
-    document.getElementById("header-tot-contato").textContent = formatEuro(totFisiciCents);
-
-    // 3. INCASSI & CONTANTI ATTESI
-    const totGiornoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero").value || 0) * 100);
-    const posGiornoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero").value || 0) * 100);
-    const incassoContanti = totGiornoCents - posGiornoCents;
-    const contantiAttesi = fondoMattinaCents + incassoContanti;
-
-    document.getElementById("incasso-contanti-calc").textContent = formatEuro(incassoContanti);
-    document.getElementById("contanti-attesi-calc").textContent = formatEuro(contantiAttesi);
-    document.getElementById("box-fm").textContent = formatEuro(fondoMattinaCents);
-    document.getElementById("box-ic").textContent = formatEuro(incassoContanti);
-
-    document.getElementById("ctrl-fisici").textContent = formatEuro(totFisiciCents);
-    const diffQuad = totFisiciCents - contantiAttesi;
-    document.getElementById("ctrl-differenza").textContent = formatEuro(diffQuad);
-
-    const badgeQuad = document.getElementById("badge-quadratura");
-    if (diffQuad === 0) {
-      badgeQuad.className = "badge badge-ok";
-      badgeQuad.textContent = "CASSA QUADRATA (0,00 €)";
-    } else if (diffQuad > 0) {
-      badgeQuad.className = "badge badge-warn";
-      badgeQuad.textContent = `ESUBERO (+${formatEuro(diffQuad)})`;
-    } else {
-      badgeQuad.className = "badge badge-danger";
-      badgeQuad.textContent = `AMMANCO (${formatEuro(diffQuad)})`;
-    }
-
-    // 4. PROPOSTA VERSAMENTO & OTTIMIZZAZIONE TAGLI PICCOLI
-    const daVersareTarget = Math.max(0, totFisiciCents - targetFondoCents);
-    let rimastoDaVersare = daVersareTarget;
-    const pezziVersare = {};
-
-    // Prelievo a partire dai tagli più grandi (100 -> 50 -> 20 ...) per preservare gli spiccioli nel fondo
-    const descDenoms = [...DENOMINATIONS].reverse();
-    descDenoms.forEach(d => {
-      const avail = counts[d.val] || 0;
-      if (avail > 0 && rimastoDaVersare > 0) {
-        const take = Math.min(avail, Math.floor(rimastoDaVersare / d.val));
-        pezziVersare[d.val] = take;
-        rimastoDaVersare -= take * d.val;
-      } else {
-        pezziVersare[d.val] = 0;
-      }
-    });
-
-    // Se rimane un resto non coperto, prendi dal taglio più basso disponibile
-    if (rimastoDaVersare > 0) {
-      for (const d of DENOMINATIONS) {
-        const rem = (counts[d.val] || 0) - (pezziVersare[d.val] || 0);
-        if (rem > 0 && rimastoDaVersare > 0) {
-          const take = Math.min(rem, Math.ceil(rimastoDaVersare / d.val));
-          pezziVersare[d.val] = (pezziVersare[d.val] || 0) + take;
-          rimastoDaVersare -= take * d.val;
-          break;
+        for (let i = 0; i < denominazioni.length; i++) {
+            const quantita = parseFloat(denominazioni[i].value) || 0;
+            const valore = parseFloat(denominazioni[i].getAttribute('data-valore'));
+            totale += quantita * valore;
         }
-      }
+
+        const risultatoDiv = document.getElementById('risultato');
+        risultatoDiv.innerHTML = `Totale Contato: ${totale.toFixed(2)} €`;
+
+        if (Math.abs(totale - fondoCassa) < 0.01) {
+            risultatoDiv.className = 'result match';
+            risultatoDiv.innerHTML += ' (Corrisponde al Fondo Cassa)';
+        } else {
+            risultatoDiv.className = 'result mismatch';
+            const differenza = totale - fondoCassa;
+            risultatoDiv.innerHTML += ` (Differenza: ${differenza > 0 ? '+' : ''}${differenza.toFixed(2)} €)`;
+        }
     }
 
-    let totPVersare = 0;
-    let totQVersare = 0;
-    let totPFondo = 0;
-    let totQFondo = 0;
-
-    DENOMINATIONS.forEach(d => {
-      const pVers = pezziVersare[d.val] || 0;
-      const pFond = Math.max(0, (counts[d.val] || 0) - pVers);
-      const qVers = pVers * d.val;
-      const qFond = pFond * d.val;
-
-      totPVersare += pVers;
-      totQVersare += qVers;
-      totPFondo += pFond;
-      totQFondo += qFond;
-
-      const pVEl = document.getElementById(`dist-p-versare-${d.val}`);
-      const qVEl = document.getElementById(`dist-q-versare-${d.val}`);
-      const pFEl = document.getElementById(`dist-p-fondo-${d.val}`);
-      const qFEl = document.getElementById(`dist-q-fondo-${d.val}`);
-
-      if (pVEl) pVEl.textContent = pVers;
-      if (qVEl) qVEl.textContent = formatEuro(qVers);
-      if (pFEl) pFEl.textContent = pFond;
-      if (qFEl) qFEl.textContent = formatEuro(qFond);
-    });
-
-    document.getElementById("box-versamento").textContent = formatEuro(totQVersare);
-    document.getElementById("box-trattenuto").textContent = formatEuro(totQFondo);
-
-    document.getElementById("tot-p-versare").textContent = totPVersare;
-    document.getElementById("tot-q-versare").textContent = formatEuro(totQVersare);
-    document.getElementById("tot-p-fondo").textContent = totPFondo;
-    document.getElementById("tot-q-fondo").textContent = formatEuro(totQFondo);
-
-    const badgeFondoDomani = document.getElementById("badge-fondo-domani");
-    if (totQFondo === targetFondoCents) {
-      badgeFondoDomani.className = "badge badge-ok";
-      badgeFondoDomani.textContent = `FONDO PRONTO (${formatEuro(targetFondoCents)})`;
-    } else {
-      badgeFondoDomani.className = "badge badge-danger";
-      badgeFondoDomani.textContent = `FONDO DISCREPANTE (${formatEuro(totQFondo)})`;
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", () => {
-    initTables();
-    calculateAll();
-  });
+    window.onload = calcola;
 </script>
 
 </body>
