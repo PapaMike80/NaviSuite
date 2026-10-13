@@ -3,644 +3,747 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NaviSuite • Procedura Guidata Gestione Cassa</title>
+  <title>NaviSuite • Gestione Cassa</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+
   <style>
+    /* TEMA SCURO NAVISUITE */
     :root {
-      --primary: #1b4d3e;
-      --primary-light: #e8f5e9;
-      --primary-dark: #12342a;
-      --accent-green: #2e7d32;
-      --accent-amber: #d97706;
-      --accent-red: #c62828;
-      --bg-body: #f4f6f8;
-      --bg-card: #ffffff;
-      --border-color: #dcdfe4;
-      --text-main: #212529;
-      --text-muted: #6c757d;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg-main: #0b1823;         
+      --bg-panel: #112433;        
+      --bg-input: #071018;        
+      --border-color: #1e3a4c;    
+      --text-main: #e2f1f8;       
+      --text-muted: #8ba5b5;      
+      
+      --cyan-accent: #27a9b6;     
+      --cyan-glow: rgba(39, 169, 182, 0.2);
+      --teal-dark: #176b87;
+      
+      --ok-color: #f5b041;        
+      --ok-bg: rgba(245, 176, 65, 0.15);
+      
+      --accent-green: #34935b;
+      --accent-orange: #e37a24;
+      --accent-red: #c75970;
+      
+      --shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font-family);
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      padding: 20px;
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg-main); color: var(--text-main); font-family: "DM Sans", sans-serif; padding: 20px; }
+    
+    .container { max-width: 1000px; margin: 0 auto; }
 
-    .container {
-      max-width: 950px;
-      margin: 0 auto;
-    }
-
-    /* HEADER */
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 20px 24px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header h1 { font-size: 1.35rem; text-transform: uppercase; letter-spacing: 0.5px; }
-
-    /* WIZARD TABS */
+    /* WIZARD TABS STICKY */
     .wizard-steps {
       display: flex;
       gap: 8px;
-      margin-bottom: 20px;
-      background: #e9ecef;
-      padding: 6px;
-      border-radius: 10px;
+      margin-bottom: 24px;
+      background: rgba(7, 16, 24, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      position: sticky;
+      top: 10px;
+      z-index: 1000;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
     }
-
     .step-btn {
       flex: 1;
-      padding: 10px 8px;
-      border: none;
+      padding: 12px 14px;
+      border: 1px solid transparent;
       background: transparent;
-      border-radius: 6px;
+      border-radius: 9px;
       cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 700;
+      font: 700 13px "DM Sans";
       color: var(--text-muted);
       transition: all 0.2s;
       text-align: center;
+      min-width: 130px;
     }
+    
+    .step-btn.status-ok { color: var(--accent-green); }
+    .step-btn.active.status-ok { background: var(--bg-panel); border-color: var(--accent-green); box-shadow: 0 0 12px rgba(52, 147, 91, 0.25); }
+    .step-btn.status-warn { color: var(--ok-color); }
+    .step-btn.active.status-warn { background: var(--bg-panel); border-color: var(--ok-color); box-shadow: 0 0 12px rgba(245, 176, 65, 0.25); }
+    .step-btn.status-danger { color: var(--accent-red); }
+    .step-btn.active.status-danger { background: var(--bg-panel); border-color: var(--accent-red); box-shadow: 0 0 12px rgba(199, 89, 112, 0.25); }
 
-    .step-btn.active {
-      background: var(--bg-card);
-      color: var(--primary);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
+    /* PANNELLI E CARD */
+    .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
+    .panel-heading { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .panel h3 { font: 800 19px Manrope; margin: 0; color: var(--text-main); }
+    .panel-body { padding: 24px; }
+    .section-title { margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); color: var(--cyan-accent); font-family: Manrope; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .section-title:first-child { margin-top: 0; }
 
-    /* CARD CONTENITORE PASSO */
-    .step-card {
-      background: var(--bg-card);
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      padding: 26px;
-      margin-bottom: 20px;
+    /* INPUTS E LABELS */
+    label { color: var(--text-muted); font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="number"], input[type="text"], input[type="date"], select { 
+      width: 100%; margin-top: 0; border: 1px solid var(--border-color); background: var(--bg-input); 
+      border-radius: 9px; padding: 10px 11px; color: var(--text-main); font: 700 16px "DM Sans"; transition: all 0.2s; 
     }
+    input[type="number"] { text-align: right; }
+    select { font-size: 15px; appearance: auto; }
+    input:focus, select:focus { outline: none; border-color: var(--cyan-accent); box-shadow: 0 0 0 3px var(--cyan-glow); }
+    
+    /* BOTTONI */
+    .primary-button, .secondary-button { border: 0; border-radius: 9px; padding: 12px 18px; font: 700 13px "DM Sans"; cursor: pointer; transition: all 0.2s; }
+    .primary-button { background: transparent; color: var(--cyan-accent); border: 1px solid var(--cyan-accent); box-shadow: 0 0 8px var(--cyan-glow); }
+    .primary-button:hover { background: var(--cyan-accent); color: var(--bg-main); }
+    .secondary-button { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border-color); }
+    .secondary-button:hover { background: var(--border-color); color: var(--text-main); }
 
-    .step-header {
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    /* GRIGLIE FORM */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .form-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; transition: opacity 0.3s; }
+    .form-box.transparent { background: transparent; border: none; padding: 0; }
+    .box-val { font: 800 22px Manrope; text-align: right; color: var(--text-main); margin-top: 4px; }
+    .form-box small { display: block; color: var(--text-muted); font-size: 11px; margin-top: 6px; font-weight: 500; }
 
-    .step-header h2 {
-      font-size: 1.15rem;
-      color: var(--primary);
-    }
+    /* GRIGLIA COMPATTA INSERIMENTO CONTANTI */
+    .cash-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    @media (max-width: 650px) { .cash-split { grid-template-columns: 1fr; } }
+    .cash-col { background: rgba(0,0,0,0.15); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; }
+    .cash-col h4 { margin: 0 0 16px 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .cash-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cash-row label { margin: 0; color: var(--text-main); font-weight: 700; width: 60px; font-size: 13px; text-transform: none; letter-spacing: 0;}
+    .cash-row input { width: 70px; padding: 6px 10px; font-size: 14px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; text-align: right; }
+    .cash-row .sub { width: 70px; text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+    .partial-tot { border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: var(--cyan-accent); }
+    .grand-tot { text-align: right; padding: 16px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 11px; font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);}
+    .grand-tot span.val { font-size: 24px; color: var(--cyan-accent); font-family: Manrope; }
 
-    /* FORM & CAMPI */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .form-box {
-      background: #f8faf9;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 16px;
-    }
-
-    .form-box label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .form-box input {
-      width: 100%;
-      padding: 10px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      text-align: right;
-      outline: none;
-    }
-
-    .form-box input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(27,77,62,0.15);
-    }
-
-    .box-val {
-      font-size: 1.35rem;
-      font-weight: 800;
-      text-align: right;
-      color: var(--text-main);
-      margin-top: 4px;
-    }
-
-    /* TABELLA TAGLI */
-    table.cash-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 10px;
-    }
-
-    table.cash-table th, table.cash-table td {
-      padding: 9px 8px;
-      text-align: right;
-      border-bottom: 1px solid #edf0f2;
-    }
-
-    table.cash-table th:first-child, table.cash-table td:first-child {
-      text-align: left;
-      font-weight: 600;
-    }
-
-    table.cash-table th {
-      background-color: var(--primary-light);
-      color: var(--primary-dark);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-    }
-
-    table.cash-table input.qty-input {
-      width: 70px;
-      padding: 6px;
-      text-align: right;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      font-weight: 700;
-    }
-
-    table.cash-table tr.total-row td {
-      font-weight: 800;
-      background: #fafbfc;
-      border-top: 2px solid var(--primary);
-      border-bottom: 2px solid var(--primary);
-      font-size: 0.95rem;
-    }
+    /* TABELLE */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 11px; margin-bottom: 24px; background: rgba(0,0,0,0.15); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: right; padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 13px; font-weight: 500; color: var(--text-main); }
+    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; text-align: right; background: rgba(255,255,255,0.02); }
+    th:first-child, td:first-child { text-align: left; font-weight: 700; color: var(--cyan-accent); }
+    table tr.total-row td { font-weight: 800; background: rgba(255,255,255,0.03); font-size: 15px; border-top: 2px solid var(--border-color); border-bottom: none; color: var(--text-main); }
 
     /* BADGES */
-    .badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-    .badge-ok { background: #d1e7dd; color: #0f5132; }
-    .badge-warn { background: #fff3cd; color: #664d03; }
-    .badge-danger { background: #f8d7da; color: #842029; }
+    .tag { display: inline-block; margin: 2px; padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-ok { background: var(--ok-bg); color: var(--ok-color); border: 1px solid var(--ok-color); }
+    .tag-warn { background: rgba(227, 122, 36, 0.15); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+    .tag-danger { background: rgba(199, 89, 112, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
-    /* FOOTER NAVIGAZIONE */
-    .wizard-nav {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border-color);
-    }
+    /* TOGGLE SWITCH */
+    .switch-wrapper { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; margin-bottom: 24px; border-left: 4px solid var(--cyan-accent); }
+    .switch-wrapper div label { margin: 0; color: var(--text-main); font-size: 14px; }
+    .switch-wrapper div small { color: var(--text-muted); font-size: 11px; font-weight: 500; display: block; margin-top: 4px; text-transform: none; }
+    
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-input); border: 1px solid var(--border-color); transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--cyan-accent); border-color: var(--cyan-accent); }
+    input:checked + .slider:before { transform: translateX(20px); background-color: var(--bg-main); }
 
-    .btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 0.88rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-    }
+    .wizard-nav { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+    
+    /* HIGHLIGHT BOXES */
+    .box-highlight-blue { border-left: 4px solid var(--teal-dark); }
+    .box-highlight-blue .box-val { color: var(--cyan-accent); }
+    .box-highlight-green { border-left: 4px solid var(--accent-green); }
+    .box-highlight-green .box-val { color: var(--accent-green); }
+    .box-highlight-orange { border-left: 4px solid var(--ok-color); }
+    .box-highlight-orange .box-val { color: var(--ok-color); }
 
-    .btn-prev { background: #e2e8f0; color: #334155; }
-    .btn-prev:hover { background: #cbd5e1; }
-    .btn-next { background: var(--primary); color: white; }
-    .btn-next:hover { background: var(--primary-dark); }
+    /* RIEPILOGO 31 RIGHE */
+    .riepilogo-31 { background: rgba(39, 169, 182, 0.05); border: 1px solid var(--cyan-accent); border-radius: 12px; padding: 20px; margin-top: 30px; }
+    .riepilogo-31 h4 { color: var(--text-main); font-family: Manrope; font-size: 18px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;}
+    .riepilogo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; }
+    .riepilogo-item label { font-size: 10px; margin-bottom: 4px; color: var(--text-muted); }
+    .riepilogo-item .val { font-size: 18px; font-weight: 800; color: var(--cyan-accent); font-family: Manrope; }
   </style>
 </head>
 <body>
 
 <div class="container">
   
-  <div class="header">
-    <div>
-      <h1>NaviSuite • Gestione & Controllo Cassa</h1>
-      <small style="opacity: 0.85;">Procedura guidata apertura, controllo diurno e chiusura serale</small>
+  <div style="margin-bottom: 20px;">
+    <h1 style="font: 800 25px Manrope; color: var(--text-main); margin: 0 0 4px 0;">Controllo Cassa</h1>
+    <p style="margin: 0; color: var(--text-muted); font-size: 13px; font-weight: 500;">Procedura guidata per apertura, controllo diurno e chiusura serale integrata.</p>
+  </div>
+
+  <!-- PANNELLO SETUP TURNO -->
+  <div class="panel" style="margin-bottom: 24px; border-top: 4px solid var(--cyan-accent);">
+    <div class="panel-body" style="padding: 16px 24px;">
+      <div class="form-grid" style="margin-bottom: 0;">
+        <div class="form-box transparent">
+          <label>Data</label>
+          <input type="date" id="data-turno">
+        </div>
+        <div class="form-box transparent">
+          <label>Agente (Nome / Sigla)</label>
+          <input type="text" id="agente-nome" placeholder="Es. PEDRONI M.">
+        </div>
+        <div class="form-box transparent">
+          <label>Scalo</label>
+          <select id="scalo-selezionato" onchange="impostaRegoleScalo()">
+            <option value="Maderno">Maderno</option>
+            <option value="Desenzano">Desenzano</option>
+            <option value="Peschiera">Peschiera</option>
+            <option value="Riva">Riva</option>
+            <option value="Altro">Altro...</option>
+          </select>
+        </div>
+        <div class="form-box transparent">
+          <label>Postazione / Cassa</label>
+          <select id="postazione-selezionata">
+            <option value="AgM (Cassa 2)">AgM (Cassa 2)</option>
+            <option value="AgT (Cassa 1)">AgT (Cassa 1)</option>
+            <option value="AgB (Cassa 1)">AgB (Cassa 1)</option>
+            <option value="DT (Cassa 8)">DT (Cassa 8)</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- SELETTORE STEP -->
+  <!-- SELETTORE STEP (STICKY) -->
   <div class="wizard-steps">
-    <button class="step-btn active" id="btn-step-1" onclick="goToStep(1)">1. Apertura Mattina</button>
-    <button class="step-btn" id="btn-step-2" onclick="goToStep(2)">2. Conteggio Contanti</button>
-    <button class="step-btn" id="btn-step-3" onclick="goToStep(3)">3. Incassi & Controllo</button>
-    <button class="step-btn" id="btn-step-4" onclick="goToStep(4)">4. Proposta Versamento</button>
+    <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)">1. Apertura</button>
+    <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)">2. Controllo Diurno</button>
+    <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)">3. Chiusura Serale & Versamento</button>
   </div>
 
   <!-- STEP 1: APERTURA -->
-  <div class="step-card" id="step-1">
-    <div class="step-header">
-      <h2>1. Verifica Fondo Cassa di Apertura</h2>
-      <span id="badge-apertura" class="badge badge-ok">CONFORME</span>
+  <div class="panel" id="step-1">
+    <div class="panel-heading">
+      <h3>1. Verifica Fondo Cassa di Apertura</h3>
+      <span id="badge-apertura" class="tag tag-ok">CONFORME</span>
     </div>
-
-    <div class="form-grid">
-      <div class="form-box">
-        <label for="fondo-target">Fondo Cassa Obiettivo / Richiesto (€)</label>
-        <input type="number" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Quota fissa standard da mantenere in cassa</small>
-      </div>
-
-      <div class="form-box">
-        <label for="fondo-mattina-contato">Fondo Cassa Contato all'Apertura (€)</label>
-        <input type="number" id="fondo-mattina-contato" step="0.01" value="400.00" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Denaro effettivamente contato la mattina</small>
-      </div>
-
-      <div class="form-box">
-        <label>Differenza Fondo Mattutino</label>
-        <div class="box-val" id="diff-mattina">€ 0,00</div>
-        <small id="diff-desc-mattina" style="color:var(--text-muted); display:block; margin-top:5px;">Nessuna discrepanza</small>
-      </div>
-    </div>
-
-    <div class="wizard-nav">
-      <div></div>
-      <button class="btn btn-next" onclick="goToStep(2)">Avanti: Conta Contanti →</button>
-    </div>
-  </div>
-
-  <!-- STEP 2: CONTEGGIO CONTANTI FISICI -->
-  <div class="step-card" id="step-2" style="display:none;">
-    <div class="step-header">
-      <h2>2. Conteggio Denaro Fisico nel Cassetto</h2>
-      <div>
-        <span>Totale Contato: </span>
-        <strong style="color: var(--primary); font-size: 1.15rem;" id="header-tot-contato">€ 0,00</strong>
-      </div>
-    </div>
-
-    <table class="cash-table">
-      <thead>
-        <tr>
-          <th>Taglio Denaro</th>
-          <th>Pezzi Contati</th>
-          <th>Subtotale (€)</th>
-        </tr>
-      </thead>
-      <tbody id="cash-table-body">
-        <!-- Righe generate via JS -->
-      </tbody>
-      <tfoot>
-        <tr class="total-row">
-          <td>TOTALE CONTANTI NEL CASSETTO</td>
-          <td id="tot-pezzi">0</td>
-          <td id="tot-valore">€ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(1)">← Indietro</button>
-      <button class="btn btn-next" onclick="goToStep(3)">Avanti: Controllo Incassi →</button>
-    </div>
-  </div>
-
-  <!-- STEP 3: INCASSI & CONTROLLO CASSA -->
-  <div class="step-card" id="step-3" style="display:none;">
-    <div class="step-header">
-      <h2>3. Registrazione Incassi & Contanti Attesi</h2>
-      <span id="badge-quadratura" class="badge badge-ok">CASSA QUADRATA</span>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-box">
-        <label for="totale-giornaliero">Totale Incasso della Giornata (€)</label>
-        <input type="number" id="totale-giornaliero" step="0.01" value="318.80" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Corrispettivo totale da registro/RT</small>
-      </div>
-
-      <div class="form-box">
-        <label for="pos-giornaliero">Incasso POS (Carte / Elettronico) (€)</label>
-        <input type="number" id="pos-giornaliero" step="0.01" value="225.40" oninput="calculateAll()">
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Transazioni elettroniche</small>
-      </div>
-
-      <div class="form-box">
-        <label>Incasso Contanti Calcolato (Totale - POS)</label>
-        <div class="box-val" id="incasso-contanti-calc">€ 93,40</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Contante incassato dai clienti</small>
-      </div>
-    </div>
-
-    <!-- BOX CENTRALE CONTANTI ATTESI -->
-    <div style="background: var(--primary-light); border: 2px solid var(--primary); padding: 18px; border-radius: 8px; margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <div>
-          <h3 style="color: var(--primary-dark); font-size: 1.05rem; text-transform: uppercase;">Contanti che Devi Avere in Cassa:</h3>
-          <small style="color: var(--primary-dark);">Fondo Mattina (<span id="box-fm">€ 400,00</span>) + Incasso Contanti (<span id="box-ic">€ 93,40</span>)</small>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-box">
+          <label for="fondo-target">Fondo Obiettivo (€)</label>
+          <input type="number" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
+          <small>Quota fissa da mantenere</small>
         </div>
-        <div style="font-size: 1.8rem; font-weight: 800; color: var(--primary-dark);" id="contanti-attesi-calc">€ 493,40</div>
+        <div class="form-box">
+          <label>Fondo Contato Effettivo</label>
+          <div class="box-val" id="fondo-mattina-calc" style="color: var(--cyan-accent);">€ 0,00</div>
+          <small>Calcolato dalla griglia sotto</small>
+        </div>
+        <div class="form-box">
+          <label>Differenza Mattina</label>
+          <div class="box-val" id="diff-mattina">€ 0,00</div>
+          <small id="diff-desc-mattina">Nessuna discrepanza</small>
+        </div>
       </div>
-    </div>
 
-    <div class="form-grid">
-      <div class="form-box">
-        <label>Contanti Fisici Contati (Passo 2)</label>
-        <div class="box-val" id="ctrl-fisici">€ 0,00</div>
-      </div>
-      <div class="form-box">
-        <label>Discrepanza / Differenza di Cassa</label>
-        <div class="box-val" id="ctrl-differenza">€ 0,00</div>
-      </div>
-    </div>
+      <div id="grid-container-mattina"></div>
 
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(2)">← Indietro</button>
-      <button class="btn btn-next" onclick="goToStep(4)">Avanti: Proposta Versamento Serale →</button>
+      <div class="wizard-nav">
+        <div></div>
+        <button class="primary-button" onclick="goToStep(2)">Avanti: Controllo Diurno →</button>
+      </div>
     </div>
   </div>
 
-  <!-- STEP 4: PROPOSTA VERSAMENTO SERALE -->
-  <div class="step-card" id="step-4" style="display:none;">
-    <div class="step-header">
-      <h2>4. Proposta di Versamento & Fondo Cassa di Domani</h2>
-      <span id="badge-fondo-domani" class="badge badge-ok">FONDO PRONTO</span>
+  <!-- STEP 2: CONTROLLO DIURNO -->
+  <div class="panel" id="step-2" style="display:none;">
+    <div class="panel-heading">
+      <h3>2. Controllo Cassa Intermedio (Diurno)</h3>
+      <span id="badge-quadratura-diurno" class="tag tag-ok">IN PARI</span>
     </div>
-
-    <div class="form-grid" style="margin-bottom: 16px;">
-      <div class="form-box" style="border-left: 5px solid var(--accent-amber);">
-        <label>Soldi da Versare Stasera (in Cassaforte/Banca)</label>
-        <div class="box-val" style="color: var(--accent-amber);" id="box-versamento">€ 0,00</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Eccedenza oltre il fondo stabilito</small>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="form-box">
+          <label for="totale-giornaliero-diurno">Totale Sistema (€)</label>
+          <input type="number" id="totale-giornaliero-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+        </div>
+        <div class="form-box">
+          <label for="pos-giornaliero-diurno">Incasso POS (€)</label>
+          <input type="number" id="pos-giornaliero-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+        </div>
+        <div class="form-box">
+          <label for="da-stornare-diurno">Da Stornare (€)</label>
+          <input type="number" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+          <small>Biglietti non incassati</small>
+        </div>
+        <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent);">
+          <label style="color: var(--text-main);">Contanti Attesi Ora</label>
+          <div class="box-val" id="contanti-attesi-calc-diurno" style="color: var(--cyan-accent);">€ 400,00</div>
+          <small style="color: var(--text-muted);">Fondo + (Tot - POS - Storni)</small>
+        </div>
       </div>
 
-      <div class="form-box" style="border-left: 5px solid var(--accent-green);">
-        <label>Fondo Cassa Trattenuto nel Cassetto</label>
-        <div class="box-val" style="color: var(--accent-green);" id="box-trattenuto">€ 0,00</div>
-        <small style="color:var(--text-muted); display:block; margin-top:5px;">Composto prioritariamente dai tagli più piccoli</small>
+      <div id="grid-container-diurno"></div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-box">
+          <label>Discrepanza Attuale (Ammanco/Esubero)</label>
+          <div class="box-val" id="ctrl-differenza-diurno">€ 0,00</div>
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="secondary-button" onclick="goToStep(1)">← Indietro</button>
+        <button class="primary-button" onclick="goToStep(3)">Avanti: Chiusura Serale →</button>
       </div>
     </div>
+  </div>
 
-    <h3 style="font-size:0.95rem; color:var(--primary); margin-bottom: 10px; text-transform:uppercase;">Dettaglio Ripartizione Monete e Banconote:</h3>
-    <table class="cash-table">
-      <thead>
-        <tr>
-          <th>Taglio</th>
-          <th>Pezzi da Versare</th>
-          <th>Quota Versamento</th>
-          <th>Pezzi Lasciati (Fondo)</th>
-          <th>Quota Fondo</th>
-        </tr>
-      </thead>
-      <tbody id="distribution-table-body">
-        <!-- Righe generate via JS -->
-      </tbody>
-      <tfoot>
-        <tr class="total-row">
-          <td>TOTALE</td>
-          <td id="tot-p-versare">0</td>
-          <td id="tot-q-versare" style="color: var(--accent-amber);">€ 0,00</td>
-          <td id="tot-p-fondo">0</td>
-          <td id="tot-q-fondo" style="color: var(--accent-green);">€ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
+  <!-- STEP 3: CHIUSURA SERALE & VERSAMENTO (Unificato) -->
+  <div class="panel" id="step-3" style="display:none;">
+    <div class="panel-heading">
+      <h3>3. Chiusura Serale & Versamento</h3>
+      <span id="badge-quadratura-sera" class="tag tag-ok">CASSA QUADRATA</span>
+    </div>
+    <div class="panel-body">
+      
+      <!-- SEZIONE A: DATI DI SISTEMA -->
+      <div class="section-title">
+        <span>A. Dati di Sistema (Fine Turno)</span>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-box">
+          <label for="totale-giornaliero-sera">Totale Incasso Finale (€)</label>
+          <input type="number" id="totale-giornaliero-sera" step="0.01" value="0.00" oninput="calculateAll()">
+          <small>Corrispettivo di fine giornata</small>
+        </div>
+        <div class="form-box">
+          <label for="pos-giornaliero-sera">Incasso POS Finale (€)</label>
+          <input type="number" id="pos-giornaliero-sera" step="0.01" value="0.00" oninput="calculateAll()">
+        </div>
+        <div class="form-box">
+          <label for="da-stornare-sera">Da Stornare (€)</label>
+          <input type="number" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
+          <small>Biglietti non incassati</small>
+        </div>
+        <div class="form-box">
+          <label>Incasso Contanti Calcolato</label>
+          <div class="box-val" id="incasso-contanti-calc-sera">€ 0,00</div>
+          <small>Tot - POS - Storni</small>
+        </div>
+      </div>
 
-    <div class="wizard-nav">
-      <button class="btn btn-prev" onclick="goToStep(3)">← Indietro</button>
-      <button class="btn btn-next" style="background:#2e7d32;" onclick="alert('Riepilogo cassa confermato con successo!')">Conferma & Salva Cassa</button>
+      <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere in Cassa:</label>
+          <small style="color: var(--text-muted); margin: 0;">Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
+        </div>
+        <div class="box-val" style="color: var(--cyan-accent); font-size: 28px; margin: 0;" id="contanti-attesi-calc-sera">€ 400,00</div>
+      </div>
+
+
+      <!-- SEZIONE B: CONTEGGIO FISICO -->
+      <div class="section-title">
+        <span>B. Conteggio Fisico in Cassa</span>
+        <span id="badge-tot-sera" class="tag tag-ok" style="background: transparent; border: none; font-size: 16px; color: var(--cyan-accent); padding: 0;">€ 0,00</span>
+      </div>
+      
+      <div id="grid-container-sera"></div>
+
+      <div class="form-grid" style="grid-template-columns: 1fr;">
+        <div class="form-box">
+          <label>Discrepanza Serale (Ammanco / Esubero)</label>
+          <div class="box-val" id="ctrl-differenza-sera">€ 0,00</div>
+        </div>
+      </div>
+
+
+      <!-- SEZIONE C: VERSAMENTO -->
+      <div class="section-title">
+        <span>C. Proposta di Versamento</span>
+        <span id="badge-fondo-domani" class="tag tag-ok">FONDO PRONTO</span>
+      </div>
+
+      <div class="switch-wrapper">
+        <div>
+          <label>Usa Gestione "Resto Monete"</label>
+          <small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso.</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="usa-resto-monete" onchange="calculateAll()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-box box-highlight-orange">
+          <label id="label-versamento">Da Versare (Solo Banconote)</label>
+          <div class="box-val" id="box-versamento">€ 0,00</div>
+          <small>Quota da depositare</small>
+        </div>
+        <div class="form-box box-highlight-green">
+          <label>Fondo Base (Nel Cassetto)</label>
+          <div class="box-val" id="box-trattenuto">€ 0,00</div>
+          <small>Obiettivo cassa ripristinato</small>
+        </div>
+        <div class="form-box box-highlight-blue" id="box-resto-monete-container">
+          <label>Resto Monete (Da Separare)</label>
+          <div class="box-val" id="box-resto-monete">€ 0,00</div>
+          <small>Monete in eccesso non versabili</small>
+        </div>
+      </div>
+      
+      <div style="text-align: right; margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 11px; border: 1px solid var(--border-color);">
+        <span style="color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 700;">Totale fisico nel cassetto per domani: </span> 
+        <span id="tot-cassetto-domani" style="font-size: 22px; font-weight: 800; color: var(--cyan-accent); margin-left: 12px; font-family: Manrope;">€ 0,00</span>
+      </div>
+
+      <!-- RIEPILOGO PER 31 RIGHE -->
+      <div class="riepilogo-31">
+        <h4>📋 Dati da copiare sul foglio "31 Righe"</h4>
+        <p style="color: var(--text-muted); font-size: 12px; margin-top: 0; margin-bottom: 16px;">
+          Ecco i valori esatti da trascrivere nelle colonne del registro cartaceo. 
+          <em>Nota: Se avete fatto degli acconti intermedi (Acconto 1 / Acconto 2), sottraeteli dal "Totale Contanti Versati" per ottenere il Saldo.</em>
+        </p>
+        <div class="riepilogo-grid">
+          <div class="riepilogo-item">
+            <label>Totale giornaliero</label>
+            <div class="val" id="riepilogo-totale">€ 0,00</div>
+          </div>
+          <div class="riepilogo-item">
+            <label>POS</label>
+            <div class="val" id="riepilogo-pos" style="color: var(--text-main);">€ 0,00</div>
+          </div>
+          <div class="riepilogo-item" style="border-color: var(--ok-color);">
+            <label>Tot. Contanti Versati<br><small>(Acconti + Saldo)</small></label>
+            <div class="val" id="riepilogo-contanti" style="color: var(--ok-color);">€ 0,00</div>
+          </div>
+          <div class="riepilogo-item" style="border-color: var(--teal-dark);">
+            <label>Resto moneta</label>
+            <div class="val" id="riepilogo-resto" style="color: var(--teal-dark);">€ 0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-nav" style="margin-top: 24px;">
+        <button class="secondary-button" onclick="goToStep(2)">← Indietro (Diurno)</button>
+        <button class="primary-button" style="background: var(--cyan-accent); color: var(--bg-main);" onclick="preparaSalvataggio()">Conferma & Salva a Database</button>
+      </div>
     </div>
   </div>
 
 </div>
 
 <script>
-  const DENOMINATIONS = [
-    { label: "Moneta € 0,10", val: 10 },
-    { label: "Moneta € 0,20", val: 20 },
-    { label: "Moneta € 0,50", val: 50 },
-    { label: "Moneta € 1,00", val: 100 },
-    { label: "Moneta € 2,00", val: 200 },
-    { label: "Banconota € 5", val: 500 },
-    { label: "Banconota € 10", val: 1000 },
-    { label: "Banconota € 20", val: 2000 },
-    { label: "Banconota € 50", val: 5000 },
-    { label: "Banconota € 100", val: 10000 }
+  const MONETE = [
+    { label: "0,10 €", val: 10 },
+    { label: "0,20 €", val: 20 },
+    { label: "0,50 €", val: 50 },
+    { label: "1,00 €", val: 100 },
+    { label: "2,00 €", val: 200 }
   ];
+  const BANCONOTE = [
+    { label: "5,00 €", val: 500 },
+    { label: "10,00 €", val: 1000 },
+    { label: "20,00 €", val: 2000 },
+    { label: "50,00 €", val: 5000 },
+    { label: "100,00 €", val: 10000 }
+  ];
+  const DENOMINATIONS = [...MONETE, ...BANCONOTE];
 
-  // Dati di default iniziali
-  const counts = {
-    10: 34, 20: 40, 50: 16, 100: 29, 200: 20,
-    500: 25, 1000: 13, 2000: 5, 5000: 1, 10000: 0
-  };
+  const countsMattina = { 10: 0, 20: 0, 50: 0, 100: 20, 200: 15, 500: 30, 1000: 10, 2000: 5, 5000: 0, 10000: 0 };
+  const countsDiurno = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0, 500: 0, 1000: 0, 2000: 0, 5000: 0, 10000: 0 }; 
+  const countsSera = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0, 500: 0, 1000: 0, 2000: 0, 5000: 0, 10000: 0 };
+
+  // Dati Globali per Salvataggio DB
+  let datiChiusura = {};
 
   function formatEuro(cents) {
     return (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
   }
 
   function goToStep(step) {
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 3; i++) {
       document.getElementById(`step-${i}`).style.display = (i === step) ? 'block' : 'none';
-      document.getElementById(`btn-step-${i}`).classList.toggle('active', i === step);
+      const btn = document.getElementById(`btn-step-${i}`);
+      if(btn) {
+          if(i === step) btn.classList.add('active');
+          else btn.classList.remove('active');
+      }
     }
   }
 
-  function initTables() {
-    const cashBody = document.getElementById("cash-table-body");
-    const distBody = document.getElementById("distribution-table-body");
-    cashBody.innerHTML = "";
-    distBody.innerHTML = "";
+  function updateBtnStatus(stepNum, diffAmount) {
+      const btn = document.getElementById(`btn-step-${stepNum}`);
+      if(!btn) return;
+      btn.classList.remove('status-ok', 'status-warn', 'status-danger');
+      if (diffAmount === 0) btn.classList.add('status-ok');
+      else if (diffAmount > 0) btn.classList.add('status-warn');
+      else btn.classList.add('status-danger');
+  }
 
-    DENOMINATIONS.forEach(d => {
-      // Tabella Step 2
-      const tr2 = document.createElement("tr");
-      tr2.innerHTML = `
-        <td>${d.label}</td>
-        <td><input type="number" min="0" class="qty-input" id="qty-${d.val}" value="${counts[d.val] || 0}" oninput="updateCountsAndCalc()"></td>
-        <td id="subtot-${d.val}">€ 0,00</td>
-      `;
-      cashBody.appendChild(tr2);
-
-      // Tabella Step 4
-      const tr4 = document.createElement("tr");
-      tr4.innerHTML = `
-        <td>${d.label}</td>
-        <td id="dist-p-versare-${d.val}">0</td>
-        <td id="dist-q-versare-${d.val}">€ 0,00</td>
-        <td id="dist-p-fondo-${d.val}">0</td>
-        <td id="dist-q-fondo-${d.val}">€ 0,00</td>
-      `;
-      distBody.appendChild(tr4);
+  // Generatore di griglie affiancate
+  function renderCashGrid(containerId, stepPrefix, dataObj, onInputFnName) {
+    let html = '<div class="cash-split">';
+    
+    html += '<div class="cash-col"><h4>Monete</h4>';
+    MONETE.forEach(d => {
+      html += `
+        <div class="cash-row">
+          <label>${d.label}</label>
+          <input type="number" min="0" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
+          <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
+        </div>`;
     });
+    html += `<div class="partial-tot"><span>Totale Monete</span><span id="tot-monete-${stepPrefix}">€ 0,00</span></div></div>`;
+
+    html += '<div class="cash-col"><h4>Banconote</h4>';
+    BANCONOTE.forEach(d => {
+      html += `
+        <div class="cash-row">
+          <label>${d.label}</label>
+          <input type="number" min="0" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
+          <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
+        </div>`;
+    });
+    html += `<div class="partial-tot"><span>Totale Banconote</span><span id="tot-banconote-${stepPrefix}">€ 0,00</span></div></div>`;
+    
+    html += `</div>
+      <div class="grand-tot">
+        <span>TOTALE FISICO:</span> 
+        <span class="val" id="tot-valore-${stepPrefix}">€ 0,00</span>
+      </div>`;
+    
+    document.getElementById(containerId).innerHTML = html;
+  }
+
+  function initTables() {
+    renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
+    renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
+    renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
+
+    // Imposta data odierna di default
+    document.getElementById('data-turno').valueAsDate = new Date();
+    impostaRegoleScalo(); // Imposta regole iniziali per Maderno/Desenzano
+  }
+
+  // Automazione Scalo: Maderno non usa il resto monete, Desenzano sì
+  function impostaRegoleScalo() {
+    const scalo = document.getElementById("scalo-selezionato").value;
+    const toggleMonete = document.getElementById("usa-resto-monete");
+    
+    if(scalo === "Maderno") {
+      toggleMonete.checked = false; 
+    } else if(scalo === "Desenzano") {
+      toggleMonete.checked = true;
+    }
+    calculateAll();
+  }
+
+  function syncMattina(val) {
+    document.getElementById(`qty-diurno-${val}`).value = document.getElementById(`qty-mattina-${val}`).value;
+    syncDiurno(val); 
+  }
+
+  function syncDiurno(val) {
+    document.getElementById(`qty-sera-${val}`).value = document.getElementById(`qty-diurno-${val}`).value;
+    updateCountsAndCalc();
+  }
+
+  function syncTotals() {
+    document.getElementById('totale-giornaliero-sera').value = document.getElementById('totale-giornaliero-diurno').value;
+    document.getElementById('pos-giornaliero-sera').value = document.getElementById('pos-giornaliero-diurno').value;
+    document.getElementById('da-stornare-sera').value = document.getElementById('da-stornare-diurno').value;
+    calculateAll();
   }
 
   function updateCountsAndCalc() {
     DENOMINATIONS.forEach(d => {
-      counts[d.val] = parseInt(document.getElementById(`qty-${d.val}`).value || 0, 10);
+      countsMattina[d.val] = parseInt(document.getElementById(`qty-mattina-${d.val}`).value || 0, 10);
+      countsDiurno[d.val] = parseInt(document.getElementById(`qty-diurno-${d.val}`).value || 0, 10);
+      countsSera[d.val] = parseInt(document.getElementById(`qty-sera-${d.val}`).value || 0, 10);
     });
     calculateAll();
   }
 
-  function calculateAll() {
-    // 1. APERTURA
-    const targetFondoCents = Math.round(parseFloat(document.getElementById("fondo-target").value || 0) * 100);
-    const fondoMattinaCents = Math.round(parseFloat(document.getElementById("fondo-mattina-contato").value || 0) * 100);
-    const diffMattina = fondoMattinaCents - targetFondoCents;
+  function setBadge(elementId, type, text) {
+      const el = document.getElementById(elementId);
+      el.className = `tag tag-${type}`;
+      el.textContent = text;
+  }
 
+  function calculateSection(stepPrefix, countsData) {
+    let totM = 0; let totB = 0;
+    
+    MONETE.forEach(d => {
+      const sub = (countsData[d.val] || 0) * d.val; totM += sub;
+      const el = document.getElementById(`subtot-${stepPrefix}-${d.val}`); if(el) el.textContent = formatEuro(sub);
+    });
+    document.getElementById(`tot-monete-${stepPrefix}`).textContent = formatEuro(totM);
+
+    BANCONOTE.forEach(d => {
+      const sub = (countsData[d.val] || 0) * d.val; totB += sub;
+      const el = document.getElementById(`subtot-${stepPrefix}-${d.val}`); if(el) el.textContent = formatEuro(sub);
+    });
+    document.getElementById(`tot-banconote-${stepPrefix}`).textContent = formatEuro(totB);
+
+    const total = totM + totB;
+    document.getElementById(`tot-valore-${stepPrefix}`).textContent = formatEuro(total);
+    return total;
+  }
+
+  function calculateAll() {
+    const targetFondoCents = Math.round(parseFloat(document.getElementById("fondo-target").value || 0) * 100);
+    
+    // --- 1. CALCOLO MATTINA ---
+    const totFisiciMattinaCents = calculateSection("mattina", countsMattina);
+    document.getElementById("fondo-mattina-calc").textContent = formatEuro(totFisiciMattinaCents);
+
+    const diffMattina = totFisiciMattinaCents - targetFondoCents;
     document.getElementById("diff-mattina").textContent = formatEuro(diffMattina);
-    const badgeAp = document.getElementById("badge-apertura");
     const descAp = document.getElementById("diff-desc-mattina");
 
-    if (diffMattina === 0) {
-      badgeAp.className = "badge badge-ok";
-      badgeAp.textContent = "CONFORME";
-      descAp.textContent = "Nessuna discrepanza";
-    } else if (diffMattina > 0) {
-      badgeAp.className = "badge badge-warn";
-      badgeAp.textContent = "ESUBERO";
-      descAp.textContent = `Eccedenza di +${formatEuro(diffMattina)}`;
+    updateBtnStatus(1, diffMattina); 
+
+    if (diffMattina === 0) { setBadge("badge-apertura", "ok", "CONFORME"); descAp.textContent = "Nessuna discrepanza"; }
+    else if (diffMattina > 0) { setBadge("badge-apertura", "warn", "ESUBERO"); descAp.textContent = `Eccedenza di +${formatEuro(diffMattina)}`; }
+    else { setBadge("badge-apertura", "danger", "AMMANCO"); descAp.textContent = `Ammanco di ${formatEuro(diffMattina)}`; }
+
+    // --- 2. CALCOLO DIURNO ---
+    const totFisiciDiurnoCents = calculateSection("diurno", countsDiurno);
+
+    const totDiurnoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero-diurno").value || 0) * 100);
+    const posDiurnoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero-diurno").value || 0) * 100);
+    const storniDiurnoCents = Math.round(parseFloat(document.getElementById("da-stornare-diurno").value || 0) * 100);
+    
+    const incassoContantiDiurno = totDiurnoCents - posDiurnoCents - storniDiurnoCents;
+    const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno;
+    
+    document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
+
+    const diffDiurno = totFisiciDiurnoCents - contantiAttesiDiurno;
+    document.getElementById("ctrl-differenza-diurno").textContent = formatEuro(diffDiurno);
+    
+    updateBtnStatus(2, diffDiurno); 
+    
+    if (diffDiurno === 0) setBadge("badge-quadratura-diurno", "ok", "CASSA QUADRATA");
+    else if (diffDiurno > 0) setBadge("badge-quadratura-diurno", "warn", `ESUBERO (+${formatEuro(diffDiurno)})`);
+    else setBadge("badge-quadratura-diurno", "danger", `AMMANCO (${formatEuro(diffDiurno)})`);
+
+    // --- 3. CALCOLO SERA ---
+    const totFisiciSeraCents = calculateSection("sera", countsSera);
+    document.getElementById("badge-tot-sera").textContent = formatEuro(totFisiciSeraCents);
+
+    const totGiornoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero-sera").value || 0) * 100);
+    const posGiornoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero-sera").value || 0) * 100);
+    const storniSeraCents = Math.round(parseFloat(document.getElementById("da-stornare-sera").value || 0) * 100);
+    
+    const incassoContantiSera = totGiornoCents - posGiornoCents - storniSeraCents;
+    const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera;
+
+    document.getElementById("incasso-contanti-calc-sera").textContent = formatEuro(incassoContantiSera);
+    document.getElementById("contanti-attesi-calc-sera").textContent = formatEuro(contantiAttesiSera);
+    document.getElementById("box-fm-sera").textContent = formatEuro(totFisiciMattinaCents);
+    document.getElementById("box-ic-sera").textContent = formatEuro(incassoContantiSera);
+
+    const diffSera = totFisiciSeraCents - contantiAttesiSera;
+    document.getElementById("ctrl-differenza-sera").textContent = formatEuro(diffSera);
+
+    updateBtnStatus(3, diffSera); 
+
+    if (diffSera === 0) setBadge("badge-quadratura-sera", "ok", "CASSA QUADRATA");
+    else if (diffSera > 0) setBadge("badge-quadratura-sera", "warn", `ESUBERO (+${formatEuro(diffSera)})`);
+    else setBadge("badge-quadratura-sera", "danger", `AMMANCO (${formatEuro(diffSera)})`);
+
+    // --- PROPOSTA VERSAMENTO ---
+    const usaRestoMonete = document.getElementById("usa-resto-monete").checked;
+    const boxRestoMoneteEl = document.getElementById("box-resto-monete-container");
+    const labelVersamentoEl = document.getElementById("label-versamento");
+    
+    if (usaRestoMonete) {
+      boxRestoMoneteEl.style.opacity = "1";
+      labelVersamentoEl.textContent = "Da Versare (Solo Banconote)";
     } else {
-      badgeAp.className = "badge badge-danger";
-      badgeAp.textContent = "AMMANCO";
-      descAp.textContent = `Ammanco di ${formatEuro(diffMattina)}`;
+      boxRestoMoneteEl.style.opacity = "0.4";
+      labelVersamentoEl.textContent = "Da Versare (Tutto)";
     }
 
-    // 2. CONTEGGIO DENARO FISICO
-    let totPezzi = 0;
-    let totFisiciCents = 0;
-
-    DENOMINATIONS.forEach(d => {
-      const q = counts[d.val] || 0;
-      const sub = q * d.val;
-      totPezzi += q;
-      totFisiciCents += sub;
-      const subEl = document.getElementById(`subtot-${d.val}`);
-      if (subEl) subEl.textContent = formatEuro(sub);
-    });
-
-    document.getElementById("tot-pezzi").textContent = totPezzi;
-    document.getElementById("tot-valore").textContent = formatEuro(totFisiciCents);
-    document.getElementById("header-tot-contato").textContent = formatEuro(totFisiciCents);
-
-    // 3. INCASSI & CONTANTI ATTESI
-    const totGiornoCents = Math.round(parseFloat(document.getElementById("totale-giornaliero").value || 0) * 100);
-    const posGiornoCents = Math.round(parseFloat(document.getElementById("pos-giornaliero").value || 0) * 100);
-    const incassoContanti = totGiornoCents - posGiornoCents;
-    const contantiAttesi = fondoMattinaCents + incassoContanti;
-
-    document.getElementById("incasso-contanti-calc").textContent = formatEuro(incassoContanti);
-    document.getElementById("contanti-attesi-calc").textContent = formatEuro(contantiAttesi);
-    document.getElementById("box-fm").textContent = formatEuro(fondoMattinaCents);
-    document.getElementById("box-ic").textContent = formatEuro(incassoContanti);
-
-    document.getElementById("ctrl-fisici").textContent = formatEuro(totFisiciCents);
-    const diffQuad = totFisiciCents - contantiAttesi;
-    document.getElementById("ctrl-differenza").textContent = formatEuro(diffQuad);
-
-    const badgeQuad = document.getElementById("badge-quadratura");
-    if (diffQuad === 0) {
-      badgeQuad.className = "badge badge-ok";
-      badgeQuad.textContent = "CASSA QUADRATA (0,00 €)";
-    } else if (diffQuad > 0) {
-      badgeQuad.className = "badge badge-warn";
-      badgeQuad.textContent = `ESUBERO (+${formatEuro(diffQuad)})`;
-    } else {
-      badgeQuad.className = "badge badge-danger";
-      badgeQuad.textContent = `AMMANCO (${formatEuro(diffQuad)})`;
-    }
-
-    // 4. PROPOSTA VERSAMENTO & OTTIMIZZAZIONE TAGLI PICCOLI
-    const daVersareTarget = Math.max(0, totFisiciCents - targetFondoCents);
-    let rimastoDaVersare = daVersareTarget;
+    let rimastoDaVersare = Math.max(0, totFisiciSeraCents - targetFondoCents);
     const pezziVersare = {};
 
-    // Prelievo a partire dai tagli più grandi (100 -> 50 -> 20 ...) per preservare gli spiccioli nel fondo
-    const descDenoms = [...DENOMINATIONS].reverse();
-    descDenoms.forEach(d => {
-      const avail = counts[d.val] || 0;
-      if (avail > 0 && rimastoDaVersare > 0) {
+    [...DENOMINATIONS].reverse().forEach(d => {
+      const avail = countsSera[d.val] || 0;
+      const puoVersare = usaRestoMonete ? (d.val >= 500) : true;
+      if (puoVersare && avail > 0 && rimastoDaVersare > 0) {
         const take = Math.min(avail, Math.floor(rimastoDaVersare / d.val));
-        pezziVersare[d.val] = take;
-        rimastoDaVersare -= take * d.val;
-      } else {
-        pezziVersare[d.val] = 0;
-      }
+        pezziVersare[d.val] = take; rimastoDaVersare -= take * d.val;
+      } else { pezziVersare[d.val] = 0; }
     });
 
-    // Se rimane un resto non coperto, prendi dal taglio più basso disponibile
-    if (rimastoDaVersare > 0) {
+    if (!usaRestoMonete && rimastoDaVersare > 0) {
       for (const d of DENOMINATIONS) {
-        const rem = (counts[d.val] || 0) - (pezziVersare[d.val] || 0);
+        const rem = (countsSera[d.val] || 0) - (pezziVersare[d.val] || 0);
         if (rem > 0 && rimastoDaVersare > 0) {
           const take = Math.min(rem, Math.ceil(rimastoDaVersare / d.val));
-          pezziVersare[d.val] = (pezziVersare[d.val] || 0) + take;
-          rimastoDaVersare -= take * d.val;
-          break;
+          pezziVersare[d.val] += take; rimastoDaVersare -= take * d.val;
+          if (rimastoDaVersare <= 0) break;
         }
       }
     }
 
-    let totPVersare = 0;
-    let totQVersare = 0;
-    let totPFondo = 0;
-    let totQFondo = 0;
-
+    let totPVersare = 0; let totQVersare = 0; let totPFondo = 0; let totQFondo = 0;
     DENOMINATIONS.forEach(d => {
       const pVers = pezziVersare[d.val] || 0;
-      const pFond = Math.max(0, (counts[d.val] || 0) - pVers);
-      const qVers = pVers * d.val;
-      const qFond = pFond * d.val;
-
-      totPVersare += pVers;
-      totQVersare += qVers;
-      totPFondo += pFond;
-      totQFondo += qFond;
-
-      const pVEl = document.getElementById(`dist-p-versare-${d.val}`);
-      const qVEl = document.getElementById(`dist-q-versare-${d.val}`);
-      const pFEl = document.getElementById(`dist-p-fondo-${d.val}`);
-      const qFEl = document.getElementById(`dist-q-fondo-${d.val}`);
-
-      if (pVEl) pVEl.textContent = pVers;
-      if (qVEl) qVEl.textContent = formatEuro(qVers);
-      if (pFEl) pFEl.textContent = pFond;
-      if (qFEl) qFEl.textContent = formatEuro(qFond);
+      const pFond = Math.max(0, (countsSera[d.val] || 0) - pVers);
+      totPVersare += pVers; totQVersare += pVers * d.val;
+      totPFondo += pFond; totQFondo += pFond * d.val;
     });
 
-    document.getElementById("box-versamento").textContent = formatEuro(totQVersare);
-    document.getElementById("box-trattenuto").textContent = formatEuro(totQFondo);
+    let restoMoneteCents = 0;
+    let fondoBaseCents = totQFondo;
 
-    document.getElementById("tot-p-versare").textContent = totPVersare;
-    document.getElementById("tot-q-versare").textContent = formatEuro(totQVersare);
-    document.getElementById("tot-p-fondo").textContent = totPFondo;
-    document.getElementById("tot-q-fondo").textContent = formatEuro(totQFondo);
-
-    const badgeFondoDomani = document.getElementById("badge-fondo-domani");
-    if (totQFondo === targetFondoCents) {
-      badgeFondoDomani.className = "badge badge-ok";
-      badgeFondoDomani.textContent = `FONDO PRONTO (${formatEuro(targetFondoCents)})`;
-    } else {
-      badgeFondoDomani.className = "badge badge-danger";
-      badgeFondoDomani.textContent = `FONDO DISCREPANTE (${formatEuro(totQFondo)})`;
+    if (usaRestoMonete) {
+      restoMoneteCents = Math.max(0, totQFondo - targetFondoCents);
+      fondoBaseCents = totQFondo - restoMoneteCents; 
     }
+
+    document.getElementById("box-versamento").textContent = formatEuro(totQVersare);
+    document.getElementById("box-trattenuto").textContent = formatEuro(fondoBaseCents);
+    document.getElementById("box-resto-monete").textContent = formatEuro(restoMoneteCents);
+    document.getElementById("tot-cassetto-domani").textContent = formatEuro(fondoBaseCents);
+
+    if (fondoBaseCents === targetFondoCents) setBadge("badge-fondo-domani", "ok", `FONDO OK (${formatEuro(fondoBaseCents)})`);
+    else setBadge("badge-fondo-domani", "danger", `FONDO INSUFFICIENTE (${formatEuro(fondoBaseCents)})`);
+
+    // AGGIORNAMENTO DATI RIEPILOGO 31 RIGHE
+    document.getElementById("riepilogo-totale").textContent = formatEuro(totGiornoCents);
+    document.getElementById("riepilogo-pos").textContent = formatEuro(posGiornoCents);
+    document.getElementById("riepilogo-contanti").textContent = formatEuro(totQVersare);
+    document.getElementById("riepilogo-resto").textContent = formatEuro(restoMoneteCents);
+
+    // PREPARAZIONE OGGETTO JSON PER SALVATAGGIO IN POCKETBASE
+    datiChiusura = {
+      data_turno: document.getElementById("data-turno").value,
+      agente: document.getElementById("agente-nome").value || "Sconosciuto",
+      scalo: document.getElementById("scalo-selezionato").value,
+      postazione: document.getElementById("postazione-selezionata").value,
+      totale_sistema: totGiornoCents / 100,
+      totale_pos: posGiornoCents / 100,
+      totale_storni: storniSeraCents / 100,
+      versamento_contanti: totQVersare / 100,
+      resto_monete: restoMoneteCents / 100,
+      discrepanza_serale: diffSera / 100
+    };
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    initTables();
-    calculateAll();
+  // Funzione che verrà collegata a PocketBase in futuro
+  function preparaSalvataggio() {
+    calculateAll(); // Assicura che i dati siano aggiornati all'ultimo istante
+    console.log("Dati pronti per PocketBase:", JSON.stringify(datiChiusura, null, 2));
+    alert(`Riepilogo salvato per l'agente ${datiChiusura.agente} (${datiChiusura.scalo} - ${datiChiusura.postazione}).\n\nVersamento: ${datiChiusura.versamento_contanti}€\n(Apri la console per vedere il JSON pronto per PocketBase!)`);
+  }
+
+  // All'avvio della pagina
+  window.addEventListener("DOMContentLoaded", () => { 
+    initTables(); 
+    MONETE.forEach(d => syncMattina(d.val));
+    BANCONOTE.forEach(d => syncMattina(d.val));
   });
 </script>
 
