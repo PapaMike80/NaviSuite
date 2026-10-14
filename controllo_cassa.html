@@ -258,7 +258,7 @@
         </div>
         <div class="form-box transparent">
           <label>Postazione / Cassa</label>
-          <select id="postazione-selezionata" onchange="sceltaManuale = true; renderCassetta(); controllaIntestazione(); calculateAll()"><option value="">— Prima lo scalo —</option></select><small id="nota-turno" class="nota-turno"></small>
+          <select id="postazione-selezionata" onchange="cambiaCassa()"><option value="">— Scegli la cassa —</option></select><small id="nota-turno" class="nota-turno"></small>
         </div>
       </div>
     </div>
@@ -608,9 +608,10 @@
     const scalo = document.getElementById("scalo-selezionato").value;
     const toggleMonete = document.getElementById("usa-resto-monete");
     
-    // Resto monete solo a Desenzano; a Maderno non si usa (e non compare)
-    toggleMonete.checked = scalo !== "Maderno";
-    document.body.classList.toggle("senza-resto", scalo === "Maderno");
+    // Resto monete solo per AgB (Desenzano)
+    const conResto = document.getElementById("postazione-selezionata")?.value === "AgB (Cassa 1)";
+    toggleMonete.checked = conResto;
+    document.body.classList.toggle("senza-resto", !conResto);
     if (typeof renderCassetta === "function") renderCassetta();
     calculateAll();
   }
@@ -891,14 +892,27 @@
     controllaIntestazione();
     if (a && cambiato) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0);
   }
+  // Tutte e 4 le casse sempre scegliibili (divise per scalo); scegliendo la cassa lo scalo si adegua
+  const scaloDi = post => Object.keys(POSTAZIONI).find(k => POSTAZIONI[k].includes(post)) || '';
   function riempiPostazioni(scelta = '') {
-    const scalo = document.getElementById('scalo-selezionato').value, sel = document.getElementById('postazione-selezionata');
-    const lista = POSTAZIONI[scalo] || [];
-    sel.innerHTML = lista.length ? '<option value="">— Scegli la postazione —</option>' + lista.map(p => `<option>${p}</option>`).join('') : '<option value="">— Prima lo scalo —</option>';
-    sel.value = lista.includes(scelta) ? scelta : (lista.length === 1 ? lista[0] : '');
+    const sel = document.getElementById('postazione-selezionata');
+    sel.innerHTML = '<option value="">— Scegli la cassa —</option>' + Object.entries(POSTAZIONI).map(([sc, lista]) => `<optgroup label="${sc}">${lista.map(p => `<option>${p}</option>`).join('')}</optgroup>`).join('');
+    const scalo = document.getElementById('scalo-selezionato').value;
+    sel.value = scaloDi(scelta) && (!scalo || scaloDi(scelta) === scalo) ? scelta : '';
     renderCassetta();
   }
-  function cambiaScalo() { sceltaManuale = true; riempiPostazioni(); impostaRegoleScalo(); controllaIntestazione(); }
+  function cambiaScalo() {
+    sceltaManuale = true;
+    const sel = document.getElementById('postazione-selezionata'), scalo = document.getElementById('scalo-selezionato').value;
+    const tenere = scaloDi(sel.value) === scalo ? sel.value : (POSTAZIONI[scalo]?.length === 1 ? POSTAZIONI[scalo][0] : '');
+    riempiPostazioni(tenere); impostaRegoleScalo(); controllaIntestazione();
+  }
+  function cambiaCassa() {
+    sceltaManuale = true;
+    const post = document.getElementById('postazione-selezionata').value, sc = scaloDi(post);
+    if (sc && document.getElementById('scalo-selezionato').value !== sc) document.getElementById('scalo-selezionato').value = sc;
+    impostaRegoleScalo(); renderCassetta(); controllaIntestazione(); calculateAll();
+  }
   // Dal turno di oggi: AgM/AgT -> Maderno, AgB/DT -> Desenzano
   function postazioneDalTurno() {
     if (sceltaManuale || !schedule || !window.NaviTurniGiorno?.turnoAgente) return;
@@ -1031,9 +1045,9 @@
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
     ['mattina', 'diurno', 'sera'].forEach(f => MONETE.forEach(d => { const v = c.cassetta_rossa?.[f]?.[d.val] ?? c.cassetta_rossa?.[d.val]; countsCassetta[f][d.val] = Number(v) || 0; }));
-    Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
+    Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata', 'usa-resto-monete'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
     if (r.agente_id) { document.getElementById('agente-nome').value = r.agente_nome || ''; document.getElementById('agente-id').value = String(r.agente_id); }
-    sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || ''; riempiPostazioni(r.postazione || ''); controllaIntestazione();
+    sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || scaloDi(r.postazione) || ''; riempiPostazioni(r.postazione || ''); impostaRegoleScalo(); controllaIntestazione();
     updateCountsAndCalc();
   }
   document.getElementById('storico-lista').addEventListener('click', e => {
@@ -1159,6 +1173,7 @@
 
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
+    riempiPostazioni();
     document.body.classList.add('cassa-incompleta');
     const nomeEl = document.getElementById('agente-nome');
     nomeEl.addEventListener('input', agenteDaNome); nomeEl.addEventListener('change', agenteDaNome);
