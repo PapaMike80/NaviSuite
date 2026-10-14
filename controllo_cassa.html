@@ -183,6 +183,34 @@
     .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 78px; }
     .riepilogo-item label { font-size: 10px; margin-bottom: 6px; color: var(--text-muted); }
     .riepilogo-item .val { font-size: 18px; font-weight: 800; color: var(--cyan-accent); font-family: Manrope; }
+
+    /* Celle: tocchi e scrivi subito; barra passi e tabella senza scorrimento su telefono */
+    .cash-row input,.form-box input,.form-box select{font-size:18px!important;text-align:center;border-radius:12px!important}
+    .cash-row input:focus,.form-box input:focus{outline:2px solid var(--cyan-accent);background:#0b2a33!important}
+    .wizard-steps{overflow-x:visible!important;gap:6px!important;padding:6px!important}
+    .step-btn{min-width:0!important;padding:10px 6px!important;font-size:13px!important;display:flex;align-items:center;justify-content:center;gap:6px}
+    .step-btn b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;font-size:12px;flex:none}
+    .table-wrap{overflow-x:visible!important}
+    .table-wrap table{width:100%;min-width:0!important;table-layout:fixed;border-collapse:collapse}
+    .table-wrap th,.table-wrap td{padding:7px 4px!important;font-size:13px;text-align:center;white-space:normal;word-break:normal}
+    .table-wrap th{font-size:10.5px!important;letter-spacing:.04em;line-height:1.2}
+    .table-wrap th:first-child,.table-wrap td:first-child{width:22%;text-align:left}
+    .table-wrap td b{display:block;font-size:15px}
+    .table-wrap td small{display:block;font-size:10.5px;opacity:.8}
+    .giorno-nav{display:flex;gap:6px;align-items:stretch}.giorno-nav input{flex:1;min-width:0}.giorno-nav button{flex:none;width:46px;border-radius:12px;border:1px solid var(--border-color);background:transparent;color:var(--cyan-accent);font-size:22px;font-weight:800;cursor:pointer}
+    .storico{padding:14px 16px;margin-bottom:18px}
+    .storico-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .storico-head h3{margin:0;font:800 16px Manrope,system-ui,sans-serif;color:var(--text-main)}
+    .storico-head button{width:36px;height:36px;border-radius:10px;border:1px solid var(--border-color);background:transparent;color:var(--cyan-accent);font-size:17px;cursor:pointer}
+    .storico-lista{display:grid;gap:8px}
+    .storico-voce{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;background:rgba(255,255,255,.02);cursor:pointer;text-align:left;color:var(--text-main);font:inherit;width:100%}
+    .storico-voce:hover,.storico-voce.aperto{border-color:var(--cyan-accent);background:rgba(45,212,191,.08)}
+    .storico-voce .ora{font:800 15px Manrope,system-ui,sans-serif;color:var(--cyan-accent)}
+    .storico-voce .chi{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .storico-voce .dove{grid-column:2/4;font-size:12px;color:var(--text-muted)}
+    .storico-voce .soldi{font-weight:800;font-size:13px;text-align:right}
+    .storico-vuoto{margin:4px 0;color:var(--text-muted);font-size:13px}
+    @media(max-width:600px){body{padding:12px!important}.panel-body{padding:14px!important}}
   </style>
 </head>
 <body>
@@ -203,7 +231,7 @@
       <div class="form-grid" style="margin-bottom: 0;">
         <div class="form-box transparent">
           <label>Data</label>
-          <input type="date" id="data-turno">
+          <div class="giorno-nav"><button type="button" data-giorno="-1" aria-label="Giorno precedente">‹</button><input type="date" id="data-turno"><button type="button" data-giorno="1" aria-label="Giorno successivo">›</button></div>
         </div>
         <div class="form-box transparent">
           <label>Agente <span style="color:#fb7185">*</span></label>
@@ -232,11 +260,17 @@
     </div>
   </div>
 
+  <!-- STORICO DEL GIORNO -->
+  <div class="panel storico" id="storico-cassa">
+    <div class="storico-head"><h3>Salvataggi del giorno</h3><button type="button" id="storico-aggiorna" aria-label="Aggiorna">↻</button></div>
+    <div id="storico-lista" class="storico-lista"><p class="storico-vuoto">Caricamento…</p></div>
+  </div>
+
   <!-- SELETTORE STEP (STICKY) -->
   <div class="wizard-steps">
-    <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)">1. Apertura</button>
-    <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)">2. Controllo Diurno</button>
-    <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)">3. Chiusura Serale & Versamento</button>
+    <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)"><b>1</b> Apertura</button>
+    <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)"><b>2</b> Diurno</button>
+    <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)"><b>3</b> Chiusura</button>
   </div>
 
   <!-- STEP 1: APERTURA -->
@@ -249,7 +283,7 @@
       <div class="form-grid">
         <div class="form-box">
           <label for="fondo-target">Fondo Obiettivo (€)</label>
-          <input type="number" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
           <small>Quota fissa da mantenere</small>
         </div>
         <div class="form-box">
@@ -283,15 +317,15 @@
       <div class="form-grid">
         <div class="form-box">
           <label for="totale-giornaliero-diurno">Totale Sistema (€)</label>
-          <input type="number" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
         </div>
         <div class="form-box">
           <label for="pos-giornaliero-diurno">Incasso POS (€)</label>
-          <input type="number" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
         </div>
         <div class="form-box">
           <label for="da-stornare-diurno">Da Stornare (€)</label>
-          <input type="number" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
         </div>
       </div>
 
@@ -335,15 +369,15 @@
       <div class="form-grid">
         <div class="form-box">
           <label for="totale-giornaliero-sera">Totale Incasso Finale (€)</label>
-          <input type="number" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
         </div>
         <div class="form-box">
           <label for="pos-giornaliero-sera">Incasso POS Finale (€)</label>
-          <input type="number" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
         <div class="form-box">
           <label for="da-stornare-sera">Da Stornare (€)</label>
-          <input type="number" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
+          <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
         </div>
       </div>
 
@@ -404,10 +438,10 @@
         <table>
           <thead>
             <tr>
-              <th style="text-align: left;">Taglio Denaro</th>
-              <th>Da Versare (Contanti)</th>
-              <th>Resto Monete (A parte)</th>
-              <th>Fondo Cassa (Domani)</th>
+              <th style="text-align: left;">Taglio</th>
+              <th>In busta</th>
+              <th>Resto monete</th>
+              <th>Fondo domani</th>
             </tr>
           </thead>
           <tbody id="distinta-pezzi-body"></tbody>
@@ -516,7 +550,7 @@
       html += `
         <div class="cash-row">
           <label>${d.label}</label>
-          <input type="number" min="0" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
           <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
         </div>`;
     });
@@ -527,7 +561,7 @@
       html += `
         <div class="cash-row">
           <label>${d.label}</label>
-          <input type="number" min="0" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
           <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
         </div>`;
     });
@@ -738,9 +772,9 @@
       tbodyDistinta.innerHTML += `
         <tr>
           <td style="text-align: left; font-weight: 700; color: var(--cyan-accent);">${d.label}</td>
-          <td style="color: var(--ok-color);">${pB > 0 ? pB + ' pz (' + formatEuro(pB * d.val) + ')' : '-'}</td>
-          <td style="color: var(--cyan-accent);">${pR > 0 ? pR + ' pz (' + formatEuro(pR * d.val) + ')' : '-'}</td>
-          <td style="color: var(--accent-green);">${pF > 0 ? pF + ' pz (' + formatEuro(pF * d.val) + ')' : '-'}</td>
+          <td style="color: var(--ok-color);">${pB > 0 ? `<b>${pB}</b><small>${formatEuro(pB * d.val)}</small>` : '–'}</td>
+          <td style="color: var(--cyan-accent);">${pR > 0 ? `<b>${pR}</b><small>${formatEuro(pR * d.val)}</small>` : '–'}</td>
+          <td style="color: var(--accent-green);">${pF > 0 ? `<b>${pF}</b><small>${formatEuro(pF * d.val)}</small>` : '–'}</td>
         </tr>`;
     });
 
@@ -833,6 +867,7 @@
     try {
       await inviaControlloCassa(record);
       alert(`✅ Controllo cassa salvato.\n\n${riepilogo}`);
+      caricaStorico();
     } catch (error) {
       const rete = !navigator.onLine || error?.name === 'TypeError' || error?.name === 'AbortError';
       if (rete && window.NaviOffline) { window.NaviOffline.accoda('controllo-cassa', record, `${record.data}|${record.agente_id}|${record.postazione}`); alert(`⏳ Senza rete: il controllo è salvato sul telefono e verrà inviato appena torna il segnale.\n\n${riepilogo}`); }
@@ -840,11 +875,70 @@
     }
   }
 
+
+  // Tocchi una cella e scrivi subito: il contenuto si seleziona tutto
+  document.addEventListener('focusin', e => {
+    const el = e.target;
+    if (el.matches?.('input[type="text"],input[inputmode]')) setTimeout(() => { try { el.select(); el.setSelectionRange(0, el.value.length); } catch (_) {} }, 0);
+  });
+  document.addEventListener('mouseup', e => { if (e.target.matches?.('input[inputmode]') && document.activeElement === e.target) e.preventDefault(); });
+
+  // ---------------- Storico del giorno (PocketBase) ----------------
+  let storico = [];
+  async function caricaStorico() {
+    const box = document.getElementById('storico-lista');
+    const giorno = document.getElementById('data-turno').value;
+    if (!giorno) { box.innerHTML = '<p class="storico-vuoto">Scegli una data.</p>'; return; }
+    box.innerHTML = '<p class="storico-vuoto">Caricamento…</p>';
+    const filtro = `data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=100&sort=-created&filter=${encodeURIComponent(filtro)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
+      storico = out.items || [];
+      if (!storico.length) { box.innerHTML = `<p class="storico-vuoto">Nessun controllo salvato il ${new Date(giorno + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}.</p>`; return; }
+      const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      box.innerHTML = storico.map((r, i) => {
+        const ora = r.created ? new Date(r.created.replace(' ', 'T')).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
+        const disc = Number(r.discrepanza) || 0;
+        return `<button type="button" class="storico-voce" data-storico="${i}"><span class="ora">${e(ora)}</span><span class="chi">${e(r.agente_nome)}</span><span class="soldi" style="color:${disc === 0 ? 'var(--accent-green)' : disc > 0 ? 'var(--ok-color)' : 'var(--accent-red)'}">${disc === 0 ? 'OK' : (disc > 0 ? '+' : '') + formatEuro(Math.round(disc * 100))}</span><span class="dove">${e(r.scalo)} · ${e(r.postazione)} · in busta ${formatEuro(Math.round((Number(r.saldo_versato) || 0) * 100))}${r.inserito_da && !String(r.inserito_da).startsWith(String(r.agente_id) + ' ') ? ` · inserito da ${e(r.inserito_da.replace(/^\S+\s*/, ''))}` : ''}</span></button>`;
+      }).join('');
+    } catch (error) {
+      box.innerHTML = `<p class="storico-vuoto">Storico non disponibile: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}.</p>`;
+    } finally { clearTimeout(t); }
+  }
+  // Apre un salvataggio: riporta nella pagina tutti i dati di quel controllo
+  function apriSalvataggio(r) {
+    const c = r.dettagli?.conteggi || {};
+    [['mattina', countsMattina], ['diurno', countsDiurno], ['sera', countsSera]].forEach(([fase, obj]) => DENOMINATIONS.forEach(d => { obj[d.val] = Number(c[fase]?.[d.val]) || 0; }));
+    renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
+    renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
+    renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
+    Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || id === 'data-turno') return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
+    const sel = document.getElementById('agente-nome'); if (r.agente_id) { if (![...sel.options].some(o => o.value === String(r.agente_id))) sel.add(new Option(r.agente_nome || r.agente_id, r.agente_id)); sel.value = String(r.agente_id); }
+    updateCountsAndCalc();
+  }
+  document.getElementById('storico-lista').addEventListener('click', e => {
+    const b = e.target.closest('[data-storico]'); if (!b) return;
+    const r = storico[Number(b.dataset.storico)]; if (!r) return;
+    if (!confirm(`Aprire il controllo di ${r.agente_nome} (${r.scalo} · ${r.postazione})?\nI dati in pagina verranno sostituiti.`)) return;
+    document.querySelectorAll('.storico-voce').forEach(x => x.classList.toggle('aperto', x === b));
+    apriSalvataggio(r);
+  });
+  document.getElementById('storico-aggiorna').addEventListener('click', caricaStorico);
+  document.querySelectorAll('[data-giorno]').forEach(b => b.addEventListener('click', () => {
+    const el = document.getElementById('data-turno'), d = el.value ? new Date(el.value + 'T12:00:00') : new Date();
+    d.setDate(d.getDate() + Number(b.dataset.giorno)); el.value = d.toISOString().slice(0, 10); caricaStorico();
+  }));
+  document.getElementById('data-turno').addEventListener('change', caricaStorico);
+
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
     caricaAgenti();
     window.NaviOffline?.gestore('controllo-cassa', inviaControlloCassa);
     window.NaviSharedData?.load?.('').then(caricaAgenti).catch(() => {});
+    caricaStorico();
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
     calculateAll(); 
