@@ -217,6 +217,11 @@
     body.cassa-incompleta .cassa-avviso{display:block}
     #agente-nome.non-valido{border-color:#fb7185!important}
     .nota-turno{display:block;margin-top:4px;color:var(--cyan-accent);font-size:12px;font-weight:700}
+
+    body.senza-resto #resto-monete-switch,body.senza-resto #box-resto-monete-container,body.senza-resto .riepilogo-resto-item,body.senza-resto .table-wrap th:nth-child(3),body.senza-resto .table-wrap td:nth-child(3){display:none!important}
+    .cassetta-rossa{margin-top:14px;padding:14px 16px;border:1px solid rgba(248,113,113,.45);border-radius:14px;background:rgba(239,68,68,.07)}
+    .cassetta-rossa h4{margin:0 0 10px;color:#fca5a5;font:800 15px Manrope,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em}
+    .cassetta-rossa[hidden]{display:none!important}
   </style>
 </head>
 <body>
@@ -253,7 +258,7 @@
         </div>
         <div class="form-box transparent">
           <label>Postazione / Cassa</label>
-          <select id="postazione-selezionata" onchange="sceltaManuale = true; controllaIntestazione()"><option value="">— Prima lo scalo —</option></select><small id="nota-turno" class="nota-turno"></small>
+          <select id="postazione-selezionata" onchange="sceltaManuale = true; renderCassetta(); controllaIntestazione(); calculateAll()"><option value="">— Prima lo scalo —</option></select><small id="nota-turno" class="nota-turno"></small>
         </div>
       </div>
     </div>
@@ -300,6 +305,7 @@
       </div>
 
       <div id="grid-container-mattina"></div>
+      <div id="cassetta-rossa-box" class="cassetta-rossa" hidden></div>
 
       <div class="wizard-nav">
         <div></div>
@@ -408,7 +414,7 @@
       <!-- SEZIONE C: VERSAMENTO E RIPARTIZIONE -->
       <div class="section-title"><span>C. Ripartizione Contanti: Busta vs Fondo Domani</span></div>
 
-      <div class="switch-wrapper">
+      <div class="switch-wrapper" id="resto-monete-switch">
         <div>
           <label>Usa Gestione "Resto Monete"</label>
           <small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small>
@@ -469,7 +475,7 @@
             <label style="color: var(--cyan-accent);">Totale Versamenti</label>
             <div class="val" id="riepilogo-tot-vers">€ 0,00</div>
           </div>
-          <div class="riepilogo-item" style="border-color: var(--teal-dark);">
+          <div class="riepilogo-item riepilogo-resto-item" style="border-color: var(--teal-dark);">
             <label>Resto moneta</label>
             <div class="val" id="riepilogo-resto" style="color: var(--teal-dark);">€ 0,00</div>
           </div>
@@ -590,11 +596,10 @@
     const scalo = document.getElementById("scalo-selezionato").value;
     const toggleMonete = document.getElementById("usa-resto-monete");
     
-    if(scalo === "Maderno") {
-      toggleMonete.checked = false; 
-    } else {
-      toggleMonete.checked = true;
-    }
+    // Resto monete solo a Desenzano; a Maderno non si usa (e non compare)
+    toggleMonete.checked = scalo !== "Maderno";
+    document.body.classList.toggle("senza-resto", scalo === "Maderno");
+    if (typeof renderCassetta === "function") renderCassetta();
     calculateAll();
   }
 
@@ -650,11 +655,32 @@
     return total;
   }
 
+  // ---------------- Cassetta rossa (Desenzano, AgB) ----------------
+  const countsCassetta = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0 };
+  const cassettaAttiva = () => document.getElementById('postazione-selezionata')?.value === 'AgB (Cassa 1)';
+  function renderCassetta() {
+    const box = document.getElementById('cassetta-rossa-box');
+    box.hidden = !cassettaAttiva();
+    box.innerHTML = `<h4>🟥 Cassetta rossa</h4>` + MONETE.map(d => `<div class="cash-row"><label>${d.label}</label><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-cassetta-${d.val}" value="${countsCassetta[d.val] || 0}" oninput="countsCassetta[${d.val}] = parseInt(this.value || 0, 10) || 0; calculateAll()"><div class="sub" id="subtot-cassetta-${d.val}">€ 0,00</div></div>`).join('') +
+      `<div class="partial-tot"><span>Totale Cassetta rossa</span><span id="tot-cassetta">€ 0,00</span></div>`;
+  }
+  function calcolaCassetta() {
+    if (!cassettaAttiva()) return 0;
+    let tot = 0;
+    MONETE.forEach(d => { const sub = (countsCassetta[d.val] || 0) * d.val; tot += sub; const el = document.getElementById(`subtot-cassetta-${d.val}`); if (el) el.textContent = formatEuro(sub); });
+    const t = document.getElementById('tot-cassetta'); if (t) t.textContent = formatEuro(tot);
+    return tot;
+  }
+
   function calculateAll() {
     const targetFondoCents = parseMoney(document.getElementById("fondo-target").value || 400);
     
     // --- 1. MATTINA ---
-    const totFisiciMattinaCents = calculateSection("mattina", countsMattina);
+    const contantiMattinaCents = calculateSection("mattina", countsMattina);
+    // Cassetta rossa (solo AgB Desenzano): resta come fondo, si somma al totale fisico dell'apertura
+    const cassettaRossaCents = calcolaCassetta();
+    const totFisiciMattinaCents = contantiMattinaCents + cassettaRossaCents;
+    document.getElementById("tot-valore-mattina").textContent = formatEuro(totFisiciMattinaCents);
     document.getElementById("fondo-mattina-calc").textContent = formatEuro(totFisiciMattinaCents);
     const diffMattina = totFisiciMattinaCents - targetFondoCents;
     document.getElementById("diff-mattina").textContent = formatEuro(diffMattina);
@@ -676,7 +702,7 @@
     const sG_D = parseMoney(document.getElementById("da-stornare-diurno").value);
 
     const incassoContantiDiurno = tG_D - pG_D - sG_D;
-    const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno;
+    const contantiAttesiDiurno = contantiMattinaCents + incassoContantiDiurno;
     document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
     const diffDiurno = totFisiciDiurnoCents - contantiAttesiDiurno;
     document.getElementById("ctrl-differenza-diurno").textContent = formatEuro(diffDiurno);
@@ -691,9 +717,9 @@
     
     // Formula esatta: Fondo Mattina + (Totale Sistema - POS - Storni)
     const incassoContantiSera = totGiornoCents - posGiornoCents - storniSeraCents;
-    const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera;
+    const contantiAttesiSera = contantiMattinaCents + incassoContantiSera;
 
-    document.getElementById("box-fm-sera").textContent = formatEuro(totFisiciMattinaCents);
+    document.getElementById("box-fm-sera").textContent = formatEuro(contantiMattinaCents);
     document.getElementById("box-ic-sera").textContent = formatEuro(incassoContantiSera);
     document.getElementById("contanti-attesi-calc-sera").textContent = formatEuro(contantiAttesiSera);
 
@@ -835,6 +861,7 @@
     const lista = POSTAZIONI[scalo] || [];
     sel.innerHTML = lista.length ? '<option value="">— Scegli la postazione —</option>' + lista.map(p => `<option>${p}</option>`).join('') : '<option value="">— Prima lo scalo —</option>';
     sel.value = lista.includes(scelta) ? scelta : (lista.length === 1 ? lista[0] : '');
+    renderCassetta();
   }
   function cambiaScalo() { sceltaManuale = true; riempiPostazioni(); impostaRegoleScalo(); controllaIntestazione(); }
   // Dal turno di oggi: AgM/AgT -> Maderno, AgB/DT -> Desenzano
@@ -866,6 +893,7 @@
       conteggi[fase] = {};
       DENOMINATIONS.forEach(d => { const el = document.getElementById(`qty-${fase}-${d.val}`); if (el) conteggi[fase][d.val] = parseInt(el.value || 0, 10); });
     });
+    conteggi.cassetta_rossa = cassettaAttiva() ? { ...countsCassetta } : null;
     const campi = {};
     document.querySelectorAll('main input[id], main select[id], .panel input[id], .panel select[id]').forEach(el => {
       if (/^qty-/.test(el.id)) return;
@@ -954,6 +982,7 @@
     renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
+    MONETE.forEach(d => { countsCassetta[d.val] = Number(c.cassetta_rossa?.[d.val]) || 0; });
     Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
     if (r.agente_id) { document.getElementById('agente-nome').value = r.agente_nome || ''; document.getElementById('agente-id').value = String(r.agente_id); }
     sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || ''; riempiPostazioni(r.postazione || ''); controllaIntestazione();
