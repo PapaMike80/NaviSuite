@@ -14,6 +14,9 @@
     return 0;
   };
   const TITOLI = ['Su una corsa', 'A terra', 'Assenze'];
+  // stessi colori dei turni nella Distinta
+  const COLORI = {D1:'#2563eb',D2:'#059669',D3:'#ea580c',D4:'#c026d3',BIS:'#0891b2',BIS2:'#0891b2',DT:'#d4a900',AGB:'#2563eb',AGB2:'#2563eb',POND:'#dc2626',T1:'#2563eb',T2:'#059669',M1:'#ea580c',AGM:'#2563eb',AGT:'#d4a900',AGT1:'#d4a900',AGT2:'#d4a900',PONM:'#dc2626',R1:'#2563eb',R2:'#059669',R3:'#ea580c',R4:'#c026d3',CAR:'#0891b2',CAR1:'#0891b2',P1:'#2563eb',P2:'#059669',P3:'#ea580c',CAP:'#0891b2',CAP1:'#0891b2',SR1:'#7c3aed',SR2:'#c026d3',IE:'#64748b',PT:'#64748b',LD:'#64748b',LAV:'#64748b'};
+  const colore = code => COLORI[String(code).toUpperCase()] || '#64748b';
   const RATE = [0, 9, 12, 24];
   const orario = h => { const m = Math.round((Number(h) || 0) * 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
   const dataEsempio = st => {
@@ -41,7 +44,7 @@
       const ore = orario(est.hours) === orario(inv.hours) ? orario(est.hours) : `${orario(est.hours)} / ${orario(inv.hours)}`;
       const dia = est.allowance === false && !est.allowanceRate ? '' : `${est.allowanceRate || 0}%${(inv.allowanceRate || 0) !== (est.allowanceRate || 0) ? ` / ${inv.allowanceRate || 0}%` : ''}`;
       const tag = [ore !== '0:00' ? ore : '', s.meal ? 'Ticket' : '', dia && (est.allowance || inv.allowance) ? `Diaria ${dia}` : '', s.embark ? 'Imbarco' : '', aliscafo(s.code) ? 'Aliscafo' : ''].filter(Boolean).join(' · ');
-      return `<button type="button" class="comp-riga" data-comp="${esc(s.code)}"><b>${esc(NOMI[String(s.code).toUpperCase()] || s.code)}</b><small>${esc(tag || '—')}</small></button>`;
+      return `<button type="button" class="comp-riga" style="--c:${colore(s.code)}" data-comp="${esc(s.code)}"><b>${esc(NOMI[String(s.code).toUpperCase()] || s.code)}</b><small>${esc(tag || '—')}</small></button>`;
     }).join('')}</div>` : '').join('');
   };
   // sostituisce la vecchia tabella (stesso nome, cosi' app.js chiama questa)
@@ -90,6 +93,7 @@
     const e = effettivo(codice, stagione);
     const dia = e.allowance === false ? 0 : Number(e.allowanceRate) || 0;
     m.querySelector('[data-titolo]').textContent = NOMI[String(codice).toUpperCase()] || codice;
+    m.querySelector('.comp-dialog').style.setProperty('--c', colore(codice));
     m.querySelector('[data-stagioni]').innerHTML = Object.entries(SC.STAGIONI).map(([k, v]) => `<button type="button" data-stagione="${k}" class="${k === stagione ? 'on' : ''}">${v}</button>`).join('');
     const bolla = (k, label, valore, on, extra = '') => `<button type="button" class="weekly-bubble comp-bolla${on ? ' has-value' : ' is-empty'}" data-bolla="${k}"><span>${label}</span><strong>${valore}</strong>${extra}</button>`;
     const oreHm = orario(e.hours).split(':').map(x => x.padStart(2, '0')).join(':');
@@ -112,11 +116,12 @@
   const st = document.createElement('style');
   st.textContent = `.comp-elenco{display:block!important}.comp-gruppo{margin:14px 2px 6px;color:#7fb1b9;font:900 11px Manrope,sans-serif;letter-spacing:.1em;text-transform:uppercase}
   .comp-righe{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-  .comp-riga{display:grid;gap:3px;padding:10px 12px;border:1px solid #285560;border-radius:14px;background:rgba(255,255,255,.03);color:#e8f7f7;text-align:left;cursor:pointer;font:inherit}
-  .comp-riga:hover{border-color:#45d9c7;background:rgba(45,212,191,.08)}.comp-riga b{font:800 16px Manrope,sans-serif}.comp-riga small{color:#9fb8c2;font-size:11.5px;line-height:1.3}
+  .comp-riga{display:grid;gap:3px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--c) 55%,#285560);border-left:5px solid var(--c);border-radius:14px;background:color-mix(in srgb,var(--c) 14%,transparent);color:#e8f7f7;text-align:left;cursor:pointer;font:inherit}
+  .comp-riga:hover{background:color-mix(in srgb,var(--c) 24%,transparent)}.comp-riga b{font:800 16px Manrope,sans-serif;color:color-mix(in srgb,var(--c) 45%,#fff)}.comp-riga small{color:#9fb8c2;font-size:11.5px;line-height:1.3}
   .comp-stagioni{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.comp-stagioni button{padding:9px 6px;border:1px solid #285560;border-radius:12px;background:transparent;color:#cfe9ea;font:700 12.5px DM Sans,sans-serif;cursor:pointer}
   .comp-stagioni button.on{border-color:#45d9c7;background:rgba(45,212,191,.16);color:#fff}
   .comp-bolle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.comp-bolla{cursor:pointer}.comp-bolla input[type=time]{width:100%;margin-top:4px;padding:6px;border-radius:10px;border:1px solid #285560;background:#0b222c;color:#fff;font:800 16px Manrope,sans-serif}
+  .comp-dialog h3{color:color-mix(in srgb,var(--c) 50%,#fff)}.comp-dialog .comp-bolla.has-value{border-color:color-mix(in srgb,var(--c) 70%,#285560)!important;background:color-mix(in srgb,var(--c) 16%,transparent)!important}.comp-stagioni button.on{border-color:var(--c)!important;background:color-mix(in srgb,var(--c) 22%,transparent)!important}
   .comp-nota{margin:12px 0 0;color:#9fb8c2;font-size:12px;line-height:1.4}
   #saveAllShifts{display:none!important}`;
   document.head.appendChild(st);
