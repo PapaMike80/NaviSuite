@@ -698,7 +698,7 @@
       contanti[f][val] = (contanti[f][val] || 0) + n;
     });
     input.blur();
-    rendiGriglie(); calculateAll();
+    rendiGriglie(); calculateAll(); pianificaSalvataggio();
     alert(`✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta rossa e aggiunte alla cassa.`);
   }
   function cassettaCents(fase) {
@@ -884,11 +884,12 @@
   function agenteDaNome() {
     const nome = document.getElementById('agente-nome'), id = document.getElementById('agente-id');
     const a = agenti.find(x => norma(x.name) === norma(nome.value));
+    const cambiato = id.value !== (a ? String(a.id) : '');
     id.value = a ? String(a.id) : '';
     nome.classList.toggle('non-valido', !!nome.value && !a);
-    if (a) postazioneDalTurno();
+    if (a && cambiato) postazioneDalTurno();
     controllaIntestazione();
-    if (a) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0);
+    if (a && cambiato) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0);
   }
   function riempiPostazioni(scelta = '') {
     const scalo = document.getElementById('scalo-selezionato').value, sel = document.getElementById('postazione-selezionata');
@@ -908,6 +909,7 @@
     const m = turno.match(/^C?(AGM|AGT|AGB|DT)/);
     if (!m) return;
     const map = { AGM: ['Maderno', 'AgM (Cassa 2)'], AGT: ['Maderno', 'AgT (Cassa 1)'], AGB: ['Desenzano', 'AgB (Cassa 1)'], DT: ['Desenzano', 'DT (Cassa 8)'] }[m[1]];
+    if (document.getElementById('scalo-selezionato').value === map[0] && document.getElementById('postazione-selezionata').value === map[1]) return;
     document.getElementById('scalo-selezionato').value = map[0];
     riempiPostazioni(map[1]);
     impostaRegoleScalo();
@@ -1081,9 +1083,10 @@
     const record = raccogliDati(); record._id = recordId;
     statoSalva('Salvataggio…');
     try {
+      const nuovo = !recordId;
       const out = await upsertControllo(record); recordId = out.id;
       statoSalva(`✓ Salvato alle ${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`);
-      caricaStorico(); return true;
+      if (nuovo) caricaStorico(); return true;
     } catch (error) {
       const rete = !navigator.onLine || error?.name === 'TypeError' || error?.name === 'AbortError';
       if (rete && window.NaviOffline) { window.NaviOffline.accoda('controllo-cassa', record, `${record.agente_id}|${String(record.data).slice(0, 10)}`); statoSalva('⏳ Senza rete: salvato sul telefono, partirà al ritorno del segnale'); return true; }
@@ -1120,8 +1123,13 @@
       statoSalva(`Dati non caricati: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}`);
     } finally { caricando = false; }
   }
-  const calcolaTutto = calculateAll;
-  calculateAll = function () { calcolaTutto.apply(this, arguments); pianificaSalvataggio(); };
+  // Si salva solo quando l'utente modifica un campo dei conteggi o dei totali (non nei ricalcoli automatici)
+  const CAMPI_INTESTAZIONE = ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata'];
+  ['input', 'change'].forEach(tipo => document.addEventListener(tipo, e => {
+    const el = e.target;
+    if (!e.isTrusted || !el.matches?.('input, select, textarea') || CAMPI_INTESTAZIONE.includes(el.id)) return;
+    pianificaSalvataggio();
+  }));
 
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
@@ -1133,7 +1141,8 @@
     window.NaviOffline?.gestore('controllo-cassa', upsertControllo);
     document.addEventListener('change', e => { if (['data-turno', 'agente-nome', 'scalo-selezionato', 'postazione-selezionata'].includes(e.target.id)) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0); });
     window.addEventListener('pagehide', () => { if (timerSalva) salvaOra(); });
-    Promise.resolve(window.NaviSharedData?.loadCacheFirst?.(data => { schedule = data; caricaAgenti(); postazioneDalTurno(); })).catch(() => {});
+    let primiDati = true;
+    Promise.resolve(window.NaviSharedData?.loadCacheFirst?.(data => { schedule = data; if (primiDati || !agenti.length) caricaAgenti(); if (primiDati) postazioneDalTurno(); primiDati = false; })).catch(() => {});
     caricando = true;
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
