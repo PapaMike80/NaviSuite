@@ -26,11 +26,61 @@
   };
   const effettivo = (code, st) => SC.shiftForCode(code, dataEsempio(st), SHIFTS) || {};
   const aliscafo = code => SC.aliscafo ? SC.aliscafo(code, SC.todayIsoLocal(), SHIFTS) : String(code).toUpperCase() === 'SR1';
+  // ---------- PocketBase: competenze uguali per tutti gli agenti ----------
+  // tabella competenze_servizi, un solo record (chiave "servizi") con l'elenco completo
+  const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
+  const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
+  const PB_URL = () => `${pbBase()}/api/collections/competenze_servizi/records`;
+  let pbId = null;
+  async function pbFetch(url, opts = {}) {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const res = await fetch(url, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, cache: 'no-store', signal: ctrl.signal });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
+      return out;
+    } finally { clearTimeout(t); }
+  }
+  async function scaricaCompetenze() {
+    try {
+      const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0];
+      if (!rec) return;
+      pbId = rec.id;
+      const lista = Array.isArray(rec.servizi) ? rec.servizi.filter(x => x && x.code) : [];
+      if (!lista.length || JSON.stringify(lista) === JSON.stringify(SHIFTS)) return;
+      // i servizi nuovi dell'app (non ancora nel record) restano
+      SHIFTS.forEach(x => { if (!lista.some(y => y.code === x.code)) lista.push(x); });
+      SHIFTS.splice(0, SHIFTS.length, ...lista);
+      localStorage.setItem(SHIFTS_STORAGE, JSON.stringify(SHIFTS));
+      try { refreshShiftSelect(); } catch (_) {}
+      try { render(); } catch (_) {}
+      try { elenco(); } catch (_) {}
+    } catch (error) { console.warn('Competenze da PocketBase non lette, uso la copia sul telefono', error); }
+  }
+  let timerPb = 0;
+  function inviaCompetenze() {
+    clearTimeout(timerPb);
+    timerPb = setTimeout(async () => {
+      const corpo = JSON.stringify({ chiave: 'servizi', servizi: SHIFTS, aggiornato_da: (() => { try { const a = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); return a ? `${a.id} ${a.name || ''}`.trim() : ''; } catch (_) { return ''; } })() });
+      try {
+        if (!pbId) pbId = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0]?.id || null;
+        const out = pbId ? await pbFetch(`${PB_URL()}/${encodeURIComponent(pbId)}`, { method: 'PATCH', body: corpo }) : await pbFetch(PB_URL(), { method: 'POST', body: corpo });
+        pbId = out.id;
+        try { notify('Competenze salvate per tutti gli agenti'); } catch (_) {}
+      } catch (error) {
+        console.warn('Competenze non salvate su PocketBase', error);
+        try { notify(`Competenze NON salvate per tutti: ${error.message}`); } catch (_) { alert(`Competenze NON salvate per tutti: ${error.message}`); }
+      }
+    }, 800);
+  }
   function salva() {
     localStorage.setItem(SHIFTS_STORAGE, JSON.stringify(SHIFTS));
     try { refreshShiftSelect(); } catch (_) {}
     try { render(); } catch (_) {}
+    inviaCompetenze();
   }
+  // "Ripristina valori PDF" (app.js) -> anche per tutti
+  document.getElementById('resetShifts')?.addEventListener('click', () => setTimeout(() => { if (typeof isAdmin === 'function' && isAdmin()) inviaCompetenze(); }, 0));
 
   // ---------- elenco ----------
   const elenco = function renderShiftSettingsElenco() {
@@ -126,4 +176,6 @@
   #saveAllShifts{display:none!important}`;
   document.head.appendChild(st);
   try { elenco(); } catch (_) {}
+  scaricaCompetenze();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scaricaCompetenze(); });
 })();
