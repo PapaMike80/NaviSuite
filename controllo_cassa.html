@@ -222,6 +222,7 @@
     .cassetta-col h4{display:flex;align-items:center;gap:8px}
     .cr-icona{display:inline-block;width:12px;height:12px;border-radius:3px;background:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25)}
     .stato-salvataggio{margin:-10px 2px 14px;color:var(--cyan-accent);font-size:13px;font-weight:700;min-height:1em}
+    .campo-euro{position:relative;display:block}.campo-euro input{width:100%;padding-right:34px!important;box-sizing:border-box}.simbolo-euro{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:800;pointer-events:none}
   </style>
 </head>
 <body>
@@ -289,7 +290,7 @@
     <div class="panel-body">
       <div class="form-grid">
         <div class="form-box">
-          <label for="fondo-target">Fondo Obiettivo (€)</label>
+          <label for="fondo-target">Fondo Obiettivo</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
           <small>Quota fissa da mantenere</small>
         </div>
@@ -323,15 +324,15 @@
     <div class="panel-body">
       <div class="form-grid">
         <div class="form-box">
-          <label for="totale-giornaliero-diurno">Totale Sistema (€)</label>
+          <label for="totale-giornaliero-diurno">Totale Sistema</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-diurno">Incasso POS (€)</label>
+          <label for="pos-giornaliero-diurno">Incasso POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
         </div>
         <div class="form-box">
-          <label for="da-stornare-diurno">Da Stornare (€)</label>
+          <label for="da-stornare-diurno">Da Stornare</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
         </div>
       </div>
@@ -383,7 +384,7 @@
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
         <div class="form-box">
-          <label for="da-stornare-sera">Da Stornare (€)</label>
+          <label for="da-stornare-sera">Da Stornare</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
         </div>
         <div class="form-box box-contanti-sera">
@@ -516,7 +517,7 @@
   // Funzione di parsing universale che gestisce numeri, stringhe, virgole o punti
   function parseMoney(val) {
     if (val === undefined || val === null || val === '') return 0;
-    const str = val.toString().replace(',', '.').trim();
+    const str = val.toString().replace(/[^0-9,.\-]/g, '').replace(',', '.').trim();
     const num = parseFloat(str);
     return isNaN(num) ? 0 : Math.round(num * 100);
   }
@@ -1168,8 +1169,21 @@
     pianificaSalvataggio();
   }));
 
+  // Importi in euro: simbolo € accanto alla cella (non serve scriverlo); all'uscita la cifra si sistema (es. 12 -> 12,00)
+  function campiEuro() {
+    document.querySelectorAll('input[inputmode="decimal"]').forEach(el => {
+      if (el.parentElement?.classList.contains('campo-euro')) return;
+      const w = document.createElement('span'); w.className = 'campo-euro';
+      el.parentNode.insertBefore(w, el); w.appendChild(el);
+      const e = document.createElement('span'); e.className = 'simbolo-euro'; e.textContent = '€'; e.setAttribute('aria-hidden', 'true'); w.appendChild(e);
+      if (el.value.trim() !== '') el.value = (parseMoney(el.value) / 100).toFixed(2).replace('.', ',');
+      el.addEventListener('blur', () => { if (el.value.trim() === '') return; const c = parseMoney(el.value); el.value = (c / 100).toFixed(2).replace('.', ','); });
+    });
+  }
+
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
+    campiEuro();
     riempiPostazioni();
     document.body.classList.add('cassa-incompleta');
     const nomeEl = document.getElementById('agente-nome');
