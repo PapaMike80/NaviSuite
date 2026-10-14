@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
 
   <style>
     /* TEMA SCURO NAVISUITE */
@@ -35,93 +36,27 @@
 
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg-main); color: var(--text-main); font-family: "DM Sans", sans-serif; padding: 20px; }
-    body.menu-open { overflow: hidden; }
     
     .container { max-width: 1000px; margin: 0 auto; }
 
-    .menu-button {
+    /* MENU NAVISUITE CONDIVISO: sidebar tecnica nascosta, pulsante ☰ in alto a destra */
+    aside.app-sidebar[hidden] { display: none !important; }
+    #cassa-menu-button {
       position: fixed;
-      top: 12px;
-      left: 12px;
+      top: calc(12px + env(safe-area-inset-top, 0px));
+      right: 12px;
       z-index: 9000;
-      display: none;
+      display: grid;
+      place-items: center;
       width: 44px;
       height: 44px;
-      border: 1px solid #315460;
-      border-radius: 10px;
-      background: #0d2c37;
-      color: #fff;
-      font-size: 20px;
-      cursor: pointer;
-      place-items: center;
-    }
-
-    .cassa-menu-overlay[hidden] { display: none !important; }
-    .cassa-menu-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
-      background: rgba(2, 12, 17, .68);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      justify-content: flex-start;
-      align-items: flex-start;
-      padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px;
-    }
-    .cassa-menu-panel {
-      width: min(360px, 100%);
-      background: linear-gradient(165deg,#102e39,#0a222c);
-      border: 1px solid #2e6971;
-      border-radius: 24px;
-      box-shadow: 0 22px 56px rgba(0,0,0,.5);
-      overflow: hidden;
-    }
-    .cassa-menu-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 18px 14px;
+      border: 1px solid #2dd4bf;
+      border-radius: 13px;
+      background: #103a3d;
       color: #a7fff0;
-      font: 900 22px/1 Manrope, system-ui, sans-serif;
-    }
-    .cassa-menu-close {
-      width: 40px;
-      height: 40px;
-      border: 1px solid rgba(126,243,226,.35);
-      border-radius: 14px;
-      background: rgba(255,255,255,.06);
-      color: #eafffb;
-      font-size: 28px;
-      line-height: 1;
+      font-size: 25px;
+      font-weight: 900;
       cursor: pointer;
-    }
-    .cassa-menu-links {
-      display: grid;
-      gap: 8px;
-      padding: 0 14px 14px;
-    }
-    .cassa-menu-links a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      border: 1px solid #285560;
-      border-radius: 16px;
-      background: rgba(255,255,255,.025);
-      color: #e8f7f7;
-      text-decoration: none;
-      font-weight: 800;
-    }
-    .cassa-menu-links a span {
-      display: grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: rgba(45,212,191,.12);
-      color: #2dd4bf;
-      flex: none;
     }
 
     /* WIZARD TABS STICKY */
@@ -252,26 +187,12 @@
 </head>
 <body>
 
-<button id="menu-button" class="menu-button" type="button" aria-label="Apri menu">☰</button>
-<div id="cassa-menu" class="cassa-menu-overlay" hidden>
-  <div class="cassa-menu-panel" role="dialog" aria-modal="true" aria-label="Menu NaviSuite">
-    <div class="cassa-menu-head">
-      <span>NaviSuite</span>
-      <button id="cassa-menu-close" class="cassa-menu-close" type="button" aria-label="Chiudi menu">×</button>
-    </div>
-    <div class="cassa-menu-links">
-      <a href="naviturni.html"><span>▦</span><b>Turni</b></a>
-      <a href="navidiaria.html"><span>≈</span><b>Distinta</b></a>
-      <a href="documenti.html"><span>▤</span><b>Documenti</b></a>
-      <a href="oggi.html"><span>☀</span><b>Oggi</b></a>
-      <a href="impostazioni.html"><span>⚙</span><b>Impostazioni</b></a>
-    </div>
-  </div>
-</div>
+<aside class="app-sidebar" hidden aria-hidden="true"></aside>
+<button id="cassa-menu-button" type="button" aria-label="Apri menu">☰</button>
 
 <div class="container">
   
-  <div style="margin-bottom: 20px; padding-left: 56px;">
+  <div style="margin-bottom: 20px; padding-right: 56px;">
     <h1 style="font: 800 25px Manrope; color: var(--text-main); margin: 0 0 4px 0;">Controllo Cassa</h1>
     <p style="margin: 0; color: var(--text-muted); font-size: 13px; font-weight: 500;">Procedura guidata per apertura, controllo diurno e chiusura serale integrata.</p>
   </div>
@@ -530,42 +451,7 @@
 </div>
 
 <script>
-  const MENU_ITEMS = [
-    ["naviturni.html", "▦", "Turni"],
-    ["navidiaria.html", "≈", "Distinta"],
-    ["documenti.html", "▤", "Documenti"],
-    ["oggi.html", "☀", "Oggi"],
-    ["impostazioni.html", "⚙", "Impostazioni"],
-  ];
-
-  const menuButton = document.getElementById("menu-button");
-  const menu = document.getElementById("cassa-menu");
-  const menuClose = document.getElementById("cassa-menu-close");
-  const menuLinks = document.querySelector(".cassa-menu-links");
-
-  if (menuLinks) {
-    menuLinks.innerHTML = MENU_ITEMS.map(([href, icon, label]) => `<a href="${href}"><span>${icon}</span><b>${label}</b></a>`).join("");
-  }
-
-  function openMenu() {
-    menu.hidden = false;
-    document.body.classList.add("menu-open");
-  }
-
-  function closeMenu() {
-    menu.hidden = true;
-    document.body.classList.remove("menu-open");
-  }
-
-  menuButton?.addEventListener("click", openMenu);
-  menuClose?.addEventListener("click", closeMenu);
-  menu?.addEventListener("click", e => {
-    if (e.target === menu) closeMenu();
-  });
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeMenu();
-  });
-  menu?.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+  document.getElementById("cassa-menu-button")?.addEventListener("click", () => window.NaviSuiteMenu?.open());
 
   const MONETE = [
     { label: "0,10 €", val: 10 },
@@ -896,6 +782,8 @@
     calculateAll(); 
   });
 </script>
+<script src="assets/js/shared-roles.js?v=6"></script>
+<script src="assets/js/shared-menu.js?v=1.72"></script>
 
 </body>
 </html>
