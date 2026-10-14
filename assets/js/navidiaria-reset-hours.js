@@ -171,7 +171,7 @@
     { label:'ORE LAVORATE', unit:'H', type:'hours', value:entry => isWorking(entry) ? workedMinutes(entry) : 0 },
     { label:'LAVORO STRAORD.', unit:'H', type:'hours', value:entry => isWorking(entry) ? overtimeMinutes(entry) : 0, weeklyValue:lastDay => weekOvertimeMinutes(lastDay) },
     { label:'(Straord. Autorizzato)', unit:'H', type:'hours', value:entry => n(entry?.authorizedOvertimeMinutes ?? entry?.straordinarioAutorizzato ?? 0) },
-    { label:'IND. ALISCAFO', unit:'N', type:'count', value:entry => isWorking(entry) ? yes(String(entry.shift || '').toUpperCase() === 'SR1' || n(entry?.hydrofoil) > 0) : 0 },
+    { label:'IND. ALISCAFO', unit:'N', type:'count', value:entry => isWorking(entry) ? yes((globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(entry.shift, entry.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(entry.shift).toUpperCase() === 'SR1') || n(entry?.hydrofoil) > 0) : 0 },
     { label:'LAVORO NOTTURNO', unit:'H', type:'hours', value:entry => n(entry?.nightMinutes ?? entry?.nightWorkMinutes ?? 0) },
     { label:'TRASFERTE 15%', unit:'N', type:'count', value:entry => yes(isWorking(entry) && Number(entry?.allowanceRate) === 15) },
     { label:'TRASFERTE 50%', unit:'N', type:'count', value:entry => yes(isWorking(entry) && (Number(entry?.allowanceRate) === 50 || entry?.travel === true)) },

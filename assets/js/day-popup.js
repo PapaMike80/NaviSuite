@@ -38,7 +38,7 @@
   const ticket=e=>e.ticketPresence===undefined?!!e.mealUsed:!!e.ticketPresence;
   const ticketDue=e=>working(e)&&!!opts.shiftFor(e.shift,e.date).meal;
   const ticketLabel=e=>ticketDue(e)?(ticket(e)?'USATO':'NON USATO'):'NON DOVUTO';
-  const hydro=e=>e.hydrofoil===undefined?working(e)&&String(e.shift).toUpperCase()==='SR1':Number(e.hydrofoil)>0;
+  const hydro=e=>e.hydrofoil===undefined?working(e)&&(globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1'):Number(e.hydrofoil)>0;
   const refuel=e=>Math.max(0,Number(opts.refuelSuggestionMinutes?.(e.date,e.shift))||0);
   const refuelDone=e=>e?.refuelDone===true||refuelMinutesOf(e)>0;
   const refuelMinutesOf=e=>typeof e?.refuel==='number'?Math.max(0,Math.round(e.refuel)):(e?.refuel?(String(e?.shift).toUpperCase()==='DT'?60:30):0);

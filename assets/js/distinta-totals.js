@@ -115,7 +115,7 @@
         cashEmbarkServiceMinutes: worked.filter(cash139).reduce((total, e) => total + serviceMinutes(e), 0),
         overtime139Minutes,
         overtimeMixedWeeks,
-        hydrofoil: worked.filter(e => String(e.shift).toUpperCase() === 'SR1').length,
+        hydrofoil: worked.filter(e => (globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1')).length,
         rf: worked.filter(e => e.rf).length
       };
     }
