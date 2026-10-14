@@ -1,87 +1,109 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>NaviSuite Distinte</title>
-  <meta name="theme-color" content="#071b24">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
-  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
-  <style>
-    :root{--bg:#071b24;--card:#0c2530;--line:#24505c;--ink:#e6f3f5;--muted:#8fb0b8;--accent:#2dd4bf;--gold:#fde68a}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 'DM Sans',system-ui,sans-serif}
-    main{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
-    .eyebrow{color:var(--accent);font:800 11px Manrope,sans-serif;letter-spacing:.16em}
-    h1{margin:6px 0 4px;font:800 26px Manrope,sans-serif}.sub{margin:0;color:var(--muted)}
-    .card{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-    .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 14px;border:1px solid var(--accent);border-radius:10px;background:rgba(45,212,191,.14);color:#e6fffb;font:800 14px Manrope,sans-serif;cursor:pointer;text-decoration:none}
-    .btn.ghost{border-color:var(--line);background:transparent;color:var(--ink)}.btn:disabled{opacity:.45;cursor:default}
-    .status{margin:10px 0 0;color:var(--muted);font-size:13px}
-    input[type=search],select{min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#061d26;color:#fff;font:600 14px 'DM Sans',sans-serif}
-    input[type=search]{flex:1;min-width:200px}
-    .agenti{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:12px}
-    .agente{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#071f29;text-align:left;color:var(--ink);cursor:pointer}
-    .agente.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(45,212,191,.25)}
-    .agente b{font:800 15px Manrope,sans-serif}.agente small{color:var(--muted)}
-    .agente .stato{font-size:12px;color:var(--gold)}.agente .stato.ok{color:#4ade80}
-    table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #1b3c46;text-align:left;white-space:nowrap}
-    th{position:sticky;top:0;background:#0f303c;color:var(--muted);font:800 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-    tr.tot td{background:rgba(45,212,191,.1);font-weight:800}td.forte{color:#fde68a;font-weight:800}.fisso{position:sticky;left:0;z-index:1;background:#0c2530}th.fisso{z-index:2;background:#0f303c}tr.tot .fisso{background:#123a40}#tutti-tabella tbody tr[data-id]{cursor:pointer}#tutti-tabella tbody tr[data-id]:hover td{background:#123540}td small{color:var(--muted)}tr.vuoto td{color:#4f6d76}.wrap.mesi{max-height:none}.tit-mesi{margin:18px 0 0;font:800 15px Manrope,sans-serif;color:var(--accent)}tr.sett td{background:rgba(253,230,138,.07);color:#fde68a;font-size:12px}tr.sett b{color:#fff}tr.rip td{color:var(--muted)}tr.mese{cursor:pointer}tr.mese:hover td,tr.mese.aperto td{background:#123540}tr.giorno td{font-size:12.5px;background:#071b24}tr.giorno td.fisso{padding-left:22px;font-weight:400;text-transform:capitalize}tr.giorno.rip td{color:#57737d}tr.sett td.fisso{background:#1d2a1f}.diaria-anno .fisso{text-transform:capitalize}
-    .wrap{overflow:auto;max-height:65vh;margin-top:12px;border:1px solid var(--line);border-radius:10px}
-    .riepilogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
-    .riepilogo div{padding:10px;border:1px solid var(--line);border-radius:10px}.riepilogo small{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
-    .riepilogo b{font:800 18px Manrope,sans-serif;color:var(--gold)}
-    [hidden]{display:none!important}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conteggio Chiusura Cassa</title>
+    <style>
+        body { font-family: sans-serif; padding: 10px; background-color: #f4f4f9; }
+        .container { max-width: 400px; margin: 0 auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; font-size: 1.5em; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em; }
+        input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        h3 { color: #333; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 15px; }
+        .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em; }
+        .row label { width: 60px; font-weight: bold; color: #555; }
+        .row input { width: 80px; text-align: center; }
+        .row .subtotale { width: 80px; text-align: right; font-weight: bold; color: #333; }
+        .result { margin-top: 20px; text-align: center; font-size: 1.1em; font-weight: bold; padding: 10px; border-radius: 4px; }
+        .match { color: green; background-color: #e6fffa; }
+        .mismatch { color: red; background-color: #ffeef0; }
+    </style>
 </head>
-<body class="distinte-page">
-  <aside class="app-sidebar" id="distinte-sidebar"></aside>
-  <main>
-    <header style="padding-right:56px">
-      <p class="eyebrow">AMMINISTRAZIONE</p>
-      <h1>Distinte degli agenti</h1>
-      <p class="sub">Leggi le distinte dal database o da un file di backup e manda a ogni agente la sua.</p>
-    </header>
+<body>
 
-    <section class="card">
-      <div class="row">
-        <button class="btn" id="da-firebase" type="button">⟳ Leggi dal database</button>
-        <button class="btn ghost" id="da-file" type="button">⤒ Apri un file di backup</button>
-        <input type="file" id="file" accept=".zip,.json,application/zip,application/json" hidden>
-        <select id="mese" aria-label="Mese"></select>
-      </div>
-      <p class="status" id="status">Scegli da dove leggere le distinte: il database (serve la connessione) oppure un file .zip/.json di backup (anche senza connessione).</p>
-    </section>
+<div class="container">
+    <h1>Chiusura Cassa</h1>
+    
+    <div class="form-group">
+        <label for="fondoCassaIniziale">Fondo Cassa Iniziale (€):</label>
+        <input type="number" id="fondoCassaIniziale" step="0.01" value="400.00" oninput="calcola()">
+    </div>
+    
+    <div class="form-group">
+        <label for="venditeSistema">Vendite Totali da Sistema (€):</label>
+        <input type="number" id="venditeSistema" step="0.01" value="0.00" oninput="calcola()">
+    </div>
 
-    <section class="card" id="elenco" hidden>
-      <div class="row"><input type="search" id="cerca" placeholder="Cerca agente…" aria-label="Cerca agente"><button class="btn ghost" id="tutti" type="button">⤓ Scarica le distinte di tutti</button></div>
-      <div class="agenti" id="agenti"></div>
-    </section>
+    <h3>Contante Finale</h3>
+    <h3>Monete</h3>
+    <div id="monete-container"></div>
 
-    <section class="card" id="tutti-card" hidden>
-      <div class="row" style="justify-content:space-between"><h1 id="tutti-titolo" style="font-size:20px;margin:0"></h1><button class="btn ghost" id="tutti-csv" type="button">⤓ Scarica (Excel)</button></div>
-      <p class="status">Tocca un agente per vedere la sua distinta. Straordinari: ore oltre le 39 settimanali.</p>
-      <div class="wrap"><table id="tutti-tabella"></table></div>
-    </section>
+    <h3>Banconote</h3>
+    <div id="banconote-container"></div>
 
-    <section class="card" id="dettaglio" hidden>
-      <div class="row" style="justify-content:space-between">
-        <div><p class="eyebrow" id="det-numero"></p><h1 id="det-nome" style="font-size:22px"></h1></div>
-        <div class="row"><button class="btn" id="invia" type="button">✉ Invia all'agente</button><button class="btn ghost" id="scarica" type="button">⤓ Scarica</button></div>
-      </div>
-      <div class="riepilogo" id="riepilogo"></div>
-      <div id="mensile"></div>
-      <div class="wrap"><table id="tabella"></table></div>
-    </section>
-  </main>
-  <script src="assets/js/shared-roles.js?v=6"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=76"></script>
-  <script src="assets/js/shared-menu.js?v=1.72"></script>
-  <script src="assets/js/offline.js?v=2"></script>
-  <script src="assets/js/shared-data.js?v=136"></script>
-  <script src="assets/js/shift-competence.js?v=3"></script>
-  <script src="assets/js/diaria-backup.js?v=7"></script>
-  <script src="assets/js/distinte-page.js?v=9"></script>
+    <div class="result" id="risultato">
+        Totale Contato: 0,00 €
+    </div>
+</div>
+
+<script>
+    const tagliMonete = [0.10, 0.20, 0.50, 1.00, 2.00];
+    const tagliBanconote = [5.00, 10.00, 20.00, 50.00, 100.00];
+
+    function creaRighe(tagli, containerId) {
+        const container = document.getElementById(containerId);
+        tagli.forEach(valore => {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.innerHTML = `
+                <label>${valore.toFixed(2)} €</label>
+                <input type="number" class="denominazione" data-valore="${valore}" value="0" min="0" oninput="calcola()">
+                <div class="subtotale" id="sub-${valore}">0,00 €</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function calcola() {
+        const fondoCassaIniziale = parseFloat(document.getElementById('fondoCassaIniziale').value) || 0;
+        const venditeSistema = parseFloat(document.getElementById('venditeSistema').value) || 0;
+        const denominazioni = document.getElementsByClassName('denominazione');
+        let totaleContante = 0;
+
+        for (let i = 0; i < denominazioni.length; i++) {
+            const input = denominazioni[i];
+            const quantita = parseFloat(input.value) || 0;
+            const valore = parseFloat(input.getAttribute('data-valore'));
+            const subtotale = quantita * valore;
+            
+            totaleContante += subtotale;
+            
+            document.getElementById(`sub-${valore}`).innerHTML = `${subtotale.toFixed(2)} €`;
+        }
+
+        const risultatoDiv = document.getElementById('risultato');
+        risultatoDiv.innerHTML = `Totale Contato: ${totaleContante.toFixed(2)} €`;
+
+        const totaleAtteso = fondoCassaIniziale + venditeSistema;
+        const differenza = totaleContante - totaleAtteso;
+
+        if (Math.abs(differenza) < 0.01) {
+            risultatoDiv.className = 'result match';
+            risultatoDiv.innerHTML += '<br>(Cassa in Pari)';
+        } else {
+            risultatoDiv.className = 'result mismatch';
+            risultatoDiv.innerHTML += `<br>(Differenza: ${differenza > 0 ? '+' : ''}${differenza.toFixed(2)} €)`;
+        }
+    }
+
+    window.onload = () => {
+        creaRighe(tagliMonete, 'monete-container');
+        creaRighe(tagliBanconote, 'banconote-container');
+        calcola();
+    };
+</script>
+
 </body>
 </html>
