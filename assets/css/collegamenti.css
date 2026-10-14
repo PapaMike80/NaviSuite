@@ -1,0 +1,63 @@
+:root{--bg:#061821;--panel:#0c2530;--line:#28515d;--ink:#edfafa;--muted:#9eb9c1;--accent:#2dd4bf;--red:#fb7185}
+*{box-sizing:border-box}
+body.collegamenti-page{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}
+.collegamenti-page main{margin-left:230px;padding:30px;max-width:1300px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.15em}
+.hero h1{margin:7px 0 5px;font-size:30px}
+.hero p{margin:0;color:var(--muted)}
+.section{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:15px;background:rgba(12,37,48,.94)}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:13px}
+.section-head>div{flex:1;min-width:0}
+.section h2{margin:0;font-size:18px}
+.section p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.count{padding:4px 9px;border-radius:999px;background:#163b45;color:#99f6e4;font-size:11px;font-weight:900}
+.empty{padding:16px;color:#86aab3;text-align:center}
+.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-bottom:14px}
+.toolbar .spacer{flex:1}
+.toolbar label,.col-form label{display:grid;gap:5px;color:#91aeb7;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.toolbar input,.toolbar select,.col-form input,.col-form select,.col-form textarea{padding:9px;border:1px solid #315b66;border-radius:8px;background:#0b2731;color:#fff;font:700 13px inherit}
+.col-form textarea{font:600 12px ui-monospace,Menlo,Consolas,monospace;text-transform:none;letter-spacing:0;resize:vertical;white-space:pre;overflow-x:auto}
+.btn{min-height:38px;padding:8px 12px;border:1px solid #3b707c;border-radius:8px;background:#102d37;color:#d4e8eb;font:900 11px inherit;cursor:pointer}
+.btn.primary{border-color:var(--accent);background:rgba(45,212,191,.15);color:#99f6e4}
+.btn.ghost{border-style:dashed}
+.btn.danger{border-color:#e11d48;background:#3b1721;color:#fecdd3}
+.col-status{font-size:11px;color:var(--muted)}
+.col-status.ok{color:#99f6e4}.col-status.bad{color:#fecdd3}
+.col-info{font-size:12px;color:var(--muted);margin:6px 0}
+.col-no{padding:12px 14px;border:1px solid #9f3044;border-radius:11px;background:#2a1219;color:#fecdd3;font-weight:800}
+.col-viaggio{margin:8px 0;padding:12px 14px;border:1px solid #1d8f7f;border-radius:12px;background:#0b2a2c}
+.col-viaggio.tardi{border-color:#9f3044;background:#25141a}
+.col-viaggio header{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.col-viaggio header b{font-size:20px}
+.col-viaggio header span{color:var(--muted);font-size:12px}
+.col-viaggio ol{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.col-viaggio li,.col-linea header{display:flex;gap:10px;align-items:flex-start}
+.col-viaggio li small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.col-tipo{font-size:20px;line-height:1}
+.col-nota{color:#fde68a!important}
+.col-stagioni{display:flex;gap:6px}
+.col-stagioni button{display:grid;padding:7px 14px;border:1px solid #3b707c;border-radius:10px;background:#102d37;color:#d4e8eb;font:900 13px inherit;cursor:pointer;text-align:left}
+.col-stagioni button small{font-size:10px;color:var(--muted);font-weight:700}
+.col-stagioni button.active{border-color:var(--accent);background:rgba(45,212,191,.15);color:#99f6e4}
+.col-linee{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.col-linea{min-width:0;overflow:hidden;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0a212b}
+.col-linea header>div{flex:1;min-width:0}
+.col-linea h3{margin:0;font-size:15px}
+.col-linea a{color:#7dd3fc;font-size:11px}
+.col-linea header{margin-bottom:10px}
+.table-wrap{overflow-x:auto}
+.col-tab{border-collapse:collapse;font-size:12px;white-space:nowrap}
+.col-tab th,.col-tab td{padding:5px 8px;border:1px solid #1f4550;text-align:center}
+.col-tab tbody th{text-align:left;position:sticky;left:0;background:#0d2b36}
+.col-tab thead th{font-size:10px;color:var(--muted)}
+.col-tab th.g-fest{color:#fda4af}.col-tab th.g-sco{color:#fde68a}.col-tab th.g-sab{color:#c4b5fd}
+.col-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.col-form .col-wide,.col-azioni,.col-errori{grid-column:1/-1}
+.col-azioni{display:flex;flex-wrap:wrap;gap:8px}
+.col-errori{color:#fecdd3!important;font-weight:800}
+@media(max-width:850px){.collegamenti-page main{margin-left:0;padding:18px 16px 110px}.hero h1{font-size:24px}.col-cerca label{flex:1 1 40%}}
+html.navisuite-light body.collegamenti-page{--bg:#edf5f6;--ink:#17323a;--muted:#547078;--line:#bcd5da}
+html.navisuite-light .collegamenti-page .col-linea,html.navisuite-light .collegamenti-page .col-tab tbody th{background:#fff}
+html.navisuite-light .collegamenti-page .col-viaggio{background:#eefaf7}
+html.navisuite-light .collegamenti-page .col-viaggio.tardi,html.navisuite-light .collegamenti-page .col-no{background:#fdecef;color:#9f1239}
+html.navisuite-light .collegamenti-page .col-tab th,html.navisuite-light .collegamenti-page .col-tab td{border-color:#cfe0e4}

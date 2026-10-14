@@ -88,12 +88,12 @@
       ['controllo_cassa.html','$','Cassa'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
-      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[])
+      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento'],['collegamenti.html','⇆','Collegamenti']]:[])
     ];
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
     // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
     const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2],'oggi.html':['Navi ed equipaggi del giorno','#facc15',3],'orario.html':['Navi allo scalo, pontili, ritardi','#38bdf8',4]};
-    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','verifica-busta.html':'#4ade80','controllo_cassa.html':'#27a9b6'};
+    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','collegamenti.html':'#f59e0b','verifica-busta.html':'#4ade80','controllo_cassa.html':'#27a9b6'};
     const linkHtml=([href,icon,label])=>{
       const key=href.split('?')[0].toLowerCase(),active=key===file,main=PRINCIPALI[key];
       const colore=main?.[1]||COLORI[key]||'#94a3b8';
@@ -228,7 +228,7 @@
       }).catch(()=>null);
     }
   }
-  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':document.body.classList.contains('mio-turno-page')?'mioturno':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('servizi-terra-page')?'terra':sidebar.id==='archive-sidebar'?'archive':'turni';
+  const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':document.body.classList.contains('collegamenti-page')?'collegamenti':document.body.classList.contains('mio-turno-page')?'mioturno':document.body.classList.contains('orario-page')?'orario':document.body.classList.contains('servizi-terra-page')?'terra':sidebar.id==='archive-sidebar'?'archive':'turni';
   const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab'};
   if(page==='archive')document.body.classList.add('archive-page');
   // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
@@ -280,7 +280,7 @@
     return;
   }
   // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
-  if((page==='agenti'||page==='aggiornamenti'||page==='movimento')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
+  if((page==='agenti'||page==='aggiornamenti'||page==='collegamenti'||page==='movimento')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
@@ -360,9 +360,10 @@
     common+=item('aggiornamenti.html','↻','Aggiornamenti');
     common+=item('agenti.html','♙','Agenti');
     common+=item('movimento.html','⚓','Movimento');
+    common+=item('collegamenti.html','⇆','Collegamenti',page==='collegamenti');
   }
 
-  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':page==='terra'?'NaviSuite Servizi a terra':page==='mioturno'?'NaviSuite Il mio turno':page==='orario'?'NaviSuite Scali':'NaviSuite Documenti';
+  const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':page==='collegamenti'?'NaviSuite Collegamenti':page==='terra'?'NaviSuite Servizi a terra':page==='mioturno'?'NaviSuite Il mio turno':page==='orario'?'NaviSuite Scali':'NaviSuite Documenti';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
 
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
