@@ -964,7 +964,7 @@
   }
   async function salvaManuale() {
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione.'); return; }
-    alert(await salvaOra() ? '✅ Controllo cassa salvato.' : '❌ Controllo non salvato: riprova.');
+    alert(await salvaOra(true) ? '✅ Controllo cassa salvato.' : '❌ Controllo non salvato: riprova.');
   }
   async function preparaSalvataggio() {
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione prima di salvare.'); document.getElementById('agente-nome').focus(); return; }
@@ -1007,7 +1007,11 @@
       const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=200&sort=agente_nome,-updated&filter=${encodeURIComponent(filtro)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
-      storico = out.items || [];
+      // un solo salvataggio per agente: il piu' recente
+      const visti = new Set();
+      storico = (out.items || []).slice().sort((a, b) => String(b.updated || b.created).localeCompare(String(a.updated || a.created)))
+        .filter(r => { const k = String(r.agente_id); if (visti.has(k)) return false; visti.add(k); return true; })
+        .sort((a, b) => String(a.agente_nome).localeCompare(String(b.agente_nome), 'it'));
       if (!storico.length) { box.innerHTML = `<p class="storico-vuoto">Nessun controllo salvato il ${new Date(giorno + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}.</p>`; return; }
       const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       box.innerHTML = storico.map((r, i) => {
@@ -1038,7 +1042,7 @@
     if (!confirm(`Aprire il controllo di ${r.agente_nome} (${r.scalo} · ${r.postazione})?\nI dati in pagina verranno sostituiti.`)) return;
     caricando = true;
     document.querySelectorAll('.storico-voce').forEach(x => x.classList.toggle('aperto', x === b));
-    apriSalvataggio(r); recordId = String(r.agente_id) === document.getElementById('agente-id').value ? r.id : null; caricando = false;
+    apriSalvataggio(r); recordId = String(r.agente_id) === document.getElementById('agente-id').value ? r.id : null; ultimaImpronta = impronta(raccogliDati()); caricando = false;
   });
   document.getElementById('storico-aggiorna').addEventListener('click', caricaStorico);
   document.querySelectorAll('[data-giorno]').forEach(b => b.addEventListener('click', () => {
@@ -1074,17 +1078,27 @@
   }
   function pianificaSalvataggio() {
     if (caricando || !controllaIntestazione() || !giornoSel()) return;
-    clearTimeout(timerSalva); statoSalva('Modifiche non ancora salvate…');
-    timerSalva = setTimeout(salvaOra, 1500);
+    clearTimeout(timerSalva);
+    timerSalva = setTimeout(() => { if (impronta(raccogliDati()) === ultimaImpronta) return; statoSalva('Salvataggio…'); salvaOra(); }, 1500);
   }
-  async function salvaOra() {
+  // impronta dei dati: si salva solo se e' cambiato qualcosa rispetto all'ultimo salvataggio/caricamento
+  let ultimaImpronta = '', salvataggioInCorso = null;
+  const impronta = r => { const { dispositivo, inserito_da, _id, ...resto } = r; return JSON.stringify(resto); };
+  async function salvaOra(forza = false) {
     clearTimeout(timerSalva);
     if (caricando || !controllaIntestazione()) return false;
+    if (salvataggioInCorso) { await salvataggioInCorso.catch(() => {}); }
     const record = raccogliDati(); record._id = recordId;
+    const imp = impronta(record);
+    if (!forza && imp === ultimaImpronta) { statoSalva(document.getElementById('stato-salvataggio').textContent.replace('Modifiche non ancora salvate…', '✓ Nessuna modifica da salvare')); return true; }
+    let fine; salvataggioInCorso = new Promise(r => { fine = r; });
+    try { return await eseguiSalvataggio(record, imp); } finally { fine(); salvataggioInCorso = null; }
+  }
+  async function eseguiSalvataggio(record, imp) {
     statoSalva('Salvataggio…');
     try {
       const nuovo = !recordId;
-      const out = await upsertControllo(record); recordId = out.id;
+      const out = await upsertControllo(record); recordId = out.id; ultimaImpronta = imp;
       statoSalva(`✓ Salvato alle ${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`);
       if (nuovo) caricaStorico(); return true;
     } catch (error) {
@@ -1107,7 +1121,7 @@
     statoSalva('Caricamento…');
     try {
       const mio = await trovaMio(id, giorno);
-      if (mio) { apriSalvataggio(mio); recordId = mio.id; statoSalva(`✓ Ultimo salvataggio: ${new Date(String(mio.updated || mio.created).replace(' ', 'T')).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`); return; }
+      if (mio) { apriSalvataggio(mio); recordId = mio.id; ultimaImpronta = impronta(raccogliDati()); statoSalva(`✓ Ultimo salvataggio: ${new Date(String(mio.updated || mio.created).replace(' ', 'T')).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`); return; }
       const f = `postazione = "${q(post)}" && data <= "${giorno} 23:59:59"`;
       const prec = (await pb(`?perPage=1&sort=-data,-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
       azzeraConteggi();
@@ -1116,7 +1130,7 @@
       MONETE.forEach(d => { const v = Number(c.cassetta_rossa?.mattina?.[d.val]) || 0; ['mattina', 'diurno', 'sera'].forEach(fz => { countsCassetta[fz][d.val] = v; }); });
       if (prec?.dettagli?.campi?.['fondo-target']) document.getElementById('fondo-target').value = prec.dettagli.campi['fondo-target'];
       ['totale-giornaliero-diurno', 'pos-giornaliero-diurno', 'da-stornare-diurno', 'totale-giornaliero-sera', 'pos-giornaliero-sera', 'da-stornare-sera'].forEach(x => { const el = document.getElementById(x); if (el) el.value = '0.00'; });
-      rendiGriglie(); calculateAll();
+      rendiGriglie(); calculateAll(); ultimaImpronta = impronta(raccogliDati());
       statoSalva(prec ? `Giornata nuova · fondo cassa dal ${new Date(String(prec.data).slice(0, 10) + 'T12:00:00').toLocaleDateString('it-IT')}` : 'Giornata nuova · nessun fondo cassa salvato prima di questa data');
     } catch (error) {
       chiaveGiorno = '';
