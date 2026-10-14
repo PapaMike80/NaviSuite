@@ -222,6 +222,7 @@
     .cassetta-col h4{display:flex;align-items:center;gap:8px}
     .cr-icona{display:inline-block;width:12px;height:12px;border-radius:3px;background:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25)}
     .stato-salvataggio{margin:-10px 2px 14px;color:var(--cyan-accent);font-size:13px;font-weight:700;min-height:1em}
+    .campo-euro{position:relative;display:block}.campo-euro input{width:100%;padding-right:34px!important;box-sizing:border-box}.simbolo-euro{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:800;pointer-events:none}
   </style>
 </head>
 <body>
@@ -289,7 +290,7 @@
     <div class="panel-body">
       <div class="form-grid">
         <div class="form-box">
-          <label for="fondo-target">Fondo Obiettivo (€)</label>
+          <label for="fondo-target">Fondo Obiettivo</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
           <small>Quota fissa da mantenere</small>
         </div>
@@ -323,15 +324,15 @@
     <div class="panel-body">
       <div class="form-grid">
         <div class="form-box">
-          <label for="totale-giornaliero-diurno">Totale Sistema (€)</label>
+          <label for="totale-giornaliero-diurno">Totale Sistema</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-diurno">Incasso POS (€)</label>
+          <label for="pos-giornaliero-diurno">Incasso POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
         </div>
         <div class="form-box">
-          <label for="da-stornare-diurno">Da Stornare (€)</label>
+          <label for="da-stornare-diurno">Da Stornare</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
         </div>
       </div>
@@ -375,25 +376,22 @@
       
       <div class="form-grid">
         <div class="form-box">
-          <label for="totale-giornaliero-sera">Totale Incasso Finale (€)</label>
+          <label for="totale-giornaliero-sera">Totale incasso</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-sera">Incasso POS Finale (€)</label>
+          <label for="pos-giornaliero-sera">Totale POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
         <div class="form-box">
-          <label for="da-stornare-sera">Da Stornare (€)</label>
+          <label for="da-stornare-sera">Da Stornare</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
         </div>
-      </div>
-
-      <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere in Cassa:</label>
-          <small style="color: var(--text-muted); margin: 0;">Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
+        <div class="form-box box-contanti-sera">
+          <label>Totale contanti</label>
+          <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent);">€ 400,00</div>
+          <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
         </div>
-        <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent); font-size: 28px; margin: 0;">€ 400,00</div>
       </div>
 
       <!-- SEZIONE B: CONTEGGIO FISICO -->
@@ -464,7 +462,7 @@
             <div class="val" id="riepilogo-totale" style="color: var(--text-main);">€ 0,00</div>
           </div>
           <div class="riepilogo-item" style="border-color: var(--ok-color); background: rgba(245, 176, 65, 0.05);">
-            <label style="color: var(--ok-color);">Saldo Busta</label>
+            <label style="color: var(--ok-color);">Totale contanti</label>
             <div class="val" id="riepilogo-saldo" style="color: var(--ok-color);">€ 0,00</div>
           </div>
           <div class="riepilogo-item">
@@ -519,7 +517,7 @@
   // Funzione di parsing universale che gestisce numeri, stringhe, virgole o punti
   function parseMoney(val) {
     if (val === undefined || val === null || val === '') return 0;
-    const str = val.toString().replace(',', '.').trim();
+    const str = val.toString().replace(/[^0-9,.\-]/g, '').replace(',', '.').trim();
     const num = parseFloat(str);
     return isNaN(num) ? 0 : Math.round(num * 100);
   }
@@ -984,7 +982,7 @@
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione prima di salvare.'); document.getElementById('agente-nome').focus(); return; }
     const record = raccogliDati();
     if (!record.data) { alert('Inserisci la data.'); document.getElementById('data-turno').focus(); return; }
-    const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nSaldo in busta: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
+    const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nTotale contanti: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
     if (!confirm(`Salvare il controllo cassa?\n\n${riepilogo}`)) return;
     try {
       await inviaControlloCassa(record);
@@ -1171,8 +1169,21 @@
     pianificaSalvataggio();
   }));
 
+  // Importi in euro: simbolo € accanto alla cella (non serve scriverlo); all'uscita la cifra si sistema (es. 12 -> 12,00)
+  function campiEuro() {
+    document.querySelectorAll('input[inputmode="decimal"]').forEach(el => {
+      if (el.parentElement?.classList.contains('campo-euro')) return;
+      const w = document.createElement('span'); w.className = 'campo-euro';
+      el.parentNode.insertBefore(w, el); w.appendChild(el);
+      const e = document.createElement('span'); e.className = 'simbolo-euro'; e.textContent = '€'; e.setAttribute('aria-hidden', 'true'); w.appendChild(e);
+      if (el.value.trim() !== '') el.value = (parseMoney(el.value) / 100).toFixed(2).replace('.', ',');
+      el.addEventListener('blur', () => { if (el.value.trim() === '') return; const c = parseMoney(el.value); el.value = (c / 100).toFixed(2).replace('.', ','); });
+    });
+  }
+
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
+    campiEuro();
     riempiPostazioni();
     document.body.classList.add('cassa-incompleta');
     const nomeEl = document.getElementById('agente-nome');
