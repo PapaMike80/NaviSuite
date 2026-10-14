@@ -211,6 +211,12 @@
     .storico-voce .soldi{font-weight:800;font-size:13px;text-align:right}
     .storico-vuoto{margin:4px 0;color:var(--text-muted);font-size:13px}
     @media(max-width:600px){body{padding:12px!important}.panel-body{padding:14px!important}}
+
+    body.cassa-incompleta .wizard-steps,body.cassa-incompleta [id^="step-"]{display:none!important}
+    .cassa-avviso{display:none;margin:0 0 18px;padding:14px 16px;border:1px dashed var(--cyan-accent);border-radius:14px;color:var(--text-muted);text-align:center;font-weight:700}
+    body.cassa-incompleta .cassa-avviso{display:block}
+    #agente-nome.non-valido{border-color:#fb7185!important}
+    .nota-turno{display:block;margin-top:4px;color:var(--cyan-accent);font-size:12px;font-weight:700}
   </style>
 </head>
 <body>
@@ -235,30 +241,25 @@
         </div>
         <div class="form-box transparent">
           <label>Agente <span style="color:#fb7185">*</span></label>
-          <select id="agente-nome" required><option value="">— Scegli l'agente —</option></select>
+          <input type="text" id="agente-nome" list="agenti-lista" autocomplete="off" placeholder="Inizia a scrivere il cognome…" required><datalist id="agenti-lista"></datalist><input type="hidden" id="agente-id">
         </div>
         <div class="form-box transparent">
           <label>Scalo</label>
-          <select id="scalo-selezionato" onchange="impostaRegoleScalo()">
+          <select id="scalo-selezionato" onchange="cambiaScalo()">
+            <option value="">— Scegli lo scalo —</option>
             <option value="Maderno">Maderno</option>
             <option value="Desenzano">Desenzano</option>
-            <option value="Peschiera">Peschiera</option>
-            <option value="Riva">Riva</option>
-            <option value="Altro">Altro...</option>
           </select>
         </div>
         <div class="form-box transparent">
           <label>Postazione / Cassa</label>
-          <select id="postazione-selezionata">
-            <option value="AgM (Cassa 2)">AgM (Cassa 2)</option>
-            <option value="AgT (Cassa 1)">AgT (Cassa 1)</option>
-            <option value="AgB (Cassa 1)">AgB (Cassa 1)</option>
-            <option value="DT (Cassa 8)">DT (Cassa 8)</option>
-          </select>
+          <select id="postazione-selezionata" onchange="sceltaManuale = true; controllaIntestazione()"><option value="">— Prima lo scalo —</option></select><small id="nota-turno" class="nota-turno"></small>
         </div>
       </div>
     </div>
   </div>
+
+  <p class="cassa-avviso">Scegli agente, scalo e postazione per iniziare il controllo.</p>
 
   <!-- STORICO DEL GIORNO -->
   <div class="panel storico" id="storico-cassa">
@@ -808,19 +809,58 @@
   const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
   function sessione() { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) { return null; } }
+  const POSTAZIONI = { Maderno: ['AgM (Cassa 2)', 'AgT (Cassa 1)'], Desenzano: ['AgB (Cassa 1)', 'DT (Cassa 8)'] };
+  let agenti = [], schedule = null, sceltaManuale = false;
+  const norma = v => String(v || '').trim().toLocaleLowerCase('it');
   function caricaAgenti() {
-    const sel = document.getElementById('agente-nome');
     const io = sessione();
-    const elenco = (window.NaviSharedData?.directory?.() || []).filter(a => a && a.id && a.name);
-    if (io?.id && !elenco.some(a => String(a.id) === String(io.id))) elenco.push({ id: io.id, name: io.name || io.agente || String(io.id) });
-    elenco.sort((a, b) => String(a.name).localeCompare(String(b.name), 'it'));
-    const scelto = sel.value || (io?.id ? String(io.id) : '');
-    sel.innerHTML = '<option value="">— Scegli l\'agente —</option>' + elenco.map(a => `<option value="${String(a.id).replace(/"/g, '&quot;')}">${String(a.name).replace(/</g, '&lt;')}</option>`).join('');
-    sel.value = scelto;
+    agenti = (window.NaviSharedData?.directory?.() || []).filter(a => a && a.id && a.name);
+    if (io?.id && !agenti.some(a => String(a.id) === String(io.id))) agenti.push({ id: io.id, name: io.name || io.agente || String(io.id) });
+    agenti.sort((a, b) => String(a.name).localeCompare(String(b.name), 'it'));
+    document.getElementById('agenti-lista').innerHTML = agenti.map(a => `<option value="${String(a.name).replace(/"/g, '&quot;')}">`).join('');
+    const nome = document.getElementById('agente-nome');
+    if (!nome.value && io?.id) { const me = agenti.find(a => String(a.id) === String(io.id)); if (me) nome.value = me.name; }
+    agenteDaNome();
+  }
+  function agenteDaNome() {
+    const nome = document.getElementById('agente-nome'), id = document.getElementById('agente-id');
+    const a = agenti.find(x => norma(x.name) === norma(nome.value));
+    id.value = a ? String(a.id) : '';
+    nome.classList.toggle('non-valido', !!nome.value && !a);
+    if (a) postazioneDalTurno();
+    controllaIntestazione();
+  }
+  function riempiPostazioni(scelta = '') {
+    const scalo = document.getElementById('scalo-selezionato').value, sel = document.getElementById('postazione-selezionata');
+    const lista = POSTAZIONI[scalo] || [];
+    sel.innerHTML = lista.length ? '<option value="">— Scegli la postazione —</option>' + lista.map(p => `<option>${p}</option>`).join('') : '<option value="">— Prima lo scalo —</option>';
+    sel.value = lista.includes(scelta) ? scelta : (lista.length === 1 ? lista[0] : '');
+  }
+  function cambiaScalo() { sceltaManuale = true; riempiPostazioni(); impostaRegoleScalo(); controllaIntestazione(); }
+  // Dal turno di oggi: AgM/AgT -> Maderno, AgB/DT -> Desenzano
+  function postazioneDalTurno() {
+    if (sceltaManuale || !schedule || !window.NaviTurniGiorno?.turnoAgente) return;
+    const id = document.getElementById('agente-id').value, giorno = document.getElementById('data-turno').value;
+    if (!id || !giorno) return;
+    let turno = '';
+    try { turno = String(window.NaviTurniGiorno.turnoAgente(schedule, { id }, giorno)?.turno || '').toUpperCase(); } catch (_) {}
+    const m = turno.match(/^C?(AGM|AGT|AGB|DT)/);
+    if (!m) return;
+    const map = { AGM: ['Maderno', 'AgM (Cassa 2)'], AGT: ['Maderno', 'AgT (Cassa 1)'], AGB: ['Desenzano', 'AgB (Cassa 1)'], DT: ['Desenzano', 'DT (Cassa 8)'] }[m[1]];
+    document.getElementById('scalo-selezionato').value = map[0];
+    riempiPostazioni(map[1]);
+    impostaRegoleScalo();
+    const nota = document.getElementById('nota-turno'); if (nota) nota.textContent = `Dal turno di oggi: ${turno}`;
+    controllaIntestazione();
+  }
+  // Senza agente, scalo e postazione il resto della pagina resta nascosto
+  function controllaIntestazione() {
+    const ok = !!document.getElementById('agente-id').value && !!document.getElementById('scalo-selezionato').value && !!document.getElementById('postazione-selezionata').value;
+    document.body.classList.toggle('cassa-incompleta', !ok);
+    return ok;
   }
   function raccogliDati() {
     calculateAll();
-    const sel = document.getElementById('agente-nome');
     const conteggi = {};
     ['mattina', 'diurno', 'sera'].forEach(fase => {
       conteggi[fase] = {};
@@ -833,8 +873,8 @@
     });
     const io = sessione();
     return {
-      agente_id: sel.value,
-      agente_nome: sel.selectedOptions[0]?.textContent || '',
+      agente_id: document.getElementById('agente-id').value,
+      agente_nome: (agenti.find(a => String(a.id) === document.getElementById('agente-id').value)?.name) || document.getElementById('agente-nome').value,
       data: datiChiusura.data_turno ? `${datiChiusura.data_turno} 12:00:00.000Z` : '',
       scalo: datiChiusura.scalo,
       postazione: datiChiusura.postazione,
@@ -858,8 +898,7 @@
     } finally { clearTimeout(t); }
   }
   async function preparaSalvataggio() {
-    const sel = document.getElementById('agente-nome');
-    if (!sel.value) { alert('Scegli l\'agente prima di salvare.'); sel.focus(); sel.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione prima di salvare.'); document.getElementById('agente-nome').focus(); return; }
     const record = raccogliDati();
     if (!record.data) { alert('Inserisci la data.'); document.getElementById('data-turno').focus(); return; }
     const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nSaldo in busta: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
@@ -915,8 +954,9 @@
     renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
-    Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || id === 'data-turno') return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
-    const sel = document.getElementById('agente-nome'); if (r.agente_id) { if (![...sel.options].some(o => o.value === String(r.agente_id))) sel.add(new Option(r.agente_nome || r.agente_id, r.agente_id)); sel.value = String(r.agente_id); }
+    Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
+    if (r.agente_id) { document.getElementById('agente-nome').value = r.agente_nome || ''; document.getElementById('agente-id').value = String(r.agente_id); }
+    sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || ''; riempiPostazioni(r.postazione || ''); controllaIntestazione();
     updateCountsAndCalc();
   }
   document.getElementById('storico-lista').addEventListener('click', e => {
@@ -935,9 +975,13 @@
 
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
+    document.body.classList.add('cassa-incompleta');
+    const nomeEl = document.getElementById('agente-nome');
+    nomeEl.addEventListener('input', agenteDaNome); nomeEl.addEventListener('change', agenteDaNome);
+    document.getElementById('data-turno').addEventListener('change', () => { sceltaManuale = false; postazioneDalTurno(); });
     caricaAgenti();
     window.NaviOffline?.gestore('controllo-cassa', inviaControlloCassa);
-    window.NaviSharedData?.load?.('').then(caricaAgenti).catch(() => {});
+    Promise.resolve(window.NaviSharedData?.loadCacheFirst?.(data => { schedule = data; caricaAgenti(); postazioneDalTurno(); })).catch(() => {});
     caricaStorico();
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
@@ -947,6 +991,7 @@
 <script src="assets/js/shared-roles.js?v=6"></script>
 <script src="assets/js/admin-firebase-rest.js?v=76"></script>
 <script src="assets/js/shared-data.js?v=136"></script>
+<script src="assets/js/turni-giorno.js?v=8"></script>
 <script src="assets/js/shared-menu.js?v=1.75"></script>
 <script src="assets/js/offline.js?v=2"></script>
 
