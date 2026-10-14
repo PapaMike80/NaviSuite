@@ -114,7 +114,9 @@
     setRefuel(entry,value,serviceMinutes,0,true);entry.refuelDecision='auto';return true;
   }
   function create(){return {ordinario:0,cambi:0,sentine:0}}
-  window.NaviOvertimeComponents={structured,components,total:sum,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,setRefuel,suggestRefuel,autoRefuel,RIFORNIMENTI,REFUEL_BANK,create,minutes,SENTINE_TYPES};
+  // Straordinario totale: ritardo + cambio + sentine + tempo in piu' del rifornimento
+  const totale=entry=>sum(entry)+minutes(entry?.refuelWorked);
+  window.NaviOvertimeComponents={structured,components,total:totale,ordinary,changes,sentine,sentineType,isOrdinaryManual,isWorkedManual,activate,sync,recalculateOrdinary,setOrdinary,setChanges,setSentine,setSentineMinutes,setWorked,setRefuel,suggestRefuel,autoRefuel,RIFORNIMENTI,REFUEL_BANK,create,minutes,SENTINE_TYPES};
 })();
 
 (() => {
