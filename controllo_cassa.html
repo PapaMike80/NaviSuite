@@ -608,9 +608,10 @@
     const scalo = document.getElementById("scalo-selezionato").value;
     const toggleMonete = document.getElementById("usa-resto-monete");
     
-    // Resto monete solo a Desenzano; a Maderno non si usa (e non compare)
-    toggleMonete.checked = scalo !== "Maderno";
-    document.body.classList.toggle("senza-resto", scalo === "Maderno");
+    // Resto monete solo per AgB (Desenzano)
+    const conResto = document.getElementById("postazione-selezionata")?.value === "AgB (Cassa 1)";
+    toggleMonete.checked = conResto;
+    document.body.classList.toggle("senza-resto", !conResto);
     if (typeof renderCassetta === "function") renderCassetta();
     calculateAll();
   }
