@@ -15,8 +15,6 @@
   }
   installSupportFooter();
   window.NAVISUITE_VERSION=APP_VERSION;
-  // Applica subito il tema anche alla Home, che non ha un menu laterale.
-  // In questo modo non compare una schermata scura prima del reindirizzamento.
   let initialThemeAgent=null;try{initialThemeAgent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{}
   const initialLightTester=['91','AG_PEDRONI_M'].includes(String(initialThemeAgent?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(initialThemeAgent?.name||initialThemeAgent?.agente||initialThemeAgent?.cognome||''));
   const initialLightTheme=initialLightTester&&localStorage.getItem('navisuite.theme.'+String(initialThemeAgent?.id||''))==='light';
@@ -25,9 +23,6 @@
   if(initialLightTheme)document.documentElement.dataset.theme='light';
   const sessionValue=localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null';
   let sessionAgent=null;try{sessionAgent=JSON.parse(sessionValue)}catch{}
-  // Google Analytics: caricato una sola volta per tutte le pagine. Si invia solo
-  // la categoria di ruolo, mai nome, ID agente o PIN. Senza sessione (login) la
-  // pagina viene tracciata comunque, senza ruolo.
   const installAnalytics=()=>{
     const GA_ID='G-R59ZS3YB4Q';
     if(window.__naviGaInstalled)return;
@@ -56,8 +51,6 @@
     window.gtag('event','page_view',{page_title:document.title,page_location:location.origin+location.pathname,page_path:location.pathname});
   };
   try{installAnalytics()}catch{}
-  // Registra un solo dato di attività: pagina corrente e ora. Il tentativo viene
-  // ripetuto perché in alcune pagine Firebase è caricato dopo questo script.
   const trackPageView=attempt=>{
     if(!sessionAgent?.id)return;
     const tracker=window.NaviAdminFirebase?.recordUserAccess;
@@ -66,8 +59,6 @@
   };
   trackPageView(0);
   const installTodayAboveResidences=()=>{const box=document.getElementById('top-residence-buttons');if(!box||document.getElementById('today-above-residences'))return Boolean(box);const link=document.createElement('a');link.id='today-above-residences';link.href='oggi.html';link.textContent='Oggi';box.parentNode.insertBefore(link,box);return true};
-  // Menu unico NaviSuite: stesso elenco su ogni pagina, aperto da ogni pulsante ☰
-  // (window.NaviSuiteMenu.open). Le voci non dipendono piu' dalla sidebar.
   function installUnifiedMenu(agent){
     if(document.getElementById('navisuite-popup'))return;
     const roles=window.NaviRoles||{};
@@ -76,10 +67,8 @@
     const isHiba=Boolean(roles.isHibaBarista?.(agent));
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
-    // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'controllo_cassa.html':['¤','Cassa']};
+    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
-      // pagine principali: Il mio turno e Scali
       ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
       ['navidiaria.html','≈','Distinta'],
@@ -87,13 +76,11 @@
       ['cambi_turno.html','⇄','Cambio'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
-      ['controllo_cassa.html','¤','Cassa'],
-      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[])
+      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento'],['controllo_cassa.html','¤','Cassa']]:[['controllo_cassa.html','¤','Cassa']])
     ];
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
-    // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
-    const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2],'oggi.html':['Stato di servizio','#38bdf8',3],'controllo_cassa.html':['Controllo cassa','#27a9b6',4]};
-    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#f97316','movimento.html':'#22c55e'};
+    const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2]};
+    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#f97316','movimento.html':'#22c55e','controllo_cassa.html':'#27a9b6'};
     const linkHtml=([href,icon,label])=>{
       const key=href.split('?')[0].toLowerCase(),active=key===file,main=PRINCIPALI[key];
       const colore=main?.[1]||COLORI[key]||'#94a3b8';
@@ -104,7 +91,6 @@
     const principali=entries.filter(e=>ordine(e)!==undefined).sort((a,b)=>ordine(a)-ordine(b)),altre=entries.filter(e=>ordine(e)===undefined);
     const pastTile=onTurni?pastHtml.replace('<a ','<a class="ns-tile" style="--c:#2dd4bf" ').replace('<b>','<i><b>').replace('</b>','</b></i>'):'';
     const linksHtml=`<div class="ns-grid ns-grid-main">${principali.map(linkHtml).join('')}</div>${altre.length||pastTile?`<p class="ns-altre">ALTRE PAGINE</p><div class="ns-grid ns-grid-small">${altre.map(linkHtml).join('')}${pastTile}</div>`:''}`;
-
     const style=document.createElement('style');
     style.id='navisuite-unified-menu-style';
     style.textContent=`
@@ -152,7 +138,6 @@
       @media(min-width:851px){#navisuite-popup .ns-tile.ns-wide{flex-direction:column!important;align-items:flex-start!important;gap:6px!important}#navisuite-popup .ns-tile.ns-wide b{font-size:17px!important}}
     `;
     document.head.appendChild(style);
-    // Intestazione: "Ciao Pedroni M." con il distintivo del grado come in Movimento
     const nome=String(agent?.name||agent?.agente||'').trim().toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
     const qualifica=String(agent?.qualifica||agent?.grado||(window.NaviSharedData?.directory?.()||[]).find(a=>String(a.id)===String(agent?.id))?.qualifica||'');
     const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6']].find(([r])=>r.test(qualifica));
@@ -163,493 +148,61 @@
     popup.innerHTML=`<section class="ns-menu-dialog" role="dialog" aria-modal="true" aria-label="Menu NaviSuite"><div class="ns-menu-head">${saluto} <button type="button" class="ns-menu-close" aria-label="Chiudi menu">×</button></div><div class="ns-menu-links">${linksHtml}</div><div class="ns-menu-foot"><a href="https://github.com/PapaMike80/NaviSuite" target="_blank" rel="noopener noreferrer">GitHub</a><button type="button" class="ns-menu-exit">Esci</button></div></section>`;
     document.body.appendChild(popup);
     const pastLink=popup.querySelector('[data-turni-main-past]');
-    const syncPastLabel=()=>{
-      const label=pastLink?.querySelector('b');
-      const source=document.getElementById('togglePastBtn');
-      if(label)label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato';
-    };
-    pastLink?.addEventListener('click',event=>{
-      event.preventDefault();
-      if(typeof window.togglePastColumns==='function')window.togglePastColumns();
-      syncPastLabel();
-    });
+    const syncPastLabel=()=>{ const label=pastLink?.querySelector('b'); const source=document.getElementById('togglePastBtn'); if(label)label.textContent=source?.textContent?.replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()||'Mostra passato'; };
+    pastLink?.addEventListener('click',event=>{ event.preventDefault(); if(typeof window.togglePastColumns==='function')window.togglePastColumns(); syncPastLabel(); });
     const close=()=>{popup.hidden=true;document.body.classList.remove('ns-menu-open');};
     const open=()=>{syncPastLabel();popup.hidden=false;document.body.classList.add('ns-menu-open');};
     popup.querySelector('.ns-menu-close').addEventListener('click',close);
     popup.addEventListener('click',event=>{if(event.target===popup)close();});
-    popup.querySelector('.ns-menu-exit').addEventListener('click',()=>{
-      if(typeof window.logoutAgent==='function'){window.logoutAgent();return;}
-      localStorage.removeItem('navidiaria.activeAgent');
-      localStorage.removeItem('naviturni_logged_agent');
-      location.href='index.html';
-    });
-    // Condividi: locandina con QR code da far girare ai colleghi
+    popup.querySelector('.ns-menu-exit').addEventListener('click',()=>{ if(typeof window.logoutAgent==='function'){window.logoutAgent();return;} localStorage.removeItem('navidiaria.activeAgent'); localStorage.removeItem('naviturni_logged_agent'); location.href='index.html'; });
     const TESTO_CONDIVIDI=["⚓ Scarica *NaviSuite*: il tuo turno e la tua distinta sempre con te","","👉 https://papamike80.github.io/NaviSuite/","","🔑 *Primo accesso*","1. Apri il link e premi *Condividi / Aggiungi alla schermata Home*.","2. Usa il PIN personale che ti è stato consegnato.","3. Il colore del tema e le funzioni si adattano al tuo ruolo."];
     const IMG_LOCANDINA='assets/images/navisuite-locandina.png';
-    const apriCondividi=()=>{
-      close();
-      let box=document.getElementById('ns-condividi');
-      if(!box){
-        box=document.createElement('div');box.id='ns-condividi';
-        box.style.cssText='position:fixed;inset:0;z-index:10001;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;background:rgba(2,12,17,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)';
-        box.innerHTML=`<div style="position:relative;width:min(420px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px"><button type="button" data-chiudi aria-label="Chiudi" style="position:absolute;top:8px;right:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(0,0,0,.28);color:#fff;font-size:28px;line-height:1;cursor:pointer;z-index:1">×</button><img src="${IMG_LOCANDINA}" alt="Locandina NaviSuite" style="width:100%;border-radius:18px;display:block"><div style="background:#fff;border-radius:18px;padding:14px 14px 8px;box-shadow:0 20px 60px rgba(0,0,0,.4)"><div style="display:grid;gap:6px;color:#0f1720;font:600 14px/1.45 Inter,system-ui,sans-serif;white-space:pre-wrap">${TESTO_CONDIVIDI.map(line=>line).join('\n')}</div></div></div>`;
-        document.body.appendChild(box);
-        box.addEventListener('click',e=>{if(e.target===box||e.target.closest('[data-chiudi]'))box.hidden=true;});
-      }
-      box.hidden=false;
-    };
+    const apriCondividi=()=>{ close(); let box=document.getElementById('ns-condividi'); if(!box){ box=document.createElement('div');box.id='ns-condividi'; box.style.cssText='position:fixed;inset:0;z-index:10001;display:grid;place-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;background:rgba(2,12,17,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)'; box.innerHTML=`<div style="position:relative;width:min(420px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px"><button type="button" data-chiudi aria-label="Chiudi" style="position:absolute;top:8px;right:8px;width:42px;height:42px;border:1px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(0,0,0,.28);color:#fff;font-size:28px;line-height:1;cursor:pointer;z-index:1">×</button><img src="${IMG_LOCANDINA}" alt="Locandina NaviSuite" style="width:100%;border-radius:18px;display:block"><div style="background:#fff;border-radius:18px;padding:14px 14px 8px;box-shadow:0 20px 60px rgba(0,0,0,.4)"><div style="display:grid;gap:6px;color:#0f1720;font:600 14px/1.45 Inter,system-ui,sans-serif;white-space:pre-wrap">${TESTO_CONDIVIDI.map(line=>line).join('\n')}</div></div></div>`; document.body.appendChild(box); box.addEventListener('click',e=>{if(e.target===box||e.target.closest('[data-chiudi]'))box.hidden=true;}); } box.hidden=false; };
     popup.querySelector('[data-ns-condividi]')?.addEventListener('click',event=>{event.preventDefault();apriCondividi();});
     window.NaviSuiteMenu={open,close,condividi:apriCondividi};
-    // Pulsante ☰ nell'intestazione della pagina; Quiz e Cambia PIN non hanno
-    // un'intestazione adatta e lo ricevono fisso in alto a destra.
     const host=document.querySelector('.page-header,.archive-header,.diaria-header,main>header,body.impostazioni-page>header');
     const floating=!host&&(file==='quiz.html'||file==='cambia-pin.html');
-    if(host||floating){
-      const button=document.createElement('button');
-      button.type='button';button.id='navisuite-header-menu';button.setAttribute('aria-label','Apri menu');button.textContent='☰';
-      button.style.cssText=`position:${floating?'fixed':'absolute'};right:12px;top:${floating?'calc(12px + env(safe-area-inset-top,0px))':'12px'};z-index:${floating?9000:30};width:44px;height:44px;border:1px solid rgba(45,212,191,.5);border-radius:13px;background:#103a3d;color:#a7fff0;font-size:25px;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.24)`;
-      if(host){host.style.position=host.style.position||'relative';host.appendChild(button);}
-      else document.body.appendChild(button);
-      button.addEventListener('click',open);
-    }
+    if(host||floating){ const button=document.createElement('button'); button.type='button';button.id='navisuite-header-menu';button.setAttribute('aria-label','Apri menu');button.textContent='☰'; button.style.cssText=`position:${floating?'fixed':'absolute'};right:12px;top:${floating?'calc(12px + env(safe-area-inset-top,0px))':'12px'};z-index:${floating?9000:30};width:44px;height:44px;border:1px solid rgba(45,212,191,.5);border-radius:13px;background:#103a3d;color:#a7fff0;font-size:25px;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.24)`; if(host){host.style.position=host.style.position||'relative';host.appendChild(button);} else document.body.appendChild(button); button.addEventListener('click',open); }
   }
   const sidebar=document.querySelector('.app-sidebar');
-  if(!sidebar){
-    // Pagine senza sidebar: Quiz e Cambia PIN ricevono comunque il menu, solo con sessione attiva.
-    const file=(location.pathname.split('/').pop()||'').toLowerCase();
-    if(sessionAgent?.id&&(file==='quiz.html'||file==='cambia-pin.html'))setTimeout(()=>installUnifiedMenu(sessionAgent),0);
-    return;
-  }
-  if('serviceWorker' in navigator){
-    if(!window.__naviSwRegistrationPromise){
-      window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=171').then(registration=>{
-        if(registration&&typeof registration.update==='function')registration.update().catch(()=>{});
-        return registration;
-      }).catch(()=>null);
-    }
-  }
+  if(!sidebar){ const file=(location.pathname.split('/').pop()||'').toLowerCase(); if(sessionAgent?.id&&(file==='quiz.html'||file==='cambia-pin.html'))setTimeout(()=>installUnifiedMenu(sessionAgent),0); return; }
+  if('serviceWorker' in navigator){ if(!window.__naviSwRegistrationPromise){ window.__naviSwRegistrationPromise=navigator.serviceWorker.register('sw.js?menu=171').then(registration=>{ if(registration&&typeof registration.update==='function')registration.update().catch(()=>{}); return registration; }).catch(()=>null); } }
   const page=document.body.classList.contains('oggi-page')?'oggi':document.body.classList.contains('impostazioni-page')?'settings':document.body.classList.contains('trova-turno-page')?'trova':document.body.classList.contains('diaria-page')?'diaria':document.body.classList.contains('archive-page')?'archive':document.body.classList.contains('agenti-page')?'agenti':document.body.classList.contains('aggiornamenti-page')?'aggiornamenti':document.body.classList.contains('movimento-page')?'movimento':document.body.classList.contains('terra-page')?'terra':document.body.classList.contains('mio-turno-page')?'mioturno':'turni';
-  const tabNames={oggi:'NaviOggiTab',turni:'NaviTurniTab',trova:'NaviTrovaTurnoTab',diaria:'NaviDiariaTab',archive:'NaviDocumentiTab',settings:'NaviImpostazioniTab'};
-  if(page==='archive')document.body.classList.add('archive-page');
-  // Sorgente unica: assets/js/shared-roles.js. Il fallback qui sotto serve solo
-  // per le pagine che non caricano shared-roles.js (es. gestione_navi.html) e
-  // deve restare allineato alla logica canonica.
-  const Roles=window.NaviRoles||{
-    isAdminAgent:agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin',
-    isBaristaAgent:agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista',
-    isHibaBarista:agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||((String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista')&&String(agent?.id||'').toUpperCase()==='HIBA')
-  };
+  const Roles=window.NaviRoles||{ isAdminAgent:agent=>['91','92'].includes(String(agent?.id||''))||String(agent?.role||'').toLowerCase()==='admin', isBaristaAgent:agent=>String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista', isHibaBarista:agent=>String(agent?.id||'').toUpperCase()==='BARISTA_HIBA'||((String(agent?.role||'').toLowerCase()==='barista'||String(agent?.qualifica||'').toLowerCase()==='barista')&&String(agent?.id||'').toUpperCase()==='HIBA') };
   const isAdminAgent=agent=>Roles.isAdminAgent(agent);
-  // La Diaria e' personale, non amministrativa: basta una sessione autenticata.
   const canUseDiaria=agent=>Boolean(String(agent?.id||'').trim());
   const isBaristaAgent=agent=>Roles.isBaristaAgent(agent);
   const isHibaBarista=agent=>Roles.isHibaBarista(agent);
   const isBaristaSession=isBaristaAgent(sessionAgent);
-  // Il test è riservato a Marco: riconosciamo sia gli ID storici sia il cognome
-  // con cui può comparire nelle diverse versioni dell'anagrafica.
   const isLightThemeTester=['91','AG_PEDRONI_M'].includes(String(sessionAgent?.id||'').toUpperCase())||/\bPEDRONI\b/i.test(String(sessionAgent?.name||sessionAgent?.agente||sessionAgent?.cognome||''));
   const themeKey='navisuite.theme.'+String(sessionAgent?.id||'');
   const currentTheme=()=>isLightThemeTester&&localStorage.getItem(themeKey)==='light'?'light':'dark';
-  function applyTheme(){
-    const light=currentTheme()==='light';
-    document.documentElement.classList.toggle('navisuite-light',light);
-    document.body.classList.toggle('navisuite-light',light);
-    if(light)document.documentElement.dataset.theme='light';else delete document.documentElement.dataset.theme;
-  }
-  function installLightTheme(){
-    if(document.getElementById('navisuite-light-theme-style'))return;
-    const style=document.createElement('style');style.id='navisuite-light-theme-style';
-    style.textContent='html.navisuite-light{color-scheme:light}html.navisuite-light body{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .app-sidebar{background:#ffffff!important;border-color:#d6e7ea!important}';
-    document.head.appendChild(style);
-    // Superfici visibili mentre la tabella di NaviTurni sta ancora caricando.
-    // Restano chiare anche prima che arrivino i dati del periodo.
-    const loadingStyle=document.createElement('style');loadingStyle.id='navisuite-light-loading-style';
-    loadingStyle.textContent='html.navisuite-light #welcome-notice{background:#fff!important;border-color:#83c9c2!important;color:#17323a!important;box-shadow:0 6px 20px rgba(22,56,66,.1)!important}';
-    document.head.appendChild(loadingStyle);
-    const finalLightStyle=document.createElement('style');finalLightStyle.textContent='html.navisuite-light .diaria-page .topbar{background:linear-gradient(135deg,#fff,#e7f7f4)!important;border-b';
-    document.head.appendChild(finalLightStyle);
-  }
+  function applyTheme(){ const light=currentTheme()==='light'; document.documentElement.classList.toggle('navisuite-light',light); document.body.classList.toggle('navisuite-light',light); if(light)document.documentElement.dataset.theme='light';else delete document.documentElement.dataset.theme; }
+  function installLightTheme(){ if(document.getElementById('navisuite-light-theme-style'))return; const style=document.createElement('style');style.id='navisuite-light-theme-style'; style.textContent='html.navisuite-light{color-scheme:light}html.navisuite-light body{background:#edf5f6!important;color:#17323a!important}html.navisuite-light .app-sidebar{background:#ffffff!important;border-color:#d6e7ea!important}'; document.head.appendChild(style); const loadingStyle=document.createElement('style');loadingStyle.id='navisuite-light-loading-style'; loadingStyle.textContent='html.navisuite-light #welcome-notice{background:#fff!important;border-color:#83c9c2!important;color:#17323a!important;box-shadow:0 6px 20px rgba(22,56,66,.1)!important}'; document.head.appendChild(loadingStyle); }
   installLightTheme();applyTheme();
-  if(currentTheme()==='light'){
-    const menuToggleLight=document.createElement('style');
-    menuToggleLight.textContent='html.navisuite-light .sidebar-collapse-button{background:#fff!important;border-color:#9fc4ca!important;color:#176b87!important;box-shadow:6px 0 16px rgba(22,56,66,.08)!important}';
-    document.head.appendChild(menuToggleLight);
-  }
-  if(!sessionAgent){
-    document.documentElement.style.display='none';
-    location.replace('index.html');
-    return;
-  }
-  // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
+  if(currentTheme()==='light'){ const menuToggleLight=document.createElement('style'); menuToggleLight.textContent='html.navisuite-light .sidebar-collapse-button{background:#fff!important;border-color:#9fc4ca!important;color:#176b87!important;box-shadow:6px 0 16px rgba(22,56,66,.08)!important}'; document.head.appendChild(menuToggleLight); }
+  if(!sessionAgent){ document.documentElement.style.display='none'; location.replace('index.html'); return; }
   if((page==='agenti'||page==='aggiornamenti'||page==='movimento')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
-  if(window.NaviAdminFirebase?.touchUserPresence){
-    const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
-    signalPresence();
-    setInterval(signalPresence,45000);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)signalPresence();});
-  }
-  // Mantiene allineate le due chiavi di sessione usate dalle pagine storiche.
-  try{
-    if(!localStorage.getItem('navidiaria.activeAgent'))localStorage.setItem('navidiaria.activeAgent',JSON.stringify(sessionAgent));
-    if(!localStorage.getItem('naviturni_logged_agent'))localStorage.setItem('naviturni_logged_agent',JSON.stringify({
-      id:sessionAgent.id,
-      name:sessionAgent.name||sessionAgent.agente||sessionAgent.cognome||'',
-      residence:sessionAgent.residence||sessionAgent.residenza||'',
-      qualifica:sessionAgent.qualifica||'',
-      role:sessionAgent.role||''
-    }));
-  }catch{}
-  // Orario è ora accessibile a TUTTI gli utenti (rimosso controllo admin)
+  if(window.NaviAdminFirebase?.touchUserPresence){ const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{}); signalPresence(); setInterval(signalPresence,45000); document.addEventListener('visibilitychange',()=>{if(!document.hidden)signalPresence();}); }
+  try{ if(!localStorage.getItem('navidiaria.activeAgent'))localStorage.setItem('navidiaria.activeAgent',JSON.stringify(sessionAgent)); if(!localStorage.getItem('naviturni_logged_agent'))localStorage.setItem('naviturni_logged_agent',JSON.stringify({ id:sessionAgent.id, name:sessionAgent.name||sessionAgent.agente||sessionAgent.cognome||'', residence:sessionAgent.residence||sessionAgent.residenza||'', qualifica:sessionAgent.qualifica||'', role:sessionAgent.role||'' })); }catch{}
   if(isBaristaSession&&(page==='aggiornamenti'||page==='oggi')&&!isHibaBarista(sessionAgent)){location.replace('naviturni.html');return}
   const item=(href,icon,label,active=false,id='')=>`<a ${id?`id="${id}" `:''}class="nav-link${active?' active':''}" href="${href}"${['competencyNav','adminNav','archiveAdminNav'].includes(id)?' hidden':''}>${icon} ${label}</a>`;
   let common='',specific='',user='',status='<div id="odsVariationStatus" class="ods-variation-status" hidden></div>';
-
-  // Menu principale: un solo ordine, identico su ogni pagina e per ogni ruolo.
-  // Home · Oggi · NaviTurni · Distinta · Documenti · Impostazioni · Cambio turno,
-  // e infine (solo admin) Aggiornamenti · Agenti. Cambia soltanto quale voce e' attiva.
-  common=(()=>{
-    const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',terra:'orario.html',mioturno:'mio-turno.html',orario:'orario.html'}[page]||'';
-    // Sulla propria pagina alcune voci puntano a un'ancora interna (niente reload).
-    const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'};
-    return [
-      ['index.html?home=1','⌂','Home',''],
-      ['mio-turno.html','⚑','Il mio turno','mioTurnoNavLink'],
-      ['orario.html','⚓','Scali','orarioNavLink'],
-      ['oggi.html','☀','Oggi','oggiNav'],
-      ['naviturni.html','▦','NaviTurni',''],
-      ['navidiaria.html','≈','Distinta','diariaNavLink'],
-      ['documenti.html','▤','Documenti','archiveNavLink'],
-      ['impostazioni.html','⚙','Impostazioni',''],
-      ['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink'],
-      ['controllo_cassa.html','¤','Cassa','cassaNavLink'],
-    ].map(([href,icon,label,id])=>{
-      const active=href===activeHref;
-      return item(active&&selfAnchor[href]?selfAnchor[href]:href,icon,label,active,id);
-    }).join('');
-  })();
-
-  if(page==='oggi'){
-    specific='<span class="sidebar-menu-label">GIORNATA</span>';
-    user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="window.NaviOggi?.refresh?.()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`;
-  }else if(page==='diaria'){
-    specific=`<span class="sidebar-menu-label">DIARIA</span>${item('#registro','≡','Registro mese')}${item('#consultivo','≈','Consultivo settimane')}${item('#competenze','◇','Competenze',false,'competencyNav')}`;
-    user=`<div class="sidebar-user-actions"><button id="syncShifts" class="sidebar-footer-update" type="button"><span>↻</span>Aggiorna</button><small id="syncStatus" class="sidebar-data-status"></small><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`;
-  }else if(page==='trova'){
-    // Elementi tecnici richiesti dal codice di NaviTurni: restano nel DOM ma non sono visibili.
-    specific=`<div hidden aria-hidden="true"><button id="togglePastBtn" type="button"></button><div id="shift-filter-container"><div id="top-residence-buttons"></div><div id="shift-buttons-wrapper"></div></div></div>`;
-    user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`;
-  }else if(page==='turni'){
-    specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button>`;
-    user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`;
-  }else if(page==='terra'||page==='mioturno'||page==='orario'){
-    user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`;
-  }else if(page==='settings'){
-    specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:'';
-    user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`;
-  }else if(page==='agenti'||page==='aggiornamenti'||page==='movimento'){
-    const isAgenti=page==='agenti',isMovimento=page==='movimento';
-    specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',page==='aggiornamenti','aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',page==='agenti','agentiNav')}${item('movimento.html','⚓','Movimento',page==='movimento','movimentoNav')}`;
-    user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`;
-  }else{
-    specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#terra-docs','⛴','Servizi a terra')}${item('#altro-docs','…','Altro')}`;
-    user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`;
-  }
-
-  // Collegamenti amministrativi: solo per gli amministratori e, in coda, dopo le
-  // voci comuni. Su Impostazioni/Agenti/Aggiornamenti sono gia' nella sezione
-  // dedicata, quindi li' non vengono ripetuti.
-  if(isAdminAgent(sessionAgent)&&page!=='settings'&&page!=='agenti'&&page!=='aggiornamenti'&&page!=='movimento'){
-    common+=item('aggiornamenti.html','↻','Aggiornamenti');
-    common+=item('agenti.html','♙','Agenti');
-    common+=item('movimento.html','⚓','Movimento');
-  }
-
+  common=(()=>{ const activeHref={oggi:'oggi.html',turni:'naviturni.html',trova:'cambi_turno.html',diaria:'navidiaria.html',archive:'documenti.html',terra:'orario.html',mioturno:'mio-turno.html',orario:'orario.html'}[page]||''; const selfAnchor={'oggi.html':'#oggi','naviturni.html':'#turni-operativi','cambi_turno.html':'#turni-operativi','navidiaria.html':'#oggi','documenti.html':'#turni-docs'}; return [['index.html?home=1','⌂','Home',''],['mio-turno.html','⚑','Il mio turno','mioTurnoNavLink'],['orario.html','⚓','Scali','orarioNavLink'],['oggi.html','☀','Oggi','oggiNav'],['naviturni.html','▦','NaviTurni',''],['navidiaria.html','≈','Distinta','diariaNavLink'],['documenti.html','▤','Documenti','archiveNavLink'],['impostazioni.html','⚙','Impostazioni',''],['cambi_turno.html','⇄','Cambio turno','trovaTurnoNavLink']].map(([href,icon,label,id])=>{ const active=href===activeHref; return item(active&&selfAnchor[href]?selfAnchor[href]:href,icon,label,active,id); }).join(''); })();
+  if(page==='oggi'){ specific='<span class="sidebar-menu-label">GIORNATA</span>'; user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="window.NaviOggi?.refresh?.()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`; }else if(page==='diaria'){ specific=`<span class="sidebar-menu-label">DIARIA</span>${item('#registro','≡','Registro mese')}${item('#consultivo','≈','Consultivo settimane')}${item('#competenze','◇','Competenze',false,'competencyNav')}`; user=`<div class="sidebar-user-actions"><button id="syncShifts" class="sidebar-footer-update" type="button"><span>↻</span>Aggiorna</button><small id="syncStatus" class="sidebar-data-status"></small><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`; }else if(page==='trova'){ specific=`<div hidden aria-hidden="true"><button id="togglePastBtn" type="button"></button><div id="shift-filter-container"><div id="top-residence-buttons"></div><div id="shift-buttons-wrapper"></div></div></div>`; user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`; }else if(page==='turni'){ specific=`<span class="sidebar-menu-label">TURNI</span><button id="togglePastBtn" class="nav-link sidebar-nav-button" onclick="togglePastColumns()" type="button"><span>◷</span>Mostra passato</button>`; user=`<div class="sidebar-user-actions login-user-panel" id="login-user-panel"><button id="refreshBtn" class="sidebar-footer-update" onclick="ricaricaDati()" type="button"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`; }else if(page==='terra'||page==='mioturno'||page==='orario'){ user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`; }else if(page==='settings'){ specific=isAdminAgent(sessionAgent)?`<span class="sidebar-menu-label">PREFERENZE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni')}${item('agenti.html','♙','Gestione agenti')}`:''; user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`; }else if(page==='agenti'||page==='aggiornamenti'||page==='movimento'){ specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',page==='aggiornamenti','aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',page==='agenti','agentiNav')}${item('movimento.html','⚓','Movimento',page==='movimento','movimentoNav')}`; user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button></div>`; }else{ specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#terra-docs','⛴','Servizi a terra')}${item('#altro-docs','…','Altro')}`; user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><button class="sidebar-action sidebar-exit" id="logoutBtn" type="button">Esci</button></div>`; }
+  if(isAdminAgent(sessionAgent)&&page!=='settings'&&page!=='agenti'&&page!=='aggiornamenti'&&page!=='movimento'){ common+=item('aggiornamenti.html','↻','Aggiornamenti'); common+=item('agenti.html','♙','Agenti'); common+=item('movimento.html','⚓','Movimento'); }
   const brandTitle=page==='oggi'?'NaviSuite Oggi':page==='diaria'?'NaviSuite Diaria':page==='trova'?'NaviSuite Cambi':page==='turni'?'NaviSuite Turni':page==='settings'?'NaviSuite Impostazioni':page==='archive'?'NaviSuite Documenti':page==='agenti'?'NaviSuite Agenti':page==='aggiornamenti'?'NaviSuite Aggiornamenti':page==='movimento'?'NaviSuite Movimento':'NaviSuite';
   const version=`<div class="shared-app-version" aria-label="Versione applicazione">Versione ${APP_VERSION}</div>`;
-
   const brandHref=isBaristaSession?(page==='turni'?'#turni-operativi':'naviturni.html'):'index.html';
   sidebar.innerHTML=`<a class="shared-sidebar-brand" href="${brandHref}"><span class="shared-brand-mark">N</span><strong>${brandTitle}</strong></a><nav>${common}${specific}</nav>${user}${status}${version}`;
-  // Utente di uno scalo: nel menu solo Scali
-  if(Roles.isScaloAgent?.(sessionAgent)){
-    document.body.classList.add('scalo-session');
-    const style=document.createElement('style');
-    const aperte=(Roles.pagineAperte?.(sessionAgent)||['orario.html']).map(f=>`:not([href^="${f}"])`).join('');
-    style.textContent=`body.scalo-session nav a${aperte},`+'body.scalo-session nav button,body.scalo-session nav .sidebar-menu-label,body.scalo-session nav .shifts-filter-block{display:none!important}';
-    document.head.appendChild(style);
-  }
+  if(Roles.isScaloAgent?.(sessionAgent)){ document.body.classList.add('scalo-session'); const style=document.createElement('style'); const aperte=(Roles.pagineAperte?.(sessionAgent)||['orario.html']).map(f=>`:not([href^="${f}"])`).join(''); style.textContent=`body.scalo-session nav a${aperte},`+'body.scalo-session nav button,body.scalo-session nav .sidebar-menu-label,body.scalo-session nav .shifts-filter-block{display:none!important}'; document.head.appendChild(style); }
   if(!canUseDiaria(sessionAgent))sidebar.querySelectorAll('a[href="navidiaria.html"],#diariaNavLink').forEach(link=>link.hidden=true);
   setTimeout(()=>installUnifiedMenu(sessionAgent),0);
-
-  function installThemeSettings(){
-    if(page!=='settings'||!isLightThemeTester||document.getElementById('theme-test-setting'))return;
-    const main=document.querySelector('main');if(!main)return;
-    const section=document.createElement('section');section.id='theme-test-setting';section.className='section';
-    section.innerHTML='<div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è visibile e applicata solo al tuo profilo di test. Si memorizza sul dispositivo.</p></div></div><div class="section-body"><label for="theme-select">Seleziona tema</label><select id="theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>';
-    const target=main.querySelector('.section');if(target)main.insertBefore(section,target);else main.appendChild(section);
-    const select=section.querySelector('select');select.value=currentTheme();
-    select.addEventListener('change',()=>{localStorage.setItem(themeKey,select.value);applyTheme();});
-  }
+  function installThemeSettings(){ if(page!=='settings'||!isLightThemeTester||document.getElementById('theme-test-setting'))return; const main=document.querySelector('main');if(!main)return; const section=document.createElement('section');section.id='theme-test-setting';section.className='section'; section.innerHTML='<div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è visibile e applicata solo al tuo profilo di test. Si memorizza sul dispositivo.</p></div></div><div class="section-body"><label for="theme-select">Seleziona tema</label><select id="theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>'; const target=main.querySelector('.section');if(target)main.insertBefore(section,target);else main.appendChild(section); const select=section.querySelector('select');select.value=currentTheme(); select.addEventListener('change',()=>{localStorage.setItem(themeKey,select.value);applyTheme();}); }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installThemeSettings,{once:true});else installThemeSettings();
-
-  const settingsAgent=sidebar.querySelector('#settingsSidebarAgent');
-  if(settingsAgent) settingsAgent.textContent=String(sessionAgent?.name||sessionAgent?.cognome||'AGENTE').toLocaleUpperCase('it');
-  const settingsLogout=sidebar.querySelector('#settingsLogout');
-  if(settingsLogout)settingsLogout.addEventListener('click',()=>{
-    localStorage.removeItem('navidiaria.activeAgent');
-    localStorage.removeItem('naviturni_logged_agent');
-    location.href='index.html';
-  });
-  const settingsChangePin=sidebar.querySelector('#settingsChangePin');
-  if(settingsChangePin)settingsChangePin.addEventListener('click',()=>{location.href='navidiaria.html?pin=1'});
-
-  const versionEl=sidebar.querySelector('.shared-app-version');
-  if(versionEl){
-    versionEl.style.cssText='margin:10px 12px 8px;padding-top:10px;border-top:1px solid rgba(124,173,189,.18);color:#19e3c1;font-size:11px;font-weight:700;letter-spacing:.04em;text-align:center';
-  }
-
-  const odsStatusEl=sidebar.querySelector('#odsVariationStatus');
-  if(odsStatusEl){
-    odsStatusEl.style.cssText='margin:8px 12px 2px;color:#19e3c1;font-size:11px;font-weight:700;letter-spacing:.04em;text-align:center;white-space:nowrap;background:none;border:none;padding:0';
-  }
-
-
-  function installFilterBubbleStyle(){
-    if(document.getElementById('navi-filter-bubbles-style')) return;
-
-    const style=document.createElement('style');
-    style.id='navi-filter-bubbles-style';
-    style.textContent=`
-      .app-sidebar .top-filter-controls,
-      .app-sidebar .top-residence-controls,
-      .app-sidebar .top-filter-group{
-        display:flex!important;
-        flex-direction:column!important;
-        align-items:center!important;
-        justify-content:center!important;
-        width:100%!important;
-        text-align:center!important;
-      }
-
-      .app-sidebar .filter-label{
-        display:block!important;
-        width:100%!important;
-        margin:5px 0 8px!important;
-        color:#86a5af!important;
-        font-size:9px!important;
-        font-weight:900!important;
-        letter-spacing:.14em!important;
-        text-align:center!important;
-      }
-
-      .app-sidebar #top-residence-buttons,
-      .app-sidebar #coverage-residence-buttons{
-        display:grid!important;
-        grid-template-columns:repeat(2,minmax(0,1fr))!important;
-        align-items:center!important;
-        justify-content:center!important;
-        gap:7px!important;
-        width:100%!important;
-      }
-
-      .app-sidebar #shift-buttons-wrapper,
-      .app-sidebar #coverage-shift-buttons{
-        display:grid!important;
-        grid-template-columns:repeat(3,minmax(0,1fr))!important;
-        align-items:center!important;
-        justify-content:center!important;
-        gap:7px!important;
-        width:100%!important;
-      }
-
-      .app-sidebar #top-residence-buttons button,
-      .app-sidebar #shift-buttons-wrapper button,
-      .app-sidebar #coverage-residence-buttons button,
-      .app-sidebar #coverage-shift-buttons button{
-        --bubble-color:#2dd4bf;
-        --bubble-bg:rgba(45,212,191,.11);
-        display:flex!important;
-        align-items:center!important;
-        justify-content:center!important;
-        width:100%!important;
-        min-width:0!important;
-        min-height:30px!important;
-        margin:0!important;
-        padding:6px 11px!important;
-        border:1px solid color-mix(in srgb,var(--bubble-color) 52%,transparent)!important;
-        border-radius:999px!important;
-        background:var(--bubble-bg)!important;
-        color:var(--bubble-color)!important;
-        box-shadow:inset 0 0 0 1px rgba(255,255,255,.025)!important;
-        font:800 10px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-        letter-spacing:.03em!important;
-        text-transform:uppercase!important;
-        cursor:pointer!important;
-        transition:transform .15s ease,box-shadow .15s ease,background .15s ease!important;
-      }
-
-      .app-sidebar #top-residence-buttons button:hover,
-      .app-sidebar #shift-buttons-wrapper button:hover,
-      .app-sidebar #coverage-residence-buttons button:hover,
-      .app-sidebar #coverage-shift-buttons button:hover{
-        transform:translateY(-1px)!important;
-        box-shadow:0 5px 13px color-mix(in srgb,var(--bubble-color) 18%,transparent)!important;
-      }
-
-      .app-sidebar #top-residence-buttons button.active,
-      .app-sidebar #shift-buttons-wrapper button.active,
-      .app-sidebar #coverage-residence-buttons button.active,
-      .app-sidebar #coverage-shift-buttons button.active{
-        background:var(--bubble-color)!important;
-        border-color:var(--bubble-color)!important;
-        color:#06171d!important;
-        box-shadow:0 0 0 2px color-mix(in srgb,var(--bubble-color) 22%,transparent),
-                   0 5px 15px color-mix(in srgb,var(--bubble-color) 25%,transparent)!important;
-      }
-
-      .app-sidebar .shifts-filter-block{
-        align-items:center!important;
-        justify-content:center!important;
-        width:100%!important;
-        padding:11px 8px!important;
-        border:1px solid rgba(66,105,116,.38)!important;
-        border-radius:13px!important;
-        background:rgba(10,35,45,.56)!important;
-        text-align:center!important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    const residenceColors={
-      DESENZANO:['#22d3ee','rgba(34,211,238,.12)'],
-      MADERNO:['#fb923c','rgba(251,146,60,.12)'],
-      RIVA:['#c084fc','rgba(192,132,252,.12)'],
-      PESCHIERA:['#4ade80','rgba(74,222,128,.12)']
-    };
-
-    const shiftColors={
-      D1:['#5b8cff','rgba(91,140,255,.13)'],
-      R1:['#5b8cff','rgba(91,140,255,.13)'],
-      P1:['#5b8cff','rgba(91,140,255,.13)'],
-      T1:['#5b8cff','rgba(91,140,255,.13)'],
-
-      D2:['#46c98a','rgba(70,201,138,.13)'],
-      R2:['#46c98a','rgba(70,201,138,.13)'],
-      P2:['#46c98a','rgba(70,201,138,.13)'],
-      T2:['#46c98a','rgba(70,201,138,.13)'],
-
-      D3:['#f59a52','rgba(245,154,82,.13)'],
-      R3:['#f59a52','rgba(245,154,82,.13)'],
-      P3:['#f59a52','rgba(245,154,82,.13)'],
-      M1:['#f59a52','rgba(245,154,82,.13)'],
-
-      D4:['#dc74d2','rgba(220,116,210,.13)'],
-      R4:['#dc74d2','rgba(220,116,210,.13)'],
-      P4:['#dc74d2','rgba(220,116,210,.13)'],
-
-      BIS:['#67d7e6','rgba(103,215,230,.13)'],
-      DT:['#f4df57','rgba(244,223,87,.12)'],
-      POND:['#fb9292','rgba(251,146,146,.13)'],
-      PONM:['#fb9292','rgba(251,146,146,.13)'],
-      AGB:['#6eb1ff','rgba(110,177,255,.13)'],
-      AGM:['#6eb1ff','rgba(110,177,255,.13)'],
-      AGT:['#6eb1ff','rgba(110,177,255,.13)'],
-      CAR:['#f973a8','rgba(249,115,168,.13)'],
-      CAP:['#f973a8','rgba(249,115,168,.13)'],
-      SR1:['#a78bfa','rgba(167,139,250,.13)'],
-      TERRA:['#94a3b8','rgba(148,163,184,.13)']
-    };
-
-    function paintButton(button,type){
-      const raw=(button.dataset.res||button.dataset.shift||button.textContent||'')
-        .trim().toUpperCase().replace(/\s+/g,'');
-      const palette=type==='residence'
-        ? residenceColors[raw]
-        : shiftColors[raw] || ['#94a3b8','rgba(148,163,184,.13)'];
-      button.style.setProperty('--bubble-color',palette[0]);
-      button.style.setProperty('--bubble-bg',palette[1]);
-    }
-
-    function refreshFilterBubbleColors(){
-      document.querySelectorAll(
-        '#top-residence-buttons button,#coverage-residence-buttons button'
-      ).forEach(button=>paintButton(button,'residence'));
-
-      document.querySelectorAll(
-        '#shift-buttons-wrapper button,#coverage-shift-buttons button'
-      ).forEach(button=>paintButton(button,'shift'));
-    }
-
-    refreshFilterBubbleColors();
-
-    const observer=new MutationObserver(refreshFilterBubbleColors);
-    [
-      'top-residence-buttons',
-      'shift-buttons-wrapper',
-      'coverage-residence-buttons',
-      'coverage-shift-buttons'
-    ].forEach(id=>{
-      const node=document.getElementById(id);
-      if(node) observer.observe(node,{childList:true,subtree:true});
-    });
-
-    window.refreshFilterBubbleColors=refreshFilterBubbleColors;
-    setTimeout(refreshFilterBubbleColors,250);
-    setTimeout(refreshFilterBubbleColors,1000);
-  }
-
-  installFilterBubbleStyle();
-
-  const diariaNavLink=sidebar.querySelector('#diariaNavLink');if(diariaNavLink)diariaNavLink.hidden=!canUseDiaria(sessionAgent);
-  const archiveNavLink=sidebar.querySelector('#archiveNavLink');if(archiveNavLink)archiveNavLink.hidden=isBaristaAgent(sessionAgent);
-  const terraNavLink=sidebar.querySelector('#terraNavLink');if(terraNavLink)terraNavLink.hidden=isBaristaSession&&!isHibaBarista(sessionAgent);
-  const mioTurnoNavLink=sidebar.querySelector('#mioTurnoNavLink');if(mioTurnoNavLink)mioTurnoNavLink.hidden=isBaristaSession&&!isHibaBarista(sessionAgent);
-  sidebar.classList.add('menu-ready');
-
-  sidebar.addEventListener('click',event=>{
-    const link=event.target.closest('a[data-navi-tab]');
-    if(!link)return;
-    event.preventDefault();
-    const target=window.open(link.href,link.dataset.naviTab);
-    if(target)target.focus();
-  });
-
-  // Menu unico: la sidebar laterale non si mostra piu'. Resta nel DOM, nascosta,
-  // perche' le pagine usano gli elementi al suo interno (filtri, pulsanti, stato).
+  const settingsAgent=sidebar.querySelector('#settingsSidebarAgent'); if(settingsAgent) settingsAgent.textContent=String(sessionAgent?.name||sessionAgent?.cognome||'AGENTE').toLocaleUpperCase('it');
+  const settingsLogout=sidebar.querySelector('#settingsLogout'); if(settingsLogout)settingsLogout.addEventListener('click',()=>{ localStorage.removeItem('navidiaria.activeAgent'); localStorage.removeItem('naviturni_logged_agent'); location.href='index.html'; });
+  const versionEl=sidebar.querySelector('.shared-app-version'); if(versionEl){ versionEl.style.cssText='margin:10px 12px 8px;padding-top:10px;border-top:1px solid rgba(124,173,189,.18);color:#19e3c1;font-size:11px;font-weight:700;letter-spacing:.04em;text-align:center'; }
   document.body.classList.add('menu-collapsed');
-
-  async function refreshOdsVariationStatus(){
-    const target=document.getElementById('odsVariationStatus');if(!target||!window.NaviFirebaseAuth)return;
-    let agent=null;try{agent=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem('naviturni_logged_agent')||'null')}catch{}
-    const agentId=String(agent?.id||'');
-    const pinHash=localStorage.getItem(`navidiaria.pin.${agentId}`)||'';
-    if(!agentId||!pinHash){target.hidden=true;return}
-    try{
-      const result=await NaviFirebaseAuth.request('variation_status',{agentId,pinHash}),info=result.variationStatus;
-      if(!info||Number(info.count)<=1){target.hidden=true;return}
-      target.textContent=`ODS nr. ${info.number}`;
-      target.hidden=false;
-    }catch{
-      target.hidden=true;
-    }
-  }
-
-  window.refreshOdsVariationStatus=refreshOdsVariationStatus;
-  window.addEventListener('DOMContentLoaded',refreshOdsVariationStatus);
-
 })();
-
-
-/* Feedback immediato: la voce selezionata resta visibile durante la navigazione. */
-(() => {
-  const style=document.createElement('style');
-  style.textContent='@keyframes ns-navigation-pulse{0%,100%{opacity:1;filter:none}50%{opacity:.52;filter:brightness(1.35)}}.ns-navigation-pending{pointer-events:none!important;animation:ns-navigation-pulse .55s ease-in-out 1}';
-  document.head.appendChild(style);
-  document.addEventListener('click',event=>{
-    const link=event.target.closest('a[href]');
-    if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target==='_blank'||link.hasAttribute('download'))return;
-    const href=link.getAttribute('href')||'';
-    if(!href||href[0]==='#'||/^javascript:/i.test(href))return;
-    link.classList.add('ns-navigation-pending');
-    link.setAttribute('aria-busy','true');
-  },true);
-})();
+(() => { const style=document.createElement('style'); style.textContent='@keyframes ns-navigation-pulse{0%,100%{opacity:1;filter:none}50%{opacity:.52;filter:brightness(1.35)}}.ns-navigation-pending{pointer-events:none!important;animation:ns-navigation-pulse .55s ease-in-out 1}'; document.head.appendChild(style); document.addEventListener('click',event=>{ const link=event.target.closest('a[href]'); if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target==='_blank'||link.hasAttribute('download'))return; const href=link.getAttribute('href')||''; if(!href||href[0]==='#'||/^javascript:/i.test(href))return; link.classList.add('ns-navigation-pending'); link.setAttribute('aria-busy','true'); },true); })();
