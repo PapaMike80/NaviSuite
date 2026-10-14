@@ -206,8 +206,8 @@
           <input type="date" id="data-turno">
         </div>
         <div class="form-box transparent">
-          <label>Agente (Nome / Sigla)</label>
-          <input type="text" id="agente-nome" placeholder="Es. PEDRONI M.">
+          <label>Agente <span style="color:#fb7185">*</span></label>
+          <select id="agente-nome" required><option value="">— Scegli l'agente —</option></select>
         </div>
         <div class="form-box transparent">
           <label>Scalo</label>
@@ -770,20 +770,91 @@
     };
   }
 
-  function preparaSalvataggio() {
-    calculateAll(); 
-    alert(`Riepilogo pronto per il salvataggio!\n\nAgente: ${datiChiusura.agente}\nScalo: ${datiChiusura.scalo} (${datiChiusura.postazione})\nSaldo in Busta: ${formatEuro(datiChiusura.saldo_versato * 100)}`);
+  // ---------------- Agente e salvataggio su PocketBase ----------------
+  const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
+  const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
+  function sessione() { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) { return null; } }
+  function caricaAgenti() {
+    const sel = document.getElementById('agente-nome');
+    const io = sessione();
+    const elenco = (window.NaviSharedData?.directory?.() || []).filter(a => a && a.id && a.name);
+    if (io?.id && !elenco.some(a => String(a.id) === String(io.id))) elenco.push({ id: io.id, name: io.name || io.agente || String(io.id) });
+    elenco.sort((a, b) => String(a.name).localeCompare(String(b.name), 'it'));
+    const scelto = sel.value || (io?.id ? String(io.id) : '');
+    sel.innerHTML = '<option value="">— Scegli l\'agente —</option>' + elenco.map(a => `<option value="${String(a.id).replace(/"/g, '&quot;')}">${String(a.name).replace(/</g, '&lt;')}</option>`).join('');
+    sel.value = scelto;
+  }
+  function raccogliDati() {
+    calculateAll();
+    const sel = document.getElementById('agente-nome');
+    const conteggi = {};
+    ['mattina', 'diurno', 'sera'].forEach(fase => {
+      conteggi[fase] = {};
+      DENOMINATIONS.forEach(d => { const el = document.getElementById(`qty-${fase}-${d.val}`); if (el) conteggi[fase][d.val] = parseInt(el.value || 0, 10); });
+    });
+    const campi = {};
+    document.querySelectorAll('main input[id], main select[id], .panel input[id], .panel select[id]').forEach(el => {
+      if (/^qty-/.test(el.id)) return;
+      campi[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    const io = sessione();
+    return {
+      agente_id: sel.value,
+      agente_nome: sel.selectedOptions[0]?.textContent || '',
+      data: datiChiusura.data_turno ? `${datiChiusura.data_turno} 12:00:00.000Z` : '',
+      scalo: datiChiusura.scalo,
+      postazione: datiChiusura.postazione,
+      totale_sistema: datiChiusura.totale_sistema,
+      totale_pos: datiChiusura.totale_pos,
+      saldo_versato: datiChiusura.saldo_versato,
+      resto_monete: datiChiusura.resto_monete,
+      discrepanza: datiChiusura.discrepanza,
+      dettagli: { conteggi, campi },
+      inserito_da: io?.id ? `${io.id} ${io.name || ''}`.trim() : '',
+      dispositivo: navigator.userAgent.slice(0, 200)
+    };
+  }
+  async function inviaControlloCassa(record) {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(record), signal: ctrl.signal });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) { const e = new Error(out?.message || `PocketBase ${res.status}`); e.status = res.status; e.data = out; throw e; }
+      return out;
+    } finally { clearTimeout(t); }
+  }
+  async function preparaSalvataggio() {
+    const sel = document.getElementById('agente-nome');
+    if (!sel.value) { alert('Scegli l\'agente prima di salvare.'); sel.focus(); sel.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    const record = raccogliDati();
+    if (!record.data) { alert('Inserisci la data.'); document.getElementById('data-turno').focus(); return; }
+    const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nSaldo in busta: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
+    if (!confirm(`Salvare il controllo cassa?\n\n${riepilogo}`)) return;
+    try {
+      await inviaControlloCassa(record);
+      alert(`✅ Controllo cassa salvato.\n\n${riepilogo}`);
+    } catch (error) {
+      const rete = !navigator.onLine || error?.name === 'TypeError' || error?.name === 'AbortError';
+      if (rete && window.NaviOffline) { window.NaviOffline.accoda('controllo-cassa', record, `${record.data}|${record.agente_id}|${record.postazione}`); alert(`⏳ Senza rete: il controllo è salvato sul telefono e verrà inviato appena torna il segnale.\n\n${riepilogo}`); }
+      else alert(`❌ Controllo non salvato: ${error.message}`);
+    }
   }
 
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
+    caricaAgenti();
+    window.NaviOffline?.gestore('controllo-cassa', inviaControlloCassa);
+    window.NaviSharedData?.load?.('').then(caricaAgenti).catch(() => {});
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
     calculateAll(); 
   });
 </script>
 <script src="assets/js/shared-roles.js?v=6"></script>
+<script src="assets/js/admin-firebase-rest.js?v=76"></script>
+<script src="assets/js/shared-data.js?v=136"></script>
 <script src="assets/js/shared-menu.js?v=1.75"></script>
+<script src="assets/js/offline.js?v=2"></script>
 
 </body>
 </html>
