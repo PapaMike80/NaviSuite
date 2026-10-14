@@ -375,25 +375,22 @@
       
       <div class="form-grid">
         <div class="form-box">
-          <label for="totale-giornaliero-sera">Totale Incasso Finale (€)</label>
+          <label for="totale-giornaliero-sera">Totale incasso</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-sera">Incasso POS Finale (€)</label>
+          <label for="pos-giornaliero-sera">Totale POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
         <div class="form-box">
           <label for="da-stornare-sera">Da Stornare (€)</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
         </div>
-      </div>
-
-      <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere in Cassa:</label>
-          <small style="color: var(--text-muted); margin: 0;">Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
+        <div class="form-box box-contanti-sera">
+          <label>Totale contanti</label>
+          <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent);">€ 400,00</div>
+          <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
         </div>
-        <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent); font-size: 28px; margin: 0;">€ 400,00</div>
       </div>
 
       <!-- SEZIONE B: CONTEGGIO FISICO -->
