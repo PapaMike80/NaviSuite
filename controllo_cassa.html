@@ -129,7 +129,7 @@
     .form-box small { display: block; color: var(--text-muted); font-size: 11px; margin-top: 6px; font-weight: 500; }
 
     /* GRIGLIA COMPATTA INSERIMENTO CONTANTI */
-    .cash-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    .cash-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; margin-bottom: 16px; }
     @media (max-width: 650px) { .cash-split { grid-template-columns: 1fr; } }
     .cash-col { background: rgba(0,0,0,0.15); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; }
     .cash-col h4 { margin: 0 0 16px 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
@@ -219,9 +219,8 @@
     .nota-turno{display:block;margin-top:4px;color:var(--cyan-accent);font-size:12px;font-weight:700}
 
     body.senza-resto #resto-monete-switch,body.senza-resto #box-resto-monete-container,body.senza-resto .riepilogo-resto-item,body.senza-resto .table-wrap th:nth-child(3),body.senza-resto .table-wrap td:nth-child(3){display:none!important}
-    .cassetta-rossa{margin-top:14px;padding:14px 16px;border:1px solid rgba(248,113,113,.45);border-radius:14px;background:rgba(239,68,68,.07)}
-    .cassetta-rossa h4{margin:0 0 10px;color:#fca5a5;font:800 15px Manrope,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em}
-    .cassetta-rossa[hidden]{display:none!important}
+    .cassetta-col h4{display:flex;align-items:center;gap:8px}
+    .cr-icona{display:inline-block;width:12px;height:12px;border-radius:3px;background:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25)}
   </style>
 </head>
 <body>
@@ -305,7 +304,6 @@
       </div>
 
       <div id="grid-container-mattina"></div>
-      <div id="cassetta-rossa-box" class="cassetta-rossa" hidden></div>
 
       <div class="wizard-nav">
         <div></div>
@@ -573,10 +571,22 @@
         </div>`;
     });
     html += `<div class="partial-tot"><span>Totale Banconote</span><span id="tot-banconote-${stepPrefix}">€ 0,00</span></div></div>`;
+    if (cassettaAttiva()) {
+      html += `<div class="cash-col cassetta-col"><h4><span class="cr-icona" aria-hidden="true"></span>Cassetta rossa</h4>`;
+      MONETE.forEach(d => {
+        html += `
+        <div class="cash-row">
+          <label>${d.label}</label>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-cr-${stepPrefix}-${d.val}" value="${countsCassetta[stepPrefix][d.val] || 0}" oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)">
+          <div class="sub" id="subtot-cr-${stepPrefix}-${d.val}">€ 0,00</div>
+        </div>`;
+      });
+      html += `<div class="partial-tot"><span>Totale Cassetta</span><span id="tot-cr-${stepPrefix}">€ 0,00</span></div></div>`;
+    }
     
     html += `</div>
       <div class="grand-tot">
-        <span>TOTALE FISICO:</span> 
+        <span>${stepPrefix === 'mattina' ? 'Totale Fondo Cassa:' : 'TOTALE FISICO:'}</span> 
         <span class="val" id="tot-valore-${stepPrefix}">€ 0,00</span>
       </div>`;
     
@@ -650,25 +660,50 @@
     });
     document.getElementById(`tot-banconote-${stepPrefix}`).textContent = formatEuro(totB);
 
-    const total = totM + totB;
+    const total = totM + totB + cassettaCents(stepPrefix);
     document.getElementById(`tot-valore-${stepPrefix}`).textContent = formatEuro(total);
     return total;
   }
 
-  // ---------------- Cassetta rossa (Desenzano, AgB) ----------------
-  const countsCassetta = { 10: 0, 20: 0, 50: 0, 100: 0, 200: 0 };
+  // ---------------- Cassetta rossa (Desenzano, AgB): fondo di sole monete, in ogni passo ----------------
+  const countsCassetta = { mattina: {}, diurno: {}, sera: {} };
   const cassettaAttiva = () => document.getElementById('postazione-selezionata')?.value === 'AgB (Cassa 1)';
-  function renderCassetta() {
-    const box = document.getElementById('cassetta-rossa-box');
-    box.hidden = !cassettaAttiva();
-    box.innerHTML = `<h4>🟥 Cassetta rossa</h4>` + MONETE.map(d => `<div class="cash-row"><label>${d.label}</label><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-cassetta-${d.val}" value="${countsCassetta[d.val] || 0}" oninput="countsCassetta[${d.val}] = parseInt(this.value || 0, 10) || 0; calculateAll()"><div class="sub" id="subtot-cassetta-${d.val}">€ 0,00</div></div>`).join('') +
-      `<div class="partial-tot"><span>Totale Cassetta rossa</span><span id="tot-cassetta">€ 0,00</span></div>`;
+  const FASI_DOPO = { mattina: ['diurno', 'sera'], diurno: ['sera'], sera: [] };
+  function rendiGriglie() {
+    renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
+    renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
+    renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
   }
-  function calcolaCassetta() {
+  function renderCassetta() { rendiGriglie(); calculateAll(); }
+  function cassettaInput(fase, val) {
+    const n = Math.max(0, parseInt(document.getElementById(`qty-cr-${fase}-${val}`).value || 0, 10) || 0);
+    countsCassetta[fase][val] = n;
+    FASI_DOPO[fase].forEach(f => { countsCassetta[f][val] = n; const el = document.getElementById(`qty-cr-${f}-${val}`); if (el) el.value = n; });
+    calculateAll();
+  }
+  // Prelievo: dalla cassetta rossa ai contanti della cassa (diurno e chiusura)
+  function proponiPrelievo(fase, val, input) {
+    if (fase === 'mattina') return;
+    const d = MONETE.find(x => x.val === val), disponibili = countsCassetta[fase][val] || 0;
+    if (!disponibili) return;
+    const r = prompt(`Prelevare monete da ${d.label} dalla cassetta rossa?\nNella cassetta: ${disponibili}. Scrivi quante (Annulla per correggere il conteggio).`, '');
+    if (r === null || r.trim() === '') return;
+    const n = Math.min(disponibili, Math.max(0, parseInt(r, 10) || 0));
+    if (!n) return;
+    const contanti = { diurno: countsDiurno, sera: countsSera };
+    [fase, ...FASI_DOPO[fase]].forEach(f => {
+      countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) - n);
+      contanti[f][val] = (contanti[f][val] || 0) + n;
+    });
+    input.blur();
+    rendiGriglie(); calculateAll();
+    alert(`✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta rossa e aggiunte alla cassa.`);
+  }
+  function cassettaCents(fase) {
     if (!cassettaAttiva()) return 0;
     let tot = 0;
-    MONETE.forEach(d => { const sub = (countsCassetta[d.val] || 0) * d.val; tot += sub; const el = document.getElementById(`subtot-cassetta-${d.val}`); if (el) el.textContent = formatEuro(sub); });
-    const t = document.getElementById('tot-cassetta'); if (t) t.textContent = formatEuro(tot);
+    MONETE.forEach(d => { const sub = (countsCassetta[fase][d.val] || 0) * d.val; tot += sub; const el = document.getElementById(`subtot-cr-${fase}-${d.val}`); if (el) el.textContent = formatEuro(sub); });
+    const t = document.getElementById(`tot-cr-${fase}`); if (t) t.textContent = formatEuro(tot);
     return tot;
   }
 
@@ -676,11 +711,7 @@
     const targetFondoCents = parseMoney(document.getElementById("fondo-target").value || 400);
     
     // --- 1. MATTINA ---
-    const contantiMattinaCents = calculateSection("mattina", countsMattina);
-    // Cassetta rossa (solo AgB Desenzano): resta come fondo, si somma al totale fisico dell'apertura
-    const cassettaRossaCents = calcolaCassetta();
-    const totFisiciMattinaCents = contantiMattinaCents + cassettaRossaCents;
-    document.getElementById("tot-valore-mattina").textContent = formatEuro(totFisiciMattinaCents);
+    const totFisiciMattinaCents = calculateSection("mattina", countsMattina);
     document.getElementById("fondo-mattina-calc").textContent = formatEuro(totFisiciMattinaCents);
     const diffMattina = totFisiciMattinaCents - targetFondoCents;
     document.getElementById("diff-mattina").textContent = formatEuro(diffMattina);
@@ -702,7 +733,7 @@
     const sG_D = parseMoney(document.getElementById("da-stornare-diurno").value);
 
     const incassoContantiDiurno = tG_D - pG_D - sG_D;
-    const contantiAttesiDiurno = contantiMattinaCents + incassoContantiDiurno;
+    const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno;
     document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
     const diffDiurno = totFisiciDiurnoCents - contantiAttesiDiurno;
     document.getElementById("ctrl-differenza-diurno").textContent = formatEuro(diffDiurno);
@@ -717,9 +748,9 @@
     
     // Formula esatta: Fondo Mattina + (Totale Sistema - POS - Storni)
     const incassoContantiSera = totGiornoCents - posGiornoCents - storniSeraCents;
-    const contantiAttesiSera = contantiMattinaCents + incassoContantiSera;
+    const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera;
 
-    document.getElementById("box-fm-sera").textContent = formatEuro(contantiMattinaCents);
+    document.getElementById("box-fm-sera").textContent = formatEuro(totFisiciMattinaCents);
     document.getElementById("box-ic-sera").textContent = formatEuro(incassoContantiSera);
     document.getElementById("contanti-attesi-calc-sera").textContent = formatEuro(contantiAttesiSera);
 
@@ -893,7 +924,7 @@
       conteggi[fase] = {};
       DENOMINATIONS.forEach(d => { const el = document.getElementById(`qty-${fase}-${d.val}`); if (el) conteggi[fase][d.val] = parseInt(el.value || 0, 10); });
     });
-    conteggi.cassetta_rossa = cassettaAttiva() ? { ...countsCassetta } : null;
+    conteggi.cassetta_rossa = cassettaAttiva() ? JSON.parse(JSON.stringify(countsCassetta)) : null;
     const campi = {};
     document.querySelectorAll('main input[id], main select[id], .panel input[id], .panel select[id]').forEach(el => {
       if (/^qty-/.test(el.id)) return;
@@ -982,7 +1013,7 @@
     renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
-    MONETE.forEach(d => { countsCassetta[d.val] = Number(c.cassetta_rossa?.[d.val]) || 0; });
+    ['mattina', 'diurno', 'sera'].forEach(f => MONETE.forEach(d => { const v = c.cassetta_rossa?.[f]?.[d.val] ?? c.cassetta_rossa?.[d.val]; countsCassetta[f][d.val] = Number(v) || 0; }));
     Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
     if (r.agente_id) { document.getElementById('agente-nome').value = r.agente_nome || ''; document.getElementById('agente-id').value = String(r.agente_id); }
     sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || ''; riempiPostazioni(r.postazione || ''); controllaIntestazione();
