@@ -221,6 +221,7 @@
     body.senza-resto #resto-monete-switch,body.senza-resto #box-resto-monete-container,body.senza-resto .riepilogo-resto-item,body.senza-resto .table-wrap th:nth-child(3),body.senza-resto .table-wrap td:nth-child(3){display:none!important}
     .cassetta-col h4{display:flex;align-items:center;gap:8px}
     .cr-icona{display:inline-block;width:12px;height:12px;border-radius:3px;background:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25)}
+    .stato-salvataggio{margin:-10px 2px 14px;color:var(--cyan-accent);font-size:13px;font-weight:700;min-height:1em}
   </style>
 </head>
 <body>
@@ -263,6 +264,7 @@
     </div>
   </div>
 
+  <p id="stato-salvataggio" class="stato-salvataggio"></p>
   <p class="cassa-avviso">Scegli agente, scalo e postazione per iniziare il controllo.</p>
 
   <!-- STORICO DEL GIORNO -->
@@ -482,7 +484,7 @@
 
       <div class="wizard-nav" style="margin-top: 24px;">
         <button class="secondary-button" onclick="goToStep(2)">← Indietro (Diurno)</button>
-        <button class="primary-button" style="background: var(--cyan-accent); color: var(--bg-main);" onclick="preparaSalvataggio()">Conferma & Salva a Database</button>
+        <button class="primary-button" style="background: var(--cyan-accent); color: var(--bg-main);" onclick="salvaManuale()">Salva ora</button>
       </div>
     </div>
   </div>
@@ -886,6 +888,7 @@
     nome.classList.toggle('non-valido', !!nome.value && !a);
     if (a) postazioneDalTurno();
     controllaIntestazione();
+    if (a) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0);
   }
   function riempiPostazioni(scelta = '') {
     const scalo = document.getElementById('scalo-selezionato').value, sel = document.getElementById('postazione-selezionata');
@@ -910,6 +913,7 @@
     impostaRegoleScalo();
     const nota = document.getElementById('nota-turno'); if (nota) nota.textContent = `Dal turno di oggi: ${turno}`;
     controllaIntestazione();
+    setTimeout(caricaGiorno, 0);
   }
   // Senza agente, scalo e postazione il resto della pagina resta nascosto
   function controllaIntestazione() {
@@ -956,6 +960,10 @@
       return out;
     } finally { clearTimeout(t); }
   }
+  async function salvaManuale() {
+    if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione.'); return; }
+    alert(await salvaOra() ? '✅ Controllo cassa salvato.' : '❌ Controllo non salvato: riprova.');
+  }
   async function preparaSalvataggio() {
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione prima di salvare.'); document.getElementById('agente-nome').focus(); return; }
     const record = raccogliDati();
@@ -988,17 +996,20 @@
     const giorno = document.getElementById('data-turno').value;
     if (!giorno) { box.innerHTML = '<p class="storico-vuoto">Scegli una data.</p>'; return; }
     box.innerHTML = '<p class="storico-vuoto">Caricamento…</p>';
-    const filtro = `data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
+    const mioId = document.getElementById('agente-id').value || String(sessione()?.id || '');
+    const admin = !!window.NaviRoles?.isAdminAgent?.(sessione());
+    document.querySelector('.storico-head h3').textContent = admin ? 'Salvataggi del giorno · tutti gli agenti' : 'I tuoi salvataggi del giorno';
+    const filtro = `data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"` + (admin ? '' : ` && agente_id = "${mioId.replace(/"/g, '')}"`);
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=100&sort=-created&filter=${encodeURIComponent(filtro)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=200&sort=agente_nome,-updated&filter=${encodeURIComponent(filtro)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
       storico = out.items || [];
       if (!storico.length) { box.innerHTML = `<p class="storico-vuoto">Nessun controllo salvato il ${new Date(giorno + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}.</p>`; return; }
       const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       box.innerHTML = storico.map((r, i) => {
-        const ora = r.created ? new Date(r.created.replace(' ', 'T')).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
+        const ora = (r.updated || r.created) ? new Date((r.updated || r.created).replace(' ', 'T')).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
         const disc = Number(r.discrepanza) || 0;
         return `<button type="button" class="storico-voce" data-storico="${i}"><span class="ora">${e(ora)}</span><span class="chi">${e(r.agente_nome)}</span><span class="soldi" style="color:${disc === 0 ? 'var(--accent-green)' : disc > 0 ? 'var(--ok-color)' : 'var(--accent-red)'}">${disc === 0 ? 'OK' : (disc > 0 ? '+' : '') + formatEuro(Math.round(disc * 100))}</span><span class="dove">${e(r.scalo)} · ${e(r.postazione)} · in busta ${formatEuro(Math.round((Number(r.saldo_versato) || 0) * 100))}${r.inserito_da && !String(r.inserito_da).startsWith(String(r.agente_id) + ' ') ? ` · inserito da ${e(r.inserito_da.replace(/^\S+\s*/, ''))}` : ''}</span></button>`;
       }).join('');
@@ -1023,15 +1034,94 @@
     const b = e.target.closest('[data-storico]'); if (!b) return;
     const r = storico[Number(b.dataset.storico)]; if (!r) return;
     if (!confirm(`Aprire il controllo di ${r.agente_nome} (${r.scalo} · ${r.postazione})?\nI dati in pagina verranno sostituiti.`)) return;
+    caricando = true;
     document.querySelectorAll('.storico-voce').forEach(x => x.classList.toggle('aperto', x === b));
-    apriSalvataggio(r);
+    apriSalvataggio(r); recordId = String(r.agente_id) === document.getElementById('agente-id').value ? r.id : null; caricando = false;
   });
   document.getElementById('storico-aggiorna').addEventListener('click', caricaStorico);
   document.querySelectorAll('[data-giorno]').forEach(b => b.addEventListener('click', () => {
     const el = document.getElementById('data-turno'), d = el.value ? new Date(el.value + 'T12:00:00') : new Date();
-    d.setDate(d.getDate() + Number(b.dataset.giorno)); el.value = d.toISOString().slice(0, 10); caricaStorico();
+    d.setDate(d.getDate() + Number(b.dataset.giorno)); el.value = d.toISOString().slice(0, 10);
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }));
-  document.getElementById('data-turno').addEventListener('change', caricaStorico);
+
+  // ---------------- Salvataggio automatico: un solo salvataggio per agente e giorno ----------------
+  let caricando = false, recordId = null, timerSalva = 0, chiaveGiorno = '';
+  const statoSalva = t => { const el = document.getElementById('stato-salvataggio'); if (el) el.textContent = t; };
+  const giornoSel = () => document.getElementById('data-turno').value;
+  async function pb(path, opts = {}) {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records${path}`, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) { const e = new Error(out?.message || `PocketBase ${res.status}`); e.status = res.status; throw e; }
+      return out;
+    } finally { clearTimeout(t); }
+  }
+  const q = v => String(v || '').replace(/"/g, '');
+  async function trovaMio(agenteId, giorno) {
+    const f = `agente_id = "${q(agenteId)}" && data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
+    return (await pb(`?perPage=1&sort=-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
+  }
+  // salva o aggiorna il record dell'agente per quel giorno (usato anche dalla coda senza rete)
+  async function upsertControllo(record) {
+    const giorno = String(record.data).slice(0, 10);
+    const esistente = record._id ? { id: record._id } : await trovaMio(record.agente_id, giorno);
+    const corpo = { ...record }; delete corpo._id;
+    return esistente ? pb(`/${encodeURIComponent(esistente.id)}`, { method: 'PATCH', body: JSON.stringify(corpo) }) : pb('', { method: 'POST', body: JSON.stringify(corpo) });
+  }
+  function pianificaSalvataggio() {
+    if (caricando || !controllaIntestazione() || !giornoSel()) return;
+    clearTimeout(timerSalva); statoSalva('Modifiche non ancora salvate…');
+    timerSalva = setTimeout(salvaOra, 1500);
+  }
+  async function salvaOra() {
+    clearTimeout(timerSalva);
+    if (caricando || !controllaIntestazione()) return false;
+    const record = raccogliDati(); record._id = recordId;
+    statoSalva('Salvataggio…');
+    try {
+      const out = await upsertControllo(record); recordId = out.id;
+      statoSalva(`✓ Salvato alle ${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`);
+      caricaStorico(); return true;
+    } catch (error) {
+      const rete = !navigator.onLine || error?.name === 'TypeError' || error?.name === 'AbortError';
+      if (rete && window.NaviOffline) { window.NaviOffline.accoda('controllo-cassa', record, `${record.agente_id}|${String(record.data).slice(0, 10)}`); statoSalva('⏳ Senza rete: salvato sul telefono, partirà al ritorno del segnale'); return true; }
+      statoSalva(`❌ Non salvato: ${error.message}`); return false;
+    }
+  }
+  // Cambio di data/agente/postazione: il proprio salvataggio del giorno, altrimenti giornata nuova
+  // con totali di sistema a zero e il fondo cassa dell'ultimo salvataggio di quella postazione.
+  function azzeraConteggi() {
+    [countsMattina, countsDiurno, countsSera].forEach(o => DENOMINATIONS.forEach(d => { o[d.val] = 0; }));
+    ['mattina', 'diurno', 'sera'].forEach(f => MONETE.forEach(d => { countsCassetta[f][d.val] = 0; }));
+  }
+  async function caricaGiorno() {
+    const id = document.getElementById('agente-id').value, giorno = giornoSel(), post = document.getElementById('postazione-selezionata').value;
+    const chiave = `${id}|${giorno}|${post}`;
+    if (!controllaIntestazione() || chiave === chiaveGiorno) return;
+    chiaveGiorno = chiave; clearTimeout(timerSalva); caricando = true; recordId = null;
+    statoSalva('Caricamento…');
+    try {
+      const mio = await trovaMio(id, giorno);
+      if (mio) { apriSalvataggio(mio); recordId = mio.id; statoSalva(`✓ Ultimo salvataggio: ${new Date(String(mio.updated || mio.created).replace(' ', 'T')).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`); return; }
+      const f = `postazione = "${q(post)}" && data <= "${giorno} 23:59:59"`;
+      const prec = (await pb(`?perPage=1&sort=-data,-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
+      azzeraConteggi();
+      const c = prec?.dettagli?.conteggi || {};
+      DENOMINATIONS.forEach(d => { const v = Number(c.mattina?.[d.val]) || 0; countsMattina[d.val] = v; countsDiurno[d.val] = v; countsSera[d.val] = v; });
+      MONETE.forEach(d => { const v = Number(c.cassetta_rossa?.mattina?.[d.val]) || 0; ['mattina', 'diurno', 'sera'].forEach(fz => { countsCassetta[fz][d.val] = v; }); });
+      if (prec?.dettagli?.campi?.['fondo-target']) document.getElementById('fondo-target').value = prec.dettagli.campi['fondo-target'];
+      ['totale-giornaliero-diurno', 'pos-giornaliero-diurno', 'da-stornare-diurno', 'totale-giornaliero-sera', 'pos-giornaliero-sera', 'da-stornare-sera'].forEach(x => { const el = document.getElementById(x); if (el) el.value = '0.00'; });
+      rendiGriglie(); calculateAll();
+      statoSalva(prec ? `Giornata nuova · fondo cassa dal ${new Date(String(prec.data).slice(0, 10) + 'T12:00:00').toLocaleDateString('it-IT')}` : 'Giornata nuova · nessun fondo cassa salvato prima di questa data');
+    } catch (error) {
+      chiaveGiorno = '';
+      statoSalva(`Dati non caricati: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}`);
+    } finally { caricando = false; }
+  }
+  const calcolaTutto = calculateAll;
+  calculateAll = function () { calcolaTutto.apply(this, arguments); pianificaSalvataggio(); };
 
   window.addEventListener("DOMContentLoaded", () => { 
     initTables(); 
@@ -1040,12 +1130,17 @@
     nomeEl.addEventListener('input', agenteDaNome); nomeEl.addEventListener('change', agenteDaNome);
     document.getElementById('data-turno').addEventListener('change', () => { sceltaManuale = false; postazioneDalTurno(); });
     caricaAgenti();
-    window.NaviOffline?.gestore('controllo-cassa', inviaControlloCassa);
+    window.NaviOffline?.gestore('controllo-cassa', upsertControllo);
+    document.addEventListener('change', e => { if (['data-turno', 'agente-nome', 'scalo-selezionato', 'postazione-selezionata'].includes(e.target.id)) setTimeout(() => { caricaGiorno(); caricaStorico(); }, 0); });
+    window.addEventListener('pagehide', () => { if (timerSalva) salvaOra(); });
     Promise.resolve(window.NaviSharedData?.loadCacheFirst?.(data => { schedule = data; caricaAgenti(); postazioneDalTurno(); })).catch(() => {});
-    caricaStorico();
+    caricando = true;
     MONETE.forEach(d => syncMattina(d.val));
     BANCONOTE.forEach(d => syncMattina(d.val));
-    calculateAll(); 
+    calculateAll();
+    caricando = false;
+    caricaStorico();
+    setTimeout(caricaGiorno, 300);
   });
 </script>
 <script src="assets/js/shared-roles.js?v=6"></script>
