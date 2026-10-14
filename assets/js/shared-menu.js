@@ -85,10 +85,10 @@
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
       ['cambi_turno.html','⇄','Cambio'],
+      ['controllo_cassa.html','¤','Cassa'],
       ['quiz.html','✎','Quiz'],
       ['impostazioni.html','⚙','Impostazioni'],
-      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[]),
-      ['controllo_cassa.html','¤','Cassa']
+      ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento']]:[])
     ];
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
     // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
