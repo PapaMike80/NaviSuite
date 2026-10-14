@@ -7,7 +7,7 @@
     "listRule": "",
     "viewRule": "",
     "createRule": "",
-    "updateRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "updateRule": "",
     "deleteRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "fields": [
       {
