@@ -2865,7 +2865,14 @@
       };
     }
 
+    function hasScheduleRows(data) {
+      return Object.values(data?.residenze || {}).some(agents =>
+        Array.isArray(agents) && agents.length > 0
+      );
+    }
+
     function processJSONData(data, { soft = false } = {}) {
+      if (!hasScheduleRows(data)) throw new Error("Il prospetto non contiene turni.");
       data = adattaFormatoNaviturni(data);
       data = applyOdsVariations(data);
       // Ogni risposta (cache locale o rete) contiene nuovamente il dataset
@@ -2885,7 +2892,9 @@
       inizializzaCalendario();
       buildTableHeader();
       document.getElementById("stat-status").textContent = "Aggiornati";
-      document.getElementById("welcome-notice").style.display = "none";
+      const welcomeNotice = document.getElementById("welcome-notice");
+      welcomeNotice.classList.remove("is-error");
+      welcomeNotice.style.display = "none";
       
       // Aggiorna il periodo nel titolo
       if (data.periodo) {
@@ -3107,6 +3116,18 @@
       // sicurezza se quella copia mancava o era illeggibile.
       return NaviSharedData.loadCacheFirst((datiJson, { stale }) => {
         const menuStatus = document.getElementById("turniMenuStatus");
+        if (!hasScheduleRows(datiJson)) {
+          const message = "Il database non contiene turni validi; mantengo l'ultima copia disponibile.";
+          if (localDataShown) {
+            document.getElementById("upload-status").textContent = "⚠️ " + message;
+          } else {
+            const welcomeNotice = document.getElementById("welcome-notice");
+            welcomeNotice.classList.add("is-error");
+            welcomeNotice.innerHTML = `<h3>⚠️ Turni non disponibili</h3><p>${message}</p>`;
+            welcomeNotice.style.display = "block";
+          }
+          return;
+        }
         const signature = JSON.stringify(datiJson);
         if (stale) {
           if (localDataShown) return;
