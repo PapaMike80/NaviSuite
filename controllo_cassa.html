@@ -464,7 +464,7 @@
             <div class="val" id="riepilogo-totale" style="color: var(--text-main);">€ 0,00</div>
           </div>
           <div class="riepilogo-item" style="border-color: var(--ok-color); background: rgba(245, 176, 65, 0.05);">
-            <label style="color: var(--ok-color);">Saldo Busta</label>
+            <label style="color: var(--ok-color);">Totale contanti</label>
             <div class="val" id="riepilogo-saldo" style="color: var(--ok-color);">€ 0,00</div>
           </div>
           <div class="riepilogo-item">
@@ -984,7 +984,7 @@
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione prima di salvare.'); document.getElementById('agente-nome').focus(); return; }
     const record = raccogliDati();
     if (!record.data) { alert('Inserisci la data.'); document.getElementById('data-turno').focus(); return; }
-    const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nSaldo in busta: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
+    const riepilogo = `Agente: ${record.agente_nome}\nScalo: ${record.scalo} (${record.postazione})\nTotale contanti: ${formatEuro(Math.round(record.saldo_versato * 100))}`;
     if (!confirm(`Salvare il controllo cassa?\n\n${riepilogo}`)) return;
     try {
       await inviaControlloCassa(record);
