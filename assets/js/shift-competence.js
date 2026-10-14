@@ -97,12 +97,19 @@
   ];
 
   // Elenco ordinato per data di decorrenza (vuota = sempre valida, e' la base).
+  // stagione: 'estivo' oppure 'invernale' (autunno, inverno e primavera): le competenze modificate
+  // dall'admin per una stagione (shift.stagioni[stagione]) valgono in tutti i giorni di quella stagione.
   const COMPETENCE_SETS = [
-    { from: '', shifts: DEFAULT_SHIFTS },
-    { from: '2026-10-05', shifts: SHIFTS_FROM_2026_10_05 },
-    { from: '2026-11-02', shifts: SHIFTS_FROM_2026_11_02 },
-    { from: '2027-03-13', shifts: SHIFTS_FROM_2027_03_13 }
+    { from: '', stagione: 'estivo', shifts: DEFAULT_SHIFTS },
+    { from: '2026-10-05', stagione: 'invernale', shifts: SHIFTS_FROM_2026_10_05 },
+    { from: '2026-11-02', stagione: 'invernale', shifts: SHIFTS_FROM_2026_11_02 },
+    { from: '2027-03-13', stagione: 'invernale', shifts: SHIFTS_FROM_2027_03_13 }
   ];
+  const STAGIONI = { estivo: 'Estivo', invernale: 'Autunno · Inverno · Primavera' };
+  function stagioneDi(dateIso) {
+    const date = String(dateIso || todayIsoLocal()).slice(0, 10);
+    return COMPETENCE_SETS.filter(set => !set.from || date >= set.from).pop()?.stagione || 'estivo';
+  }
 
   function todayIsoLocal() {
     const now = new Date();
@@ -133,6 +140,12 @@
         merged.set(override.code, { ...(merged.get(override.code) || {}), ...override });
       });
     });
+    // competenze della stagione modificate dall'admin (sopra ai valori dell'O.d.S.)
+    const stagione = stagioneDi(date);
+    base.forEach(shift => {
+      const mod = shift?.stagioni?.[stagione];
+      if (mod && typeof mod === 'object') merged.set(shift.code, { ...(merged.get(shift.code) || {}), ...mod });
+    });
     if (isFriday(date)) {
       merged.forEach(shift => { if (shift.code in FRIDAY_HOURS) shift.hours = FRIDAY_HOURS[shift.code]; });
     }
@@ -156,7 +169,14 @@
     return list.find(shift => shift.code === code) || list.find(shift => shift.code === wanted) || list.at(-1);
   }
 
-  const api = { DEFAULT_SHIFTS, COMPETENCE_SETS, shiftsFor, shiftForCode, canonicalCode, todayIsoLocal, isFriday };
+  // Indennita' aliscafo: dalla competenza del servizio (di base solo SR1)
+  function aliscafo(code, dateIso, baseShifts) {
+    const s = shiftForCode(code, dateIso, baseShifts);
+    if (s && s.code === canonicalCode(code) && s.hydrofoil !== undefined) return !!s.hydrofoil;
+    return String(code || '').toUpperCase() === 'SR1';
+  }
+
+  const api = { DEFAULT_SHIFTS, COMPETENCE_SETS, STAGIONI, stagioneDi, shiftsFor, shiftForCode, canonicalCode, todayIsoLocal, isFriday, aliscafo };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.NaviShiftCompetence = api;
 })(typeof window !== 'undefined' ? window : globalThis);

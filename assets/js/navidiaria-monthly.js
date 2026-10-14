@@ -21,7 +21,7 @@ try{(()=>{
     {key:'second-ticket',label:'Secondo ticket',mobileLabel:'2 ticket',kind:'toggle',field:'secondMeal',value:e=>check(isWorking(e)&&e.secondMeal)},
     {key:'embark',label:'Ind. imbarco',mobileLabel:'Imbarco',kind:'toggle',field:'embark',value:e=>check(isWorking(e)&&e.embark)},
     {key:'cashHandling',label:'Maneggio denaro',mobileLabel:'Denaro',kind:'toggle',field:'cashHandling',value:e=>check(isWorking(e)&&e.cashHandling)},
-    {key:'hydrofoil',label:'Ind. aliscafo',mobileLabel:'Aliscafo',kind:'computed',value:e=>check(isWorking(e)&&String(e.shift).toUpperCase()==='SR1')},
+    {key:'hydrofoil',label:'Ind. aliscafo',mobileLabel:'Aliscafo',kind:'computed',value:e=>check(isWorking(e)&&(globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1'))},
     {key:'rf',label:'Recupero forfait',mobileLabel:'Recup.',kind:'toggle',field:'rf',value:e=>check(isWorking(e)&&e.rf)}
   ];
   function isWorking(e){return !!e&&!['RIPOSO','RIP','MALATTIA'].includes(String(e.shift||'').toUpperCase())}
@@ -71,7 +71,7 @@ try{(()=>{
     case 'second-ticket':return worked.filter(e=>e.secondMeal).length||'';
     case 'embark':return worked.filter(e=>e.embark).length||'';
     case 'cashHandling':return worked.filter(e=>e.cashHandling).length||'';
-    case 'hydrofoil':return worked.filter(e=>String(e.shift).toUpperCase()==='SR1').length||'';
+    case 'hydrofoil':return worked.filter(e=>(globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1')).length||'';
     case 'rf':return worked.filter(e=>e.rf).length||'';
     default:return '';
   }}

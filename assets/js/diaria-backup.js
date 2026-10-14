@@ -92,7 +92,7 @@
       banca: gg.reduce((s, e) => s + (Math.round(Number(e.bank) || 0)), 0) + Math.round(trasformati * 1.1),
       ticket: n(ticketDaLiquidare), ticket2: n(e => Number(e.secondMeal) > 0), d9: n(e => Number(e.allowanceRate) === 9), d24: n(e => Number(e.allowanceRate) === 24), d50: n(e => Number(e.allowanceRate) === 50),
       pernotto: n(e => e.overnight40), festivi: n(festivo), domeniche: n(e => new Date(`${e.date}T12:00:00`).getDay() === 0), imbarco: n(e => e.embark), denaro: n(e => e.cashHandling),
-      aliscafo: n(e => (e.hydrofoil === undefined ? String(e.shift).toUpperCase() === 'SR1' : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
+      aliscafo: n(e => (e.hydrofoil === undefined ? (globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1') : Number(e.hydrofoil) > 0)), rf: n(e => e.rf), trasferte: n(e => e.travel),
       rifornimenti: n(e => e.refuelDone === true || Number(e.refuel) > 0), cambi: lav.reduce((s, e) => s + causali(e).cambio, 0), sentine: lav.reduce((s, e) => s + causali(e).sentine, 0),
       mancatiRiposi: lav.reduce((s, e) => s + (Number(e.missedRest) || 0), 0) };
   }
