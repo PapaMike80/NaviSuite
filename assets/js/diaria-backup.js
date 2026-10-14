@@ -80,7 +80,9 @@
     if (!conTurno(e)) return false;
     const SC = root.NaviShiftCompetence;
     if (!SC?.shiftForCode) return e.ticketPresence !== undefined || !!e.mealUsed;
-    return !!SC.shiftForCode(e.shift, e.date, SC.DEFAULT_SHIFTS)?.meal;
+    // stessa tabella turni della Distinta (app.js SHIFTS) quando c'e', cosi' i ticket dovuti coincidono
+    const base = (typeof SHIFTS !== 'undefined' && SHIFTS) || SC.DEFAULT_SHIFTS;
+    return !!SC.shiftForCode(e.shift, e.date, base)?.meal;
   }
   const ticketDaLiquidare = e => ticketDovuto(e) && !ticketUsato(e);
   function competenze(entries, conversioni, periodo, settimane = settimaneDi(entries, periodo)) {

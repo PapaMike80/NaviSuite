@@ -11,7 +11,7 @@ try{(()=>{
     {key:'hours',label:'Ore lavorate',mobileLabel:'Ore lav.',unit:'H',kind:'worked',field:'workedMinutes',value:e=>isWorking(e)?clock(workedMinutes(e)):''},
     {key:'overtime',label:'STRAORDINARI',mobileLabel:'Straord.',unit:'H',kind:'number',field:'delay',value:e=>isWorking(e)&&overtimeTotal(e)?clock(overtimeTotal(e)):''},
     {key:'bank',label:'Banca ore',mobileLabel:'Banca',unit:'H',kind:'bank',field:'bank',value:e=>isWorking(e)?bankText(e.bank):''},
-    {key:'ticket',label:'Ticket usato',mobileLabel:'Ticket',kind:'ticket',value:e=>ticketText(e)},
+    {key:'ticket',label:'Ticket',mobileLabel:'Ticket',kind:'ticket',value:e=>ticketText(e)},
     {key:'allowance9',label:'Diaria 9%',mobileLabel:'D. 9%',kind:'allowance',rate:9,value:e=>check(isWorking(e)&&Number(e.allowanceRate)===9)},
     {key:'allowance24',label:'Diaria 24%',mobileLabel:'D. 24%',kind:'allowance',rate:24,value:e=>check(isWorking(e)&&Number(e.allowanceRate)===24)},
     {key:'allowance50',label:'Diaria 50%',mobileLabel:'D. 50%',kind:'allowance',rate:50,value:e=>check(isWorking(e)&&Number(e.allowanceRate)===50)},
@@ -61,7 +61,7 @@ try{(()=>{
     case 'hours':return actual?clock(actual):'';
     case 'overtime':{const overtimeMinutes=weekGroups.reduce((total,group)=>total+Math.max(0,group.filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60),0);return overtimeMinutes?clock(overtimeMinutes):''}
     case 'bank':{const bank=worked.reduce((sum,e)=>sum+(Number(e.bank)||0),0);return bank?signedClock(bank):''}
-    case 'ticket':{const due=worked.filter(ticketDue).length,used=worked.filter(e=>ticketDue(e)&&ticketValue(e)).length;return due?`${used}/${due}`:''}
+    case 'ticket':{const due=worked.filter(ticketDue).length,used=worked.filter(e=>ticketDue(e)&&ticketValue(e)).length;return due?String(due-used):''}
     case 'allowance9':return worked.filter(e=>Number(e.allowanceRate)===9).length||'';
     case 'allowance24':return worked.filter(e=>Number(e.allowanceRate)===24).length||'';
     case 'allowance50':return worked.filter(e=>Number(e.allowanceRate)===50).length||'';

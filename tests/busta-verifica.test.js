@@ -259,7 +259,7 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
     hours: t.workedMinutes ? clock(t.workedMinutes) : '',
     overtime: t.overtimeMinutes ? clock(t.overtimeMinutes) : '',
     bank: t.bankMinutes ? signedClock(t.bankMinutes) : '',
-    ticket: t.ticketDue ? `${t.ticketUsed}/${t.ticketDue}` : '',
+    ticket: t.ticketDue ? String(t.ticketDue - t.ticketUsed) : '',
     allowance9: t.allowance9 || '', allowance24: t.allowance24 || '', allowance50: t.allowance50 || '',
     overnight40: t.overnight40 || '', holiday: t.holiday || '', sundayShift: t.sundayShift || '',
     'second-ticket': t.secondMeal || '', embark: t.embark || '', cashHandling: t.cashHandling || '',
