@@ -1120,8 +1120,20 @@
     chiaveGiorno = chiave; clearTimeout(timerSalva); caricando = true; recordId = null;
     statoSalva('Caricamento…');
     try {
-      const mio = await trovaMio(id, giorno);
-      if (mio) { apriSalvataggio(mio); recordId = mio.id; ultimaImpronta = impronta(raccogliDati()); statoSalva(`✓ Ultimo salvataggio: ${new Date(String(mio.updated || mio.created).replace(' ', 'T')).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`); return; }
+      // tutti i dati dell'ultimo salvataggio di questa postazione in questo giorno, di chiunque sia
+      const fg = `postazione = "${q(post)}" && data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
+      const ultimo = (await pb(`?perPage=1&sort=-updated&filter=${encodeURIComponent(fg)}`)).items?.[0] || null;
+      if (ultimo) {
+        const nomeAg = document.getElementById('agente-nome').value, idAg = id;
+        apriSalvataggio(ultimo);
+        // l'agente resta chi sta lavorando ora: modificando, i dati vanno nel suo salvataggio
+        document.getElementById('agente-nome').value = nomeAg; document.getElementById('agente-id').value = idAg;
+        recordId = String(ultimo.agente_id) === String(idAg) ? ultimo.id : null;
+        ultimaImpronta = impronta(raccogliDati());
+        const quando = new Date(String(ultimo.updated || ultimo.created).replace(' ', 'T')).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        statoSalva(String(ultimo.agente_id) === String(idAg) ? `✓ Ultimo salvataggio: ${quando}` : `Dati di ${ultimo.agente_nome} del ${quando}`);
+        return;
+      }
       const f = `postazione = "${q(post)}" && data <= "${giorno} 23:59:59"`;
       const prec = (await pb(`?perPage=1&sort=-data,-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
       azzeraConteggi();
