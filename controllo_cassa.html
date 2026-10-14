@@ -35,8 +35,94 @@
 
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg-main); color: var(--text-main); font-family: "DM Sans", sans-serif; padding: 20px; }
+    body.menu-open { overflow: hidden; }
     
     .container { max-width: 1000px; margin: 0 auto; }
+
+    .menu-button {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 9000;
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid #315460;
+      border-radius: 10px;
+      background: #0d2c37;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      place-items: center;
+    }
+
+    .cassa-menu-overlay[hidden] { display: none !important; }
+    .cassa-menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(2, 12, 17, .68);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px;
+    }
+    .cassa-menu-panel {
+      width: min(360px, 100%);
+      background: linear-gradient(165deg,#102e39,#0a222c);
+      border: 1px solid #2e6971;
+      border-radius: 24px;
+      box-shadow: 0 22px 56px rgba(0,0,0,.5);
+      overflow: hidden;
+    }
+    .cassa-menu-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 18px 14px;
+      color: #a7fff0;
+      font: 900 22px/1 Manrope, system-ui, sans-serif;
+    }
+    .cassa-menu-close {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(126,243,226,.35);
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      color: #eafffb;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .cassa-menu-links {
+      display: grid;
+      gap: 8px;
+      padding: 0 14px 14px;
+    }
+    .cassa-menu-links a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #285560;
+      border-radius: 16px;
+      background: rgba(255,255,255,.025);
+      color: #e8f7f7;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .cassa-menu-links a span {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(45,212,191,.12);
+      color: #2dd4bf;
+      flex: none;
+    }
 
     /* WIZARD TABS STICKY */
     .wizard-steps {
@@ -116,8 +202,8 @@
     .cash-row label { margin: 0; color: var(--text-main); font-weight: 700; width: 60px; font-size: 13px; text-transform: none; letter-spacing: 0;}
     .cash-row input { width: 70px; padding: 6px 10px; font-size: 14px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; text-align: right; }
     .cash-row .sub { width: 70px; text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; font-size: 13px; }
-    .partial-tot { border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: var(--cyan-accent); }
-    .grand-tot { text-align: right; padding: 16px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 11px; font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);}
+    .partial-tot { border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: var(--text-main); }
+    .grand-tot { text-align: right; padding: 16px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 11px; font-size: 16px; font-weight: 800; color: var(--text-main); }
     .grand-tot span.val { font-size: 24px; color: var(--cyan-accent); font-family: Manrope; }
 
     /* TABELLE */
@@ -134,7 +220,7 @@
     .tag-danger { background: rgba(199, 89, 112, 0.15); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
     /* TOGGLE SWITCH */
-    .switch-wrapper { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; margin-bottom: 24px; border-left: 4px solid var(--cyan-accent); }
+    .switch-wrapper { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 11px; padding: 16px; margin-bottom: 24px; }
     .switch-wrapper div label { margin: 0; color: var(--text-main); font-size: 14px; }
     .switch-wrapper div small { color: var(--text-muted); font-size: 11px; font-weight: 500; display: block; margin-top: 4px; text-transform: none; }
     
@@ -159,16 +245,33 @@
     .riepilogo-31 { background: rgba(39, 169, 182, 0.05); border: 1px solid var(--cyan-accent); border-radius: 12px; padding: 20px; margin-top: 30px; }
     .riepilogo-31 h4 { color: var(--text-main); font-family: Manrope; font-size: 18px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;}
     .riepilogo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-    .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .riepilogo-item { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 78px; }
     .riepilogo-item label { font-size: 10px; margin-bottom: 6px; color: var(--text-muted); }
     .riepilogo-item .val { font-size: 18px; font-weight: 800; color: var(--cyan-accent); font-family: Manrope; }
   </style>
 </head>
 <body>
 
+<button id="menu-button" class="menu-button" type="button" aria-label="Apri menu">☰</button>
+<div id="cassa-menu" class="cassa-menu-overlay" hidden>
+  <div class="cassa-menu-panel" role="dialog" aria-modal="true" aria-label="Menu NaviSuite">
+    <div class="cassa-menu-head">
+      <span>NaviSuite</span>
+      <button id="cassa-menu-close" class="cassa-menu-close" type="button" aria-label="Chiudi menu">×</button>
+    </div>
+    <div class="cassa-menu-links">
+      <a href="naviturni.html"><span>▦</span><b>Turni</b></a>
+      <a href="navidiaria.html"><span>≈</span><b>Distinta</b></a>
+      <a href="documenti.html"><span>▤</span><b>Documenti</b></a>
+      <a href="oggi.html"><span>☀</span><b>Oggi</b></a>
+      <a href="impostazioni.html"><span>⚙</span><b>Impostazioni</b></a>
+    </div>
+  </div>
+</div>
+
 <div class="container">
   
-  <div style="margin-bottom: 20px;">
+  <div style="margin-bottom: 20px; padding-left: 56px;">
     <h1 style="font: 800 25px Manrope; color: var(--text-main); margin: 0 0 4px 0;">Controllo Cassa</h1>
     <p style="margin: 0; color: var(--text-muted); font-size: 13px; font-weight: 500;">Procedura guidata per apertura, controllo diurno e chiusura serale integrata.</p>
   </div>
@@ -331,7 +434,6 @@
         <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent); font-size: 28px; margin: 0;">€ 400,00</div>
       </div>
 
-
       <!-- SEZIONE B: CONTEGGIO FISICO -->
       <div class="section-title">
         <span>B. Conteggio Fisico in Cassa</span>
@@ -346,7 +448,6 @@
           <div class="box-val" id="ctrl-differenza-sera">€ 0,00</div>
         </div>
       </div>
-
 
       <!-- SEZIONE C: VERSAMENTO E RIPARTIZIONE -->
       <div class="section-title"><span>C. Ripartizione Contanti: Busta vs Fondo Domani</span></div>
@@ -429,6 +530,43 @@
 </div>
 
 <script>
+  const MENU_ITEMS = [
+    ["naviturni.html", "▦", "Turni"],
+    ["navidiaria.html", "≈", "Distinta"],
+    ["documenti.html", "▤", "Documenti"],
+    ["oggi.html", "☀", "Oggi"],
+    ["impostazioni.html", "⚙", "Impostazioni"],
+  ];
+
+  const menuButton = document.getElementById("menu-button");
+  const menu = document.getElementById("cassa-menu");
+  const menuClose = document.getElementById("cassa-menu-close");
+  const menuLinks = document.querySelector(".cassa-menu-links");
+
+  if (menuLinks) {
+    menuLinks.innerHTML = MENU_ITEMS.map(([href, icon, label]) => `<a href="${href}"><span>${icon}</span><b>${label}</b></a>`).join("");
+  }
+
+  function openMenu() {
+    menu.hidden = false;
+    document.body.classList.add("menu-open");
+  }
+
+  function closeMenu() {
+    menu.hidden = true;
+    document.body.classList.remove("menu-open");
+  }
+
+  menuButton?.addEventListener("click", openMenu);
+  menuClose?.addEventListener("click", closeMenu);
+  menu?.addEventListener("click", e => {
+    if (e.target === menu) closeMenu();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeMenu();
+  });
+  menu?.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+
   const MONETE = [
     { label: "0,10 €", val: 10 },
     { label: "0,20 €", val: 20 },
