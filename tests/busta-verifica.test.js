@@ -269,7 +269,7 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
 }
 
 // --- Confronto busta <-> Distinta ---
-const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 5, cashHandlingGround: 5, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
+const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
 const outcome = compareModule.compare(busta, compareTotals);
 const row = id => outcome.rows.find(entry => entry.id === id);
 assert.equal(row('overtime').status, 'ok');
@@ -285,8 +285,15 @@ assert.equal(row('ticket').busta, 12, 'dato figurativo');
 assert.equal(row('ticket').euro, null);
 assert.equal(outcome.rows[0].status, 'diff', 'prima le differenze');
 assert.deepEqual(outcome.rows.map(entry => entry.status), [...outcome.rows.map(entry => entry.status)].sort((a, b) => ({ diff: 0, check: 1, ok: 2 }[a] - { diff: 0, check: 1, ok: 2 }[b])));
-assert.deepEqual(outcome.summary, { ok: 6, diff: 1, check: 1, notCompared: 3 });
-assert.deepEqual(outcome.notCompared.map(voce => voce.code).sort(), ['013', '49X', 'FD0']);
+assert.deepEqual(outcome.summary, { ok: 8, diff: 1, check: 1, notCompared: 1 });
+assert.deepEqual(outcome.notCompared.map(voce => voce.code).sort(), ['FD0']);
+assert.equal(row('holiday').busta, 1, '013 lavoro in FI-FN = festivita\'');
+assert.equal(row('dailyDM').status, 'ok', '49X = giorni con maneggio denaro');
+// Riepilogo piatto Match/Mismatch
+const flat = compareModule.confronta(compareTotals, busta.voci);
+assert.equal(flat.find(r => r.codici === '47X').stato, 'Mismatch');
+assert.equal(flat.find(r => r.codici === '47X').differenza, 1);
+assert.equal(flat.find(r => r.codici === '43X').stato, 'Match');
 assert.ok(outcome.notCompared.every(voce => voce.reason === 'La Distinta non ha una riga equivalente.'));
 // Straordinario in piu' in busta: importo negativo.
 const overpaid = compareModule.compare(busta, { ...compareTotals, overtimeMinutes: 10 * 60 });
@@ -334,7 +341,7 @@ assert.equal(t.overtimeMixedWeeks, 1);
   assert.equal(find('overtime139').euro, -1.5, 'differenza x dato base della differenza paga');
   assert.equal(find('cashEmbark').busta, 52, 'solo le ore differenza paga a 139');
   assert.equal(find('cashEmbark').status, 'ok');
-  assert.deepEqual(with139.notCompared.map(voce => voce.code).sort(), ['013', '49X', '56Y', 'FD0']);
+  assert.deepEqual(with139.notCompared.map(voce => voce.code).sort(), ['56Y', 'FD0']);
   const mixed = compareModule.compare({ voci: [...busta.voci, ...extra] }, { ...totals139, overtimeMixedWeeks: 1 });
   assert.equal(mixed.rows.find(entry => entry.id === 'overtime139').status, 'check', 'settimane miste: solo da verificare');
   assert.match(mixed.rows.find(entry => entry.id === 'overtime139').notes.join(' '), /giorni con e senza maneggio/);

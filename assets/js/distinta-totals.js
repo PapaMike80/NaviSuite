@@ -106,6 +106,7 @@
         allowance50: worked.filter(e => Number(e.allowanceRate) === 50).length,
         overnight40: worked.filter(e => e.overnight40).length,
         holiday: worked.filter(e => holidayValue(e, dateOf(e))).length,
+        missedRestMinutes: worked.reduce((sum, e) => sum + (Number(e.missedRest ?? e.missedRestMinutes ?? e.mancatoRiposo) || 0), 0),
         sundayShift: worked.filter(e => dateOf(e).getDay() === 0).length,
         secondMeal: worked.filter(e => e.secondMeal).length,
         embark: worked.filter(e => e.embark).length,

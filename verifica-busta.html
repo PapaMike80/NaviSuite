@@ -81,6 +81,13 @@
     .vb-details[open] summary::after{transform:rotate(180deg)}
     .vb-details summary:focus-visible{outline:3px solid var(--vb-accent);outline-offset:2px;border-radius:16px}
     .vb-details-body{padding:0 16px 16px;overflow-x:auto}
+    .vb-summary-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--vb-line);border-radius:14px;background:var(--vb-field)}
+    .vb-summary td,.vb-summary th{padding:9px 10px}
+    .vb-summary td:first-child small{display:block;color:var(--vb-muted);font-size:11px}
+    .vb-summary tr.is-ok td:first-child{box-shadow:inset 4px 0 var(--vb-ok)}.vb-summary tr.is-diff td:first-child{box-shadow:inset 4px 0 var(--vb-diff)}.vb-summary tr.is-check td:first-child{box-shadow:inset 4px 0 var(--vb-check)}
+    .vb-summary tr.is-diff{background:var(--vb-diff-bg)}.vb-summary tr.is-ok .vb-state{color:var(--vb-ok)}.vb-summary tr.is-diff .vb-state{color:var(--vb-diff)}.vb-summary tr.is-check .vb-state{color:var(--vb-check)}
+    .vb-summary .vb-state{font-weight:700}
+    @media(max-width:560px){.vb-summary td,.vb-summary th{padding:8px 6px;font-size:13px;white-space:normal}.vb-summary td:not(:first-child){white-space:nowrap}}
     .vb-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
     .vb-table th,.vb-table td{padding:8px 6px;border-bottom:1px solid var(--vb-line);text-align:left;white-space:nowrap}
     .vb-table thead th{color:var(--vb-muted);font-size:12px;font-weight:600}
@@ -128,6 +135,7 @@
     <section class="vb-card" id="vbResult" aria-labelledby="vbResultTitle" hidden>
       <div class="vb-head"><span class="vb-num" aria-hidden="true">03</span><div><h2 id="vbResultTitle">Risultato</h2><p>Differenza = Distinta − busta. L’importo è stimato con il dato base della busta.</p></div></div>
       <div class="vb-chips" id="vbChips"></div>
+      <div class="vb-summary-wrap"><table class="vb-table vb-summary" aria-label="Riepilogo confronto Distinta e busta"><thead><tr><th>Voce</th><th>Distinta</th><th>Busta</th><th>Diff.</th><th>Stato</th></tr></thead><tbody id="vbSummary"></tbody></table></div>
       <div class="vb-rows" id="vbRows"></div>
       <details class="vb-details"><summary><span>Dettaglio settimane della Distinta</span></summary><div class="vb-details-body" id="vbWeeks"></div></details>
       <details class="vb-details"><summary><span>Voci non confrontate (<span id="vbNotComparedCount">0</span>)</span></summary><div class="vb-details-body" id="vbNotCompared"></div></details>
@@ -142,8 +150,8 @@
   <script src="assets/js/shift-competence.js?v=4"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="assets/js/busta-parser.js?v=1"></script>
-  <script src="assets/js/distinta-totals.js?v=3"></script>
-  <script src="assets/js/busta-compare.js?v=3"></script>
-  <script src="assets/js/verifica-busta.js?v=2"></script>
+  <script src="assets/js/distinta-totals.js?v=4"></script>
+  <script src="assets/js/busta-compare.js?v=4"></script>
+  <script src="assets/js/verifica-busta.js?v=3"></script>
 </body>
 </html>

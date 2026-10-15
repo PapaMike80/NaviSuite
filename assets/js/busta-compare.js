@@ -26,7 +26,10 @@
     { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandlingGround },
     { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.overnight40 },
     { id: 'bank', codes: ['594'], label: 'Banca ore maturata', distintaLabel: 'Banca ore', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.bankMinutes / 60 },
-    { id: 'allowance24', codes: ['18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.allowance24 },
+    { id: 'allowance24', codes: ['13X', '18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.allowance24 },
+    { id: 'holiday', codes: ['013'], label: 'Lavoro in FI-FN (festività)', distintaLabel: 'Festività lavorate', unit: 'giorni', certainty: 'confermare', source: 'quantity', distinta: t => t.holiday, notes: t => (t.missedRestMinutes ? [`Nella Distinta ci sono anche ${Math.round(t.missedRestMinutes / 6) / 10} h di mancato riposo: controlla se la busta le paga con la stessa voce.`] : []) },
+    { id: 'dailyDM', codes: ['49X'], label: 'Indennità prestazione giornaliera D.M.', distintaLabel: 'Giorni con maneggio denaro (Ind. giorn. D.M.)', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandling },
+    { id: 'secondTicket', codes: ['70X'], label: '2 ticket inps/fisc.', distintaLabel: 'Giorni con secondo ticket', unit: 'ticket', certainty: 'certa', source: 'quantityOrFigurative', distinta: t => t.secondMeal },
     { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => t.ticketCredit }
   ];
 
@@ -35,9 +38,7 @@
   const NOT_COMPARED_REASON = 'La Distinta non ha una riga equivalente.';
   // Le voci gia' usate da una regola (es. 55Y con "139") non compaiono qui.
   const NOT_COMPARED = [
-    { codes: ['013'], label: 'Lavoro in FI-FN' },
     { codes: ['55Y', '56Y'], label: 'Ore differenza paga' },
-    { codes: ['49X'], label: 'Indennità prestazione giornaliera' },
     { codes: ['FD0'], label: 'Indennità di rendimento' }
   ];
 
@@ -148,9 +149,25 @@
       });
   }
 
+  // Riepilogo piatto: una riga per voce con Match/Mismatch. busta: { voci } oppure l'array delle voci.
+  function confronta(distinta, busta) {
+    const result = compare(Array.isArray(busta) ? { voci: busta } : busta, distinta);
+    return result.rows.map(row => ({
+      voce: row.label,
+      codici: row.codes.join(' + '),
+      unita: row.unit,
+      valoreDistinta: row.distinta,
+      valoreBusta: row.busta,
+      stato: row.status === 'ok' ? 'Match' : 'Mismatch',
+      differenza: row.diff,
+      daVerificare: row.status === 'check',
+      importo: row.euro
+    }));
+  }
+
   function knownCodes() {
     return new Set([...RULES.flatMap(rule => rule.codes), ...NOT_COMPARED.flatMap(item => item.codes)]);
   }
 
-  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, coherence, euroText, knownCodes };
+  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, coherence, euroText, knownCodes };
 });
