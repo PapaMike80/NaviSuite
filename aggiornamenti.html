@@ -760,7 +760,8 @@
     function parseOdsPdf(pages,ods){
       const lines=linesFromItems(pages);
       let currentDate='',section='';
-      const records=[];
+      const records=[],avvisi=[];
+      const avvisa=(data,testo)=>avvisi.push({data,testo});
       const sectionForHeading=line=>{
         const heading=normalize(line);
         // L'OCR può leggere "TURNI" come "TURN!": riconosciamo quindi il
@@ -779,8 +780,10 @@
         if(section&&/^\s*(?:TURNO\s+NAVI|PROGRAMMAZIONE\s+RIFORNIMENTI|ORMEGGI\s+SERALI)\b/i.test(line)){section='';continue}
         if(!section)continue;
         const foundDate=italianDate(line);if(foundDate){currentDate=foundDate;continue}
-        const m=line.match(/^([A-ZÀ-Ü][A-ZÀ-Ü .,'’-]{2,}):\s*(.+)$/i);
-        if(!m||!currentDate)continue;
+        const m=line.match(/^([A-ZÀ-Ü][A-ZÀ-Ü .,'’-]{2,}):\s*(.*)$/i);
+        if(!m)continue;
+        if(!currentDate){avvisa('',`Riga prima di una data, non usata: «${line.trim()}»`);continue}
+        if(!m[2].trim()){avvisa(currentDate,`Riga senza servizio, non usata: «${line.trim()}»`);continue}
         const content=m[2],service=content.match(/\bservizio\s+([A-Z0-9.=/-]+)/i);
         // Nei precedenti ODS già gestiti da NaviSuite "===" rappresenta RIP (a volte scritto "==", es. ODS 41/2026).
         // Manteniamo quindi la stessa semantica anche nelle sezioni volontarie.
@@ -789,10 +792,11 @@
         let shift=(service?.[1]||explicitCode||tokens.find(t=>!['DALLE','ALLE','SONO','PRONTI','MUOVERE','CON','COME','PER','IL','LA','DI','IN','A'].includes(t))||'').replace(/^={2,}$/,'RIP');
         if(/^L\.?\s*D\.?$/i.test(shift))shift='L.D.';
         if(/^F\.?\s*P\.?$/i.test(shift))shift='F.P.';
-        if(!shift)continue;
+        if(!shift){avvisa(currentDate,`Servizio non riconosciuto, riga non usata: «${line.trim()}»`);continue}
+        if(/^=+$/.test(m[2].trim())&&m[2].trim().length!==3)avvisa(currentDate,`«${m[2].trim()}» letto come RIP (di solito è «===»): «${line.trim()}»`);
         m[1].split(/\s*,\s*|\s+E\s+/i).forEach(name=>{
           const agent=resolveAgent(name.trim());
-          if(!agent)return;
+          if(!agent){avvisa(currentDate,`Agente non riconosciuto: «${name.trim()}» (riga «${line.trim()}»)`);return}
           records.push({data:currentDate,agente:agent.agente,id_agente:String(agent.id),turno_originale:baseShift(agent,currentDate),turno_nuovo:shift.toUpperCase(),ods:ods||'da definire',tipo:section,note:content});
         });
       }
@@ -800,6 +804,16 @@
       const byAgentDate=new Map();
       unique.forEach(row=>{const key=`${row.data}|${row.id_agente}`;if(!byAgentDate.has(key))byAgentDate.set(key,[]);byAgentDate.get(key).push(row)});
       byAgentDate.forEach(rows=>{if(new Set(rows.map(row=>row.turno_nuovo)).size>1)rows.forEach(row=>{row.conflict=true;row.note=`⚠ Conflitto nello stesso ODS: ${row.note}`})});
+      // Controlli sulle variazioni lette: segnalano cose strane, non cambiano niente.
+      const libero=t=>/^(RIP|RIPOSO|L\.D\.|F\.P\.|FERIE|MALATTIA|==+)$/i.test(String(t||''));
+      unique.forEach(row=>{
+        const da=String(row.turno_originale||'').toUpperCase(),a=String(row.turno_nuovo||'').toUpperCase();
+        if(da&&da===a)avvisa(row.data,`${row.agente}: «${a}» è già il suo turno, la variazione non cambia niente`);
+        // Chi prende un servizio dovrebbe sostituire qualcuno che lo lascia nello stesso giorno (cessione)
+        if(a&&!libero(a)&&a!==da&&!unique.some(o=>o!==row&&o.data===row.data&&String(o.turno_originale||'').toUpperCase()===a&&String(o.turno_nuovo||'').toUpperCase()!==a))
+          avvisa(row.data,`${row.agente} prende ${a}, ma nell'ODS nessuno lascia ${a} quel giorno: controlla se manca una riga (es. chi cede il turno)`);
+      });
+      unique.avvisi=avvisi;
       return unique;
     }
     function odsDateRange(items){
@@ -1083,8 +1097,10 @@
         return;
       }
       const options=agents().filter(a=>String(a.residence).toUpperCase()!=='BARISTE').sort((a,b)=>String(a.agente).localeCompare(String(b.agente),'it')).map(a=>`<option value="${esc(a.id)}">${esc(a.agente)}</option>`).join('');
+      const avvisi=kind==='ods'?(rows.avvisi||[]):[];
+      const boxAvvisi=avvisi.length?`<div class="status bad" style="margin:0 0 12px"><strong>⚠ ${avvisi.length===1?'1 cosa strana':`${avvisi.length} cose strane`} nell'ODS: controlla prima di salvare</strong><ul style="margin:6px 0 0;padding-left:18px">${avvisi.map(v=>`<li>${v.data?`${esc(v.data.split('-').reverse().join('/'))} · `:''}${esc(v.testo)}</li>`).join('')}</ul></div>`:'';
       result.innerHTML=kind==='ods'
-        ?`${rows.length?`<h3>Variazioni del personale (${rows.length})</h3><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Agente</th><th>Prima</th><th>Dopo</th><th>Nota</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-ods="${i}" data-tipo="${esc(v.tipo||'ODS')}"><td><input type="checkbox" data-field="use" ${v.conflict?'':'checked'}></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><select data-field="id_agente"><option value="">— scegli —</option>${options}</select></td><td><input data-field="turno_originale" value="${esc(v.turno_originale)}"></td><td><input data-field="turno_nuovo" value="${esc(v.turno_nuovo)}"></td><td><input data-field="note" value="${esc(v.note)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessuna variazione del personale riconosciuta.</div>'}${pendingOdsNavi.length?`<h3>Turni nave, rifornimenti e ormeggi (${pendingOdsNavi.length})</h3><p>Controlla l’anteprima: ogni riga sarà salvata nella NaviDiaria con il nome nave, il rifornimento e l’ormeggio serale.</p><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Nave</th><th>Rifornimento</th><th>Ormeggio serale</th></tr></thead><tbody>${pendingOdsNavi.map((v,i)=>`<tr data-pending-ods-nave="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="nave" value="${esc(v.nave)}"></td><td><input data-field="rifornimento_mattina" value="${esc(v.rifornimento_mattina)}"></td><td><input data-field="ormeggio_serale" value="${esc(v.ormeggio_serale)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessun turno nave riconosciuto nell’allegato ODS.</div>'}`
+        ?`${boxAvvisi}${rows.length?`<h3>Variazioni del personale (${rows.length})</h3><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Agente</th><th>Prima</th><th>Dopo</th><th>Nota</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-ods="${i}" data-tipo="${esc(v.tipo||'ODS')}"><td><input type="checkbox" data-field="use" ${v.conflict?'':'checked'}></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><select data-field="id_agente"><option value="">— scegli —</option>${options}</select></td><td><input data-field="turno_originale" value="${esc(v.turno_originale)}"></td><td><input data-field="turno_nuovo" value="${esc(v.turno_nuovo)}"></td><td><input data-field="note" value="${esc(v.note)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessuna variazione del personale riconosciuta.</div>'}${pendingOdsNavi.length?`<h3>Turni nave, rifornimenti e ormeggi (${pendingOdsNavi.length})</h3><p>Controlla l’anteprima: ogni riga sarà salvata nella NaviDiaria con il nome nave, il rifornimento e l’ormeggio serale.</p><table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Nave</th><th>Rifornimento</th><th>Ormeggio serale</th></tr></thead><tbody>${pendingOdsNavi.map((v,i)=>`<tr data-pending-ods-nave="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="nave" value="${esc(v.nave)}"></td><td><input data-field="rifornimento_mattina" value="${esc(v.rifornimento_mattina)}"></td><td><input data-field="ormeggio_serale" value="${esc(v.ormeggio_serale)}"></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessun turno nave riconosciuto nell’allegato ODS.</div>'}`
         :`<table class="pending-table"><thead><tr><th>Usa</th><th>Data</th><th>Corsa</th><th>Barista</th></tr></thead><tbody>${rows.map((v,i)=>`<tr data-pending-barista="${i}"><td><input type="checkbox" data-field="use" checked></td><td><input type="date" data-field="data" value="${esc(v.data)}"></td><td><input data-field="corsa" value="${esc(v.corsa)}"></td><td><input data-field="barista" value="${esc(v.barista)}"></td></tr>`).join('')}</tbody></table>`;
       if(kind==='ods')result.querySelectorAll('[data-pending-ods]').forEach((tr,i)=>{tr.querySelector('[data-field=id_agente]').value=String(rows[i].id_agente||resolveAgent(rows[i].agente)?.id||'')});
     }
@@ -1123,7 +1139,7 @@
       else{pendingBaristas=records;$('save-new-bariste').disabled=!records.length}
       renderPending(kind);
       const total=kind==='ods'?pendingOds.length+pendingOdsNavi.length:records.length;
-      const message=kind==='ods'?`${pendingOds.length} variazioni e ${pendingOdsNavi.length} turni nave riconosciuti. Controlla entrambe le anteprime prima di salvare.`:`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`;
+      const message=kind==='ods'?`${pendingOds.length} variazioni e ${pendingOdsNavi.length} turni nave riconosciuti.${pendingOds.avvisi?.length?` ⚠ ${pendingOds.avvisi.length} da controllare (vedi sotto).`:''} Controlla entrambe le anteprime prima di salvare.`:`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`;
       setStatus(message,total?'ok':'bad');
     }
     async function init(){
