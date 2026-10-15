@@ -137,8 +137,13 @@
       });
       // Giornate del solo mese di calendario: i giorni del mese precedente nella prima settimana
       // (colonna RIP = riporto della Distinta) sono gia' stati pagati con la busta precedente.
-      const calendar = summarize([groups.flat().filter(e => String(e.date).slice(0, 7) === monthValue)]);
+      const calendar = summarize([list.filter(e => String(e.date).slice(0, 7) === monthValue)]);
       const totals = summarize(groups);
+      // Giorni del mese dopo l'ultima domenica (settimana che finisce nel mese dopo): il loro straordinario
+      // giornaliero si liquida in questo mese (es. lunedi' 27 luglio 2026).
+      const coda = list.filter(e => String(e.date).slice(0, 7) === monthValue && e.date > period.endIso && isWorking(e));
+      totals.overtimeTailMinutes = coda.reduce((sum, e) => sum + overtimeTotal(e), 0);
+      totals.overtimeMinutes += totals.overtimeTailMinutes;
       totals.calendar = calendar;
       return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals };
     }

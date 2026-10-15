@@ -302,8 +302,15 @@
         : [...dayValues.values()].some(value => n(value) > 0) || n(carryValue) > 0;
       // distinta completa: tutte le voci, anche quelle senza valori nel mese
       void hasValue;
-      const result = row.type === 'hours' ? clock(weekValues.reduce((sum,value) => sum + n(value),0))
-        : row.type === 'count' ? (weekValues.reduce((sum,value) => sum + n(value),0) || '')
+      // TOT: ore lavorate e straordinari sulle settimane (lun-dom); le altre competenze sul mese di calendario,
+      // cioe' la somma dei giorni del mese (senza la colonna RIP).
+      const settimanale = ['ORE LAVORATE','LAVORO STRAORD.'].includes(row.label);
+      const meseValue = [...dayValues.values()].reduce((sum,value) => sum + n(value),0);
+      // straordinario dei giorni dopo l'ultima domenica del mese (settimana incompleta): si liquida in questo mese
+      const coda = row.label === 'LAVORO STRAORD.' ? (columns.find(c => c.type === 'week' && !c.complete)?.days || []).reduce((sum,day) => sum + n(dayValues.get(day)),0) : 0;
+      const totale = settimanale ? weekValues.reduce((sum,value) => sum + n(value),0) + coda : meseValue;
+      const result = row.type === 'hours' ? clock(totale)
+        : row.type === 'count' ? (totale || '')
         : '';
       const label = html(row.label);
       const carryCell = html(row.type === 'text' ? '' : formatValue(row,carryValue));

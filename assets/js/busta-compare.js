@@ -8,6 +8,9 @@
   const HOURS_TOLERANCE = 0.02; // ~1 minuto
   const COUNT_TOLERANCE = 0.001;
   const EURO_TOLERANCE = 0.02;
+  // Tolleranza relativa: differenze fino al 10% del valore (ore, giorni o euro) contano come coerenti.
+  const RELATIVE_TOLERANCE = 0.10;
+  const entro = (diff, riferimento, assoluta) => Math.abs(diff) <= Math.max(assoluta, Math.abs(riferimento) * RELATIVE_TOLERANCE) + 1e-9;
 
   // certainty 'certa': una differenza e' un errore; 'confermare': da verificare
   // (puo' anche essere una funzione dei totali della Distinta).
@@ -95,7 +98,8 @@
       if (!fromBusta.present && !distintaValue) return;
       const tolerance = rule.unit === 'ore' ? HOURS_TOLERANCE : COUNT_TOLERANCE;
       const diff = round2(distintaValue - bustaNumber);
-      const equal = Math.abs(diff) <= tolerance + 1e-9;
+      const exact = Math.abs(diff) <= tolerance + 1e-9;
+      const equal = entro(diff, bustaNumber || distintaValue, tolerance);
       const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
       const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
       const euro = !equal && fromBusta.base !== null ? round2(diff * fromBusta.base) : null;
@@ -103,6 +107,7 @@
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
+      if (equal && !exact) notes.push('Differenza entro la tolleranza del 10%.');
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
       if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
       rows.push({
@@ -150,7 +155,7 @@
         const expected = round2(voce.quantity * voce.base);
         const actual = Math.abs(voce.amount);
         const difference = round2(actual - expected);
-        return { code: voce.code, description: voce.description, quantity: voce.quantity, base: voce.base, amount: voce.amount, expected, difference, ok: Math.abs(difference) <= EURO_TOLERANCE + 1e-9 };
+        return { code: voce.code, description: voce.description, quantity: voce.quantity, base: voce.base, amount: voce.amount, expected, difference, ok: entro(difference, expected, EURO_TOLERANCE) };
       });
   }
 
@@ -174,5 +179,5 @@
     return new Set([...RULES.flatMap(rule => rule.codes), ...NOT_COMPARED.flatMap(item => item.codes)]);
   }
 
-  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, coherence, euroText, knownCodes };
+  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, RELATIVE_TOLERANCE, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, coherence, euroText, knownCodes };
 });
