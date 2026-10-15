@@ -1060,6 +1060,15 @@
     await Promise.all(oldKeys.map(key => databaseRequest(`private/adminUpdates/diariaBackups/${safeUserKey(id)}/${key}`, { method:"DELETE" })));
   }
 
+  // Copie di sicurezza della Distinta (le ultime 35), dalla piu' recente
+  async function listDiariaBackups(agentId) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const backups = (await databaseRequest(`private/adminUpdates/diariaBackups/${safeUserKey(id)}`)).data || {};
+    return Object.entries(backups).map(([key, value]) => ({ key, savedAt:String(value?.savedAt || ""), sourceUpdatedAt:String(value?.sourceUpdatedAt || ""), reason:String(value?.reason || ""), entryCount:Number(value?.entryCount || 0), entries:Array.isArray(value?.entries) ? value.entries.filter(Boolean) : [] }))
+      .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  }
+
   // Ritardi dell'equipaggio: chi segna un ritardo lo passa ai colleghi con lo stesso turno quel giorno.
   // ritardiEquipaggio/<giorno>/<TURNO>/<agente> = { minuti, nome, t }
   async function getRitardiEquipaggio(dal) {
@@ -1206,6 +1215,7 @@
     updateFeedbackTicket,
     deleteFeedbackTicket,
     loadDiaria,
+    listDiariaBackups,
     loadAllDiaria,
     saveDiaria,
     richiestaAccesso,
