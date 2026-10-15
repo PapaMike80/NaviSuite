@@ -26,7 +26,7 @@
     // 334 = straordinario a parametro 121, 01Y = straordinario a parametro 139 (maneggio da imbarcato):
     // sono ore diverse e si sommano (nelle buste di luglio e agosto 2026 c'e' solo 01Y).
     { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari (oltre 39 h a settimana)', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60, notes: (t, voci) => { const ore = code => voci.filter(v => v.code === code).reduce((n, v) => n + (Number(v.quantity) || 0), 0); const a = ore('334'), b = ore('01Y'); return a && b ? [`In busta: ${String(Math.round(a * 100) / 100).replace('.', ',')} h a parametro 121 (334) + ${String(Math.round(b * 100) / 100).replace('.', ',')} h a parametro 139 (01Y).`] : []; } },
-    { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore del turno nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.cashEmbarkServiceMinutes / 60 },
+    { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore del turno nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashEmbarkServiceMinutes / 60 },
     { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).embark },
     { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).sundayShift },
     { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashHandlingGround },
@@ -39,6 +39,15 @@
     { id: 'secondTicket', codes: ['70X'], label: '2 ticket inps/fisc.', distintaLabel: 'Giorni con secondo ticket', unit: 'ticket', certainty: 'certa', source: 'quantityOrFigurative', distinta: t => mese(t).secondMeal },
     { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => mese(t).ticketCredit }
   ];
+
+  // 55Y paga le ore a parametro 139, 56Y toglie le stesse ore a parametro 121: il valore vero e' la differenza.
+  function differenzaPaga(voci, ore) {
+    const p139 = voci.filter(v => ['55Y', '56Y'].includes(v.code) && /139/.test(v.description || ''));
+    const p121 = voci.filter(v => ['55Y', '56Y'].includes(v.code) && !/139/.test(v.description || ''));
+    if (!p139.length || !p121.length) return {};
+    const base = (p139[0].base || 0) - (p121[0].base || 0);
+    return { base: round2(base * 100000) / 100000, importo: round2(sum([...p139, ...p121].map(v => Number(v.amount) || 0))), importoDistinta: round2(ore * base) };
+  }
 
   const ruleMatches = (rule, voce) => rule.codes.includes(voce.code) && (!rule.filter || rule.filter(voce));
 
@@ -102,7 +111,9 @@
       const equal = entro(diff, bustaNumber || distintaValue, tolerance);
       const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
       const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
-      const euro = !equal && fromBusta.base !== null ? round2(diff * fromBusta.base) : null;
+      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, distintaValue) : {};
+      const baseEuro = dp.base ?? fromBusta.base;
+      const euro = !equal && baseEuro !== null ? round2(diff * baseEuro) : null;
       const notes = [];
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
@@ -128,6 +139,7 @@
         importo: fromBusta.present ? round2(sum(fromBusta.voci.map(voce => Number(voce.amount) || (Number.isFinite(voce.figurative) ? voce.figurative : 0)))) : null,
         // Valore atteso dalla Distinta: quantita' della Distinta x dato base della busta
         importoDistinta: fromBusta.base !== null ? round2(distintaValue * fromBusta.base) : null,
+        ...(dp.importo !== undefined ? { importo: dp.importo, importoDistinta: dp.importoDistinta } : {}),
         missing: !fromBusta.present ? 'busta' : (!distintaValue && bustaNumber ? 'distinta' : null),
         notes
       });
