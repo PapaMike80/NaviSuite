@@ -104,6 +104,7 @@
         allowance9: worked.filter(e => Number(e.allowanceRate) === 9).length,
         allowance24: worked.filter(e => Number(e.allowanceRate) === 24).length,
         allowance50: worked.filter(e => Number(e.allowanceRate) === 50).length,
+        travel50: worked.filter(e => Number(e.allowanceRate) === 50 || e.travel === true).length,
         overnight40: worked.filter(e => e.overnight40).length,
         holiday: worked.filter(e => holidayValue(e, dateOf(e))).length,
         holidayMinutes: worked.filter(e => holidayValue(e, dateOf(e))).reduce((sum, e) => sum + workedMinutes(e), 0),

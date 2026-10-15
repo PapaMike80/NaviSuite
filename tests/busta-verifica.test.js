@@ -372,6 +372,9 @@ assert.equal(t.overtimeMixedWeeks, 1);
   assert.deepEqual(with139.notCompared.map(voce => voce.code).sort(), ['56Y', 'FD0']);
 }
 
+// Diarie in busta = diarie 24% + trasferte 50% (luglio 2026: 15 + 1 = 16 in busta di agosto).
+assert.equal(compareModule.compare(busta, { ...compareTotals, allowance24: 15, travel50: 1 }).rows.find(r => r.id === 'allowance24').distinta, 16);
+
 // --- Coerenza interna ---
 const coherence = outcome.coherence;
 assert.ok(coherence.length >= 8);
