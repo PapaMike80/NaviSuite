@@ -83,6 +83,8 @@
     }
   }
 
+  // Ricarica la Distinta (dopo una modifica in navidiaria.html): pulsante e ritorno sulla pagina
+  function ricarica() { state.loadingData = null; state.data = null; return render().catch(error => console.error('Verifica busta', error)); }
   function ensureData() {
     if (!state.loadingData) state.loadingData = loadEntries().then(data => { state.data = data; return data; });
     return state.loadingData;
@@ -111,7 +113,7 @@
     return `<div class="vb-summary-wrap"><table class="vb-table vb-summary"><thead><tr><th>Voce</th><th>Distinta</th><th>Busta</th><th>Diff.</th><th>Valore</th><th>Stato</th></tr></thead><tbody>${rows.map(row => {
       const state = row.status === 'ok' ? 'Match' : row.status === 'check' ? 'Da verificare' : 'Mismatch';
       const diffEuro = row.status !== 'ok' && row.euro ? `<small class="vb-euro-diff">${row.euro > 0 ? '+' : '−'}${escapeHtml(euro(Math.abs(row.euro)))}</small>` : '';
-      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small></td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
+      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small></td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}${row.importoDistinta !== null && row.importoDistinta !== undefined && row.status !== 'ok' ? `<small class="vb-euro-diff">Distinta ${escapeHtml(euro(row.importoDistinta))}</small>` : ''}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
     }).join('')}</tbody></table></div>`;
   }
 
@@ -188,6 +190,8 @@
     }
     els.month.value = previousOfToday();
     els.fileInput.addEventListener('change', onFile);
+    $('vbReload')?.addEventListener('click', ricarica);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ricarica(); });
     els.clear.addEventListener('click', () => { state.buste = []; els.fileInfo.textContent = ''; render().catch(error => console.error(error)); });
     els.month.addEventListener('change', () => { render().catch(error => console.error(error)); });
     render().catch(error => console.error('Verifica busta', error));
