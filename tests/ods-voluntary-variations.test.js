@@ -56,6 +56,16 @@ assert.deepEqual(variations.filter(row => row.tipo === 'ODS VOLONTARIO').map(row
 ]);
 assert.equal(variations.filter(row => row.tipo === 'ODS UFFICIO').length, 2);
 
+// ODS 41/2026: "CALANCHI: ==" (due uguali) e' comunque RIP.
+const ods41 = parseOdsPdf([page(`
+    VARIAZIONI TURNI DA UFFICIO
+    GIOVEDI' 22 OTTOBRE 2026
+    FORTE: P2
+    CALANCHI: ==
+    BERNARDELLI M.: ===
+  `, 2)], '41/2026');
+assert.deepEqual(ods41.map(row => `${row.agente}|${row.turno_nuovo}`), ['FORTE|P2', 'CALANCHI|RIP', 'BERNARDELLI M.|RIP']);
+
 const rowsFromDelimited = new Function('normalize', `${csvSource}; return rowsFromDelimited;`)(normalize);
 const csvRows = rowsFromDelimited(`Tipo_Variazione,Data,Dipendente,Turno_Assegnato
 Ufficio,2026-08-28,DOLCERA,PonD
