@@ -142,8 +142,6 @@
         euro,
         euroText: euroText(euro),
         trascurabile,
-        // differenza oltre il 5% del valore (da segnalare all'ufficio personale)
-        oltre5: !trascurabile && Math.abs(diff) > Math.abs(bustaNumber || distintaValue) * 0.05 + 1e-9,
         // Valore in busta: importo delle voci; per il ticket elettronico (1TK) e' il dato figurativo (ticket x 8 euro)
         importo: fromBusta.present ? round2(sum(fromBusta.voci.map(voce => Number(voce.amount) || (Number.isFinite(voce.figurative) ? voce.figurative : 0)))) : null,
         // Valore atteso dalla Distinta: quantita' della Distinta x dato base della busta

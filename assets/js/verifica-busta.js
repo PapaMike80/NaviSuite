@@ -127,9 +127,9 @@
   const TOLL_KEY = 'navisuite.verificaBusta.tolleranza';
   const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
 
-  // Differenze oltre il 5%: mail pronta per l'ufficio personale (si apre nell'app di posta, si puo' anche copiare)
+  // Differenze fuori dalla tolleranza scelta: mail pronta per l'ufficio personale (si apre nell'app di posta, si puo' anche copiare)
   function mailHtml(item, rows) {
-    const voci = rows.filter(row => row.oltre5);
+    const voci = rows.filter(row => row.status !== 'ok' && !row.trascurabile); // fuori dalla tolleranza scelta
     if (!voci.length) return '';
     const mese = monthLabel(item.month).toLowerCase(), busta = item.bustaMonth ? monthLabel(item.bustaMonth).toLowerCase() : item.fileName;
     const nome = String(agent?.name || '').trim();
@@ -137,7 +137,7 @@
     const oggetto = `Verifica busta paga di ${busta} (dati di ${mese})${nome ? ` - ${nome}` : ''}`;
     const testo = `Buongiorno,\n\nconfrontando la busta paga di ${busta} con la mia distinta di ${mese} ho trovato queste differenze:\n\n${righe}\n\nVi chiedo cortesemente di verificare e, se necessario, di correggere nella prossima busta.\n\nGrazie,\n${nome}`;
     const href = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(testo)}`;
-    return `<div class="vb-mail"><p><strong>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`} oltre il 5%</strong>: puoi segnalarle all'ufficio personale.</p><a class="vb-reload" href="${href}">✉ Prepara la mail</a> <button type="button" class="vb-reload" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia il testo</button></div>`;
+    return `<div class="vb-mail"><p><strong>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`} oltre la tolleranza del ${Math.round(tolleranza() * 100)}%</strong>: puoi segnalarle all'ufficio personale.</p><a class="vb-reload" href="${href}">✉ Prepara la mail</a> <button type="button" class="vb-reload" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia il testo</button></div>`;
   }
 
   function renderFiles() {
@@ -215,6 +215,11 @@
     els.month.value = previousOfToday();
     els.fileInput.addEventListener('change', onFile);
     $('vbReload')?.addEventListener('click', ricarica);
+    // Nascondi cifre: sfoca tutti gli importi in euro (scelta ricordata sul dispositivo)
+    const BLUR_KEY = 'navisuite.verificaBusta.nascondi';
+    const blur = on => { document.body.classList.toggle('vb-blur', on); const b = $('vbBlur'); if (b) { b.textContent = on ? '👁 Mostra cifre' : '🙈 Nascondi cifre'; b.setAttribute('aria-pressed', String(on)); } try { localStorage.setItem(BLUR_KEY, on ? '1' : '0'); } catch (_) {} };
+    try { blur(localStorage.getItem(BLUR_KEY) === '1'); } catch (_) { blur(false); }
+    $('vbBlur')?.addEventListener('click', () => blur(!document.body.classList.contains('vb-blur')));
     els.months.addEventListener('click', e => { const b = e.target.closest('[data-copia]'); if (!b) return; navigator.clipboard?.writeText(b.dataset.copia).then(() => { b.textContent = '✓ Copiato'; }).catch(() => {}); });
     try { const salvata = localStorage.getItem(TOLL_KEY); if (salvata !== null && $('vbToll')) $('vbToll').value = salvata; } catch (_) {}
     $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} render().catch(error => console.error(error)); });
