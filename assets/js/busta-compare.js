@@ -10,7 +10,9 @@
   const EURO_TOLERANCE = 0.02;
   // Tolleranza relativa: differenze fino al 10% del valore (ore, giorni o euro) contano come coerenti.
   const RELATIVE_TOLERANCE = 0.10;
-  const entro = (diff, riferimento, assoluta) => Math.abs(diff) <= Math.max(assoluta, Math.abs(riferimento) * RELATIVE_TOLERANCE) + 1e-9;
+  // la tolleranza si puo' scegliere (0, 5 o 10%): compare(busta, distinta, { tolleranza: 0.05 })
+  let tolleranzaAttiva = RELATIVE_TOLERANCE;
+  const entro = (diff, riferimento, assoluta) => Math.abs(diff) <= Math.max(assoluta, Math.abs(riferimento) * tolleranzaAttiva) + 1e-9;
 
   // certainty 'certa': una differenza e' un errore; 'confermare': da verificare
   // (puo' anche essere una funzione dei totali della Distinta).
@@ -95,7 +97,8 @@
 
   // busta: risultato di NaviBustaParser.parseItems; distinta: totals di
   // NaviDistintaTotals (compute().totals).
-  function compare(busta, distinta) {
+  function compare(busta, distinta, opzioni = {}) {
+    tolleranzaAttiva = Number.isFinite(opzioni.tolleranza) ? opzioni.tolleranza : RELATIVE_TOLERANCE;
     const voci = Array.isArray(busta?.voci) ? busta.voci : [];
     const totals = distinta || {};
     const rows = [];
@@ -118,7 +121,7 @@
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
-      if (equal && !exact) notes.push('Differenza entro la tolleranza del 10%.');
+      if (equal && !exact) notes.push(`Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
       if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
       rows.push({
