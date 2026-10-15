@@ -13,13 +13,10 @@
     source: $('vbSource'),
     alerts: $('vbAlerts'),
     result: $('vbResult'),
-    chips: $('vbChips'),
-    rows: $('vbRows'),
-    summary: $('vbSummary'),
-    weeks: $('vbWeeks'),
-    notCompared: $('vbNotCompared'),
-    notComparedCount: $('vbNotComparedCount'),
-    checks: $('vbChecks')
+    months: $('vbMonths'),
+    files: $('vbFiles'),
+    clear: $('vbClear'),
+    monthField: $('vbMonthField')
   };
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -41,7 +38,7 @@
   let agent = null;
   try { agent = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) { agent = null; }
 
-  const state = { busta: null, fileName: '', data: null, loadingData: null };
+  const state = { buste: [], data: null, loadingData: null };
 
   function setAlerts(list) {
     els.alerts.innerHTML = list.map(alert => `<p class="vb-alert ${alert.kind || 'warn'}">${escapeHtml(alert.text)}</p>`).join('');
@@ -106,123 +103,78 @@
     ok: { label: 'Coerente', className: 'is-ok' }
   };
 
-  function renderRows(rows) {
-    if (!rows.length) {
-      els.rows.innerHTML = '<p class="vb-empty">Nessuna delle voci confrontabili compare nella busta o nella Distinta di questo mese.</p>';
-      return;
-    }
-    els.rows.innerHTML = rows.map(row => {
-      const status = STATUS[row.status];
-      return `<article class="vb-row ${status.className}">
-        <div class="vb-row-head"><div><h3>${escapeHtml(row.label)}</h3><p>Voce ${escapeHtml(row.codes.join(' + '))} · ${escapeHtml(row.distintaLabel)}</p></div><span class="vb-badge">${status.label}</span></div>
-        <dl class="vb-values">
-          <div><dt>Busta</dt><dd>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</dd></div>
-          <div><dt>Distinta</dt><dd>${unitValue(row.distinta, row.unit)}</dd></div>
-          <div><dt>Differenza</dt><dd>${signedUnit(row.diff, row.unit)}</dd></div>
-        </dl>
-        ${row.euroText ? `<p class="vb-euro">${escapeHtml(row.euroText)}${row.base ? ` <small>(${escapeHtml(signedUnit(row.diff, row.unit))} × ${escapeHtml(euro(row.base))})</small>` : ''}</p>` : ''}
-        ${row.notes.length ? `<p class="vb-note">${row.notes.map(escapeHtml).join(' ')}</p>` : ''}
-      </article>`;
-    }).join('');
-  }
+  const monthOf = busta => (busta.period ? `${busta.period.year}-${String(busta.period.month).padStart(2, '0')}` : '');
 
-  // Tabella di riepilogo: una riga per voce, verde se coincide, rossa se no (gialla se da verificare).
-  function renderSummary(rows) {
-    els.summary.innerHTML = rows.length ? rows.map(row => {
+  // Una tabella per busta: voce, Distinta, busta, differenza (con la stima in euro), valore in busta, stato.
+  function tableHtml(rows) {
+    if (!rows.length) return '<p class="vb-empty">Nessuna delle voci confrontabili compare nella busta o nella Distinta di questo mese.</p>';
+    return `<div class="vb-summary-wrap"><table class="vb-table vb-summary"><thead><tr><th>Voce</th><th>Distinta</th><th>Busta</th><th>Diff.</th><th>Valore</th><th>Stato</th></tr></thead><tbody>${rows.map(row => {
       const state = row.status === 'ok' ? 'Match' : row.status === 'check' ? 'Da verificare' : 'Mismatch';
-      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small></td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
-    }).join('') : '<tr><td colspan="5" class="vb-empty">Nessuna voce da confrontare.</td></tr>';
+      const diffEuro = row.status !== 'ok' && row.euro ? `<small class="vb-euro-diff">${row.euro > 0 ? '+' : '−'}${escapeHtml(euro(Math.abs(row.euro)))}</small>` : '';
+      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small></td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
   }
 
-  function renderWeeks(distinta) {
-    const weeks = distinta.period.weeks;
-    const totalWorked = weeks.reduce((sum, week) => sum + week.workedMinutes, 0);
-    const totalOvertime = weeks.reduce((sum, week) => sum + week.overtimeMinutes, 0);
-    els.weeks.innerHTML = `<table class="vb-table"><thead><tr><th>Settimana</th><th>Giorni</th><th>Ore lavorate</th><th>Straord. (oltre 39h)</th></tr></thead><tbody>${weeks.map(week => `<tr><td>${dateText(week.startIso)} – ${dateText(week.endIso)}</td><td>${week.workedDays}${week.cash139Days ? ` <small>(${week.cash139Days} con maneggio)</small>` : ''}</td><td>${clock(week.workedMinutes)}</td><td>${week.overtimeMinutes ? clock(week.overtimeMinutes) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><th>Totale</th><th>${distinta.totals.workedDays}</th><th>${clock(totalWorked)}</th><th>${clock(totalOvertime)} (${number(totalOvertime / 60, 2)} h)</th></tr></tfoot></table>`;
-  }
-
-  function renderNotCompared(list) {
-    els.notComparedCount.textContent = String(list.length);
-    els.notCompared.innerHTML = list.length
-      ? `<ul class="vb-list">${list.map(voce => `<li><strong>${escapeHtml(voce.code)}</strong> ${escapeHtml(voce.description || voce.label)}${voce.quantity !== null ? ` · ${number(voce.quantity, 2)}` : ''}${voce.amount !== null ? ` · ${escapeHtml(euro(voce.amount))}` : ''}<small>${escapeHtml(voce.reason)}</small></li>`).join('')}</ul>`
-      : '<p class="vb-empty">Nessuna voce di questo tipo nella busta.</p>';
-  }
-
-  function renderChecks(busta, coherence) {
-    const check = busta.check;
-    const totalsLine = (label, sum, printed, ok) => `<li class="${printed === null ? 'is-check' : ok ? 'is-ok' : 'is-diff'}"><strong>${label}</strong> somma voci ${escapeHtml(euro(sum))} · stampato ${printed === null ? 'non trovato' : escapeHtml(euro(printed))}</li>`;
-    const wrong = coherence.filter(item => !item.ok);
-    els.checks.innerHTML = `<ul class="vb-list">
-        ${totalsLine('Competenze', check.sumCompetenze, busta.totals.competenze, check.competenzeOk)}
-        ${totalsLine('Ritenute', check.sumRitenute, busta.totals.ritenute, check.ritenuteOk)}
-        <li class="is-ok"><strong>Netto a pagare</strong> ${busta.totals.netto === null ? 'non trovato' : escapeHtml(euro(busta.totals.netto))}</li>
-        <li class="${wrong.length ? 'is-diff' : 'is-ok'}"><strong>Quantità × dato base = importo</strong> ${coherence.length - wrong.length} voci su ${coherence.length} coerenti (esclusi contributi, imposte, INAIL e IRPEF)</li>
-      </ul>
-      ${wrong.length ? `<ul class="vb-list">${wrong.map(item => `<li class="is-diff"><strong>${escapeHtml(item.code)}</strong> ${escapeHtml(item.description)} · ${number(item.quantity, 2)} × ${escapeHtml(euro(item.base))} = ${escapeHtml(euro(item.expected))}, in busta ${escapeHtml(euro(Math.abs(item.amount)))}</li>`).join('')}</ul>` : ''}
-      <p class="vb-muted">Voci lette dalla busta: ${busta.voci.length}.</p>`;
-  }
-
-  function renderChips(summary) {
-    const chip = (className, count, label) => `<span class="vb-chip ${className}"><strong>${count}</strong> ${label}</span>`;
-    els.chips.innerHTML = [
-      chip('is-ok', summary.ok, summary.ok === 1 ? 'coerente' : 'coerenti'),
-      chip('is-diff', summary.diff, summary.diff === 1 ? 'differenza' : 'differenze'),
-      chip('is-check', summary.check, 'da verificare'),
-      chip('is-muted', summary.notCompared, summary.notCompared === 1 ? 'non confrontata' : 'non confrontate')
-    ].join('');
+  function renderFiles() {
+    els.files.innerHTML = state.buste.map(item => `<li class="is-ok"><strong>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)}</strong> ${escapeHtml(item.fileName)}${item.month ? ` · Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}` : ''}</li>`).join('');
+    els.clear.hidden = !state.buste.length;
+    els.monthField.hidden = state.buste.length > 1;
   }
 
   async function render() {
+    const single = state.buste.length <= 1;
+    if (state.buste.length === 1) state.buste[0].month = els.month.value || state.buste[0].month;
     const month = els.month.value;
     const period = window.NaviDistintaTotals.competencePeriod(month);
-    els.period.textContent = period.startIso ? `Periodo di competenza: ${dateText(period.startIso)} – ${dateText(period.endIso)} (${period.weeks.length} settimane)` : 'Scegli il mese della Distinta.';
+    els.period.textContent = !single ? 'Con più buste ognuna si confronta con la Distinta del mese precedente.' : period.startIso ? `Periodo di competenza: ${dateText(period.startIso)} – ${dateText(period.endIso)} (${period.weeks.length} settimane)` : 'Scegli il mese della Distinta.';
     els.source.textContent = sourceText(state.data);
+    renderFiles();
     const data = await ensureData();
     els.source.textContent = sourceText(data);
     const alerts = [...data.warnings];
-    if (!state.busta) { setAlerts(alerts); els.result.hidden = true; return; }
-    const busta = state.busta;
-    if (!busta.period) alerts.push({ kind: 'warn', text: 'Non trovo il mese della busta: scegli tu il mese della Distinta da confrontare.' });
-    if (!busta.check.completa) alerts.push({ kind: busta.check.headerFound ? 'warn' : 'error', text: busta.check.message });
-    if (!period.startIso) { setAlerts(alerts); els.result.hidden = true; return; }
+    if (!state.buste.length) { setAlerts(alerts); els.result.hidden = true; return; }
     const calculator = window.NaviDistintaTotals.create({ storage: localStorage });
-    const distinta = calculator.compute(data.entries, month);
-    if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `Nessuna giornata nella Distinta dal ${dateText(period.startIso)} al ${dateText(period.endIso)}: controlla il mese scelto.` });
+    const blocks = state.buste.map(item => {
+      const nome = item.bustaMonth ? `busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName;
+      if (!item.busta.period && single) alerts.push({ kind: 'warn', text: `${nome}: non trovo il mese della busta, scegli tu il mese della Distinta.` });
+      if (!item.busta.check.completa) alerts.push({ kind: item.busta.check.headerFound ? 'warn' : 'error', text: `${nome}: ${item.busta.check.message}` });
+      const p = window.NaviDistintaTotals.competencePeriod(item.month);
+      if (!p.startIso) return `<div class="vb-month"><h3>${escapeHtml(nome)}</h3><p>Mese della Distinta non trovato: carica questa busta da sola e scegli il mese.</p></div>`;
+      const distinta = calculator.compute(data.entries, item.month);
+      if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
+      const result = window.NaviBustaCompare.compare(item.busta, distinta.totals);
+      const s = result.summary;
+      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare${item.busta.totals.netto !== null ? ` · netto ${escapeHtml(euro(item.busta.totals.netto))}` : ''}</p>${tableHtml(result.rows)}</div>`;
+    });
     setAlerts(alerts);
-    const result = window.NaviBustaCompare.compare(busta, distinta.totals);
-    renderChips(result.summary);
-    renderSummary(result.rows);
-    renderRows(result.rows);
-    renderWeeks(distinta);
-    renderNotCompared(result.notCompared);
-    renderChecks(busta, result.coherence);
+    els.months.innerHTML = blocks.join('');
     els.result.hidden = false;
   }
 
   async function onFile() {
-    const file = els.fileInput.files?.[0];
-    if (!file) return;
-    state.busta = null;
-    state.fileName = file.name;
-    els.result.hidden = true;
-    els.fileInfo.textContent = `Leggo ${file.name}…`;
+    const files = [...(els.fileInput.files || [])];
+    if (!files.length) return;
     els.fileLabel.classList.add('is-busy');
-    try {
-      const busta = await window.NaviBustaParser.parsePdf(file);
-      state.busta = busta;
-      const bustaMonth = busta.period ? monthLabel(`${busta.period.year}-${String(busta.period.month).padStart(2, '0')}`) : '';
-      const distintaMonth = busta.period ? window.NaviBustaParser.previousMonth(busta.period) : '';
-      if (distintaMonth) els.month.value = distintaMonth;
-      els.fileInfo.textContent = bustaMonth
-        ? `${file.name} · busta di ${bustaMonth} (${busta.period.label}): i dati variabili si riferiscono al mese di ${monthLabel(distintaMonth).toLowerCase()}.`
-        : `${file.name} · ${busta.voci.length} voci lette.`;
-    } catch (error) {
-      console.error('Verifica busta: lettura PDF non riuscita', error);
-      els.fileInfo.textContent = `Non riesco a leggere il PDF (${error.message || error}).`;
-    } finally {
-      els.fileLabel.classList.remove('is-busy');
-      els.fileInput.value = '';
+    const errori = [];
+    for (const file of files) {
+      els.fileInfo.textContent = `Leggo ${file.name}…`;
+      try {
+        const busta = await window.NaviBustaParser.parsePdf(file);
+        const bustaMonth = monthOf(busta);
+        const item = { busta, fileName: file.name, bustaMonth, month: busta.period ? window.NaviBustaParser.previousMonth(busta.period) : els.month.value };
+        // la stessa busta caricata di nuovo sostituisce quella vecchia
+        const i = state.buste.findIndex(b => (bustaMonth && b.bustaMonth === bustaMonth) || b.fileName === file.name);
+        if (i >= 0) state.buste[i] = item; else state.buste.push(item);
+      } catch (error) {
+        console.error('Verifica busta: lettura PDF non riuscita', error);
+        errori.push(`${file.name} (${error.message || error})`);
+      }
     }
+    state.buste.sort((a, b) => String(a.bustaMonth).localeCompare(String(b.bustaMonth)));
+    if (state.buste.length === 1) els.month.value = state.buste[0].month;
+    els.fileInfo.textContent = errori.length ? `Non riesco a leggere: ${errori.join(', ')}.` : `${state.buste.length === 1 ? '1 busta caricata' : `${state.buste.length} buste caricate`}. I dati variabili di ogni busta si riferiscono al mese precedente.`;
+    els.fileLabel.classList.remove('is-busy');
+    els.fileInput.value = '';
     await render();
   }
 
@@ -236,6 +188,7 @@
     }
     els.month.value = previousOfToday();
     els.fileInput.addEventListener('change', onFile);
+    els.clear.addEventListener('click', () => { state.buste = []; els.fileInfo.textContent = ''; render().catch(error => console.error(error)); });
     els.month.addEventListener('change', () => { render().catch(error => console.error(error)); });
     render().catch(error => console.error('Verifica busta', error));
   }

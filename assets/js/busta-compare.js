@@ -119,6 +119,7 @@
         base: fromBusta.base,
         euro,
         euroText: euroText(euro),
+        importo: fromBusta.present ? round2(sum(fromBusta.voci.map(voce => Number(voce.amount) || 0))) : null,
         missing: !fromBusta.present ? 'busta' : (!distintaValue && bustaNumber ? 'distinta' : null),
         notes
       });
