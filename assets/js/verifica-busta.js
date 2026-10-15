@@ -15,6 +15,7 @@
     result: $('vbResult'),
     chips: $('vbChips'),
     rows: $('vbRows'),
+    summary: $('vbSummary'),
     weeks: $('vbWeeks'),
     notCompared: $('vbNotCompared'),
     notComparedCount: $('vbNotComparedCount'),
@@ -125,6 +126,14 @@
     }).join('');
   }
 
+  // Tabella di riepilogo: una riga per voce, verde se coincide, rossa se no (gialla se da verificare).
+  function renderSummary(rows) {
+    els.summary.innerHTML = rows.length ? rows.map(row => {
+      const state = row.status === 'ok' ? 'Match' : row.status === 'check' ? 'Da verificare' : 'Mismatch';
+      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small></td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
+    }).join('') : '<tr><td colspan="5" class="vb-empty">Nessuna voce da confrontare.</td></tr>';
+  }
+
   function renderWeeks(distinta) {
     const weeks = distinta.period.weeks;
     const totalWorked = weeks.reduce((sum, week) => sum + week.workedMinutes, 0);
@@ -182,6 +191,7 @@
     setAlerts(alerts);
     const result = window.NaviBustaCompare.compare(busta, distinta.totals);
     renderChips(result.summary);
+    renderSummary(result.rows);
     renderRows(result.rows);
     renderWeeks(distinta);
     renderNotCompared(result.notCompared);

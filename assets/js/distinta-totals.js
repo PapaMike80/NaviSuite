@@ -104,8 +104,11 @@
         allowance9: worked.filter(e => Number(e.allowanceRate) === 9).length,
         allowance24: worked.filter(e => Number(e.allowanceRate) === 24).length,
         allowance50: worked.filter(e => Number(e.allowanceRate) === 50).length,
+        travel50: worked.filter(e => Number(e.allowanceRate) === 50 || e.travel === true).length,
         overnight40: worked.filter(e => e.overnight40).length,
         holiday: worked.filter(e => holidayValue(e, dateOf(e))).length,
+        holidayMinutes: worked.filter(e => holidayValue(e, dateOf(e))).reduce((sum, e) => sum + workedMinutes(e), 0),
+        missedRestMinutes: worked.reduce((sum, e) => sum + (Number(e.missedRest ?? e.missedRestMinutes ?? e.mancatoRiposo) || 0), 0),
         sundayShift: worked.filter(e => dateOf(e).getDay() === 0).length,
         secondMeal: worked.filter(e => e.secondMeal).length,
         embark: worked.filter(e => e.embark).length,
@@ -132,7 +135,12 @@
         const worked = group.filter(isWorking).reduce((sum, e) => sum + workedMinutes(e), 0);
         return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, cash139Days: group.filter(e => isWorking(e) && e.cashHandling && e.embark).length, workedMinutes: worked, overtimeMinutes: Math.max(0, worked - 39 * 60) };
       });
-      return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals: summarize(groups) };
+      // Giornate del solo mese di calendario: i giorni del mese precedente nella prima settimana
+      // (colonna RIP = riporto della Distinta) sono gia' stati pagati con la busta precedente.
+      const calendar = summarize([groups.flat().filter(e => String(e.date).slice(0, 7) === monthValue)]);
+      const totals = summarize(groups);
+      totals.calendar = calendar;
+      return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals };
     }
 
     return { compute, summarize, isWorking, serviceMinutes, workedMinutes, baseWorkedMinutes, ticketDue, ticketValue, holidayValue, shiftFor, shifts: SHIFTS };

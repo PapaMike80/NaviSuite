@@ -14,7 +14,20 @@
   const ora = n => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
   const isoLocale = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  let dati = (() => { try { const s = JSON.parse(localStorage.getItem(STORAGE) || 'null'); if (s?.stagioni) return s; } catch (_) {} return copia(window.NaviCollegamentiDefault); })();
+  // Orari di base piu' nuovi (versione maggiore): le linee di base vengono aggiornate, quelle aggiunte a mano restano.
+  function aggiorna(salvati) {
+    const base = window.NaviCollegamentiDefault;
+    if (!salvati?.stagioni) return copia(base);
+    if ((salvati.versione || 1) >= base.versione) return salvati;
+    const out = copia(salvati);
+    Object.entries(base.stagioni).forEach(([k, st]) => {
+      const qui = out.stagioni[k] || (out.stagioni[k] = { ...copia(st), linee: [] });
+      st.linee.forEach(l => { const i = qui.linee.findIndex(x => x.id === l.id); if (i < 0) qui.linee.push(copia(l)); else qui.linee[i] = copia(l); });
+    });
+    out.versione = base.versione;
+    return out;
+  }
+  let dati = (() => { try { return aggiorna(JSON.parse(localStorage.getItem(STORAGE) || 'null')); } catch (_) { return copia(window.NaviCollegamentiDefault); } })();
   let stagioneVista = null;
   let modifica = null; // id della linea in modifica
 
@@ -188,8 +201,10 @@
       const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${FILTRO}`)).items?.[0];
       if (!rec) { stato('Orari di base: salva una modifica per condividerli'); return; }
       pbId = rec.id;
-      if (rec.dati?.stagioni && JSON.stringify(rec.dati) !== JSON.stringify(dati)) {
-        dati = rec.dati;
+      const remoti = rec.dati?.stagioni ? aggiorna(rec.dati) : null;
+      if (remoti && remoti.versione !== rec.dati.versione) { dati = remoti; salva(); }
+      else if (remoti && JSON.stringify(remoti) !== JSON.stringify(dati)) {
+        dati = remoti;
         localStorage.setItem(STORAGE, JSON.stringify(dati));
         if (!dati.stagioni[stagioneVista]) stagioneVista = stagioneDel(isoLocale(new Date()));
         if (!modifica) disegna();
@@ -258,6 +273,6 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scarica(); });
   }
 
-  window.NaviCollegamenti = { leggiTabella, cerca, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
+  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
   if (typeof document !== 'undefined' && document.getElementById('col-linee')) avvia();
 })();

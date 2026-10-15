@@ -58,7 +58,7 @@
   // L'ultima scelta nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
   const PAGINE = [['oggi.html', 'Oggi'], ['naviturni.html', 'NaviTurni'], ['navidiaria.html', 'Distinta'], ['documenti.html', 'Documenti'],
     ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Quiz'],
-    ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta']];
+    ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta'], ['controllo_cassa.html', 'Controllo cassa']];
   const RUOLI = [['agenti', 'Agenti'], ['uffici', 'Uffici'], ['scali', 'Scali'], ['bariste', 'Bariste']];
   const ruoloDi = agent => (isScaloAgent(agent) ? 'scali' : isBaristaAgent(agent) ? 'bariste'
     : String(agent?.residence || agent?.residenza || '').toLowerCase() === 'uffici' ? 'uffici' : 'agenti');

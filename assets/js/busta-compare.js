@@ -17,17 +17,24 @@
   // imbarcato il maneggio si paga come differenza paga 121->139 sulle ore del
   // turno (D.P. Ore diff.paga 139B) e sullo straordinario (01Y D.P.lav.str.
   // Qu.139B, stesse ore di 334, non ore in piu'); a terra con FC0.
+  // Giornate: solo i giorni del mese di calendario (senza il riporto RIP); se mancano, i totali delle settimane.
+  const mese = t => t.calendar || t;
   const RULES = [
-    { id: 'overtime', codes: ['334'], label: 'Straordinari', distintaLabel: 'Straordinari', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60 },
-    { id: 'overtime139', codes: ['01Y'], label: 'Straordinario a parametro 139', distintaLabel: 'Straordinario nelle settimane con maneggio denaro', unit: 'ore', certainty: t => (t.overtimeMixedWeeks ? 'confermare' : 'certa'), source: 'quantity', distinta: t => t.overtime139Minutes / 60, notes: t => (t.overtimeMixedWeeks ? [`${t.overtimeMixedWeeks === 1 ? 'Una settimana' : `${t.overtimeMixedWeeks} settimane`} con straordinario ha giorni con e senza maneggio denaro: non si può sapere quale parte è a parametro 139.`] : []) },
+    // 334 = straordinario a parametro 121, 01Y = straordinario a parametro 139 (maneggio da imbarcato):
+    // sono ore diverse e si sommano (nelle buste di luglio e agosto 2026 c'e' solo 01Y).
+    { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari (oltre 39 h a settimana)', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60, notes: (t, voci) => { const ore = code => voci.filter(v => v.code === code).reduce((n, v) => n + (Number(v.quantity) || 0), 0); const a = ore('334'), b = ore('01Y'); return a && b ? [`In busta: ${String(Math.round(a * 100) / 100).replace('.', ',')} h a parametro 121 (334) + ${String(Math.round(b * 100) / 100).replace('.', ',')} h a parametro 139 (01Y).`] : []; } },
     { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore del turno nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.cashEmbarkServiceMinutes / 60 },
-    { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.embark },
-    { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.sundayShift },
-    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandlingGround },
-    { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.overnight40 },
+    { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).embark },
+    { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).sundayShift },
+    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashHandlingGround },
+    { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).overnight40 },
     { id: 'bank', codes: ['594'], label: 'Banca ore maturata', distintaLabel: 'Banca ore', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.bankMinutes / 60 },
-    { id: 'allowance24', codes: ['18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.allowance24 },
-    { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => t.ticketCredit }
+    { id: 'allowance24', codes: ['13X', '18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24% + trasferte 50%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).allowance24 + (mese(t).travel50 || 0) },
+    // 013 e' in ore (busta di settembre 2026: 9,9167 h senza festivita' nel mese): mancato riposo + ore lavorate nelle festivita'.
+    { id: 'holiday', codes: ['013'], label: 'Lavoro in FI-FN (festività e mancato riposo)', distintaLabel: 'Ore di mancato riposo e ore lavorate nelle festività', unit: 'ore', certainty: t => (mese(t).holiday ? 'confermare' : 'certa'), source: 'quantity', distinta: t => ((mese(t).missedRestMinutes || 0) + (mese(t).holidayMinutes || 0)) / 60, notes: t => (mese(t).holiday ? [`Comprende ${mese(t).holiday === 1 ? 'una festività lavorata' : `${mese(t).holiday} festività lavorate`}: controlla che la busta le paghi con 013.`] : []) },
+    { id: 'dailyDM', codes: ['49X'], label: 'Indennità prestazione giornaliera D.M.', distintaLabel: 'Giorni con maneggio denaro (Ind. giorn. D.M.)', unit: 'giorni', certainty: 'confermare', source: 'quantity', distinta: t => t.cashHandling, notes: () => ['Regola non ancora certa: nelle buste di agosto e settembre 2026 la 49X non corrisponde sempre alla riga Ind. giorn. D.M. della Distinta.'] },
+    { id: 'secondTicket', codes: ['70X'], label: '2 ticket inps/fisc.', distintaLabel: 'Giorni con secondo ticket', unit: 'ticket', certainty: 'certa', source: 'quantityOrFigurative', distinta: t => mese(t).secondMeal },
+    { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => mese(t).ticketCredit }
   ];
 
   const ruleMatches = (rule, voce) => rule.codes.includes(voce.code) && (!rule.filter || rule.filter(voce));
@@ -35,9 +42,7 @@
   const NOT_COMPARED_REASON = 'La Distinta non ha una riga equivalente.';
   // Le voci gia' usate da una regola (es. 55Y con "139") non compaiono qui.
   const NOT_COMPARED = [
-    { codes: ['013'], label: 'Lavoro in FI-FN' },
     { codes: ['55Y', '56Y'], label: 'Ore differenza paga' },
-    { codes: ['49X'], label: 'Indennità prestazione giornaliera' },
     { codes: ['FD0'], label: 'Indennità di rendimento' }
   ];
 
@@ -99,7 +104,7 @@
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
-      if (typeof rule.notes === 'function') notes.push(...rule.notes(totals));
+      if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
       rows.push({
         id: rule.id,
         codes: rule.codes.slice(),
@@ -148,9 +153,25 @@
       });
   }
 
+  // Riepilogo piatto: una riga per voce con Match/Mismatch. busta: { voci } oppure l'array delle voci.
+  function confronta(distinta, busta) {
+    const result = compare(Array.isArray(busta) ? { voci: busta } : busta, distinta);
+    return result.rows.map(row => ({
+      voce: row.label,
+      codici: row.codes.join(' + '),
+      unita: row.unit,
+      valoreDistinta: row.distinta,
+      valoreBusta: row.busta,
+      stato: row.status === 'ok' ? 'Match' : 'Mismatch',
+      differenza: row.diff,
+      daVerificare: row.status === 'check',
+      importo: row.euro
+    }));
+  }
+
   function knownCodes() {
     return new Set([...RULES.flatMap(rule => rule.codes), ...NOT_COMPARED.flatMap(item => item.codes)]);
   }
 
-  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, coherence, euroText, knownCodes };
+  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, coherence, euroText, knownCodes };
 });
