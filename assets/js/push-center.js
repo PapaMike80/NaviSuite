@@ -155,10 +155,10 @@
       const subs=await NaviPush.listSubscriptions();const map=new Map();
       subs.forEach(item=>{const id=String(item?.agentId||'').trim();if(!id)return;const row=map.get(id)||{id,name:String(item?.agentName||id),count:0};row.count+=1;if(item?.agentName)row.name=String(item.agentName);map.set(id,row);});
       const recipientRows=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name,'it'));
-      const options=recipientRows.map(row=>`<option value="${esc(row.id)}">${esc(row.name)} · ${row.count} dispositivo${row.count===1?'':'i'}</option>`).join('');
+      const options=recipientRows.map(row=>`<option value="${esc(row.id)}">${esc(row.name)} · ${row.count} dispositiv${row.count===1?'o':'i'}</option>`).join('');
       select.innerHTML='<option value="">Scegli agente…</option>'+options;
       if(map.has(agentId))select.value=agentId;
-      status.textContent=`${subs.length} dispositivo${subs.length===1?'':'i'} push registrato${subs.length===1?'':'i'}.`;
+      status.textContent=`${subs.length} dispositiv${subs.length===1?'o':'i'} push registrato${subs.length===1?'':'i'}.`;
       refreshDayPreview();
     }catch(error){status.textContent=error?.message||'Impossibile caricare i destinatari.';}
     finally{if(refresh)refresh.disabled=false;}
@@ -176,7 +176,7 @@
   async function sendDay(){
     const target=String($('push-day-agent').value||''),iso=String($('push-day-date').value||'');if(!target){$('push-day-status').textContent='Scegli un destinatario.';return;}if(!iso){$('push-day-status').textContent='Scegli la giornata.';return;}
     const button=$('push-day-send');button.disabled=true;$('push-day-status').textContent='Preparazione giornata…';
-    try{const data=await loadSchedule();currentSummary=buildSummary(data,target,iso);await NaviPush.queuePush({requestedByAgentId:agentId,requestedByName:agentName,targetAgentId:target,title:currentSummary.title,body:currentSummary.body,url:'naviturni.html',kind:'tomorrow-summary',meta:{date:iso,service:currentSummary.shift||''}});$('push-day-status').textContent=`✅ Giornata ${dateLabel(iso)} inviata.`;}
+    try{const data=await loadSchedule();currentSummary=buildSummary(data,target,iso);await NaviPush.queuePush({requestedByAgentId:agentId,requestedByName:agentName,targetAgentId:target,title:currentSummary.title,body:currentSummary.body,url:'naviturni.html',kind:'tomorrow-summary',meta:{date:iso,service:currentSummary.shift||''}});$('push-day-status').textContent=`✅ Giornata ${NaviPushSummary.dateLabel(iso)} inviata.`;}
     catch(error){$('push-day-status').textContent='❌ '+(error?.message||'Invio non riuscito.');}finally{button.disabled=false;}
   }
 
