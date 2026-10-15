@@ -306,7 +306,9 @@
       // cioe' la somma dei giorni del mese (senza la colonna RIP).
       const settimanale = ['ORE LAVORATE','LAVORO STRAORD.'].includes(row.label);
       const meseValue = [...dayValues.values()].reduce((sum,value) => sum + n(value),0);
-      const totale = settimanale ? weekValues.reduce((sum,value) => sum + n(value),0) : meseValue;
+      // straordinario dei giorni dopo l'ultima domenica del mese (settimana incompleta): si liquida in questo mese
+      const coda = row.label === 'LAVORO STRAORD.' ? (columns.find(c => c.type === 'week' && !c.complete)?.days || []).reduce((sum,day) => sum + n(dayValues.get(day)),0) : 0;
+      const totale = settimanale ? weekValues.reduce((sum,value) => sum + n(value),0) + coda : meseValue;
       const result = row.type === 'hours' ? clock(totale)
         : row.type === 'count' ? (totale || '')
         : '';

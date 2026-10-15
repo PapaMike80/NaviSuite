@@ -291,9 +291,17 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
   assert.equal(all.embark, 4 + (all.embark - 4), 'le settimane comprendono i giorni di luglio');
   assert.ok(all.embark > mese.embark, 'imbarco di luglio fuori dal mese');
   assert.equal(mese.embark, 0);
-  assert.equal(mese.workedDays, all.workedDays - 4);
+  assert.equal(mese.workedDays, all.workedDays - 4 + 1, 'fuori i 4 giorni di luglio, dentro il 31 agosto dopo l\'ultima domenica');
   const cmp = compareModule.compare({ voci: [{ code: '43X', description: 'Ind. imbarco', quantity: 0, base: 2, figurative: null, amount: 0 }] }, all);
   assert.equal(cmp.rows.find(r => r.id === 'embark').status, 'ok', 'imbarco: 0 in busta = 0 nel mese, il riporto non conta');
+}
+
+// Giorni dopo l'ultima domenica: lo straordinario giornaliero si liquida nel mese (luglio 2026: lunedi' 27 con 3:45).
+{
+  const luglio = calc.compute([day('2026-07-27', 'D1', { overtimeComponents: { ordinario: 225, cambi: 0, sentine: 0 }, allowanceRate: 24 }), day('2026-07-20', 'D1', { allowanceRate: 24 })], '2026-07');
+  assert.equal(luglio.totals.overtimeTailMinutes, 225);
+  assert.equal(luglio.totals.overtimeMinutes, 225);
+  assert.equal(luglio.totals.calendar.allowance24, 2, 'il 27 luglio conta a luglio');
 }
 
 // --- Confronto busta <-> Distinta ---
