@@ -117,6 +117,8 @@
         cashHandlingEmbark: worked.filter(cash139).length,
         // 55Y/56Y: ore lavorate (con ritardi e straordinari) dei giorni con cassa a bordo
         cashEmbarkServiceMinutes: worked.filter(cash139).reduce((total, e) => total + workedMinutes(e), 0),
+        cashEmbarkShiftMinutes: worked.filter(cash139).reduce((total, e) => total + serviceMinutes(e), 0),
+        cashEmbarkDays: worked.filter(cash139).length,
         overtime139Minutes,
         overtimeMixedWeeks,
         hydrofoil: worked.filter(e => (globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1')).length,
