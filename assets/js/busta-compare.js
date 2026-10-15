@@ -17,22 +17,24 @@
   // imbarcato il maneggio si paga come differenza paga 121->139 sulle ore del
   // turno (D.P. Ore diff.paga 139B) e sullo straordinario (01Y D.P.lav.str.
   // Qu.139B, stesse ore di 334, non ore in piu'); a terra con FC0.
+  // Giornate: solo i giorni del mese di calendario (senza il riporto RIP); se mancano, i totali delle settimane.
+  const mese = t => t.calendar || t;
   const RULES = [
     // 334 = straordinario a parametro 121, 01Y = straordinario a parametro 139 (maneggio da imbarcato):
     // sono ore diverse e si sommano (nelle buste di luglio e agosto 2026 c'e' solo 01Y).
     { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari (oltre 39 h a settimana)', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60, notes: (t, voci) => { const ore = code => voci.filter(v => v.code === code).reduce((n, v) => n + (Number(v.quantity) || 0), 0); const a = ore('334'), b = ore('01Y'); return a && b ? [`In busta: ${String(Math.round(a * 100) / 100).replace('.', ',')} h a parametro 121 (334) + ${String(Math.round(b * 100) / 100).replace('.', ',')} h a parametro 139 (01Y).`] : []; } },
     { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore del turno nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.cashEmbarkServiceMinutes / 60 },
-    { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.embark },
-    { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.sundayShift },
-    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandlingGround },
-    { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.overnight40 },
+    { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).embark },
+    { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).sundayShift },
+    { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashHandlingGround },
+    { id: 'overnight40', codes: ['FC1'], label: 'Pernottazione navigante 40%', distintaLabel: 'Giorni con pernotto 40%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).overnight40 },
     { id: 'bank', codes: ['594'], label: 'Banca ore maturata', distintaLabel: 'Banca ore', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.bankMinutes / 60 },
-    { id: 'allowance24', codes: ['13X', '18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.allowance24 },
+    { id: 'allowance24', codes: ['13X', '18X', '28Y', '29Y'], label: 'Diarie 24%', distintaLabel: 'Giorni con diaria 24%', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).allowance24 },
     // 013 e' in ore (busta di settembre 2026: 9,9167 h senza festivita' nel mese): mancato riposo + ore lavorate nelle festivita'.
-    { id: 'holiday', codes: ['013'], label: 'Lavoro in FI-FN (festività e mancato riposo)', distintaLabel: 'Ore di mancato riposo e ore lavorate nelle festività', unit: 'ore', certainty: t => (t.holiday ? 'confermare' : 'certa'), source: 'quantity', distinta: t => ((t.missedRestMinutes || 0) + (t.holidayMinutes || 0)) / 60, notes: t => (t.holiday ? [`Comprende ${t.holiday === 1 ? 'una festività lavorata' : `${t.holiday} festività lavorate`}: controlla che la busta le paghi con 013.`] : []) },
-    { id: 'dailyDM', codes: ['49X'], label: 'Indennità prestazione giornaliera D.M.', distintaLabel: 'Giorni con maneggio denaro (Ind. giorn. D.M.)', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandling },
-    { id: 'secondTicket', codes: ['70X'], label: '2 ticket inps/fisc.', distintaLabel: 'Giorni con secondo ticket', unit: 'ticket', certainty: 'certa', source: 'quantityOrFigurative', distinta: t => t.secondMeal },
-    { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => t.ticketCredit }
+    { id: 'holiday', codes: ['013'], label: 'Lavoro in FI-FN (festività e mancato riposo)', distintaLabel: 'Ore di mancato riposo e ore lavorate nelle festività', unit: 'ore', certainty: t => (mese(t).holiday ? 'confermare' : 'certa'), source: 'quantity', distinta: t => ((mese(t).missedRestMinutes || 0) + (mese(t).holidayMinutes || 0)) / 60, notes: t => (mese(t).holiday ? [`Comprende ${mese(t).holiday === 1 ? 'una festività lavorata' : `${mese(t).holiday} festività lavorate`}: controlla che la busta le paghi con 013.`] : []) },
+    { id: 'dailyDM', codes: ['49X'], label: 'Indennità prestazione giornaliera D.M.', distintaLabel: 'Giorni con maneggio denaro (Ind. giorn. D.M.)', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => t.cashHandling, notes: () => ['Conta anche i giorni del riporto (colonna RIP), come la busta di settembre 2026.'] },
+    { id: 'secondTicket', codes: ['70X'], label: '2 ticket inps/fisc.', distintaLabel: 'Giorni con secondo ticket', unit: 'ticket', certainty: 'certa', source: 'quantityOrFigurative', distinta: t => mese(t).secondMeal },
+    { id: 'ticket', codes: ['1TK'], label: 'Ticket elettronico', distintaLabel: 'Ticket non usati (da accreditare)', unit: 'ticket', certainty: 'confermare', source: 'quantityOrFigurative', distinta: t => mese(t).ticketCredit }
   ];
 
   const ruleMatches = (rule, voce) => rule.codes.includes(voce.code) && (!rule.filter || rule.filter(voce));

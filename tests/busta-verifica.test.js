@@ -284,8 +284,20 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
   Object.entries(expected).forEach(([key, value]) => assert.equal(original.summarizedTotal({ key }, groups), value, `riga ${key}`));
 }
 
+// Riporto (colonna RIP): i giorni di luglio nella prima settimana di agosto contano per lo straordinario
+// settimanale ma non per le giornate, gia' pagate con la busta precedente.
+{
+  const all = result.totals, mese = result.totals.calendar;
+  assert.equal(all.embark, 4 + (all.embark - 4), 'le settimane comprendono i giorni di luglio');
+  assert.ok(all.embark > mese.embark, 'imbarco di luglio fuori dal mese');
+  assert.equal(mese.embark, 0);
+  assert.equal(mese.workedDays, all.workedDays - 4);
+  const cmp = compareModule.compare({ voci: [{ code: '43X', description: 'Ind. imbarco', quantity: 0, base: 2, figurative: null, amount: 0 }] }, all);
+  assert.equal(cmp.rows.find(r => r.id === 'embark').status, 'ok', 'imbarco: 0 in busta = 0 nel mese, il riporto non conta');
+}
+
 // --- Confronto busta <-> Distinta ---
-const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, holidayMinutes: 60, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
+const compareTotals = { ...t, calendar: undefined, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, holidayMinutes: 60, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
 const outcome = compareModule.compare(busta, compareTotals);
 const row = id => outcome.rows.find(entry => entry.id === id);
 assert.equal(row('overtime').status, 'ok');

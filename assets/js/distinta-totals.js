@@ -134,7 +134,12 @@
         const worked = group.filter(isWorking).reduce((sum, e) => sum + workedMinutes(e), 0);
         return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, cash139Days: group.filter(e => isWorking(e) && e.cashHandling && e.embark).length, workedMinutes: worked, overtimeMinutes: Math.max(0, worked - 39 * 60) };
       });
-      return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals: summarize(groups) };
+      // Giornate del solo mese di calendario: i giorni del mese precedente nella prima settimana
+      // (colonna RIP = riporto della Distinta) sono gia' stati pagati con la busta precedente.
+      const calendar = summarize([groups.flat().filter(e => String(e.date).slice(0, 7) === monthValue)]);
+      const totals = summarize(groups);
+      totals.calendar = calendar;
+      return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals };
     }
 
     return { compute, summarize, isWorking, serviceMinutes, workedMinutes, baseWorkedMinutes, ticketDue, ticketValue, holidayValue, shiftFor, shifts: SHIFTS };
