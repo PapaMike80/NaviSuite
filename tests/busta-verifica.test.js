@@ -412,3 +412,15 @@ assert.equal(wrong[1].ok, true);
 }
 
 console.log('Busta verifica test passed');
+
+// 55Y + 56Y: il valore e' la differenza paga netta (139 - 121), non il solo importo della 55Y.
+{
+  const voci = [
+    { code: '55Y', description: 'D.P. Ore diff.paga 139B', quantity: 144.3333, base: 9.2202, figurative: null, amount: 1330.78 },
+    { code: '56Y', description: 'Tratt.ore diff.paga', quantity: 144.3333, base: 8.34262, figurative: null, amount: -1204.12 }
+  ];
+  const r = compareModule.compare({ voci }, { cashEmbarkServiceMinutes: 128.08 * 60 }).rows.find(row => row.id === 'cashEmbark');
+  assert.equal(r.importo, 126.66);
+  assert.equal(r.importoDistinta, 112.4);
+  assert.equal(r.euro, -14.26);
+}
