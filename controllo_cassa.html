@@ -893,9 +893,17 @@
   }
   // Tutte e 4 le casse sempre scegliibili (divise per scalo); scegliendo la cassa lo scalo si adegua
   const scaloDi = post => Object.keys(POSTAZIONI).find(k => POSTAZIONI[k].includes(post)) || '';
+  // Account di scalo (es. SCALO GARDA): vede solo le casse del suo scalo
+  const scaloFisso = () => { const sc = window.NaviRoles?.scaloOf?.(sessione()) || ''; return POSTAZIONI[sc] ? sc : ''; };
+  function bloccaScalo() {
+    const sc = scaloFisso(); if (!sc) return;
+    const sel = document.getElementById('scalo-selezionato');
+    sel.innerHTML = `<option value="${sc}">${sc}</option>`; sel.value = sc; sel.disabled = true;
+    riempiPostazioni(POSTAZIONI[sc].length === 1 ? POSTAZIONI[sc][0] : ''); impostaRegoleScalo(); controllaIntestazione();
+  }
   function riempiPostazioni(scelta = '') {
     const sel = document.getElementById('postazione-selezionata');
-    sel.innerHTML = '<option value="">— Scegli la cassa —</option>' + Object.entries(POSTAZIONI).map(([sc, lista]) => `<optgroup label="${sc}">${lista.map(p => `<option>${p}</option>`).join('')}</optgroup>`).join('');
+    sel.innerHTML = '<option value="">— Scegli la cassa —</option>' + Object.entries(POSTAZIONI).filter(([sc]) => !scaloFisso() || sc === scaloFisso()).map(([sc, lista]) => `<optgroup label="${sc}">${lista.map(p => `<option>${p}</option>`).join('')}</optgroup>`).join('');
     const scalo = document.getElementById('scalo-selezionato').value;
     sel.value = scaloDi(scelta) && (!scalo || scaloDi(scelta) === scalo) ? scelta : '';
     renderCassetta();
@@ -914,7 +922,7 @@
   }
   // Dal turno di oggi: AgM/AgT -> Maderno, AgB/DT -> Desenzano
   function postazioneDalTurno() {
-    if (sceltaManuale || !schedule || !window.NaviTurniGiorno?.turnoAgente) return;
+    if (sceltaManuale || scaloFisso() || !schedule || !window.NaviTurniGiorno?.turnoAgente) return;
     const id = document.getElementById('agente-id').value, giorno = document.getElementById('data-turno').value;
     if (!id || !giorno) return;
     let turno = '';
@@ -1187,6 +1195,7 @@
     campiEuro();
     riempiPostazioni();
     document.body.classList.add('cassa-incompleta');
+    bloccaScalo();
     const nomeEl = document.getElementById('agente-nome');
     nomeEl.addEventListener('input', agenteDaNome); nomeEl.addEventListener('change', agenteDaNome);
     document.getElementById('data-turno').addEventListener('change', () => { sceltaManuale = false; postazioneDalTurno(); });
