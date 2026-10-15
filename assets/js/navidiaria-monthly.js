@@ -79,12 +79,15 @@ try{(()=>{
   // Totale del mese: con le ore trasformate in banca ore (riquadro sotto la tabella) gli straordinari calano e la
   // banca ore cresce del 10% in piu'.
   function monthlyTotal(row,sundays){
-    const base=summarizedTotal(row,sundays.map(entriesInWeek));
+    // Ore lavorate e straordinari: settimane del periodo (lun-dom). Tutte le altre competenze si liquidano sul
+    // mese di calendario, dal primo all'ultimo giorno (senza i giorni del mese prima, con quelli dopo l'ultima domenica).
+    const mese=document.getElementById('monthFilter').value;
+    const base=['service','hours','overtime'].includes(row.key)?summarizedTotal(row,sundays.map(entriesInWeek)):summarizedTotal(row,[entries.filter(e=>String(e?.date||'').slice(0,7)===mese)]);
     if(row.key!=='overtime'&&row.key!=='bank')return base;
     const conv=window.NaviDiariaConversione?.trasformati?.(document.getElementById('monthFilter').value)||0;
     if(!conv)return base;
     if(row.key==='overtime'){const rest=Math.max(0,straordinariMese(sundays).totale-conv);return rest?clock(rest):''}
-    const bank=sundays.map(entriesInWeek).flat().filter(isWorking).reduce((sum,e)=>sum+(Number(e.bank)||0),0)+Math.round(conv*1.1);
+    const bank=entries.filter(e=>String(e?.date||'').slice(0,7)===mese).filter(isWorking).reduce((sum,e)=>sum+(Number(e.bank)||0),0)+Math.round(conv*1.1);
     return bank?signedClock(bank):'';
   }
   // Straordinari del mese come nella colonna TOT. MESE (settimane del periodo oltre 39 ore), per il riquadro della
