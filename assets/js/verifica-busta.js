@@ -113,7 +113,7 @@
     return `<div class="vb-summary-wrap"><table class="vb-table vb-summary"><thead><tr><th>Voce</th><th>Distinta</th><th>Busta</th><th>Diff.</th><th>Valore</th><th>Stato</th></tr></thead><tbody>${rows.map(row => {
       const state = row.status === 'ok' ? 'Match' : row.status === 'check' ? 'Da verificare' : 'Mismatch';
       const diffEuro = row.status !== 'ok' && row.euro ? `<small class="vb-euro-diff">${row.euro > 0 ? '+' : '−'}${escapeHtml(euro(Math.abs(row.euro)))}</small>` : '';
-      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small>${row.status === 'check' && row.notes?.length ? `<small class="vb-euro-diff">${escapeHtml(row.notes[row.notes.length - 1])}</small>` : ''}</td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}${row.importoDistinta !== null && row.importoDistinta !== undefined && row.status !== 'ok' ? `<small class="vb-euro-diff">Distinta ${escapeHtml(euro(row.importoDistinta))}</small>` : ''}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
+      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small>${row.status === 'check' && row.notes?.length ? `<small class="vb-note-row">${escapeHtml(row.notes[row.notes.length - 1]).replace(/\n/g, '<br>')}</small>` : ''}</td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}${row.importoDistinta !== null && row.importoDistinta !== undefined && row.status !== 'ok' ? `<small class="vb-euro-diff">Distinta ${escapeHtml(euro(row.importoDistinta))}</small>` : ''}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
     }).join('')}</tbody></table></div>`;
   }
 
@@ -126,6 +126,19 @@
   // Tolleranza scelta (0, 5 o 10%), ricordata sul dispositivo
   const TOLL_KEY = 'navisuite.verificaBusta.tolleranza';
   const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
+
+  // Differenze fuori dalla tolleranza scelta: mail pronta per l'ufficio personale (si apre nell'app di posta, si puo' anche copiare)
+  function mailHtml(item, rows) {
+    const voci = rows.filter(row => row.status !== 'ok' && !row.trascurabile); // fuori dalla tolleranza scelta
+    if (!voci.length) return '';
+    const mese = monthLabel(item.month).toLowerCase(), busta = item.bustaMonth ? monthLabel(item.bustaMonth).toLowerCase() : item.fileName;
+    const nome = String(agent?.name || '').trim();
+    const righe = voci.map(row => `- ${row.label} (voce ${row.codes.join(' + ')}): in busta ${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}, dalla mia distinta ${unitValue(row.distinta, row.unit)} (differenza ${signedUnit(row.diff, row.unit)}${row.euro ? `, circa ${euro(Math.abs(row.euro))}` : ''}).`).join('\n');
+    const oggetto = `Verifica busta paga di ${busta} (dati di ${mese})${nome ? ` - ${nome}` : ''}`;
+    const testo = `Buongiorno,\n\nconfrontando la busta paga di ${busta} con la mia distinta di ${mese} ho trovato queste differenze:\n\n${righe}\n\nVi chiedo cortesemente di verificare e, se necessario, di correggere nella prossima busta.\n\nGrazie,\n${nome}`;
+    const href = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(testo)}`;
+    return `<div class="vb-mail"><p><strong>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`} oltre la tolleranza del ${Math.round(tolleranza() * 100)}%</strong>: puoi segnalarle all'ufficio personale.</p><a class="vb-reload" href="${href}">✉ Prepara la mail</a> <button type="button" class="vb-reload" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia il testo</button></div>`;
+  }
 
   function renderFiles() {
     els.files.innerHTML = state.buste.map(item => `<li class="is-ok"><strong>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)}</strong> ${escapeHtml(item.fileName)}${item.month ? ` · Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}` : ''}</li>`).join('');
@@ -155,8 +168,9 @@
       const distinta = calculator.compute(data.entries, item.month);
       if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
       const result = window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() });
+      const mail = mailHtml(item, result.rows);
       const s = result.summary;
-      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare</p>${totaliHtml(item.busta)}${tableHtml(result.rows)}</div>`;
+      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare</p>${totaliHtml(item.busta)}${tableHtml(result.rows)}${mail}</div>`;
     });
     setAlerts(alerts);
     els.months.innerHTML = blocks.join('');
@@ -201,6 +215,12 @@
     els.month.value = previousOfToday();
     els.fileInput.addEventListener('change', onFile);
     $('vbReload')?.addEventListener('click', ricarica);
+    // Nascondi cifre: sfoca tutti gli importi in euro (scelta ricordata sul dispositivo)
+    const BLUR_KEY = 'navisuite.verificaBusta.nascondi';
+    const blur = on => { document.body.classList.toggle('vb-blur', on); const b = $('vbBlur'); if (b) { b.textContent = on ? '👁 Mostra cifre' : '🙈 Nascondi cifre'; b.setAttribute('aria-pressed', String(on)); } try { localStorage.setItem(BLUR_KEY, on ? '1' : '0'); } catch (_) {} };
+    try { blur(localStorage.getItem(BLUR_KEY) === '1'); } catch (_) { blur(false); }
+    $('vbBlur')?.addEventListener('click', () => blur(!document.body.classList.contains('vb-blur')));
+    els.months.addEventListener('click', e => { const b = e.target.closest('[data-copia]'); if (!b) return; navigator.clipboard?.writeText(b.dataset.copia).then(() => { b.textContent = '✓ Copiato'; }).catch(() => {}); });
     try { const salvata = localStorage.getItem(TOLL_KEY); if (salvata !== null && $('vbToll')) $('vbToll').value = salvata; } catch (_) {}
     $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} render().catch(error => console.error(error)); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ricarica(); });
