@@ -255,6 +255,7 @@
             <option value="">— Scegli lo scalo —</option>
             <option value="Maderno">Maderno</option>
             <option value="Desenzano">Desenzano</option>
+            <option value="Garda">Garda</option>
           </select>
         </div>
         <div class="form-box transparent">
@@ -666,9 +667,9 @@
     return total;
   }
 
-  // ---------------- Cassetta rossa (Desenzano, AgB): fondo di sole monete, in ogni passo ----------------
+  // ---------------- Cassetta rossa (Desenzano AgB e Garda): fondo di sole monete, in ogni passo ----------------
   const countsCassetta = { mattina: {}, diurno: {}, sera: {} };
-  const cassettaAttiva = () => document.getElementById('postazione-selezionata')?.value === 'AgB (Cassa 1)';
+  const cassettaAttiva = () => ['AgB (Cassa 1)', 'Garda (Cassa unica)'].includes(document.getElementById('postazione-selezionata')?.value);
   const FASI_DOPO = { mattina: ['diurno', 'sera'], diurno: ['sera'], sera: [] };
   function rendiGriglie() {
     renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
@@ -867,7 +868,7 @@
   const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
   function sessione() { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) { return null; } }
-  const POSTAZIONI = { Maderno: ['AgM (Cassa 2)', 'AgT (Cassa 1)'], Desenzano: ['AgB (Cassa 1)', 'DT (Cassa 8)'] };
+  const POSTAZIONI = { Maderno: ['AgM (Cassa 2)', 'AgT (Cassa 1)'], Desenzano: ['AgB (Cassa 1)', 'DT (Cassa 8)'], Garda: ['Garda (Cassa unica)'] };
   let agenti = [], schedule = null, sceltaManuale = false;
   const norma = v => String(v || '').trim().toLocaleLowerCase('it');
   function caricaAgenti() {
