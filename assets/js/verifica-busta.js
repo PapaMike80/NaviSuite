@@ -117,6 +117,12 @@
     }).join('')}</tbody></table></div>`;
   }
 
+  // Totali della busta: lordo (totale competenze), ritenute e netto a pagare
+  function totaliHtml(busta) {
+    const t = busta.totals || {}, cella = (nome, v, cls = '') => `<div class="${cls}"><dt>${nome}</dt><dd>${v === null || v === undefined ? '—' : escapeHtml(euro(v))}</dd></div>`;
+    return `<dl class="vb-values vb-totali">${cella('Lordo', t.competenze)}${cella('Ritenute', t.ritenute)}${cella('Netto', t.netto, 'vb-netto')}</dl>`;
+  }
+
   function renderFiles() {
     els.files.innerHTML = state.buste.map(item => `<li class="is-ok"><strong>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)}</strong> ${escapeHtml(item.fileName)}${item.month ? ` · Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}` : ''}</li>`).join('');
     els.clear.hidden = !state.buste.length;
@@ -146,7 +152,7 @@
       if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
       const result = window.NaviBustaCompare.compare(item.busta, distinta.totals);
       const s = result.summary;
-      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare${item.busta.totals.netto !== null ? ` · netto ${escapeHtml(euro(item.busta.totals.netto))}` : ''}</p>${tableHtml(result.rows)}</div>`;
+      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare</p>${totaliHtml(item.busta)}${tableHtml(result.rows)}</div>`;
     });
     setAlerts(alerts);
     els.months.innerHTML = blocks.join('');

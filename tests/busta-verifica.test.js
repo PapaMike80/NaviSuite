@@ -424,3 +424,9 @@ console.log('Busta verifica test passed');
   assert.equal(r.importoDistinta, 112.4);
   assert.equal(r.euro, -14.26);
 }
+
+// 55Y: ore lavorate (con ritardi e straordinari) dei giorni con cassa a bordo, non solo le ore del turno.
+{
+  const giorno = calc.compute([day('2026-08-04', 'D1', { cashHandling: true, embark: true, overtimeComponents: { ordinario: 60, cambi: 0, sentine: 0 } })], '2026-08');
+  assert.equal(giorno.totals.calendar.cashEmbarkServiceMinutes, 13 * 60 + 60);
+}
