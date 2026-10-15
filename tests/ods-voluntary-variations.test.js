@@ -66,6 +66,21 @@ const ods41 = parseOdsPdf([page(`
   `, 2)], '41/2026');
 assert.deepEqual(ods41.map(row => `${row.agente}|${row.turno_nuovo}`), ['FORTE|P2', 'CALANCHI|RIP', 'BERNARDELLI M.|RIP']);
 
+// Controlli: righe strane segnalate in avvisi (con baseShift = D1 nessuno lascia P2).
+const testi = ods41.avvisi.map(a => a.testo).join('\n');
+assert.match(testi, /«==» letto come RIP/);
+assert.match(testi, /FORTE prende P2, ma nell'ODS nessuno lascia P2/);
+const strani = parseOdsPdf([page(`
+    VARIAZIONI TURNI DA UFFICIO
+    ROSSI: P1
+    GIOVEDI' 22 OTTOBRE 2026
+    BIANCHI: dalle alle
+    VERDI:
+  `, 2)], '99/2026');
+assert.equal(strani.length, 0);
+assert.deepEqual(strani.avvisi.map(a => a.testo.split(':')[0]), ['Riga prima di una data, non usata', 'Servizio non riconosciuto, riga non usata', 'Riga senza servizio, non usata']);
+assert.equal(variations.avvisi.filter(a => /già il suo turno/.test(a.testo)).length, 0);
+
 const rowsFromDelimited = new Function('normalize', `${csvSource}; return rowsFromDelimited;`)(normalize);
 const csvRows = rowsFromDelimited(`Tipo_Variazione,Data,Dipendente,Turno_Assegnato
 Ufficio,2026-08-28,DOLCERA,PonD
