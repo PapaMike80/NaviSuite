@@ -114,6 +114,22 @@ assert.equal(busta.check.sumCompetenze, 1977.54);
 assert.equal(busta.check.sumRitenute, 387.85);
 assert.equal(busta.check.completa, true);
 
+// Buste INAZ vere (giugno-settembre 2026): la voce "900 Totale ritenute sociali" non chiude la tabella
+// e non e' il Totale Ritenute; "NETTO" e "A PAGARE" stanno su due righe con l'importo a destra.
+const page2Inaz = [
+  item('AZIENDA ESEMPIO S.P.A.', 40, 810),
+  ...header(640),
+  ...voceRow(630, { code: '900', description: 'Totale ritenute sociali', base: '137,85' }),
+  ...voceRow(620, { code: '49X', description: 'Ind. prest. giornaliera', quantity: '3', base: '5,00', amount: '15,00' }),
+  item('Totale Ritenute', 400, 220), item('Totale Competenze', 480, 220),
+  right('387,85', 466, 208), right('1.977,54', 556, 208),
+  item('NETTO', 300, 200), item('A PAGARE', 304, 194), right('1.589,69', 556, 194)
+];
+const inaz = parser.parseItems([{ items: page1 }, { items: page2Inaz }]);
+assert.ok(inaz.voci.some(voce => voce.code === '49X'), 'le voci dopo la 900 si leggono');
+assert.deepEqual(inaz.totals, { competenze: 1977.54, ritenute: 387.85, netto: 1589.69 });
+assert.equal(inaz.check.completa, true);
+
 // Una riga persa: la lettura non e' completa e lo si dice.
 const partial = parser.parseItems([{ items: page1 }, { items: page2.filter(entry => entry.str !== '49X') }]);
 assert.equal(partial.check.completa, false);
@@ -269,7 +285,7 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
 }
 
 // --- Confronto busta <-> Distinta ---
-const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
+const compareTotals = { ...t, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, holidayMinutes: 60, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
 const outcome = compareModule.compare(busta, compareTotals);
 const row = id => outcome.rows.find(entry => entry.id === id);
 assert.equal(row('overtime').status, 'ok');
@@ -334,17 +350,14 @@ assert.equal(t.overtimeMixedWeeks, 1);
   const totals139 = { ...compareTotals, overtime139Minutes: 12 * 60, cashEmbarkServiceMinutes: 52 * 60 };
   const with139 = compareModule.compare({ voci: [...busta.voci, ...extra] }, totals139);
   const find = id => with139.rows.find(entry => entry.id === id);
-  assert.equal(find('overtime').busta, 10.5, '01Y non si somma a 334: sono le stesse ore');
-  assert.equal(find('overtime').status, 'ok');
-  assert.equal(find('overtime139').busta, 13);
-  assert.equal(find('overtime139').status, 'diff');
-  assert.equal(find('overtime139').euro, -1.5, 'differenza x dato base della differenza paga');
+  // 01Y (parametro 139) e 334 (parametro 121) sono ore diverse: si sommano.
+  assert.equal(find('overtime').busta, 23.5, '01Y + 334');
+  assert.equal(find('overtime').status, 'diff');
+  assert.match(find('overtime').notes.join(' '), /10,5 h a parametro 121 \(334\) \+ 13 h a parametro 139 \(01Y\)/);
+  assert.equal(compareModule.compare({ voci: [...busta.voci, ...extra] }, { ...totals139, overtimeMinutes: 23.5 * 60 }).rows.find(entry => entry.id === 'overtime').status, 'ok');
   assert.equal(find('cashEmbark').busta, 52, 'solo le ore differenza paga a 139');
   assert.equal(find('cashEmbark').status, 'ok');
   assert.deepEqual(with139.notCompared.map(voce => voce.code).sort(), ['56Y', 'FD0']);
-  const mixed = compareModule.compare({ voci: [...busta.voci, ...extra] }, { ...totals139, overtimeMixedWeeks: 1 });
-  assert.equal(mixed.rows.find(entry => entry.id === 'overtime139').status, 'check', 'settimane miste: solo da verificare');
-  assert.match(mixed.rows.find(entry => entry.id === 'overtime139').notes.join(' '), /giorni con e senza maneggio/);
 }
 
 // --- Coerenza interna ---

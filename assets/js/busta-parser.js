@@ -154,9 +154,12 @@
   }
 
   const TOTAL_LABELS = [
-    { key: 'ritenute', re: /^Totale\s+Ritenute/i },
-    { key: 'competenze', re: /^Totale\s+Competenze/i },
-    { key: 'netto', re: /^Netto\s+a\s+pagare/i }
+    // Maiuscole come nel piede della busta: la voce "900 Totale ritenute sociali" non e' il totale.
+    { key: 'ritenute', re: /^Totale\s+Ritenute/ },
+    { key: 'competenze', re: /^Totale\s+Competenze/ },
+    { key: 'netto', re: /^Netto\s+a\s+pagare/i },
+    // INAZ: "NETTO" e "A PAGARE" su due righe, l'importo a destra di "A PAGARE"
+    { key: 'netto', re: /^A\s+PAGARE\b/ }
   ];
 
   // Il valore di un totale e' il numero a destra dell'etichetta sulla stessa
@@ -207,7 +210,7 @@
   }
 
   const isHeaderRow = row => row.words.some(word => /^Voce$/i.test(word.text));
-  const isEndRow = row => /\*\*\*\s*SEGUE|Totale\s+(?:Competenze|Ritenute)|Netto\s+a\s+pagare/i.test(rowText(row));
+  const isEndRow = row => /\*\*\*\s*SEGUE|Netto\s+a\s+pagare/i.test(rowText(row)) || /Totale\s+(?:Competenze|Ritenute)/.test(rowText(row));
 
   // pages: [{items:[...]}] (item pdf.js o normalizzati). Restituisce
   // {period, voci, totals, check}.
