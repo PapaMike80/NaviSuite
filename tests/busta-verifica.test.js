@@ -324,9 +324,13 @@ assert.equal(flat.find(r => r.codici === '47X').differenza, 1);
 assert.equal(flat.find(r => r.codici === '43X').stato, 'Match');
 assert.ok(outcome.notCompared.every(voce => voce.reason === 'La Distinta non ha una riga equivalente.'));
 // Straordinario in piu' in busta: importo negativo.
-const overpaid = compareModule.compare(busta, { ...compareTotals, overtimeMinutes: 10 * 60 });
-assert.equal(overpaid.rows.find(entry => entry.id === 'overtime').euro, -7.5);
-assert.equal(overpaid.rows.find(entry => entry.id === 'overtime').euroText, 'In busta ci sono circa 7,50 € in più');
+const overpaid = compareModule.compare(busta, { ...compareTotals, overtimeMinutes: 9 * 60 });
+assert.equal(overpaid.rows.find(entry => entry.id === 'overtime').euro, -22.5);
+assert.equal(overpaid.rows.find(entry => entry.id === 'overtime').euroText, 'In busta ci sono circa 22,50 € in più');
+// Tolleranza del 10%: 10 h in Distinta contro 10,5 h in busta (4,8%) e' coerente, con una nota.
+const tollerata = compareModule.compare(busta, { ...compareTotals, overtimeMinutes: 10 * 60 }).rows.find(entry => entry.id === 'overtime');
+assert.equal(tollerata.status, 'ok');
+assert.match(tollerata.notes.join(' '), /tolleranza del 10%/);
 // Voce assente in busta ma presente nella Distinta, e viceversa; assente in entrambe: nessuna riga.
 const noEmbark = compareModule.compare({ voci: busta.voci.filter(voce => voce.code !== '43X') }, compareTotals);
 assert.equal(noEmbark.rows.find(entry => entry.id === 'embark').missing, 'busta');
@@ -380,10 +384,10 @@ const coherence = outcome.coherence;
 assert.ok(coherence.length >= 8);
 assert.ok(coherence.every(entry => entry.ok), 'busta sintetica coerente');
 assert.ok(!coherence.some(entry => entry.code === 'C01'), 'contributi esclusi');
-const wrong = compareModule.coherence([{ code: 'X01', description: 'Voce errata', quantity: 3, base: 10, amount: 31 }, { code: 'X02', description: 'Voce entro tolleranza', quantity: 3, base: 3.333, amount: 10 }, { code: 'IR2', description: 'IRPEF', quantity: 1, base: 1, amount: -99 }]);
+const wrong = compareModule.coherence([{ code: 'X01', description: 'Voce errata', quantity: 3, base: 10, amount: 34 }, { code: 'X02', description: 'Voce entro tolleranza', quantity: 3, base: 3.333, amount: 10 }, { code: 'IR2', description: 'IRPEF', quantity: 1, base: 1, amount: -99 }]);
 assert.equal(wrong.length, 2);
 assert.equal(wrong[0].ok, false);
-assert.equal(wrong[0].difference, 1);
+assert.equal(wrong[0].difference, 4, 'oltre il 10%');
 assert.equal(wrong[1].ok, true);
 
 // --- La pagina carica tutti gli script, nell'ordine giusto ---
