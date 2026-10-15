@@ -431,11 +431,21 @@ console.log('Busta verifica test passed');
   assert.equal(giorno.totals.calendar.cashEmbarkServiceMinutes, 13 * 60 + 60);
 }
 
-// Tolleranza a scelta: 10 h contro 10,5 h passa al 10% e al 5%, non allo 0%.
+// Tolleranza a scelta: 20 h contro 21 h passa al 10% e al 5%, non allo 0%.
 {
-  const voci = [{ code: '334', description: 'Prest.straordinarie', quantity: 10.5, base: 15, figurative: null, amount: 157.5 }];
-  const stato = toll => compareModule.compare({ voci }, { overtimeMinutes: 600 }, { tolleranza: toll }).rows.find(r => r.id === 'overtime').status;
+  const voci = [{ code: '334', description: 'Prest.straordinarie', quantity: 21, base: 15, figurative: null, amount: 315 }];
+  const stato = toll => compareModule.compare({ voci }, { overtimeMinutes: 1200 }, { tolleranza: toll }).rows.find(r => r.id === 'overtime').status;
   assert.equal(stato(0.10), 'ok');
   assert.equal(stato(0.05), 'ok');
   assert.equal(stato(0), 'diff');
+}
+
+// Differenze trascurabili (sotto 1 ora o sotto 1 euro) sono coerenti anche con tolleranza zero.
+{
+  const voci = [{ code: '334', description: 'Prest.straordinarie', quantity: 61.25, base: 11.56, figurative: null, amount: 708.21 },
+    { code: '49X', description: 'Ind. prest. giornaliera', quantity: 15, base: 0.52, figurative: null, amount: 7.8 }];
+  const rows = compareModule.compare({ voci }, { overtimeMinutes: 61.17 * 60, cashHandling: 16 }, { tolleranza: 0 }).rows;
+  assert.equal(rows.find(r => r.id === 'overtime').status, 'ok', '5 minuti');
+  assert.match(rows.find(r => r.id === 'overtime').notes.join(' '), /trascurabile/);
+  assert.equal(rows.find(r => r.id === 'dailyDM').status, 'ok', '1 giorno = 0,52 euro');
 }

@@ -111,17 +111,20 @@
       const tolerance = rule.unit === 'ore' ? HOURS_TOLERANCE : COUNT_TOLERANCE;
       const diff = round2(distintaValue - bustaNumber);
       const exact = Math.abs(diff) <= tolerance + 1e-9;
-      const equal = entro(diff, bustaNumber || distintaValue, tolerance);
-      const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
-      const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
       const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, distintaValue) : {};
       const baseEuro = dp.base ?? fromBusta.base;
-      const euro = !equal && baseEuro !== null ? round2(diff * baseEuro) : null;
+      const euroDiff = baseEuro !== null && baseEuro !== undefined ? round2(diff * baseEuro) : null;
+      // Differenze trascurabili (sotto 1 ora o sotto 1 euro) non sono errori, con qualunque tolleranza
+      const trascurabile = (rule.unit === 'ore' && Math.abs(diff) < 1) || (euroDiff !== null && Math.abs(euroDiff) < 1);
+      const equal = entro(diff, bustaNumber || distintaValue, tolerance) || trascurabile;
+      const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
+      const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
+      const euro = !equal ? euroDiff : null;
       const notes = [];
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
-      if (equal && !exact) notes.push(`Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
+      if (equal && !exact) notes.push(trascurabile && !entro(diff, bustaNumber || distintaValue, tolerance) ? 'Differenza trascurabile (sotto 1 ora o sotto 1 €).' : `Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
       if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
       rows.push({
