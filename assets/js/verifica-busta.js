@@ -123,6 +123,10 @@
     return `<dl class="vb-values vb-totali">${cella('Lordo', t.competenze)}${cella('Ritenute', t.ritenute)}${cella('Netto', t.netto, 'vb-netto')}</dl>`;
   }
 
+  // Tolleranza scelta (0, 5 o 10%), ricordata sul dispositivo
+  const TOLL_KEY = 'navisuite.verificaBusta.tolleranza';
+  const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
+
   function renderFiles() {
     els.files.innerHTML = state.buste.map(item => `<li class="is-ok"><strong>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)}</strong> ${escapeHtml(item.fileName)}${item.month ? ` · Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}` : ''}</li>`).join('');
     els.clear.hidden = !state.buste.length;
@@ -150,7 +154,7 @@
       if (!p.startIso) return `<div class="vb-month"><h3>${escapeHtml(nome)}</h3><p>Mese della Distinta non trovato: carica questa busta da sola e scegli il mese.</p></div>`;
       const distinta = calculator.compute(data.entries, item.month);
       if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
-      const result = window.NaviBustaCompare.compare(item.busta, distinta.totals);
+      const result = window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() });
       const s = result.summary;
       return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare</p>${totaliHtml(item.busta)}${tableHtml(result.rows)}</div>`;
     });
@@ -197,6 +201,8 @@
     els.month.value = previousOfToday();
     els.fileInput.addEventListener('change', onFile);
     $('vbReload')?.addEventListener('click', ricarica);
+    try { const salvata = localStorage.getItem(TOLL_KEY); if (salvata !== null && $('vbToll')) $('vbToll').value = salvata; } catch (_) {}
+    $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} render().catch(error => console.error(error)); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ricarica(); });
     els.clear.addEventListener('click', () => { state.buste = []; els.fileInfo.textContent = ''; render().catch(error => console.error(error)); });
     els.month.addEventListener('change', () => { render().catch(error => console.error(error)); });

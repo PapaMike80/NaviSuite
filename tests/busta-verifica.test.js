@@ -430,3 +430,12 @@ console.log('Busta verifica test passed');
   const giorno = calc.compute([day('2026-08-04', 'D1', { cashHandling: true, embark: true, overtimeComponents: { ordinario: 60, cambi: 0, sentine: 0 } })], '2026-08');
   assert.equal(giorno.totals.calendar.cashEmbarkServiceMinutes, 13 * 60 + 60);
 }
+
+// Tolleranza a scelta: 10 h contro 10,5 h passa al 10% e al 5%, non allo 0%.
+{
+  const voci = [{ code: '334', description: 'Prest.straordinarie', quantity: 10.5, base: 15, figurative: null, amount: 157.5 }];
+  const stato = toll => compareModule.compare({ voci }, { overtimeMinutes: 600 }, { tolleranza: toll }).rows.find(r => r.id === 'overtime').status;
+  assert.equal(stato(0.10), 'ok');
+  assert.equal(stato(0.05), 'ok');
+  assert.equal(stato(0), 'diff');
+}
