@@ -28,7 +28,7 @@
     // 334 = straordinario a parametro 121, 01Y = straordinario a parametro 139 (maneggio da imbarcato):
     // sono ore diverse e si sommano (nelle buste di luglio e agosto 2026 c'e' solo 01Y).
     { id: 'overtime', codes: ['334', '01Y'], label: 'Straordinari', distintaLabel: 'Straordinari (oltre 39 h a settimana)', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => t.overtimeMinutes / 60, notes: (t, voci) => { const ore = code => voci.filter(v => v.code === code).reduce((n, v) => n + (Number(v.quantity) || 0), 0); const a = ore('334'), b = ore('01Y'); return a && b ? [`In busta: ${String(Math.round(a * 100) / 100).replace('.', ',')} h a parametro 121 (334) + ${String(Math.round(b * 100) / 100).replace('.', ',')} h a parametro 139 (01Y).`] : []; } },
-    { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore lavorate nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashEmbarkServiceMinutes / 60 },
+    { id: 'cashEmbark', codes: ['55Y', '56Y'], filter: voce => /139/.test(voce.description || ''), label: 'Ore differenza paga 139 (maneggio da imbarcato)', distintaLabel: 'Ore lavorate nei giorni con maneggio denaro e imbarco', unit: 'ore', certainty: 'confermare', source: 'quantity', distinta: t => mese(t).cashEmbarkServiceMinutes / 60, notes: t => { const m = mese(t), h = v => `${String(Math.round((v || 0) / 60 * 100) / 100).replace('.', ',')} h`; return [`Regola da confermare: ${m.cashEmbarkDays || 0} giorni con cassa a bordo; ore del turno ${h(m.cashEmbarkShiftMinutes)}, ore lavorate ${h(m.cashEmbarkServiceMinutes)}. La busta di solito sta in mezzo.`]; } },
     { id: 'embark', codes: ['43X'], label: 'Indennità imbarco', distintaLabel: 'Giorni con imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).embark },
     { id: 'sunday', codes: ['47X'], label: 'Indennità prestazione domenicale', distintaLabel: 'Domeniche lavorate', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).sundayShift },
     { id: 'cash', codes: ['FC0'], label: 'Maneggio denaro', distintaLabel: 'Giorni con maneggio denaro senza imbarco', unit: 'giorni', certainty: 'certa', source: 'quantity', distinta: t => mese(t).cashHandlingGround },
@@ -111,17 +111,20 @@
       const tolerance = rule.unit === 'ore' ? HOURS_TOLERANCE : COUNT_TOLERANCE;
       const diff = round2(distintaValue - bustaNumber);
       const exact = Math.abs(diff) <= tolerance + 1e-9;
-      const equal = entro(diff, bustaNumber || distintaValue, tolerance);
-      const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
-      const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
       const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, distintaValue) : {};
       const baseEuro = dp.base ?? fromBusta.base;
-      const euro = !equal && baseEuro !== null ? round2(diff * baseEuro) : null;
+      const euroDiff = baseEuro !== null && baseEuro !== undefined ? round2(diff * baseEuro) : null;
+      // Differenze trascurabili (sotto 1 ora o sotto 1 euro) non sono errori, con qualunque tolleranza
+      const trascurabile = (rule.unit === 'ore' && Math.abs(diff) < 1) || (euroDiff !== null && Math.abs(euroDiff) < 1);
+      const equal = entro(diff, bustaNumber || distintaValue, tolerance) || trascurabile;
+      const certainty = typeof rule.certainty === 'function' ? rule.certainty(totals) : rule.certainty;
+      const status = equal ? 'ok' : (certainty === 'certa' ? 'diff' : 'check');
+      const euro = !equal ? euroDiff : null;
       const notes = [];
       if (!fromBusta.present) notes.push('Voce assente in busta, ma presente nella Distinta.');
       else if (!distintaValue && bustaNumber) notes.push('Voce presente in busta, ma non risulta nella Distinta.');
       if (!equal && euro === null) notes.push(fromBusta.present ? 'Importo non stimabile: la busta non riporta un dato base.' : 'Importo non stimabile senza il dato base della busta.');
-      if (equal && !exact) notes.push(`Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
+      if (equal && !exact) notes.push(trascurabile && !entro(diff, bustaNumber || distintaValue, tolerance) ? 'Differenza trascurabile (sotto 1 ora o sotto 1 €).' : `Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
       if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
       rows.push({
