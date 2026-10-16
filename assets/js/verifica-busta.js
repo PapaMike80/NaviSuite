@@ -221,9 +221,11 @@
   }
   const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';
 
+  // Totali: netto in primo piano, lordo e ritenute piccoli a destra
   function tilesHtml(t) {
-    return `<div class="tiles num"><span class="tile t-l"><small>Lordo</small> ${eurv(t.competenze)}</span><span class="tile t-r"><small>Rit.</small> ${eurv(t.ritenute)}</span><span class="tile t-n"><small>Netto</small> ${eurv(t.netto)}</span></div>`;
+    return `<div class="tot num"><div><small>Netto</small><span class="tot-n">${eurv(t.netto)}</span></div><div class="tot-side">lordo <b>${eurv(t.competenze)}</b><br>ritenute <b>${t.ritenute === null || t.ritenute === undefined ? '—' : `<span class="eurv">−${escapeHtml(euro(Math.abs(t.ritenute)))}</span>`}</b></div></div>`;
   }
+
   function voceHtml(row) {
     const c = COLORE[row.status];
     const pill = row.status === 'ok' ? '✓' : row.status === 'check' ? 'Verifica' : `${signedUnit(row.diff, row.unit)}${row.euro ? ` · <span class="eurv">${escapeHtml(euro(Math.abs(row.euro)))}</span>` : ''}`;
