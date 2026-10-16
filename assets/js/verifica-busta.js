@@ -57,16 +57,14 @@
       warnings.push({ kind: 'warn', text: 'Hai modifiche della Distinta non ancora sincronizzate: uso la copia salvata su questo dispositivo. Apri la Distinta per sincronizzarla.' });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
-    // Come la Distinta: prima Firebase (archivio principale), se non risponde la copia PocketBase
+    // Come la Distinta: Firebase e PocketBase insieme; se non coincidono si chiede quale giornata e' corretta
     let remote = null, source = '';
     try {
-      if (!window.NaviAdminFirebase?.loadDiaria) throw new Error('Modulo Firebase non disponibile');
-      await window.NaviAdminFirebase.ready;
-      remote = await window.NaviAdminFirebase.loadDiaria(id); source = 'firebase';
-    } catch (error) { console.warn('Verifica busta: Firebase non raggiungibile', error); }
-    if (!remote || !remote.entries.length) {
-      try { if (window.NaviAdminPB?.loadDiaria) { const pb = await window.NaviAdminPB.loadDiaria(id); if (pb.entries.length) { remote = pb; source = 'pocketbase'; } } } catch (error) { console.warn('Verifica busta: PocketBase non raggiungibile', error); }
-    }
+      const r = await window.NaviDiariaAllinea.carica(id);
+      remote = r; source = r.stato === 'solo-pocketbase' ? 'pocketbase' : 'firebase';
+      if (r.stato === 'rimandato') warnings.push({ kind: 'warn', text: `Firebase e PocketBase hanno ${r.diffs.length} giornate diverse: il confronto usa Firebase finché non scegli quali sono corrette (riapri la pagina).` });
+      if (r.stato === 'solo-firebase') warnings.push({ kind: 'warn', text: 'PocketBase non raggiungibile: uso solo Firebase.' });
+    } catch (error) { console.warn('Verifica busta: archivi della Distinta non raggiungibili', error); }
     if (!remote || !remote.entries.length) {
       warnings.push({ kind: 'warn', text: `Archivio della Distinta non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
       return { entries: local, source: 'local', updatedAt: '', warnings };

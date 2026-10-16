@@ -313,7 +313,10 @@
   // (anche centinaia), facendo sembrare il popup bloccato per oltre un minuto.
   const DIARIA_COMPARE_FIELDS = ['servizio', 'straordinario_ritardo_minuti', 'straordinario_cambio_minuti', 'straordinario_sentine_minuti', 'banca_ore_minuti', 'rf_prova_barca', 'diaria_percentuale', 'indennita_imbarco', 'ticket_dovuto', 'ticket_usato', 'secondo_ticket', 'maneggio_denaro', 'trasferta_minuti', 'presenza', 'rifornimento', 'parametro_139', 'override_manuale', 'note'];
   function diariaRowUnchanged(current, row) {
-    return DIARIA_COMPARE_FIELDS.every(key => JSON.stringify(current[key] ?? null) === JSON.stringify(row[key] ?? null));
+    // Anche la giornata completa (legacy_payload, che e' quella che si rilegge): senza, campi come ore lavorate,
+    // pernotto, festivita' o ticket restavano vecchi su PocketBase e le due copie non coincidevano.
+    const stabile = v => JSON.stringify(v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(k => [k, v[k]])) : v ?? null);
+    return DIARIA_COMPARE_FIELDS.every(key => JSON.stringify(current[key] ?? null) === JSON.stringify(row[key] ?? null)) && stabile(current.legacy_payload) === stabile(row.legacy_payload);
   }
 
   async function saveDiaria(agentId, diariaEntries = []) {
