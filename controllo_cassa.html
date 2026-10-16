@@ -683,23 +683,59 @@
     FASI_DOPO[fase].forEach(f => { countsCassetta[f][val] = n; const el = document.getElementById(`qty-cr-${f}-${val}`); if (el) el.value = n; });
     calculateAll();
   }
-  // Prelievo: dalla cassetta rossa ai contanti della cassa (diurno e chiusura)
+  // Prelievo e versamento tra cassetta rossa e contanti della cassa (diurno e chiusura).
+  // Preleva: meno monete nella cassetta, piu' nei contanti. Versa: il contrario. Annulla: si corregge il conteggio a mano.
+  let saltaPopupCassetta = false;
   function proponiPrelievo(fase, val, input) {
     if (fase === 'mattina') return;
-    const d = MONETE.find(x => x.val === val), disponibili = countsCassetta[fase][val] || 0;
-    if (!disponibili) return;
-    const r = prompt(`Prelevare monete da ${d.label} dalla cassetta rossa?\nNella cassetta: ${disponibili}. Scrivi quante (Annulla per correggere il conteggio).`, '');
-    if (r === null || r.trim() === '') return;
-    const n = Math.min(disponibili, Math.max(0, parseInt(r, 10) || 0));
-    if (!n) return;
+    if (saltaPopupCassetta) { saltaPopupCassetta = false; return; }
+    const d = MONETE.find(x => x.val === val);
     const contanti = { diurno: countsDiurno, sera: countsSera };
-    [fase, ...FASI_DOPO[fase]].forEach(f => {
-      countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) - n);
-      contanti[f][val] = (contanti[f][val] || 0) + n;
-    });
+    const inCassetta = countsCassetta[fase][val] || 0, inCassa = contanti[fase][val] || 0;
     input.blur();
-    rendiGriglie(); calculateAll(); pianificaSalvataggio();
-    alert(`✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta rossa e aggiunte alla cassa.`);
+    document.getElementById('cr-popup')?.remove();
+    const box = document.createElement('div');
+    box.id = 'cr-popup';
+    box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+    const btn = 'flex:1;padding:12px;border-radius:10px;border:1px solid #475569;font-weight:700;font-size:15px;cursor:pointer';
+    box.innerHTML = `<div style="background:#0f1f2b;color:#e2e8f0;border:1px solid #334155;border-radius:14px;padding:18px;width:100%;max-width:380px">
+      <h3 style="margin:0 0 6px">Cassetta rossa · ${d.label}</h3>
+      <p style="margin:0 0 12px;color:#94a3b8;font-size:14px">Nella cassetta: <b>${inCassetta}</b> · Nella cassa: <b>${inCassa}</b></p>
+      <label style="font-size:14px">Quante monete?<input id="cr-n" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="display:block;width:100%;margin:6px 0 14px;padding:10px;font-size:18px;border-radius:8px;border:1px solid #475569;background:#020617;color:#e2e8f0;box-sizing:border-box"></label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" data-op="preleva" style="${btn};background:#b91c1c;color:#fff">Preleva<br><small style="font-weight:400">cassetta → cassa</small></button>
+        <button type="button" data-op="versa" style="${btn};background:#047857;color:#fff">Versa<br><small style="font-weight:400">cassa → cassetta</small></button>
+      </div>
+      <button type="button" data-op="annulla" style="${btn};width:100%;background:transparent;color:#e2e8f0">Annulla (correggi il conteggio)</button>
+      <p id="cr-msg" style="margin:8px 0 0;color:#fbbf24;font-size:13px;min-height:1em"></p></div>`;
+    document.body.appendChild(box);
+    const campo = box.querySelector('#cr-n');
+    setTimeout(() => campo.focus(), 50);
+    const chiudi = () => box.remove();
+    box.addEventListener('click', e => {
+      const op = e.target.closest('button')?.dataset.op;
+      if (!op && e.target !== box) return;
+      if (!op || op === 'annulla') { chiudi(); saltaPopupCassetta = true; input.focus(); input.select?.(); return; }
+      const n = Math.max(0, parseInt(campo.value, 10) || 0);
+      const max = op === 'preleva' ? inCassetta : inCassa;
+      const msg = box.querySelector('#cr-msg');
+      if (!n) { msg.textContent = 'Scrivi un numero di monete.'; return; }
+      if (n > max) { msg.textContent = op === 'preleva' ? `Nella cassetta ci sono solo ${inCassetta} monete.` : `Nella cassa ci sono solo ${inCassa} monete.`; return; }
+      const segno = op === 'preleva' ? 1 : -1;
+      [fase, ...FASI_DOPO[fase]].forEach(f => {
+        countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) - segno * n);
+        contanti[f][val] = Math.max(0, (contanti[f][val] || 0) + segno * n);
+      });
+      chiudi();
+      rendiGriglie(); calculateAll(); pianificaSalvataggio();
+      notificaCassetta(op === 'preleva' ? `✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta e aggiunte alla cassa.` : `✅ Versate ${n} monete da ${d.label}: tolte dalla cassa e aggiunte alla cassetta.`);
+    });
+  }
+  function notificaCassetta(testo) {
+    const t = document.createElement('div');
+    t.textContent = testo;
+    t.style.cssText = 'position:fixed;left:16px;right:16px;bottom:20px;z-index:9999;background:#065f46;color:#fff;padding:12px 14px;border-radius:10px;text-align:center;font-size:14px';
+    document.body.appendChild(t); setTimeout(() => t.remove(), 3500);
   }
   function cassettaCents(fase) {
     if (!cassettaAttiva()) return 0;
