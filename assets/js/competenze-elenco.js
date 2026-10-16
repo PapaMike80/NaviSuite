@@ -55,7 +55,21 @@
       try { refreshShiftSelect(); } catch (_) {}
       try { render(); } catch (_) {}
       try { elenco(); } catch (_) {}
-    } catch (error) { console.warn('Competenze da PocketBase non lette, uso la copia sul telefono', error); }
+    } catch (error) {
+      // PocketBase non raggiungibile (es. senza Tailscale): si usa il backup su Firebase
+      console.warn('Competenze da PocketBase non lette, provo il backup Firebase', error);
+      try {
+        const fb = await window.NaviAdminFirebase?.getCompetenzeServizi?.();
+        const lista = (fb?.servizi || []).filter(x => x && x.code);
+        if (!lista.length || JSON.stringify(lista) === JSON.stringify(SHIFTS)) return;
+        SHIFTS.forEach(x => { if (!lista.some(y => y.code === x.code)) lista.push(x); });
+        SHIFTS.splice(0, SHIFTS.length, ...lista);
+        localStorage.setItem(SHIFTS_STORAGE, JSON.stringify(SHIFTS));
+        try { refreshShiftSelect(); } catch (_) {}
+        try { render(); } catch (_) {}
+        try { elenco(); } catch (_) {}
+      } catch (e) { console.warn('Competenze: uso la copia sul telefono', e); }
+    }
   }
   let timerPb = 0;
   function inviaCompetenze() {
@@ -66,6 +80,8 @@
         if (!pbId) pbId = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0]?.id || null;
         const out = pbId ? await pbFetch(`${PB_URL()}/${encodeURIComponent(pbId)}`, { method: 'PATCH', body: corpo }) : await pbFetch(PB_URL(), { method: 'POST', body: corpo });
         pbId = out.id;
+        // copia di backup su Firebase
+        window.NaviAdminFirebase?.saveCompetenzeServizi?.(SHIFTS, JSON.parse(corpo).aggiornato_da).catch(error => console.warn('Backup competenze su Firebase non salvato', error));
         try { notify('Competenze salvate per tutti gli agenti'); } catch (_) {}
       } catch (error) {
         console.warn('Competenze non salvate su PocketBase', error);
