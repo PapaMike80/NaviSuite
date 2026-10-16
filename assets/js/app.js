@@ -183,13 +183,40 @@ function scheduleFirebaseSave(){if(!activeAgent||!window.NaviAdminFirebase?.save
 const senzaOra=e=>{const {modificatoIl,...resto}=e||{};return JSON.stringify(resto)};
 function stampChangedEntries(){let prima=[];try{prima=JSON.parse(lastKnownEntriesSnapshot||'[]')}catch{prima=[]}const vecchie=new Map((Array.isArray(prima)?prima:[]).filter(Boolean).map(e=>[e.date||e.id,senzaOra(e)]));let cambiate=0;const ora=Date.now();entries.forEach(e=>{if(e&&vecchie.get(e.date||e.id)!==senzaOra(e)){e.modificatoIl=ora;cambiate++}});if(cambiate){try{localStorage.setItem(STORAGE,JSON.stringify(entries))}catch(_){}}}
 function mergeByDayTime(localEntries,remoteEntries){const merged=new Map();(remoteEntries||[]).filter(Boolean).forEach(e=>merged.set(e.date||e.id,e));(localEntries||[]).filter(Boolean).forEach(e=>{const key=e.date||e.id,r=merged.get(key);if(!r||(Number(e.modificatoIl)||0)>(Number(r.modificatoIl)||0))merged.set(key,e)});return [...merged.values()].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')))}
+
+// Archivio della Distinta: Firebase e' l'archivio principale (raggiungibile da tutti); PocketBase riceve una copia
+// ogni volta che e' raggiungibile (per ora solo con Tailscale). Quando PocketBase sara' pubblico e protetto si invertira'.
+// Gli admin vedono da dove arrivano i dati e se la copia su PocketBase e' aggiornata.
+const DiariaStore={
+  source:'',copia:'',
+  async load(id){
+    try{const fb=await NaviAdminFirebase.loadDiaria(id);this.setSource('firebase');this.copiaSuPB(id,fb.entries);return fb}
+    catch(error){
+      if(!window.NaviAdminPB?.loadDiaria)throw error;
+      console.warn('Distinta: Firebase non raggiungibile, leggo la copia PocketBase',error);
+      const pb=await NaviAdminPB.loadDiaria(id);this.setSource('pocketbase');return pb;
+    }
+  },
+  async save(id,list){
+    await NaviAdminFirebase.saveDiaria(id,list);
+    this.setSource('firebase');
+    this.copiaSuPB(id,list);
+  },
+  // copia su PocketBase in sottofondo: se non e' raggiungibile non blocca niente
+  copiaSuPB(id,list){
+    if(!window.NaviAdminPB?.saveDiaria||!Array.isArray(list)||!list.length)return;
+    NaviAdminPB.saveDiaria(id,list).then(()=>{this.copia='ok';this.etichetta()}).catch(error=>{this.copia='no';this.etichetta();console.warn('Copia della Distinta su PocketBase non riuscita',error)});
+  },
+  setSource(src){this.source=src;this.etichetta()},
+  etichetta(){const node=document.getElementById('monthlyDataSource');if(!node)return;const admin=typeof isAdmin==='function'&&isAdmin();node.hidden=!admin;if(this.source==='pocketbase'){node.textContent='Dati: copia PocketBase (Firebase non raggiungibile)';node.style.color='#fbbf24';return}node.textContent=`Dati: Firebase · copia PocketBase ${this.copia==='ok'?'aggiornata ✓':this.copia==='no'?'non raggiungibile ✕':'in corso…'}`;node.style.color=this.copia==='no'?'#fbbf24':'#5eead4'}
+};
 function markCloudDirty(){stampChangedEntries();const current=JSON.stringify(entries);if(current!==lastKnownEntriesSnapshot){undoSnapshot=lastKnownEntriesSnapshot;lastKnownEntriesSnapshot=current;recordLocalBackup('modifica da sincronizzare',entries);setUndoUi(true)}localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setSaveUi('dirty');scheduleFirebaseSave()}
 function undoLastDiariaChange(){if(!undoSnapshot)return;entries=parseEntriesSnapshot(undoSnapshot);lastKnownEntriesSnapshot=JSON.stringify(entries);undoSnapshot=null;writeEntriesLocal('annullamento modifica');localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setUndoUi(false);setSaveUi('dirty');render();notify('Ultima modifica annullata')}
 function firebaseCredentials(){return {agentId:String(activeAgent?.id||''),pinHash:localStorage.getItem(`navidiaria.pin.${activeAgent?.id}`)||''}}
 async function authenticateFirebase(){const credentials=firebaseCredentials();if(!credentials.agentId||!credentials.pinHash)throw new Error('Accedi nuovamente per attivare il salvataggio online');await NaviFirebaseAuth.request('auth',credentials);firebaseAuthenticated=true;return credentials}
 function mergeFirebaseEntries(localEntries,remoteEntries,preferLocal){const merged=new Map();(remoteEntries||[]).forEach(entry=>merged.set(entry.date||entry.id,entry));(localEntries||[]).forEach(entry=>{const key=entry.date||entry.id;if(preferLocal||!merged.has(key))merged.set(key,entry)});return [...merged.values()].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')))}
-async function saveEntriesToFirebase(){if(!activeAgent)return;const snapshot=JSON.stringify(entries);try{if(!window.NaviAdminFirebase?.saveDiaria)throw new Error('Modulo Firebase non disponibile');setSaveUi('saving');$('syncStatus').textContent='Salvataggio protetto su Firebase…';await NaviAdminFirebase.saveDiaria(String(activeAgent.id),parseEntriesSnapshot(snapshot));if(JSON.stringify(entries)===snapshot){localStorage.removeItem(FIREBASE_DIRTY_KEY);lastKnownEntriesSnapshot=snapshot;undoSnapshot=null;setUndoUi(false);setSaveUi('saved');setTimeout(()=>setSaveUi(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'?'dirty':'idle'),1800)}else markCloudDirty();$('syncStatus').textContent='Salvato con copia di sicurezza'}catch(error){console.warn(error);setSaveUi('error');$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';throw error}}
-async function syncEntriesWithFirebase(){if(!window.NaviAdminFirebase?.loadDiaria)throw new Error('Modulo Firebase non disponibile');if(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'){try{const prima=await NaviAdminFirebase.loadDiaria(String(activeAgent.id));if(prima.entries.length){const unite=mergeByDayTime(entries,prima.entries);if(JSON.stringify(unite)!==JSON.stringify(entries)){entries=unite;lastKnownEntriesSnapshot=JSON.stringify(entries);writeEntriesLocal('unione con le modifiche di un altro dispositivo');render()}}await saveEntriesToFirebase()}catch(error){console.warn('Salvataggio modifiche pendenti non riuscito',error);$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';return false}if(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'){$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';return false}}const remote=await NaviAdminFirebase.loadDiaria(String(activeAgent.id)),localEntries=[...entries],localMeta=(()=>{try{return JSON.parse(localStorage.getItem(entriesMetaKey)||'{}')}catch{return {}}})();if(remote.updatedAt&&remote.entries.length===0&&localEntries.length){recordLocalBackup('bloccato ripristino remoto vuoto',localEntries);markCloudDirty();$('syncStatus').textContent='Protezione attiva · copia Firebase vuota ignorata';notify('Protezione attiva: dati locali mantenuti');return true}if(remote.entries.length){const unite=mergeByDayTime(localEntries,remote.entries);if(localEntries.length&&JSON.stringify(unite)!==JSON.stringify(remote.entries.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))))&&unite.some(e=>localEntries.includes(e)&&(Number(e.modificatoIl)||0)>0)){recordLocalBackup('giornate locali più recenti',localEntries);entries=unite;lastKnownEntriesSnapshot=JSON.stringify(entries);writeEntriesLocal('unione per giornata');render();markCloudDirty();$('syncStatus').textContent='Unite le giornate più recenti di ogni dispositivo';return true}const protectedEntries=mergeFirebaseEntries(localEntries,remote.entries,false);if(protectedEntries.length>remote.entries.length){entries=protectedEntries;writeEntriesLocal('unione contro perdita dati');markCloudDirty();$('syncStatus').textContent='Protezione attiva · dati locali integrati';notify('Dati locali protetti e reintegrati');return true}entries=remote.entries.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));lastKnownEntriesSnapshot=JSON.stringify(entries);undoSnapshot=null;setUndoUi(false);writeEntriesLocal('caricato da Firebase');render();$('syncStatus').textContent=`Caricato da Firebase · v${remote.version||1}`}else if(entries.length){markCloudDirty();$('syncStatus').textContent='Dati locali pronti per Firebase'}else{$('syncStatus').textContent='Firebase aggiornato'}return true}
+async function saveEntriesToFirebase(){if(!activeAgent)return;const snapshot=JSON.stringify(entries);try{if(!window.NaviAdminFirebase?.saveDiaria)throw new Error('Modulo Firebase non disponibile');setSaveUi('saving');$('syncStatus').textContent='Salvataggio protetto su Firebase…';await DiariaStore.save(String(activeAgent.id),parseEntriesSnapshot(snapshot));if(JSON.stringify(entries)===snapshot){localStorage.removeItem(FIREBASE_DIRTY_KEY);lastKnownEntriesSnapshot=snapshot;undoSnapshot=null;setUndoUi(false);setSaveUi('saved');setTimeout(()=>setSaveUi(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'?'dirty':'idle'),1800)}else markCloudDirty();$('syncStatus').textContent='Salvato con copia di sicurezza'}catch(error){console.warn(error);setSaveUi('error');$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';throw error}}
+async function syncEntriesWithFirebase(){if(!window.NaviAdminFirebase?.loadDiaria)throw new Error('Modulo Firebase non disponibile');if(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'){try{const prima=await DiariaStore.load(String(activeAgent.id));if(prima.entries.length){const unite=mergeByDayTime(entries,prima.entries);if(JSON.stringify(unite)!==JSON.stringify(entries)){entries=unite;lastKnownEntriesSnapshot=JSON.stringify(entries);writeEntriesLocal('unione con le modifiche di un altro dispositivo');render()}}await saveEntriesToFirebase()}catch(error){console.warn('Salvataggio modifiche pendenti non riuscito',error);$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';return false}if(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'){$('syncStatus').textContent='Modifiche locali · salvataggio non riuscito';return false}}const remote=await DiariaStore.load(String(activeAgent.id)),localEntries=[...entries],localMeta=(()=>{try{return JSON.parse(localStorage.getItem(entriesMetaKey)||'{}')}catch{return {}}})();if(remote.updatedAt&&remote.entries.length===0&&localEntries.length){recordLocalBackup('bloccato ripristino remoto vuoto',localEntries);markCloudDirty();$('syncStatus').textContent='Protezione attiva · copia Firebase vuota ignorata';notify('Protezione attiva: dati locali mantenuti');return true}if(remote.entries.length){const unite=mergeByDayTime(localEntries,remote.entries);if(localEntries.length&&JSON.stringify(unite)!==JSON.stringify(remote.entries.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))))&&unite.some(e=>localEntries.includes(e)&&(Number(e.modificatoIl)||0)>0)){recordLocalBackup('giornate locali più recenti',localEntries);entries=unite;lastKnownEntriesSnapshot=JSON.stringify(entries);writeEntriesLocal('unione per giornata');render();markCloudDirty();$('syncStatus').textContent='Unite le giornate più recenti di ogni dispositivo';return true}const protectedEntries=mergeFirebaseEntries(localEntries,remote.entries,false);if(protectedEntries.length>remote.entries.length){entries=protectedEntries;writeEntriesLocal('unione contro perdita dati');markCloudDirty();$('syncStatus').textContent='Protezione attiva · dati locali integrati';notify('Dati locali protetti e reintegrati');return true}entries=remote.entries.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));lastKnownEntriesSnapshot=JSON.stringify(entries);undoSnapshot=null;setUndoUi(false);writeEntriesLocal('caricato da Firebase');render();$('syncStatus').textContent=`Caricato da Firebase · v${remote.version||1}`}else if(entries.length){markCloudDirty();$('syncStatus').textContent='Dati locali pronti per Firebase'}else{$('syncStatus').textContent='Firebase aggiornato'}return true}
 async function syncDiariaNow(){
   const button=$('monthlySync');if(!activeAgent||button?.disabled)return;
   if(localStorage.getItem(FIREBASE_DIRTY_KEY)==='1'){
@@ -368,73 +395,3 @@ initializeAccess().then(()=>{
   }
 });
 
-// Versioni salvate: Firebase tiene le ultime 35 copie della Distinta. Si puo' rimetterne una (la copia attuale resta tra le versioni).
-// Le giornate rimesse restano come sono: l'allineamento ai turni non ne ricalcola piu' imbarco, pasto, diaria e maneggio.
-(function(){
-  const button=document.getElementById('monthlyVersions');if(!button)return;
-  const fmt=iso=>{const d=new Date(iso);return Number.isNaN(d.getTime())?iso:new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'short'}).format(d)};
-  button.addEventListener('click',async()=>{
-    if(!activeAgent||!window.NaviAdminFirebase?.listDiariaBackups){notify('Versioni non disponibili');return}
-    button.disabled=true;
-    try{
-      await NaviAdminFirebase.ready;
-      const versioni=await NaviAdminFirebase.listDiariaBackups(String(activeAgent.id));
-      if(!versioni.length){notify('Nessuna versione salvata');return}
-      let m=document.getElementById('naviVersionsDialog');
-      if(!m){m=document.createElement('div');m.id='naviVersionsDialog';m.className='weekly-edit-overlay';document.body.appendChild(m)}
-      m.innerHTML=`<div class="weekly-edit-dialog" role="dialog" aria-modal="true" style="max-width:460px;max-height:80vh;overflow:auto"><h3>Versioni salvate</h3><p style="font-size:13px;opacity:.8">Ogni volta che la Distinta viene salvata, la copia precedente resta qui. Tocca una versione per rimetterla.</p><div data-list style="display:grid;gap:6px">${versioni.map((v,i)=>`<button type="button" class="secondary-button" data-i="${i}" style="text-align:left"><strong>${fmt(v.sourceUpdatedAt||v.savedAt)}</strong><br><small>${v.entryCount} giornate · sostituita il ${fmt(v.savedAt)}</small></button>`).join('')}</div><div class="form-actions" style="margin-top:12px"><button type="button" class="secondary-button" data-close>Chiudi</button></div></div>`;
-      m.hidden=false;
-      m.onclick=async e=>{
-        if(e.target===m||e.target.closest('[data-close]')){m.hidden=true;return}
-        const b=e.target.closest('[data-i]');if(!b)return;
-        const v=versioni[Number(b.dataset.i)];
-        if(!confirm(`Rimettere la Distinta com'era il ${fmt(v.sourceUpdatedAt||v.savedAt)}?\nLa versione attuale resta tra le versioni salvate.`))return;
-        const ora=Date.now();
-        entries=v.entries.map(x=>({...x,modificatoIl:ora,imported:false,cashHandlingManual:true})).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
-        lastKnownEntriesSnapshot=JSON.stringify(entries);
-        writeEntriesLocal('versione ripristinata');render();markCloudDirty();
-        m.hidden=true;notify('Versione ripristinata: salvataggio in corso');
-      };
-    }catch(error){console.warn('Versioni salvate',error);notify('Versioni non disponibili: '+(error?.message||error))}
-    finally{button.disabled=false}
-  });
-})();
-
-// Confronta con PocketBase: la vecchia pagina navidistinta.html salvava la Distinta su PocketBase. Qui si vedono i giorni
-// diversi tra le due copie e si possono prendere quelli di PocketBase (serve un dispositivo che raggiunga PocketBase).
-(function(){
-  const button=document.getElementById('monthlyComparePB');if(!button)return;
-  const campi=[['shift','Servizio',v=>v||'—'],['cashHandling','Maneggio',v=>v?'sì':'no'],['embark','Imbarco',v=>v?'sì':'no'],['mealUsed','Mensa',v=>v?'sì':'no'],['ticketPresence','Ticket',v=>v===undefined?'—':v?'sì':'no'],['allowanceRate','Diaria',v=>v?`${v}%`:'—'],['secondMeal','2° ticket',v=>Number(v)?'sì':'no'],['overnight40','Pernotto',v=>v?'sì':'no'],['bank','Banca ore',v=>Number(v)||0],['workedMinutes','Ore',v=>v===undefined||v===null?'—':`${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`]];
-  const differenze=(a,b)=>campi.filter(([k])=>JSON.stringify(a?.[k]??null)!==JSON.stringify(b?.[k]??null));
-  button.addEventListener('click',async()=>{
-    if(!activeAgent||!window.NaviAdminPB?.loadDiaria){notify('PocketBase non disponibile');return}
-    button.disabled=true;
-    try{
-      const pb=(await NaviAdminPB.loadDiaria(String(activeAgent.id))).entries.filter(e=>e?.date);
-      if(!pb.length){notify('Su PocketBase non ci sono giornate');return}
-      const qui=new Map(entries.filter(Boolean).map(e=>[e.date,e]));
-      const righe=pb.map(p=>({p,f:qui.get(p.date),d:differenze(qui.get(p.date),p)})).filter(r=>!r.f||r.d.length).sort((a,b)=>a.p.date.localeCompare(b.p.date));
-      if(!righe.length){notify('Le due copie sono uguali');return}
-      let m=document.getElementById('naviComparePBDialog');
-      if(!m){m=document.createElement('div');m.id='naviComparePBDialog';m.className='weekly-edit-overlay';document.body.appendChild(m)}
-      const giorno=iso=>new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'numeric',month:'short'}).format(new Date(`${iso}T12:00:00`));
-      m.innerHTML=`<div class="weekly-edit-dialog" role="dialog" aria-modal="true" style="max-width:560px;max-height:85vh;overflow:auto"><h3>Firebase e PocketBase</h3><p style="font-size:13px;opacity:.8">${righe.length} giorni diversi. Spunta i giorni da prendere da PocketBase (la copia della vecchia pagina Distinta), poi «Prendi da PocketBase».</p><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-tutti> Seleziona tutti</label><div style="display:grid;gap:6px">${righe.map((r,i)=>`<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;border:1px solid rgba(127,127,127,.35);border-radius:10px"><input type="checkbox" data-i="${i}"><span><strong>${giorno(r.p.date)}</strong>${r.f?'':' · solo su PocketBase'}<br><small>${(r.f?r.d:campi.slice(0,1)).map(([k,n,f])=>`${n}: ${r.f?`${f(r.f[k])} → `:''}<b>${f(r.p[k])}</b>`).join(' · ')}</small></span></label>`).join('')}</div><div class="form-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="primary-button" data-prendi>Prendi da PocketBase</button><button type="button" class="secondary-button" data-close>Chiudi</button></div></div>`;
-      m.hidden=false;
-      m.onclick=e=>{
-        if(e.target===m||e.target.closest('[data-close]')){m.hidden=true;return}
-        if(e.target.matches('[data-tutti]')){m.querySelectorAll('[data-i]').forEach(c=>{c.checked=e.target.checked});return}
-        if(!e.target.closest('[data-prendi]'))return;
-        const scelte=[...m.querySelectorAll('[data-i]:checked')].map(c=>righe[Number(c.dataset.i)]);
-        if(!scelte.length){notify('Nessun giorno selezionato');return}
-        if(!confirm(`Prendere ${scelte.length} giorni da PocketBase? Le versioni attuali restano tra le «Versioni salvate».`))return;
-        const ora=Date.now(),mappa=new Map(entries.filter(Boolean).map(x=>[x.date,x]));
-        scelte.forEach(r=>mappa.set(r.p.date,{...r.p,modificatoIl:ora,imported:false,cashHandlingManual:true}));
-        entries=[...mappa.values()].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
-        lastKnownEntriesSnapshot=JSON.stringify(entries);
-        writeEntriesLocal('giorni presi da PocketBase');render();markCloudDirty();window.NaviDiariaRefreshMonthly?.();
-        m.hidden=true;notify(`${scelte.length} giorni presi da PocketBase: salvataggio in corso`);
-      };
-    }catch(error){console.warn('Confronta con PocketBase',error);notify('PocketBase non raggiungibile: serve Tailscale o la rete di casa ('+(error?.message||error)+')')}
-    finally{button.disabled=false}
-  });
-})();

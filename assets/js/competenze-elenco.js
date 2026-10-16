@@ -41,36 +41,53 @@
       return out;
     } finally { clearTimeout(t); }
   }
+  // Competenze uguali su tutti i dispositivi: archivio principale su Firebase (raggiungibile da tutti),
+  // copia su PocketBase quando e' raggiungibile. Se Firebase e' ancora vuoto si parte dalla copia PocketBase.
+  const chi = () => { try { const a = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); return a ? `${a.id} ${a.name || ''}`.trim() : ''; } catch (_) { return ''; } };
+  const amministratore = () => { try { return typeof isAdmin === 'function' && isAdmin(); } catch (_) { return false; } };
+  function applica(lista) {
+    lista = (lista || []).filter(x => x && x.code);
+    if (!lista.length || JSON.stringify(lista) === JSON.stringify(SHIFTS)) return;
+    // i servizi nuovi dell'app (non ancora nella copia condivisa) restano
+    SHIFTS.forEach(x => { if (!lista.some(y => y.code === x.code)) lista.push(x); });
+    SHIFTS.splice(0, SHIFTS.length, ...lista);
+    localStorage.setItem(SHIFTS_STORAGE, JSON.stringify(SHIFTS));
+    try { refreshShiftSelect(); } catch (_) {}
+    try { render(); } catch (_) {}
+    try { elenco(); } catch (_) {}
+  }
+  async function leggiPB() {
+    const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0];
+    if (rec) pbId = rec.id;
+    return Array.isArray(rec?.servizi) ? rec.servizi : [];
+  }
   async function scaricaCompetenze() {
+    const fb = window.NaviAdminFirebase;
+    let lista = [];
+    try { if (fb?.getCompetenzeServizi) { await fb.ready; lista = (await fb.getCompetenzeServizi()).servizi; } } catch (error) { console.warn('Competenze da Firebase non lette', error); }
+    if (lista.length) { applica(lista); return; }
     try {
-      const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0];
-      if (!rec) return;
-      pbId = rec.id;
-      const lista = Array.isArray(rec.servizi) ? rec.servizi.filter(x => x && x.code) : [];
-      if (!lista.length || JSON.stringify(lista) === JSON.stringify(SHIFTS)) return;
-      // i servizi nuovi dell'app (non ancora nel record) restano
-      SHIFTS.forEach(x => { if (!lista.some(y => y.code === x.code)) lista.push(x); });
-      SHIFTS.splice(0, SHIFTS.length, ...lista);
-      localStorage.setItem(SHIFTS_STORAGE, JSON.stringify(SHIFTS));
-      try { refreshShiftSelect(); } catch (_) {}
-      try { render(); } catch (_) {}
-      try { elenco(); } catch (_) {}
-    } catch (error) { console.warn('Competenze da PocketBase non lette, uso la copia sul telefono', error); }
+      const daPb = await leggiPB();
+      if (!daPb.length) return;
+      applica(daPb);
+      // primo avvio: un admin porta su Firebase la tabella che finora era solo su PocketBase
+      if (amministratore() && fb?.saveCompetenzeServizi) fb.saveCompetenzeServizi(daPb, chi()).catch(error => console.warn('Competenze non copiate su Firebase', error));
+    } catch (error) { console.warn('Competenze: uso la copia sul telefono', error); }
   }
   let timerPb = 0;
   function inviaCompetenze() {
     clearTimeout(timerPb);
     timerPb = setTimeout(async () => {
-      const corpo = JSON.stringify({ chiave: 'servizi', servizi: SHIFTS, aggiornato_da: (() => { try { const a = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); return a ? `${a.id} ${a.name || ''}`.trim() : ''; } catch (_) { return ''; } })() });
+      let fbOk = false;
+      try { await window.NaviAdminFirebase?.saveCompetenzeServizi?.(SHIFTS, chi()); fbOk = true; } catch (error) { console.warn('Competenze non salvate su Firebase', error); }
+      // copia su PocketBase (se raggiungibile)
+      const corpo = JSON.stringify({ chiave: 'servizi', servizi: SHIFTS, aggiornato_da: chi() });
       try {
-        if (!pbId) pbId = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0]?.id || null;
+        if (!pbId) await leggiPB();
         const out = pbId ? await pbFetch(`${PB_URL()}/${encodeURIComponent(pbId)}`, { method: 'PATCH', body: corpo }) : await pbFetch(PB_URL(), { method: 'POST', body: corpo });
         pbId = out.id;
-        try { notify('Competenze salvate per tutti gli agenti'); } catch (_) {}
-      } catch (error) {
-        console.warn('Competenze non salvate su PocketBase', error);
-        try { notify(`Competenze NON salvate per tutti: ${error.message}`); } catch (_) { alert(`Competenze NON salvate per tutti: ${error.message}`); }
-      }
+      } catch (error) { console.warn('Copia competenze su PocketBase non riuscita', error); }
+      try { notify(fbOk ? 'Competenze salvate per tutti gli agenti' : 'Competenze NON salvate per tutti (Firebase non raggiungibile)'); } catch (_) {}
     }, 800);
   }
   function salva() {

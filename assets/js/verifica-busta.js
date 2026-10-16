@@ -67,20 +67,21 @@
       warnings.push({ kind: 'warn', text: 'Hai modifiche della Distinta non ancora sincronizzate: uso la copia salvata su questo dispositivo. Apri la Distinta per sincronizzarla.' });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
+    // Come la Distinta: prima Firebase (archivio principale), se non risponde la copia PocketBase
+    let remote = null, source = '';
     try {
       if (!window.NaviAdminFirebase?.loadDiaria) throw new Error('Modulo Firebase non disponibile');
       await window.NaviAdminFirebase.ready;
-      const remote = await window.NaviAdminFirebase.loadDiaria(id);
-      if (!remote.entries.length && local.length) {
-        warnings.push({ kind: 'warn', text: 'Su Firebase non ci sono giornate salvate: uso la copia su questo dispositivo.' });
-        return { entries: local, source: 'local', updatedAt: '', warnings };
-      }
-      return { entries: remote.entries, source: 'firebase', updatedAt: remote.updatedAt, warnings };
-    } catch (error) {
-      console.warn('Verifica busta: Firebase non raggiungibile', error);
-      warnings.push({ kind: 'error', text: `Firebase non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
+      remote = await window.NaviAdminFirebase.loadDiaria(id); source = 'firebase';
+    } catch (error) { console.warn('Verifica busta: Firebase non raggiungibile', error); }
+    if (!remote || !remote.entries.length) {
+      try { if (window.NaviAdminPB?.loadDiaria) { const pb = await window.NaviAdminPB.loadDiaria(id); if (pb.entries.length) { remote = pb; source = 'pocketbase'; } } } catch (error) { console.warn('Verifica busta: PocketBase non raggiungibile', error); }
+    }
+    if (!remote || !remote.entries.length) {
+      warnings.push({ kind: 'warn', text: `Archivio della Distinta non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
+    return { entries: remote.entries, source, updatedAt: remote.updatedAt, warnings };
   }
 
   // Ricarica la Distinta (dopo una modifica in navidiaria.html): pulsante e ritorno sulla pagina
@@ -90,13 +91,11 @@
     return state.loadingData;
   }
 
+  // Da dove arrivano i dati: visibile solo agli admin
   function sourceText(data) {
     if (!data) return 'Carico la Distinta…';
-    if (data.source === 'firebase') {
-      const when = data.updatedAt ? new Date(data.updatedAt) : null;
-      return `Dati: Firebase${when && !Number.isNaN(when.getTime()) ? ` · aggiornati il ${new Intl.DateTimeFormat('it-IT', { dateStyle: 'short', timeStyle: 'short' }).format(when)}` : ''}`;
-    }
-    return 'Dati: copia locale su questo dispositivo';
+    if (!window.NaviRoles?.isAdminAgent?.(agent)) return '';
+    return data.source === 'firebase' ? 'Dati: Firebase' : data.source === 'pocketbase' ? 'Dati: copia PocketBase (Firebase non raggiungibile)' : 'Dati: copia locale su questo dispositivo';
   }
 
   const STATUS = {

@@ -971,6 +971,19 @@
   }
 
   // Accesso alle pagine: {pagina: 'tutti' | 'admin'} (sezione della pagina Agenti)
+  // Competenze dei servizi (tabella Competenze): archivio principale, copia su PocketBase
+  async function getCompetenzeServizi() {
+    const result = await databaseRequest("private/adminUpdates/competenzeServizi");
+    const value = result.data || {};
+    return { servizi:Array.isArray(value.servizi) ? value.servizi.filter(Boolean) : [], updatedAt:String(value.updatedAt || "") };
+  }
+  async function saveCompetenzeServizi(servizi = [], aggiornatoDa = "") {
+    await ensureAuth();
+    const item = { servizi:(Array.isArray(servizi) ? servizi : []).filter(Boolean), aggiornatoDa:String(aggiornatoDa || ""), updatedAt:new Date().toISOString() };
+    await databaseRequest("private/adminUpdates/competenzeServizi", { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
   async function getPageAccess() {
     // in Firebase le chiavi non possono contenere il punto: "quiz" -> "quiz.html"
     const result = await databaseRequest("private/adminUpdates/pageAccess");
@@ -1225,6 +1238,8 @@
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
+    getCompetenzeServizi,
+    saveCompetenzeServizi,
     getPageAccess,
     getPaginaIniziale,
     savePaginaIniziale,

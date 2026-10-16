@@ -15,8 +15,10 @@ console.log('Diaria sync merge test passed');
 // Maneggio denaro cambiato dalla tabella mensile: resta "a mano", l'allineamento ai turni non lo ricalcola.
 const monthly = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'assets/js/navidiaria-monthly.js'), 'utf8');
 assert.match(monthly, /if\(row\.field==='cashHandling'\)entry\.cashHandlingManual=true/);
-// Versione ripristinata: giornate bloccate (imported false, maneggio a mano).
-assert.match(src, /modificatoIl:ora,imported:false,cashHandlingManual:true/);
+// Firebase archivio principale della Distinta, copia su PocketBase quando raggiungibile.
+assert.match(src, /const DiariaStore=/);
+assert.match(src, /async save\(id,list\)\{\s*await NaviAdminFirebase\.saveDiaria\(id,list\);/);
+assert.ok(!/NaviAdminFirebase\.(load|save)Diaria\(String\(activeAgent/.test(src), 'la Distinta passa da DiariaStore');
 console.log('Diaria manual flags test passed');
 // Allineamento ai turni: le giornate passate gia' presenti non vengono piu' modificate.
 assert.match(src, /if\(existing&&date<todayIso\(\)\)return;/);
