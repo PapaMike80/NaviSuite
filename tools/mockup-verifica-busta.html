@@ -1,4 +1,4 @@
-<title>Verifica busta · proposte</title>
+<title>Verifica busta · proposta A</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <style>
@@ -60,66 +60,101 @@ h1{margin:0 0 4px;font-size:26px;font-weight:800;text-wrap:balance}
 .year small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
 .mail{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--amber) 16%,var(--card));border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);font-size:12px}
 .mail b{color:var(--amber)}
+
+.voce.open{grid-template-columns:1fr auto}
+.det{grid-column:1/-1;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px}
+.det small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+.det p{grid-column:1/-1;margin:2px 0 0;color:var(--muted);line-height:1.4}
+.sel{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+.sel .chip{flex:0 0 auto}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c);margin-right:5px;vertical-align:middle}
+.sum{display:flex;gap:6px;margin-bottom:10px}
+.sum span{flex:1;text-align:center;border-radius:10px;padding:6px 0;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c)}
+.ylist .yr{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--card);margin-bottom:6px;font-size:13px}
+.ylist .yr .mm{font-weight:800}
+.spark{display:flex;align-items:flex-end;gap:4px;height:60px;padding:8px 10px;border-radius:12px;background:var(--card);margin-bottom:10px}
+.spark i{flex:1;background:var(--teal);border-radius:4px 4px 0 0;opacity:.85}
+.spark i.r{background:var(--rose)}
+.drop{border:2px dashed var(--teal);border-radius:18px;padding:26px 14px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:12px}
+.drop b{display:block;color:var(--teal);font-size:16px;margin-bottom:4px}
+.blur{filter:blur(6px)}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+.callouts{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.callouts li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}
+.callouts b{color:var(--ink)}
 </style>
 
-<h1>Verifica busta · tre proposte</h1>
-<p class="intro">Stessi dati di esempio (busta di ottobre 2026, distinta di settembre) disegnati in tre modi. Tutte e tre hanno una sola barra in alto (carica busta, tolleranza, nascondi cifre) al posto delle quattro sezioni numerate. Dimmi A, B o C, oppure cosa prendere da ognuna.</p>
+<h1>Verifica busta · proposta A</h1>
+<p class="intro">Le quattro schermate della proposta A con dati di esempio: primo accesso, confronto di un mese, dettaglio di una voce, riepilogo dell'anno.</p>
 
 <div class="row">
 
 <section class="opt">
-  <h2>A · Schede a colori</h2>
-  <p class="d">Tre riquadri colorati con lordo, ritenute e netto. Sotto, ogni voce è una scheda con una striscia del suo colore e l'esito. Due linguette: Confronto e Anno.</p>
+  <h2>1 · Primo accesso</h2>
+  <p class="d">Pagina vuota: un solo grande riquadro per caricare una o più buste. Se ci sono buste salvate si apre subito l'ultima.</p>
+  <div class="phone">
+    <div class="eyebrow">Verifica busta</div><div class="ttl">Mario Rossi</div>
+    <div class="drop"><b>＋ Carica le buste paga</b>PDF INAZ, anche più di uno.<br>Ogni busta si confronta con la Distinta del mese prima.</div>
+    <div class="note">🔒 Si salvano solo i numeri letti, mai il PDF. Le vedi tu e gli amministratori.</div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>2 · Confronto</h2>
+  <p class="d">Scegli il mese con le pillole in alto (pallino verde se torna tutto, rosso se ci sono differenze). Poi i tre totali e le voci: prima quelle da controllare.</p>
   <div class="phone">
     <div class="eyebrow">Verifica busta</div><div class="ttl">Ottobre 2026</div>
-    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip">Tolleranza 5%</span><span class="chip">🙈</span></div>
+    <div class="bar"><span class="chip up">＋ Carica</span><span class="chip">Tolleranza 5% ▾</span><span class="chip">🙈</span></div>
     <div class="tabs"><span class="on">Confronto</span><span>Anno 2026</span></div>
+    <div class="sel"><span class="chip"><i class="dot" style="--c:var(--green)"></i>Ago</span><span class="chip"><i class="dot" style="--c:var(--green)"></i>Set</span><span class="chip on"><i class="dot" style="--c:var(--rose)"></i>Ott</span></div>
     <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num">3.412,80</b></div><div class="tile t-r"><small>Ritenute</small><b class="num">1.006,15</b></div><div class="tile t-n"><small>Netto</small><b class="num">2.406,65</b></div></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓ Ok</span><span class="cmp num">334 + 01Y · 30:13 h = 30:13 h</span></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Ticket</span><span class="pill">✓ Ok</span><span class="cmp num">12 = 12</span></div>
+    <div class="sum"><span style="--c:var(--green)">9 ok</span><span style="--c:var(--rose)">1 diff.</span><span style="--c:var(--amber)">1 verifica</span></div>
     <div class="voce" style="--c:var(--rose)"><span class="n">Diaria 24%</span><span class="pill">−1 · 18 €</span><span class="cmp num">distinta 10 · busta 9</span></div>
-    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">013 · 2:00 h · busta 1:30 h</span></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Festività</span><span class="pill">✓ Ok</span><span class="cmp num">1 = 1</span></div>
-    <div class="mail"><span><b>2 differenze</b> oltre il 5%</span><span class="chip">✉ Mail ufficio</span></div>
+    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Ticket</span><span class="pill">✓</span><span class="cmp num">12</span></div>
+    <div class="cmp" style="text-align:center;padding:4px">+ altre 7 voci ok ▾</div>
+    <div class="mail"><span><b>1 differenza</b> oltre il 5%</span><span class="chip">✉ Mail ufficio</span></div>
   </div>
 </section>
 
 <section class="opt">
-  <h2>B · Tabella come la Distinta</h2>
-  <p class="d">Stessa griglia della Distinta mensile: le righe sono le voci, le colonne sono Distinta, busta ed esito. Le righe da controllare sono colorate. In fondo i totali, sotto il riepilogo dell'anno.</p>
+  <h2>3 · Dettaglio voce</h2>
+  <p class="d">Toccando una voce si apre: codici della busta, valori, importo e una spiegazione in parole semplici. Con 🙈 gli importi in euro si sfocano.</p>
   <div class="phone">
     <div class="eyebrow">Verifica busta</div><div class="ttl">Ottobre 2026</div>
-    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip on">5%</span><span class="chip">10%</span><span class="chip">🙈</span></div>
-    <table class="grid num"><thead><tr><th>Voci</th><th>Dist.</th><th>Busta</th><th></th></tr></thead><tbody>
-      <tr><td class="k">Straord.</td><td>30:13</td><td>30:13</td><td class="ok">✓</td></tr>
-      <tr><td class="k">Ticket</td><td>12</td><td>12</td><td class="ok">✓</td></tr>
-      <tr class="bad"><td class="k">D. 24%</td><td>10</td><td>9</td><td class="ko">−1</td></tr>
-      <tr><td class="k">D. 50%</td><td>—</td><td>—</td><td class="ok">✓</td></tr>
-      <tr class="bad"><td class="k">Banca</td><td>2:00</td><td>1:30</td><td class="wa">?</td></tr>
-      <tr><td class="k">Fest.</td><td>1</td><td>1</td><td class="ok">✓</td></tr>
-      <tr><td class="k">Ind. dom.</td><td>2</td><td>2</td><td class="ok">✓</td></tr>
-    </tbody></table>
-    <div class="foot num"><span>Lordo <b style="color:var(--cyan)">3.412,80</b></span><span>Netto <b style="color:var(--teal)">2.406,65</b></span></div>
-    <div class="foot num"><span>Anno 2026 · 10 buste</span><span>Netto <b style="color:var(--teal)">24.180,40</b></span></div>
+    <div class="bar"><span class="chip up">＋ Carica</span><span class="chip">Tolleranza 5% ▾</span><span class="chip on">👁</span></div>
+    <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num blur">3.412,80</b></div><div class="tile t-r"><small>Ritenute</small><b class="num blur">1.006,15</b></div><div class="tile t-n"><small>Netto</small><b class="num blur">2.406,65</b></div></div>
+    <div class="voce open" style="--c:var(--rose)"><span class="n">Diaria 24%</span><span class="pill">−1 giorno</span><span class="cmp num">voce 55Y</span>
+      <div class="det num"><div><small>Distinta</small>10 giorni</div><div><small>Busta</small>9 giorni</div><div><small>Importo busta</small><span class="blur">162,00 €</span></div><div><small>Mancano circa</small><span class="blur">18,00 €</span></div>
+      <p>Nella Distinta di settembre ci sono 10 giornate con diaria 24%, in busta ne risultano 9. Controlla il 14/09.</p></div></div>
+    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
   </div>
 </section>
 
 <section class="opt">
-  <h2>C · Mesi e barre</h2>
-  <p class="d">In alto i mesi dell'anno con un pallino: verde se torna tutto, rosso se ci sono differenze. Ogni voce è una barra: il colore è la busta, la tacca è la Distinta. Sotto, i totali dell'anno.</p>
+  <h2>4 · Anno</h2>
+  <p class="d">Il netto mese per mese in un grafico a colonne (rosse se c'erano differenze), i totali dell'anno e l'elenco delle buste. Tocca un mese per aprirlo.</p>
   <div class="phone">
-    <div class="eyebrow">Verifica busta</div><div class="ttl">2026</div>
-    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip">Tolleranza 5%</span><span class="chip">🙈</span></div>
-    <div class="months"><span class="m" style="--c:var(--green)">Lug</span><span class="m" style="--c:var(--green)">Ago</span><span class="m" style="--c:var(--rose)">Set</span><span class="m on" style="--c:var(--rose)">Ott</span><span class="m" style="--c:var(--line)">Nov</span></div>
-    <div class="bars">
-      <div class="b" style="--c:var(--teal)"><div class="h"><span>Straordinari</span><span class="num">30:13 h</span></div><div class="track"><i style="width:75%"></i><em style="left:75%"></em></div></div>
-      <div class="b" style="--c:var(--cyan)"><div class="h"><span>Ticket</span><span class="num">12</span></div><div class="track"><i style="width:60%"></i><em style="left:60%"></em></div></div>
-      <div class="b" style="--c:var(--rose)"><div class="h"><span>Diaria 24% <small class="ko">−1</small></span><span class="num">9 / 10</span></div><div class="track"><i style="width:45%"></i><em style="left:50%"></em></div></div>
-      <div class="b" style="--c:var(--amber)"><div class="h"><span>Banca ore <small class="wa">?</small></span><span class="num">1:30 / 2:00</span></div><div class="track"><i style="width:30%"></i><em style="left:40%"></em></div></div>
-      <div class="b" style="--c:var(--violet)"><div class="h"><span>Festività</span><span class="num">1</span></div><div class="track"><i style="width:15%"></i><em style="left:15%"></em></div></div>
+    <div class="eyebrow">Verifica busta</div><div class="ttl">Anno 2026</div>
+    <div class="bar"><span class="chip up">＋ Carica</span><span class="chip">2026 ▾</span><span class="chip">🙈</span></div>
+    <div class="tabs"><span>Confronto</span><span class="on">Anno 2026</span></div>
+    <div class="spark"><i style="height:62%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:70%"></i><i style="height:74%"></i><i style="height:92%"></i><i style="height:95%"></i><i style="height:88%"></i><i class="r" style="height:71%"></i><i class="r" style="height:69%"></i></div>
+    <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num">34.290</b></div><div class="tile t-r"><small>Ritenute</small><b class="num">10.110</b></div><div class="tile t-n"><small>Netto</small><b class="num">24.180</b></div></div>
+    <div class="ylist num">
+      <div class="yr"><i class="dot" style="--c:var(--rose)"></i><span class="mm">Ottobre</span><span>2.406,65</span><span class="cmp">›</span></div>
+      <div class="yr"><i class="dot" style="--c:var(--rose)"></i><span class="mm">Settembre</span><span>2.451,10</span><span class="cmp">›</span></div>
+      <div class="yr"><i class="dot" style="--c:var(--green)"></i><span class="mm">Agosto</span><span>2.980,30</span><span class="cmp">›</span></div>
     </div>
-    <div class="year num"><div style="--c:var(--cyan)"><small>Lordo anno</small>34.290</div><div style="--c:var(--rose)"><small>Ritenute</small>10.110</div><div style="--c:var(--teal)"><small>Netto</small>24.180</div></div>
+    <div class="cmp" style="text-align:center;padding:6px">Totali per voce ▾</div>
   </div>
 </section>
 
 </div>
+
+<ul class="callouts">
+  <li><b>Meno sezioni.</b> Le quattro schede numerate di oggi diventano una barra e due linguette. Il mese della Distinta non si sceglie più: è sempre quello prima della busta.</li>
+  <li><b>Colori con un significato.</b> Verde vuol dire che torna, rosso una differenza fuori tolleranza, giallo una voce da verificare. Azzurro, rosa e turchese sono lordo, ritenute e netto.</li>
+  <li><b>Prima quello che non torna.</b> Le voci con differenze stanno in cima. Quelle ok restano chiuse sotto «altre voci ok».</li>
+</ul>
