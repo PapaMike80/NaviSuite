@@ -1,0 +1,125 @@
+<title>Verifica busta · proposte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tre telefoni affiancati (in colonna su schermi stretti), ognuno una proposta. Palette NaviSuite scura. */
+:root{
+  color-scheme:dark;
+  --bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;
+  --ink:#eaf2f4;--muted:#9fb8c2;
+  --teal:#2dd4bf;--cyan:#67d7e6;--amber:#fbbf24;--rose:#fb7185;--violet:#a78bfa;--green:#52c879;
+  --display:'Manrope',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:26px;font-weight:800;text-wrap:balance}
+.intro{color:var(--muted);margin:0 0 24px;max-width:62ch;line-height:1.5}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:start}
+.opt h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.opt p.d{margin:4px 0 12px;color:var(--muted);font-size:13px;line-height:1.45;min-height:3.2em}
+.phone{background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:16px 14px 18px;max-width:390px;box-shadow:0 20px 40px rgba(0,0,0,.35)}
+.eyebrow{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal);text-transform:uppercase}
+.ttl{font-size:22px;font-weight:800;margin:2px 0 12px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;color:var(--ink);background:var(--card)}
+.chip.on{background:var(--teal);color:#06231f;border-color:var(--teal)}
+.chip.up{background:transparent;border-color:var(--teal);color:var(--teal)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.tile{border-radius:14px;padding:9px 10px;color:#06231f}
+.tile small{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.tile b{font-size:15px}
+.t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
+.voce{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px 12px;border-radius:12px;background:var(--card);margin-bottom:6px;border-left:4px solid var(--c)}
+.voce .n{font-weight:700;font-size:14px}.voce .c{color:var(--muted);font-size:11px}
+.pill{grid-row:span 2;align-self:center;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
+.cmp{font-size:12px;color:var(--muted)}
+.tabs{display:flex;background:var(--card);border-radius:14px;padding:4px;margin-bottom:12px}
+.tabs span{flex:1;text-align:center;padding:8px;font-weight:700;font-size:13px;border-radius:10px;color:var(--muted)}
+.tabs span.on{background:var(--teal);color:#06231f}
+/* B */
+.grid{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.grid th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:9px 6px;background:var(--card2);color:var(--ink);text-align:center}
+.grid th:first-child,.grid td:first-child{text-align:left;padding-left:10px}
+.grid td{padding:9px 6px;border-top:1px solid var(--line);text-align:center;background:var(--card)}
+.grid td.k{font-weight:800;letter-spacing:.08em;font-size:11px}
+.ok{color:var(--green)}.ko{color:var(--rose)}.wa{color:var(--amber)}
+.grid tr.bad td{background:color-mix(in srgb,var(--rose) 12%,var(--card))}
+.foot{display:flex;justify-content:space-between;margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--card2);font-size:13px}
+/* C */
+.months{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.m{flex:0 0 auto;width:52px;border-radius:12px;padding:7px 0;text-align:center;background:var(--card);font-size:11px;font-weight:700;color:var(--muted)}
+.m i{display:block;width:8px;height:8px;border-radius:50%;margin:5px auto 0;background:var(--c)}
+.m.on{background:var(--teal);color:#06231f}
+.bars .b{margin-bottom:10px}
+.bars .h{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px}
+.track{height:10px;border-radius:6px;background:var(--card2);position:relative;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--c)}
+.track em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.year{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.year div{background:var(--card);border-radius:12px;padding:8px 10px;border-top:3px solid var(--c)}
+.year small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+.mail{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--amber) 16%,var(--card));border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);font-size:12px}
+.mail b{color:var(--amber)}
+</style>
+
+<h1>Verifica busta · tre proposte</h1>
+<p class="intro">Stessi dati di esempio (busta di ottobre 2026, distinta di settembre) disegnati in tre modi. Tutte e tre hanno una sola barra in alto (carica busta, tolleranza, nascondi cifre) al posto delle quattro sezioni numerate. Dimmi A, B o C, oppure cosa prendere da ognuna.</p>
+
+<div class="row">
+
+<section class="opt">
+  <h2>A · Schede a colori</h2>
+  <p class="d">Tre riquadri colorati con lordo, ritenute e netto. Sotto, ogni voce è una scheda con una striscia del suo colore e l'esito. Due linguette: Confronto e Anno.</p>
+  <div class="phone">
+    <div class="eyebrow">Verifica busta</div><div class="ttl">Ottobre 2026</div>
+    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip">Tolleranza 5%</span><span class="chip">🙈</span></div>
+    <div class="tabs"><span class="on">Confronto</span><span>Anno 2026</span></div>
+    <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num">3.412,80</b></div><div class="tile t-r"><small>Ritenute</small><b class="num">1.006,15</b></div><div class="tile t-n"><small>Netto</small><b class="num">2.406,65</b></div></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓ Ok</span><span class="cmp num">334 + 01Y · 30:13 h = 30:13 h</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Ticket</span><span class="pill">✓ Ok</span><span class="cmp num">12 = 12</span></div>
+    <div class="voce" style="--c:var(--rose)"><span class="n">Diaria 24%</span><span class="pill">−1 · 18 €</span><span class="cmp num">distinta 10 · busta 9</span></div>
+    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">013 · 2:00 h · busta 1:30 h</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Festività</span><span class="pill">✓ Ok</span><span class="cmp num">1 = 1</span></div>
+    <div class="mail"><span><b>2 differenze</b> oltre il 5%</span><span class="chip">✉ Mail ufficio</span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>B · Tabella come la Distinta</h2>
+  <p class="d">Stessa griglia della Distinta mensile: le righe sono le voci, le colonne sono Distinta, busta ed esito. Le righe da controllare sono colorate. In fondo i totali, sotto il riepilogo dell'anno.</p>
+  <div class="phone">
+    <div class="eyebrow">Verifica busta</div><div class="ttl">Ottobre 2026</div>
+    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip on">5%</span><span class="chip">10%</span><span class="chip">🙈</span></div>
+    <table class="grid num"><thead><tr><th>Voci</th><th>Dist.</th><th>Busta</th><th></th></tr></thead><tbody>
+      <tr><td class="k">Straord.</td><td>30:13</td><td>30:13</td><td class="ok">✓</td></tr>
+      <tr><td class="k">Ticket</td><td>12</td><td>12</td><td class="ok">✓</td></tr>
+      <tr class="bad"><td class="k">D. 24%</td><td>10</td><td>9</td><td class="ko">−1</td></tr>
+      <tr><td class="k">D. 50%</td><td>—</td><td>—</td><td class="ok">✓</td></tr>
+      <tr class="bad"><td class="k">Banca</td><td>2:00</td><td>1:30</td><td class="wa">?</td></tr>
+      <tr><td class="k">Fest.</td><td>1</td><td>1</td><td class="ok">✓</td></tr>
+      <tr><td class="k">Ind. dom.</td><td>2</td><td>2</td><td class="ok">✓</td></tr>
+    </tbody></table>
+    <div class="foot num"><span>Lordo <b style="color:var(--cyan)">3.412,80</b></span><span>Netto <b style="color:var(--teal)">2.406,65</b></span></div>
+    <div class="foot num"><span>Anno 2026 · 10 buste</span><span>Netto <b style="color:var(--teal)">24.180,40</b></span></div>
+  </div>
+</section>
+
+<section class="opt">
+  <h2>C · Mesi e barre</h2>
+  <p class="d">In alto i mesi dell'anno con un pallino: verde se torna tutto, rosso se ci sono differenze. Ogni voce è una barra: il colore è la busta, la tacca è la Distinta. Sotto, i totali dell'anno.</p>
+  <div class="phone">
+    <div class="eyebrow">Verifica busta</div><div class="ttl">2026</div>
+    <div class="bar"><span class="chip up">＋ Carica busta</span><span class="chip">Tolleranza 5%</span><span class="chip">🙈</span></div>
+    <div class="months"><span class="m" style="--c:var(--green)">Lug</span><span class="m" style="--c:var(--green)">Ago</span><span class="m" style="--c:var(--rose)">Set</span><span class="m on" style="--c:var(--rose)">Ott</span><span class="m" style="--c:var(--line)">Nov</span></div>
+    <div class="bars">
+      <div class="b" style="--c:var(--teal)"><div class="h"><span>Straordinari</span><span class="num">30:13 h</span></div><div class="track"><i style="width:75%"></i><em style="left:75%"></em></div></div>
+      <div class="b" style="--c:var(--cyan)"><div class="h"><span>Ticket</span><span class="num">12</span></div><div class="track"><i style="width:60%"></i><em style="left:60%"></em></div></div>
+      <div class="b" style="--c:var(--rose)"><div class="h"><span>Diaria 24% <small class="ko">−1</small></span><span class="num">9 / 10</span></div><div class="track"><i style="width:45%"></i><em style="left:50%"></em></div></div>
+      <div class="b" style="--c:var(--amber)"><div class="h"><span>Banca ore <small class="wa">?</small></span><span class="num">1:30 / 2:00</span></div><div class="track"><i style="width:30%"></i><em style="left:40%"></em></div></div>
+      <div class="b" style="--c:var(--violet)"><div class="h"><span>Festività</span><span class="num">1</span></div><div class="track"><i style="width:15%"></i><em style="left:15%"></em></div></div>
+    </div>
+    <div class="year num"><div style="--c:var(--cyan)"><small>Lordo anno</small>34.290</div><div style="--c:var(--rose)"><small>Ritenute</small>10.110</div><div style="--c:var(--teal)"><small>Netto</small>24.180</div></div>
+  </div>
+</section>
+
+</div>
