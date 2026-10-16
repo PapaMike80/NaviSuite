@@ -4,19 +4,8 @@
 (function () {
   const $ = id => document.getElementById(id);
   const els = {
-    login: $('vbLogin'),
-    fileInput: $('vbFileInput'),
-    fileLabel: $('vbFileLabel'),
-    fileInfo: $('vbFileInfo'),
-    month: $('vbMonth'),
-    period: $('vbPeriod'),
-    source: $('vbSource'),
-    alerts: $('vbAlerts'),
-    result: $('vbResult'),
-    months: $('vbMonths'),
-    files: $('vbFiles'),
-    clear: $('vbClear'),
-    monthField: $('vbMonthField')
+    login: $('vbLogin'), bar: $('vbBar'), fileInput: $('vbFileInput'), fileLabel: $('vbFileLabel'), fileInfo: $('vbFileInfo'),
+    source: $('vbSource'), alerts: $('vbAlerts'), vuoto: $('vbVuoto'), tabs: $('vbTabs'), confronto: $('vbConfronto'), anno: $('vbAnno'), titolo: $('vbTitolo')
   };
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -38,7 +27,8 @@
   let agent = null;
   try { agent = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) { agent = null; }
 
-  const state = { buste: [], data: null, loadingData: null, archivio: {} };
+  // buste: chiave (mese della busta, o nome del file se il mese non si legge) -> {busta, fileName, bustaMonth, month}
+  const state = { buste: {}, corrente: '', tab: 'confronto', anno: '', data: null, loadingData: null, archivio: {} };
 
   function setAlerts(list) {
     els.alerts.innerHTML = list.map(alert => `<p class="vb-alert ${alert.kind || 'warn'}">${escapeHtml(alert.text)}</p>`).join('');
@@ -106,22 +96,6 @@
 
   const monthOf = busta => (busta.period ? `${busta.period.year}-${String(busta.period.month).padStart(2, '0')}` : '');
 
-  // Una tabella per busta: voce, Distinta, busta, differenza (con la stima in euro), valore in busta, stato.
-  function tableHtml(rows) {
-    if (!rows.length) return '<p class="vb-empty">Nessuna delle voci confrontabili compare nella busta o nella Distinta di questo mese.</p>';
-    return `<div class="vb-summary-wrap"><table class="vb-table vb-summary"><thead><tr><th>Voce</th><th>Distinta</th><th>Busta</th><th>Diff.</th><th>Valore</th><th>Stato</th></tr></thead><tbody>${rows.map(row => {
-      const state = row.status === 'ok' ? 'Match' : row.status === 'check' ? 'Da verificare' : 'Mismatch';
-      const diffEuro = row.status !== 'ok' && row.euro ? `<small class="vb-euro-diff">${row.euro > 0 ? '+' : '−'}${escapeHtml(euro(Math.abs(row.euro)))}</small>` : '';
-      return `<tr class="${STATUS[row.status].className}"><td>${escapeHtml(row.label)}<small>${escapeHtml(row.codes.join(' + '))}</small>${row.status === 'check' && row.notes?.length ? `<small class="vb-note-row">${escapeHtml(row.notes[row.notes.length - 1]).replace(/\n/g, '<br>')}</small>` : ''}</td><td>${unitValue(row.distinta, row.unit)}</td><td>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</td><td>${row.status === 'ok' ? '—' : signedUnit(row.diff, row.unit)}${diffEuro}</td><td>${row.importo ? escapeHtml(euro(row.importo)) : '—'}${row.importoDistinta !== null && row.importoDistinta !== undefined && row.status !== 'ok' ? `<small class="vb-euro-diff">Distinta ${escapeHtml(euro(row.importoDistinta))}</small>` : ''}</td><td class="vb-state">${row.status === 'ok' ? '✓' : '✕'} ${state}</td></tr>`;
-    }).join('')}</tbody></table></div>`;
-  }
-
-  // Totali della busta: lordo (totale competenze), ritenute e netto a pagare
-  function totaliHtml(busta) {
-    const t = busta.totals || {}, cella = (nome, v, cls = '') => `<div class="${cls}"><dt>${nome}</dt><dd>${v === null || v === undefined ? '—' : escapeHtml(euro(v))}</dd></div>`;
-    return `<dl class="vb-values vb-totali">${cella('Lordo', t.competenze)}${cella('Ritenute', t.ritenute)}${cella('Netto', t.netto, 'vb-netto')}</dl>`;
-  }
-
   // Tolleranza scelta (0, 5 o 10%), ricordata sul dispositivo
   const TOLL_KEY = 'navisuite.verificaBusta.tolleranza';
   const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
@@ -136,44 +110,7 @@
     const oggetto = `Verifica busta paga di ${busta} (dati di ${mese})${nome ? ` - ${nome}` : ''}`;
     const testo = `Buongiorno,\n\nconfrontando la busta paga di ${busta} con la mia distinta di ${mese} ho trovato queste differenze:\n\n${righe}\n\nVi chiedo cortesemente di verificare e, se necessario, di correggere nella prossima busta.\n\nGrazie,\n${nome}`;
     const href = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(testo)}`;
-    return `<div class="vb-mail"><p><strong>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`} oltre la tolleranza del ${Math.round(tolleranza() * 100)}%</strong>: puoi segnalarle all'ufficio personale.</p><a class="vb-reload" href="${href}">✉ Prepara la mail</a> <button type="button" class="vb-reload" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia il testo</button></div>`;
-  }
-
-  function renderFiles() {
-    els.files.innerHTML = state.buste.map(item => `<li class="is-ok"><strong>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)}</strong> ${escapeHtml(item.fileName)}${item.month ? ` · Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}` : ''}</li>`).join('');
-    els.clear.hidden = !state.buste.length;
-    els.monthField.hidden = state.buste.length > 1;
-  }
-
-  async function render() {
-    const single = state.buste.length <= 1;
-    if (state.buste.length === 1) state.buste[0].month = els.month.value || state.buste[0].month;
-    const month = els.month.value;
-    const period = window.NaviDistintaTotals.competencePeriod(month);
-    els.period.textContent = !single ? 'Con più buste ognuna si confronta con la Distinta del mese precedente.' : period.startIso ? `Periodo di competenza: ${dateText(period.startIso)} – ${dateText(period.endIso)} (${period.weeks.length} settimane)` : 'Scegli il mese della Distinta.';
-    els.source.textContent = sourceText(state.data);
-    renderFiles();
-    const data = await ensureData();
-    els.source.textContent = sourceText(data);
-    const alerts = [...data.warnings];
-    if (!state.buste.length) { setAlerts(alerts); els.result.hidden = true; return; }
-    const calculator = window.NaviDistintaTotals.create({ storage: localStorage });
-    const blocks = state.buste.map(item => {
-      const nome = item.bustaMonth ? `busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName;
-      if (!item.busta.period && single) alerts.push({ kind: 'warn', text: `${nome}: non trovo il mese della busta, la confronto con la Distinta del mese scorso.` });
-      if (!item.busta.check.completa) alerts.push({ kind: item.busta.check.headerFound ? 'warn' : 'error', text: `${nome}: ${item.busta.check.message}` });
-      const p = window.NaviDistintaTotals.competencePeriod(item.month);
-      if (!p.startIso) return `<div class="vb-month"><h3>${escapeHtml(nome)}</h3><p>Mese della busta non trovato: non posso confrontarla con la Distinta.</p></div>`;
-      const distinta = calculator.compute(data.entries, item.month);
-      if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
-      const result = window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() });
-      const mail = mailHtml(item, result.rows);
-      const s = result.summary;
-      return `<div class="vb-month"><h3>${escapeHtml(item.bustaMonth ? `Busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName)} → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())}</h3><p>${s.ok} match · ${s.diff} mismatch · ${s.check} da verificare</p>${totaliHtml(item.busta)}${tableHtml(result.rows)}${mail}</div>`;
-    });
-    setAlerts(alerts);
-    els.months.innerHTML = blocks.join('');
-    els.result.hidden = false;
+    return `<div class="mail"><span><b>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`}</b> oltre il ${Math.round(tolleranza() * 100)}%</span><span><a class="chip" href="${href}">✉ Mail ufficio</a> <button type="button" class="chip" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia</button></span></div>`;
   }
 
   // ---------------- Archivio delle buste: solo i dati letti (mese, totali, voci), mai il PDF ----------------
@@ -201,113 +138,179 @@
   }
   async function togliBusta(mese) {
     if (!confirm(`Togliere dal riepilogo la busta di ${monthLabel(mese).toLowerCase()}?`)) return;
-    delete state.archivio[mese]; scriviLocale(); renderAnno();
+    delete state.archivio[mese]; delete state.buste[mese]; scriviLocale(); ridisegna();
     try { await window.NaviAdminPB?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
   }
   async function caricaArchivio() {
-    state.archivio = archivioLocale(); renderAnno();
+    state.archivio = archivioLocale(); dallArchivio(); ridisegna();
     // PocketBase: vince la busta salvata piu' di recente; quelle rimaste solo sul telefono vengono copiate
     try {
       const remoto = await window.NaviAdminPB.getBustePaga(agent.id) || {};
       const unione = { ...state.archivio };
       Object.entries(remoto).forEach(([m, d]) => { if (!unione[m] || String(d?.savedAt || '') > String(unione[m]?.savedAt || '')) unione[m] = d; });
       Object.entries(unione).forEach(([m, d]) => { if (String(remoto[m]?.savedAt || '') !== String(d?.savedAt || '')) window.NaviAdminPB.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su PocketBase`, e)); });
-      state.archivio = unione; scriviLocale(); renderAnno(); statoAnno('Riepilogo: PocketBase ✓');
+      state.archivio = unione; scriviLocale(); dallArchivio(); ridisegna(); statoAnno('Buste: PocketBase ✓');
     } catch (error) { console.warn('Archivio buste non letto da PocketBase', error); statoAnno('Riepilogo dalla copia su questo telefono (PocketBase non raggiungibile)'); }
   }
-  function apriBusta(mese) {
-    const d = state.archivio[mese]; if (!d) return;
-    const item = { busta: { period: d.period, voci: d.voci || [], totals: d.totals || {}, check: { completa: true, headerFound: true, message: '', ...(d.check || {}) } }, fileName: d.fileName || `busta ${mese}`, bustaMonth: mese, month: d.month || (d.period ? window.NaviBustaParser.previousMonth(d.period) : '') };
-    const i = state.buste.findIndex(b => b.bustaMonth === mese);
-    if (i >= 0) state.buste[i] = item; else state.buste.push(item);
-    state.buste.sort((a, b) => String(a.bustaMonth).localeCompare(String(b.bustaMonth)));
-    if (state.buste.length === 1) els.month.value = item.month;
-    render().then(() => $('vbResult')?.scrollIntoView({ behavior: 'smooth' })).catch(error => console.error(error));
+  const chiave = item => item.bustaMonth || `file:${item.fileName}`;
+  const itemDaArchivio = (mese, d) => ({ busta: { period: d.period, voci: d.voci || [], totals: d.totals || {}, check: { completa: true, headerFound: true, message: '', ...(d.check || {}) } }, fileName: d.fileName || `busta ${mese}`, bustaMonth: mese, month: d.month || (d.period ? window.NaviBustaParser.previousMonth(d.period) : '') });
+  function dallArchivio() {
+    Object.entries(state.archivio).forEach(([m, d]) => { if (/^\d{4}-\d{2}$/.test(m) && !state.buste[m]) state.buste[m] = itemDaArchivio(m, d); });
+    Object.keys(state.buste).forEach(k => { if (/^\d{4}-\d{2}$/.test(k) && !state.archivio[k]) delete state.buste[k]; });
   }
-  function renderAnno() {
-    const box = $('vbAnno'), sel = $('vbAnnoSel'), body = $('vbAnnoBody');
-    if (!box) return;
+  const chiaviOrdinate = () => Object.keys(state.buste).sort((a, b) => String(state.buste[a].bustaMonth || '9999').localeCompare(String(state.buste[b].bustaMonth || '9999')));
+  const nomeBusta = item => item.bustaMonth ? monthLabel(item.bustaMonth) : item.fileName;
+  const meseCorto = m => new Intl.DateTimeFormat('it-IT', { month: 'short' }).format(new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, 1, 12)).replace('.', '');
+  const eurv = v => v === null || v === undefined || v === '' ? '—' : `<span class="eurv">${escapeHtml(euro(v))}</span>`;
+  const COLORE = { ok: 'var(--green)', diff: 'var(--rose)', check: 'var(--amber)' };
+
+  // Confronto di una busta con la Distinta del mese prima (null se il mese manca)
+  function confronta(item, data, calculator) {
+    const p = window.NaviDistintaTotals.competencePeriod(item.month);
+    if (!p.startIso) return null;
+    const distinta = calculator.compute(data.entries, item.month);
+    return { p, distinta, result: window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() }) };
+  }
+  const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';
+
+  function tilesHtml(t) {
+    return `<div class="tiles num"><div class="tile t-l"><small>Lordo</small><b>${eurv(t.competenze)}</b></div><div class="tile t-r"><small>Ritenute</small><b>${eurv(t.ritenute)}</b></div><div class="tile t-n"><small>Netto</small><b>${eurv(t.netto)}</b></div></div>`;
+  }
+  function voceHtml(row) {
+    const c = COLORE[row.status];
+    const pill = row.status === 'ok' ? '✓' : row.status === 'check' ? 'Verifica' : `${signedUnit(row.diff, row.unit)}${row.euro ? ` · <span class="eurv">${escapeHtml(euro(Math.abs(row.euro)))}</span>` : ''}`;
+    const riga = row.status === 'ok' ? unitValue(row.busta ?? row.distinta, row.unit) : `distinta ${unitValue(row.distinta, row.unit)} · busta ${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}`;
+    const nota = row.notes?.length ? `<p>${escapeHtml(row.notes[row.notes.length - 1]).replace(/\n/g, '<br>')}</p>` : '';
+    return `<button type="button" class="voce" style="--c:${c}" aria-expanded="false"><span class="n">${escapeHtml(row.label)}${row.importo ? ` <span class="eur num eurv">${escapeHtml(euro(row.importo))}</span>` : ''}</span><span class="pill num">${pill}</span><span class="c num">${riga}</span>`
+      + `<span class="det num"><span><small>Distinta</small>${unitValue(row.distinta, row.unit)}</span><span><small>Busta</small>${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}</span><span><small>Importo busta</small>${eurv(row.importo)}</span><span><small>${row.status === 'ok' ? 'Distinta in euro' : 'Differenza circa'}</small>${row.status === 'ok' ? eurv(row.importoDistinta) : row.euro ? eurv(Math.abs(row.euro)) : '—'}</span><span><small>Voci in busta</small>${escapeHtml(row.codes.join(' + '))}</span>${nota}</span></button>`;
+  }
+
+  function renderConfronto(data, calculator, alerts) {
+    const chiavi = chiaviOrdinate();
+    if (!chiavi.includes(state.corrente)) state.corrente = chiavi[chiavi.length - 1] || '';
+    const item = state.buste[state.corrente];
+    if (!item) { els.confronto.innerHTML = ''; return; }
+    const pills = chiavi.map(k => { const it = state.buste[k]; const c = confronta(it, data, calculator); return `<button type="button" class="chip${k === state.corrente ? ' on' : ''}" data-mese="${escapeHtml(k)}"><i class="dot" style="--c:${COLORE[statoMese(c)]}"></i>${escapeHtml(it.bustaMonth ? `${meseCorto(it.bustaMonth)} ${it.bustaMonth.slice(2, 4)}` : it.fileName)}</button>`; }).join('');
+    const nome = nomeBusta(item);
+    if (!item.busta.check.completa) alerts.push({ kind: item.busta.check.headerFound ? 'warn' : 'error', text: `${nome}: ${item.busta.check.message}` });
+    const c = confronta(item, data, calculator);
+    let corpo;
+    if (!c) corpo = '<p class="msub">Non trovo il mese di questa busta: non posso confrontarla con la Distinta.</p>';
+    else {
+      if (!c.distinta.entryCount) alerts.push({ kind: 'warn', text: `Nessuna giornata nella Distinta dal ${dateText(c.p.startIso)} al ${dateText(c.p.endIso)}.` });
+      const ordine = { diff: 0, check: 1, ok: 2 };
+      const rows = c.result.rows.slice().sort((a, b) => ordine[a.status] - ordine[b.status]);
+      const brutte = rows.filter(r => r.status !== 'ok'), buone = rows.filter(r => r.status === 'ok');
+      const s = c.result.summary;
+      corpo = `<div class="sum"><span style="--c:var(--green)">${s.ok} ok</span><span style="--c:var(--rose)">${s.diff} diff.</span><span style="--c:var(--amber)">${s.check} verifica</span></div>`
+        + (rows.length ? '' : '<p class="msub">Nessuna delle voci confrontabili compare nella busta o nella Distinta di questo mese.</p>')
+        + `<div class="voci">${brutte.map(voceHtml).join('')}${!brutte.length && buone.length ? '<div class="ok-all">✓ Tutte le voci tornano con la Distinta</div>' : ''}`
+        + (buone.length ? (brutte.length ? `<details class="altre"><summary>+ altre ${buone.length} voci ok ▾</summary><div class="voci">${buone.map(voceHtml).join('')}</div></details>` : buone.map(voceHtml).join('')) : '') + '</div>'
+        + mailHtml(item, c.result.rows);
+    }
+    els.titolo.textContent = nome;
+    els.confronto.innerHTML = `<div class="sel">${pills}</div><div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {})}${corpo}`;
+  }
+
+  function renderAnno(data, calculator) {
     const mesi = Object.keys(state.archivio).filter(m => /^\d{4}-\d{2}$/.test(m)).sort();
-    box.hidden = !mesi.length;
-    if (!mesi.length) return;
+    if (!mesi.length) { els.anno.innerHTML = '<p class="msub">Nessuna busta salvata.</p>'; return; }
     const anni = [...new Set(mesi.map(m => m.slice(0, 4)))].sort().reverse();
-    const scelto = anni.includes(sel.value) ? sel.value : anni[0];
-    sel.innerHTML = anni.map(a => `<option${a === scelto ? ' selected' : ''}>${a}</option>`).join('');
-    const delAnno = mesi.filter(m => m.startsWith(scelto));
-    const eur = v => v === null || v === undefined ? '—' : `<span class="vb-anno-eur">${escapeHtml(euro(v))}</span>`;
+    if (!anni.includes(state.anno)) state.anno = anni[0];
+    const delAnno = mesi.filter(m => m.startsWith(state.anno));
     const tot = { competenze: 0, ritenute: 0, netto: 0 };
-    const righe = delAnno.map(m => {
-      const t = state.archivio[m].totals || {};
-      Object.keys(tot).forEach(k => { tot[k] += Number(t[k]) || 0; });
-      return `<tr><td><button type="button" data-apri="${m}">${escapeHtml(monthLabel(m))}</button></td><td>${eur(t.competenze)}</td><td>${eur(t.ritenute)}</td><td>${eur(t.netto)}</td><td><button type="button" data-togli="${m}" aria-label="Togli">✕</button></td></tr>`;
-    }).join('');
-    // Totali per voce nell'anno
+    delAnno.forEach(m => { const t = state.archivio[m].totals || {}; Object.keys(tot).forEach(k => { tot[k] += Number(t[k]) || 0; }); });
+    const stato = m => data && calculator && state.buste[m] ? statoMese(confronta(state.buste[m], data, calculator)) : 'ok';
+    const max = Math.max(1, ...delAnno.map(m => Number(state.archivio[m].totals?.netto) || 0));
+    const barre = Array.from({ length: 12 }, (_, i) => { const m = `${state.anno}-${String(i + 1).padStart(2, '0')}`; const n = Number(state.archivio[m]?.totals?.netto) || 0; return `<div title="${escapeHtml(monthLabel(m))}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(4, Math.round(n / max * 100)) : 2}%"></i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`; }).join('');
+    const lista = delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(monthLabel(m).split(' ')[0])}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
     const voci = new Map();
     delAnno.forEach(m => (state.archivio[m].voci || []).forEach(v => {
-      const k = v.code; if (!k) return;
-      const x = voci.get(k) || { code: k, description: v.description, quantity: 0, amount: 0, mesi: 0 };
-      x.quantity += Number(v.quantity) || 0; x.amount += Number(v.amount) || 0; x.mesi += 1; voci.set(k, x);
+      if (!v.code) return;
+      const x = voci.get(v.code) || { code: v.code, description: v.description, quantity: 0, amount: 0, mesi: 0 };
+      x.quantity += Number(v.quantity) || 0; x.amount += Number(v.amount) || 0; x.mesi += 1; voci.set(v.code, x);
     }));
-    const righeVoci = [...voci.values()].sort((a, b) => String(a.code).localeCompare(String(b.code))).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td>${v.quantity ? number(v.quantity, 2) : '—'}</td><td>${eur(v.amount)}</td><td>${v.mesi}</td></tr>`).join('');
-    body.innerHTML = `<div class="vb-summary-wrap"><table class="vb-table vb-anno"><thead><tr><th>Busta</th><th>Lordo</th><th>Ritenute</th><th>Netto</th><th></th></tr></thead><tbody>${righe}</tbody><tfoot><tr><td>Totale ${scelto} (${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'})</td><td>${eur(tot.competenze)}</td><td>${eur(tot.ritenute)}</td><td>${eur(tot.netto)}</td><td></td></tr></tfoot></table></div>`
-      + (righeVoci ? `<details class="vb-anno-voci"><summary>Totali per voce nel ${scelto}</summary><div class="vb-summary-wrap"><table class="vb-table vb-anno"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
+    const righeVoci = [...voci.values()].sort((a, b) => String(a.code).localeCompare(String(b.code))).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td class="num">${v.quantity ? number(v.quantity, 2) : '—'}</td><td class="num">${eurv(v.amount)}</td><td class="num">${v.mesi}</td></tr>`).join('');
+    els.titolo.textContent = `Anno ${state.anno}`;
+    els.anno.innerHTML = `<div class="sel">${anni.map(a => `<button type="button" class="chip${a === state.anno ? ' on' : ''}" data-anno="${a}">${a}</button>`).join('')}</div>`
+      + `<p class="msub">${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'} · netto mese per mese (rosso: differenze con la Distinta)</p>`
+      + `<div class="spark" aria-hidden="true">${barre}</div>${tilesHtml(tot)}<div class="ylist">${lista}</div>`
+      + (righeVoci ? `<details class="altre"><summary>Totali per voce nel ${state.anno} ▾</summary><div class="vwrap"><table class="vtab"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
   }
+
+  async function render() {
+    const vuoto = !Object.keys(state.buste).length;
+    els.bar.hidden = false;
+    els.vuoto.hidden = !vuoto;
+    els.tabs.hidden = vuoto;
+    $('vbTabConfronto').setAttribute('aria-selected', String(state.tab === 'confronto'));
+    $('vbTabAnno').setAttribute('aria-selected', String(state.tab === 'anno'));
+    els.confronto.hidden = vuoto || state.tab !== 'confronto';
+    els.anno.hidden = vuoto || state.tab !== 'anno';
+    if (vuoto) { els.titolo.textContent = 'Buste paga'; }
+    els.source.textContent = sourceText(state.data);
+    const data = await ensureData();
+    els.source.textContent = sourceText(data);
+    const alerts = [...data.warnings];
+    const calculator = window.NaviDistintaTotals.create({ storage: localStorage });
+    if (!vuoto) { if (state.tab === 'anno') renderAnno(data, calculator); else renderConfronto(data, calculator, alerts); }
+    setAlerts(alerts);
+  }
+  const ridisegna = () => render().catch(error => console.error('Verifica busta', error));
 
   async function onFile() {
     const files = [...(els.fileInput.files || [])];
     if (!files.length) return;
     els.fileLabel.classList.add('is-busy');
     const errori = [];
+    let ultima = '';
     for (const file of files) {
       els.fileInfo.textContent = `Leggo ${file.name}…`;
       try {
         const busta = await window.NaviBustaParser.parsePdf(file);
         const bustaMonth = monthOf(busta);
-        const item = { busta, fileName: file.name, bustaMonth, month: busta.period ? window.NaviBustaParser.previousMonth(busta.period) : els.month.value };
-        // la stessa busta caricata di nuovo sostituisce quella vecchia
-        const i = state.buste.findIndex(b => (bustaMonth && b.bustaMonth === bustaMonth) || b.fileName === file.name);
-        if (i >= 0) state.buste[i] = item; else state.buste.push(item);
+        const item = { busta, fileName: file.name, bustaMonth, month: busta.period ? window.NaviBustaParser.previousMonth(busta.period) : previousOfToday() };
+        state.buste[chiave(item)] = item; ultima = chiave(item);
         await salvaBusta(item);
       } catch (error) {
         console.error('Verifica busta: lettura PDF non riuscita', error);
         errori.push(`${file.name} (${error.message || error})`);
       }
     }
-    state.buste.sort((a, b) => String(a.bustaMonth).localeCompare(String(b.bustaMonth)));
-    if (state.buste.length === 1) els.month.value = state.buste[0].month;
-    els.fileInfo.textContent = errori.length ? `Non riesco a leggere: ${errori.join(', ')}.` : `${state.buste.length === 1 ? '1 busta caricata' : `${state.buste.length} buste caricate`}. I dati variabili di ogni busta si riferiscono al mese precedente.`;
+    if (ultima) { state.corrente = ultima; state.tab = 'confronto'; }
+    els.fileInfo.textContent = errori.length ? `Non riesco a leggere: ${errori.join(', ')}.` : '';
     els.fileLabel.classList.remove('is-busy');
     els.fileInput.value = '';
-    renderAnno();
     await render();
   }
 
   function init() {
-    if (!agent?.id) {
-      els.login.hidden = false;
-      els.fileInput.disabled = true;
-      els.month.disabled = true;
-      document.querySelectorAll('.vb-card').forEach(card => card.classList.add('is-disabled'));
-      return;
-    }
-    els.month.value = previousOfToday();
+    if (!agent?.id) { els.login.hidden = false; els.fileInput.disabled = true; return; }
     els.fileInput.addEventListener('change', onFile);
     $('vbReload')?.addEventListener('click', ricarica);
     // Nascondi cifre: sfoca tutti gli importi in euro (scelta ricordata sul dispositivo)
     const BLUR_KEY = 'navisuite.verificaBusta.nascondi';
-    const blur = on => { document.body.classList.toggle('vb-blur', on); const b = $('vbBlur'); if (b) { b.textContent = on ? '👁 Mostra cifre' : '🙈 Nascondi cifre'; b.setAttribute('aria-pressed', String(on)); } try { localStorage.setItem(BLUR_KEY, on ? '1' : '0'); } catch (_) {} };
+    const blur = on => { document.body.classList.toggle('vb-blur', on); const b = $('vbBlur'); if (b) { b.textContent = on ? '👁' : '🙈'; b.title = on ? 'Mostra cifre' : 'Nascondi cifre'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); } try { localStorage.setItem(BLUR_KEY, on ? '1' : '0'); } catch (_) {} };
     try { blur(localStorage.getItem(BLUR_KEY) === '1'); } catch (_) { blur(false); }
     $('vbBlur')?.addEventListener('click', () => blur(!document.body.classList.contains('vb-blur')));
-    els.months.addEventListener('click', e => { const b = e.target.closest('[data-copia]'); if (!b) return; navigator.clipboard?.writeText(b.dataset.copia).then(() => { b.textContent = '✓ Copiato'; }).catch(() => {}); });
     try { const salvata = localStorage.getItem(TOLL_KEY); if (salvata !== null && $('vbToll')) $('vbToll').value = salvata; } catch (_) {}
-    $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} render().catch(error => console.error(error)); });
+    $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} ridisegna(); });
+    $('vbTabConfronto').addEventListener('click', () => { state.tab = 'confronto'; ridisegna(); });
+    $('vbTabAnno').addEventListener('click', () => { state.tab = 'anno'; ridisegna(); });
+    els.confronto.addEventListener('click', e => {
+      const copia = e.target.closest('[data-copia]'); if (copia) { navigator.clipboard?.writeText(copia.dataset.copia).then(() => { copia.textContent = '✓ Copiato'; }).catch(() => {}); return; }
+      const mese = e.target.closest('[data-mese]'); if (mese) { state.corrente = mese.dataset.mese; ridisegna(); return; }
+      const voce = e.target.closest('.voce'); if (voce) voce.setAttribute('aria-expanded', String(voce.getAttribute('aria-expanded') !== 'true'));
+    });
+    els.anno.addEventListener('click', e => {
+      const a = e.target.closest('[data-apri]'), t = e.target.closest('[data-togli]'), y = e.target.closest('[data-anno]');
+      if (a) { state.corrente = a.dataset.apri; state.tab = 'confronto'; ridisegna(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      if (t) togliBusta(t.dataset.togli);
+      if (y) { state.anno = y.dataset.anno; ridisegna(); }
+    });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ricarica(); });
-    els.clear.addEventListener('click', () => { state.buste = []; els.fileInfo.textContent = ''; render().catch(error => console.error(error)); });
-    els.month.addEventListener('change', () => { render().catch(error => console.error(error)); });
-    $('vbAnnoSel')?.addEventListener('change', renderAnno);
-    $('vbAnnoBody')?.addEventListener('click', e => { const a = e.target.closest('[data-apri]'), t = e.target.closest('[data-togli]'); if (a) apriBusta(a.dataset.apri); if (t) togliBusta(t.dataset.togli); });
     caricaArchivio();
-    render().catch(error => console.error('Verifica busta', error));
+    ridisegna();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
