@@ -367,6 +367,7 @@ initializeAccess().then(()=>{
 });
 
 // Versioni salvate: Firebase tiene le ultime 35 copie della Distinta. Si puo' rimetterne una (la copia attuale resta tra le versioni).
+// Le giornate rimesse restano come sono: l'allineamento ai turni non ne ricalcola piu' imbarco, pasto, diaria e maneggio.
 (function(){
   const button=document.getElementById('monthlyVersions');if(!button)return;
   const fmt=iso=>{const d=new Date(iso);return Number.isNaN(d.getTime())?iso:new Intl.DateTimeFormat('it-IT',{dateStyle:'short',timeStyle:'short'}).format(d)};
@@ -387,7 +388,7 @@ initializeAccess().then(()=>{
         const v=versioni[Number(b.dataset.i)];
         if(!confirm(`Rimettere la Distinta com'era il ${fmt(v.sourceUpdatedAt||v.savedAt)}?\nLa versione attuale resta tra le versioni salvate.`))return;
         const ora=Date.now();
-        entries=v.entries.map(x=>({...x,modificatoIl:ora})).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+        entries=v.entries.map(x=>({...x,modificatoIl:ora,imported:false,cashHandlingManual:true})).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
         lastKnownEntriesSnapshot=JSON.stringify(entries);
         writeEntriesLocal('versione ripristinata');render();markCloudDirty();
         m.hidden=true;notify('Versione ripristinata: salvataggio in corso');

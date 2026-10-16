@@ -11,3 +11,10 @@ assert.deepEqual(merge([telefonoVecchio, telefonoNuovo], [pc]), [pc, telefonoNuo
 assert.deepEqual(merge([{ date: 'x', a: 1 }], [{ date: 'x', a: 2 }]), [{ date: 'x', a: 2 }], 'senza ora vince Firebase');
 assert.deepEqual(merge([{ date: 'x', a: 1, modificatoIl: 5 }], [{ date: 'x', a: 2, modificatoIl: 4 }]), [{ date: 'x', a: 1, modificatoIl: 5 }]);
 console.log('Diaria sync merge test passed');
+
+// Maneggio denaro cambiato dalla tabella mensile: resta "a mano", l'allineamento ai turni non lo ricalcola.
+const monthly = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'assets/js/navidiaria-monthly.js'), 'utf8');
+assert.match(monthly, /if\(row\.field==='cashHandling'\)entry\.cashHandlingManual=true/);
+// Versione ripristinata: giornate bloccate (imported false, maneggio a mano).
+assert.match(src, /modificatoIl:ora,imported:false,cashHandlingManual:true/);
+console.log('Diaria manual flags test passed');
