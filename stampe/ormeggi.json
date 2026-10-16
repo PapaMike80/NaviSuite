@@ -4462,13 +4462,129 @@
  "2026-10-16": {
   "D1": {
    "nave": "S. MARCO",
-   "ods": 40,
+   "ods": 41,
    "ormeggio": "pont. 2",
    "rif": true
   },
   "D2": {
    "nave": "BALDO",
-   "ods": 40,
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-17": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 1",
+   "rif": false
+  }
+ },
+ "2026-10-18": {
+  "BIS": {
+   "nave": "CATULLO",
+   "ods": 41,
+   "ormeggio": "pont. 1",
+   "rif": true
+  },
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-19": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "S.S.": {
+   "nave": "ANDROMEDA",
+   "ods": 41,
+   "ormeggio": "",
+   "rif": true
+  }
+ },
+ "2026-10-20": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-21": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  }
+ },
+ "2026-10-22": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 3",
+   "rif": false
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": true
+  }
+ },
+ "2026-10-23": {
+  "D1": {
+   "nave": "S. MARCO",
+   "ods": 41,
+   "ormeggio": "pont. 2",
+   "rif": true
+  },
+  "D2": {
+   "nave": "BALDO",
+   "ods": 41,
    "ormeggio": "pont. 3",
    "rif": false
   }
