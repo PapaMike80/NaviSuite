@@ -342,7 +342,7 @@
         <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); display: flex; justify-content: space-between; align-items: center;">
           <div>
             <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere Ora in Cassa:</label>
-            <small style="color: var(--text-muted); margin: 0;">Fondo + (Totale Sistema - POS - Storni)</small>
+            <small style="color: var(--text-muted); margin: 0;">Fondo + (Totale Sistema - POS - Storni)<span class="riga-ammin" id="ammin-diurno" hidden></span></small>
           </div>
           <div class="box-val" id="contanti-attesi-calc-diurno" style="color: var(--cyan-accent); font-size: 24px; margin: 0;">€ 400,00</div>
         </div>
@@ -391,7 +391,7 @@
         <div class="form-box box-contanti-sera">
           <label>Totale contanti</label>
           <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent);">€ 400,00</div>
-          <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)</small>
+          <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)<span class="riga-ammin" id="ammin-sera" hidden></span></small>
         </div>
       </div>
 
@@ -670,6 +670,9 @@
   // ---------------- Cassetta rossa (Desenzano AgB e Garda): fondo di sole monete, in ogni passo ----------------
   const countsCassetta = { mattina: {}, diurno: {}, sera: {} };
   const cassettaAttiva = () => ['AgB (Cassa 1)', 'Garda (Cassa unica)'].includes(document.getElementById('postazione-selezionata')?.value);
+  // Monete date dall'amministrazione (versamento nuovo nella cassetta): entrano nei contanti attesi,
+  // cosi' la cassa resta quadrata e la sera la busta le copre con banconote.
+  const versatoAmmin = { mattina: 0, diurno: 0, sera: 0 };
   const FASI_DOPO = { mattina: ['diurno', 'sera'], diurno: ['sera'], sera: [] };
   function rendiGriglie() {
     renderCashGrid("grid-container-mattina", "mattina", countsMattina, "syncMattina");
@@ -683,23 +686,70 @@
     FASI_DOPO[fase].forEach(f => { countsCassetta[f][val] = n; const el = document.getElementById(`qty-cr-${f}-${val}`); if (el) el.value = n; });
     calculateAll();
   }
-  // Prelievo: dalla cassetta rossa ai contanti della cassa (diurno e chiusura)
+  // Prelievo e versamento tra cassetta rossa e contanti della cassa (diurno e chiusura).
+  // Preleva: meno monete nella cassetta, piu' nei contanti. Versa: il contrario. Annulla: si corregge il conteggio a mano.
+  let saltaPopupCassetta = false;
   function proponiPrelievo(fase, val, input) {
     if (fase === 'mattina') return;
-    const d = MONETE.find(x => x.val === val), disponibili = countsCassetta[fase][val] || 0;
-    if (!disponibili) return;
-    const r = prompt(`Prelevare monete da ${d.label} dalla cassetta rossa?\nNella cassetta: ${disponibili}. Scrivi quante (Annulla per correggere il conteggio).`, '');
-    if (r === null || r.trim() === '') return;
-    const n = Math.min(disponibili, Math.max(0, parseInt(r, 10) || 0));
-    if (!n) return;
+    if (saltaPopupCassetta) { saltaPopupCassetta = false; return; }
+    const d = MONETE.find(x => x.val === val);
     const contanti = { diurno: countsDiurno, sera: countsSera };
-    [fase, ...FASI_DOPO[fase]].forEach(f => {
-      countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) - n);
-      contanti[f][val] = (contanti[f][val] || 0) + n;
-    });
+    const inCassetta = countsCassetta[fase][val] || 0, inCassa = contanti[fase][val] || 0;
     input.blur();
-    rendiGriglie(); calculateAll(); pianificaSalvataggio();
-    alert(`✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta rossa e aggiunte alla cassa.`);
+    document.getElementById('cr-popup')?.remove();
+    const box = document.createElement('div');
+    box.id = 'cr-popup';
+    box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+    const btn = 'flex:1;padding:12px;border-radius:10px;border:1px solid #475569;font-weight:700;font-size:15px;cursor:pointer';
+    box.innerHTML = `<div style="background:#0f1f2b;color:#e2e8f0;border:1px solid #334155;border-radius:14px;padding:18px;width:100%;max-width:380px">
+      <h3 style="margin:0 0 6px">Cassetta rossa · ${d.label}</h3>
+      <p style="margin:0 0 12px;color:#94a3b8;font-size:14px">Nella cassetta: <b>${inCassetta}</b> · Nella cassa: <b>${inCassa}</b></p>
+      <label style="font-size:14px">Quante monete?<input id="cr-n" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" style="display:block;width:100%;margin:6px 0 14px;padding:10px;font-size:18px;border-radius:8px;border:1px solid #475569;background:#020617;color:#e2e8f0;box-sizing:border-box"></label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" data-op="preleva" style="${btn};background:#b91c1c;color:#fff">Preleva<br><small style="font-weight:400">cassetta → cassa</small></button>
+        <button type="button" data-op="versa" style="${btn};background:#047857;color:#fff">Versa<br><small style="font-weight:400">cassa → cassetta</small></button>
+      </div>
+      <div id="cr-versa-scelta" hidden style="margin-bottom:8px;padding:10px;border:1px solid #047857;border-radius:10px">
+        <p style="margin:0 0 8px;font-size:14px">Da dove arrivano le monete da versare?</p>
+        <div style="display:flex;gap:8px">
+          <button type="button" data-op="versa-cassa" style="${btn};background:#047857;color:#fff;font-size:13px">Dalle monete della cassa</button>
+          <button type="button" data-op="versa-nuovo" style="${btn};background:#0e7490;color:#fff;font-size:13px">Versamento nuovo<br><small style="font-weight:400">dall'amministrazione</small></button>
+        </div></div>
+      <button type="button" data-op="annulla" style="${btn};width:100%;background:transparent;color:#e2e8f0">Annulla (correggi il conteggio)</button>
+      <p id="cr-msg" style="margin:8px 0 0;color:#fbbf24;font-size:13px;min-height:1em"></p></div>`;
+    document.body.appendChild(box);
+    const campo = box.querySelector('#cr-n');
+    setTimeout(() => campo.focus(), 50);
+    const chiudi = () => box.remove();
+    box.addEventListener('click', e => {
+      const op = e.target.closest('button')?.dataset.op;
+      if (!op && e.target !== box) return;
+      if (!op || op === 'annulla') { chiudi(); saltaPopupCassetta = true; input.focus(); input.select?.(); return; }
+      const n = Math.max(0, parseInt(campo.value, 10) || 0);
+      const msg = box.querySelector('#cr-msg');
+      if (!n) { msg.textContent = 'Scrivi un numero di monete.'; return; }
+      // Versa: prima si chiede se le monete arrivano dalla cassa o se e' un versamento nuovo
+      if (op === 'versa') { box.querySelector('#cr-versa-scelta').hidden = false; msg.textContent = ''; return; }
+      if (op === 'preleva' && n > inCassetta) { msg.textContent = `Nella cassetta ci sono solo ${inCassetta} monete.`; return; }
+      if (op === 'versa-cassa' && n > inCassa) { msg.textContent = `Nella cassa ci sono solo ${inCassa} monete.`; return; }
+      const dCassetta = op === 'preleva' ? -n : n, dCassa = op === 'preleva' ? n : op === 'versa-cassa' ? -n : 0;
+      [fase, ...FASI_DOPO[fase]].forEach(f => {
+        countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) + dCassetta);
+        contanti[f][val] = Math.max(0, (contanti[f][val] || 0) + dCassa);
+        if (op === 'versa-nuovo') versatoAmmin[f] += n * val;
+      });
+      chiudi();
+      rendiGriglie(); calculateAll(); pianificaSalvataggio();
+      notificaCassetta(op === 'preleva' ? `✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta e aggiunte alla cassa.`
+        : op === 'versa-cassa' ? `✅ Versate ${n} monete da ${d.label}: tolte dalla cassa e aggiunte alla cassetta.`
+        : `✅ Monete dall'amministrazione: aggiunte ${n} monete da ${d.label} (${formatEuro(n * val)}) alla cassetta. La sera la busta le coprirà con contanti.`);
+    });
+  }
+  function notificaCassetta(testo) {
+    const t = document.createElement('div');
+    t.textContent = testo;
+    t.style.cssText = 'position:fixed;left:16px;right:16px;bottom:20px;z-index:9999;background:#065f46;color:#fff;padding:12px 14px;border-radius:10px;text-align:center;font-size:14px';
+    document.body.appendChild(t); setTimeout(() => t.remove(), 3500);
   }
   function cassettaCents(fase) {
     if (!cassettaAttiva()) return 0;
@@ -735,7 +785,8 @@
     const sG_D = parseMoney(document.getElementById("da-stornare-diurno").value);
 
     const incassoContantiDiurno = tG_D - pG_D - sG_D;
-    const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno;
+    const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno + versatoAmmin.diurno;
+    ['diurno', 'sera'].forEach(f => { const el = document.getElementById(`ammin-${f}`); if (el) { el.hidden = !versatoAmmin[f]; el.textContent = ` + Monete dall'amministrazione (${formatEuro(versatoAmmin[f])})`; } });
     document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
     const diffDiurno = totFisiciDiurnoCents - contantiAttesiDiurno;
     document.getElementById("ctrl-differenza-diurno").textContent = formatEuro(diffDiurno);
@@ -750,7 +801,7 @@
     
     // Formula esatta: Fondo Mattina + (Totale Sistema - POS - Storni)
     const incassoContantiSera = totGiornoCents - posGiornoCents - storniSeraCents;
-    const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera;
+    const contantiAttesiSera = totFisiciMattinaCents + incassoContantiSera + versatoAmmin.sera;
 
     document.getElementById("box-fm-sera").textContent = formatEuro(totFisiciMattinaCents);
     document.getElementById("box-ic-sera").textContent = formatEuro(incassoContantiSera);
@@ -954,6 +1005,7 @@
       DENOMINATIONS.forEach(d => { const el = document.getElementById(`qty-${fase}-${d.val}`); if (el) conteggi[fase][d.val] = parseInt(el.value || 0, 10); });
     });
     conteggi.cassetta_rossa = cassettaAttiva() ? JSON.parse(JSON.stringify(countsCassetta)) : null;
+    conteggi.versato_amministrazione = cassettaAttiva() ? { ...versatoAmmin } : null;
     const campi = {};
     document.querySelectorAll('main input[id], main select[id], .panel input[id], .panel select[id]').forEach(el => {
       if (/^qty-/.test(el.id)) return;
@@ -1054,6 +1106,7 @@
     renderCashGrid("grid-container-diurno", "diurno", countsDiurno, "syncDiurno");
     renderCashGrid("grid-container-sera", "sera", countsSera, "updateCountsAndCalc");
     ['mattina', 'diurno', 'sera'].forEach(f => MONETE.forEach(d => { const v = c.cassetta_rossa?.[f]?.[d.val] ?? c.cassetta_rossa?.[d.val]; countsCassetta[f][d.val] = Number(v) || 0; }));
+    ['mattina', 'diurno', 'sera'].forEach(f => { versatoAmmin[f] = Number(c.versato_amministrazione?.[f]) || 0; });
     Object.entries(r.dettagli?.campi || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (!el || ['data-turno', 'agente-nome', 'agente-id', 'scalo-selezionato', 'postazione-selezionata', 'usa-resto-monete'].includes(id)) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
     if (r.agente_id) { document.getElementById('agente-nome').value = r.agente_nome || ''; document.getElementById('agente-id').value = String(r.agente_id); }
     sceltaManuale = true; document.getElementById('scalo-selezionato').value = r.scalo || scaloDi(r.postazione) || ''; riempiPostazioni(r.postazione || ''); impostaRegoleScalo(); controllaIntestazione();
@@ -1135,6 +1188,7 @@
   function azzeraConteggi() {
     [countsMattina, countsDiurno, countsSera].forEach(o => DENOMINATIONS.forEach(d => { o[d.val] = 0; }));
     ['mattina', 'diurno', 'sera'].forEach(f => MONETE.forEach(d => { countsCassetta[f][d.val] = 0; }));
+    ['mattina', 'diurno', 'sera'].forEach(f => { versatoAmmin[f] = 0; });
   }
   async function caricaGiorno() {
     const id = document.getElementById('agente-id').value, giorno = giornoSel(), post = document.getElementById('postazione-selezionata').value;
