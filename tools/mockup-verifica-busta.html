@@ -82,6 +82,7 @@ h1{margin:0 0 4px;font-size:26px;font-weight:800;text-wrap:balance}
 .callouts{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
 .callouts li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}
 .callouts b{color:var(--ink)}
+.eur{font-weight:500;font-size:12px;color:var(--cyan);margin-left:4px}
 </style>
 
 <h1>Verifica busta · proposta A</h1>
@@ -109,10 +110,10 @@ h1{margin:0 0 4px;font-size:26px;font-weight:800;text-wrap:balance}
     <div class="sel"><span class="chip"><i class="dot" style="--c:var(--green)"></i>Ago</span><span class="chip"><i class="dot" style="--c:var(--green)"></i>Set</span><span class="chip on"><i class="dot" style="--c:var(--rose)"></i>Ott</span></div>
     <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num">3.412,80</b></div><div class="tile t-r"><small>Ritenute</small><b class="num">1.006,15</b></div><div class="tile t-n"><small>Netto</small><b class="num">2.406,65</b></div></div>
     <div class="sum"><span style="--c:var(--green)">9 ok</span><span style="--c:var(--rose)">1 diff.</span><span style="--c:var(--amber)">1 verifica</span></div>
-    <div class="voce" style="--c:var(--rose)"><span class="n">Diaria 24%</span><span class="pill">−1 · 18 €</span><span class="cmp num">distinta 10 · busta 9</span></div>
-    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Ticket</span><span class="pill">✓</span><span class="cmp num">12</span></div>
+    <div class="voce" style="--c:var(--rose)"><span class="n">Diaria 24% <span class="eur num">162,00 €</span></span><span class="pill">−1 · 18 €</span><span class="cmp num">distinta 10 · busta 9</span></div>
+    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore <span class="eur num">24,60 €</span></span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari <span class="eur num">498,20 €</span></span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Ticket <span class="eur num">96,00 €</span></span><span class="pill">✓</span><span class="cmp num">12</span></div>
     <div class="cmp" style="text-align:center;padding:4px">+ altre 7 voci ok ▾</div>
     <div class="mail"><span><b>1 differenza</b> oltre il 5%</span><span class="chip">✉ Mail ufficio</span></div>
   </div>
@@ -120,16 +121,16 @@ h1{margin:0 0 4px;font-size:26px;font-weight:800;text-wrap:balance}
 
 <section class="opt">
   <h2>3 · Dettaglio voce</h2>
-  <p class="d">Toccando una voce si apre: codici della busta, valori, importo e una spiegazione in parole semplici. Con 🙈 gli importi in euro si sfocano.</p>
+  <p class="d">Toccando una voce si apre: codici della busta, valori, importo e una spiegazione in parole semplici. Con 🙈 gli importi in euro si sfocano. Accanto a ogni voce c'è il suo importo in busta.</p>
   <div class="phone">
     <div class="eyebrow">Verifica busta</div><div class="ttl">Ottobre 2026</div>
     <div class="bar"><span class="chip up">＋ Carica</span><span class="chip">Tolleranza 5% ▾</span><span class="chip on">👁</span></div>
     <div class="tiles"><div class="tile t-l"><small>Lordo</small><b class="num blur">3.412,80</b></div><div class="tile t-r"><small>Ritenute</small><b class="num blur">1.006,15</b></div><div class="tile t-n"><small>Netto</small><b class="num blur">2.406,65</b></div></div>
-    <div class="voce open" style="--c:var(--rose)"><span class="n">Diaria 24%</span><span class="pill">−1 giorno</span><span class="cmp num">voce 55Y</span>
+    <div class="voce open" style="--c:var(--rose)"><span class="n">Diaria 24% <span class="eur num blur">162,00 €</span></span><span class="pill">−1 giorno</span><span class="cmp num">voce 55Y</span>
       <div class="det num"><div><small>Distinta</small>10 giorni</div><div><small>Busta</small>9 giorni</div><div><small>Importo busta</small><span class="blur">162,00 €</span></div><div><small>Mancano circa</small><span class="blur">18,00 €</span></div>
       <p>Nella Distinta di settembre ci sono 10 giornate con diaria 24%, in busta ne risultano 9. Controlla il 14/09.</p></div></div>
-    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore</span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
-    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari</span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
+    <div class="voce" style="--c:var(--amber)"><span class="n">Banca ore <span class="eur num">24,60 €</span></span><span class="pill">Verifica</span><span class="cmp num">distinta 2:00 · busta 1:30</span></div>
+    <div class="voce" style="--c:var(--green)"><span class="n">Straordinari <span class="eur num">498,20 €</span></span><span class="pill">✓</span><span class="cmp num">30:13 h</span></div>
   </div>
 </section>
 
