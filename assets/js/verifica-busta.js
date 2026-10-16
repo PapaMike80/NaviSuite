@@ -246,8 +246,9 @@
     if (!c) corpo = '<p class="msub">Non trovo il mese di questa busta: non posso confrontarla con la Distinta.</p>';
     else {
       if (!c.distinta.entryCount) alerts.push({ kind: 'warn', text: `Nessuna giornata nella Distinta dal ${dateText(c.p.startIso)} al ${dateText(c.p.endIso)}.` });
-      const ordine = { diff: 0, check: 1, ok: 2 };
-      const rows = c.result.rows.slice().sort((a, b) => ordine[a.status] - ordine[b.status]);
+      // Ordine per valore economico: prima le voci che pesano di piu' in euro
+      const valore = row => Math.abs(Number(row.importo) || Number(row.importoDistinta) || Number(row.euro) || 0);
+      const rows = c.result.rows.slice().sort((a, b) => valore(b) - valore(a));
       const brutte = rows.filter(r => r.status !== 'ok'), buone = rows.filter(r => r.status === 'ok');
       const s = c.result.summary;
       corpo = `<div class="sum"><span style="--c:var(--green)">${s.ok} ok</span><span style="--c:var(--rose)">${s.diff} diff.</span><span style="--c:var(--amber)">${s.check} verifica</span></div>`
@@ -269,7 +270,15 @@
     delAnno.forEach(m => { const t = state.archivio[m].totals || {}; Object.keys(tot).forEach(k => { tot[k] += Number(t[k]) || 0; }); });
     const stato = m => data && calculator && state.buste[m] ? statoMese(confronta(state.buste[m], data, calculator)) : 'ok';
     const max = Math.max(1, ...delAnno.map(m => Number(state.archivio[m].totals?.netto) || 0));
-    const barre = Array.from({ length: 12 }, (_, i) => { const m = `${state.anno}-${String(i + 1).padStart(2, '0')}`; const n = Number(state.archivio[m]?.totals?.netto) || 0; return `<div title="${escapeHtml(monthLabel(m))}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(4, Math.round(n / max * 100)) : 2}%"></i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`; }).join('');
+    // Quota degli straordinari (voci 334 e 01Y) dentro la colonna del netto
+    const STRAORD = ['334', '01Y'];
+    const straord = m => (state.archivio[m]?.voci || []).filter(v => STRAORD.includes(v.code)).reduce((t, v) => t + (Number(v.amount) || 0), 0);
+    const totStraord = delAnno.reduce((t, m) => t + straord(m), 0);
+    const barre = Array.from({ length: 12 }, (_, i) => {
+      const m = `${state.anno}-${String(i + 1).padStart(2, '0')}`, n = Number(state.archivio[m]?.totals?.netto) || 0, o = straord(m);
+      const quota = n ? Math.min(100, Math.round(o / n * 100)) : 0;
+      return `<div title="${escapeHtml(monthLabel(m))}${o ? ` · straordinari ${escapeHtml(euro(o))}` : ''}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(4, Math.round(n / max * 100)) : 2}%">${quota ? `<b style="height:${quota}%"></b>` : ''}</i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`;
+    }).join('');
     const lista = delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(monthLabel(m).split(' ')[0])}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
     const voci = new Map();
     delAnno.forEach(m => (state.archivio[m].voci || []).forEach(v => {
@@ -277,11 +286,11 @@
       const x = voci.get(v.code) || { code: v.code, description: v.description, quantity: 0, amount: 0, mesi: 0 };
       x.quantity += Number(v.quantity) || 0; x.amount += Number(v.amount) || 0; x.mesi += 1; voci.set(v.code, x);
     }));
-    const righeVoci = [...voci.values()].sort((a, b) => String(a.code).localeCompare(String(b.code))).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td class="num">${v.quantity ? number(v.quantity, 2) : '—'}</td><td class="num">${eurv(v.amount)}</td><td class="num">${v.mesi}</td></tr>`).join('');
+    const righeVoci = [...voci.values()].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td class="num">${v.quantity ? number(v.quantity, 2) : '—'}</td><td class="num">${eurv(v.amount)}</td><td class="num">${v.mesi}</td></tr>`).join('');
     els.titolo.textContent = `Anno ${state.anno}`;
     els.anno.innerHTML = `<div class="sel">${anni.map(a => `<button type="button" class="chip${a === state.anno ? ' on' : ''}" data-anno="${a}">${a}</button>`).join('')}</div>`
       + `<p class="msub">${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'} · netto mese per mese (rosso: differenze con la Distinta)</p>`
-      + `<div class="spark" aria-hidden="true">${barre}</div>${tilesHtml(tot)}<div class="ylist">${lista}</div>`
+      + `<div class="spark" aria-hidden="true">${barre}</div><p class="legenda"><i class="q q-n"></i>netto <i class="q q-s"></i>di cui straordinari${totStraord ? ` · <b class="num">${eurv(totStraord)}</b> nell'anno (${Math.round(totStraord / (tot.netto || 1) * 100)}% del netto)` : ''}</p>${tilesHtml(tot)}<div class="ylist">${lista}</div>`
       + (righeVoci ? `<details class="altre"><summary>Totali per voce nel ${state.anno} ▾</summary><div class="vwrap"><table class="vtab"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
   }
 
