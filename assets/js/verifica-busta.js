@@ -62,8 +62,9 @@
     try {
       const r = await window.NaviDiariaAllinea.carica(id);
       remote = r; source = r.stato === 'solo-pocketbase' ? 'pocketbase' : 'firebase';
-      if (r.stato === 'rimandato') warnings.push({ kind: 'warn', text: `Firebase e PocketBase hanno ${r.diffs.length} giornate diverse: il confronto usa Firebase finché non scegli quali sono corrette (riapri la pagina).` });
-      if (r.stato === 'solo-firebase') warnings.push({ kind: 'warn', text: 'PocketBase non raggiungibile: uso solo Firebase.' });
+      const admin = !!window.NaviRoles?.isAdminAgent?.(agent);
+      if (admin && r.stato === 'rimandato') warnings.push({ kind: 'warn', text: `Firebase e PocketBase hanno ${r.diffs.length} giornate diverse: il confronto usa Firebase finché non scegli quali sono corrette (riapri la pagina).` });
+      if (admin && r.stato === 'solo-firebase') warnings.push({ kind: 'warn', text: 'PocketBase non raggiungibile: uso solo Firebase.' });
     } catch (error) { console.warn('Verifica busta: archivi della Distinta non raggiungibili', error); }
     if (!remote || !remote.entries.length) {
       warnings.push({ kind: 'warn', text: `Archivio della Distinta non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
@@ -163,7 +164,8 @@
   const ARCH_KEY = () => `navisuite.bustePaga.${agent?.id}`;
   const archivioLocale = () => { try { return JSON.parse(localStorage.getItem(ARCH_KEY()) || '{}') || {}; } catch (_) { return {}; } };
   const scriviLocale = () => { try { localStorage.setItem(ARCH_KEY(), JSON.stringify(state.archivio)); } catch (_) {} };
-  const statoAnno = t => { const el = $('vbAnnoStato'); if (el) el.textContent = t; };
+  // Dove sono salvate le buste: solo per gli admin
+  const statoAnno = t => { const el = $('vbAnnoStato'); if (el) el.textContent = window.NaviRoles?.isAdminAgent?.(agent) ? t : ''; };
   function datiBusta(item) {
     const b = item.busta;
     return {

@@ -102,7 +102,11 @@
       if (!pbE.length && fbE.length) { pbApi.saveDiaria(id, fbE).catch(e => console.warn('Copia su PocketBase non riuscita', e)); return { ...fb.value, stato: 'allineati', diffs: [] }; }
       const diffs = differenze(fbE, pbE);
       if (!diffs.length) return { ...fb.value, stato: 'uguali', diffs };
-      const scelte = await scegli(diffs);
+      // Solo gli admin vedono il popup: gli agenti non devono sapere dove sono salvati i dati,
+      // per loro vince in automatico la versione modificata piu' di recente.
+      let admin = false;
+      try { admin = !!window.NaviRoles?.isAdminAgent?.(JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null')); } catch (_) { admin = false; }
+      const scelte = admin ? await scegli(diffs) : Object.fromEntries(diffs.map(d => [d.date, d.suggerita]));
       if (!scelte) return { ...fb.value, stato: 'rimandato', diffs };
       const unite = unisci(fbE, diffs, scelte);
       await Promise.allSettled([fbApi.saveDiaria(id, unite), pbApi.saveDiaria(id, unite)]);
