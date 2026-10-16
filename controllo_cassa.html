@@ -706,6 +706,12 @@
         <button type="button" data-op="preleva" style="${btn};background:#b91c1c;color:#fff">Preleva<br><small style="font-weight:400">cassetta → cassa</small></button>
         <button type="button" data-op="versa" style="${btn};background:#047857;color:#fff">Versa<br><small style="font-weight:400">cassa → cassetta</small></button>
       </div>
+      <div id="cr-versa-scelta" hidden style="margin-bottom:8px;padding:10px;border:1px solid #047857;border-radius:10px">
+        <p style="margin:0 0 8px;font-size:14px">Da dove arrivano le monete da versare?</p>
+        <div style="display:flex;gap:8px">
+          <button type="button" data-op="versa-cassa" style="${btn};background:#047857;color:#fff;font-size:13px">Dalle monete della cassa</button>
+          <button type="button" data-op="versa-nuovo" style="${btn};background:#0e7490;color:#fff;font-size:13px">Versamento nuovo</button>
+        </div></div>
       <button type="button" data-op="annulla" style="${btn};width:100%;background:transparent;color:#e2e8f0">Annulla (correggi il conteggio)</button>
       <p id="cr-msg" style="margin:8px 0 0;color:#fbbf24;font-size:13px;min-height:1em"></p></div>`;
     document.body.appendChild(box);
@@ -717,18 +723,22 @@
       if (!op && e.target !== box) return;
       if (!op || op === 'annulla') { chiudi(); saltaPopupCassetta = true; input.focus(); input.select?.(); return; }
       const n = Math.max(0, parseInt(campo.value, 10) || 0);
-      const max = op === 'preleva' ? inCassetta : inCassa;
       const msg = box.querySelector('#cr-msg');
       if (!n) { msg.textContent = 'Scrivi un numero di monete.'; return; }
-      if (n > max) { msg.textContent = op === 'preleva' ? `Nella cassetta ci sono solo ${inCassetta} monete.` : `Nella cassa ci sono solo ${inCassa} monete.`; return; }
-      const segno = op === 'preleva' ? 1 : -1;
+      // Versa: prima si chiede se le monete arrivano dalla cassa o se e' un versamento nuovo
+      if (op === 'versa') { box.querySelector('#cr-versa-scelta').hidden = false; msg.textContent = ''; return; }
+      if (op === 'preleva' && n > inCassetta) { msg.textContent = `Nella cassetta ci sono solo ${inCassetta} monete.`; return; }
+      if (op === 'versa-cassa' && n > inCassa) { msg.textContent = `Nella cassa ci sono solo ${inCassa} monete.`; return; }
+      const dCassetta = op === 'preleva' ? -n : n, dCassa = op === 'preleva' ? n : op === 'versa-cassa' ? -n : 0;
       [fase, ...FASI_DOPO[fase]].forEach(f => {
-        countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) - segno * n);
-        contanti[f][val] = Math.max(0, (contanti[f][val] || 0) + segno * n);
+        countsCassetta[f][val] = Math.max(0, (countsCassetta[f][val] || 0) + dCassetta);
+        contanti[f][val] = Math.max(0, (contanti[f][val] || 0) + dCassa);
       });
       chiudi();
       rendiGriglie(); calculateAll(); pianificaSalvataggio();
-      notificaCassetta(op === 'preleva' ? `✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta e aggiunte alla cassa.` : `✅ Versate ${n} monete da ${d.label}: tolte dalla cassa e aggiunte alla cassetta.`);
+      notificaCassetta(op === 'preleva' ? `✅ Prelevate ${n} monete da ${d.label}: tolte dalla cassetta e aggiunte alla cassa.`
+        : op === 'versa-cassa' ? `✅ Versate ${n} monete da ${d.label}: tolte dalla cassa e aggiunte alla cassetta.`
+        : `✅ Versamento nuovo: aggiunte ${n} monete da ${d.label} alla cassetta.`);
     });
   }
   function notificaCassetta(testo) {
