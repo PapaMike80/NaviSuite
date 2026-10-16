@@ -399,3 +399,42 @@ initializeAccess().then(()=>{
     finally{button.disabled=false}
   });
 })();
+
+// Confronta con PocketBase: la vecchia pagina navidistinta.html salvava la Distinta su PocketBase. Qui si vedono i giorni
+// diversi tra le due copie e si possono prendere quelli di PocketBase (serve un dispositivo che raggiunga PocketBase).
+(function(){
+  const button=document.getElementById('monthlyComparePB');if(!button)return;
+  const campi=[['shift','Servizio',v=>v||'—'],['cashHandling','Maneggio',v=>v?'sì':'no'],['embark','Imbarco',v=>v?'sì':'no'],['mealUsed','Mensa',v=>v?'sì':'no'],['ticketPresence','Ticket',v=>v===undefined?'—':v?'sì':'no'],['allowanceRate','Diaria',v=>v?`${v}%`:'—'],['secondMeal','2° ticket',v=>Number(v)?'sì':'no'],['overnight40','Pernotto',v=>v?'sì':'no'],['bank','Banca ore',v=>Number(v)||0],['workedMinutes','Ore',v=>v===undefined||v===null?'—':`${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`]];
+  const differenze=(a,b)=>campi.filter(([k])=>JSON.stringify(a?.[k]??null)!==JSON.stringify(b?.[k]??null));
+  button.addEventListener('click',async()=>{
+    if(!activeAgent||!window.NaviAdminPB?.loadDiaria){notify('PocketBase non disponibile');return}
+    button.disabled=true;
+    try{
+      const pb=(await NaviAdminPB.loadDiaria(String(activeAgent.id))).entries.filter(e=>e?.date);
+      if(!pb.length){notify('Su PocketBase non ci sono giornate');return}
+      const qui=new Map(entries.filter(Boolean).map(e=>[e.date,e]));
+      const righe=pb.map(p=>({p,f:qui.get(p.date),d:differenze(qui.get(p.date),p)})).filter(r=>!r.f||r.d.length).sort((a,b)=>a.p.date.localeCompare(b.p.date));
+      if(!righe.length){notify('Le due copie sono uguali');return}
+      let m=document.getElementById('naviComparePBDialog');
+      if(!m){m=document.createElement('div');m.id='naviComparePBDialog';m.className='weekly-edit-overlay';document.body.appendChild(m)}
+      const giorno=iso=>new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'numeric',month:'short'}).format(new Date(`${iso}T12:00:00`));
+      m.innerHTML=`<div class="weekly-edit-dialog" role="dialog" aria-modal="true" style="max-width:560px;max-height:85vh;overflow:auto"><h3>Firebase e PocketBase</h3><p style="font-size:13px;opacity:.8">${righe.length} giorni diversi. Spunta i giorni da prendere da PocketBase (la copia della vecchia pagina Distinta), poi «Prendi da PocketBase».</p><label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="checkbox" data-tutti> Seleziona tutti</label><div style="display:grid;gap:6px">${righe.map((r,i)=>`<label style="display:grid;grid-template-columns:auto 1fr;gap:8px;padding:8px;border:1px solid rgba(127,127,127,.35);border-radius:10px"><input type="checkbox" data-i="${i}"><span><strong>${giorno(r.p.date)}</strong>${r.f?'':' · solo su PocketBase'}<br><small>${(r.f?r.d:campi.slice(0,1)).map(([k,n,f])=>`${n}: ${r.f?`${f(r.f[k])} → `:''}<b>${f(r.p[k])}</b>`).join(' · ')}</small></span></label>`).join('')}</div><div class="form-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="primary-button" data-prendi>Prendi da PocketBase</button><button type="button" class="secondary-button" data-close>Chiudi</button></div></div>`;
+      m.hidden=false;
+      m.onclick=e=>{
+        if(e.target===m||e.target.closest('[data-close]')){m.hidden=true;return}
+        if(e.target.matches('[data-tutti]')){m.querySelectorAll('[data-i]').forEach(c=>{c.checked=e.target.checked});return}
+        if(!e.target.closest('[data-prendi]'))return;
+        const scelte=[...m.querySelectorAll('[data-i]:checked')].map(c=>righe[Number(c.dataset.i)]);
+        if(!scelte.length){notify('Nessun giorno selezionato');return}
+        if(!confirm(`Prendere ${scelte.length} giorni da PocketBase? Le versioni attuali restano tra le «Versioni salvate».`))return;
+        const ora=Date.now(),mappa=new Map(entries.filter(Boolean).map(x=>[x.date,x]));
+        scelte.forEach(r=>mappa.set(r.p.date,{...r.p,modificatoIl:ora,imported:false,cashHandlingManual:true}));
+        entries=[...mappa.values()].sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+        lastKnownEntriesSnapshot=JSON.stringify(entries);
+        writeEntriesLocal('giorni presi da PocketBase');render();markCloudDirty();window.NaviDiariaRefreshMonthly?.();
+        m.hidden=true;notify(`${scelte.length} giorni presi da PocketBase: salvataggio in corso`);
+      };
+    }catch(error){console.warn('Confronta con PocketBase',error);notify('PocketBase non raggiungibile: serve Tailscale o la rete di casa ('+(error?.message||error)+')')}
+    finally{button.disabled=false}
+  });
+})();

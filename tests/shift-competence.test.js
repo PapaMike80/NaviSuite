@@ -98,6 +98,6 @@ assert.doesNotMatch(cambiLogic, /\|CONG\|CON;\|/, 'nei cambi turno il congedo no
 const navidiariaHtml = fs.readFileSync('navidiaria.html', 'utf8');
 assert.match(navidiariaHtml, /assets\/js\/shift-competence\.js/);
 const navidistintaHtml = fs.readFileSync('navidistinta.html', 'utf8');
-assert.match(navidistintaHtml, /assets\/js\/shift-competence\.js/);
+assert.match(navidistintaHtml, /location\.replace\('navidiaria\.html'/, 'una sola Distinta: navidistinta rimanda a navidiaria');
 
 console.log('shift competence (decorrenza ore turni) ok');
