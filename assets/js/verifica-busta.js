@@ -194,30 +194,26 @@
     if (!item.bustaMonth) return;
     const dati = datiBusta(item);
     state.archivio[item.bustaMonth] = dati; scriviLocale();
-    const [fb, pb] = await Promise.allSettled([window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, item.bustaMonth, dati), window.NaviAdminPB?.saveBustaPaga?.(agent.id, item.bustaMonth, dati)]);
-    if (fb.status === 'rejected') console.warn('Busta non salvata su Firebase', fb.reason);
-    if (pb.status === 'rejected') console.warn('Busta non salvata su PocketBase', pb.reason);
-    statoAnno(`Buste salvate: Firebase ${fb.status === 'fulfilled' ? '✓' : '✕'} · PocketBase ${pb.status === 'fulfilled' ? '✓' : '✕'} · telefono ✓`);
+    // Solo PocketBase (login vero: ognuno vede le proprie buste, gli admin tutte) e il telefono.
+    // Non su Firebase: li' l'accesso e' anonimo e non si puo' limitare chi legge.
+    try { await window.NaviAdminPB.saveBustaPaga(agent.id, item.bustaMonth, dati); statoAnno('Buste salvate: PocketBase ✓ · telefono ✓'); }
+    catch (error) { console.warn('Busta non salvata su PocketBase', error); statoAnno('Busta salvata solo sul telefono (PocketBase non raggiungibile): verrà copiata alla prossima apertura.'); }
   }
   async function togliBusta(mese) {
     if (!confirm(`Togliere dal riepilogo la busta di ${monthLabel(mese).toLowerCase()}?`)) return;
     delete state.archivio[mese]; scriviLocale(); renderAnno();
-    await Promise.allSettled([window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, mese, null), window.NaviAdminPB?.saveBustaPaga?.(agent.id, mese, null)]);
+    try { await window.NaviAdminPB?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
   }
   async function caricaArchivio() {
     state.archivio = archivioLocale(); renderAnno();
-    // Firebase e PocketBase insieme: vince la busta salvata piu' di recente; chi non ce l'ha la riceve
-    const leggi = async (nome, api) => { if (!api?.getBustePaga) return null; await api.ready; return api.getBustePaga(agent.id); };
-    const [fb, pb] = await Promise.allSettled([leggi('fb', window.NaviAdminFirebase), leggi('pb', window.NaviAdminPB)]);
-    const fonti = [['Firebase', window.NaviAdminFirebase, fb], ['PocketBase', window.NaviAdminPB, pb]];
-    const unione = { ...state.archivio };
-    fonti.forEach(([, , r]) => { if (r.status === 'fulfilled' && r.value) Object.entries(r.value).forEach(([m, d]) => { if (!unione[m] || String(d?.savedAt || '') > String(unione[m]?.savedAt || '')) unione[m] = d; }); });
-    fonti.forEach(([nome, api, r]) => {
-      if (r.status !== 'fulfilled' || !r.value) { if (r.status === 'rejected') console.warn(`Archivio buste non letto da ${nome}`, r.reason); return; }
-      Object.entries(unione).forEach(([m, d]) => { if (String(r.value[m]?.savedAt || '') !== String(d?.savedAt || '')) api.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su ${nome}`, e)); });
-    });
-    state.archivio = unione; scriviLocale(); renderAnno();
-    statoAnno(`Riepilogo: Firebase ${fb.status === 'fulfilled' ? '✓' : '✕'} · PocketBase ${pb.status === 'fulfilled' ? '✓' : '✕'}`);
+    // PocketBase: vince la busta salvata piu' di recente; quelle rimaste solo sul telefono vengono copiate
+    try {
+      const remoto = await window.NaviAdminPB.getBustePaga(agent.id) || {};
+      const unione = { ...state.archivio };
+      Object.entries(remoto).forEach(([m, d]) => { if (!unione[m] || String(d?.savedAt || '') > String(unione[m]?.savedAt || '')) unione[m] = d; });
+      Object.entries(unione).forEach(([m, d]) => { if (String(remoto[m]?.savedAt || '') !== String(d?.savedAt || '')) window.NaviAdminPB.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su PocketBase`, e)); });
+      state.archivio = unione; scriviLocale(); renderAnno(); statoAnno('Riepilogo: PocketBase ✓');
+    } catch (error) { console.warn('Archivio buste non letto da PocketBase', error); statoAnno('Riepilogo dalla copia su questo telefono (PocketBase non raggiungibile)'); }
   }
   function apriBusta(mese) {
     const d = state.archivio[mese]; if (!d) return;
