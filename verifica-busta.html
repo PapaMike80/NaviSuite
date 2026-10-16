@@ -13,151 +13,113 @@
   <title>NaviSuite Verifica busta paga</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <style>
-    :root{--vb-bg:#0d1a1c;--vb-card:#13262a;--vb-line:#1f3a3e;--vb-ink:#e6efed;--vb-muted:#9fb5b1;--vb-accent:#7ce0c3;--vb-chip:#183a36;--vb-edge:#2d5a52;--vb-field:#0f2023;--vb-ok:#7ce0c3;--vb-ok-bg:rgba(124,224,195,.12);--vb-diff:#ff9b9b;--vb-diff-bg:rgba(255,120,120,.12);--vb-check:#f5c86b;--vb-check-bg:rgba(245,200,107,.13);color-scheme:dark}
-    html.navisuite-light{--vb-bg:#f3f6f5;--vb-card:#ffffff;--vb-line:#d6e2df;--vb-ink:#10282b;--vb-muted:#4d6461;--vb-accent:#0f6b5c;--vb-chip:#e2efe9;--vb-edge:#b9d3cc;--vb-field:#f7faf9;--vb-ok:#0f6b5c;--vb-ok-bg:#e2f3ee;--vb-diff:#b42318;--vb-diff-bg:#fdecea;--vb-check:#8a5a00;--vb-check-bg:#fdf3dc;color-scheme:light}
+    /* Schede a colori: barra unica in alto, linguette Confronto / Anno. Verde ok, rosso differenza, giallo da verificare;
+       azzurro lordo, rosa ritenute, turchese netto. */
+    :root{--bg:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on-teal:#06231f;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--green:#52c879;--violet:#a78bfa;--mono:'DM Mono',ui-monospace,monospace;color-scheme:dark}
+    html.navisuite-light{--bg:#f4f8f7;--card:#ffffff;--card2:#e8f1ef;--line:#dbe7e5;--ink:#102631;--muted:#5b7079;--teal:#0f9f8c;--on-teal:#ffffff;--cyan:#1590a8;--rose:#d9435e;--amber:#b7791f;--green:#2f9e5a;--violet:#7c5cd6;color-scheme:light}
     *{box-sizing:border-box}
-    body.verifica-busta-page{margin:0;min-height:100vh;background:var(--vb-bg);color:var(--vb-ink);font:400 15px/1.5 'IBM Plex Sans',system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+    body.verifica-busta-page{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:500 15px/1.5 Manrope,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
     .verifica-busta-page .app-sidebar{display:none}
-    .verifica-busta-page>header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(20px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--vb-line)}
-    .verifica-busta-page>header small{display:block;color:var(--vb-accent);font-size:12px;font-weight:600;letter-spacing:.18em}
-    .verifica-busta-page>header h1{margin:6px 0 0;font:700 22px/1.2 Sora,system-ui,sans-serif}
-    .verifica-busta-page>header h1 span{color:var(--vb-muted);font-weight:500}
-    .verifica-busta-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--vb-edge)!important;border-radius:14px!important;background:var(--vb-card)!important;color:var(--vb-accent)!important;font-size:22px!important;font-weight:400!important}
-    main{display:flex;flex-direction:column;gap:20px;width:min(900px,calc(100% - 32px));margin:24px auto 40px}
-    .vb-intro{margin:0;color:var(--vb-muted)}
-    .vb-intro a{color:var(--vb-accent)}
-    .vb-login{margin:0;padding:18px;border:1px solid var(--vb-edge);border-radius:16px;background:var(--vb-chip)}
-    .vb-login a{color:var(--vb-accent);font-weight:600}
-    .vb-card{display:flex;flex-direction:column;gap:16px;padding:22px 18px;border:1px solid var(--vb-line);border-radius:22px;background:var(--vb-card)}
-    .vb-card.is-disabled{opacity:.5}
-    .vb-head{display:flex;gap:14px;align-items:flex-start}
-    .vb-num{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--vb-chip);color:var(--vb-accent);font:600 14px Sora,system-ui,sans-serif}
-    .vb-head h2{margin:0 0 4px;font:600 18px/1.3 Sora,system-ui,sans-serif}
-    .vb-head p{margin:0;color:var(--vb-muted);font-size:14px}
+    .verifica-busta-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px))}
+    .verifica-busta-page>header small{display:block;color:var(--teal);font-size:12px;font-weight:800;letter-spacing:.22em}
+    .verifica-busta-page>header h1{margin:4px 0 0;font-size:26px;font-weight:800;line-height:1.15}
+    .verifica-busta-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{display:flex;flex-direction:column;gap:12px;width:min(720px,100%);margin:0 auto 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+    .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
     .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-    .vb-file{display:flex;align-items:center;gap:14px;min-height:64px;padding:14px 18px;border:2px dashed var(--vb-edge);border-radius:16px;background:var(--vb-field);color:var(--vb-ink);font-weight:600;cursor:pointer}
-    .vb-file svg{flex-shrink:0;color:var(--vb-accent)}
-    .vb-file small{display:block;color:var(--vb-muted);font-weight:400;font-size:13px}
-    .vb-file:hover{border-color:var(--vb-accent)}
-    input:focus-visible+.vb-file,.vb-file:focus-within{outline:3px solid var(--vb-accent);outline-offset:3px}
-    .vb-file.is-busy{opacity:.6;cursor:progress}
-    .vb-private{display:flex;gap:8px;align-items:center;margin:0;color:var(--vb-muted);font-size:13px}
-    .vb-info{margin:0;font-size:14px}
-    .vb-field{display:grid;gap:6px;max-width:260px}
-    .vb-field label{font-size:13px;font-weight:600;color:var(--vb-muted)}
-    .vb-field input,.vb-field select{min-height:48px;padding:0 14px;border:1px solid var(--vb-edge);border-radius:12px;background:var(--vb-field);color:var(--vb-ink);font:inherit}
-    .vb-field input:focus-visible{outline:3px solid var(--vb-accent);outline-offset:2px}
-    .vb-meta{margin:0;color:var(--vb-muted);font-size:13px}
-    #vbAlerts:empty{display:none}
-    #vbAlerts{display:grid;gap:10px}
-    .vb-alert{margin:0;padding:12px 14px;border-radius:12px;border:1px solid var(--vb-check);background:var(--vb-check-bg);color:var(--vb-ink);font-size:14px}
-    .vb-alert.error{border-color:var(--vb-diff);background:var(--vb-diff-bg)}
-    .vb-chips{display:flex;flex-wrap:wrap;gap:8px}
-    .vb-chip{display:inline-flex;gap:6px;align-items:center;min-height:36px;padding:0 14px;border-radius:18px;font-size:14px;background:var(--vb-chip)}
-    .vb-chip.is-ok{background:var(--vb-ok-bg);color:var(--vb-ok)}.vb-chip.is-diff{background:var(--vb-diff-bg);color:var(--vb-diff)}.vb-chip.is-check{background:var(--vb-check-bg);color:var(--vb-check)}.vb-chip.is-muted{color:var(--vb-muted)}
-    .vb-rows{display:grid;gap:12px}
-    .vb-row{padding:16px;border:1px solid var(--vb-line);border-left-width:1px;border-radius:16px;background:var(--vb-field)}
-    .vb-row.is-diff{border-color:var(--vb-diff)}.vb-row.is-check{border-color:var(--vb-check)}
-    .vb-row-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-    .vb-row h3{margin:0;font:600 16px/1.3 Sora,system-ui,sans-serif}
-    .vb-row-head p{margin:2px 0 0;color:var(--vb-muted);font-size:13px}
-    .vb-badge{flex-shrink:0;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
-    .is-ok .vb-badge{background:var(--vb-ok-bg);color:var(--vb-ok)}.is-diff .vb-badge{background:var(--vb-diff-bg);color:var(--vb-diff)}.is-check .vb-badge{background:var(--vb-check-bg);color:var(--vb-check)}
-    .vb-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0}
-    .vb-values div{padding:8px 10px;border-radius:10px;background:var(--vb-card)}
-    .vb-values dt{color:var(--vb-muted);font-size:12px}
-    .vb-values dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
-    .vb-euro{margin:10px 0 0;font-weight:600}
-    .is-diff .vb-euro{color:var(--vb-diff)}.is-check .vb-euro{color:var(--vb-check)}
-    .vb-euro small{color:var(--vb-muted);font-weight:400}
-    .vb-note{margin:8px 0 0;color:var(--vb-muted);font-size:13px}
-    .vb-details{border:1px solid var(--vb-line);border-radius:16px;background:var(--vb-field)}
-    .vb-details summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:0 16px;font-weight:600;cursor:pointer;list-style:none}
-    .vb-details summary::-webkit-details-marker{display:none}
-    .vb-details summary::after{content:'⌄';color:var(--vb-accent);font-size:20px;transition:transform .15s}
-    .vb-details[open] summary::after{transform:rotate(180deg)}
-    .vb-details summary:focus-visible{outline:3px solid var(--vb-accent);outline-offset:2px;border-radius:16px}
-    .vb-details-body{padding:0 16px 16px;overflow-x:auto}
-    @media(max-width:560px){.vb-summary td:first-child{min-width:104px;max-width:130px;white-space:normal;word-break:normal;hyphens:auto}.vb-summary th,.vb-summary td{padding:7px 4px!important;font-size:12px!important}.vb-summary .vb-state{font-size:0!important}.vb-summary .vb-state::first-letter{font-size:15px}}
-    .vb-reload{margin-top:10px;min-height:40px;padding:8px 14px;border:1px solid var(--vb-edge);border-radius:10px;background:var(--vb-chip);color:var(--vb-accent);font:700 14px inherit;cursor:pointer}
-    .vb-anno td button{font:inherit;padding:2px 8px;border-radius:8px;border:1px solid var(--vb-line);background:transparent;color:inherit;cursor:pointer}.vb-anno tfoot td{font-weight:700;border-top:2px solid var(--vb-line)}.vb-anno-voci{margin-top:14px}
-    .vb-totali{margin:6px 0 10px}.vb-totali .vb-netto dd{color:var(--vb-accent)}
-    .vb-toll{margin:0 0 12px;max-width:200px}.vb-toll select{width:100%}
-    .vb-summary td:first-child{max-width:300px;white-space:normal}.vb-summary .vb-note-row{display:block;margin-top:3px;color:var(--vb-check);font-size:11px;line-height:1.35}
-    .vb-mail{margin-top:10px;padding:12px 14px;border:1px solid var(--vb-check);border-radius:12px;background:var(--vb-check-bg)}.vb-mail p{margin:0 0 8px;font-size:14px}.vb-mail a.vb-reload{display:inline-flex;align-items:center;text-decoration:none;margin-right:6px}
-    .vb-tools{margin:0 0 10px}
-    body.vb-blur .vb-totali dd,body.vb-blur .vb-summary td:nth-child(5),body.vb-blur .vb-euro-diff,body.vb-blur .vb-anno-eur{filter:blur(7px);user-select:none}
-    .vb-month{margin-top:18px}.vb-month:first-child{margin-top:0}.vb-month h3{margin:0 0 2px;font:600 16px/1.3 Sora,system-ui,sans-serif}.vb-month>p{margin:0 0 8px;color:var(--vb-muted);font-size:13px}.vb-summary td small.vb-euro-diff{display:block;color:var(--vb-muted);font-size:11px}.vb-files{margin:8px 0 0}.vb-clear{margin-top:8px;border:0;background:none;color:var(--vb-diff);font:600 13px inherit;text-decoration:underline;cursor:pointer}
-    .vb-summary-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--vb-line);border-radius:14px;background:var(--vb-field)}
-    .vb-summary td,.vb-summary th{padding:9px 10px}
-    .vb-summary td:first-child small{display:block;color:var(--vb-muted);font-size:11px}
-    .vb-summary tr.is-ok td:first-child{box-shadow:inset 4px 0 var(--vb-ok)}.vb-summary tr.is-diff td:first-child{box-shadow:inset 4px 0 var(--vb-diff)}.vb-summary tr.is-check td:first-child{box-shadow:inset 4px 0 var(--vb-check)}
-    .vb-summary tr.is-diff{background:var(--vb-diff-bg)}.vb-summary tr.is-ok .vb-state{color:var(--vb-ok)}.vb-summary tr.is-diff .vb-state{color:var(--vb-diff)}.vb-summary tr.is-check .vb-state{color:var(--vb-check)}
-    .vb-summary .vb-state{font-weight:700}
-    @media(max-width:560px){.vb-summary td,.vb-summary th{padding:8px 6px;font-size:13px;white-space:normal}.vb-summary td:not(:first-child){white-space:nowrap}}
-    .vb-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
-    .vb-table th,.vb-table td{padding:8px 6px;border-bottom:1px solid var(--vb-line);text-align:left;white-space:nowrap}
-    .vb-table thead th{color:var(--vb-muted);font-size:12px;font-weight:600}
-    .vb-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-    .vb-list li{padding:10px 12px;border-radius:10px;background:var(--vb-card);font-size:14px}
-    .vb-list li small{display:block;color:var(--vb-muted);font-size:12px}
-    .vb-list li.is-diff{color:var(--vb-diff)}.vb-list li.is-check{color:var(--vb-check)}
-    .vb-muted,.vb-empty{margin:8px 0 0;color:var(--vb-muted);font-size:13px}
-    @media(min-width:700px){
-      .verifica-busta-page>header{padding:28px 48px}
-      .verifica-busta-page>header h1{font-size:28px}
-      main{margin-top:40px}
-      .vb-card{padding:32px}
-    }
-    @media(max-width:420px){.vb-values{grid-template-columns:1fr 1fr}.vb-values div:last-child{grid-column:1/-1}}
+    .vb-login{margin:0;padding:16px;border-radius:16px;background:var(--card)}.vb-login a{color:var(--teal);font-weight:700}
+    .vb-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .chip.up{border-color:var(--teal);color:var(--teal);background:transparent}
+    .chip.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+    .chip:focus-visible,.vb-tabs button:focus-visible,.voce:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+    .chip select{border:0;background:transparent;color:inherit;font:inherit;padding:0;cursor:pointer}
+    .chip.is-busy{opacity:.6;cursor:progress}
+    .vb-info{margin:0;color:var(--muted);font-size:13px}.vb-info:empty{display:none}
+    .vb-meta{margin:0;color:var(--muted);font-size:12px}.vb-meta:empty{display:none}
+    #vbAlerts{display:grid;gap:8px}#vbAlerts:empty{display:none}
+    .vb-alert{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--amber) 50%,transparent);background:color-mix(in srgb,var(--amber) 14%,var(--card));font-size:13px}
+    .vb-alert.error{border-color:color-mix(in srgb,var(--rose) 50%,transparent);background:color-mix(in srgb,var(--rose) 14%,var(--card))}
+    .drop{display:block;border:2px dashed var(--teal);border-radius:20px;padding:30px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5;cursor:pointer;background:color-mix(in srgb,var(--teal) 6%,transparent)}
+    .drop b{display:block;color:var(--teal);font-size:18px;margin-bottom:4px}
+    .vb-private{margin:0;color:var(--muted);font-size:12px}
+    .vb-tabs{display:flex;background:var(--card);border-radius:14px;padding:4px}
+    .vb-tabs button{flex:1;padding:9px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer}
+    .vb-tabs button[aria-selected="true"]{background:var(--teal);color:var(--on-teal)}
+    .sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.sel .chip{flex:0 0 auto}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted));flex-shrink:0}
+    .mtitle{margin:2px 0 0;font-size:20px;font-weight:800}.msub{margin:0;color:var(--muted);font-size:12px}
+    .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .tile{border-radius:12px;padding:6px 10px;color:#06231f;min-width:0}
+    .tile small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+    .tile b{display:block;font-size:13px;overflow-wrap:anywhere}
+    .t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
+    html.navisuite-light .tile{color:#fff}
+    .sum{display:flex;gap:6px}.sum span{flex:1;text-align:center;border-radius:10px;padding:6px 0;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+    .voci{display:grid;gap:6px}
+    .voce{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;padding:11px 12px;border:0;border-left:4px solid var(--c);border-radius:12px;background:var(--card);color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+    .voce .n{font-weight:800;font-size:14px;min-width:0}
+    .voce .eur{font-weight:500;font-size:12px;color:var(--cyan);margin-left:4px}
+    .voce .c{color:var(--muted);font-size:12px;min-width:0}
+    .pill{grid-row:span 2;align-self:center;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);white-space:nowrap}
+    .det{grid-column:1/-1;display:none;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px}
+    .voce[aria-expanded="true"] .det{display:grid}
+    .det small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+    .det p{grid-column:1/-1;margin:0;color:var(--muted);line-height:1.45;font-family:Manrope,system-ui,sans-serif}
+    .altre{border-radius:12px}.altre>summary{list-style:none;cursor:pointer;text-align:center;padding:8px;color:var(--muted);font-size:13px;font-weight:700}.altre>summary::-webkit-details-marker{display:none}.altre[open]>summary{margin-bottom:6px}
+    .mail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--amber) 14%,var(--card));border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);font-size:13px}
+    .mail b{color:var(--amber)}.mail a{text-decoration:none}
+    .ok-all{padding:12px;border-radius:14px;background:color-mix(in srgb,var(--green) 14%,var(--card));color:var(--green);font-weight:700;font-size:14px;text-align:center}
+    .spark{display:flex;align-items:flex-end;gap:4px;height:90px;padding:10px 10px 0;border-radius:14px;background:var(--card)}
+    .spark div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+    .spark i{display:block;width:100%;background:var(--teal);border-radius:4px 4px 0 0;min-height:2px}
+    .spark i.r{background:var(--rose)}.spark i.v{background:var(--line)}
+    .spark span{font-size:9px;color:var(--muted);padding-bottom:4px}
+    .ylist{display:grid;gap:6px}
+    .yr{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:11px 12px;border-radius:12px;background:var(--card);font-size:14px}
+    .yr button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left;padding:0}
+    .yr .mm{font-weight:800}.yr .x{color:var(--muted);font-size:16px;padding:0 4px}
+    .vtab{width:100%;border-collapse:collapse;font-size:13px}.vtab th,.vtab td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}.vtab th{color:var(--muted);font-size:11px}
+    .vtab td small{display:block;color:var(--muted);font-size:11px}.vwrap{overflow-x:auto}
+    body.vb-blur .eurv{filter:blur(7px);user-select:none}
+    @media(max-width:420px){.tile b{font-size:12px}.tile{padding:6px 8px}}
+    @media(prefers-reduced-motion:no-preference){.voce,.chip{transition:background .15s,border-color .15s}}
   </style>
 </head>
 <body class="verifica-busta-page">
   <aside class="app-sidebar" aria-hidden="true"></aside>
-  <header class="page-header"><div><small>DISTINTA</small><h1>Verifica <span>busta paga</span></h1></div></header>
+  <header class="page-header"><div><small>VERIFICA BUSTA</small><h1 id="vbTitolo">Buste paga</h1></div></header>
   <main>
-    <p class="vb-intro">Carica la tua busta paga in PDF: la confronto con la <a href="navidiaria.html">Distinta</a> e ti segnalo le differenze voce per voce. I dati variabili della busta si riferiscono al mese precedente: la busta di settembre si confronta con la Distinta di agosto.</p>
     <p class="vb-login" id="vbLogin" hidden>Accedi prima a NaviSuite: <a href="index.html">vai all’accesso</a>.</p>
+    <input class="sr-only" type="file" id="vbFileInput" accept="application/pdf,.pdf" multiple>
 
-    <section class="vb-card" aria-labelledby="vbFileTitle">
-      <div class="vb-head"><span class="vb-num" aria-hidden="true">01</span><div><h2 id="vbFileTitle">Buste paga</h2><p>PDF delle buste INAZ, una o più.</p></div></div>
-      <input class="sr-only" type="file" id="vbFileInput" accept="application/pdf,.pdf" multiple>
-      <label class="vb-file" id="vbFileLabel" for="vbFileInput">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6M9 15l3-3 3 3"/></svg>
-        <span>Scegli i PDF delle buste<small>Puoi sceglierne più di uno per confrontare più mesi</small></span>
-      </label>
-      <p class="vb-private"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Il file resta su questo dispositivo: viene letto qui e non viene caricato da nessuna parte.</p>
-      <p class="vb-info" id="vbFileInfo" aria-live="polite"></p>
-      <ul class="vb-list vb-files" id="vbFiles"></ul>
-      <button type="button" class="vb-clear" id="vbClear" hidden>Togli tutte le buste</button>
-    </section>
-
-    <section class="vb-card" aria-labelledby="vbMonthTitle" hidden>
-      <div class="vb-head"><span class="vb-num" aria-hidden="true">02</span><div><h2 id="vbMonthTitle">Mese della Distinta</h2><p>Proposto dal mese della busta, puoi cambiarlo (solo con una busta: con più buste ognuna va con il mese precedente).</p></div></div>
-      <div class="vb-field" id="vbMonthField"><label for="vbMonth">Distinta di</label><input type="month" id="vbMonth"></div>
-      <p class="vb-meta" id="vbPeriod"></p>
-      <p class="vb-meta" id="vbSource"></p>
-      <button type="button" class="vb-reload" id="vbReload">↻ Ricarica la Distinta</button>
-    </section>
-
+    <div class="vb-bar" id="vbBar" hidden>
+      <label class="chip up" id="vbFileLabel" for="vbFileInput">＋ Carica</label>
+      <label class="chip">Tolleranza <select id="vbToll" aria-label="Tolleranza"><option value="0">0%</option><option value="5">5%</option><option value="10" selected>10%</option></select></label>
+      <button type="button" class="chip" id="vbBlur" aria-pressed="false" title="Nascondi cifre">🙈</button>
+      <button type="button" class="chip" id="vbReload" title="Ricarica la Distinta">↻</button>
+    </div>
+    <p class="vb-info" id="vbFileInfo" aria-live="polite"></p>
+    <p class="vb-meta" id="vbSource"></p>
     <div id="vbAlerts" role="status" aria-live="polite"></div>
 
-    <section class="vb-card" id="vbResult" aria-labelledby="vbResultTitle" hidden>
-      <div class="vb-head"><span class="vb-num" aria-hidden="true">02</span><div><h2 id="vbResultTitle">Risultato</h2><p>Differenza = Distinta − busta. Valore = importo della voce in busta; sotto la differenza, la stima in euro.</p></div></div>
-      <div class="vb-tools"><button type="button" class="vb-reload" id="vbBlur" aria-pressed="false">🙈 Nascondi cifre</button></div>
-      <div class="vb-field vb-toll"><label for="vbToll">Tolleranza</label><select id="vbToll"><option value="0">0% (esatto)</option><option value="5">5%</option><option value="10" selected>10%</option></select></div>
-      <div id="vbMonths"></div>
+    <section id="vbVuoto" hidden>
+      <label class="drop" for="vbFileInput"><b>＋ Carica le buste paga</b>PDF INAZ, anche più di uno.<br>Ogni busta si confronta con la Distinta del mese prima.</label>
     </section>
 
-    <section class="vb-card" id="vbAnno" aria-labelledby="vbAnnoTitle" hidden>
-      <div class="vb-head"><span class="vb-num" aria-hidden="true">03</span><div><h2 id="vbAnnoTitle">Riepilogo annuale</h2><p>Buste salvate: solo i dati letti, non il PDF. Tocca un mese per riaprire il confronto.</p></div></div>
-      <div class="vb-field"><label for="vbAnnoSel">Anno</label><select id="vbAnnoSel"></select></div>
-      <div id="vbAnnoBody"></div>
-      <p class="vb-meta" id="vbAnnoStato"></p>
-    </section>
+    <div class="vb-tabs" role="tablist" id="vbTabs" hidden>
+      <button type="button" role="tab" id="vbTabConfronto" aria-selected="true">Confronto</button>
+      <button type="button" role="tab" id="vbTabAnno" aria-selected="false">Anno</button>
+    </div>
+
+    <section id="vbConfronto" hidden></section>
+    <section id="vbAnno" hidden></section>
+
+    <p class="vb-private">🔒 Il PDF resta sul telefono: si salvano solo i numeri letti, visibili a te e agli amministratori.</p>
+    <p class="vb-meta" id="vbAnnoStato"></p>
   </main>
   <script src="assets/js/shared-roles.js?v=7"></script>
   <script src="assets/js/admin-firebase-rest.js?v=79"></script>
@@ -170,6 +132,6 @@
   <script src="assets/js/busta-parser.js?v=2"></script>
   <script src="assets/js/distinta-totals.js?v=10"></script>
   <script src="assets/js/busta-compare.js?v=18"></script>
-  <script src="assets/js/verifica-busta.js?v=14"></script>
+  <script src="assets/js/verifica-busta.js?v=15"></script>
 </body>
 </html>
