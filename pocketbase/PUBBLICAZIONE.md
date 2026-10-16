@@ -51,3 +51,7 @@ Le altre collection (`diaria`, `turni`, `variazioni`, `cambi_turno`, …) hanno 
 
 Quando tutti raggiungono PocketBase (etichetta admin nella Distinta: «copia PocketBase aggiornata ✓» anche
 dai telefoni dei colleghi), si può invertire: PocketBase archivio principale, Firebase backup.
+
+## Buste paga (Verifica busta)
+Importa `pocketbase/buste_paga.json` (Settings → Import collections, **senza** spuntare l'eliminazione delle altre collezioni).
+Ogni agente vede e modifica solo le proprie buste, gli admin tutte. Si salvano solo i dati letti, mai il PDF.

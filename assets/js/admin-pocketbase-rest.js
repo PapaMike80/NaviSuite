@@ -263,6 +263,22 @@
     };
   }
 
+  // Buste paga (solo i dati letti, mai il PDF): una riga per agente e mese, {'2026-10': dati}
+  async function getBustePaga(agentId) {
+    const agente = await resolveAgente(String(agentId || '').trim());
+    if (!agente) return {};
+    const rows = await list('buste_paga', { filter: `agente = "${esc(agente.id)}"`, perPage: 500 });
+    return Object.fromEntries(rows.map(r => [r.mese, r.dati]));
+  }
+  async function saveBustaPaga(agentId, mese, dati) {
+    const agente = await resolveAgente(String(agentId || '').trim());
+    if (!agente) throw new Error('Agente non trovato su PocketBase.');
+    const riga = await findOne('buste_paga', `agente = "${esc(agente.id)}" && mese = "${esc(mese)}"`, 'id');
+    if (!dati) { if (riga) await remove('buste_paga', riga.id); return; }
+    if (riga) await patch('buste_paga', riga.id, { dati });
+    else await create('buste_paga', { agente: agente.id, mese, dati });
+  }
+
   async function loadDiaria(agentId) {
     const id = String(agentId || '').trim();
     if (!id) throw new Error('Agente non valido');
@@ -337,7 +353,7 @@
     authWithHash, ensureLogin, token: getToken, getUserAuth, saveUserAuth, resetUserAuth, deleteRegisteredUser,
     listRegisteredUsers, saveAgentProfile, getWeekStatuses, saveWeekStatuses,
     listChangeRequests, saveChangeRequest, deleteChangeRequest,
-    loadDiaria, loadAllDiaria, saveDiaria,
+    loadDiaria, loadAllDiaria, saveDiaria, getBustePaga, saveBustaPaga,
     list, findOne, create, patch, remove, req, provider: 'PocketBase',
   };
 })();

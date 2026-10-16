@@ -5115,5 +5115,93 @@
     "indexes": [
       "CREATE UNIQUE INDEX idx_collegamenti_chiave ON collegamenti_pubblici (chiave)"
     ]
+  },
+  {
+    "id": "pbc_bustepaga01",
+    "name": "buste_paga",
+    "type": "base",
+    "system": false,
+    "listRule": "agente.user = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "viewRule": "agente.user = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "createRule": "agente.user = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "updateRule": "agente.user = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "deleteRule": "agente.user = @request.auth.id || @request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cascadeDelete": true,
+        "collectionId": "pbc_1608986458",
+        "help": "",
+        "hidden": false,
+        "id": "relation3101",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "agente",
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "relation"
+      },
+      {
+        "hidden": false,
+        "id": "text3102",
+        "name": "mese",
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "text",
+        "autogeneratePattern": "",
+        "max": 7,
+        "min": 7,
+        "pattern": "^\\d{4}-\\d{2}$",
+        "primaryKey": false
+      },
+      {
+        "hidden": false,
+        "id": "json3103",
+        "name": "dati",
+        "presentable": false,
+        "required": true,
+        "system": false,
+        "type": "json",
+        "maxSize": 0
+      },
+      {
+        "hidden": false,
+        "id": "autodate3104",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3105",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX idx_buste_paga_agente_mese ON buste_paga (agente, mese)"
+    ]
   }
 ]

@@ -194,24 +194,30 @@
     if (!item.bustaMonth) return;
     const dati = datiBusta(item);
     state.archivio[item.bustaMonth] = dati; scriviLocale();
-    try { await window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, item.bustaMonth, dati); statoAnno('✓ Buste salvate'); }
-    catch (error) { console.warn('Busta non salvata su Firebase', error); statoAnno('Busta salvata solo su questo dispositivo (Firebase non raggiungibile)'); }
+    const [fb, pb] = await Promise.allSettled([window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, item.bustaMonth, dati), window.NaviAdminPB?.saveBustaPaga?.(agent.id, item.bustaMonth, dati)]);
+    if (fb.status === 'rejected') console.warn('Busta non salvata su Firebase', fb.reason);
+    if (pb.status === 'rejected') console.warn('Busta non salvata su PocketBase', pb.reason);
+    statoAnno(`Buste salvate: Firebase ${fb.status === 'fulfilled' ? '✓' : '✕'} · PocketBase ${pb.status === 'fulfilled' ? '✓' : '✕'} · telefono ✓`);
   }
   async function togliBusta(mese) {
     if (!confirm(`Togliere dal riepilogo la busta di ${monthLabel(mese).toLowerCase()}?`)) return;
     delete state.archivio[mese]; scriviLocale(); renderAnno();
-    try { await window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
+    await Promise.allSettled([window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, mese, null), window.NaviAdminPB?.saveBustaPaga?.(agent.id, mese, null)]);
   }
   async function caricaArchivio() {
     state.archivio = archivioLocale(); renderAnno();
-    try {
-      await window.NaviAdminFirebase?.ready;
-      const remoto = await window.NaviAdminFirebase?.getBustePaga?.(agent.id);
-      if (remoto) {
-        Object.entries(state.archivio).forEach(([m, d]) => { if (!remoto[m]) window.NaviAdminFirebase.saveBustaPaga(agent.id, m, d).catch(() => {}); });
-        state.archivio = { ...state.archivio, ...remoto }; scriviLocale(); renderAnno();
-      }
-    } catch (error) { console.warn('Archivio buste non letto da Firebase', error); statoAnno('Riepilogo dalla copia su questo dispositivo'); }
+    // Firebase e PocketBase insieme: vince la busta salvata piu' di recente; chi non ce l'ha la riceve
+    const leggi = async (nome, api) => { if (!api?.getBustePaga) return null; await api.ready; return api.getBustePaga(agent.id); };
+    const [fb, pb] = await Promise.allSettled([leggi('fb', window.NaviAdminFirebase), leggi('pb', window.NaviAdminPB)]);
+    const fonti = [['Firebase', window.NaviAdminFirebase, fb], ['PocketBase', window.NaviAdminPB, pb]];
+    const unione = { ...state.archivio };
+    fonti.forEach(([, , r]) => { if (r.status === 'fulfilled' && r.value) Object.entries(r.value).forEach(([m, d]) => { if (!unione[m] || String(d?.savedAt || '') > String(unione[m]?.savedAt || '')) unione[m] = d; }); });
+    fonti.forEach(([nome, api, r]) => {
+      if (r.status !== 'fulfilled' || !r.value) { if (r.status === 'rejected') console.warn(`Archivio buste non letto da ${nome}`, r.reason); return; }
+      Object.entries(unione).forEach(([m, d]) => { if (String(r.value[m]?.savedAt || '') !== String(d?.savedAt || '')) api.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su ${nome}`, e)); });
+    });
+    state.archivio = unione; scriviLocale(); renderAnno();
+    statoAnno(`Riepilogo: Firebase ${fb.status === 'fulfilled' ? '✓' : '✕'} · PocketBase ${pb.status === 'fulfilled' ? '✓' : '✕'}`);
   }
   function apriBusta(mese) {
     const d = state.archivio[mese]; if (!d) return;
