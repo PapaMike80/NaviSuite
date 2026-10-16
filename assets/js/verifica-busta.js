@@ -277,7 +277,7 @@
     const barre = Array.from({ length: 12 }, (_, i) => {
       const m = `${state.anno}-${String(i + 1).padStart(2, '0')}`, n = Number(state.archivio[m]?.totals?.netto) || 0, o = straord(m);
       const quota = n ? Math.min(100, Math.round(o / n * 100)) : 0;
-      return `<div title="${escapeHtml(monthLabel(m))}${o ? ` · straordinari ${escapeHtml(euro(o))}` : ''}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(4, Math.round(n / max * 100)) : 2}%">${quota ? `<b style="height:${quota}%"></b>` : ''}</i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`;
+      return `<div title="${escapeHtml(monthLabel(m))}${o ? ` · straordinari ${escapeHtml(euro(o))}` : ''}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(3, Math.round(n / max * 64)) : 2}px">${quota ? `<b style="height:${quota}%"></b>` : ''}</i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`;
     }).join('');
     const lista = delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(monthLabel(m).split(' ')[0])}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
     const voci = new Map();
