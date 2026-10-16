@@ -38,7 +38,18 @@
     return loginInCorso;
   }
 
-  async function req(path, { method = 'GET', body, auth = true } = {}) {
+  // Limite di richieste di PocketBase (429): si aspetta e si riprova, cosi' la prima copia di molte giornate arriva tutta.
+  const pausa = ms => new Promise(r => setTimeout(r, ms));
+  async function req(path, opts = {}) {
+    for (let tentativo = 0; ; tentativo++) {
+      try { return await req1(path, opts); }
+      catch (error) {
+        if (error?.status !== 429 || tentativo >= 6) throw error;
+        await pausa(Math.min(2000 * 2 ** tentativo, 20000));
+      }
+    }
+  }
+  async function req1(path, { method = 'GET', body, auth = true } = {}) {
     if (auth) await ensureLogin();
     const headers = { Accept: 'application/json' };
     if (auth && getToken()) headers.Authorization = getToken();
@@ -312,8 +323,8 @@
       wantedDays.add(day);
       const row = diariaRowFromEntry(agente.id, en);
       const current = byDayExisting.get(day);
-      if (current) { if (!diariaRowUnchanged(current, row)) await patch('diaria', current.id, row); }
-      else await create('diaria', row);
+      if (current) { if (!diariaRowUnchanged(current, row)) { await patch('diaria', current.id, row); await pausa(150); } }
+      else { await create('diaria', row); await pausa(150); }
     }
     for (const [day, row] of byDayExisting) {
       if (!wantedDays.has(day)) await remove('diaria', row.id);
