@@ -867,6 +867,8 @@
   // ---------------- Agente e salvataggio su PocketBase ----------------
   const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
   const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
+  // Token PocketBase dell'agente: le regole di controlli_cassa chiedono un utente collegato
+  async function pbAuth() { try { await window.NaviAdminPB?.ensureLogin?.(); } catch (_) {} const t = (() => { try { return localStorage.getItem('navisuite.pb.token') || ''; } catch (_) { return ''; } })(); return t ? { Authorization: t } : {}; }
   function sessione() { try { return JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) { return null; } }
   const POSTAZIONI = { Maderno: ['AgM (Cassa 2)', 'AgT (Cassa 1)'], Desenzano: ['AgB (Cassa 1)', 'DT (Cassa 8)'], Garda: ['Garda (Cassa unica)'] };
   let agenti = [], schedule = null, sceltaManuale = false;
@@ -977,7 +979,7 @@
   async function inviaControlloCassa(record) {
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(record), signal: ctrl.signal });
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(await pbAuth()) }, body: JSON.stringify(record), signal: ctrl.signal });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) { const e = new Error(out?.message || `PocketBase ${res.status}`); e.status = res.status; e.data = out; throw e; }
       return out;
@@ -1025,7 +1027,7 @@
     const filtro = `data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"` + (admin ? '' : ` && agente_id = "${mioId.replace(/"/g, '')}"`);
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=200&sort=agente_nome,-updated&filter=${encodeURIComponent(filtro)}`, { headers: { Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=200&sort=agente_nome,-updated&filter=${encodeURIComponent(filtro)}`, { headers: { ...(await pbAuth()), Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
       // un solo salvataggio per agente: il piu' recente
@@ -1079,7 +1081,7 @@
   async function pb(path, opts = {}) {
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records${path}`, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records${path}`, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(await pbAuth()) }, signal: ctrl.signal, cache: 'no-store' });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) { const e = new Error(out?.message || `PocketBase ${res.status}`); e.status = res.status; throw e; }
       return out;
@@ -1216,6 +1218,7 @@
 </script>
 <script src="assets/js/shared-roles.js?v=7"></script>
 <script src="assets/js/admin-firebase-rest.js?v=78"></script>
+<script src="assets/js/admin-pocketbase-rest.js?v=3"></script>
 <script src="assets/js/shared-data.js?v=136"></script>
 <script src="assets/js/turni-giorno.js?v=8"></script>
 <script src="assets/js/shared-menu.js?v=1.76"></script>

@@ -17,7 +17,29 @@
   // chi aspetta la risposta invece di fallire con un errore gestibile.
   const REQUEST_TIMEOUT_MS = 10000;
 
+  // Login automatico: con la sessione NaviSuite (agente + PIN gia' verificato) si ottiene il token PocketBase,
+  // cosi' le regole di sicurezza di PocketBase (ognuno vede la propria Distinta, gli admin tutto) funzionano.
+  const tokenScaduto = t => { try { const exp = JSON.parse(atob(String(t).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp; return !exp || exp * 1000 < Date.now() + 60000; } catch (_) { return true; } };
+  let loginInCorso = null;
+  async function ensureLogin() {
+    const t = getToken();
+    if (t && !tokenScaduto(t)) return true;
+    if (loginInCorso) return loginInCorso;
+    loginInCorso = (async () => {
+      try {
+        const agente = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
+        const id = String(agente?.id || '').trim(), pin = id ? localStorage.getItem(`navidiaria.pin.${id}`) : '';
+        if (!id || !pin) return false;
+        await authWithHash(id, pin);
+        return true;
+      } catch (error) { setToken(''); console.warn('Login PocketBase non riuscito', error); return false; }
+      finally { loginInCorso = null; }
+    })();
+    return loginInCorso;
+  }
+
   async function req(path, { method = 'GET', body, auth = true } = {}) {
+    if (auth) await ensureLogin();
     const headers = { Accept: 'application/json' };
     if (auth && getToken()) headers.Authorization = getToken();
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -301,7 +323,7 @@
 
   window.NaviAdminPB = {
     ready: Promise.resolve(),
-    authWithHash, getUserAuth, saveUserAuth, resetUserAuth, deleteRegisteredUser,
+    authWithHash, ensureLogin, token: getToken, getUserAuth, saveUserAuth, resetUserAuth, deleteRegisteredUser,
     listRegisteredUsers, saveAgentProfile, getWeekStatuses, saveWeekStatuses,
     listChangeRequests, saveChangeRequest, deleteChangeRequest,
     loadDiaria, loadAllDiaria, saveDiaria,

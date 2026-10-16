@@ -189,7 +189,8 @@
   async function pbFetch(url, opts = {}) {
     const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
     try {
-      const res = await fetch(url, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, cache: 'no-store', signal: ctrl.signal });
+      const token = (() => { try { return localStorage.getItem('navisuite.pb.token') || ''; } catch (_) { return ''; } })();
+      const res = await fetch(url, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: token } : {}) }, cache: 'no-store', signal: ctrl.signal });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
       return out;

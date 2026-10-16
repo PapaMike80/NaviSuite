@@ -4724,10 +4724,10 @@
     "name": "controlli_cassa",
     "type": "base",
     "system": false,
-    "listRule": "",
-    "viewRule": "",
-    "createRule": "",
-    "updateRule": "",
+    "listRule": "@request.auth.id != \"\"",
+    "viewRule": "@request.auth.id != \"\"",
+    "createRule": "@request.auth.id != \"\"",
+    "updateRule": "@request.auth.id != \"\"",
     "deleteRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "fields": [
       {
@@ -4941,10 +4941,10 @@
     "name": "competenze_servizi",
     "type": "base",
     "system": false,
-    "listRule": "",
-    "viewRule": "",
-    "createRule": "",
-    "updateRule": "",
+    "listRule": "@request.auth.id != \"\"",
+    "viewRule": "@request.auth.id != \"\"",
+    "createRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "updateRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "deleteRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "fields": [
       {
@@ -5031,10 +5031,10 @@
     "name": "collegamenti_pubblici",
     "type": "base",
     "system": false,
-    "listRule": "",
-    "viewRule": "",
-    "createRule": "",
-    "updateRule": "",
+    "listRule": "@request.auth.id != \"\"",
+    "viewRule": "@request.auth.id != \"\"",
+    "createRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
+    "updateRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "deleteRule": "@request.auth.role = \"admin\" || @request.auth.role = \"super_user\"",
     "fields": [
       {
