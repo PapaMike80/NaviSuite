@@ -67,16 +67,15 @@
       warnings.push({ kind: 'warn', text: 'Hai modifiche della Distinta non ancora sincronizzate: uso la copia salvata su questo dispositivo. Apri la Distinta per sincronizzarla.' });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
-    // Come la Distinta: prima PocketBase (copia principale), se non risponde il backup Firebase
+    // Come la Distinta: prima Firebase (archivio principale), se non risponde la copia PocketBase
     let remote = null, source = '';
-    try { if (window.NaviAdminPB?.loadDiaria) { remote = await window.NaviAdminPB.loadDiaria(id); source = 'pocketbase'; } } catch (error) { console.warn('Verifica busta: PocketBase non raggiungibile', error); }
+    try {
+      if (!window.NaviAdminFirebase?.loadDiaria) throw new Error('Modulo Firebase non disponibile');
+      await window.NaviAdminFirebase.ready;
+      remote = await window.NaviAdminFirebase.loadDiaria(id); source = 'firebase';
+    } catch (error) { console.warn('Verifica busta: Firebase non raggiungibile', error); }
     if (!remote || !remote.entries.length) {
-      try {
-        if (!window.NaviAdminFirebase?.loadDiaria) throw new Error('Modulo Firebase non disponibile');
-        await window.NaviAdminFirebase.ready;
-        const fb = await window.NaviAdminFirebase.loadDiaria(id);
-        if (fb.entries.length) { remote = fb; source = 'firebase'; }
-      } catch (error) { console.warn('Verifica busta: Firebase non raggiungibile', error); }
+      try { if (window.NaviAdminPB?.loadDiaria) { const pb = await window.NaviAdminPB.loadDiaria(id); if (pb.entries.length) { remote = pb; source = 'pocketbase'; } } } catch (error) { console.warn('Verifica busta: PocketBase non raggiungibile', error); }
     }
     if (!remote || !remote.entries.length) {
       warnings.push({ kind: 'warn', text: `Archivio della Distinta non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
@@ -96,7 +95,7 @@
   function sourceText(data) {
     if (!data) return 'Carico la Distinta…';
     if (!window.NaviRoles?.isAdminAgent?.(agent)) return '';
-    return data.source === 'pocketbase' ? 'Dati: PocketBase' : data.source === 'firebase' ? 'Dati: Firebase (PocketBase non raggiungibile)' : 'Dati: copia locale su questo dispositivo';
+    return data.source === 'firebase' ? 'Dati: Firebase' : data.source === 'pocketbase' ? 'Dati: copia PocketBase (Firebase non raggiungibile)' : 'Dati: copia locale su questo dispositivo';
   }
 
   const STATUS = {

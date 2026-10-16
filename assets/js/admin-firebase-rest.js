@@ -971,7 +971,7 @@
   }
 
   // Accesso alle pagine: {pagina: 'tutti' | 'admin'} (sezione della pagina Agenti)
-  // Competenze dei servizi: copia di backup su Firebase (la principale e' su PocketBase)
+  // Competenze dei servizi (tabella Competenze): archivio principale, copia su PocketBase
   async function getCompetenzeServizi() {
     const result = await databaseRequest("private/adminUpdates/competenzeServizi");
     const value = result.data || {};
