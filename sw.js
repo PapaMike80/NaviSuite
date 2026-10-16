@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v587-busta-ordine';
+const CACHE_VERSION = 'navisuite-v588-solo-firebase';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -60,7 +60,6 @@ const CORE_ASSETS = [
   './assets/js/distinta-totals.js',
   './assets/js/busta-compare.js',
   './assets/js/verifica-busta.js',
-  './assets/js/diaria-allinea.js',
   './v2/assets/pb.js',
   './assets/css/orario.css', './assets/css/mio-turno.css', './assets/css/servizi-terra.css', './assets/css/turni.css',
   './assets/js/orario-page.js', './assets/js/orario-giorno.js', './assets/js/orario-corse.js', './assets/js/orario-lago.js',

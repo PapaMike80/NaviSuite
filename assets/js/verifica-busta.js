@@ -57,15 +57,12 @@
       warnings.push({ kind: 'warn', text: 'Hai modifiche della Distinta non ancora sincronizzate: uso la copia salvata su questo dispositivo. Apri la Distinta per sincronizzarla.' });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
-    // Come la Distinta: Firebase e PocketBase insieme; se non coincidono si chiede quale giornata e' corretta
+    // Come la Distinta: solo Firebase
     let remote = null, source = '';
     try {
-      const r = await window.NaviDiariaAllinea.carica(id);
-      remote = r; source = r.stato === 'solo-pocketbase' ? 'pocketbase' : 'firebase';
-      const admin = !!window.NaviRoles?.isAdminAgent?.(agent);
-      if (admin && r.stato === 'rimandato') warnings.push({ kind: 'warn', text: `Firebase e PocketBase hanno ${r.diffs.length} giornate diverse: il confronto usa Firebase finché non scegli quali sono corrette (riapri la pagina).` });
-      if (admin && r.stato === 'solo-firebase') warnings.push({ kind: 'warn', text: 'PocketBase non raggiungibile: uso solo Firebase.' });
-    } catch (error) { console.warn('Verifica busta: archivi della Distinta non raggiungibili', error); }
+      await window.NaviAdminFirebase.ready;
+      remote = await window.NaviAdminFirebase.loadDiaria(id); source = 'firebase';
+    } catch (error) { console.warn('Verifica busta: archivio della Distinta non raggiungibile', error); }
     if (!remote || !remote.entries.length) {
       warnings.push({ kind: 'warn', text: `Archivio della Distinta non raggiungibile: uso la copia su questo dispositivo${local.length ? ', che potrebbe non essere aggiornata' : ', ma è vuota'}.` });
       return { entries: local, source: 'local', updatedAt: '', warnings };
@@ -84,7 +81,7 @@
   function sourceText(data) {
     if (!data) return 'Carico la Distinta…';
     if (!window.NaviRoles?.isAdminAgent?.(agent)) return '';
-    return data.source === 'firebase' ? 'Dati: Firebase' : data.source === 'pocketbase' ? 'Dati: copia PocketBase (Firebase non raggiungibile)' : 'Dati: copia locale su questo dispositivo';
+    return data.source === 'firebase' ? 'Dati: Firebase' : 'Dati: copia locale su questo dispositivo';
   }
 
   const STATUS = {
@@ -179,26 +176,25 @@
     if (!item.bustaMonth) return;
     const dati = datiBusta(item);
     state.archivio[item.bustaMonth] = dati; scriviLocale();
-    // Solo PocketBase (login vero: ognuno vede le proprie buste, gli admin tutte) e il telefono.
-    // Non su Firebase: li' l'accesso e' anonimo e non si puo' limitare chi legge.
-    try { await window.NaviAdminPB.saveBustaPaga(agent.id, item.bustaMonth, dati); statoAnno('Buste salvate: PocketBase ✓ · telefono ✓'); }
-    catch (error) { console.warn('Busta non salvata su PocketBase', error); statoAnno('Busta salvata solo sul telefono (PocketBase non raggiungibile): verrà copiata alla prossima apertura.'); }
+    // Firebase (archivio unico) e copia sul telefono
+    try { await window.NaviAdminFirebase.saveBustaPaga(agent.id, item.bustaMonth, dati); statoAnno('Buste salvate: Firebase ✓ · telefono ✓'); }
+    catch (error) { console.warn('Busta non salvata su Firebase', error); statoAnno('Busta salvata solo sul telefono (Firebase non raggiungibile): verrà copiata alla prossima apertura.'); }
   }
   async function togliBusta(mese) {
     if (!confirm(`Togliere dal riepilogo la busta di ${monthLabel(mese).toLowerCase()}?`)) return;
     delete state.archivio[mese]; delete state.buste[mese]; scriviLocale(); ridisegna();
-    try { await window.NaviAdminPB?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
+    try { await window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
   }
   async function caricaArchivio() {
     state.archivio = archivioLocale(); dallArchivio(); ridisegna();
-    // PocketBase: vince la busta salvata piu' di recente; quelle rimaste solo sul telefono vengono copiate
+    // Firebase: vince la busta salvata piu' di recente; quelle rimaste solo sul telefono vengono copiate
     try {
-      const remoto = await window.NaviAdminPB.getBustePaga(agent.id) || {};
+      const remoto = (await window.NaviAdminFirebase.ready, await window.NaviAdminFirebase.getBustePaga(agent.id)) || {};
       const unione = { ...state.archivio };
       Object.entries(remoto).forEach(([m, d]) => { if (!unione[m] || String(d?.savedAt || '') > String(unione[m]?.savedAt || '')) unione[m] = d; });
-      Object.entries(unione).forEach(([m, d]) => { if (String(remoto[m]?.savedAt || '') !== String(d?.savedAt || '')) window.NaviAdminPB.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su PocketBase`, e)); });
-      state.archivio = unione; scriviLocale(); dallArchivio(); ridisegna(); statoAnno('Buste: PocketBase ✓');
-    } catch (error) { console.warn('Archivio buste non letto da PocketBase', error); statoAnno('Riepilogo dalla copia su questo telefono (PocketBase non raggiungibile)'); }
+      Object.entries(unione).forEach(([m, d]) => { if (String(remoto[m]?.savedAt || '') !== String(d?.savedAt || '')) window.NaviAdminFirebase.saveBustaPaga(agent.id, m, d).catch(e => console.warn(`Busta ${m} non copiata su Firebase`, e)); });
+      state.archivio = unione; scriviLocale(); dallArchivio(); ridisegna(); statoAnno('Buste: Firebase ✓');
+    } catch (error) { console.warn('Archivio buste non letto da Firebase', error); statoAnno('Riepilogo dalla copia su questo telefono (Firebase non raggiungibile)'); }
   }
   const chiave = item => item.bustaMonth || `file:${item.fileName}`;
   const itemDaArchivio = (mese, d) => ({ busta: { period: d.period, voci: d.voci || [], totals: d.totals || {}, check: { completa: true, headerFound: true, message: '', ...(d.check || {}) } }, fileName: d.fileName || `busta ${mese}`, bustaMonth: mese, month: d.month || (d.period ? window.NaviBustaParser.previousMonth(d.period) : '') });
