@@ -52,10 +52,9 @@
     .sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.sel .chip{flex:0 0 auto}
     .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted));flex-shrink:0}
     .mtitle{margin:2px 0 0;font-size:20px;font-weight:800}.msub{margin:0;color:var(--muted);font-size:12px}
-    .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-    .tile{border-radius:12px;padding:6px 10px;color:#06231f;min-width:0}
-    .tile small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
-    .tile b{display:block;font-size:13px;overflow-wrap:anywhere}
+    .tiles{display:flex;flex-wrap:wrap;gap:6px}
+    .tile{display:inline-flex;align-items:baseline;gap:4px;border-radius:999px;padding:3px 8px;color:#06231f;font-size:11px;font-weight:700;white-space:nowrap}
+    .tile small{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
     .t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
     html.navisuite-light .tile{color:#fff}
     .sum{display:flex;gap:6px}.sum span{flex:1;text-align:center;border-radius:10px;padding:6px 0;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
@@ -71,7 +70,8 @@
     .det p{grid-column:1/-1;margin:0;color:var(--muted);line-height:1.45;font-family:Manrope,system-ui,sans-serif}
     .altre{border-radius:12px}.altre>summary{list-style:none;cursor:pointer;text-align:center;padding:8px;color:var(--muted);font-size:13px;font-weight:700}.altre>summary::-webkit-details-marker{display:none}.altre[open]>summary{margin-bottom:6px}
     .mail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--amber) 14%,var(--card));border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);font-size:13px}
-    .mail b{color:var(--amber)}.mail a{text-decoration:none}
+    .mail{display:block}.mail-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.mail b{color:var(--amber)}.mail a{text-decoration:none}
+    .mail-ogg{margin:10px 0 4px;font-size:12px}.mail-testo{margin:0;max-height:520px;overflow:auto;padding:10px;border-radius:10px;background:var(--bg);color:var(--ink);font:11px/1.5 var(--mono);white-space:pre;user-select:text}
     .ok-all{padding:12px;border-radius:14px;background:color-mix(in srgb,var(--green) 14%,var(--card));color:var(--green);font-weight:700;font-size:14px;text-align:center}
     .spark{display:flex;align-items:flex-end;gap:4px;height:90px;padding:10px 10px 0;border-radius:14px;background:var(--card)}
     .spark div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
@@ -85,7 +85,6 @@
     .vtab{width:100%;border-collapse:collapse;font-size:13px}.vtab th,.vtab td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}.vtab th{color:var(--muted);font-size:11px}
     .vtab td small{display:block;color:var(--muted);font-size:11px}.vwrap{overflow-x:auto}
     body.vb-blur .eurv{filter:blur(7px);user-select:none}
-    @media(max-width:420px){.tile b{font-size:12px}.tile{padding:6px 8px}}
     @media(prefers-reduced-motion:no-preference){.voce,.chip{transition:background .15s,border-color .15s}}
   </style>
 </head>
@@ -132,6 +131,6 @@
   <script src="assets/js/busta-parser.js?v=2"></script>
   <script src="assets/js/distinta-totals.js?v=10"></script>
   <script src="assets/js/busta-compare.js?v=18"></script>
-  <script src="assets/js/verifica-busta.js?v=15"></script>
+  <script src="assets/js/verifica-busta.js?v=16"></script>
 </body>
 </html>

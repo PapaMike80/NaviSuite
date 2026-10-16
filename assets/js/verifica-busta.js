@@ -101,16 +101,64 @@
   const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
 
   // Differenze fuori dalla tolleranza scelta: mail pronta per l'ufficio personale (si apre nell'app di posta, si puo' anche copiare)
-  function mailHtml(item, rows) {
-    const voci = rows.filter(row => row.status !== 'ok' && !row.trascurabile); // fuori dalla tolleranza scelta
-    if (!voci.length) return '';
+  // Giorni della Distinta che compongono una voce contestata: tabella per la mail all'ufficio.
+  // Le competenze si contano nel mese di calendario; straordinari e banca ore sulle settimane del periodo.
+  const hh = min => clock(min).replace(':', 'h');
+  const ggmm = d => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
+  const GIORNO = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+  function dettaglioGiorni(row, item, c, calc) {
+    const entries = (state.data?.entries || []).filter(Boolean);
+    const lavorati = list => list.filter(e => calc.isWorking(e)).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const delMese = lavorati(entries.filter(e => String(e.date).slice(0, 7) === item.month));
+    const riga = (e, valore) => `${ggmm(e.date)} ${GIORNO[new Date(`${e.date}T12:00:00`).getDay()]}  ${String(e.shift || '').padEnd(6)} ${valore}`;
+    const scelti = (filtro, valore = () => '1') => delMese.filter(filtro).map(e => riga(e, valore(e)));
+    const holiday = e => calc.holidayValue(e, new Date(`${e.date}T12:00:00`));
+    const missed = e => Number(e.missedRest ?? e.missedRestMinutes ?? e.mancatoRiposo) || 0;
+    switch (row.id) {
+      case 'embark': return scelti(e => e.embark);
+      case 'sunday': return scelti(e => new Date(`${e.date}T12:00:00`).getDay() === 0);
+      case 'cash': return scelti(e => e.cashHandling && !e.embark);
+      case 'dailyDM': return scelti(e => e.cashHandling);
+      case 'overnight40': return scelti(e => e.overnight40);
+      case 'secondTicket': return scelti(e => e.secondMeal);
+      case 'ticket': return scelti(e => calc.ticketDue(e) && !calc.ticketValue(e), () => 'ticket non usato');
+      case 'allowance24': return scelti(e => [24, 50].includes(Number(e.allowanceRate)) || e.travel === true, e => Number(e.allowanceRate) === 50 || e.travel === true ? 'trasferta 50%' : 'diaria 24%');
+      case 'cashEmbark': return scelti(e => e.cashHandling && e.embark, e => `turno ${hh(calc.serviceMinutes(e))} · lavorate ${hh(calc.workedMinutes(e))}`);
+      case 'holiday': return scelti(e => holiday(e) || missed(e), e => [holiday(e) ? `festività ${hh(calc.workedMinutes(e))}` : '', missed(e) ? `mancato riposo ${hh(missed(e))}` : ''].filter(Boolean).join(' + '));
+      case 'bank': return lavorati(entries.filter(e => e.date >= c.p.startIso && e.date <= c.p.endIso && Number(e.bank))).map(e => riga(e, hh(Number(e.bank))));
+      case 'overtime': {
+        const righe = (c.distinta.period.weeks || []).map(w => `sett. ${ggmm(w.startIso)}–${ggmm(w.endIso)}  lavorate ${hh(w.workedMinutes)}  straord. ${hh(w.overtimeMinutes)}`);
+        if (c.distinta.totals.overtimeTailMinutes) righe.push(`giorni dopo il ${ggmm(c.p.endIso)}  straord. ${hh(c.distinta.totals.overtimeTailMinutes)}`);
+        return righe;
+      }
+      default: return [];
+    }
+  }
+
+  function mailTesto(item, c, calc) {
+    const voci = c.result.rows.filter(row => row.status !== 'ok' && !row.trascurabile); // fuori dalla tolleranza scelta
+    if (!voci.length) return null;
     const mese = monthLabel(item.month).toLowerCase(), busta = item.bustaMonth ? monthLabel(item.bustaMonth).toLowerCase() : item.fileName;
     const nome = String(agent?.name || '').trim();
-    const righe = voci.map(row => `- ${row.label} (voce ${row.codes.join(' + ')}): in busta ${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}, dalla mia distinta ${unitValue(row.distinta, row.unit)} (differenza ${signedUnit(row.diff, row.unit)}${row.euro ? `, circa ${euro(Math.abs(row.euro))}` : ''}).`).join('\n');
+    const blocchi = voci.map((row, i) => {
+      const giorni = dettaglioGiorni(row, item, c, calc);
+      return [
+        `${i + 1}. ${row.label} (voce ${row.codes.join(' + ')})`,
+        `   In busta: ${row.busta === null ? 'assente' : unitValue(row.busta, row.unit)}${row.importo ? ` (${euro(row.importo)})` : ''}`,
+        `   Dalla mia distinta: ${unitValue(row.distinta, row.unit)} — ${row.distintaLabel || row.label}`,
+        `   Differenza: ${signedUnit(row.diff, row.unit)}${row.euro ? `, circa ${euro(Math.abs(row.euro))}` : ''}${row.status === 'check' ? ' (da verificare)' : ''}`,
+        ...(giorni.length ? ['   Dettaglio dalla distinta:', ...giorni.map(g => `     ${g}`)] : [])
+      ].join('\n');
+    }).join('\n\n');
     const oggetto = `Verifica busta paga di ${busta} (dati di ${mese})${nome ? ` - ${nome}` : ''}`;
-    const testo = `Buongiorno,\n\nconfrontando la busta paga di ${busta} con la mia distinta di ${mese} ho trovato queste differenze:\n\n${righe}\n\nVi chiedo cortesemente di verificare e, se necessario, di correggere nella prossima busta.\n\nGrazie,\n${nome}`;
-    const href = `mailto:?subject=${encodeURIComponent(oggetto)}&body=${encodeURIComponent(testo)}`;
-    return `<div class="mail"><span><b>${voci.length === 1 ? '1 differenza' : `${voci.length} differenze`}</b> oltre il ${Math.round(tolleranza() * 100)}%</span><span><a class="chip" href="${href}">✉ Mail ufficio</a> <button type="button" class="chip" data-copia="${escapeHtml(`${oggetto}\n\n${testo}`)}">Copia</button></span></div>`;
+    const testo = `Buongiorno,\n\nsono ${nome || 'l\'agente'}${agent?.id ? ` (matricola ${agent.id})` : ''}. Confrontando la busta paga di ${busta} con la mia distinta di ${mese} (periodo ${dateText(c.p.startIso)} – ${dateText(c.p.endIso)}) ho trovato ${voci.length === 1 ? 'questa differenza' : 'queste differenze'}:\n\n${blocchi}\n\nVi chiedo cortesemente di verificare e, se necessario, di correggere nella prossima busta.\n\nGrazie,\n${nome}`;
+    return { oggetto, testo, n: voci.length };
+  }
+  function mailHtml(item, c, calc) {
+    const m = mailTesto(item, c, calc);
+    if (!m) return '';
+    const href = `mailto:?subject=${encodeURIComponent(m.oggetto)}&body=${encodeURIComponent(m.testo)}`;
+    return `<div class="mail"><div class="mail-head"><span><b>${m.n === 1 ? '1 differenza' : `${m.n} differenze`}</b> oltre il ${Math.round(tolleranza() * 100)}%: testo per l'ufficio personale</span><span><a class="chip" href="${href}">✉ Apri mail</a> <button type="button" class="chip" data-copia="${escapeHtml(`${m.oggetto}\n\n${m.testo}`)}">Copia</button></span></div><p class="mail-ogg"><b>Oggetto:</b> ${escapeHtml(m.oggetto)}</p><pre class="mail-testo">${escapeHtml(m.testo)}</pre></div>`;
   }
 
   // ---------------- Archivio delle buste: solo i dati letti (mese, totali, voci), mai il PDF ----------------
@@ -174,7 +222,7 @@
   const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';
 
   function tilesHtml(t) {
-    return `<div class="tiles num"><div class="tile t-l"><small>Lordo</small><b>${eurv(t.competenze)}</b></div><div class="tile t-r"><small>Ritenute</small><b>${eurv(t.ritenute)}</b></div><div class="tile t-n"><small>Netto</small><b>${eurv(t.netto)}</b></div></div>`;
+    return `<div class="tiles num"><span class="tile t-l"><small>Lordo</small> ${eurv(t.competenze)}</span><span class="tile t-r"><small>Rit.</small> ${eurv(t.ritenute)}</span><span class="tile t-n"><small>Netto</small> ${eurv(t.netto)}</span></div>`;
   }
   function voceHtml(row) {
     const c = COLORE[row.status];
@@ -204,9 +252,8 @@
       const s = c.result.summary;
       corpo = `<div class="sum"><span style="--c:var(--green)">${s.ok} ok</span><span style="--c:var(--rose)">${s.diff} diff.</span><span style="--c:var(--amber)">${s.check} verifica</span></div>`
         + (rows.length ? '' : '<p class="msub">Nessuna delle voci confrontabili compare nella busta o nella Distinta di questo mese.</p>')
-        + `<div class="voci">${brutte.map(voceHtml).join('')}${!brutte.length && buone.length ? '<div class="ok-all">✓ Tutte le voci tornano con la Distinta</div>' : ''}`
-        + (buone.length ? (brutte.length ? `<details class="altre"><summary>+ altre ${buone.length} voci ok ▾</summary><div class="voci">${buone.map(voceHtml).join('')}</div></details>` : buone.map(voceHtml).join('')) : '') + '</div>'
-        + mailHtml(item, c.result.rows);
+        + `<div class="voci">${!brutte.length && buone.length ? '<div class="ok-all">✓ Tutte le voci tornano con la Distinta</div>' : ''}${rows.map(voceHtml).join('')}</div>`
+        + mailHtml(item, c, calculator);
     }
     els.titolo.textContent = nome;
     els.confronto.innerHTML = `<div class="sel">${pills}</div><div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {})}${corpo}`;
