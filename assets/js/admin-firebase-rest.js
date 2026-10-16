@@ -1023,20 +1023,6 @@
   }
 
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
-  // Controlli cassa: {id: record}. Ogni record ha id, created, updated (ISO).
-  async function getControlliCassa() {
-    return (await databaseRequest("private/adminUpdates/controlliCassa", { timeout:15000 })).data || {};
-  }
-  async function saveControlloCassa(record) {
-    const ora = new Date().toISOString();
-    const id = String(record.id || `cc${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`).replace(/[.#$\[\]\/]/g, "_");
-    const item = { ...record, id, created:record.created || ora, updated:ora };
-    await databaseRequest(`private/adminUpdates/controlliCassa/${id}`, { method:"PUT", body:JSON.stringify(item) });
-    return item;
-  }
-  // Collegamenti pubblici (orari per stagione), un solo documento
-  async function getCollegamenti() { return (await databaseRequest("private/adminUpdates/collegamentiPubblici")).data || null; }
-  async function saveCollegamenti(value) { await databaseRequest("private/adminUpdates/collegamentiPubblici", { method:"PUT", body:JSON.stringify(value) }); return value; }
   // Buste paga: solo i dati letti (mese, totali, voci), mai il PDF. {'2026-10': {...}}
   async function getBustePaga(agentId) {
     return (await databaseRequest(`private/adminUpdates/bustePaga/${safeUserKey(agentId)}`)).data || {};
@@ -1261,10 +1247,6 @@
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
-    getControlliCassa,
-    saveControlloCassa,
-    getCollegamenti,
-    saveCollegamenti,
     getBustePaga,
     saveBustaPaga,
     getCompetenzeServizi,

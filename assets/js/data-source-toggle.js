@@ -3,9 +3,6 @@
   // Interruttore admin: sorgente dati Firebase <-> PocketBase (test).
   // Solo su impostazioni.html, solo per gli amministratori. Per-dispositivo:
   // ogni admin cambia la propria copia, gli altri non sono toccati.
-  // Disattivato: l'app usa solo Firebase.
-  try { localStorage.removeItem('navisuite.dataSource'); } catch (_) {}
-  return;
   if (!/(?:^|\/)impostazioni\.html$/i.test(location.pathname)) return;
 
   const profile = (() => {

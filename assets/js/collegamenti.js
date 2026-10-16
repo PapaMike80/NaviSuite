@@ -1,5 +1,5 @@
 // Collegamenti pubblici tra le residenze (solo admin).
-// Orari per stagione (invernale/estiva) salvati sul telefono e su Firebase (collegamentiPubblici),
+// Orari per stagione (invernale/estiva) salvati sul telefono e su PocketBase (collegamenti_pubblici, chiave "orari"),
 // piu' la ricerca "da residenza a residenza, arrivo entro le ..." con eventuali cambi.
 (function () {
   const STORAGE = 'navisuite.collegamenti';
@@ -181,14 +181,27 @@
   const disegna = () => { disegnaStagioni(); disegnaLinee(); eseguiRicerca(); };
 
   // ---------- salvataggio ----------
-  // Archivio unico: Firebase (private/adminUpdates/collegamentiPubblici)
-  const FB = window.NaviAdminFirebase;
+  const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
+  const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
+  const PB_URL = () => `${pbBase()}/api/collections/collegamenti_pubblici/records`;
+  const FILTRO = encodeURIComponent('chiave = "orari"');
+  let pbId = null;
+  async function pbFetch(url, opts = {}) {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const token = (() => { try { return localStorage.getItem('navisuite.pb.token') || ''; } catch (_) { return ''; } })();
+      const res = await fetch(url, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: token } : {}) }, cache: 'no-store', signal: ctrl.signal });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
+      return out;
+    } finally { clearTimeout(t); }
+  }
   const stato = (testo, tipo = '') => { const el = $('col-status'); el.textContent = testo; el.className = `col-status ${tipo}`; };
   async function scarica() {
     try {
-      await FB.ready;
-      const rec = await FB.getCollegamenti();
-      if (!rec?.dati) { stato('Orari di base: salva una modifica per condividerli'); return; }
+      const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${FILTRO}`)).items?.[0];
+      if (!rec) { stato('Orari di base: salva una modifica per condividerli'); return; }
+      pbId = rec.id;
       const remoti = rec.dati?.stagioni ? aggiorna(rec.dati) : null;
       if (remoti && remoti.versione !== rec.dati.versione) { dati = remoti; salva(); }
       else if (remoti && JSON.stringify(remoti) !== JSON.stringify(dati)) {
@@ -198,16 +211,19 @@
         if (!modifica) disegna();
       }
       stato(`Aggiornati ${rec.aggiornato_da ? `da ${rec.aggiornato_da}` : ''}`.trim(), 'ok');
-    } catch (error) { console.warn('Collegamenti non letti', error); stato('Copia sul telefono (database non raggiungibile)', 'bad'); }
+    } catch (error) { console.warn('Collegamenti non letti da PocketBase', error); stato('Copia sul telefono (PocketBase non raggiungibile)', 'bad'); }
   }
   async function salva() {
     localStorage.setItem(STORAGE, JSON.stringify(dati));
     stato('Salvataggio…');
     const agente = (() => { try { const a = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); return a ? `${a.id} ${a.name || ''}`.trim() : ''; } catch (_) { return ''; } })();
+    const corpo = JSON.stringify({ chiave: 'orari', dati, aggiornato_da: agente });
     try {
-      await FB.saveCollegamenti({ chiave: 'orari', dati, aggiornato_da: agente, aggiornato_il: new Date().toISOString() });
+      if (!pbId) pbId = (await pbFetch(`${PB_URL()}?perPage=1&filter=${FILTRO}`)).items?.[0]?.id || null;
+      const out = pbId ? await pbFetch(`${PB_URL()}/${encodeURIComponent(pbId)}`, { method: 'PATCH', body: corpo }) : await pbFetch(PB_URL(), { method: 'POST', body: corpo });
+      pbId = out.id;
       stato('Salvato per tutti', 'ok');
-    } catch (error) { console.warn('Collegamenti non salvati', error); stato(`Salvato solo sul telefono: ${error.message}`, 'bad'); }
+    } catch (error) { console.warn('Collegamenti non salvati su PocketBase', error); stato(`Salvato solo sul telefono: ${error.message}`, 'bad'); }
   }
 
   // ---------- eventi ----------
