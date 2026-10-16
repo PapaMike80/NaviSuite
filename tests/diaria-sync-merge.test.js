@@ -18,3 +18,6 @@ assert.match(monthly, /if\(row\.field==='cashHandling'\)entry\.cashHandlingManua
 // Versione ripristinata: giornate bloccate (imported false, maneggio a mano).
 assert.match(src, /modificatoIl:ora,imported:false,cashHandlingManual:true/);
 console.log('Diaria manual flags test passed');
+// Allineamento ai turni: le giornate passate gia' presenti non vengono piu' modificate.
+assert.match(src, /if\(existing&&date<todayIso\(\)\)return;/);
+console.log('Diaria past days frozen test passed');
