@@ -250,7 +250,9 @@
       if (!c.distinta.entryCount) alerts.push({ kind: 'warn', text: `Nessuna giornata nella Distinta dal ${dateText(c.p.startIso)} al ${dateText(c.p.endIso)}.` });
       // Ordine per valore economico: prima le voci che pesano di piu' in euro
       const valore = row => Math.abs(Number(row.importo) || Number(row.importoDistinta) || Number(row.euro) || 0);
-      const rows = c.result.rows.slice().sort((a, b) => valore(b) - valore(a));
+      // Prima le differenze, poi le voci da verificare, poi quelle ok; in ogni gruppo per valore in euro
+      const ordine = { diff: 0, check: 1, ok: 2 };
+      const rows = c.result.rows.slice().sort((a, b) => ordine[a.status] - ordine[b.status] || valore(b) - valore(a));
       const brutte = rows.filter(r => r.status !== 'ok'), buone = rows.filter(r => r.status === 'ok');
       const s = c.result.summary;
       corpo = `<div class="sum"><span style="--c:var(--green)">${s.ok} ok</span><span style="--c:var(--rose)">${s.diff} diff.</span><span style="--c:var(--amber)">${s.check} verifica</span></div>`
