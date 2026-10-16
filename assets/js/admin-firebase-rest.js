@@ -1023,6 +1023,15 @@
   }
 
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
+  // Buste paga: solo i dati letti (mese, totali, voci), mai il PDF. {'2026-10': {...}}
+  async function getBustePaga(agentId) {
+    return (await databaseRequest(`private/adminUpdates/bustePaga/${safeUserKey(agentId)}`)).data || {};
+  }
+  async function saveBustaPaga(agentId, mese, dati) {
+    if (!/^\d{4}-\d{2}$/.test(String(mese || ""))) throw new Error("Mese della busta non valido");
+    const path = `private/adminUpdates/bustePaga/${safeUserKey(agentId)}/${mese}`;
+    await databaseRequest(path, dati ? { method:"PUT", body:JSON.stringify(dati) } : { method:"DELETE" });
+  }
   async function getDiariaConversioni(agentId) {
     const result = await databaseRequest(`private/adminUpdates/diariaConversioni/${safeUserKey(agentId)}`);
     return result.data || null;
@@ -1238,6 +1247,8 @@
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
+    getBustePaga,
+    saveBustaPaga,
     getCompetenzeServizi,
     saveCompetenzeServizi,
     getPageAccess,

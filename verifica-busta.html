@@ -83,12 +83,13 @@
     .vb-details-body{padding:0 16px 16px;overflow-x:auto}
     @media(max-width:560px){.vb-summary td:first-child{min-width:104px;max-width:130px;white-space:normal;word-break:normal;hyphens:auto}.vb-summary th,.vb-summary td{padding:7px 4px!important;font-size:12px!important}.vb-summary .vb-state{font-size:0!important}.vb-summary .vb-state::first-letter{font-size:15px}}
     .vb-reload{margin-top:10px;min-height:40px;padding:8px 14px;border:1px solid var(--vb-edge);border-radius:10px;background:var(--vb-chip);color:var(--vb-accent);font:700 14px inherit;cursor:pointer}
+    .vb-anno td button{font:inherit;padding:2px 8px;border-radius:8px;border:1px solid var(--vb-line);background:transparent;color:inherit;cursor:pointer}.vb-anno tfoot td{font-weight:700;border-top:2px solid var(--vb-line)}.vb-anno-voci{margin-top:14px}
     .vb-totali{margin:6px 0 10px}.vb-totali .vb-netto dd{color:var(--vb-accent)}
     .vb-toll{margin:0 0 12px;max-width:200px}.vb-toll select{width:100%}
     .vb-summary td:first-child{max-width:300px;white-space:normal}.vb-summary .vb-note-row{display:block;margin-top:3px;color:var(--vb-check);font-size:11px;line-height:1.35}
     .vb-mail{margin-top:10px;padding:12px 14px;border:1px solid var(--vb-check);border-radius:12px;background:var(--vb-check-bg)}.vb-mail p{margin:0 0 8px;font-size:14px}.vb-mail a.vb-reload{display:inline-flex;align-items:center;text-decoration:none;margin-right:6px}
     .vb-tools{margin:0 0 10px}
-    body.vb-blur .vb-totali dd,body.vb-blur .vb-summary td:nth-child(5),body.vb-blur .vb-euro-diff{filter:blur(7px);user-select:none}
+    body.vb-blur .vb-totali dd,body.vb-blur .vb-summary td:nth-child(5),body.vb-blur .vb-euro-diff,body.vb-blur .vb-anno-eur{filter:blur(7px);user-select:none}
     .vb-month{margin-top:18px}.vb-month:first-child{margin-top:0}.vb-month h3{margin:0 0 2px;font:600 16px/1.3 Sora,system-ui,sans-serif}.vb-month>p{margin:0 0 8px;color:var(--vb-muted);font-size:13px}.vb-summary td small.vb-euro-diff{display:block;color:var(--vb-muted);font-size:11px}.vb-files{margin:8px 0 0}.vb-clear{margin-top:8px;border:0;background:none;color:var(--vb-diff);font:600 13px inherit;text-decoration:underline;cursor:pointer}
     .vb-summary-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--vb-line);border-radius:14px;background:var(--vb-field)}
     .vb-summary td,.vb-summary th{padding:9px 10px}
@@ -134,7 +135,7 @@
       <button type="button" class="vb-clear" id="vbClear" hidden>Togli tutte le buste</button>
     </section>
 
-    <section class="vb-card" aria-labelledby="vbMonthTitle">
+    <section class="vb-card" aria-labelledby="vbMonthTitle" hidden>
       <div class="vb-head"><span class="vb-num" aria-hidden="true">02</span><div><h2 id="vbMonthTitle">Mese della Distinta</h2><p>Proposto dal mese della busta, puoi cambiarlo (solo con una busta: con più buste ognuna va con il mese precedente).</p></div></div>
       <div class="vb-field" id="vbMonthField"><label for="vbMonth">Distinta di</label><input type="month" id="vbMonth"></div>
       <p class="vb-meta" id="vbPeriod"></p>
@@ -145,14 +146,21 @@
     <div id="vbAlerts" role="status" aria-live="polite"></div>
 
     <section class="vb-card" id="vbResult" aria-labelledby="vbResultTitle" hidden>
-      <div class="vb-head"><span class="vb-num" aria-hidden="true">03</span><div><h2 id="vbResultTitle">Risultato</h2><p>Differenza = Distinta − busta. Valore = importo della voce in busta; sotto la differenza, la stima in euro.</p></div></div>
+      <div class="vb-head"><span class="vb-num" aria-hidden="true">02</span><div><h2 id="vbResultTitle">Risultato</h2><p>Differenza = Distinta − busta. Valore = importo della voce in busta; sotto la differenza, la stima in euro.</p></div></div>
       <div class="vb-tools"><button type="button" class="vb-reload" id="vbBlur" aria-pressed="false">🙈 Nascondi cifre</button></div>
       <div class="vb-field vb-toll"><label for="vbToll">Tolleranza</label><select id="vbToll"><option value="0">0% (esatto)</option><option value="5">5%</option><option value="10" selected>10%</option></select></div>
       <div id="vbMonths"></div>
     </section>
+
+    <section class="vb-card" id="vbAnno" aria-labelledby="vbAnnoTitle" hidden>
+      <div class="vb-head"><span class="vb-num" aria-hidden="true">03</span><div><h2 id="vbAnnoTitle">Riepilogo annuale</h2><p>Buste salvate: solo i dati letti, non il PDF. Tocca un mese per riaprire il confronto.</p></div></div>
+      <div class="vb-field"><label for="vbAnnoSel">Anno</label><select id="vbAnnoSel"></select></div>
+      <div id="vbAnnoBody"></div>
+      <p class="vb-meta" id="vbAnnoStato"></p>
+    </section>
   </main>
   <script src="assets/js/shared-roles.js?v=7"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=78"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=79"></script>
   <script src="assets/js/admin-pocketbase-rest.js?v=4"></script>
   <script src="assets/js/shared-menu.js?v=1.76"></script>
   <script src="assets/js/offline.js?v=2"></script>
@@ -162,6 +170,6 @@
   <script src="assets/js/busta-parser.js?v=2"></script>
   <script src="assets/js/distinta-totals.js?v=10"></script>
   <script src="assets/js/busta-compare.js?v=18"></script>
-  <script src="assets/js/verifica-busta.js?v=11"></script>
+  <script src="assets/js/verifica-busta.js?v=12"></script>
 </body>
 </html>

@@ -38,7 +38,7 @@
   let agent = null;
   try { agent = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) { agent = null; }
 
-  const state = { buste: [], data: null, loadingData: null };
+  const state = { buste: [], data: null, loadingData: null, archivio: {} };
 
   function setAlerts(list) {
     els.alerts.innerHTML = list.map(alert => `<p class="vb-alert ${alert.kind || 'warn'}">${escapeHtml(alert.text)}</p>`).join('');
@@ -160,10 +160,10 @@
     const calculator = window.NaviDistintaTotals.create({ storage: localStorage });
     const blocks = state.buste.map(item => {
       const nome = item.bustaMonth ? `busta di ${monthLabel(item.bustaMonth).toLowerCase()}` : item.fileName;
-      if (!item.busta.period && single) alerts.push({ kind: 'warn', text: `${nome}: non trovo il mese della busta, scegli tu il mese della Distinta.` });
+      if (!item.busta.period && single) alerts.push({ kind: 'warn', text: `${nome}: non trovo il mese della busta, la confronto con la Distinta del mese scorso.` });
       if (!item.busta.check.completa) alerts.push({ kind: item.busta.check.headerFound ? 'warn' : 'error', text: `${nome}: ${item.busta.check.message}` });
       const p = window.NaviDistintaTotals.competencePeriod(item.month);
-      if (!p.startIso) return `<div class="vb-month"><h3>${escapeHtml(nome)}</h3><p>Mese della Distinta non trovato: carica questa busta da sola e scegli il mese.</p></div>`;
+      if (!p.startIso) return `<div class="vb-month"><h3>${escapeHtml(nome)}</h3><p>Mese della busta non trovato: non posso confrontarla con la Distinta.</p></div>`;
       const distinta = calculator.compute(data.entries, item.month);
       if (!distinta.entryCount) alerts.push({ kind: 'warn', text: `${nome}: nessuna giornata nella Distinta dal ${dateText(p.startIso)} al ${dateText(p.endIso)}.` });
       const result = window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() });
@@ -174,6 +174,81 @@
     setAlerts(alerts);
     els.months.innerHTML = blocks.join('');
     els.result.hidden = false;
+  }
+
+  // ---------------- Archivio delle buste: solo i dati letti (mese, totali, voci), mai il PDF ----------------
+  const ARCH_KEY = () => `navisuite.bustePaga.${agent?.id}`;
+  const archivioLocale = () => { try { return JSON.parse(localStorage.getItem(ARCH_KEY()) || '{}') || {}; } catch (_) { return {}; } };
+  const scriviLocale = () => { try { localStorage.setItem(ARCH_KEY(), JSON.stringify(state.archivio)); } catch (_) {} };
+  const statoAnno = t => { const el = $('vbAnnoStato'); if (el) el.textContent = t; };
+  function datiBusta(item) {
+    const b = item.busta;
+    return {
+      bustaMonth: item.bustaMonth, month: item.month, fileName: item.fileName, period: b.period || null,
+      totals: b.totals || {}, check: b.check || {},
+      voci: (b.voci || []).map(v => ({ flag: v.flag ?? null, code: v.code, description: v.description, quantity: v.quantity, base: v.base, figurative: v.figurative, amount: v.amount })),
+      savedAt: new Date().toISOString()
+    };
+  }
+  async function salvaBusta(item) {
+    if (!item.bustaMonth) return;
+    const dati = datiBusta(item);
+    state.archivio[item.bustaMonth] = dati; scriviLocale();
+    try { await window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, item.bustaMonth, dati); statoAnno('✓ Buste salvate'); }
+    catch (error) { console.warn('Busta non salvata su Firebase', error); statoAnno('Busta salvata solo su questo dispositivo (Firebase non raggiungibile)'); }
+  }
+  async function togliBusta(mese) {
+    if (!confirm(`Togliere dal riepilogo la busta di ${monthLabel(mese).toLowerCase()}?`)) return;
+    delete state.archivio[mese]; scriviLocale(); renderAnno();
+    try { await window.NaviAdminFirebase?.saveBustaPaga?.(agent.id, mese, null); } catch (error) { console.warn(error); }
+  }
+  async function caricaArchivio() {
+    state.archivio = archivioLocale(); renderAnno();
+    try {
+      await window.NaviAdminFirebase?.ready;
+      const remoto = await window.NaviAdminFirebase?.getBustePaga?.(agent.id);
+      if (remoto) {
+        Object.entries(state.archivio).forEach(([m, d]) => { if (!remoto[m]) window.NaviAdminFirebase.saveBustaPaga(agent.id, m, d).catch(() => {}); });
+        state.archivio = { ...state.archivio, ...remoto }; scriviLocale(); renderAnno();
+      }
+    } catch (error) { console.warn('Archivio buste non letto da Firebase', error); statoAnno('Riepilogo dalla copia su questo dispositivo'); }
+  }
+  function apriBusta(mese) {
+    const d = state.archivio[mese]; if (!d) return;
+    const item = { busta: { period: d.period, voci: d.voci || [], totals: d.totals || {}, check: { completa: true, headerFound: true, message: '', ...(d.check || {}) } }, fileName: d.fileName || `busta ${mese}`, bustaMonth: mese, month: d.month || (d.period ? window.NaviBustaParser.previousMonth(d.period) : '') };
+    const i = state.buste.findIndex(b => b.bustaMonth === mese);
+    if (i >= 0) state.buste[i] = item; else state.buste.push(item);
+    state.buste.sort((a, b) => String(a.bustaMonth).localeCompare(String(b.bustaMonth)));
+    if (state.buste.length === 1) els.month.value = item.month;
+    render().then(() => $('vbResult')?.scrollIntoView({ behavior: 'smooth' })).catch(error => console.error(error));
+  }
+  function renderAnno() {
+    const box = $('vbAnno'), sel = $('vbAnnoSel'), body = $('vbAnnoBody');
+    if (!box) return;
+    const mesi = Object.keys(state.archivio).filter(m => /^\d{4}-\d{2}$/.test(m)).sort();
+    box.hidden = !mesi.length;
+    if (!mesi.length) return;
+    const anni = [...new Set(mesi.map(m => m.slice(0, 4)))].sort().reverse();
+    const scelto = anni.includes(sel.value) ? sel.value : anni[0];
+    sel.innerHTML = anni.map(a => `<option${a === scelto ? ' selected' : ''}>${a}</option>`).join('');
+    const delAnno = mesi.filter(m => m.startsWith(scelto));
+    const eur = v => v === null || v === undefined ? '—' : `<span class="vb-anno-eur">${escapeHtml(euro(v))}</span>`;
+    const tot = { competenze: 0, ritenute: 0, netto: 0 };
+    const righe = delAnno.map(m => {
+      const t = state.archivio[m].totals || {};
+      Object.keys(tot).forEach(k => { tot[k] += Number(t[k]) || 0; });
+      return `<tr><td><button type="button" data-apri="${m}">${escapeHtml(monthLabel(m))}</button></td><td>${eur(t.competenze)}</td><td>${eur(t.ritenute)}</td><td>${eur(t.netto)}</td><td><button type="button" data-togli="${m}" aria-label="Togli">✕</button></td></tr>`;
+    }).join('');
+    // Totali per voce nell'anno
+    const voci = new Map();
+    delAnno.forEach(m => (state.archivio[m].voci || []).forEach(v => {
+      const k = v.code; if (!k) return;
+      const x = voci.get(k) || { code: k, description: v.description, quantity: 0, amount: 0, mesi: 0 };
+      x.quantity += Number(v.quantity) || 0; x.amount += Number(v.amount) || 0; x.mesi += 1; voci.set(k, x);
+    }));
+    const righeVoci = [...voci.values()].sort((a, b) => String(a.code).localeCompare(String(b.code))).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td>${v.quantity ? number(v.quantity, 2) : '—'}</td><td>${eur(v.amount)}</td><td>${v.mesi}</td></tr>`).join('');
+    body.innerHTML = `<div class="vb-summary-wrap"><table class="vb-table vb-anno"><thead><tr><th>Busta</th><th>Lordo</th><th>Ritenute</th><th>Netto</th><th></th></tr></thead><tbody>${righe}</tbody><tfoot><tr><td>Totale ${scelto} (${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'})</td><td>${eur(tot.competenze)}</td><td>${eur(tot.ritenute)}</td><td>${eur(tot.netto)}</td><td></td></tr></tfoot></table></div>`
+      + (righeVoci ? `<details class="vb-anno-voci"><summary>Totali per voce nel ${scelto}</summary><div class="vb-summary-wrap"><table class="vb-table vb-anno"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
   }
 
   async function onFile() {
@@ -190,6 +265,7 @@
         // la stessa busta caricata di nuovo sostituisce quella vecchia
         const i = state.buste.findIndex(b => (bustaMonth && b.bustaMonth === bustaMonth) || b.fileName === file.name);
         if (i >= 0) state.buste[i] = item; else state.buste.push(item);
+        await salvaBusta(item);
       } catch (error) {
         console.error('Verifica busta: lettura PDF non riuscita', error);
         errori.push(`${file.name} (${error.message || error})`);
@@ -200,6 +276,7 @@
     els.fileInfo.textContent = errori.length ? `Non riesco a leggere: ${errori.join(', ')}.` : `${state.buste.length === 1 ? '1 busta caricata' : `${state.buste.length} buste caricate`}. I dati variabili di ogni busta si riferiscono al mese precedente.`;
     els.fileLabel.classList.remove('is-busy');
     els.fileInput.value = '';
+    renderAnno();
     await render();
   }
 
@@ -225,6 +302,9 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ricarica(); });
     els.clear.addEventListener('click', () => { state.buste = []; els.fileInfo.textContent = ''; render().catch(error => console.error(error)); });
     els.month.addEventListener('change', () => { render().catch(error => console.error(error)); });
+    $('vbAnnoSel')?.addEventListener('change', renderAnno);
+    $('vbAnnoBody')?.addEventListener('click', e => { const a = e.target.closest('[data-apri]'), t = e.target.closest('[data-togli]'); if (a) apriBusta(a.dataset.apri); if (t) togliBusta(t.dataset.togli); });
+    caricaArchivio();
     render().catch(error => console.error('Verifica busta', error));
   }
 
