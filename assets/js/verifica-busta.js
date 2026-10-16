@@ -286,7 +286,8 @@
       const x = voci.get(v.code) || { code: v.code, description: v.description, quantity: 0, amount: 0, mesi: 0 };
       x.quantity += Number(v.quantity) || 0; x.amount += Number(v.amount) || 0; x.mesi += 1; voci.set(v.code, x);
     }));
-    const righeVoci = [...voci.values()].sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td class="num">${v.quantity ? number(v.quantity, 2) : '—'}</td><td class="num">${eurv(v.amount)}</td><td class="num">${v.mesi}</td></tr>`).join('');
+    // per valore: prima gli importi positivi dal piu' alto, i negativi (ritenute) per ultimi
+    const righeVoci = [...voci.values()].sort((a, b) => b.amount - a.amount).map(v => `<tr><td>${escapeHtml(v.code)}<small>${escapeHtml(v.description || '')}</small></td><td class="num">${v.quantity ? number(v.quantity, 2) : '—'}</td><td class="num">${eurv(v.amount)}</td><td class="num">${v.mesi}</td></tr>`).join('');
     els.titolo.textContent = `Anno ${state.anno}`;
     els.anno.innerHTML = `<div class="sel">${anni.map(a => `<button type="button" class="chip${a === state.anno ? ' on' : ''}" data-anno="${a}">${a}</button>`).join('')}</div>`
       + `<p class="msub">${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'} · netto mese per mese (rosso: differenze con la Distinta)</p>`
