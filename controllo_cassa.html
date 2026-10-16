@@ -715,6 +715,7 @@
           <button type="button" data-op="versa-cassa" style="${btn};background:#047857;color:#fff;font-size:13px">Dalle monete della cassa</button>
           <button type="button" data-op="versa-nuovo" style="${btn};background:#0e7490;color:#fff;font-size:13px">Versamento nuovo<br><small style="font-weight:400">dall'amministrazione</small></button>
         </div></div>
+      ${versatoAmmin[fase] ? `<button type="button" data-op="azzera-ammin" style="${btn};width:100%;margin-bottom:8px;background:transparent;color:#fbbf24;border-color:#fbbf24;font-size:13px">Annulla le monete dall'amministrazione (${formatEuro(versatoAmmin[fase])})</button>` : ''}
       <button type="button" data-op="annulla" style="${btn};width:100%;background:transparent;color:#e2e8f0">Annulla (correggi il conteggio)</button>
       <p id="cr-msg" style="margin:8px 0 0;color:#fbbf24;font-size:13px;min-height:1em"></p></div>`;
     document.body.appendChild(box);
@@ -725,6 +726,12 @@
       const op = e.target.closest('button')?.dataset.op;
       if (!op && e.target !== box) return;
       if (!op || op === 'annulla') { chiudi(); saltaPopupCassetta = true; input.focus(); input.select?.(); return; }
+      if (op === 'azzera-ammin') {
+        [fase, ...FASI_DOPO[fase]].forEach(f => { versatoAmmin[f] = 0; });
+        chiudi(); calculateAll(); pianificaSalvataggio();
+        notificaCassetta("Monete dall'amministrazione annullate: correggi a mano il conteggio della cassetta se serve.");
+        return;
+      }
       const n = Math.max(0, parseInt(campo.value, 10) || 0);
       const msg = box.querySelector('#cr-msg');
       if (!n) { msg.textContent = 'Scrivi un numero di monete.'; return; }
