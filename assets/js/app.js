@@ -190,6 +190,12 @@ function mergeByDayTime(localEntries,remoteEntries){const merged=new Map();(remo
 const DiariaStore={
   source:'',copia:'',errore:'',
   async load(id){
+    // Legge Firebase e PocketBase insieme: se non coincidono chiede quale giornata e' corretta e salva su entrambi
+    if(window.NaviDiariaAllinea){
+      const r=await NaviDiariaAllinea.carica(id);
+      if(r.stato==='solo-pocketbase'){this.setSource('pocketbase');return r}
+      this.copia=r.stato==='solo-firebase'?'no':r.stato==='rimandato'?'diverse':'ok';this.errore=r.stato==='solo-firebase'?String(r.errorePB?.message||r.errorePB||''):'';this.setSource('firebase');return r;
+    }
     try{const fb=await NaviAdminFirebase.loadDiaria(id);this.setSource('firebase');this.copiaSuPB(id,fb.entries);return fb}
     catch(error){
       if(!window.NaviAdminPB?.loadDiaria)throw error;
@@ -208,7 +214,7 @@ const DiariaStore={
     NaviAdminPB.saveDiaria(id,list).then(()=>{this.copia='ok';this.errore='';this.etichetta()}).catch(error=>{this.copia='no';this.errore=String(error?.status?`${error.status} ${error.message}`:error?.message||error).slice(0,120);this.etichetta();console.warn('Copia della Distinta su PocketBase non riuscita',error)});
   },
   setSource(src){this.source=src;this.etichetta()},
-  etichetta(){const node=document.getElementById('monthlyDataSource');if(!node)return;const admin=typeof isAdmin==='function'&&isAdmin();node.hidden=!admin;if(this.source==='pocketbase'){node.textContent='Dati: copia PocketBase (Firebase non raggiungibile)';node.style.color='#fbbf24';return}node.textContent=`Dati: Firebase · copia PocketBase ${this.copia==='ok'?'aggiornata ✓':this.copia==='no'?'non riuscita ✕ ('+(this.errore||'errore sconosciuto')+')':'in corso…'}`;node.style.color=this.copia==='no'?'#fbbf24':'#5eead4'}
+  etichetta(){const node=document.getElementById('monthlyDataSource');if(!node)return;const admin=typeof isAdmin==='function'&&isAdmin();node.hidden=!admin;if(this.source==='pocketbase'){node.textContent='Dati: copia PocketBase (Firebase non raggiungibile)';node.style.color='#fbbf24';return}node.textContent=`Dati: Firebase · copia PocketBase ${this.copia==='ok'?'aggiornata ✓':this.copia==='diverse'?'diversa da Firebase ✕ (scelta rimandata)':this.copia==='no'?'non riuscita ✕ ('+(this.errore||'errore sconosciuto')+')':'in corso…'}`;node.style.color=this.copia==='no'||this.copia==='diverse'?'#fbbf24':'#5eead4'}
 };
 function markCloudDirty(){stampChangedEntries();const current=JSON.stringify(entries);if(current!==lastKnownEntriesSnapshot){undoSnapshot=lastKnownEntriesSnapshot;lastKnownEntriesSnapshot=current;recordLocalBackup('modifica da sincronizzare',entries);setUndoUi(true)}localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setSaveUi('dirty');scheduleFirebaseSave()}
 function undoLastDiariaChange(){if(!undoSnapshot)return;entries=parseEntriesSnapshot(undoSnapshot);lastKnownEntriesSnapshot=JSON.stringify(entries);undoSnapshot=null;writeEntriesLocal('annullamento modifica');localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setUndoUi(false);setSaveUi('dirty');render();notify('Ultima modifica annullata')}
