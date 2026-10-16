@@ -188,7 +188,7 @@ function mergeByDayTime(localEntries,remoteEntries){const merged=new Map();(remo
 // ogni volta che e' raggiungibile (per ora solo con Tailscale). Quando PocketBase sara' pubblico e protetto si invertira'.
 // Gli admin vedono da dove arrivano i dati e se la copia su PocketBase e' aggiornata.
 const DiariaStore={
-  source:'',copia:'',
+  source:'',copia:'',errore:'',
   async load(id){
     try{const fb=await NaviAdminFirebase.loadDiaria(id);this.setSource('firebase');this.copiaSuPB(id,fb.entries);return fb}
     catch(error){
@@ -205,10 +205,10 @@ const DiariaStore={
   // copia su PocketBase in sottofondo: se non e' raggiungibile non blocca niente
   copiaSuPB(id,list){
     if(!window.NaviAdminPB?.saveDiaria||!Array.isArray(list)||!list.length)return;
-    NaviAdminPB.saveDiaria(id,list).then(()=>{this.copia='ok';this.etichetta()}).catch(error=>{this.copia='no';this.etichetta();console.warn('Copia della Distinta su PocketBase non riuscita',error)});
+    NaviAdminPB.saveDiaria(id,list).then(()=>{this.copia='ok';this.errore='';this.etichetta()}).catch(error=>{this.copia='no';this.errore=String(error?.status?`${error.status} ${error.message}`:error?.message||error).slice(0,120);this.etichetta();console.warn('Copia della Distinta su PocketBase non riuscita',error)});
   },
   setSource(src){this.source=src;this.etichetta()},
-  etichetta(){const node=document.getElementById('monthlyDataSource');if(!node)return;const admin=typeof isAdmin==='function'&&isAdmin();node.hidden=!admin;if(this.source==='pocketbase'){node.textContent='Dati: copia PocketBase (Firebase non raggiungibile)';node.style.color='#fbbf24';return}node.textContent=`Dati: Firebase · copia PocketBase ${this.copia==='ok'?'aggiornata ✓':this.copia==='no'?'non raggiungibile ✕':'in corso…'}`;node.style.color=this.copia==='no'?'#fbbf24':'#5eead4'}
+  etichetta(){const node=document.getElementById('monthlyDataSource');if(!node)return;const admin=typeof isAdmin==='function'&&isAdmin();node.hidden=!admin;if(this.source==='pocketbase'){node.textContent='Dati: copia PocketBase (Firebase non raggiungibile)';node.style.color='#fbbf24';return}node.textContent=`Dati: Firebase · copia PocketBase ${this.copia==='ok'?'aggiornata ✓':this.copia==='no'?'non riuscita ✕ ('+(this.errore||'errore sconosciuto')+')':'in corso…'}`;node.style.color=this.copia==='no'?'#fbbf24':'#5eead4'}
 };
 function markCloudDirty(){stampChangedEntries();const current=JSON.stringify(entries);if(current!==lastKnownEntriesSnapshot){undoSnapshot=lastKnownEntriesSnapshot;lastKnownEntriesSnapshot=current;recordLocalBackup('modifica da sincronizzare',entries);setUndoUi(true)}localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setSaveUi('dirty');scheduleFirebaseSave()}
 function undoLastDiariaChange(){if(!undoSnapshot)return;entries=parseEntriesSnapshot(undoSnapshot);lastKnownEntriesSnapshot=JSON.stringify(entries);undoSnapshot=null;writeEntriesLocal('annullamento modifica');localStorage.setItem(FIREBASE_DIRTY_KEY,'1');setUndoUi(false);setSaveUi('dirty');render();notify('Ultima modifica annullata')}
