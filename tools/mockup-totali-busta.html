@@ -1,0 +1,76 @@
+<title>Totali busta · proposte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Tre schede telefono affiancate: stessa intestazione, cambia solo il blocco dei totali. Palette NaviSuite scura. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--mono:'DM Mono',ui-monospace,monospace}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+.intro{margin:0 0 22px;color:var(--muted);max-width:62ch;line-height:1.5}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px;align-items:start}
+h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.d{margin:4px 0 12px;color:var(--muted);font-size:13px;line-height:1.45;min-height:3em}
+.phone{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:390px;display:grid;gap:10px}
+.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}.tt{font-size:21px;font-weight:800;margin-top:-6px}
+.sub{color:var(--muted);font-size:12px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.voce{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px 12px;border-radius:12px;background:var(--card);border-left:4px solid var(--c);font-size:14px}
+.voce b{font-weight:800}.voce .e{color:var(--cyan);font-size:12px;font-weight:500;margin-left:4px}.voce small{color:var(--muted);font-size:12px}
+.pill{grid-row:span 2;align-self:center;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c)}
+/* 1 ricevuta */
+.ric{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-radius:14px;overflow:hidden}
+.ric div{padding:8px 10px;border-right:1px solid var(--line)}.ric div:last-child{border:0;background:color-mix(in srgb,var(--teal) 14%,var(--card))}
+.ric small{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.ric span{font-size:13px;font-weight:500}.ric .n{color:var(--teal);font-weight:700}
+/* 2 barra */
+.bar{background:var(--card);border-radius:14px;padding:10px 12px;display:grid;gap:6px}
+.bar .top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}.bar .top b{color:var(--ink)}
+.track{display:flex;height:12px;border-radius:7px;overflow:hidden}.track i:first-child{background:var(--teal)}.track i:last-child{background:var(--rose)}
+.leg{display:flex;justify-content:space-between;font-size:12px}.leg .n{color:var(--teal);font-weight:700}.leg .r{color:var(--rose)}
+/* 3 netto grande */
+.big{background:var(--card);border-radius:14px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.big small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.big .n{font-size:22px;font-weight:600;color:var(--teal)}
+.big .side{text-align:right;font-size:12px;color:var(--muted);line-height:1.6}.big .side b{color:var(--ink);font-weight:500}
+</style>
+
+<h1>Totali della busta · tre disposizioni</h1>
+<p class="intro">Stessi numeri di esempio. Cambia solo il blocco di lordo, ritenute e netto, che sta sotto il titolo del mese e sopra le voci. Dimmi 1, 2 o 3.</p>
+
+<div class="row">
+<section>
+  <h2>1 · Ricevuta</h2>
+  <p class="d">Una sola striscia divisa in tre colonne. Il netto è evidenziato a destra. Occupa una riga.</p>
+  <div class="phone">
+    <span class="eb">VERIFICA BUSTA</span><span class="tt">Ottobre 2026</span>
+    <span class="sub">Busta di ottobre → Distinta di settembre</span>
+    <div class="ric num"><div><small>Lordo</small><span>3.412,80</span></div><div><small>Ritenute</small><span>−1.006,15</span></div><div><small>Netto</small><span class="n">2.406,65</span></div></div>
+    <div class="voce" style="--c:var(--rose)"><b>Straordinari <span class="e num">96,00 €</span></b><span class="pill num">+12 h</span><small class="num">distinta 18:00 · busta 6:00</small></div>
+    <div class="voce" style="--c:#52c879"><b>Diarie 24% <span class="e num">324,00 €</span></b><span class="pill">✓</span><small class="num">18</small></div>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Barra del lordo</h2>
+  <p class="d">Il lordo in alto. Sotto, una barra mostra quanto va in netto e quanto in ritenute: la proporzione si vede a colpo d'occhio.</p>
+  <div class="phone">
+    <span class="eb">VERIFICA BUSTA</span><span class="tt">Ottobre 2026</span>
+    <span class="sub">Busta di ottobre → Distinta di settembre</span>
+    <div class="bar num"><div class="top"><span>Lordo</span><b>3.412,80 €</b></div><div class="track"><i style="width:70.5%"></i><i style="width:29.5%"></i></div><div class="leg"><span class="n">Netto 2.406,65 € · 71%</span><span class="r">Ritenute 1.006,15 €</span></div></div>
+    <div class="voce" style="--c:var(--rose)"><b>Straordinari <span class="e num">96,00 €</span></b><span class="pill num">+12 h</span><small class="num">distinta 18:00 · busta 6:00</small></div>
+    <div class="voce" style="--c:#52c879"><b>Diarie 24% <span class="e num">324,00 €</span></b><span class="pill">✓</span><small class="num">18</small></div>
+  </div>
+</section>
+
+<section>
+  <h2>3 · Netto in primo piano</h2>
+  <p class="d">Il netto grande a sinistra, che è il numero che interessa di più. Lordo e ritenute piccoli a destra.</p>
+  <div class="phone">
+    <span class="eb">VERIFICA BUSTA</span><span class="tt">Ottobre 2026</span>
+    <span class="sub">Busta di ottobre → Distinta di settembre</span>
+    <div class="big num"><div><small>Netto</small><span class="n">2.406,65 €</span></div><div class="side">lordo <b>3.412,80</b><br>ritenute <b>−1.006,15</b></div></div>
+    <div class="voce" style="--c:var(--rose)"><b>Straordinari <span class="e num">96,00 €</span></b><span class="pill num">+12 h</span><small class="num">distinta 18:00 · busta 6:00</small></div>
+    <div class="voce" style="--c:#52c879"><b>Diarie 24% <span class="e num">324,00 €</span></b><span class="pill">✓</span><small class="num">18</small></div>
+  </div>
+</section>
+</div>

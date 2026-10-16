@@ -52,7 +52,10 @@
     .sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.sel .chip{flex:0 0 auto}
     .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted));flex-shrink:0}
     .mtitle{margin:2px 0 0;font-size:20px;font-weight:800}.msub{margin:0;color:var(--muted);font-size:12px}
-    .tiles{display:flex;flex-wrap:wrap;gap:6px}
+    .tot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card)}
+    .tot small{display:block;font:800 10px Manrope,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .tot-n{font-size:22px;font-weight:600;color:var(--teal)}
+    .tot-side{text-align:right;font-size:12px;color:var(--muted);line-height:1.6}.tot-side b{color:var(--ink);font-weight:500}
     .tile{display:inline-flex;align-items:baseline;gap:4px;border-radius:999px;padding:3px 8px;color:#06231f;font-size:11px;font-weight:700;white-space:nowrap}
     .tile small{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
     .t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
@@ -77,6 +80,8 @@
     .spark div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
     .spark i{display:block;width:100%;background:var(--teal);border-radius:4px 4px 0 0;min-height:2px}
     .spark i.r{background:var(--rose)}.spark i.v{background:var(--line)}
+    .spark i{position:relative;overflow:hidden}.spark i b{position:absolute;left:0;right:0;bottom:0;background:var(--amber)}
+    .legenda{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;color:var(--muted);font-size:12px}.legenda .q{display:inline-block;width:10px;height:10px;border-radius:3px}.q-n{background:var(--teal)}.q-s{background:var(--amber)}.legenda b{color:var(--amber)}
     .spark span{font-size:9px;color:var(--muted);padding-bottom:4px}
     .ylist{display:grid;gap:6px}
     .yr{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:11px 12px;border-radius:12px;background:var(--card);font-size:14px}
@@ -131,7 +136,7 @@
   <script src="assets/js/busta-parser.js?v=2"></script>
   <script src="assets/js/distinta-totals.js?v=10"></script>
   <script src="assets/js/busta-compare.js?v=18"></script>
-  <script src="assets/js/diaria-allinea.js?v=1"></script>
-  <script src="assets/js/verifica-busta.js?v=17"></script>
+  <script src="assets/js/diaria-allinea.js?v=2"></script>
+  <script src="assets/js/verifica-busta.js?v=20"></script>
 </body>
 </html>
