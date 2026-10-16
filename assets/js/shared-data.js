@@ -21,7 +21,9 @@
       localStorage.setItem('navisuite.dataSourceReset.v1', '1');
     }
   } catch (_) {}
-  const dataSource = () => { if (isDistintaPage()) return 'pocketbase'; try { return localStorage.getItem('navisuite.dataSource') === 'pocketbase' ? 'pocketbase' : 'firebase'; } catch (_) { return 'firebase'; } };
+  // Archivio unico: Firebase. La vecchia scelta PocketBase salvata sul telefono viene cancellata.
+  try { localStorage.removeItem('navisuite.dataSource'); } catch (_) {}
+  const dataSource = () => 'firebase';
   // Copie locali separate per sorgente: i turni PocketBase di NaviDistinta
   // non devono comparire in NaviTurni/Oggi (e viceversa).
   const cacheSuffix = () => (dataSource() === 'pocketbase' ? '.pb' : '');

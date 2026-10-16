@@ -26,26 +26,7 @@
   };
   const effettivo = (code, st) => SC.shiftForCode(code, dataEsempio(st), SHIFTS) || {};
   const aliscafo = code => SC.aliscafo ? SC.aliscafo(code, SC.todayIsoLocal(), SHIFTS) : String(code).toUpperCase() === 'SR1';
-  // ---------- PocketBase: competenze uguali per tutti gli agenti ----------
-  // tabella competenze_servizi, un solo record (chiave "servizi") con l'elenco completo
-  const PB_DEFAULT = 'https://truenas-scale.tail805e51.ts.net:8443';
-  const pbBase = () => { try { return (localStorage.getItem('navisuite.pbBase') || PB_DEFAULT).replace(/\/$/, ''); } catch (_) { return PB_DEFAULT; } };
-  const PB_URL = () => `${pbBase()}/api/collections/competenze_servizi/records`;
-  let pbId = null;
-  async function pbFetch(url, opts = {}) {
-    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
-    try {
-      // con il token PocketBase dell'agente (regole: tutti leggono, solo gli admin scrivono)
-      try { await window.NaviAdminPB?.ensureLogin?.(); } catch (_) {}
-      const token = (() => { try { return localStorage.getItem('navisuite.pb.token') || ''; } catch (_) { return ''; } })();
-      const res = await fetch(url, { ...opts, headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { Authorization: token } : {}) }, cache: 'no-store', signal: ctrl.signal });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
-      return out;
-    } finally { clearTimeout(t); }
-  }
-  // Competenze uguali su tutti i dispositivi: archivio principale su Firebase (raggiungibile da tutti),
-  // copia su PocketBase quando e' raggiungibile. Se Firebase e' ancora vuoto si parte dalla copia PocketBase.
+  // Competenze uguali su tutti i dispositivi: archivio unico su Firebase.
   const chi = () => { try { const a = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); return a ? `${a.id} ${a.name || ''}`.trim() : ''; } catch (_) { return ''; } };
   const amministratore = () => { try { return typeof isAdmin === 'function' && isAdmin(); } catch (_) { return false; } };
   function applica(lista) {
@@ -59,23 +40,11 @@
     try { render(); } catch (_) {}
     try { elenco(); } catch (_) {}
   }
-  async function leggiPB() {
-    const rec = (await pbFetch(`${PB_URL()}?perPage=1&filter=${encodeURIComponent('chiave = "servizi"')}`)).items?.[0];
-    if (rec) pbId = rec.id;
-    return Array.isArray(rec?.servizi) ? rec.servizi : [];
-  }
   async function scaricaCompetenze() {
     const fb = window.NaviAdminFirebase;
     let lista = [];
     try { if (fb?.getCompetenzeServizi) { await fb.ready; lista = (await fb.getCompetenzeServizi()).servizi; } } catch (error) { console.warn('Competenze da Firebase non lette', error); }
-    if (lista.length) { applica(lista); return; }
-    try {
-      const daPb = await leggiPB();
-      if (!daPb.length) return;
-      applica(daPb);
-      // primo avvio: un admin porta su Firebase la tabella che finora era solo su PocketBase
-      if (amministratore() && fb?.saveCompetenzeServizi) fb.saveCompetenzeServizi(daPb, chi()).catch(error => console.warn('Competenze non copiate su Firebase', error));
-    } catch (error) { console.warn('Competenze: uso la copia sul telefono', error); }
+    if (lista.length) applica(lista);
   }
   let timerPb = 0;
   function inviaCompetenze() {
@@ -83,13 +52,6 @@
     timerPb = setTimeout(async () => {
       let fbOk = false;
       try { await window.NaviAdminFirebase?.saveCompetenzeServizi?.(SHIFTS, chi()); fbOk = true; } catch (error) { console.warn('Competenze non salvate su Firebase', error); }
-      // copia su PocketBase (se raggiungibile)
-      const corpo = JSON.stringify({ chiave: 'servizi', servizi: SHIFTS, aggiornato_da: chi() });
-      try {
-        if (!pbId) await leggiPB();
-        const out = pbId ? await pbFetch(`${PB_URL()}/${encodeURIComponent(pbId)}`, { method: 'PATCH', body: corpo }) : await pbFetch(PB_URL(), { method: 'POST', body: corpo });
-        pbId = out.id;
-      } catch (error) { console.warn('Copia competenze su PocketBase non riuscita', error); }
       try { notify(fbOk ? 'Competenze salvate per tutti gli agenti' : 'Competenze NON salvate per tutti (Firebase non raggiungibile)'); } catch (_) {}
     }, 800);
   }

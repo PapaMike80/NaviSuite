@@ -1023,6 +1023,29 @@
   }
 
   // Straordinari trasformati in banca ore, per mese: {map: {'2026-10': minuti}, updatedAt}
+  // Controlli cassa: {id: record}. Ogni record ha id, created, updated (ISO).
+  async function getControlliCassa() {
+    return (await databaseRequest("private/adminUpdates/controlliCassa", { timeout:15000 })).data || {};
+  }
+  async function saveControlloCassa(record) {
+    const ora = new Date().toISOString();
+    const id = String(record.id || `cc${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`).replace(/[.#$\[\]\/]/g, "_");
+    const item = { ...record, id, created:record.created || ora, updated:ora };
+    await databaseRequest(`private/adminUpdates/controlliCassa/${id}`, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+  // Collegamenti pubblici (orari per stagione), un solo documento
+  async function getCollegamenti() { return (await databaseRequest("private/adminUpdates/collegamentiPubblici")).data || null; }
+  async function saveCollegamenti(value) { await databaseRequest("private/adminUpdates/collegamentiPubblici", { method:"PUT", body:JSON.stringify(value) }); return value; }
+  // Buste paga: solo i dati letti (mese, totali, voci), mai il PDF. {'2026-10': {...}}
+  async function getBustePaga(agentId) {
+    return (await databaseRequest(`private/adminUpdates/bustePaga/${safeUserKey(agentId)}`)).data || {};
+  }
+  async function saveBustaPaga(agentId, mese, dati) {
+    if (!/^\d{4}-\d{2}$/.test(String(mese || ""))) throw new Error("Mese della busta non valido");
+    const path = `private/adminUpdates/bustePaga/${safeUserKey(agentId)}/${mese}`;
+    await databaseRequest(path, dati ? { method:"PUT", body:JSON.stringify(dati) } : { method:"DELETE" });
+  }
   async function getDiariaConversioni(agentId) {
     const result = await databaseRequest(`private/adminUpdates/diariaConversioni/${safeUserKey(agentId)}`);
     return result.data || null;
@@ -1238,6 +1261,12 @@
     getRitardiEquipaggio,
     saveRitardoEquipaggio,
     getDiariaConversioni,
+    getControlliCassa,
+    saveControlloCassa,
+    getCollegamenti,
+    saveCollegamenti,
+    getBustePaga,
+    saveBustaPaga,
     getCompetenzeServizi,
     saveCompetenzeServizi,
     getPageAccess,
