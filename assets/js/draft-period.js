@@ -1,6 +1,7 @@
 (() => {
   const CACHE_KEY = 'navisuite.draftPeriod.v1';
-  const DEFAULT_PERIOD = {start:'2026-08-10', end:'2026-09-06'};
+  // Nessuna bozza finche' un admin non salva un periodo (prima c'era un periodo fisso 10/08-06/09 che tornava dopo ogni "Elimina bozza")
+  const DEFAULT_PERIOD = {start:'', end:''};
   let current = readCache();
 
   function validDate(value) {
@@ -10,6 +11,7 @@
   function normalize(value) {
     const start = validDate(value?.start) ? String(value.start) : DEFAULT_PERIOD.start;
     const end = validDate(value?.end) ? String(value.end) : DEFAULT_PERIOD.end;
+    if (!start || !end) return {...DEFAULT_PERIOD};
     return start <= end ? {start, end, updatedAt:String(value?.updatedAt || '')} : {...DEFAULT_PERIOD};
   }
 
@@ -27,7 +29,7 @@
 
   function contains(iso) {
     const date = String(iso || '').slice(0, 10);
-    return validDate(date) && date >= current.start && date <= current.end;
+    return validDate(date) && !!current.start && date >= current.start && date <= current.end;
   }
 
   async function refresh() {
