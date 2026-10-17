@@ -296,7 +296,7 @@
     .cc-res b{font:600 15px var(--c3-mono)}
     .cc-dettagli{border-radius:12px;background:var(--c3-card);padding:0 10px}
     .cc-dettagli>summary{list-style:none;cursor:pointer;padding:9px 0;font-size:13px;font-weight:700;color:var(--text-muted)}.cc-dettagli>summary::-webkit-details-marker{display:none}
-    .cc-dettagli[open]{padding-bottom:10px}
+    .cc-dettagli{padding-bottom:10px!important}.cc-dett-head{padding:9px 0 2px;font-size:13px;font-weight:800;color:var(--c3-teal)}
     .cc-31{border-radius:14px;padding:10px;background:color-mix(in srgb,var(--c3-cyan) 8%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c3-cyan) 35%,transparent)}
     .cc-31-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;font-weight:800;font-size:14px;color:var(--c3-cyan)}.cc-31-head small{font-weight:600;font-size:11px;color:var(--text-muted)}
     .cc-31-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -429,8 +429,8 @@
     </div>
     <p class="cc-eq">Da versare: i soldi da portare in banca o in cassaforte. In cassa restano <b id="box-trattenuto">€ 0,00</b> per domani.</p>
 
-    <details class="cc-dettagli">
-      <summary>Dettaglio dei tagli: da versare, resto e fondo ▾</summary>
+    <div class="cc-dettagli">
+      <div class="cc-dett-head">Tagli: da versare, resto e fondo</div>
       <div class="switch-wrapper" id="resto-monete-switch">
         <div><label>Usa gestione «Resto monete»</label><small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small></div>
         <label class="switch"><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"><span class="slider"></span></label>
@@ -442,7 +442,7 @@
           <tbody id="distinta-pezzi-body"></tbody>
         </table>
       </div>
-    </details>
+    </div>
 
     <!-- Foglio 31 righe: i numeri da ricopiare -->
     <div class="cc-31">
