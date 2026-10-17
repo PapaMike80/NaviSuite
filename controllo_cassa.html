@@ -320,6 +320,15 @@
     .cc-dettagli td small{color:var(--text-muted)}
     .cc-dettagli td .zero{color:var(--c3-line)}
     .cc-dettagli tr.vuota{opacity:.45}
+    .cc-buste{display:grid;gap:8px}
+    .cc-busta{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--c) 12%,var(--c3-card));border-left:5px solid var(--c)}
+    .cc-busta .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:800;font-size:14px;color:var(--c)}
+    .cc-busta .h small{display:block;font-weight:600;font-size:11px;color:var(--text-muted)}
+    .cc-busta .h b{font:600 19px var(--c3-mono);color:var(--text-main);white-space:nowrap}
+    .cc-busta .pz{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+    .cc-busta .pz span{border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--tc) 20%,var(--c3-card));color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
+    .cc-busta .pz span b{font-family:var(--c3-mono);color:var(--text-main);margin-right:3px}
+    .cc-busta .pz em{font-size:12px;color:var(--text-muted)}
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -426,23 +435,15 @@
     <div id="grid-container-sera"></div>
     <div class="cc-res">
       <div style="--c:var(--c3-green)"><small>Contati · discrepanza</small><b><span id="badge-tot-sera">€ 0,00</span> · <span id="ctrl-differenza-sera">€ 0,00</span></b></div>
-      <div style="--c:var(--c3-teal)"><small>Da versare</small><b id="box-versamento">€ 0,00</b></div>
     </div>
-    <p class="cc-eq">Da versare: i soldi da portare in banca o in cassaforte. In cassa restano <b id="box-trattenuto">€ 0,00</b> per domani.</p>
 
-    <div class="cc-dettagli">
-      <div class="cc-dett-head">Tagli: da versare, resto e fondo</div>
-      <div class="switch-wrapper" id="resto-monete-switch">
-        <div><label>Usa gestione «Resto monete»</label><small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small></div>
-        <label class="switch"><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"><span class="slider"></span></label>
-      </div>
-      <div class="cc-res" id="box-resto-monete-container"><div style="--c:var(--c3-amber)"><small>Resto monete</small><b id="box-resto-monete">€ 0,00</b></div></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th class="taglio">Taglio</th><th class="c-vers">Da versare</th><th class="c-resto">Resto</th><th class="c-fondo">Fondo domani</th></tr></thead>
-          <tbody id="distinta-pezzi-body"></tbody>
-        </table>
-      </div>
+    <!-- Divisione dei contanti: tre buste con il totale e i pezzi -->
+    <div class="cc-buste">
+      <div class="cc-busta" style="--c:var(--c3-teal)"><div class="h"><span>Da versare <small>banca o cassaforte</small></span><b id="box-versamento">€ 0,00</b></div><div class="pz" id="pz-vers"></div></div>
+      <div class="cc-busta" id="box-resto-monete-container" style="--c:var(--c3-amber)"><div class="h"><span>Resto monete</span><b id="box-resto-monete">€ 0,00</b></div><div class="pz" id="pz-resto"></div></div>
+      <div class="cc-busta" style="--c:var(--c3-orange)"><div class="h"><span>Fondo per domani <small>resta in cassa</small></span><b id="box-trattenuto">€ 0,00</b></div><div class="pz" id="pz-fondo"></div></div>
+      <div id="resto-monete-switch" hidden><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"></div>
+    </div>
     </div>
 
     <!-- Foglio 31 righe: i numeri da ricopiare -->
@@ -828,9 +829,7 @@
     let valResto0Cents = 0;
     let valFondoCents = 0;
 
-    const tbodyDistinta = document.getElementById("distinta-pezzi-body");
-    tbodyDistinta.innerHTML = "";
-
+    const pz = { vers: [], resto: [], fondo: [] };
     DENOMINATIONS.slice().reverse().forEach(d => {
       const pB = pezziBusta[d.val] || 0;
       const pR = pezziResto[d.val] || 0;
@@ -843,10 +842,11 @@
       valResto0Cents += pR * d.val;
       valFondoCents += pF * d.val;
 
-      const cella = (n, cls) => `<td class="${cls}">${n > 0 ? `<b>${n}</b><small>${formatEuro(n * d.val)}</small>` : '<span class="zero">–</span>'}</td>`;
-      tbodyDistinta.innerHTML += `<tr class="t${d.val}${pB + pR + pF ? '' : ' vuota'}"><td class="taglio">${d.label.replace(',00', '')}</td>${cella(pB, 'c-vers')}${cella(pR, 'c-resto')}${cella(pF, 'c-fondo')}</tr>`;
+      const pastiglia = n => `<span class="t${d.val}"><b>${n}</b>× ${d.label.replace(',00', '')}</span>`;
+      if (pB) pz.vers.push(pastiglia(pB)); if (pR) pz.resto.push(pastiglia(pR)); if (pF) pz.fondo.push(pastiglia(pF));
     });
 
+    Object.entries(pz).forEach(([k, l]) => { const el = document.getElementById(`pz-${k}`); if (el) el.innerHTML = l.join("") || '<em>nessun pezzo</em>'; });
     document.getElementById("box-versamento").textContent = formatEuro(valBustaCents);
     document.getElementById("box-resto-monete").textContent = formatEuro(valResto0Cents);
     document.getElementById("box-trattenuto").textContent = formatEuro(valFondoCents);
