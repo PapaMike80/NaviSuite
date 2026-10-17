@@ -340,6 +340,18 @@
     .cc-sum{margin-top:8px}
     .cc-cassetta{margin-top:6px!important}
     .cc-31-head{justify-content:flex-end}
+    /* PC: le sezioni affiancate in colonne; sul telefono restano una sotto l'altra */
+    .cc-col{display:contents}
+    @media(min-width:1000px){
+      .container{max-width:1380px}
+      .cc-setup{grid-template-columns:auto 1fr;align-items:center}
+      .cc-setup .cc-chips{flex-wrap:nowrap}
+      .wizard-steps{max-width:720px}
+      .cc-step{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start;gap:18px!important}
+      .cc-col{display:grid;gap:10px;align-content:start;padding:14px;border-radius:18px;background:color-mix(in srgb,var(--c3-card) 55%,transparent);border:1px solid var(--c3-line)}
+      .cc-col>.cc-sez:first-child{border-top:0;padding-top:0;margin-top:0}
+      details.storico{max-width:none}
+    }
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -404,6 +416,7 @@
   <!-- 1. APERTURA -->
   <div class="panel cc-step" id="step-1">
     <span id="badge-apertura" class="tag tag-ok" hidden>CONFORME</span>
+    <div class="cc-col">
     <h4 class="cc-sez cc-sez-primo">Fondo</h4>
     <div class="cc-tot3">
       <div class="cc-tc" style="--c:var(--c3-cyan)"><small>Fondo</small><input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" value="400.00" oninput="calculateAll()" aria-label="Fondo obiettivo"></div>
@@ -411,13 +424,17 @@
       <div class="cc-tc cc-auto" style="--c:var(--c3-green)"><small>Differenza</small><b id="diff-mattina">€ 0,00</b></div>
     </div>
     <small id="diff-desc-mattina" hidden></small>
+    </div>
+    <div class="cc-col">
     <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-mattina"></div>
+    </div>
   </div>
 
   <!-- 2. DIURNO -->
   <div class="panel cc-step" id="step-2" style="display:none;">
     <span id="badge-quadratura-diurno" class="tag tag-ok" hidden>IN PARI</span>
+    <div class="cc-col">
     <h4 class="cc-sez cc-sez-primo">Totali</h4>
     <div class="cc-tot3">
       <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" value="353.80" oninput="syncTotals()"></label>
@@ -429,15 +446,21 @@
       <summary><span>＋ Da stornare</span><b id="storni-diurno-val">€ 0,00</b></summary>
       <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" value="0.00" oninput="syncTotals()" aria-label="Da stornare">
     </details>
+    </div>
+    <div class="cc-col">
     <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-diurno"></div>
+    </div>
+    <div class="cc-col">
     <h4 class="cc-sez">Risultato</h4>
     <div class="cc-res"><div style="--c:var(--c3-green)"><small>Discrepanza</small><b id="ctrl-differenza-diurno">€ 0,00</b></div></div>
+    </div>
   </div>
 
   <!-- 3. CHIUSURA -->
   <div class="panel cc-step" id="step-3" style="display:none;">
     <span id="badge-quadratura-sera" class="tag tag-ok" hidden>CASSA QUADRATA</span>
+    <div class="cc-col">
     <h4 class="cc-sez cc-sez-primo">Totali</h4>
     <div class="cc-tot3">
       <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" value="353.80" oninput="calculateAll()"></label>
@@ -451,6 +474,8 @@
     </details>
     <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-sera"></div>
+    </div>
+    <div class="cc-col">
     <h4 class="cc-sez">Risultato</h4>
     <div class="cc-res">
       <div style="--c:var(--c3-green)"><small>Contati · discrepanza</small><b><span id="badge-tot-sera">€ 0,00</span> · <span id="ctrl-differenza-sera">€ 0,00</span></b></div>
@@ -464,7 +489,9 @@
       <div class="cc-busta" style="--c:var(--c3-orange)"><div class="h"><span>Fondo per domani <small>resta in cassa</small></span><b id="box-trattenuto">€ 0,00</b></div><div class="pz" id="pz-fondo"></div></div>
       <div id="resto-monete-switch" hidden><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"></div>
     </div>
+    </div>
 
+    <div class="cc-col">
     <h4 class="cc-sez">Foglio «31 righe»</h4>
     <!-- Foglio 31 righe: i numeri da ricopiare -->
     <div class="cc-31">
@@ -479,6 +506,7 @@
     </div>
 
     <button type="button" class="cc-salva" onclick="salvaManuale()">Salva chiusura</button>
+    </div>
   </div>
 
   <!-- SALVATAGGI DEL GIORNO (chiusi all'apertura) -->
