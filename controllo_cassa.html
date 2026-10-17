@@ -329,6 +329,12 @@
     .cc-busta .pz span{border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--tc) 20%,var(--c3-card));color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
     .cc-busta .pz span b{font-family:var(--c3-mono);color:var(--text-main);margin-right:3px}
     .cc-busta .pz em{font-size:12px;color:var(--text-muted)}
+    .cc-coin em{display:block;font:500 10px var(--c3-mono);font-style:normal;color:var(--text-main);opacity:.8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cc-sum{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;margin-top:8px}
+    .cc-sum>div{border-radius:12px;padding:7px 9px;background:color-mix(in srgb,var(--c) 20%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);min-width:0}
+    .cc-sum small{display:block;font:800 9px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    .cc-sum b{font:600 14px var(--c3-mono);white-space:nowrap}
+    .cc-sum>.cc-sum-tot{--c:var(--c3-on);background:var(--c3-teal);border-color:var(--c3-teal);color:var(--c3-on)}
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -530,17 +536,17 @@
 
   // Banconote e monete come tessere colorate per taglio (dal piu' grande al piu' piccolo); la cassetta rossa e' una sezione a parte
   function renderCashGrid(containerId, stepPrefix, dataObj, onInputFnName) {
-    const tessera = (d, id, val, extra) => `<label class="cc-coin t${d.val}"><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="${id}" value="${val}" ${extra}><span>${d.label.replace(',00', '')}</span><i class="sub" id="sub${id.replace('qty', 'tot')}" hidden></i></label>`;
+    const tessera = (d, id, val, extra) => `<label class="cc-coin t${d.val}"><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="${id}" value="${val}" ${extra}><span>${d.label.replace(',00', '')}</span><em class="sub" id="sub${id.replace('qty', 'tot')}">€ 0,00</em></label>`;
     let html = '<div class="cc-grid">';
     BANCONOTE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
     MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
-    html += `</div><span id="tot-monete-${stepPrefix}" hidden></span><span id="tot-banconote-${stepPrefix}" hidden></span>`;
+    html += '</div>';
     if (cassettaAttiva()) {
       html += `<details class="cc-cassetta"><summary><span>🔴 Cassetta rossa <b id="tot-cr-${stepPrefix}">€ 0,00</b></span><span class="cc-chip cc-rosa">Preleva / Versa</span></summary><div class="cc-grid">`;
       MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-cr-${stepPrefix}-${d.val}`, countsCassetta[stepPrefix][d.val] || 0, `oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)"`); });
       html += '</div></details>';
     }
-    html += `<p class="cc-totfis">${stepPrefix === 'mattina' ? 'Fondo contato' : 'Contati'}: <b id="tot-valore-${stepPrefix}">€ 0,00</b></p>`;
+    html += `<div class="cc-sum"><div style="--c:var(--c3-cyan)"><small>Banconote</small><b id="tot-banconote-${stepPrefix}">€ 0,00</b></div><div style="--c:var(--c3-amber)"><small>Monete</small><b id="tot-monete-${stepPrefix}">€ 0,00</b></div><div class="cc-sum-tot"><small>${stepPrefix === 'mattina' ? 'Fondo contato' : 'Totale contanti'}</small><b id="tot-valore-${stepPrefix}">€ 0,00</b></div></div>`;
     document.getElementById(containerId).innerHTML = html;
   }
 
