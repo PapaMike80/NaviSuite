@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup Notifiche</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Impostazioni › Notifiche nello stile a riquadri (docs/STILE-NAVISUITE.md): chiusa all'apertura, poi aperta. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--green:#52c879;--mono:'DM Mono',monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;padding:28px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}.intro{margin:0 0 22px;color:var(--muted);max-width:66ch}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:26px;align-items:start}
+h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}.d{margin:4px 0 12px;color:var(--muted);font-size:13px;min-height:2.8em}
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:400px;display:grid;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)))}
+.adm{border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-weight:800;color:var(--c)}
+.adm>summary::-webkit-details-marker{display:none}.adm>summary span{flex:1}
+.adm>summary::after{content:'▾';color:var(--muted)}.adm[open]>summary::after{content:'▴'}
+.cnt{font:500 11px var(--mono);padding:2px 9px;border-radius:999px;background:var(--c);color:var(--on)}
+.cnt.off{background:var(--card2);color:var(--muted)}
+.body{display:grid;gap:10px;padding:0 12px 12px}
+.sez{display:grid;gap:8px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--c) 12%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.sez h3{margin:0;font-size:13px;font-weight:800;color:var(--c)}.sez p{margin:0;font-size:12px;color:var(--muted)}
+.dev{display:flex;align-items:center;gap:10px}.dev b{flex:1;font-size:14px}.dev small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.tg{position:relative;width:46px;height:28px;border-radius:999px;background:var(--c);flex-shrink:0}.tg::after{content:'';position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:var(--on)}
+.tg.spento{background:var(--card2)}.tg.spento::after{right:auto;left:3px;background:var(--muted)}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chip{border-radius:11px;padding:8px 10px;background:var(--card);border:1px solid color-mix(in srgb,var(--c) 35%,transparent);font-weight:800;font-size:12px;color:var(--ink)}
+.chip small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.chip.on{background:var(--c);color:var(--on)}.chip.on small{color:var(--on);opacity:.8}
+.ora{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}.ora b{font:500 15px var(--mono);color:var(--ink);padding:4px 10px;border-radius:9px;background:var(--card);border:1px solid var(--line)}
+.lr{display:flex;align-items:center;gap:10px;padding:6px 0}.lr span{flex:1;font-weight:700;font-size:13px}.lr small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.pill{font-size:9px;font-weight:900;padding:2px 7px;border-radius:999px;border:1px solid var(--c);color:var(--c)}
+.btn{border:0;border-radius:12px;padding:10px;font:800 13px Manrope;background:var(--c);color:var(--on)}
+.nota{font-size:11px;color:var(--muted)}
+</style></head><body>
+<h1>Impostazioni › Notifiche · proposta</h1>
+<p class="intro">Come le altre sezioni: all’apertura è chiusa e a destra dice se le notifiche sono attive. Aperta, ogni gruppo ha il suo riquadro colorato. I campi salvati restano gli stessi.</p>
+<div class="row">
+
+<section><h2>1 · All’apertura (chiusa)</h2><p class="d">Il riassunto a destra cambia: «Attive», «Spente» o «Da riattivare».</p>
+<div class="phone">
+  <details class="adm" style="--c:var(--cyan)"><summary><span>🏠 Prima pagina</span><b class="cnt">Il mio turno</b></summary></details>
+  <details class="adm" style="--c:var(--amber)"><summary><span>🎫 Ticket</span><b class="cnt">Sì</b></summary></details>
+  <details class="adm" style="--c:var(--violet)"><summary><span>🔔 Notifiche</span><b class="cnt">Attive</b></summary></details>
+  <details class="adm" style="--c:var(--violet)"><summary><span>🔔 Notifiche <small style="color:var(--muted);font-weight:500">(altro telefono)</small></span><b class="cnt off">Spente</b></summary></details>
+</div></section>
+
+<section><h2>2 · Aperta</h2><p class="d">In alto l’interruttore del telefono, poi un riquadro per ogni tipo di avviso.</p>
+<div class="phone">
+  <details class="adm" style="--c:var(--violet)" open><summary><span>🔔 Notifiche</span><b class="cnt">Attive</b></summary>
+  <div class="body">
+    <div class="sez" style="--c:var(--violet)">
+      <div class="dev"><b>Su questo telefono<small>Arrivano anche con l’app chiusa.</small></b><i class="tg"></i></div>
+    </div>
+    <div class="sez" style="--c:var(--teal)">
+      <h3>📅 Riepilogo della giornata</h3><p>Servizio, nave, equipaggio, ormeggio e rifornimento.</p>
+      <div class="chips"><div class="chip on">🌙 Il giorno prima<small>la sera</small></div><div class="chip">☀️ La mattina<small>il giorno stesso</small></div><div class="chip">⏱ Prima del servizio<small>30 min – 2 ore</small></div><div class="chip">🔕 Spento<small>nessun riepilogo</small></div></div>
+      <div class="ora">Alle <b>22:05</b> del giorno prima</div>
+    </div>
+    <div class="sez" style="--c:var(--cyan)">
+      <div class="dev"><b>⛴ Navi<small>10 minuti prima: il prossimo scalo, o la prossima nave a terra.</small></b><i class="tg"></i></div>
+    </div>
+    <div class="sez" style="--c:var(--amber)">
+      <h3>Altri avvisi</h3>
+      <div class="lr"><span>⇄ Cambi turno<small>Richieste, approvazioni, modifiche</small></span><i class="tg"></i></div>
+      <div class="lr"><span>📋 ODS e variazioni<small>Nuovi ODS che ti riguardano</small></span><i class="tg spento"></i></div>
+    </div>
+    <div class="sez" style="--c:var(--rose)">
+      <h3>Solo amministratori <span class="pill">ADMIN</span></h3>
+      <div class="lr"><span>Agente collegato<small>Vale per tutti i dispositivi</small></span><i class="tg"></i></div>
+      <button class="btn">Invia giornata a un agente…</button>
+    </div>
+    <p class="nota">Le scelte valgono per questo telefono.</p>
+  </div></details>
+</div></section>
+
+</div>
+</body></html>
