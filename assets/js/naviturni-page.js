@@ -1693,7 +1693,7 @@
       if (isTemporaryTransfer) tr.classList.add("temporary-transfer-row");
 
       const transferLabel = isTemporaryTransfer ? `<span class="transfer-table-label">Trasferta da ${residence}</span>` : "";
-      let html = `<td class="td-name" title="${agenteObj.id || ''} ${agenteObj.agente} — ${agenteObj.qualifica || ''}"><span class="agent-name-text">${agenteObj.agente}</span>${transferLabel}</td>`;
+      let html = `<td class="td-name" title="${agenteObj.id || ''} ${agenteObj.agente} — ${agenteObj.qualifica || ''}${agenteObj.ff ? ' (FF)' : ''}"><span class="agent-name-text">${agenteObj.agente}</span>${agenteObj.ff ? `<small class="ff-tag" title="Facente funzione ${agenteObj.ff.grado} fino al ${String(agenteObj.ff.al).split('-').reverse().join('/')}">FF</small>` : ''}${transferLabel}</td>`;
       tr.innerHTML = html;
 
       const agentNameCell = tr.querySelector(".td-name");
