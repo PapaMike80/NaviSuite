@@ -223,6 +223,69 @@
     .cr-icona{display:inline-block;width:12px;height:12px;border-radius:3px;background:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.25)}
     .stato-salvataggio{margin:-10px 2px 14px;color:var(--cyan-accent);font-size:13px;font-weight:700;min-height:1em}
     .campo-euro{position:relative;display:block}.campo-euro input{width:100%;padding-right:34px!important;box-sizing:border-box}.simbolo-euro{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:800;pointer-events:none}
+
+    /* ===== Proposta C3: piu' colore, binario dei passi, totali, rullo della data ===== */
+    :root{--c3-teal:#2dd4bf;--c3-cyan:#67d7e6;--c3-violet:#a78bfa;--c3-rose:#fb7185;--c3-amber:#fbbf24;--c3-green:#52c879;--c3-orange:#fb923c;--c3-on:#06231f}
+    body{background:radial-gradient(120% 60% at 0 0,rgba(45,212,191,.10),transparent 60%),radial-gradient(120% 60% at 100% 100%,rgba(167,139,250,.10),transparent 60%),var(--bg-main);background-attachment:fixed}
+    .cc-eyebrow{font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.22em;color:var(--c3-teal)}
+    .cc-titolo{margin:2px 0 0;font:800 25px Manrope,system-ui,sans-serif;background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan) 50%,var(--c3-violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .cc-data{width:100%;display:flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--c3-teal);border-radius:999px;background:var(--c3-teal);color:var(--c3-on);font:800 16px "DM Sans",system-ui,sans-serif;padding:10px 14px;cursor:pointer}
+    .cc-picker{margin-top:8px;border-radius:16px;background:color-mix(in srgb,var(--c3-teal) 8%,var(--bg-panel));border:1px solid color-mix(in srgb,var(--c3-teal) 40%,transparent);overflow:hidden}
+    .cc-pk-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-color);font-size:13px}
+    .cc-pk-head button{border:0;background:none;color:var(--c3-teal);font:800 15px "DM Sans",system-ui,sans-serif;cursor:pointer;padding:4px}
+    .cc-wheel-wrap{position:relative;height:180px}
+    .cc-wheel{height:180px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+    .cc-wheel::-webkit-scrollbar{display:none}
+    .cc-wheel div{height:36px;line-height:36px;text-align:center;scroll-snap-align:center;font-size:17px;color:var(--text-muted);transition:color .15s,transform .15s;cursor:pointer}
+    .cc-wheel div.sel{color:var(--text-main);font-weight:800;transform:scale(1.08)}
+    .cc-wheel div.has::after{content:" •";color:var(--c3-green)}
+    .cc-wheel .pad{scroll-snap-align:none;cursor:default}
+    .cc-wheel-band{position:absolute;left:10px;right:10px;top:72px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--c3-teal) 18%,transparent);border:1px solid color-mix(in srgb,var(--c3-teal) 50%,transparent);pointer-events:none}
+    #agente-nome{border-color:color-mix(in srgb,var(--c3-violet) 55%,transparent)!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--bg-input))!important}
+    #scalo-selezionato,#postazione-selezionata{border-color:color-mix(in srgb,var(--c3-cyan) 50%,transparent)!important;background:color-mix(in srgb,var(--c3-cyan) 10%,var(--bg-input))!important}
+    .panel{background:color-mix(in srgb,var(--bg-panel) 92%,transparent)}
+    /* binario */
+    .wizard-steps{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px!important;padding:6px!important;background:rgba(7,16,24,.9)}
+    .step-btn{--c:var(--c3-green);display:block!important;border-radius:12px!important;padding:8px 6px!important;font:800 13px "DM Sans",system-ui,sans-serif!important;background:color-mix(in srgb,var(--c) 20%,transparent)!important;color:var(--c)!important;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)!important;box-shadow:none!important}
+    .step-btn small{display:block;margin-top:2px;font:600 12px "DM Mono",ui-monospace,monospace;opacity:.95}
+    .step-btn.status-warn{--c:var(--c3-amber)}.step-btn.status-danger{--c:var(--c3-rose)}
+    .step-btn.active{background:var(--c)!important;color:var(--c3-on)!important}
+    /* pannelli dei passi */
+    #step-1{border-top:4px solid var(--c3-cyan)}#step-2{border-top:4px solid var(--c3-violet)}#step-3{border-top:4px solid var(--c3-teal)}
+    .section-title{color:var(--c3-teal)}
+    /* totali */
+    .cc-totali{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin-bottom:16px!important}.cc-totali .form-box{padding:10px!important}.cc-totali .box-val{font-size:17px;text-align:center}
+    .cc-totali .form-box:nth-child(1){background:color-mix(in srgb,var(--c3-cyan) 18%,transparent);border-color:color-mix(in srgb,var(--c3-cyan) 45%,transparent)}
+    .cc-totali .form-box:nth-child(2){background:color-mix(in srgb,var(--c3-violet) 18%,transparent);border-color:color-mix(in srgb,var(--c3-violet) 45%,transparent)}
+    .form-box.cc-auto{background:color-mix(in srgb,var(--c3-teal) 16%,transparent);border:1px dashed var(--c3-teal)}
+    .form-box.cc-auto label::after{content:" · auto";opacity:.7;text-transform:none}
+    .form-box.cc-auto .box-val{color:var(--c3-teal)}
+    .cc-storni{margin:-8px 0 20px;border:1px dashed var(--border-color);border-radius:12px;background:rgba(255,255,255,.02)}
+    .cc-storni>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;color:var(--text-muted);font-weight:700;font-size:14px}
+    .cc-storni>summary::-webkit-details-marker{display:none}
+    .cc-storni>summary b{font-variant-numeric:tabular-nums}
+    .cc-storni[open]>.form-box{margin:0 10px 10px}
+    .cc-storni.con-importo{border-color:var(--c3-rose);background:color-mix(in srgb,var(--c3-rose) 12%,transparent)}.cc-storni.con-importo>summary,.cc-storni.con-importo>summary b{color:var(--c3-rose)}
+    /* griglia contanti a colori */
+    .cash-row{border-left:4px solid var(--tc,transparent);padding-left:8px;border-radius:6px}
+    .cash-row label{color:var(--tc,var(--text-main))!important}
+    .t10000{--tc:#4ade80}.t5000{--tc:#fb923c}.t2000{--tc:#60a5fa}.t1000{--tc:#f87171}.t500{--tc:#a3b5a6}.t200{--tc:#fbbf24}.t100{--tc:#fcd34d}.t50{--tc:#eab308}.t20{--tc:#f59e0b}.t10{--tc:#d97706}
+    .cash-col{background:rgba(0,0,0,.18)}
+    .cassetta-col{background:color-mix(in srgb,var(--c3-rose) 10%,transparent);border-color:color-mix(in srgb,var(--c3-rose) 40%,transparent)}
+    .grand-tot{background:color-mix(in srgb,var(--c3-teal) 12%,transparent);border-color:color-mix(in srgb,var(--c3-teal) 40%,transparent)}
+    .box-highlight-orange{border-left-color:var(--c3-teal)!important;background:color-mix(in srgb,var(--c3-teal) 12%,transparent)!important}.box-highlight-orange .box-val{color:var(--c3-teal)!important}
+    .box-highlight-green{border-left-color:var(--c3-orange)!important;background:color-mix(in srgb,var(--c3-orange) 10%,transparent)}.box-highlight-green .box-val{color:var(--c3-orange)!important}
+    .primary-button{background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan))!important;color:var(--c3-on)!important;border:0!important}
+    .secondary-button{background:color-mix(in srgb,var(--c3-violet) 16%,transparent);border-color:color-mix(in srgb,var(--c3-violet) 45%,transparent);color:var(--c3-violet)}
+    /* salvataggi del giorno */
+    details.storico{background:color-mix(in srgb,var(--c3-violet) 10%,var(--bg-panel));border-color:color-mix(in srgb,var(--c3-violet) 40%,transparent)}
+    details.storico>summary{list-style:none;cursor:pointer;margin:0}
+    details.storico>summary::-webkit-details-marker{display:none}
+    details.storico>summary h3{color:var(--c3-violet)!important;flex:1}
+    details.storico>summary::after{content:"▾";color:var(--c3-violet);margin-left:4px}details.storico[open]>summary::after{content:"▴"}
+    details.storico[open]>summary{margin-bottom:8px}
+    .cc-cnt{font:800 12px "DM Sans",system-ui,sans-serif;padding:2px 9px;border-radius:999px;background:var(--c3-violet);color:var(--c3-on)}
+    .storico-voce{border-left:4px solid var(--c3-teal)}
   </style>
 </head>
 <body>
@@ -233,8 +296,8 @@
 <div class="container">
   
   <div style="margin-bottom: 20px; padding-right: 56px;">
-    <h1 style="font: 800 25px Manrope; color: var(--text-main); margin: 0 0 4px 0;">Controllo Cassa</h1>
-    <p style="margin: 0; color: var(--text-muted); font-size: 13px; font-weight: 500;">Procedura guidata per apertura, controllo diurno e chiusura serale integrata.</p>
+    <div class="cc-eyebrow">CONTROLLO CASSA</div>
+    <h1 class="cc-titolo" id="cc-titolo">Controllo cassa</h1>
   </div>
 
   <!-- PANNELLO SETUP TURNO -->
@@ -243,10 +306,15 @@
       <div class="form-grid" style="margin-bottom: 0;">
         <div class="form-box transparent">
           <label>Data</label>
-          <div class="giorno-nav"><button type="button" data-giorno="-1" aria-label="Giorno precedente">‹</button><input type="date" id="data-turno"><button type="button" data-giorno="1" aria-label="Giorno successivo">›</button></div>
+          <input type="date" id="data-turno" hidden>
+          <button type="button" class="cc-data" id="cc-data-btn" aria-haspopup="dialog">📅 <span id="cc-data-txt">Oggi</span> ▾</button>
+          <div class="cc-picker" id="cc-picker" hidden>
+            <div class="cc-pk-head"><button type="button" id="cc-pk-oggi">Oggi</button><b>Scegli il giorno</b><button type="button" id="cc-pk-ok">Fatto</button></div>
+            <div class="cc-wheel-wrap"><div class="cc-wheel" id="cc-wheel" tabindex="0" aria-label="Giorni"></div><div class="cc-wheel-band"></div></div>
+          </div>
         </div>
         <div class="form-box transparent">
-          <label>Agente <span style="color:#fb7185">*</span></label>
+          <label>👤 Agente <span style="color:#fb7185">*</span></label>
           <input type="text" id="agente-nome" list="agenti-lista" autocomplete="off" placeholder="Inizia a scrivere il cognome…" required><datalist id="agenti-lista"></datalist><input type="hidden" id="agente-id">
         </div>
         <div class="form-box transparent">
@@ -269,17 +337,11 @@
   <p id="stato-salvataggio" class="stato-salvataggio"></p>
   <p class="cassa-avviso">Scegli agente, scalo e postazione per iniziare il controllo.</p>
 
-  <!-- STORICO DEL GIORNO -->
-  <div class="panel storico" id="storico-cassa">
-    <div class="storico-head"><h3>Salvataggi del giorno</h3><button type="button" id="storico-aggiorna" aria-label="Aggiorna">↻</button></div>
-    <div id="storico-lista" class="storico-lista"><p class="storico-vuoto">Caricamento…</p></div>
-  </div>
-
   <!-- SELETTORE STEP (STICKY) -->
   <div class="wizard-steps">
-    <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)"><b>1</b> Apertura</button>
-    <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)"><b>2</b> Diurno</button>
-    <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)"><b>3</b> Chiusura</button>
+    <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)">Apertura<small id="esito-step-1">0,00</small></button>
+    <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)">Diurno<small id="esito-step-2">0,00</small></button>
+    <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)">Chiusura<small id="esito-step-3">0,00</small></button>
   </div>
 
   <!-- STEP 1: APERTURA -->
@@ -323,20 +385,24 @@
       <span id="badge-quadratura-diurno" class="tag tag-ok">IN PARI</span>
     </div>
     <div class="panel-body">
-      <div class="form-grid">
+      <div class="form-grid cc-totali">
         <div class="form-box">
-          <label for="totale-giornaliero-diurno">Totale Sistema</label>
+          <label for="totale-giornaliero-diurno">Incasso</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-diurno">Incasso POS</label>
+          <label for="pos-giornaliero-diurno">POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
         </div>
-        <div class="form-box">
-          <label for="da-stornare-diurno">Da Stornare</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()">
+        <div class="form-box cc-auto">
+          <label>Totale contanti</label>
+          <div class="box-val" id="contanti-netti-diurno">€ 0,00</div>
         </div>
       </div>
+      <details class="cc-storni" id="storni-diurno">
+        <summary><span>＋ Da stornare</span><b id="storni-diurno-val">€ 0,00</b></summary>
+        <div class="form-box"><label for="da-stornare-diurno">Da stornare</label><input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()"></div>
+      </details>
 
       <div class="form-grid" style="grid-template-columns: 1fr;">
         <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); display: flex; justify-content: space-between; align-items: center;">
@@ -375,21 +441,27 @@
       <!-- SEZIONE A: DATI DI SISTEMA -->
       <div class="section-title"><span>A. Dati di Sistema (Fine Turno)</span></div>
       
-      <div class="form-grid">
+      <div class="form-grid cc-totali">
         <div class="form-box">
-          <label for="totale-giornaliero-sera">Totale incasso</label>
+          <label for="totale-giornaliero-sera">Incasso</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
         </div>
         <div class="form-box">
-          <label for="pos-giornaliero-sera">Totale POS</label>
+          <label for="pos-giornaliero-sera">POS</label>
           <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
         </div>
-        <div class="form-box">
-          <label for="da-stornare-sera">Da Stornare</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()">
-        </div>
-        <div class="form-box box-contanti-sera">
+        <div class="form-box cc-auto">
           <label>Totale contanti</label>
+          <div class="box-val" id="contanti-netti-sera">€ 0,00</div>
+        </div>
+      </div>
+      <details class="cc-storni" id="storni-sera">
+        <summary><span>＋ Da stornare</span><b id="storni-sera-val">€ 0,00</b></summary>
+        <div class="form-box"><label for="da-stornare-sera">Da stornare</label><input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()"></div>
+      </details>
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-box box-contanti-sera">
+          <label>Contanti attesi in cassa</label>
           <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent);">€ 400,00</div>
           <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)<span class="riga-ammin" id="ammin-sera" hidden></span></small>
         </div>
@@ -411,7 +483,7 @@
       </div>
 
       <!-- SEZIONE C: VERSAMENTO E RIPARTIZIONE -->
-      <div class="section-title"><span>C. Ripartizione Contanti: Busta vs Fondo Domani</span></div>
+      <div class="section-title"><span>C. Da versare e fondo per domani</span></div>
 
       <div class="switch-wrapper" id="resto-monete-switch">
         <div>
@@ -426,7 +498,7 @@
 
       <div class="form-grid">
         <div class="form-box box-highlight-orange">
-          <label>TOTALE CONTANTI (SALDO)</label>
+          <label>Da versare (banca o cassaforte)</label>
           <div class="box-val" id="box-versamento">€ 0,00</div>
         </div>
         <div class="form-box box-highlight-blue" id="box-resto-monete-container">
@@ -434,7 +506,7 @@
           <div class="box-val" id="box-resto-monete">€ 0,00</div>
         </div>
         <div class="form-box box-highlight-green">
-          <label>Totale in Cassetto (Domani)</label>
+          <label>Fondo per domani</label>
           <div class="box-val" id="box-trattenuto">€ 0,00</div>
         </div>
       </div>
@@ -445,7 +517,7 @@
           <thead>
             <tr>
               <th style="text-align: left;">Taglio</th>
-              <th>In busta</th>
+              <th>Da versare</th>
               <th>Resto monete</th>
               <th>Fondo domani</th>
             </tr>
@@ -487,6 +559,12 @@
       </div>
     </div>
   </div>
+
+  <!-- STORICO DEL GIORNO (chiuso all'apertura) -->
+  <details class="panel storico" id="storico-cassa">
+    <summary class="storico-head"><h3>💾 Salvataggi del giorno</h3><span class="cc-cnt" id="storico-cnt">0</span><button type="button" id="storico-aggiorna" aria-label="Aggiorna">↻</button></summary>
+    <div id="storico-lista" class="storico-lista"><p class="storico-vuoto">Caricamento…</p></div>
+  </details>
 
 </div>
 
@@ -543,6 +621,8 @@
       const btn = document.getElementById(`btn-step-${stepNum}`);
       if(!btn) return;
       btn.classList.remove('status-ok', 'status-warn', 'status-danger');
+      const es = document.getElementById(`esito-step-${stepNum}`);
+      if (es) es.textContent = diffAmount === 0 ? '0,00 ✓' : `${diffAmount > 0 ? '+' : ''}${formatEuro(diffAmount).replace(/\s?€/, '')}`;
       if (diffAmount === 0) btn.classList.add('status-ok');
       else if (diffAmount > 0) btn.classList.add('status-warn');
       else btn.classList.add('status-danger');
@@ -554,7 +634,7 @@
     html += '<div class="cash-col"><h4>Monete</h4>';
     MONETE.forEach(d => {
       html += `
-        <div class="cash-row">
+        <div class="cash-row t${d.val}">
           <label>${d.label}</label>
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
           <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
@@ -565,7 +645,7 @@
     html += '<div class="cash-col"><h4>Banconote</h4>';
     BANCONOTE.forEach(d => {
       html += `
-        <div class="cash-row">
+        <div class="cash-row t${d.val}">
           <label>${d.label}</label>
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
           <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
@@ -792,6 +872,12 @@
     const sG_D = parseMoney(document.getElementById("da-stornare-diurno").value);
 
     const incassoContantiDiurno = tG_D - pG_D - sG_D;
+    // Totale contanti (si calcola da solo) e riga degli storni: aperta solo se c'e' un importo
+    [['diurno', incassoContantiDiurno, sG_D], ['sera', totGiornoCents - posGiornoCents - storniSeraCents, storniSeraCents]].forEach(([f, netto, storni]) => {
+      const n = document.getElementById(`contanti-netti-${f}`); if (n) n.textContent = formatEuro(netto);
+      const v = document.getElementById(`storni-${f}-val`); if (v) v.textContent = formatEuro(storni);
+      const d = document.getElementById(`storni-${f}`); if (d) { d.classList.toggle('con-importo', storni !== 0); if (storni !== 0) d.open = true; }
+    });
     const contantiAttesiDiurno = totFisiciMattinaCents + incassoContantiDiurno + versatoAmmin.diurno;
     ['diurno', 'sera'].forEach(f => { const el = document.getElementById(`ammin-${f}`); if (el) { el.hidden = !versatoAmmin[f]; el.textContent = ` + Monete dall'amministrazione (${formatEuro(versatoAmmin[f])})`; } });
     document.getElementById("contanti-attesi-calc-diurno").textContent = formatEuro(contantiAttesiDiurno);
@@ -1094,16 +1180,28 @@
       storico = (out.items || []).slice().sort((a, b) => String(b.updated || b.created).localeCompare(String(a.updated || a.created)))
         .filter(r => { const k = String(r.agente_id); if (visti.has(k)) return false; visti.add(k); return true; })
         .sort((a, b) => String(a.agente_nome).localeCompare(String(b.agente_nome), 'it'));
+      const cnt = document.getElementById('storico-cnt'); if (cnt) cnt.textContent = storico.length;
       if (!storico.length) { box.innerHTML = `<p class="storico-vuoto">Nessun controllo salvato il ${new Date(giorno + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}.</p>`; return; }
       const e = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       box.innerHTML = storico.map((r, i) => {
         const ora = (r.updated || r.created) ? new Date((r.updated || r.created).replace(' ', 'T')).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
         const disc = Number(r.discrepanza) || 0;
-        return `<button type="button" class="storico-voce" data-storico="${i}"><span class="ora">${e(ora)}</span><span class="chi">${e(r.agente_nome)}</span><span class="soldi" style="color:${disc === 0 ? 'var(--accent-green)' : disc > 0 ? 'var(--ok-color)' : 'var(--accent-red)'}">${disc === 0 ? 'OK' : (disc > 0 ? '+' : '') + formatEuro(Math.round(disc * 100))}</span><span class="dove">${e(r.scalo)} · ${e(r.postazione)} · in busta ${formatEuro(Math.round((Number(r.saldo_versato) || 0) * 100))}${r.inserito_da && !String(r.inserito_da).startsWith(String(r.agente_id) + ' ') ? ` · inserito da ${e(r.inserito_da.replace(/^\S+\s*/, ''))}` : ''}</span></button>`;
+        return `<button type="button" class="storico-voce" data-storico="${i}"><span class="ora">${e(ora)}</span><span class="chi">${e(r.agente_nome)}</span><span class="soldi" style="color:${disc === 0 ? 'var(--accent-green)' : disc > 0 ? 'var(--ok-color)' : 'var(--accent-red)'}">${disc === 0 ? 'OK' : (disc > 0 ? '+' : '') + formatEuro(Math.round(disc * 100))}</span><span class="dove">${e(r.scalo)} · ${e(r.postazione)} · da versare ${formatEuro(Math.round((Number(r.saldo_versato) || 0) * 100))}${r.inserito_da && !String(r.inserito_da).startsWith(String(r.agente_id) + ' ') ? ` · inserito da ${e(r.inserito_da.replace(/^\S+\s*/, ''))}` : ''}</span></button>`;
       }).join('');
     } catch (error) {
       box.innerHTML = `<p class="storico-vuoto">Storico non disponibile: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}.</p>`;
     } finally { clearTimeout(t); }
+  }
+  // Giorni con almeno un controllo salvato negli ultimi due mesi: pallino verde nel rullo della data
+  async function caricaGiorniSalvati() {
+    try {
+      const da = new Date(); da.setDate(da.getDate() - 62);
+      const admin = !!window.NaviRoles?.isAdminAgent?.(sessione()), mioId = document.getElementById('agente-id').value || String(sessione()?.id || '');
+      const f = `data >= "${da.toISOString().slice(0, 10)} 00:00:00"` + (admin ? '' : ` && agente_id = "${mioId.replace(/"/g, '')}"`);
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=500&fields=data&filter=${encodeURIComponent(f)}`, { headers: { ...(await pbAuth()), Accept: 'application/json' }, cache: 'no-store' });
+      const out = await res.json().catch(() => ({}));
+      if (res.ok) window.ccGiorniSalvati = [...new Set((out.items || []).map(r => String(r.data).slice(0, 10)))];
+    } catch (_) {}
   }
   // Apre un salvataggio: riporta nella pagina tutti i dati di quel controllo
   function apriSalvataggio(r) {
@@ -1127,7 +1225,8 @@
     document.querySelectorAll('.storico-voce').forEach(x => x.classList.toggle('aperto', x === b));
     apriSalvataggio(r); recordId = String(r.agente_id) === document.getElementById('agente-id').value ? r.id : null; ultimaImpronta = impronta(raccogliDati()); caricando = false;
   });
-  document.getElementById('storico-aggiorna').addEventListener('click', caricaStorico);
+  setTimeout(caricaGiorniSalvati, 1500);
+  document.getElementById('storico-aggiorna').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); caricaStorico(); });
   document.querySelectorAll('[data-giorno]').forEach(b => b.addEventListener('click', () => {
     const el = document.getElementById('data-turno'), d = el.value ? new Date(el.value + 'T12:00:00') : new Date();
     d.setDate(d.getDate() + Number(b.dataset.giorno)); el.value = d.toISOString().slice(0, 10);
@@ -1285,5 +1384,49 @@
 <script src="assets/js/shared-menu.js?v=1.76"></script>
 <script src="assets/js/offline.js?v=2"></script>
 
+
+<script>
+  // Data: rullo dei giorni stile iPhone (due mesi indietro, una settimana avanti); il pallino verde segna i giorni con controlli salvati
+  (function () {
+    const input = document.getElementById('data-turno'), btn = document.getElementById('cc-data-btn'), txt = document.getElementById('cc-data-txt');
+    const picker = document.getElementById('cc-picker'), wheel = document.getElementById('cc-wheel');
+    const fmt = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const oggi = iso(new Date());
+    let giorni = [];
+    const etichetta = v => { if (!v) return 'Scegli il giorno'; const d = new Date(v + 'T12:00:00'); return (v === oggi ? 'Oggi · ' : '') + fmt.format(d).replace('.', ''); };
+    const mostra = () => { txt.textContent = etichetta(input.value); };
+    function costruisci() {
+      const centro = new Date((input.value || oggi) + 'T12:00:00'), base = new Date(oggi + 'T12:00:00');
+      const da = new Date(Math.min(base, centro)); da.setDate(da.getDate() - 60);
+      const a = new Date(Math.max(base, centro)); a.setDate(a.getDate() + 7);
+      giorni = []; for (const d = new Date(da); d <= a; d.setDate(d.getDate() + 1)) giorni.push(iso(d));
+      const salvati = new Set(window.ccGiorniSalvati || []);
+      wheel.innerHTML = '<div class="pad"></div><div class="pad"></div>' + giorni.map((g, i) => `<div data-i="${i}" class="${salvati.has(g) ? 'has' : ''}">${etichetta(g)}</div>`).join('') + '<div class="pad"></div><div class="pad"></div>';
+    }
+    const righe = () => wheel.querySelectorAll('[data-i]');
+    const centroIdx = () => Math.max(0, Math.min(giorni.length - 1, Math.round(wheel.scrollTop / 36)));
+    const evidenzia = () => { const c = centroIdx(); righe().forEach((r, i) => r.classList.toggle('sel', i === c)); };
+    const vai = (i, smooth) => wheel.scrollTo({ top: i * 36, behavior: smooth ? 'smooth' : 'auto' });
+    wheel.addEventListener('scroll', () => requestAnimationFrame(evidenzia));
+    wheel.addEventListener('click', e => { const r = e.target.closest('[data-i]'); if (r) vai(Number(r.dataset.i), true); });
+    btn.addEventListener('click', () => {
+      picker.hidden = !picker.hidden;
+      if (!picker.hidden) { costruisci(); vai(Math.max(0, giorni.indexOf(input.value || oggi)), false); evidenzia(); }
+    });
+    document.getElementById('cc-pk-oggi').addEventListener('click', () => vai(giorni.indexOf(oggi), true));
+    document.getElementById('cc-pk-ok').addEventListener('click', () => {
+      const scelto = giorni[centroIdx()]; picker.hidden = true;
+      if (scelto && scelto !== input.value) { input.value = scelto; input.dispatchEvent(new Event('change', { bubbles: true })); }
+      mostra();
+    });
+    input.addEventListener('change', mostra);
+    setTimeout(mostra, 0);
+    // Titolo: cassa e scalo scelti
+    const titolo = () => { const p = document.getElementById('postazione-selezionata').value, sc = document.getElementById('scalo-selezionato').value; document.getElementById('cc-titolo').textContent = p ? `${p.replace(/\s*\(.*\)/, '')} · ${sc || ''}`.replace(/ · $/, '') : 'Controllo cassa'; };
+    document.addEventListener('change', e => { if (['scalo-selezionato', 'postazione-selezionata'].includes(e.target.id)) titolo(); });
+    setInterval(() => { titolo(); if (picker.hidden) mostra(); }, 1000); setTimeout(() => { titolo(); mostra(); }, 300);
+  })();
+</script>
 </body>
 </html>
