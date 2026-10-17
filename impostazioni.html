@@ -151,6 +151,29 @@
     body.impostazioni-page main>section.section .badge{white-space:normal!important;max-width:100%}
     body.impostazioni-page .settings-chevron{border:0!important;width:auto!important;height:auto!important;color:#9fb8c2!important;font-size:12px!important}
   </style>
+  <style>
+    /* Sezione Utente: tessera dell'agente (sola lettura) + telefono WhatsApp + PIN */
+    #utente{display:grid;gap:12px}
+    .ut-badge{border-radius:20px;padding:16px;background:linear-gradient(135deg,#0f3a40,#1a2d4a);border:1px solid rgba(45,212,191,.4);position:relative;overflow:hidden}
+    .ut-badge::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(rgba(45,212,191,.25),transparent 70%);pointer-events:none}
+    .ut-top{display:flex;gap:12px;align-items:center}
+    .ut-gr{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:46px;height:46px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:13px;font-weight:900}
+    .ut-gr.sm{width:28px;height:28px;font-size:10px;border-width:2px}
+    .ut-nm{font-size:20px;font-weight:800}.ut-id{color:#9fb8c2;font-size:13px;font-family:"DM Mono",ui-monospace,monospace}
+    .ut-dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:14px 0 0}
+    .ut-dl dt{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#67d7e6}.ut-dl dd{margin:0;font-weight:700;text-transform:capitalize}
+    .ut-move{margin:10px 0 0;font-size:12px;color:#9fb8c2}.ut-move b{color:#fde68a}
+    .ut-ff{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border-radius:999px;padding:5px 10px 5px 5px;background:#2a2148;border:1px solid #a78bfa;color:#ddd6fe;font-size:12px;font-weight:800}
+    .ut-tel{border-radius:14px;padding:10px 12px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.45)}
+    .ut-tel label{display:block;font-size:12px;font-weight:800;color:#86efac;margin-bottom:6px}
+    .ut-telrow{display:flex;gap:6px}.ut-telrow input{flex:1;min-width:0;border-radius:10px;border:1px solid #1f4250;background:#071923;color:inherit;padding:9px 10px;font:600 15px "DM Mono",ui-monospace,monospace}
+    .ut-telrow button{border:0;border-radius:10px;padding:9px 14px;font-weight:800;font-size:13px;background:#25d366;color:#06231f;cursor:pointer}
+    .ut-tel small{display:block;margin-top:6px;font-size:11px;color:#9fb8c2}
+    .ut-pin{display:flex;justify-content:space-between;align-items:center;border-radius:14px;padding:11px 12px;background:#102733;border:1px solid #1f4250}
+    .ut-dots{font:600 20px "DM Mono",ui-monospace,monospace;letter-spacing:.3em;color:#9fb8c2}
+    .ut-btn{display:block;text-align:center;border-radius:12px;padding:11px;font-weight:800;font-size:14px;color:#06231f;background:linear-gradient(90deg,#2dd4bf,#67d7e6);text-decoration:none}
+    .ut-lock{margin:0;font-size:11px;color:#9fb8c2}
+  </style>
 </head>
 <body class="impostazioni-page turni-page">
   <aside class="sidebar app-sidebar" id="settings-sidebar">
@@ -165,7 +188,20 @@
   </aside>
   <header><div><small>AREA PERSONALE</small><h1>NaviSuite <span>/ Impostazioni</span></h1></div></header>
   <main>
-    <p class="intro">Scegli dove aprire NaviSuite e come impostare il Ticket. Le preferenze sono associate al tuo profilo.</p>
+    <p class="intro">I tuoi dati, dove aprire NaviSuite e come impostare il Ticket. Le preferenze sono associate al tuo profilo.</p>
+    <section class="pref-card" id="utente" aria-labelledby="utente-title">
+      <div class="pref-head"><span class="pref-num" aria-hidden="true">👤</span><div><h2 id="utente-title">Utente</h2><p>I tuoi dati in NaviSuite. Grado, residenza e FF li modifica solo l'amministratore.</p></div></div>
+      <div class="ut-badge">
+        <div class="ut-top"><span class="ut-gr" id="ut-gr">?</span><div><div class="ut-nm" id="ut-nome">—</div><div class="ut-id" id="ut-id"></div></div></div>
+        <dl class="ut-dl"><div><dt>Grado</dt><dd id="ut-grado">—</dd></div><div><dt>Residenza</dt><dd id="ut-res">—</dd></div><div><dt>Ruolo</dt><dd id="ut-ruolo">—</dd></div><div><dt>Registrato</dt><dd id="ut-reg">—</dd></div></dl>
+        <p class="ut-move" id="ut-move" hidden></p>
+        <span class="ut-ff" id="ut-ff" hidden></span>
+      </div>
+      <div class="ut-tel"><label for="ut-telefono">📱 Telefono per WhatsApp</label><div class="ut-telrow"><input id="ut-telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="+39 333 1234567"><button type="button" id="ut-tel-salva">Salva</button></div><small id="ut-tel-stato">Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
+      <div class="ut-pin"><span>PIN</span><span class="ut-dots">••••</span></div>
+      <a class="ut-btn" href="navidiaria.html?pin=1">Cambia PIN</a>
+      <p class="ut-lock">🔒 Il PIN è salvato cifrato e non si può mostrare: se lo hai dimenticato chiedi un nuovo PIN iniziale a un amministratore.</p>
+    </section>
     <section class="pref-card" id="pagina-iniziale" aria-labelledby="pagina-iniziale-title">
       <div class="pref-head"><span class="pref-num" aria-hidden="true">01</span><div><h2 id="pagina-iniziale-title">Prima pagina di apertura</h2><p>Scegli dove aprire NaviSuite. Con «Automatica» (predefinita) apri Il mio turno, anche nei giorni a terra; dal menu puoi sempre tornare alla Home.</p></div></div>
       <div class="pref-tiles" role="group" aria-labelledby="pagina-iniziale-title">
@@ -239,7 +275,7 @@
     <div class="pref-support"><span>NaviSuite ti è utile?</span><a href="https://ko-fi.com/papamike80" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite Ko-fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M9 3v3M12 3v3"/></svg>Offrimi un caffè</a></div>
   </footer>
   <script src="assets/js/shared-roles.js?v=7"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=82"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=83"></script>
   <script src="assets/js/draft-period.js?v=1"></script>
   <script src="assets/js/shared-menu.js?v=1.76"></script>
   <script src="assets/js/offline.js?v=2"></script>
@@ -500,6 +536,50 @@
     const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card,body.impostazioni-page main>section.section:not(.settings-foldable)').forEach(prepara);
     tutte();
     new MutationObserver(tutte).observe(document.querySelector('main')||document.body,{childList:true});
+  })();
+  </script>
+  <script>
+  // Sezione Utente: dati in sola lettura dal profilo Firebase; si puo' cambiare solo il telefono
+  (function () {
+    const $ = id => document.getElementById(id);
+    let io = null; try { io = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null'); } catch (_) {}
+    const box = $('utente'); if (!box) return;
+    if (!io?.id) { box.hidden = true; return; }
+    const GRADI = [[/capitano|comandante/i,'Cap','#facc15'],[/capo\s*tim|capotim/i,'CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'AM','#3b82f6'],[/motorista/i,'Mot','#a855f7'],[/timoniere/i,'Tim','#22c55e'],[/marinaio/i,'Mar','#e8f3f6'],[/barista/i,'Bar','#f472b6']];
+    const distintivo = (el, q) => { const g = GRADI.find(([re]) => re.test(q || '')); el.textContent = g ? g[1] : '?'; el.style.setProperty('--g', g ? g[2] : '#9fb8c2'); el.title = q || ''; };
+    const data = v => String(v || '').slice(0, 10).split('-').reverse().join('/');
+    const oggi = new Date().toLocaleDateString('sv-SE');
+    const ruolo = r => ['admin', 'super_user', 'superuser'].includes(String(r || '').toLowerCase()) ? 'Amministratore' : 'Agente';
+    function mostra(p = {}, reg = {}) {
+      const grado = String(p.qualifica || io.qualifica || '').toLowerCase();
+      $('ut-nome').textContent = io.name || p.name || '—';
+      $('ut-id').textContent = `ID ${io.id}`;
+      distintivo($('ut-gr'), grado);
+      $('ut-grado').textContent = grado || '—';
+      const res = p.residenzaNuova && p.residenzaDal && oggi >= p.residenzaDal ? p.residenzaNuova : (p.residence || io.residence || '—');
+      $('ut-res').textContent = String(res).toLowerCase();
+      $('ut-ruolo').textContent = ruolo(p.role ?? io.role);
+      $('ut-reg').textContent = reg.registeredAt ? data(reg.registeredAt) : '—';
+      const mv = $('ut-move');
+      if (p.residenzaNuova && p.residenzaDal) { mv.hidden = false; mv.innerHTML = `${oggi >= p.residenzaDal ? 'Spostato' : 'Si sposta'} ${p.residenzaPrecedente ? `da ${p.residenzaPrecedente} ` : ''}a <b>${p.residenzaNuova}</b> dal ${data(p.residenzaDal)}`; } else mv.hidden = true;
+      const ff = p.ff, ffEl = $('ut-ff');
+      if (ff && ff.grado && ff.al && ff.al >= oggi) {
+        ffEl.hidden = false; ffEl.innerHTML = `<span class="ut-gr sm"></span>FF ${ff.grado} · ${ff.dal > oggi ? `dal ${data(ff.dal)} ` : ''}fino al ${data(ff.al)}`;
+        distintivo(ffEl.querySelector('.ut-gr'), ff.grado);
+      } else ffEl.hidden = true;
+      if (document.activeElement !== $('ut-telefono')) $('ut-telefono').value = p.telefono || '';
+    }
+    mostra();
+    (async () => {
+      try { await window.NaviAdminFirebase.ready; const r = await window.NaviAdminFirebase.getMioProfilo(io.id); mostra(r.profilo, r.registro); }
+      catch (error) { console.warn('Profilo non letto', error); }
+    })();
+    $('ut-tel-salva').addEventListener('click', async () => {
+      const stato = $('ut-tel-stato'), v = $('ut-telefono').value;
+      if (v && v.replace(/\D/g, '').length < 8) { stato.textContent = 'Numero troppo corto: scrivilo con il prefisso, per esempio +39 333 1234567.'; return; }
+      try { const s = await window.NaviAdminFirebase.saveAgentTelefono(io.id, v); $('ut-telefono').value = s; stato.textContent = s ? '✓ Telefono salvato.' : '✓ Telefono tolto.'; }
+      catch (error) { stato.textContent = `Telefono non salvato: ${error.message}`; }
+    });
   })();
   </script>
 </body>

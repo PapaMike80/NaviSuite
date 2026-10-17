@@ -803,6 +803,21 @@
     return getAgentAdminData();
   }
 
+  // Sezione Utente (Impostazioni): il proprio profilo e la propria registrazione, in lettura
+  async function getMioProfilo(agentId) {
+    const key = safeUserKey(String(agentId || "").trim());
+    const [profilo, registro] = await Promise.all([`agentProfiles/${key}`, `userRegistry/${key}`]
+      .map(ramo => databaseRequest(`private/adminUpdates/${ramo}`).then(r => r.data || null).catch(() => null)));
+    return { profilo: profilo || {}, registro: registro || {} };
+  }
+  // Telefono per WhatsApp: l'unico dato del profilo che l'agente puo' cambiare da solo
+  async function saveAgentTelefono(agentId, telefono) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const valore = String(telefono || "").replace(/[^\d+ ]/g, "").trim().slice(0, 20);
+    await databaseRequest(`private/adminUpdates/agentProfiles/${safeUserKey(id)}`, { method:"PATCH", body:JSON.stringify({ id, telefono:valore, telefonoAggiornato:new Date().toISOString() }) });
+    return valore;
+  }
   // Facente funzione (FF): grado temporaneo dell'agente per un periodo (max 6 mesi). ff = {grado, dal, al} oppure null per toglierlo.
   async function saveAgentFF(agentId, ff) {
     const id = String(agentId || "").trim();
@@ -1237,6 +1252,8 @@
     importLegacyUsers,
     saveAgentProfile,
     saveAgentFF,
+    getMioProfilo,
+    saveAgentTelefono,
     saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,

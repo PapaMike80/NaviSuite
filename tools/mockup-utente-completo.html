@@ -1,0 +1,152 @@
+<title>Utente e preferenze</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Impostazioni › Utente con dentro le preferenze personali. Telefono a sinistra, stessa pagina su PC a due colonne. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--wa:#25d366;--mono:'DM Mono',ui-monospace,monospace}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+.intro{margin:0 0 22px;color:var(--muted);max-width:66ch;line-height:1.5}
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:400px;display:grid;gap:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)))}
+.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}.tt{font-size:22px;font-weight:800;margin-top:-8px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.gr{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:46px;height:46px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:13px;font-weight:900}
+.gr.sm{width:26px;height:26px;font-size:9px;border-width:2px}
+.badge{border-radius:20px;padding:16px;background:linear-gradient(135deg,#0f3a40,#1a2d4a);border:1px solid color-mix(in srgb,var(--teal) 40%,transparent);position:relative;overflow:hidden}
+.badge::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(color-mix(in srgb,var(--teal) 25%,transparent),transparent 70%);pointer-events:none}
+.top{display:flex;gap:12px;align-items:center}.nm{font-size:20px;font-weight:800}.id{color:var(--muted);font-size:13px}
+dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:14px 0 0}dt{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}dd{margin:0;font-weight:700}
+.ffpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border-radius:999px;padding:4px 10px 4px 4px;background:#2a2148;border:1px solid var(--violet);color:#ddd6fe;font-size:12px;font-weight:800}
+.sez{display:grid;gap:8px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.sez h3{margin:0;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--c)}
+.sez p{margin:0;font-size:12px;color:var(--muted)}
+.telrow{display:flex;gap:6px}.telrow input{flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 10px;font:600 15px var(--mono)}
+.b{border:0;border-radius:10px;padding:9px 12px;font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+.b.wa{background:var(--wa);color:var(--on)}.b.main{background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);width:100%}
+.pinrow{display:flex;justify-content:space-between;align-items:center}.dots{font:600 20px var(--mono);letter-spacing:.3em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-radius:999px;padding:7px 11px;font:700 13px Manrope,system-ui,sans-serif;background:var(--card);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--c);color:var(--on);border-color:var(--c)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--card);border-radius:12px;padding:4px}
+.seg .chip{border:0;border-radius:9px;padding:7px 4px;font-size:11px;text-align:center}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;font-weight:700}
+.sw small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
+.tg{position:relative;width:46px;height:28px;flex:none;border-radius:999px;background:var(--card2);border:1px solid var(--line);cursor:pointer}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .15s}
+.tg[aria-pressed="true"]{background:var(--c);border-color:var(--c)}.tg[aria-pressed="true"]::after{transform:translateX(18px);background:var(--on)}
+.dev{display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--card));font-size:13px;font-weight:700}
+.lock{font-size:11px;color:var(--muted);margin:0}
+.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,420px));gap:26px;align-items:start}
+.notes{margin:0;padding:0;list-style:none;display:grid;gap:10px;align-content:start}
+.notes li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}.notes b{color:var(--ink)}
+.adm{border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent);padding:0 12px}
+.adm[open]{padding-bottom:12px;display:grid;gap:8px}
+.adm>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;font-weight:800;font-size:14px;color:var(--c)}
+.adm>summary::-webkit-details-marker{display:none}.adm>summary::after{content:"▾";margin-left:4px}.adm[open]>summary::after{content:"▴"}
+.adm .cnt{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--c);color:var(--on)}
+.adm p{margin:0;font-size:12px;color:var(--muted)}
+.wk{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;font-size:12px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:var(--card);border-radius:10px;padding:3px}
+.seg3 .chip{border:0;border-radius:8px;padding:6px 2px;font-size:11px;text-align:center}
+.sel{flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 10px;font:700 14px Manrope,system-ui,sans-serif}
+</style>
+
+<h1>Impostazioni · Utente e Amministrazione</h1>
+<p class="intro">Una sola pagina personale: in alto la tessera in sola lettura, poi le cose che l'agente può scegliere. Puoi toccare i pulsanti per provare.</p>
+
+<div class="wrap">
+<div class="phone">
+  <span class="eb">IMPOSTAZIONI</span><span class="tt">Utente</span>
+
+  <div class="badge">
+    <div class="top"><span class="gr">Mar</span><div><div class="nm">PEDRONI M.</div><div class="id num">ID 92</div></div></div>
+    <dl><div><dt>Grado</dt><dd>Marinaio</dd></div><div><dt>Residenza</dt><dd>Maderno</dd></div><div><dt>Ruolo</dt><dd>Agente</dd></div><div><dt>Registrato</dt><dd class="num">17/10/26</dd></div></dl>
+    <span class="ffpill"><span class="gr sm" style="--g:#22c55e">Tim</span>FF timoniere · fino al 31/12/2026</span>
+  </div>
+
+  <div class="sez" style="--c:var(--wa)">
+    <h3>📱 Telefono per WhatsApp</h3>
+    <div class="telrow"><input type="tel" value="+39 333 1234567" aria-label="Telefono"><button class="b wa" type="button">Salva</button></div>
+    <p>Lo vedono gli amministratori per scriverti.</p>
+  </div>
+
+  <div class="sez" style="--c:var(--cyan)">
+    <h3>🔑 PIN</h3>
+    <div class="pinrow"><span class="dots">••••</span><button class="b main" style="width:auto" type="button">Cambia PIN</button></div>
+  </div>
+
+  <div class="sez" style="--c:var(--teal)">
+    <h3>🏠 Prima pagina</h3>
+    <p>Dove si apre NaviSuite.</p>
+    <div class="chips" data-one>
+      <button class="chip" aria-pressed="true">Automatica</button><button class="chip" aria-pressed="false">Home</button><button class="chip" aria-pressed="false">Oggi</button><button class="chip" aria-pressed="false">Turni</button><button class="chip" aria-pressed="false">Il mio turno</button><button class="chip" aria-pressed="false">Distinta</button><button class="chip" aria-pressed="false">ODS</button><button class="chip" aria-pressed="false">Scali</button><button class="chip" aria-pressed="false">Cambi turno</button>
+    </div>
+  </div>
+
+  <div class="sez" style="--c:var(--amber)">
+    <h3>🎫 Ticket</h3>
+    <p>Come impostarlo quando la Distinta crea una giornata.</p>
+    <div class="chips" data-one><button class="chip" aria-pressed="true">Usato</button><button class="chip" aria-pressed="false">Non usato</button></div>
+  </div>
+
+  <div class="sez" style="--c:var(--violet)">
+    <h3>🔔 Notifiche</h3>
+    <div class="dev"><span>Attive su questo telefono</span><button class="b" style="background:transparent;color:var(--violet);padding:4px" type="button">Disattiva</button></div>
+    <p>Riepilogo della giornata</p>
+    <div class="seg" data-one><button class="chip" aria-pressed="false">Giorno prima</button><button class="chip" aria-pressed="true">Mattina</button><button class="chip" aria-pressed="false">Prima del servizio</button><button class="chip" aria-pressed="false">Spento</button></div>
+    <div class="sw"><span>⛴ Navi<small>Prossimo scalo o prossima nave</small></span><button class="tg" aria-pressed="true" aria-label="Navi"></button></div>
+    <div class="sw"><span>🔁 Cambi turno</span><button class="tg" aria-pressed="true" aria-label="Cambi turno"></button></div>
+    <div class="sw"><span>📄 ODS e variazioni</span><button class="tg" aria-pressed="false" aria-label="ODS"></button></div>
+  </div>
+
+  <p class="lock">🔒 Grado, residenza e FF li modifica solo l'amministratore.</p>
+</div>
+
+
+<div class="phone">
+  <span class="eb">IMPOSTAZIONI</span><span class="tt">Amministrazione</span>
+  <p class="lock" style="margin-top:-6px">🔒 Visibile solo agli amministratori, sotto la sezione Utente.</p>
+
+  <details class="adm" style="--c:var(--teal)" open><summary><span>📅 Pubblicazione settimane</span><b class="cnt">2 in bozza</b></summary>
+    <p>Quali settimane del turno sono ufficiali, in bozza o nascoste.</p>
+    <div class="wk num"><span>05/10 – 11/10</span><div class="seg3" data-one><button class="chip" aria-pressed="true">Ufficiale</button><button class="chip" aria-pressed="false">Bozza</button><button class="chip" aria-pressed="false">Nascosta</button></div></div>
+    <div class="wk num"><span>12/10 – 18/10</span><div class="seg3" data-one><button class="chip" aria-pressed="true">Ufficiale</button><button class="chip" aria-pressed="false">Bozza</button><button class="chip" aria-pressed="false">Nascosta</button></div></div>
+    <div class="wk num"><span>19/10 – 25/10</span><div class="seg3" data-one><button class="chip" aria-pressed="false">Ufficiale</button><button class="chip" aria-pressed="true">Bozza</button><button class="chip" aria-pressed="false">Nascosta</button></div></div>
+    <div class="wk num"><span>26/10 – 01/11</span><div class="seg3" data-one><button class="chip" aria-pressed="false">Ufficiale</button><button class="chip" aria-pressed="true">Bozza</button><button class="chip" aria-pressed="false">Nascosta</button></div></div>
+  </details>
+
+  <details class="adm" style="--c:var(--cyan)"><summary><span>🏠 Prima pagina per tutti</span><b class="cnt">Automatica</b></summary>
+    <p>Imposta la prima pagina di tutti gli agenti e cancella le loro scelte personali.</p>
+    <div class="telrow"><select class="sel"><option>Automatica</option><option>Il mio turno</option><option>Oggi</option></select><button class="b main" style="width:auto" type="button">Reset per tutti</button></div>
+  </details>
+
+  <details class="adm" style="--c:var(--violet)"><summary><span>🔔 Avvisi amministratore</span><b class="cnt">attivi</b></summary>
+    <div class="sw"><span>Accessi degli agenti<small>Ti avvisa quando un agente entra in NaviSuite. Vale per tutti i dispositivi.</small></span><button class="tg" aria-pressed="true" aria-label="Accessi"></button></div>
+  </details>
+
+  <details class="adm" style="--c:var(--orange)"><summary><span>📨 Invia giornata</span><b class="cnt">manuale</b></summary>
+    <p>Manda a un agente il riepilogo reale della sua giornata.</p>
+    <div class="telrow"><select class="sel"><option>AVANZINI A.</option><option>PEDRONI M.</option></select><button class="b main" style="width:auto" type="button">Invia</button></div>
+  </details>
+
+  <details class="adm" style="--c:var(--amber)"><summary><span>💬 Guide popup</span><b class="cnt">3 pagine</b></summary>
+    <p>Prepara, prova in anteprima e pubblica la guida di ogni pagina.</p>
+  </details>
+
+  <details class="adm" style="--c:#f472b6"><summary><span>👥 Gestione utenti</span><b class="cnt">54 registrati</b></summary>
+    <p>Agenti registrati, ultimo accesso e ultima pagina aperta. Per grado, residenza, FF e PIN si apre la pagina Agenti.</p>
+    <button class="b main" type="button">Apri Agenti</button>
+  </details>
+</div>
+<ul class="notes">
+  <li><b>Un solo posto per le cose personali.</b> Tessera, contatti, PIN e preferenze stanno insieme, ognuno nel suo riquadro colorato. Le sezioni per gli amministratori restano sotto, separate.</li>
+  <li><b>Più compatto di oggi.</b> Prima pagina e Ticket diventano pastiglie invece di grandi riquadri; le notifiche usano interruttori come sull'iPhone.</li>
+  <li><b>Amministrazione.</b> Le sezioni per gli admin diventano riquadri colorati che si aprono toccandoli, con un riassunto a destra (per esempio «2 in bozza»). Si apre solo quello che serve.</li>
+  <li><b>Stesse funzioni.</b> Le scelte e dove si salvano restano quelle di oggi: cambia solo la disposizione.</li>
+</ul>
+</div>
+
+<script>
+document.querySelectorAll('[data-one]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;g.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
+document.querySelectorAll('.tg').forEach(t=>t.addEventListener('click',()=>t.setAttribute('aria-pressed',String(t.getAttribute('aria-pressed')!=='true'))));
+</script>

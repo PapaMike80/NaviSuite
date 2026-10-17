@@ -1,0 +1,117 @@
+<title>Sezione Utente · proposte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Tre proposte per Impostazioni > Utente: dati dell'agente in sola lettura + Cambia PIN. Esempio: Pedroni M., marinaio, FF timoniere. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--mono:'DM Mono',ui-monospace,monospace}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+.intro{margin:0 0 22px;color:var(--muted);max-width:66ch;line-height:1.5}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:26px;align-items:start}
+h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.d{margin:4px 0 12px;color:var(--muted);font-size:13px;line-height:1.45;min-height:4.4em}
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:390px;display:grid;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)))}
+.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}.tt{font-size:21px;font-weight:800;margin-top:-6px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+/* distintivo come in Movimento */
+.gr{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:13px;font-weight:900}
+.gr.sm{width:30px;height:30px;font-size:10px;border-width:2px}
+.gr.big{width:76px;height:76px;font-size:20px;border-width:4px}
+.mar{--g:#e8f3f6}.tim{--g:#22c55e}
+.lock{font-size:11px;color:var(--muted)}
+.btn{display:block;text-align:center;border-radius:12px;padding:11px;font-weight:800;font-size:14px;color:var(--on);background:linear-gradient(90deg,var(--teal),var(--cyan))}
+.pinrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dots{font:600 20px var(--mono);letter-spacing:.3em;color:var(--muted)}
+.ffbox{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--violet) 16%,var(--card));border:1px solid color-mix(in srgb,var(--violet) 45%,transparent)}
+.ffbox b{color:#ddd6fe}.ffbox small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.note{font-size:12px;color:var(--muted);margin:0}
+/* A tessera */
+.badge{border-radius:20px;padding:16px;background:linear-gradient(135deg,#0f3a40,#1a2d4a);border:1px solid color-mix(in srgb,var(--teal) 40%,transparent);position:relative;overflow:hidden}
+.badge::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(color-mix(in srgb,var(--teal) 25%,transparent),transparent 70%)}
+.badge .top{display:flex;gap:12px;align-items:center}
+.badge .nm{font-size:20px;font-weight:800}.badge .id{color:var(--muted);font-size:13px}
+.badge dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:14px 0 0}
+.badge dt{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}.badge dd{margin:0;font-weight:700}
+.ffpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border-radius:999px;padding:5px 10px;background:#2a2148;border:1px solid var(--violet);color:#ddd6fe;font-size:12px;font-weight:800}
+/* B lista */
+.list{border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line);font-size:14px}.li:first-child{border-top:0}
+.li span{color:var(--muted)}.li b{display:flex;align-items:center;gap:8px;font-weight:700}
+.grp{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin:6px 2px -4px}
+/* C profilo */
+.hero{display:grid;justify-items:center;text-align:center;gap:6px;padding:8px 0}
+.hero .nm{font-size:22px;font-weight:800}.hero .sub{color:var(--muted);font-size:13px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tile{border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.tile small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}.tile b{font-size:15px}
+.tl{display:grid;gap:4px}.tl .bar{position:relative;height:10px;border-radius:6px;background:var(--card2);overflow:hidden}.tl .bar i{position:absolute;top:0;bottom:0;background:var(--violet);border-radius:6px}.tl .bar em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.tl .ax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.tel{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,#25d366 12%,var(--card));border:1px solid color-mix(in srgb,#25d366 45%,transparent)}
+.tel label{display:block;font-size:12px;font-weight:800;color:#86efac;margin-bottom:6px}
+.telrow{display:flex;gap:6px}.telrow input{flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 10px;font:600 15px var(--mono)}
+.telrow .save{border-radius:10px;padding:9px 12px;font-weight:800;font-size:13px;background:#25d366;color:#06231f}
+.tel small{display:block;margin-top:6px;font-size:11px;color:var(--muted)}
+.inl{width:150px;border:0;background:transparent;color:#86efac;text-align:right;font-size:14px}
+</style>
+
+<h1>Impostazioni · Utente · tre proposte</h1>
+<p class="intro">Esempio: Pedroni M., marinaio a Maderno, in FF timoniere fino al 31/12. Tutto è in sola lettura: l'agente vede grado, residenza e FF, ma non può modificarli. Può cambiare solo il PIN e il proprio numero di telefono per WhatsApp. Il PIN attuale non si può mostrare, perché l'app lo salva cifrato.</p>
+
+<div class="row">
+<section>
+  <h2>A · Tessera</h2>
+  <p class="d">I dati come su un tesserino: distintivo del grado, nome, ID, residenza e grado. L'eventuale FF è una pastiglia viola sulla tessera. Sotto, il riquadro PIN.</p>
+  <div class="phone">
+    <span class="eb">IMPOSTAZIONI</span><span class="tt">Utente</span>
+    <div class="badge">
+      <div class="top"><span class="gr mar">Mar</span><div><div class="nm">PEDRONI M.</div><div class="id num">ID 92</div></div></div>
+      <dl><div><dt>Grado</dt><dd>Marinaio</dd></div><div><dt>Residenza</dt><dd>Maderno</dd></div><div><dt>Ruolo</dt><dd>Agente</dd></div><div><dt>Registrato</dt><dd class="num">17/10/26</dd></div></dl>
+      <span class="ffpill"><span class="gr sm tim">Tim</span>FF timoniere · fino al 31/12/2026</span>
+    </div>
+<div class="tel"><label for="telA">📱 Telefono per WhatsApp</label><div class="telrow"><input id="telA" type="tel" inputmode="tel" value="+39 333 123 4567" autocomplete="tel"><span class="save">Salva</span></div><small>Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
+    <div class="list"><div class="li pinrow"><span>PIN</span><span class="dots">••••</span></div></div>
+    <span class="btn">Cambia PIN</span>
+    <p class="lock">🔒 Grado, residenza e FF li modifica solo l'amministratore. Puoi cambiare il telefono e il PIN.</p>
+  </div>
+</section>
+
+<section>
+  <h2>B · Elenco impostazioni</h2>
+  <p class="d">Stile impostazioni dell'iPhone: righe raggruppate in Dati, FF e Sicurezza. È la più semplice e la più facile da ampliare.</p>
+  <div class="phone">
+    <span class="eb">IMPOSTAZIONI</span><span class="tt">Utente</span>
+    <div class="grp">Dati</div>
+    <div class="list">
+      <div class="li"><span>Nome</span><b>PEDRONI M.</b></div>
+      <div class="li"><span>ID</span><b class="num">92</b></div>
+      <div class="li"><span>Grado</span><b><span class="gr sm mar">Mar</span>Marinaio</b></div>
+      <div class="li"><span>Residenza</span><b>Maderno</b></div>
+      <div class="li"><span>Dal</span><b class="num">05/10/2026 <small style="color:var(--muted);font-weight:500">(prima Desenzano)</small></b></div>
+    </div>
+    <div class="grp">Facente funzione</div>
+    <div class="list"><div class="li"><span>FF</span><b><span class="gr sm tim">Tim</span>Timoniere</b></div><div class="li"><span>Periodo</span><b class="num">01/10 – 31/12/2026</b></div></div>
+    <div class="grp">Contatti</div>
+    <div class="list"><div class="li"><span>WhatsApp</span><b><input class="inl num" type="tel" inputmode="tel" value="+39 333 123 4567" aria-label="Telefono per WhatsApp"></b></div></div>
+    <p class="note" style="margin:-4px 2px 0">Lo vedono gli amministratori per scriverti. Si salva da solo.</p>
+    <div class="grp">Sicurezza</div>
+    <div class="list"><div class="li"><span>PIN</span><b class="dots">••••</b></div></div>
+    <span class="btn">Cambia PIN</span>
+  </div>
+</section>
+
+<section>
+  <h2>C · Profilo</h2>
+  <p class="d">Il distintivo grande in alto, come una foto profilo. Sotto, riquadri colorati e una barra che mostra a che punto è il periodo FF.</p>
+  <div class="phone">
+    <span class="eb">IMPOSTAZIONI</span><span class="tt">Utente</span>
+    <div class="hero"><span class="gr big mar">Mar</span><div class="nm">PEDRONI M.</div><div class="sub num">ID 92 · Marinaio · Maderno</div></div>
+    <div class="tiles"><div class="tile" style="--c:var(--cyan)"><small>Grado</small><b>Marinaio</b></div><div class="tile" style="--c:var(--teal)"><small>Residenza</small><b>Maderno</b></div></div>
+    <div class="ffbox"><b>FF timoniere</b><small>Facente funzione dal 01/10 al 31/12/2026 · mancano 75 giorni</small>
+      <div class="tl" style="margin-top:8px"><div class="bar"><i style="left:0;width:100%"></i><em style="left:18%"></em></div><div class="ax num"><span>01/10</span><span>oggi</span><span>31/12</span></div></div>
+    </div>
+<div class="tel"><label for="telC">📱 Telefono per WhatsApp</label><div class="telrow"><input id="telC" type="tel" inputmode="tel" value="+39 333 123 4567" autocomplete="tel"><span class="save">Salva</span></div><small>Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
+    <div class="list"><div class="li pinrow"><span>🔑 PIN</span><span class="dots">••••</span></div></div>
+    <span class="btn">Cambia PIN</span>
+  </div>
+</section>
+</div>
