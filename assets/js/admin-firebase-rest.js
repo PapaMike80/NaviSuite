@@ -568,8 +568,9 @@
     const result = await databaseRequest("private/adminUpdates/draftPeriod");
     const value = result.data || {};
     return {
-      start:String(value.start || "2026-08-10"),
-      end:String(value.end || "2026-09-06"),
+      // nessun periodo salvato = nessuna bozza (prima tornava sempre 10/08-06/09)
+      start:String(value.start || ""),
+      end:String(value.end || ""),
       updatedAt:String(value.updatedAt || "")
     };
   }
