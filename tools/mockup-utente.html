@@ -46,10 +46,16 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
 .tile small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}.tile b{font-size:15px}
 .tl{display:grid;gap:4px}.tl .bar{position:relative;height:10px;border-radius:6px;background:var(--card2);overflow:hidden}.tl .bar i{position:absolute;top:0;bottom:0;background:var(--violet);border-radius:6px}.tl .bar em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
 .tl .ax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.tel{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,#25d366 12%,var(--card));border:1px solid color-mix(in srgb,#25d366 45%,transparent)}
+.tel label{display:block;font-size:12px;font-weight:800;color:#86efac;margin-bottom:6px}
+.telrow{display:flex;gap:6px}.telrow input{flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:9px 10px;font:600 15px var(--mono)}
+.telrow .save{border-radius:10px;padding:9px 12px;font-weight:800;font-size:13px;background:#25d366;color:#06231f}
+.tel small{display:block;margin-top:6px;font-size:11px;color:var(--muted)}
+.inl{width:150px;border:0;background:transparent;color:#86efac;text-align:right;font-size:14px}
 </style>
 
 <h1>Impostazioni · Utente · tre proposte</h1>
-<p class="intro">Esempio: Pedroni M., marinaio a Maderno, in FF timoniere fino al 31/12. Tutto è in sola lettura: l'agente vede grado, residenza e FF, ma non può modificarli. Può solo cambiare il PIN. Il PIN attuale non si può mostrare, perché l'app lo salva cifrato.</p>
+<p class="intro">Esempio: Pedroni M., marinaio a Maderno, in FF timoniere fino al 31/12. Tutto è in sola lettura: l'agente vede grado, residenza e FF, ma non può modificarli. Può cambiare solo il PIN e il proprio numero di telefono per WhatsApp. Il PIN attuale non si può mostrare, perché l'app lo salva cifrato.</p>
 
 <div class="row">
 <section>
@@ -62,9 +68,10 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
       <dl><div><dt>Grado</dt><dd>Marinaio</dd></div><div><dt>Residenza</dt><dd>Maderno</dd></div><div><dt>Ruolo</dt><dd>Agente</dd></div><div><dt>Registrato</dt><dd class="num">17/10/26</dd></div></dl>
       <span class="ffpill"><span class="gr sm tim">Tim</span>FF timoniere · fino al 31/12/2026</span>
     </div>
+<div class="tel"><label for="telA">📱 Telefono per WhatsApp</label><div class="telrow"><input id="telA" type="tel" inputmode="tel" value="+39 333 123 4567" autocomplete="tel"><span class="save">Salva</span></div><small>Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
     <div class="list"><div class="li pinrow"><span>PIN</span><span class="dots">••••</span></div></div>
     <span class="btn">Cambia PIN</span>
-    <p class="lock">🔒 Grado, residenza e FF li modifica solo l'amministratore.</p>
+    <p class="lock">🔒 Grado, residenza e FF li modifica solo l'amministratore. Puoi cambiare il telefono e il PIN.</p>
   </div>
 </section>
 
@@ -83,6 +90,9 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
     </div>
     <div class="grp">Facente funzione</div>
     <div class="list"><div class="li"><span>FF</span><b><span class="gr sm tim">Tim</span>Timoniere</b></div><div class="li"><span>Periodo</span><b class="num">01/10 – 31/12/2026</b></div></div>
+    <div class="grp">Contatti</div>
+    <div class="list"><div class="li"><span>WhatsApp</span><b><input class="inl num" type="tel" inputmode="tel" value="+39 333 123 4567" aria-label="Telefono per WhatsApp"></b></div></div>
+    <p class="note" style="margin:-4px 2px 0">Lo vedono gli amministratori per scriverti. Si salva da solo.</p>
     <div class="grp">Sicurezza</div>
     <div class="list"><div class="li"><span>PIN</span><b class="dots">••••</b></div></div>
     <span class="btn">Cambia PIN</span>
@@ -99,6 +109,7 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
     <div class="ffbox"><b>FF timoniere</b><small>Facente funzione dal 01/10 al 31/12/2026 · mancano 75 giorni</small>
       <div class="tl" style="margin-top:8px"><div class="bar"><i style="left:0;width:100%"></i><em style="left:18%"></em></div><div class="ax num"><span>01/10</span><span>oggi</span><span>31/12</span></div></div>
     </div>
+<div class="tel"><label for="telC">📱 Telefono per WhatsApp</label><div class="telrow"><input id="telC" type="tel" inputmode="tel" value="+39 333 123 4567" autocomplete="tel"><span class="save">Salva</span></div><small>Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
     <div class="list"><div class="li pinrow"><span>🔑 PIN</span><span class="dots">••••</span></div></div>
     <span class="btn">Cambia PIN</span>
   </div>
