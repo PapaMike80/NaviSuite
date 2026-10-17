@@ -803,6 +803,16 @@
     return getAgentAdminData();
   }
 
+  // Facente funzione (FF): grado temporaneo dell'agente per un periodo (max 6 mesi). ff = {grado, dal, al} oppure null per toglierlo.
+  async function saveAgentFF(agentId, ff) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const path = `private/adminUpdates/agentProfiles/${safeUserKey(id)}/ff`;
+    if (!ff) { await databaseRequest(path, { method:"DELETE" }); return null; }
+    const item = { grado:String(ff.grado || "").trim().toLowerCase(), dal:String(ff.dal || ""), al:String(ff.al || ""), updatedAt:new Date().toISOString() };
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
   async function saveAgentProfile(agentId, values = {}) {
     const id = String(agentId || "").trim();
     if (!id) throw new Error("Agente non valido");
@@ -1226,6 +1236,7 @@
     getAgentAdminData,
     importLegacyUsers,
     saveAgentProfile,
+    saveAgentFF,
     saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,
