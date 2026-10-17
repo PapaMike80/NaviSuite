@@ -309,6 +309,16 @@
     .cc-dettagli th{color:var(--text-muted)!important;background:transparent!important}
     .cc-dettagli td:first-child{color:var(--text-main)!important}
     .cc-dettagli .switch-wrapper{background:transparent;margin-bottom:8px;padding:8px 0;border:0}
+    .cc-dettagli table{border-collapse:separate!important;border-spacing:0 4px}
+    .cc-dettagli th{font:800 9px Manrope,system-ui,sans-serif!important;letter-spacing:.1em;text-transform:uppercase;border:0!important;padding:4px!important}
+    .cc-dettagli th.c-vers{color:var(--c3-teal)!important}.cc-dettagli th.c-resto{color:var(--c3-amber)!important}.cc-dettagli th.c-fondo{color:var(--c3-orange)!important}
+    .cc-dettagli td{border:0!important;background:var(--c3-card);padding:5px 4px!important;font-family:var(--c3-mono)}
+    .cc-dettagli td.taglio{border-left:4px solid var(--tc)!important;border-radius:8px 0 0 8px;color:var(--tc)!important;font:800 13px Manrope,system-ui,sans-serif}
+    .cc-dettagli td:last-child{border-radius:0 8px 8px 0}
+    .cc-dettagli td.c-vers b{color:var(--c3-teal)}.cc-dettagli td.c-resto b{color:var(--c3-amber)}.cc-dettagli td.c-fondo b{color:var(--c3-orange)}
+    .cc-dettagli td small{color:var(--text-muted)}
+    .cc-dettagli td .zero{color:var(--c3-line)}
+    .cc-dettagli tr.vuota{opacity:.45}
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -428,7 +438,7 @@
       <div class="cc-res" id="box-resto-monete-container"><div style="--c:var(--c3-amber)"><small>Resto monete</small><b id="box-resto-monete">€ 0,00</b></div></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th style="text-align: left;">Taglio</th><th>Da versare</th><th>Resto monete</th><th>Fondo domani</th></tr></thead>
+          <thead><tr><th class="taglio">Taglio</th><th class="c-vers">Da versare</th><th class="c-resto">Resto</th><th class="c-fondo">Fondo domani</th></tr></thead>
           <tbody id="distinta-pezzi-body"></tbody>
         </table>
       </div>
@@ -820,7 +830,7 @@
     const tbodyDistinta = document.getElementById("distinta-pezzi-body");
     tbodyDistinta.innerHTML = "";
 
-    DENOMINATIONS.forEach(d => {
+    DENOMINATIONS.slice().reverse().forEach(d => {
       const pB = pezziBusta[d.val] || 0;
       const pR = pezziResto[d.val] || 0;
       const pTotPresenti = countsSera[d.val] || 0;
@@ -832,13 +842,8 @@
       valResto0Cents += pR * d.val;
       valFondoCents += pF * d.val;
 
-      tbodyDistinta.innerHTML += `
-        <tr>
-          <td style="text-align: left; font-weight: 700; color: var(--cyan-accent);">${d.label}</td>
-          <td style="color: var(--ok-color);">${pB > 0 ? `<b>${pB}</b><small>${formatEuro(pB * d.val)}</small>` : '–'}</td>
-          <td style="color: var(--cyan-accent);">${pR > 0 ? `<b>${pR}</b><small>${formatEuro(pR * d.val)}</small>` : '–'}</td>
-          <td style="color: var(--accent-green);">${pF > 0 ? `<b>${pF}</b><small>${formatEuro(pF * d.val)}</small>` : '–'}</td>
-        </tr>`;
+      const cella = (n, cls) => `<td class="${cls}">${n > 0 ? `<b>${n}</b><small>${formatEuro(n * d.val)}</small>` : '<span class="zero">–</span>'}</td>`;
+      tbodyDistinta.innerHTML += `<tr class="t${d.val}${pB + pR + pF ? '' : ' vuota'}"><td class="taglio">${d.label.replace(',00', '')}</td>${cella(pB, 'c-vers')}${cella(pR, 'c-resto')}${cella(pF, 'c-fondo')}</tr>`;
     });
 
     document.getElementById("box-versamento").textContent = formatEuro(valBustaCents);
