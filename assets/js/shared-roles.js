@@ -77,12 +77,15 @@
     return !isScaloAgent(agent) || ['index.html', 'cambia-pin.html', ''].includes(file);
   }
   const pagineAperte = (agent = sessione(), access = accesso()) => PAGINE.map(([f]) => f).filter(f => puoAprire(f, agent, access));
-  function applicaAccesso(access) {
+  // aspetta = true: la copia sul telefono puo' essere vecchia, quindi prima di mandar via si rilegge Firebase
+  let rimanda = false;
+  function applicaAccesso(access, aspetta = false) {
     const agent = sessione();
     if (!agent?.id) return;
     const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     const pin = file === 'navidiaria.html' && /[?&](open-)?pin=/.test(location.search); // cambio PIN: sempre
     if (!pin && !puoAprire(file, agent, access)) {
+      if (aspetta) { rimanda = true; return; }
       const scalo = scaloOf(agent), prima = pagineAperte(agent, access)[0];
       location.replace(scalo && puoAprire('orario.html', agent, access) ? `orario.html?scalo=${encodeURIComponent(scalo)}` : scalo && prima ? prima : 'index.html?home=1');
       return;
@@ -92,6 +95,7 @@
     let style = document.getElementById('navi-page-access');
     if (!style) { style = document.createElement('style'); style.id = 'navi-page-access'; (document.head || document.documentElement).appendChild(style); }
     style.textContent = chiuse.map(f => `a[href^="${f}"]`).join(',') + (chiuse.length ? '{display:none!important}' : '');
+    try { window.dispatchEvent(new CustomEvent('navi-page-access', { detail: { chiuse } })); } catch { /* niente */ }
   }
   // Prima pagina imposta dagli admin: a ogni nuovo reset (ts) si cancellano le scelte personali del telefono e
   // vale la pagina scelta, se il ruolo la puo' aprire (altrimenti la predefinita). Gli scali aprono sempre il loro scalo.
@@ -107,11 +111,11 @@
       localStorage.setItem(RESET_KEY, dato.ts);
     } catch { /* niente */ }
   }
-  try { applicaAccesso(accesso()); applicaPaginaIniziale(); } catch { /* niente */ }
+  try { applicaAccesso(accesso(), true); applicaPaginaIniziale(); } catch { /* niente */ }
   window.addEventListener?.('load', async () => {
     try {
       const api = window.NaviAdminFirebase;
-      if (!api?.getPageAccess) return;
+      if (!api?.getPageAccess) { if (rimanda) applicaAccesso(accesso()); return; }
       await api.ready;
       const access = await api.getPageAccess();
       localStorage.setItem(ACCESS_KEY, JSON.stringify(access || {}));
@@ -120,7 +124,7 @@
         const dato = await api.getPaginaIniziale();
         if (dato?.ts) { localStorage.setItem(FORZATA_KEY, JSON.stringify(dato)); applicaPaginaIniziale(dato); }
       }
-    } catch (error) { console.warn('Accesso pagine non aggiornato', error); }
+    } catch (error) { console.warn('Accesso pagine non aggiornato', error); if (rimanda) applicaAccesso(accesso()); }
   });
 
   window.NaviRoles = Object.freeze({

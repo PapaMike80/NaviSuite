@@ -246,7 +246,7 @@ body.impostazioni-page nav a{
   font-size:13px;
   font-weight:700;
 }
-body.impostazioni-page nav a span{
+body.impostazioni-page nav a:not(.ns-tile) span{
   width:20px;
   color:var(--accent);
   font-size:17px;

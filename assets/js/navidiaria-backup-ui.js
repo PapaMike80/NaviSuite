@@ -15,7 +15,9 @@
   barra.append(scaricaBtn, caricaBtn, file);
   // Verifica busta: solo a chi puo' aprire la pagina (di norma gli admin, sezione Accesso alle pagine)
   const verifica = document.getElementById('monthlyVerifyPayslip');
-  if (verifica && window.NaviRoles?.puoAprire && !window.NaviRoles.puoAprire('verifica-busta.html')) verifica.hidden = true;
+  const aggiornaVerifica = () => { if (verifica && window.NaviRoles?.puoAprire) verifica.hidden = !window.NaviRoles.puoAprire('verifica-busta.html'); };
+  aggiornaVerifica();
+  window.addEventListener('navi-page-access', aggiornaVerifica); // dopo la rilettura da Firebase
 
   scaricaBtn.addEventListener('click', () => {
     const a = agente();
