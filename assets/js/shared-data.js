@@ -138,6 +138,7 @@
       if (!override) return;
       if (override.qualifica) agent.qualifica = override.qualifica;
       if (override.role !== undefined) agent.role = override.role;
+      applicaFF(agent, override);
     });
 
     Object.values(profileOverrides).forEach(override => {
@@ -367,6 +368,18 @@
     };
   }
 
+  // FF (facente funzione): grado temporaneo impostato nella scheda agente. Vale solo nel periodo dal-al.
+  function ffAttivo(override, todayIso) {
+    const ff = override?.ff, t = todayIso || localTodayIso();
+    return ff && ff.grado && ff.dal && ff.al && ff.dal <= t && t <= ff.al ? ff : null;
+  }
+  function applicaFF(agent, override) {
+    const ff = ffAttivo(override);
+    if (!ff) return;
+    if (!agent.qualifica_base) agent.qualifica_base = String(agent.qualifica || '').trim().toLowerCase();
+    agent.qualifica = String(ff.grado).trim().toLowerCase();
+    agent.ff = { grado: agent.qualifica, dal: ff.dal, al: ff.al };
+  }
   function localTodayIso() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -546,6 +559,7 @@
           agent.regraded = String(override.qualifica).trim().toLowerCase() !== agent.schedule_qualifica;
         }
         if (override.role !== undefined) agent.role = override.role;
+        applicaFF(agent, override);
       }));
       const ods = [...(updates.odsVariations || []), ...(updates.manualVariations || [])];
       data.variazioni_ods = replaceByKey(
