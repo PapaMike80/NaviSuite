@@ -152,6 +152,10 @@
     const result=await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(target)}`);const n=Object.keys(result.data||{}).length;
     await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(target)}`,{method:'DELETE'});return n;
   }
+  async function removeAllSubscriptions(){
+    const result=await databaseRequest('private/adminUpdates/pushSubscriptions');let n=0;Object.values(result.data||{}).forEach(d=>{n+=Object.keys(d||{}).length;});
+    await databaseRequest('private/adminUpdates/pushSubscriptions',{method:'DELETE'});return n;
+  }
   async function queuePush(payload={}){
     const requestedByAgentId=String(payload.requestedByAgentId||'').trim(),targetAgentId=String(payload.targetAgentId||'').trim(),title=String(payload.title||'NaviSuite').trim().slice(0,120),body=String(payload.body||'').trim().slice(0,500);
     if(!requestedByAgentId)throw new Error('Utente non riconosciuto');if(!targetAgentId)throw new Error('Scegli un destinatario');if(!body)throw new Error('Inserisci il testo della notifica');
@@ -161,5 +165,5 @@
   }
   async function listQueue(limit=20){const result=await databaseRequest('private/adminUpdates/pushQueue');return Object.values(result.data||{}).filter(Boolean).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,Math.max(1,Number(limit||20)));}
 
-  window.NaviPush={VAPID_PUBLIC_KEY,VAPID_VERSION,subscribe,unsubscribe,updatePreferences,getStatus,listSubscriptions,removeAgentSubscriptions,queuePush,listQueue,localSubscription,preferences,defaultPreferences,normalizePreferences,isIos,isStandalone,deviceId,provider:'Web Push v3 + Firebase registry'};
+  window.NaviPush={VAPID_PUBLIC_KEY,VAPID_VERSION,subscribe,unsubscribe,updatePreferences,getStatus,listSubscriptions,removeAgentSubscriptions,removeAllSubscriptions,queuePush,listQueue,localSubscription,preferences,defaultPreferences,normalizePreferences,isIos,isStandalone,deviceId,provider:'Web Push v3 + Firebase registry'};
 })();

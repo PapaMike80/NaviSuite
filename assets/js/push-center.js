@@ -88,13 +88,19 @@
           <div class="status" id="push-alert-status" aria-live="polite"></div>
         </div>
         <details id="push-admin-day">
-          <summary style="cursor:pointer;font-weight:800;color:var(--c)">Invia giornata · dispositivi degli agenti</summary>
+          <summary style="cursor:pointer;font-weight:800;color:var(--c)">Invia giornata · elimina registrazioni</summary>
           <div style="display:grid;gap:10px;margin-top:10px">
           <div class="grid"><div class="field"><label for="push-day-agent">Agente</label><select id="push-day-agent"><option value="">Caricamento…</option></select></div><div class="field"><label for="push-day-date">Giornata</label><input id="push-day-date" type="date" value="${todayRome()}"></div></div>
           <div id="push-day-preview" style="padding:10px 12px;border:1px solid #294b56;border-radius:10px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5;white-space:pre-line">Scegli agente e giornata per vedere l’anteprima.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button><button class="btn" id="push-day-refresh" type="button">Aggiorna elenco</button><button class="btn" id="push-day-remove" type="button" style="border-color:#fb7185;color:#fecdd3;background:transparent">Elimina dispositivi dell’agente</button></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button><button class="btn" id="push-day-refresh" type="button">Aggiorna elenco</button><button class="btn" id="push-day-remove" type="button" style="border-color:#fb7185;color:#fecdd3;background:transparent">Elimina dispositivi dell’agente</button><button class="btn" id="push-remove-all" type="button" style="border-color:#fb7185;color:#fecdd3;background:transparent">Elimina tutte le registrazioni</button></div>
           <div class="status" id="push-day-status" aria-live="polite"></div>
           </div>
+        </details>
+        <details id="push-coda">
+          <summary style="cursor:pointer;font:800 13px Manrope,system-ui,sans-serif;color:var(--c)">Ultime notifiche · stato di invio</summary>
+          <p style="margin:8px 0">«In attesa» da più di un paio di minuti = il server delle notifiche (TrueNAS) non le sta spedendo.</p>
+          <div id="push-coda-lista" style="display:grid;gap:6px"></div>
+          <button class="btn" id="push-coda-aggiorna" type="button" style="margin-top:8px">Aggiorna</button>
         </details>
       </div>
 `;
@@ -178,6 +184,23 @@
     statoTelefono('Su questo telefono',state.permission==='denied'?'Permesso negato nelle impostazioni di iOS o del browser.':'Spente: tocca per attivarle.',false,'Spente',state.permission==='denied');
   }
 
+  async function caricaCoda(){
+    const box=$('push-coda-lista');if(!box)return;box.textContent='Caricamento…';
+    try{
+      const lista=await NaviPush.listQueue(20);
+      const stato=v=>{const t=String(v.status||'pending').toLowerCase();return t==='pending'?['⏳ In attesa','#fbbf24']:/sent|done|ok|delivered/.test(t)?['✓ Inviata','#52c879']:/err|fail/.test(t)?['✕ Errore','#fb7185']:[t,'#9fb8c2'];};
+      const ora=v=>{const d=new Date(v);return isNaN(d)?'':d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});};
+      box.innerHTML=lista.length?lista.map(v=>{const [et,col]=stato(v);const err=v.error||v.lastError||'';return `<div style="padding:8px 10px;border-radius:10px;background:#102733;border-left:4px solid ${col}"><div style="display:flex;gap:8px;justify-content:space-between"><b style="font-size:12px">${esc(v.title||'NaviSuite')}</b><span style="font-size:11px;font-weight:800;color:${col};white-space:nowrap">${esc(et)}</span></div><div style="font-size:11px;color:#9fb8c2">${esc(ora(v.createdAt))} · a ${esc(v.targetAgentId||'tutti')} · ${esc(v.kind||'')}${v.sentAt?` · inviata ${esc(ora(v.sentAt))}`:''}</div>${err?`<div style="font-size:11px;color:#fecdd3">${esc(typeof err==='string'?err:JSON.stringify(err))}</div>`:''}</div>`;}).join(''):'<p>Nessuna notifica in coda.</p>';
+    }catch(error){box.textContent=error?.message||'Elenco non letto.';}
+  }
+  async function removeAll(){
+    const status=$('push-day-status'),btn=$('push-remove-all');
+    if(!confirm('Eliminare le registrazioni notifiche di TUTTI gli agenti? Ognuno dovrà riattivare le notifiche sul proprio telefono.'))return;
+    btn.disabled=true;status.textContent='Eliminazione…';
+    try{const n=await NaviPush.removeAllSubscriptions();try{await NaviPush.unsubscribe(profile);}catch(_){ }await refreshStatus();await loadRecipients();status.textContent=`${n} registrazion${n===1?'e eliminata':'i eliminate'}. Ognuno riattivi le notifiche da Impostazioni.`;}
+    catch(error){status.textContent=error?.message||'Eliminazione non riuscita.';}
+    finally{btn.disabled=false;}
+  }
   async function removeDevices(){
     const select=$('push-day-agent'),status=$('push-day-status'),id=String(select.value||'');
     if(!id){status.textContent='Scegli prima l’agente nel campo Destinatario.';return;}
@@ -245,7 +268,7 @@
     $('push-disable').addEventListener('click',async()=>{const btn=$('push-disable');btn.disabled=true;$('push-status').textContent='Disattivazione…';try{await NaviPush.unsubscribe(profile);$('push-status').textContent='Notifiche disattivate su questo dispositivo.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Disattivazione non riuscita.';}finally{btn.disabled=false;}});
     ['push-pref-summary','push-pref-changes','push-pref-ods','push-pref-arrivals'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
     ['push-summary-mode','push-summary-time','push-summary-lead'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs('Orario del riepilogo automatico salvato.');}));
-    if(isAdmin){$('push-day-refresh').addEventListener('click',loadRecipients);$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);$('push-day-remove').addEventListener('click',removeDevices);}
+    if(isAdmin){$('push-day-refresh').addEventListener('click',loadRecipients);$('push-day-agent').addEventListener('change',refreshDayPreview);$('push-day-date').addEventListener('change',refreshDayPreview);$('push-day-send').addEventListener('click',sendDay);$('push-day-remove').addEventListener('click',removeDevices);$('push-remove-all').addEventListener('click',removeAll);$('push-coda').addEventListener('toggle',()=>{if($('push-coda').open)caricaCoda();});$('push-coda-aggiorna').addEventListener('click',caricaCoda);}
     initAdminAlerts().catch(error=>console.warn('Avvisi amministratore:',error));
     await refreshStatus();await loadRecipients();
   }
