@@ -174,6 +174,57 @@
     .ut-btn{display:block;text-align:center;border-radius:12px;padding:11px;font-weight:800;font-size:14px;color:#06231f;background:linear-gradient(90deg,#2dd4bf,#67d7e6);text-decoration:none}
     .ut-lock{margin:0;font-size:11px;color:#9fb8c2}
   </style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <style>
+    /* ===== Stile a riquadri colorati (docs/STILE-NAVISUITE.md) ===== */
+    body.impostazioni-page{--s-bg:#071923;--s-surface:#0b1c26;--s-card:#102733;--s-card2:#143140;--s-line:#1f4250;--s-ink:#eaf2f4;--s-muted:#9fb8c2;--s-on:#06231f;--s-teal:#2dd4bf;--s-cyan:#67d7e6;--s-violet:#a78bfa;--s-amber:#fbbf24;--s-orange:#fb923c;--s-rose:#fb7185;--s-pink:#f472b6;font-family:Manrope,system-ui,sans-serif!important;background:linear-gradient(160deg,color-mix(in srgb,#2dd4bf 9%,#0b1c26),#0b1c26 40%,color-mix(in srgb,#a78bfa 9%,#0b1c26)) fixed!important;color:var(--s-ink)}
+    html:has(body.impostazioni-page){background:#0b1c26}
+    body.impostazioni-page>header{background:transparent!important;border:0!important;padding:22px max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))!important}
+    body.impostazioni-page>header small{color:var(--s-teal)!important;font:800 11px Manrope,system-ui,sans-serif!important;letter-spacing:.22em!important}
+    body.impostazioni-page>header h1{font:800 24px Manrope,system-ui,sans-serif!important;background:linear-gradient(90deg,#2dd4bf,#67d7e6 50%,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+    body.impostazioni-page>header h1 span{color:inherit!important;-webkit-text-fill-color:transparent}
+    body.impostazioni-page main{display:grid!important;gap:12px!important;width:min(460px,calc(100% - 32px))!important;margin:8px auto 30px!important}
+    body.impostazioni-page main>.intro{display:none}
+    .imp-col{display:contents}
+    body.impostazioni-page main>*,.imp-col>*{min-width:0;max-width:100%}
+    body.impostazioni-page main .table-wrap{overflow-x:auto;max-width:100%}
+    .imp-gruppo{margin:10px 2px -2px;font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--s-muted)}
+    /* riquadri */
+    body.impostazioni-page .pref-card,body.impostazioni-page main .section{--c:var(--s-teal);margin:0!important;padding:12px 12px!important;border-radius:16px!important;background:color-mix(in srgb,var(--c) 10%,var(--s-card))!important;border:1px solid color-mix(in srgb,var(--c) 38%,transparent)!important;box-shadow:none!important;color:var(--s-ink)}
+    #utente{--c:var(--s-teal)!important}#pagina-iniziale{--c:var(--s-cyan)!important}#ticket-preference{--c:var(--s-amber)!important}#notifiche-push{--c:var(--s-violet)!important}
+    #gestione-settimane{--c:var(--s-teal)!important}#gestione-avvisi{--c:var(--s-amber)!important}#gestione-utenti{--c:var(--s-pink)!important}#theme-test-setting{--c:var(--s-pink)!important}#data-source-setting{--c:var(--s-rose)!important}
+    body.impostazioni-page main section[class*="section"][id*="calendar"],body.impostazioni-page main section.settings-foldable:not(.admin-section):not(#theme-test-setting):not(#data-source-setting){--c:var(--s-cyan)}
+    body.impostazioni-page .pref-head,body.impostazioni-page .section-head{margin:0!important;padding:0!important;align-items:center!important}
+    body.impostazioni-page .pref-num{display:none!important}
+    body.impostazioni-page .pref-card h2,body.impostazioni-page main .section h2{margin:0!important;font:800 15px Manrope,system-ui,sans-serif!important;color:var(--c)!important;letter-spacing:0!important}
+    body.impostazioni-page .pref-head p,body.impostazioni-page .section-head p{margin:3px 0 0!important;font-size:12px!important;line-height:1.45!important;color:var(--s-muted)!important}
+    body.impostazioni-page .ns-sez-riepilogo{display:inline-block;margin-top:4px;font-size:11px!important;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--c);color:var(--s-on)!important}
+    body.impostazioni-page .ns-sez-riepilogo:empty{display:none}
+    body.impostazioni-page .ns-sez-freccia,body.impostazioni-page .settings-chevron{color:var(--c)!important;border-color:color-mix(in srgb,var(--c) 45%,transparent)!important}
+    body.impostazioni-page .badge,body.impostazioni-page .section-head .tag{font-size:10px!important;font-weight:800!important;border-radius:999px!important;background:var(--c)!important;color:var(--s-on)!important;border:0!important;padding:2px 8px!important}
+    /* scelte a pastiglie al posto delle tessere grandi */
+    body.impostazioni-page .pref-tiles{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:10px!important}
+    body.impostazioni-page .pref-tile{display:inline-flex!important;align-items:center!important;width:auto!important;min-height:0!important;padding:7px 12px!important;border-radius:999px!important;border:1px solid color-mix(in srgb,var(--c) 40%,transparent)!important;background:var(--s-card)!important;color:var(--s-ink)!important;box-shadow:none!important;font:700 13px Manrope,system-ui,sans-serif!important}
+    body.impostazioni-page .pref-tile .pref-icon,body.impostazioni-page .pref-tile .pref-check,body.impostazioni-page .pref-tile .pref-desc,body.impostazioni-page .pref-tile svg{display:none!important}
+    body.impostazioni-page .pref-tile .pref-label{font:700 13px Manrope,system-ui,sans-serif!important;color:inherit!important;margin:0!important}
+    body.impostazioni-page .pref-tile-top{display:none!important}
+    body.impostazioni-page .pref-tile[aria-pressed="true"]{background:var(--c)!important;color:var(--s-on)!important;border-color:var(--c)!important}
+    body.impostazioni-page .pref-note{font-size:11px!important;color:var(--s-muted)!important}
+    /* pulsanti e campi dentro i riquadri */
+    body.impostazioni-page main .btn{border-radius:10px!important;font:800 13px Manrope,system-ui,sans-serif!important}
+    body.impostazioni-page main .btn.primary{background:var(--c)!important;color:var(--s-on)!important;border-color:var(--c)!important}
+    body.impostazioni-page main input,body.impostazioni-page main select{border-radius:10px!important;border-color:var(--s-line)!important;background:#071923!important}
+    /* tessera Utente: meno margine dentro il riquadro */
+    #utente .ut-badge{margin-top:6px}
+    /* PC: tre colonne (Utente · Preferenze · Amministrazione) */
+    @media(min-width:1000px){
+      body.impostazioni-page main{width:min(1380px,calc(100% - 64px))!important;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:18px!important}
+      .imp-col{display:grid;gap:12px;align-content:start}
+      .imp-col:empty{display:none}
+      body.impostazioni-page main:not(:has(.imp-col-admin>section:not([hidden]))){grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+      .imp-gruppo{margin:0 2px}
+    }
+  </style>
 </head>
 <body class="impostazioni-page turni-page">
   <aside class="sidebar app-sidebar" id="settings-sidebar">
@@ -280,7 +331,7 @@
   <script src="assets/js/shared-menu.js?v=1.76"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
-  <script src="assets/js/calendar-settings-v2.js?v=5"></script>
+  <script src="assets/js/calendar-settings-v2.js?v=6"></script>
   <script>
     const LOGIN_KEY="naviturni_logged_agent";
     const profile=JSON.parse(localStorage.getItem('navidiaria.activeAgent')||localStorage.getItem(LOGIN_KEY)||"null");
@@ -580,6 +631,25 @@
       try { const s = await window.NaviAdminFirebase.saveAgentTelefono(io.id, v); $('ut-telefono').value = s; stato.textContent = s ? '✓ Telefono salvato.' : '✓ Telefono tolto.'; }
       catch (error) { stato.textContent = `Telefono non salvato: ${error.message}`; }
     });
+  })();
+  </script>
+  <script>
+  // Stile a riquadri: sezioni in tre gruppi (Utente · Preferenze · Amministrazione). Sul telefono una colonna, da PC tre.
+  (function(){
+    const main=document.querySelector('body.impostazioni-page main');if(!main)return;
+    const col=(cls,titolo)=>{const c=document.createElement('div');c.className='imp-col '+cls;if(titolo){const h=document.createElement('h3');h.className='imp-gruppo';h.textContent=titolo;c.appendChild(h);}main.appendChild(c);return c;};
+    const cUtente=col('imp-col-utente','Utente'),cPref=col('imp-col-pref','Preferenze'),cAdmin=col('imp-col-admin','Amministrazione 🔒');
+    const dove=sez=>{if(sez.id==='utente')return cUtente;if(sez.classList.contains('admin-section')||['data-source-setting','theme-test-setting'].includes(sez.id))return cAdmin;return cPref;};
+    const ordinePref=['pagina-iniziale','ticket-preference','notifiche-push'];
+    function distribuisci(){
+      [...main.children].forEach(el=>{if(el.classList.contains('imp-col')||el.classList.contains('intro'))return;if(el.matches('section,.pref-card'))dove(el).appendChild(el);});
+      ordinePref.forEach(id=>{const el=document.getElementById(id);if(el&&el.parentElement===cPref)cPref.appendChild(el);});
+      [...cPref.children].filter(el=>!ordinePref.includes(el.id)&&el.tagName!=='H3').forEach(el=>cPref.appendChild(el));
+      const adminVisibile=[...cAdmin.children].some(el=>el.tagName!=='H3'&&!el.hidden);
+      cAdmin.querySelector('.imp-gruppo').hidden=!adminVisibile;
+    }
+    // dopo le altre preparazioni della pagina (pieghevoli), che lavorano sui figli diretti di main
+    setTimeout(()=>{distribuisci();new MutationObserver(()=>setTimeout(distribuisci,0)).observe(main,{childList:true});new MutationObserver(distribuisci).observe(cAdmin,{subtree:true,attributes:true,attributeFilter:['hidden']});},0);
   })();
   </script>
 </body>

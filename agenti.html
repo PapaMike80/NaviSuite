@@ -21,6 +21,44 @@
     @media(max-width:850px){.residence-move label,.residence-move button{flex:1 1 140px}}
   .agent-row.chiuso{grid-template-columns:1fr!important;padding:10px 12px}.agent-row:not(.chiuso) .ultimo-accesso{display:none}.ultimo-accesso{display:block;margin-top:4px}.agent-row.chiuso>:not(.agent-name),.agent-row.chiuso .initial-pin-output{display:none!important}.agent-row .agent-name{cursor:pointer;position:relative;padding-right:22px}.agent-row .agent-name::after{content:'▾';position:absolute;right:2px;top:2px;color:var(--grade-color,#5eead4);font-size:14px;transition:transform .2s}.agent-row.chiuso .agent-name::after{transform:rotate(-90deg)}.accessi-riepilogo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}.accessi-riepilogo span{display:grid;gap:2px;padding:10px;border:1px solid rgba(45,212,191,.35);border-radius:10px;background:rgba(45,212,191,.08);text-align:center}.accessi-riepilogo b{font-size:22px;color:var(--accent)}.accessi-riepilogo small{font-size:11px;color:#91aeb7;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
 </style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <style>
+    /* ===== Stile a riquadri colorati (docs/STILE-NAVISUITE.md) ===== */
+    body{--s-card:#102733;--s-card2:#143140;--s-line:#1f4250;--s-ink:#eaf2f4;--s-muted:#9fb8c2;--s-on:#06231f;--s-teal:#2dd4bf;--s-cyan:#67d7e6;--s-violet:#a78bfa;--s-amber:#fbbf24;--s-orange:#fb923c;--s-rose:#fb7185;--s-pink:#f472b6;--s-wa:#25d366;font-family:Manrope,system-ui,sans-serif!important;background:linear-gradient(160deg,color-mix(in srgb,#2dd4bf 9%,#0b1c26),#0b1c26 40%,color-mix(in srgb,#a78bfa 9%,#0b1c26)) fixed!important}
+    html{background:#0b1c26}
+    .hero h1{font-family:Manrope,system-ui,sans-serif!important;font-weight:800!important;background:linear-gradient(90deg,#2dd4bf,#67d7e6 50%,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+    .eyebrow{letter-spacing:.22em!important}
+    main{display:grid;gap:12px}
+    main>.section,main>.status{margin:0!important}
+    .section{--c:var(--s-teal);padding:12px!important;border-radius:16px!important;background:color-mix(in srgb,var(--c) 10%,var(--s-card))!important;border:1px solid color-mix(in srgb,var(--c) 38%,transparent)!important}
+    .section h2{font:800 15px Manrope,system-ui,sans-serif!important;color:var(--c)!important}
+    .section .section-head{margin-bottom:10px!important}
+    .section.collapsed .section-head{margin-bottom:0!important}
+    .count{background:var(--c)!important;color:var(--s-on)!important}
+    .chevron{color:var(--c)!important}
+    .status{border-radius:14px!important;font-size:13px}
+    /* scheda agente */
+    .agent-row{border-radius:14px!important}
+    .agent-name{position:relative}
+    .agent-name strong{font-family:Manrope,system-ui,sans-serif!important;font-weight:800!important}
+    .ag-gr{--g:#e8f3f6;float:left;display:inline-grid;place-items:center;width:38px;height:38px;margin:0 10px 4px 0;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:900 11px Manrope,system-ui,sans-serif}
+    .grade-badge{border-radius:999px!important}
+    .agent-row label{font-family:Manrope,system-ui,sans-serif}
+    .agent-row select,.agent-row input{border-radius:10px!important}
+    .agent-actions button{border-radius:10px!important;font-family:Manrope,system-ui,sans-serif!important}
+    .delete-registration,.delete-agent{background:transparent!important}
+    .residence-move{border-top:0!important;margin-top:4px;padding:10px!important;border-radius:12px;background:color-mix(in srgb,var(--s-amber) 10%,var(--s-card));border:1px solid color-mix(in srgb,var(--s-amber) 35%,transparent)!important}
+    .residence-move.ff-block{background:color-mix(in srgb,var(--s-violet) 12%,var(--s-card));border-color:color-mix(in srgb,var(--s-violet) 40%,transparent)!important}
+    .residence-move button{border-radius:10px!important}
+    .agent-telefono a{color:var(--s-wa)!important}
+    /* PC: pagina larga, schede agenti in colonne, sezioni piccole affiancate */
+    @media(min-width:1000px){
+      main{max-width:1380px!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:16px}
+      main>.hero,main>.status,main>#agent-search-section,main>.section:has(#registered-users),main>.section:has(#other-users),main>.section:has(#latest-user),main>#richieste-accesso,main>#page-access-section{grid-column:1/-1}
+      .agent-list{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))!important;align-items:start}
+      .agent-list>.agent-row:not(.chiuso){grid-column:1/-1}
+    }
+  </style>
 </head>
 <body class="agenti-page">
   <aside class="app-sidebar" id="admin-sidebar"></aside>
@@ -128,6 +166,7 @@
       if(office)return office;
       return ({capitano:'#facc15',comandante:'#facc15','capo timoniere':'#fb923c',capotimoniere:'#fb923c',timoniere:'#22c55e','aiuto motorista':'#3b82f6',aiutomotorista:'#3b82f6',motorista:'#a855f7',marinaio:'#9ca3af',operaio:'#14b8a6',ufficio:'#22d3ee',barista:'#ec4899'}[String(value||'').toLowerCase()]||'#9ca3af');
     };
+    const siglaGrado=g=>({capitano:'Cap',comandante:'Cap','capo timoniere':'CT',capotimoniere:'CT',timoniere:'Tim','aiuto motorista':'AM',aiutomotorista:'AM',motorista:'Mot',marinaio:'Mar',barista:'Bar',operaio:'Op'}[String(g||'').toLowerCase()]||String(g||'?').slice(0,3));
     const itDate=iso=>String(iso||'').slice(0,10).split('-').reverse().join('/');
     const todayIso=()=>new Date().toLocaleDateString('sv-SE');
     const noMoveResidences=['uffici','bariste'];
@@ -197,7 +236,7 @@
       const isUffici=String(override.residence||agent.residence||'').trim().toLowerCase()==='uffici';
       const roles=roleOptions,grades=[...new Set([...gradeDefaults,...directory.map(item=>String(item.qualifica||'').toLowerCase()),String(grade||'').toLowerCase()].filter(Boolean))].sort((a,b)=>(gradeRank[a]||99)-(gradeRank[b]||99)||a.localeCompare(b,'it'));
       const actions=`<div class="agent-actions"><button class="save-agent" type="button">Salva ruolo/grado</button>${initialPin?`<button class="copy-initial-pin" type="button" data-pin="${esc(initialPin)}">Copia PIN</button>`:''}<button class="generate-pin" type="button">${initialPin?'Rigenera PIN':'Genera PIN iniziale'}</button>${user?`<button class="delete-registration" type="button">Elimina registrazione</button>`:''}<button class="delete-agent" type="button">Elimina agente</button></div>`;
-      return `<article class="agent-row${online?' latest':''}${agentiAperti.has(String(agent.id))?'':' chiuso'}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name" role="button" tabindex="0" title="Tocca per aprire o chiudere"><strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small>${override.telefono?`<small class="agent-telefono">📞 <a href="https://wa.me/${esc(String(override.telefono).replace(/[^\d]/g,'').replace(/^00/,'').replace(/^(?!39)(\d{6,10})$/,'39$1'))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#25d366">${esc(override.telefono)}</a></small>`:''}<span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${ffAttivo(agent)?`<span class="grade-badge ff-badge" title="Facente funzione fino al ${esc(itDate(ffAttivo(agent).al))}">FF ${esc(ffAttivo(agent).grado)}</span>`:''}${user&&(user.lastAccess||user.onlineAt)?`<small class="ultimo-accesso">${online?'Online':'Ultimo accesso'}: ${esc(fmt(online?user.onlineAt:user.lastAccess))}${user.lastPage?` · ${esc(user.lastPage)}`:''}</small>`:''}${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}${residenceMoveBlock(agent)}${ffBlock(agent)}</article>`;
+      return `<article class="agent-row${online?' latest':''}${agentiAperti.has(String(agent.id))?'':' chiuso'}" style="--grade-color:${gradeColor(grade)}" data-agent-id="${esc(agent.id)}" data-residence="${esc(agent.residence||'')}" data-agent-name="${esc(agent.name)}"><div class="agent-name" role="button" tabindex="0" title="Tocca per aprire o chiudere">${isUffici?'':`<span class="ag-gr" style="--g:${gradeColor(grade)}">${esc(siglaGrado(grade))}</span>`}<strong>${online?'<i class="online-dot"></i>':''}${esc(agent.name)}</strong><small>ID ${esc(agent.id)} · ${esc(agent.residence||'Residenza non indicata')}</small>${override.telefono?`<small class="agent-telefono">📞 <a href="https://wa.me/${esc(String(override.telefono).replace(/[^\d]/g,'').replace(/^00/,'').replace(/^(?!39)(\d{6,10})$/,'39$1'))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#25d366">${esc(override.telefono)}</a></small>`:''}<span class="grade-badge">${esc(isUffici?officeLabel(grade):grade)}</span>${ffAttivo(agent)?`<span class="grade-badge ff-badge" title="Facente funzione fino al ${esc(itDate(ffAttivo(agent).al))}">FF ${esc(ffAttivo(agent).grado)}</span>`:''}${user&&(user.lastAccess||user.onlineAt)?`<small class="ultimo-accesso">${online?'Online':'Ultimo accesso'}: ${esc(fmt(online?user.onlineAt:user.lastAccess))}${user.lastPage?` · ${esc(user.lastPage)}`:''}</small>`:''}${initialPin?`<small class="initial-pin-output">PIN iniziale: ${esc(initialPin)}</small>`:''}</div><div class="access"><span>${online?'Presenza rilevata':'Ultimo accesso'}</span><strong class="${online?'online-time':''}">${esc(fmt(online?user?.onlineAt:user?.lastAccess))}</strong>${user?.registeredAt?`<small>Registrato: ${esc(fmt(user.registeredAt))}</small>`:''}</div><label>Ruolo<select data-role>${roles.map(item=>`<option value="${esc(item)}"${item===role?' selected':''}>${esc(roleLabels[item]||item)}</option>`).join('')}</select></label><label>${isUffici?'Ufficio':'Grado'}<select data-grade>${(isUffici?officeOptions:grades).map(item=>`<option value="${esc(item)}"${String(item).toLowerCase()===String(grade).toLowerCase()?' selected':''}>${esc(isUffici?officeLabel(item):item)}</option>`).join('')}</select></label>${actions}${residenceMoveBlock(agent)}${ffBlock(agent)}</article>`;
     }
     // PIN e registrazioni aggiornati quando si torna sulla pagina (es. un altro admin ha appena generato un PIN)
     let ricaricoAdmin=0;
@@ -423,5 +462,12 @@
   <script src="assets/js/backup-admin.js?v=2"></script>
   <script src="assets/js/page-access-admin.js?v=2"></script>
   <script src="assets/js/announcements-recovered.js?v=5"></script>
+  <script>
+  // Colore di ogni sezione secondo l'argomento (stile a riquadri)
+  (function(){
+    const colori={'Richieste di accesso':'--s-wa','Ricerca agente':'--s-cyan','Connessi adesso':'--s-wa','Agenti registrati':'--s-teal','Altri agenti':'--s-cyan','Backup':'--s-orange','Accesso alle pagine':'--s-violet','PIN primo accesso':'--s-amber','Nuovo agente':'--s-pink'};
+    document.querySelectorAll('main>.section').forEach(sez=>{const t=sez.querySelector('h2')?.textContent.trim();if(colori[t])sez.style.setProperty('--c',`var(${colori[t]})`);});
+  })();
+  </script>
 </body>
 </html>
