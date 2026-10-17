@@ -1,131 +1,115 @@
-<title>Controllo cassa · proposte</title>
+<title>Controllo cassa · linea della giornata</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <style>
-/* Tre telefoni affiancati con gli stessi dati di esempio (cassa AgB Desenzano, chiusura serale). Palette NaviSuite scura. */
-:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--green:#52c879;--violet:#a78bfa;--mono:'DM Mono',ui-monospace,monospace}
+/* Tre varianti della proposta C (linea della giornata). Stessa giornata di esempio. Palette NaviSuite scura e colorata. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--green:#52c879;--violet:#a78bfa;--orange:#fb923c;--mono:'DM Mono',ui-monospace,monospace}
 body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{margin:0 0 4px;font-size:24px;font-weight:800}
-.intro{margin:0 0 22px;color:var(--muted);max-width:64ch;line-height:1.5}
+.intro{margin:0 0 22px;color:var(--muted);max-width:66ch;line-height:1.5}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:26px;align-items:start}
 h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
 .d{margin:4px 0 12px;color:var(--muted);font-size:13px;line-height:1.45;min-height:4.4em}
-.phone{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:390px;display:grid;gap:10px}
-.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}.tt{font-size:21px;font-weight:800;margin-top:-6px}
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:390px;display:grid;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 10%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 10%,var(--surface)))}
+.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}
+.tt{font-size:21px;font-weight:800;margin-top:-6px;background:linear-gradient(90deg,var(--teal),var(--cyan) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;background:var(--card)}
-.card{background:var(--card);border-radius:14px;padding:10px 12px}
-.lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted)}
-.big{font-size:24px;font-weight:600}
-.ok{color:var(--green)}.ko{color:var(--rose)}.wa{color:var(--amber)}
-/* A stepper */
-.steps{display:flex;gap:4px}.steps span{flex:1;text-align:center;font-size:11px;font-weight:800;padding:7px 0;border-radius:10px;background:var(--card);color:var(--muted)}.steps span.done{color:var(--green)}.steps span.on{background:var(--teal);color:var(--on)}
-.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.fields .card{padding:8px 10px}.fields b{display:block;font-size:14px;font-weight:600}
-.verdict{display:flex;justify-content:space-between;align-items:center;border-radius:14px;padding:12px;background:color-mix(in srgb,var(--green) 16%,var(--card));border:1px solid color-mix(in srgb,var(--green) 45%,transparent)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.coin{background:var(--card);border-radius:10px;padding:6px 4px;text-align:center;font-size:11px;color:var(--muted)}.coin b{display:block;font-size:15px;color:var(--ink);font-weight:600}
-.coin.n b{color:var(--cyan)}
-.bt{display:flex;gap:6px}.bt span{flex:1;text-align:center;border-radius:12px;padding:10px;font-weight:800;font-size:13px}
-.primary{background:var(--teal);color:var(--on)}.ghost{background:var(--card);border:1px solid var(--line)}
-/* B dashboard */
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.kpi{border-radius:14px;padding:10px 12px;color:#06231f}.kpi small{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}.kpi b{font-size:18px;font-weight:600}
-.k1{background:var(--cyan)}.k2{background:var(--violet)}.k3{background:var(--teal)}.k4{background:var(--amber)}
-.flow{display:grid;gap:4px}
-.flow div{display:flex;justify-content:space-between;font-size:13px;padding:6px 10px;border-radius:10px;background:var(--card)}
-.flow .t{background:var(--card2);font-weight:800}
-.split{display:flex;height:16px;border-radius:8px;overflow:hidden}.split i:nth-child(1){background:var(--teal)}.split i:nth-child(2){background:var(--amber)}.split i:nth-child(3){background:var(--rose)}
-.leg{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
-/* C timeline */
-.tl{display:grid;gap:8px;position:relative}
-.ph{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;background:var(--card);border-radius:14px;padding:10px 12px}
-.ph .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--on)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid color-mix(in srgb,var(--c,var(--teal)) 45%,transparent);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--c,var(--teal)) 18%,var(--card));color:color-mix(in srgb,var(--c,var(--teal)) 70%,#fff)}
+.chip.on{background:var(--teal);color:var(--on);border-color:var(--teal)}
+.ok{color:var(--green)}.wa{color:var(--amber)}.ko{color:var(--rose)}
+.ph{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--c) 15%,var(--card));border-left:4px solid var(--c)}
+.ph .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--on);background:var(--c)}
 .ph small{display:block;color:var(--muted);font-size:12px}
-.ph.open{grid-template-columns:22px 1fr auto;border:1px solid var(--teal)}
-.inner{grid-column:1/-1;display:grid;gap:6px;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line)}
-.line{display:flex;justify-content:space-between;font-size:13px}
-.cass{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--rose) 12%,var(--card));border:1px solid color-mix(in srgb,var(--rose) 40%,transparent);display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.ph.open{border:1px solid var(--c);border-left-width:4px}
+.inner{grid-column:1/-1;display:grid;gap:8px;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line)}
+.tot3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tc{border-radius:12px;padding:7px 9px;background:color-mix(in srgb,var(--c) 22%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.tc small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--c) 70%,#fff)}
+.tc b{font-size:15px;font-weight:600}
+.tc.auto{border-style:dashed}.tc.auto small::after{content:" · auto";opacity:.7}
+.eq{font-size:12px;color:var(--muted)}
+.stor{border-radius:12px;padding:8px 10px;background:var(--card);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--line)}
+.stor b{color:var(--rose)}
+.line{display:flex;justify-content:space-between;font-size:13px}.line b{color:var(--teal)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.coin{background:var(--card);border-radius:10px;padding:5px 4px;text-align:center;font-size:10px;color:var(--muted);border-top:4px solid var(--c)}.coin b{display:block;font-size:14px;color:var(--c);font-weight:600}
+.e50{--c:#fb923c}.e20{--c:#60a5fa}.e10{--c:#f87171}.e5{--c:#a3b5a6}.c2{--c:#fbbf24}.c1{--c:#fcd34d}.c050{--c:#eab308}.c020{--c:#f59e0b}
+.cass{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--rose) 14%,var(--card));border:1px solid color-mix(in srgb,var(--rose) 40%,transparent);display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.primary{display:block;text-align:center;border-radius:12px;padding:11px;font-weight:800;font-size:14px;color:var(--on);background:linear-gradient(90deg,var(--teal),var(--cyan))}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.res div{border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--card))}.res small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}.res b{font-size:15px;font-weight:600}
+.rail{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.rail div{border-radius:10px;padding:6px 8px;font-size:11px;font-weight:800;background:color-mix(in srgb,var(--c) 22%,var(--card));color:var(--c);text-align:center}
+.rail div.on{background:var(--c);color:var(--on)}
+.rail small{display:block;font-weight:600;font-size:11px}
+.badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--c);color:var(--on)}
 .notes{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
 .notes li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}.notes b{color:var(--ink)}
-
-/* --- piu' colore --- */
-.phone{background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 10%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 10%,var(--surface)))}
-.tt{background:linear-gradient(90deg,var(--teal),var(--cyan) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.chip{background:color-mix(in srgb,var(--c,var(--teal)) 18%,var(--card));border-color:color-mix(in srgb,var(--c,var(--teal)) 45%,transparent);color:color-mix(in srgb,var(--c,var(--teal)) 70%,#fff)}
-.steps span:nth-child(1){--c:var(--cyan)}.steps span:nth-child(2){--c:var(--violet)}.steps span:nth-child(3){--c:var(--teal)}
-.steps span{background:color-mix(in srgb,var(--c) 18%,var(--card));color:var(--c)}.steps span.on{background:var(--c);color:var(--on)}
-.fields .card:nth-child(1){background:color-mix(in srgb,var(--cyan) 22%,var(--card))}.fields .card:nth-child(2){background:color-mix(in srgb,var(--violet) 22%,var(--card))}.fields .card:nth-child(3){background:color-mix(in srgb,var(--rose) 18%,var(--card))}
-.coin{border-top:4px solid var(--c)}.coin b{color:var(--c)!important}
-.e50{--c:#fb923c}.e20{--c:#60a5fa}.e10{--c:#f87171}.e5{--c:#a3b5a6}.c2{--c:#fbbf24}.c1{--c:#fcd34d}.c050{--c:#eab308}.c020{--c:#f59e0b}
-.primary{background:linear-gradient(90deg,var(--teal),var(--cyan));}
-.ghost{background:color-mix(in srgb,var(--violet) 18%,var(--card));border-color:color-mix(in srgb,var(--violet) 45%,transparent);color:var(--violet)}
-.flow div:nth-child(1){border-left:4px solid var(--cyan)}.flow div:nth-child(2){border-left:4px solid var(--violet)}.flow div:nth-child(3){border-left:4px solid var(--teal)}.flow div:nth-child(4){border-left:4px solid var(--amber)}.flow div:nth-child(5){border-left:4px solid var(--green);background:color-mix(in srgb,var(--green) 16%,var(--card))}
-.card{background:color-mix(in srgb,var(--c,var(--card2)) 14%,var(--card))}
-.ph:nth-child(1){background:color-mix(in srgb,var(--green) 14%,var(--card))}.ph:nth-child(2){background:color-mix(in srgb,var(--amber) 16%,var(--card))}.ph.open{background:color-mix(in srgb,var(--teal) 14%,var(--card))}
-.line b{color:var(--teal)}
-.chip.on{background:var(--teal);color:var(--on);border-color:var(--teal)}
 </style>
 
-<h1>Controllo cassa · tre proposte</h1>
-<p class="intro">Stessa giornata di esempio: cassa AgB di Desenzano, chiusura serale, incasso 1.284,50 € di cui 512,00 € con POS, fondo di 400 €. I conteggi e le regole restano quelli di oggi; cambia solo come sono disposti. Ogni momento ha il suo colore (apertura azzurro, diurno viola, chiusura turchese) e banconote e monete hanno il colore del taglio.</p>
+<h1>Controllo cassa · tre varianti della linea della giornata</h1>
+<p class="intro">Stessa giornata di esempio: cassa AgB di Desenzano, chiusura serale. In tutte e tre i totali sono Incasso, POS e <b>Totale contanti</b>, che si calcola da solo (incasso − POS − storni). «Da stornare» sta in una riga a parte, chiusa: si apre solo quando serve.</p>
 
 <div class="row">
 
 <section>
-  <h2>A · Un passo alla volta</h2>
-  <p class="d">Tre linguette in alto: Apertura, Diurno, Chiusura. Si vede solo il passo attivo. In alto l'esito (cassa quadrata o differenza), sotto i dati di sistema e la griglia delle monete e banconote.</p>
+  <h2>C1 · Linea con i totali dentro</h2>
+  <p class="d">Come la C scelta. Il momento in corso si apre con i tre totali colorati, la riga degli storni chiusa, il conteggio a colori e il risultato: busta e fondo per domani.</p>
   <div class="phone">
     <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
-    <div class="chips"><span class="chip" style="--c:var(--cyan)">ven 16/10</span><span class="chip" style="--c:var(--violet)">Pedroni M.</span><span class="chip" style="--c:var(--rose)">🔴 Cassetta</span></div>
-    <div class="steps"><span class="done">✓ Apertura</span><span class="done">✓ Diurno</span><span class="on">Chiusura</span></div>
-    <div class="verdict"><div><span class="lbl">Discrepanza serale</span><div class="big num ok">0,00 €</div></div><span class="chip" style="background:var(--green);color:#06231f;border:0">Cassa quadrata</span></div>
-    <div class="fields num"><div class="card"><span class="lbl">Incasso</span><b>1.284,50</b></div><div class="card"><span class="lbl">POS</span><b>512,00</b></div><div class="card"><span class="lbl">Storni</span><b>0,00</b></div></div>
-    <span class="lbl">Conteggio · contanti 1.172,50 €</span>
-    <div class="grid num"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
-    <div class="bt"><span class="ghost">← Diurno</span><span class="primary">Busta e fondo →</span></div>
-  </div>
-</section>
-
-<section>
-  <h2>B · Cruscotto</h2>
-  <p class="d">Quattro riquadri colorati con i numeri del giorno, poi i conti in colonna come su uno scontrino. Una barra mostra come si dividono i contanti: busta, resto monete e fondo per domani.</p>
-  <div class="phone">
-    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · ven 16/10</span>
-    <div class="kpis num"><div class="kpi k1"><small>Incasso</small><b>1.284,50</b></div><div class="kpi k2"><small>POS</small><b>512,00</b></div><div class="kpi k3"><small>Contanti</small><b>1.172,50</b></div><div class="kpi k4"><small>In busta</small><b>760,00</b></div></div>
-    <div class="flow num">
-      <div><span>Fondo mattina</span><span>400,00</span></div>
-      <div><span>+ incasso contanti</span><span>772,50</span></div>
-      <div class="t"><span>= contanti attesi</span><span>1.172,50</span></div>
-      <div><span>contati</span><span>1.172,50</span></div>
-      <div class="t"><span>Discrepanza</span><span class="ok">0,00 ✓</span></div>
-    </div>
-    <div class="card" style="--c:var(--amber)"><span class="lbl">Ripartizione dei contanti</span><div class="split" style="margin-top:8px"><i style="width:65%"></i><i style="width:3%"></i><i style="width:32%"></i></div><div class="leg num" style="margin-top:6px"><span><i style="background:var(--teal)"></i>Busta 760,00</span><span><i style="background:var(--amber)"></i>Resto 12,50</span><span><i style="background:var(--rose)"></i>Fondo 400,00</span></div></div>
-    <div class="bt"><span class="ghost">Conteggio ▾</span><span class="primary">Salva chiusura</span></div>
-  </div>
-</section>
-
-<section>
-  <h2>C · Linea della giornata</h2>
-  <p class="d">I tre momenti uno sotto l'altro, ognuno con il suo esito. Si apre quello in corso, gli altri restano chiusi con il riassunto. La cassetta rossa ha un suo riquadro fisso in fondo.</p>
-  <div class="phone">
-    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
-    <div class="chips"><span class="chip on">Oggi</span><span class="chip" style="--c:var(--cyan)">‹ ieri</span><span class="chip" style="--c:var(--violet)">Pedroni M.</span></div>
-    <div class="tl num">
-      <div class="ph"><span class="dot" style="background:var(--green)">✓</span><span>Apertura<small>fondo 400,00 · conforme</small></span><span class="ok">0,00</span></div>
-      <div class="ph"><span class="dot" style="background:var(--amber)">!</span><span>Diurno · 14:20<small>attesi 812,40 · contati 810,40</small></span><span class="wa">−2,00</span></div>
-      <div class="ph open"><span class="dot" style="background:var(--teal)">3</span><span>Chiusura<small>in corso</small></span><span class="ok">0,00</span>
-        <div class="inner"><div class="line"><span>Incasso / POS / storni</span><span>1.284,50 / 512,00 / 0</span></div><div class="line"><span>Contanti attesi</span><span>1.172,50</span></div><div class="line"><span>Contati</span><span>1.172,50</span></div><div class="line"><b>Busta</b><b>760,00</b></div><div class="line"><span>Fondo per domani</span><span>400,00</span></div></div>
+    <div class="chips"><span class="chip on">Oggi 16/10</span><span class="chip" style="--c:var(--cyan)">‹ ieri</span><span class="chip" style="--c:var(--violet)">Pedroni M.</span></div>
+    <div class="ph num" style="--c:var(--green)"><span class="dot">✓</span><span>Apertura<small>fondo 400,00 · conforme</small></span><span class="ok">0,00</span></div>
+    <div class="ph num" style="--c:var(--amber)"><span class="dot">!</span><span>Diurno · 14:20<small>attesi 812,40 · contati 810,40</small></span><span class="wa">−2,00</span></div>
+    <div class="ph open num" style="--c:var(--teal)"><span class="dot">3</span><span>Chiusura<small>in corso</small></span><span class="badge" style="--c:var(--green)">0,00 ✓</span>
+      <div class="inner">
+        <div class="tot3"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
+        <div class="stor"><span>＋ Da stornare <span style="opacity:.7">(raro)</span></span><b>0,00</b></div>
+        <div class="grid"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
+        <div class="res"><div style="--c:var(--teal)"><small>Busta</small><b>760,00</b></div><div style="--c:var(--orange)"><small>Fondo domani</small><b>400,00</b></div></div>
       </div>
     </div>
     <div class="cass"><span>🔴 Cassetta rossa <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
-    <div class="bt"><span class="primary">Salva</span></div>
+    <span class="primary">Salva chiusura</span>
+  </div>
+</section>
+
+<section>
+  <h2>C2 · Totali sempre in vista</h2>
+  <p class="d">Sopra la linea c'è una fascia fissa con i totali del momento attivo. Così mentre conti le banconote vedi sempre quanto deve tornare. Gli storni sono un pulsante piccolo sotto la fascia.</p>
+  <div class="phone">
+    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
+    <div class="tot3 num"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
+    <div class="chips"><span class="chip" style="--c:var(--rose)">＋ Storni (0,00)</span><span class="chip" style="--c:var(--amber)">Attesi 1.172,50</span></div>
+    <div class="ph num" style="--c:var(--green)"><span class="dot">✓</span><span>Apertura<small>fondo 400,00</small></span><span class="ok">0,00</span></div>
+    <div class="ph num" style="--c:var(--amber)"><span class="dot">!</span><span>Diurno · 14:20<small>810,40 contati</small></span><span class="wa">−2,00</span></div>
+    <div class="ph open num" style="--c:var(--teal)"><span class="dot">3</span><span>Chiusura · conteggio<small>contati 1.172,50</small></span><span class="badge" style="--c:var(--green)">0,00 ✓</span>
+      <div class="inner"><div class="grid"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
+      <div class="line"><span>Busta</span><b>760,00</b></div><div class="line"><span>Fondo per domani</span><span>400,00</span></div></div>
+    </div>
+    <div class="cass"><span>🔴 Cassetta <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>C3 · Binario in alto</h2>
+  <p class="d">I tre momenti diventano un binario orizzontale colorato con il loro esito: si tocca per passare da uno all'altro. Sotto, solo il momento scelto, con i totali grandi e gli storni nascosti.</p>
+  <div class="phone">
+    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · ven 16/10</span>
+    <div class="rail num"><div style="--c:var(--green)">Apertura<small>0,00 ✓</small></div><div style="--c:var(--amber)">Diurno<small>−2,00</small></div><div class="on" style="--c:var(--teal)">Chiusura<small>0,00 ✓</small></div></div>
+    <div class="tot3 num"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
+    <p class="eq num" style="margin:0">fondo 400,00 + contanti 772,50 = <b style="color:var(--amber)">attesi 1.172,50</b></p>
+    <div class="stor"><span>＋ Da stornare <span style="opacity:.7">(raro)</span></span><b>0,00</b></div>
+    <div class="grid num"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
+    <div class="res num"><div style="--c:var(--green)"><small>Contati · discrepanza</small><b>1.172,50 · 0,00</b></div><div style="--c:var(--teal)"><small>Busta</small><b>760,00</b></div></div>
+    <div class="cass"><span>🔴 Cassetta <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
+    <span class="primary">Salva chiusura</span>
   </div>
 </section>
 </div>
 
 <ul class="notes">
-  <li><b>In tutte e tre</b> restano il salvataggio automatico, la cassetta rossa con Preleva e Versa, lo storico del giorno e le regole di AgB, Garda e Maderno.</li>
-  <li><b>A</b> è la più semplice da usare in piedi al banco: un passo per schermata.</li>
-  <li><b>B</b> mostra subito tutti i numeri. <b>C</b> fa vedere tutta la giornata, anche il diurno con l'ammanco.</li>
+  <li><b>Totale contanti</b> non si scrive: è incasso meno POS meno storni, ed è segnato «auto» con il bordo tratteggiato.</li>
+  <li><b>Da stornare</b> resta a zero e chiuso. Quando c'è un importo la riga diventa rossa e mostra la cifra.</li>
+  <li>Restano salvataggio automatico, cassetta rossa, storico del giorno e regole delle casse.</li>
 </ul>
