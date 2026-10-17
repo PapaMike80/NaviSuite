@@ -1,0 +1,105 @@
+<title>Tagli di chiusura · proposte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Tre modi di mostrare come si dividono i contanti a fine giornata. Prima i totali, poi i tagli. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--amber:#fbbf24;--orange:#fb923c;--violet:#a78bfa;--mono:'DM Mono',ui-monospace,monospace}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+.intro{margin:0 0 22px;color:var(--muted);max-width:66ch;line-height:1.5}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:26px;align-items:start}
+h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.d{margin:4px 0 12px;color:var(--muted);font-size:13px;line-height:1.45;min-height:4.4em}
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 14px;max-width:390px;display:grid;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)))}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.t{border-radius:14px;padding:9px 10px;background:color-mix(in srgb,var(--c) 22%,var(--card));border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.t small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.t b{display:block;font-size:17px;font-weight:600}
+.t i{display:block;font-style:normal;font-size:11px;color:var(--muted);margin-top:2px}
+.t.big b{font-size:24px}
+.V{--c:var(--teal)}.R{--c:var(--amber)}.F{--c:var(--orange)}
+.e100{--tc:#4ade80}.e50{--tc:#fb923c}.e20{--tc:#60a5fa}.e10{--tc:#f87171}.e5{--tc:#a3b5a6}.c2{--tc:#fbbf24}.c1{--tc:#fcd34d}.c050{--tc:#eab308}.c020{--tc:#f59e0b}.c010{--tc:#d97706}
+/* A: tre buste */
+.busta{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--c) 12%,var(--card));border-left:5px solid var(--c)}
+.busta .h{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:14px;color:var(--c)}.busta .h b{font-family:var(--mono);font-weight:600;font-size:18px;color:var(--ink)}
+.pz{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.pz span{border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;background:color-mix(in srgb,var(--tc) 20%,var(--card));color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
+.pz span b{font-family:var(--mono);color:var(--ink);margin-right:3px}
+/* B: barre per taglio */
+.bars{display:grid;gap:6px}
+.br{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;font-size:12px}
+.br>span{font-weight:800;color:var(--tc);text-align:right}
+.track{display:flex;height:22px;border-radius:7px;overflow:hidden;background:var(--card)}
+.track i{display:flex;align-items:center;justify-content:center;font:600 11px var(--mono);color:var(--on);font-style:normal}
+.track .v{background:var(--teal)}.track .r{background:var(--amber)}.track .f{background:var(--orange)}
+.leg{display:flex;gap:12px;font-size:11px;color:var(--muted)}.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+/* C: schede */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tab{border-radius:14px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);cursor:pointer;text-align:left;color:var(--ink);font:inherit}
+.tab small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}.tab b{font:600 16px var(--mono)}
+.tab.on{background:var(--c);color:var(--on)}.tab.on small{color:var(--on)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.coin{border-radius:10px;padding:5px 2px;text-align:center;background:var(--card);border-top:4px solid var(--tc);font-size:10px;color:var(--muted)}
+.coin b{display:block;font:600 16px var(--mono);color:var(--tc)}
+.coin.zero{opacity:.3}
+.note{font-size:12px;color:var(--muted);margin:0}
+</style>
+
+<h1>Divisione dei contanti · tre proposte</h1>
+<p class="intro">Fine giornata di esempio a AgB: 1.172,50 € contati. In tutte e tre vengono prima i totali (Da versare, Resto monete, Fondo per domani), poi i tagli che li compongono. Nella proposta C puoi toccare i riquadri.</p>
+
+<div class="row">
+<section>
+  <h2>A · Tre buste</h2>
+  <p class="d">Tre riquadri colorati, uno per destinazione, con il totale grande. Dentro ognuno, i pezzi da mettere come pastiglie colorate: «8 × 20 €». Si legge come una lista da preparare.</p>
+  <div class="phone num">
+    <div class="busta V"><div class="h"><span>Da versare</span><b>770,00 €</b></div><div class="pz"><span class="e100"><b>1</b>× 100 €</span><span class="e50"><b>10</b>× 50 €</span><span class="e20"><b>8</b>× 20 €</span><span class="e10"><b>1</b>× 10 €</span></div></div>
+    <div class="busta R"><div class="h"><span>Resto monete</span><b>2,50 €</b></div><div class="pz"><span class="c2"><b>1</b>× 2 €</span><span class="c050"><b>1</b>× 0,50 €</span></div></div>
+    <div class="busta F"><div class="h"><span>Fondo per domani</span><b>400,00 €</b></div><div class="pz"><span class="e20"><b>4</b>× 20 €</span><span class="e10"><b>13</b>× 10 €</span><span class="e5"><b>9</b>× 5 €</span><span class="c2"><b>39</b>× 2 €</span><span class="c1"><b>45</b>× 1 €</span><span class="c050"><b>30</b>× 0,50</span><span class="c020"><b>25</b>× 0,20</span><span class="c010"><b>20</b>× 0,10</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>B · Totali e barre</h2>
+  <p class="d">In alto i tre totali. Sotto, per ogni taglio una barra divisa nei tre colori: si vede a colpo d'occhio quanti pezzi vanno da versare, nel resto e nel fondo.</p>
+  <div class="phone num">
+    <div class="tot"><div class="t V big"><small>Da versare</small><b>770,00</b></div><div class="t R"><small>Resto</small><b>2,50</b></div><div class="t F"><small>Fondo</small><b>400,00</b></div></div>
+    <div class="leg"><span><i style="background:var(--teal)"></i>da versare</span><span><i style="background:var(--amber)"></i>resto</span><span><i style="background:var(--orange)"></i>fondo</span></div>
+    <div class="bars">
+      <div class="br e100"><span>100 €</span><div class="track"><i class="v" style="width:100%">1</i></div></div>
+      <div class="br e50"><span>50 €</span><div class="track"><i class="v" style="width:100%">10</i></div></div>
+      <div class="br e20"><span>20 €</span><div class="track"><i class="v" style="width:67%">8</i><i class="f" style="width:33%">4</i></div></div>
+      <div class="br e10"><span>10 €</span><div class="track"><i class="v" style="width:7%">1</i><i class="f" style="width:93%">13</i></div></div>
+      <div class="br e5"><span>5 €</span><div class="track"><i class="f" style="width:100%">9</i></div></div>
+      <div class="br c2"><span>2 €</span><div class="track"><i class="r" style="width:3%"></i><i class="f" style="width:97%">39</i></div></div>
+      <div class="br c1"><span>1 €</span><div class="track"><i class="f" style="width:100%">45</i></div></div>
+      <div class="br c050"><span>0,50</span><div class="track"><i class="r" style="width:3%"></i><i class="f" style="width:97%">30</i></div></div>
+      <div class="br c020"><span>0,20</span><div class="track"><i class="f" style="width:100%">25</i></div></div>
+      <div class="br c010"><span>0,10</span><div class="track"><i class="f" style="width:100%">20</i></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>C · Totali che si aprono</h2>
+  <p class="d">Tre riquadri con i totali. Tocchi quello che ti serve e sotto compaiono i tagli come tessere, uguali a quelle del conteggio. Quelli a zero restano spenti.</p>
+  <div class="phone num">
+    <div class="tabs"><button type="button" class="tab V on" data-k="v"><small>Da versare</small><b>770,00</b></button><button type="button" class="tab R" data-k="r"><small>Resto</small><b>2,50</b></button><button type="button" class="tab F" data-k="f"><small>Fondo</small><b>400,00</b></button></div>
+    <div class="grid" id="cg"></div>
+    <p class="note" id="cn"></p>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+  const T=[['100 €','e100'],['50 €','e50'],['20 €','e20'],['10 €','e10'],['5 €','e5'],['2 €','c2'],['1 €','c1'],['0,50','c050'],['0,20','c020'],['0,10','c010']];
+  const D={v:[1,10,8,1,0,0,0,0,0,0],r:[0,0,0,0,0,1,0,1,0,0],f:[0,0,4,13,9,39,45,30,25,20]};
+  const N={v:'Da portare in banca o in cassaforte.',r:'Monete in più, messe da parte come resto.',f:'Restano in cassa per l’apertura di domani.'};
+  const g=document.getElementById('cg'),n=document.getElementById('cn');
+  function show(k){g.innerHTML=T.map(([l,c],i)=>`<div class="coin ${c}${D[k][i]?'':' zero'}"><b>${D[k][i]}</b>${l}</div>`).join('');n.textContent=N[k];document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.k===k));}
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>show(b.dataset.k)));
+  show('v');
+})();
+</script>
