@@ -48,6 +48,10 @@
         #notifiche-push label.np-riga:has(input:checked) .np-tg{background:var(--c)}
         #notifiche-push label.np-riga:has(input:checked) .np-tg::after{left:21px;background:#06231f}
         #notifiche-push #push-admin-day>summary{font:800 13px Manrope,system-ui,sans-serif!important}
+        #notifiche-push,#notifiche-push *{min-width:0;max-width:100%;box-sizing:border-box}
+        #notifiche-push .np-box{overflow:hidden;overflow-wrap:anywhere}
+        #notifiche-push input,#notifiche-push select{width:100%}
+        #notifiche-push #push-admin-day .grid{display:grid!important;grid-template-columns:1fr!important;gap:8px}
         #notifiche-push .np-admin{--c:var(--s-rose,#fb7185)}
         #notifiche-push .np-admin .btn{width:100%}
       </style>
@@ -190,7 +194,7 @@
       const lista=await NaviPush.listQueue(20);
       const stato=v=>{const t=String(v.status||'pending').toLowerCase();return t==='pending'?['⏳ In attesa','#fbbf24']:t==='processing'?['↻ In invio','#67d7e6']:t==='sent'?[`✓ Inviata${v.sentCount>1?` · ${v.sentCount}`:''}`,'#52c879']:t==='partial'?[`◐ ${v.sentCount||0} sì · ${v.failedCount||0} no`,'#fbbf24']:t==='no_subscriptions'?['∅ Nessun dispositivo','#9fb8c2']:t==='error'?['✕ Errore','#fb7185']:[t,'#9fb8c2'];};
       const ora=v=>{const d=new Date(v);return isNaN(d)?'':d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});};
-      box.innerHTML=lista.length?lista.map(v=>{const [et,col]=stato(v);const err=v.errorSummary||v.error||'';return `<div style="padding:8px 10px;border-radius:10px;background:#102733;border-left:4px solid ${col}"><div style="display:flex;gap:8px;justify-content:space-between"><b style="font-size:12px">${esc(v.title||'NaviSuite')}</b><span style="font-size:11px;font-weight:800;color:${col};white-space:nowrap">${esc(et)}</span></div><div style="font-size:11px;color:#9fb8c2">${esc(ora(v.createdAt))} · a ${esc(v.targetAgentId||'tutti')} · ${esc(v.kind||'')}${v.processedAt?` · elaborata ${esc(ora(v.processedAt))}`:''}</div>${err?`<div style="font-size:11px;color:#fecdd3">${esc(typeof err==='string'?err:JSON.stringify(err))}</div>`:''}</div>`;}).join(''):'<p>Nessuna notifica in coda.</p>';
+      box.innerHTML=lista.length?lista.map(v=>{const [et,col]=stato(v);const err=v.errorSummary||v.error||'';return `<div style="padding:8px 10px;border-radius:10px;background:#102733;border-left:4px solid ${col}"><div style="display:flex;gap:8px;justify-content:space-between"><b style="font-size:12px">${esc(v.title||'NaviSuite')}</b><span style="font-size:11px;font-weight:800;color:${col};white-space:nowrap;flex-shrink:0">${esc(et)}</span></div><div style="font-size:11px;color:#9fb8c2">${esc(ora(v.createdAt))} · a ${esc(v.targetAgentId||'tutti')} · ${esc(v.kind||'')}${v.processedAt?` · elaborata ${esc(ora(v.processedAt))}`:''}</div>${err?`<div style="font-size:11px;color:#fecdd3">${esc(typeof err==='string'?err:JSON.stringify(err))}</div>`:''}</div>`;}).join(''):'<p>Nessuna notifica in coda.</p>';
     }catch(error){box.textContent=error?.message||'Elenco non letto.';}
   }
   async function removeAll(){
