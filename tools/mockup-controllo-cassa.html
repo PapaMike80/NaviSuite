@@ -1,4 +1,4 @@
-<title>Controllo cassa · linea della giornata</title>
+<title>Controllo cassa · C3</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
 <style>
@@ -46,64 +46,35 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
 .badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--c);color:var(--on)}
 .notes{margin:28px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
 .notes li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}.notes b{color:var(--ink)}
+.sav{display:grid;gap:6px;margin-top:4px}.sv{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--c) 12%,var(--card));border-left:4px solid var(--c);font-size:13px}.sv small{grid-column:1/-1;color:var(--muted);font-size:11px;font-family:Manrope,system-ui,sans-serif}
+.row{grid-template-columns:minmax(300px,420px)}
 </style>
 
-<h1>Controllo cassa · tre varianti della linea della giornata</h1>
-<p class="intro">Stessa giornata di esempio: cassa AgB di Desenzano, chiusura serale. In tutte e tre i totali sono Incasso, POS e <b>Totale contanti</b>, che si calcola da solo (incasso − POS − storni). «Da stornare» sta in una riga a parte, chiusa: si apre solo quando serve.</p>
+<h1>Controllo cassa · proposta C3</h1>
+<p class="intro">Stessa giornata di esempio: cassa AgB di Desenzano, chiusura serale. I totali sono Incasso, POS e <b>Totale contanti</b>, che si calcola da solo (incasso − POS − storni). «Da stornare» sta in una riga a parte, chiusa: si apre solo quando serve.</p>
 
 <div class="row">
-
-<section>
-  <h2>C1 · Linea con i totali dentro</h2>
-  <p class="d">Come la C scelta. Il momento in corso si apre con i tre totali colorati, la riga degli storni chiusa, il conteggio a colori e il risultato: busta e fondo per domani.</p>
-  <div class="phone">
-    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
-    <div class="chips"><span class="chip on">Oggi 16/10</span><span class="chip" style="--c:var(--cyan)">‹ ieri</span><span class="chip" style="--c:var(--violet)">Pedroni M.</span></div>
-    <div class="ph num" style="--c:var(--green)"><span class="dot">✓</span><span>Apertura<small>fondo 400,00 · conforme</small></span><span class="ok">0,00</span></div>
-    <div class="ph num" style="--c:var(--amber)"><span class="dot">!</span><span>Diurno · 14:20<small>attesi 812,40 · contati 810,40</small></span><span class="wa">−2,00</span></div>
-    <div class="ph open num" style="--c:var(--teal)"><span class="dot">3</span><span>Chiusura<small>in corso</small></span><span class="badge" style="--c:var(--green)">0,00 ✓</span>
-      <div class="inner">
-        <div class="tot3"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
-        <div class="stor"><span>＋ Da stornare <span style="opacity:.7">(raro)</span></span><b>0,00</b></div>
-        <div class="grid"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
-        <div class="res"><div style="--c:var(--teal)"><small>Busta</small><b>760,00</b></div><div style="--c:var(--orange)"><small>Fondo domani</small><b>400,00</b></div></div>
-      </div>
-    </div>
-    <div class="cass"><span>🔴 Cassetta rossa <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
-    <span class="primary">Salva chiusura</span>
-  </div>
-</section>
-
-<section>
-  <h2>C2 · Totali sempre in vista</h2>
-  <p class="d">Sopra la linea c'è una fascia fissa con i totali del momento attivo. Così mentre conti le banconote vedi sempre quanto deve tornare. Gli storni sono un pulsante piccolo sotto la fascia.</p>
-  <div class="phone">
-    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
-    <div class="tot3 num"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
-    <div class="chips"><span class="chip" style="--c:var(--rose)">＋ Storni (0,00)</span><span class="chip" style="--c:var(--amber)">Attesi 1.172,50</span></div>
-    <div class="ph num" style="--c:var(--green)"><span class="dot">✓</span><span>Apertura<small>fondo 400,00</small></span><span class="ok">0,00</span></div>
-    <div class="ph num" style="--c:var(--amber)"><span class="dot">!</span><span>Diurno · 14:20<small>810,40 contati</small></span><span class="wa">−2,00</span></div>
-    <div class="ph open num" style="--c:var(--teal)"><span class="dot">3</span><span>Chiusura · conteggio<small>contati 1.172,50</small></span><span class="badge" style="--c:var(--green)">0,00 ✓</span>
-      <div class="inner"><div class="grid"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
-      <div class="line"><span>Busta</span><b>760,00</b></div><div class="line"><span>Fondo per domani</span><span>400,00</span></div></div>
-    </div>
-    <div class="cass"><span>🔴 Cassetta <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
-  </div>
-</section>
 
 <section>
   <h2>C3 · Binario in alto</h2>
   <p class="d">I tre momenti diventano un binario orizzontale colorato con il loro esito: si tocca per passare da uno all'altro. Sotto, solo il momento scelto, con i totali grandi e gli storni nascosti.</p>
   <div class="phone">
-    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · ven 16/10</span>
+    <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
+    <div class="chips"><span class="chip on">ven 16/10</span><span class="chip" style="--c:var(--violet)">👤 Pedroni M.</span><span class="chip" style="--c:var(--cyan)">‹ ieri</span></div>
     <div class="rail num"><div style="--c:var(--green)">Apertura<small>0,00 ✓</small></div><div style="--c:var(--amber)">Diurno<small>−2,00</small></div><div class="on" style="--c:var(--teal)">Chiusura<small>0,00 ✓</small></div></div>
     <div class="tot3 num"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
     <p class="eq num" style="margin:0">fondo 400,00 + contanti 772,50 = <b style="color:var(--amber)">attesi 1.172,50</b></p>
     <div class="stor"><span>＋ Da stornare <span style="opacity:.7">(raro)</span></span><b>0,00</b></div>
     <div class="grid num"><div class="coin e50"><b>12</b>50 €</div><div class="coin e20"><b>8</b>20 €</div><div class="coin e10"><b>14</b>10 €</div><div class="coin e5"><b>9</b>5 €</div><div class="coin c2"><b>21</b>2 €</div><div class="coin c1"><b>34</b>1 €</div><div class="coin c050"><b>18</b>0,50</div><div class="coin c020"><b>25</b>0,20</div></div>
-    <div class="res num"><div style="--c:var(--green)"><small>Contati · discrepanza</small><b>1.172,50 · 0,00</b></div><div style="--c:var(--teal)"><small>Busta</small><b>760,00</b></div></div>
+    <div class="res num"><div style="--c:var(--green)"><small>Contati · discrepanza</small><b>1.172,50 · 0,00</b></div><div style="--c:var(--teal)"><small>Da versare</small><b>760,00</b></div></div>
+    <p class="eq" style="margin:-4px 0 0">Da versare: i soldi da portare in banca o in cassaforte. In cassa restano 400,00 per domani.</p>
     <div class="cass"><span>🔴 Cassetta <b class="num">186,40 €</b></span><span class="chip" style="--c:var(--rose)">Preleva / Versa</span></div>
     <span class="primary">Salva chiusura</span>
+    <div class="sav"><span class="lbl">Salvataggi del giorno</span>
+      <div class="sv num" style="--c:var(--green)"><span>07:12</span><b>Pedroni M.</b><span class="ok">OK</span><small>AgB · Apertura · fondo 400,00</small></div>
+      <div class="sv num" style="--c:var(--amber)"><span>14:20</span><b>Rossi L.</b><span class="wa">−2,00</span><small>AgB · Diurno · inserito da Pedroni M.</small></div>
+      <div class="sv num" style="--c:var(--teal)"><span>19:45</span><b>Pedroni M.</b><span class="ok">OK</span><small>AgB · Chiusura · da versare 760,00</small></div>
+    </div>
   </div>
 </section>
 </div>
