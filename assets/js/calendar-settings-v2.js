@@ -137,7 +137,9 @@
       <p class="calendar-help"><strong>Contenuto:</strong> servizio, nave, ormeggio serale, rifornimento ed equipaggio. <strong>Privacy:</strong> il link sincronizzato usa un token casuale e non contiene il tuo PIN. Rigenerandolo, il link precedente viene revocato.</p>
       <div class="calendar-status" id="calendar-status" aria-live="polite">Preparazione calendario…</div>
     `;
-    if (target) parent.insertBefore(section, target); else parent.appendChild(section);
+    // il Calendario e' una preferenza personale: va con le altre preferenze (o in fondo alla pagina)
+    const pref = document.querySelector(".imp-col-pref");
+    if (pref) pref.appendChild(section); else if (target && target.parentNode) target.parentNode.insertBefore(section, target); else parent.appendChild(section);
     const head = section.querySelector(':scope > .section-head');
     const toggle = () => {
       const collapsed = section.dataset.collapsed === 'true';
