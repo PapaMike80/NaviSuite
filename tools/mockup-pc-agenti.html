@@ -1,0 +1,157 @@
+<title>Impostazioni e Agenti · stile nuovo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* 1) Impostazioni su PC: tre colonne. 2) Agenti nello stesso stile: elenco a sinistra, scheda a destra (su telefono una sotto l'altra). */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--pink:#f472b6;--wa:#25d366;--mono:'DM Mono',ui-monospace,monospace}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+h2.t{margin:34px 0 4px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.intro,.d{margin:0 0 14px;color:var(--muted);max-width:70ch;line-height:1.5;font-size:14px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.screen{border:1px solid var(--line);border-radius:18px;padding:18px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 8%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 8%,var(--surface)));overflow-x:auto}
+.screen-in{min-width:980px}
+.eb{font-size:11px;letter-spacing:.2em;font-weight:800;color:var(--teal)}.tt{font-size:22px;font-weight:800;margin:2px 0 14px}
+.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start}
+.col{display:grid;gap:12px;align-content:start}
+.colh{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.gr{--g:#e8f3f6;display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:12px;font-weight:900}
+.gr.sm{width:26px;height:26px;font-size:9px;border-width:2px}.gr.md{width:34px;height:34px;font-size:10px}
+.cap{--g:#facc15}.ct{--g:#fb923c}.am{--g:#3b82f6}.mot{--g:#a855f7}.tim{--g:#22c55e}.mar{--g:#e8f3f6}
+.badge{border-radius:20px;padding:16px;background:linear-gradient(135deg,#0f3a40,#1a2d4a);border:1px solid color-mix(in srgb,var(--teal) 40%,transparent);position:relative;overflow:hidden}
+.badge::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(color-mix(in srgb,var(--teal) 25%,transparent),transparent 70%);pointer-events:none}
+.top{display:flex;gap:12px;align-items:center}.nm{font-size:19px;font-weight:800}.id{color:var(--muted);font-size:13px}
+dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:14px 0 0}dt{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}dd{margin:0;font-weight:700}
+.ffpill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border-radius:999px;padding:4px 10px 4px 4px;background:#2a2148;border:1px solid var(--violet);color:#ddd6fe;font-size:12px;font-weight:800}
+.sez{display:grid;gap:8px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.sez h3{margin:0;font-size:14px;font-weight:800;color:var(--c)}.sez p{margin:0;font-size:12px;color:var(--muted)}
+.row{display:flex;gap:6px;align-items:center}.row input,.row select,.in{flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 10px;font:600 14px Manrope,system-ui,sans-serif}
+.b{border:0;border-radius:10px;padding:8px 12px;font:800 12px Manrope,system-ui,sans-serif;cursor:pointer;color:var(--on);background:var(--c,var(--teal));white-space:nowrap}
+.b.ghost{background:transparent;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 50%,transparent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-radius:999px;padding:6px 10px;font:700 12px Manrope,system-ui,sans-serif;background:var(--card);color:var(--ink)}
+.chip.on{background:var(--c);color:var(--on);border-color:var(--c)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;font-weight:700}
+.tg{position:relative;width:42px;height:26px;flex:none;border-radius:999px;background:var(--c);border:1px solid var(--c)}.tg::after{content:"";position:absolute;top:3px;left:19px;width:18px;height:18px;border-radius:50%;background:var(--on)}
+.tg.off{background:var(--card2);border-color:var(--line)}.tg.off::after{left:3px;background:var(--muted)}
+.adm{border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent);padding:11px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px;color:var(--c)}
+.adm .cnt{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--c);color:var(--on)}
+.adm.open{display:grid;gap:8px}.adm.open .h{display:flex;justify-content:space-between;align-items:center}
+.wk{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;font-size:12px;color:var(--ink);font-weight:600}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;background:var(--card);border-radius:10px;padding:3px}.seg span{text-align:center;border-radius:8px;padding:5px 2px;font-size:11px;color:var(--muted)}.seg span.on{background:var(--c);color:var(--on)}
+/* Agenti */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.kpi{border-radius:14px;padding:10px 12px;background:color-mix(in srgb,var(--c) 18%,var(--card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+.kpi small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}.kpi b{font:600 22px var(--mono)}
+.ag{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start}
+.list{display:grid;gap:6px}
+.search{border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 12px;font:600 14px Manrope,system-ui,sans-serif;width:100%;box-sizing:border-box}
+.filters{display:flex;gap:5px;flex-wrap:wrap}
+.it{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--card);border-left:4px solid var(--g);font-size:13px}
+.it.sel{background:color-mix(in srgb,var(--teal) 16%,var(--card));outline:1px solid var(--teal)}
+.it b{font-weight:800}.it small{grid-column:2;color:var(--muted);font-size:11px}
+.it .tag{font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px}
+.ff{background:#2a2148;color:#ddd6fe;border:1px solid var(--violet)}.on-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;margin-right:4px}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.full{grid-column:1/-1}
+.mini{display:grid;gap:8px}
+.phonewrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,380px));gap:22px;margin-top:10px}
+.phone{border:1px solid var(--line);border-radius:26px;padding:14px;display:grid;gap:10px;background:var(--surface)}
+.notes{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.notes li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}.notes b{color:var(--ink)}
+</style>
+
+<h1>Stile nuovo · Impostazioni da PC e pagina Agenti</h1>
+<p class="intro">Stessi colori e riquadri del mockup Utente. Sopra, Impostazioni come si vedrebbe su un PC; sotto, la pagina Agenti rifatta nello stesso stile, da PC e da telefono. Dati di esempio.</p>
+
+<h2 class="t">1 · Impostazioni da PC</h2>
+<p class="d">Tre colonne: a sinistra chi sei (tessera, telefono, PIN), al centro le preferenze, a destra l'amministrazione (solo admin). Un agente normale vede due colonne più larghe.</p>
+<div class="screen"><div class="screen-in">
+  <span class="eb">IMPOSTAZIONI</span><div class="tt">Pedroni M.</div>
+  <div class="cols3">
+    <div class="col"><span class="colh">Utente</span>
+      <div class="badge"><div class="top"><span class="gr mar">Mar</span><div><div class="nm">PEDRONI M.</div><div class="id num">ID 92</div></div></div>
+        <dl><div><dt>Grado</dt><dd>Marinaio</dd></div><div><dt>Residenza</dt><dd>Maderno</dd></div><div><dt>Ruolo</dt><dd>Amministratore</dd></div><div><dt>Registrato</dt><dd class="num">17/10/26</dd></div></dl>
+        <span class="ffpill"><span class="gr sm tim">Tim</span>FF timoniere · fino al 31/12/2026</span></div>
+      <div class="sez" style="--c:var(--wa)"><h3>📱 Telefono per WhatsApp</h3><div class="row"><input value="+39 333 1234567" class="num"><button class="b">Salva</button></div></div>
+      <div class="sez" style="--c:var(--cyan)"><h3>🔑 PIN</h3><div class="row"><span class="num" style="flex:1;letter-spacing:.3em;color:var(--muted)">••••</span><button class="b">Cambia PIN</button></div></div>
+    </div>
+    <div class="col"><span class="colh">Preferenze</span>
+      <div class="sez" style="--c:var(--teal)"><h3>🏠 Prima pagina</h3><div class="chips"><span class="chip on">Automatica</span><span class="chip">Home</span><span class="chip">Oggi</span><span class="chip">Turni</span><span class="chip">Il mio turno</span><span class="chip">Distinta</span><span class="chip">ODS</span><span class="chip">Scali</span><span class="chip">Cambi turno</span></div></div>
+      <div class="sez" style="--c:var(--amber)"><h3>🎫 Ticket</h3><div class="chips"><span class="chip on">Usato</span><span class="chip">Non usato</span></div></div>
+      <div class="sez" style="--c:var(--violet)"><h3>🔔 Notifiche</h3>
+        <p>Riepilogo della giornata</p><div class="chips"><span class="chip">Giorno prima</span><span class="chip on">Mattina</span><span class="chip">Prima del servizio</span><span class="chip">Spento</span></div>
+        <div class="sw"><span>⛴ Navi</span><span class="tg"></span></div><div class="sw"><span>🔁 Cambi turno</span><span class="tg"></span></div><div class="sw"><span>📄 ODS e variazioni</span><span class="tg off"></span></div></div>
+    </div>
+    <div class="col"><span class="colh">Amministrazione 🔒</span>
+      <div class="adm open" style="--c:var(--teal)"><div class="h"><span>📅 Pubblicazione settimane</span><span class="cnt">2 in bozza</span></div>
+        <div class="wk num"><span>12/10 – 18/10</span><div class="seg"><span class="on">Ufficiale</span><span>Bozza</span><span>Nascosta</span></div></div>
+        <div class="wk num"><span>19/10 – 25/10</span><div class="seg"><span>Ufficiale</span><span class="on">Bozza</span><span>Nascosta</span></div></div>
+        <div class="wk num"><span>26/10 – 01/11</span><div class="seg"><span>Ufficiale</span><span class="on">Bozza</span><span>Nascosta</span></div></div></div>
+      <div class="adm" style="--c:var(--cyan)"><span>🏠 Prima pagina per tutti</span><span class="cnt">Automatica</span></div>
+      <div class="adm" style="--c:var(--violet)"><span>🔔 Avvisi amministratore</span><span class="cnt">attivi</span></div>
+      <div class="adm" style="--c:var(--orange)"><span>📨 Invia giornata</span><span class="cnt">manuale</span></div>
+      <div class="adm" style="--c:var(--amber)"><span>💬 Guide popup</span><span class="cnt">3 pagine</span></div>
+      <div class="adm" style="--c:var(--pink)"><span>👥 Gestione utenti</span><span class="cnt">54</span></div>
+    </div>
+  </div>
+</div></div>
+
+<h2 class="t">2 · Agenti da PC</h2>
+<p class="d">In alto i numeri del giorno. A sinistra l'elenco con ricerca e filtri per residenza, ognuno con il distintivo del grado; a destra la scheda dell'agente scelto, divisa in riquadri colorati come la tessera Utente.</p>
+<div class="screen"><div class="screen-in">
+  <span class="eb">AGENTI</span><div class="tt">Gestione agenti</div>
+  <div class="kpis num">
+    <div class="kpi" style="--c:var(--wa)"><small>Online ora</small><b>3</b></div>
+    <div class="kpi" style="--c:var(--teal)"><small>Accessi oggi</small><b>18</b></div>
+    <div class="kpi" style="--c:var(--cyan)"><small>Ultimi 7 giorni</small><b>31</b></div>
+    <div class="kpi" style="--c:var(--violet)"><small>Registrati</small><b>54</b></div>
+  </div>
+  <div class="ag">
+    <div class="list">
+      <input class="search" placeholder="🔍 Cerca nome o ID…">
+      <div class="filters"><span class="chip on" style="--c:var(--teal)">Tutti</span><span class="chip" style="--c:var(--cyan)">Riva</span><span class="chip" style="--c:var(--cyan)">Maderno</span><span class="chip" style="--c:var(--cyan)">Desenzano</span><span class="chip" style="--c:var(--cyan)">Peschiera</span><span class="chip" style="--c:var(--violet)">FF</span><span class="chip" style="--c:var(--amber)">Senza PIN</span></div>
+      <div class="it" style="--g:#facc15"><span class="gr md cap">Cap</span><b>CANDOLFO N.</b><span class="tag"></span><small class="num">ID 1 · Riva</small></div>
+      <div class="it sel" style="--g:#22c55e"><span class="gr md tim">Tim</span><b>AVANZINI A.</b><span class="tag ff">FF CT</span><small class="num">ID 73 · Riva · <span class="on-dot"></span>online</small></div>
+      <div class="it" style="--g:#fb923c"><span class="gr md ct">CT</span><b>SISTO S.</b><span class="tag"></span><small class="num">ID 42 · Riva</small></div>
+      <div class="it" style="--g:#a855f7"><span class="gr md mot">Mot</span><b>AMATO M.</b><span class="tag"></span><small class="num">ID 29 · Riva</small></div>
+      <div class="it" style="--g:#e8f3f6"><span class="gr md mar">Mar</span><b>PEDRONI M.</b><span class="tag" style="background:#3a2910;color:#fcd34d">ADMIN</span><small class="num">ID 92 · Maderno · <span class="on-dot"></span>online</small></div>
+    </div>
+    <div class="detail">
+      <div class="badge full"><div class="top"><span class="gr tim">Tim</span><div><div class="nm">AVANZINI A.</div><div class="id num">ID 73 · Riva · 📞 +39 333 9876543</div></div><span style="margin-left:auto" class="ffpill"><span class="gr sm ct">CT</span>FF capo timoniere · fino al 30/11</span></div>
+        <dl style="grid-template-columns:repeat(4,1fr)"><div><dt>Ultimo accesso</dt><dd class="num">oggi 18:20</dd></div><div><dt>Ultima pagina</dt><dd>Il mio turno</dd></div><div><dt>Registrato</dt><dd class="num">02/06/26</dd></div><div><dt>PIN</dt><dd>personale ✓</dd></div></dl></div>
+      <div class="sez" style="--c:var(--teal)"><h3>👤 Ruolo e grado</h3><div class="row"><select><option>Agente</option></select><select><option>timoniere</option></select></div><button class="b">Salva ruolo e grado</button></div>
+      <div class="sez" style="--c:var(--violet)"><h3>⭐ FF · facente funzione</h3><div class="row"><select><option>capo timoniere</option></select></div><div class="row"><input class="num" value="01/06/2026"><input class="num" value="30/11/2026"></div><div class="row"><button class="b">Salva FF</button><button class="b ghost">Togli FF</button></div></div>
+      <div class="sez" style="--c:var(--amber)"><h3>🏠 Residenza</h3><p>Attuale: <b style="color:var(--ink)">RIVA</b></p><div class="row"><select><option>Nuova residenza…</option></select><input class="num" placeholder="Dal"></div><button class="b">Cambia residenza</button></div>
+      <div class="sez" style="--c:var(--rose)"><h3>🔐 Accesso</h3><div class="row"><button class="b" style="--c:var(--amber)">Genera PIN iniziale</button><button class="b" style="--c:var(--wa)">WhatsApp</button></div><div class="row"><button class="b ghost">Elimina registrazione</button><button class="b ghost">Elimina agente</button></div></div>
+    </div>
+  </div>
+</div></div>
+
+<h2 class="t">3 · Agenti da telefono</h2>
+<p class="d">Prima l'elenco con il distintivo del grado. Toccando un agente si apre la sua scheda, con gli stessi riquadri uno sotto l'altro.</p>
+<div class="phonewrap">
+  <div class="phone">
+    <span class="eb">AGENTI</span>
+    <div class="kpis num" style="grid-template-columns:repeat(4,1fr);margin:0"><div class="kpi" style="--c:var(--wa)"><small>Online</small><b style="font-size:16px">3</b></div><div class="kpi" style="--c:var(--teal)"><small>Oggi</small><b style="font-size:16px">18</b></div><div class="kpi" style="--c:var(--cyan)"><small>7 gg</small><b style="font-size:16px">31</b></div><div class="kpi" style="--c:var(--violet)"><small>Reg.</small><b style="font-size:16px">54</b></div></div>
+    <input class="search" placeholder="🔍 Cerca nome o ID…">
+    <div class="filters"><span class="chip on" style="--c:var(--teal)">Tutti</span><span class="chip" style="--c:var(--cyan)">Riva</span><span class="chip" style="--c:var(--cyan)">Maderno</span><span class="chip" style="--c:var(--violet)">FF</span></div>
+    <div class="it" style="--g:#facc15"><span class="gr md cap">Cap</span><b>CANDOLFO N.</b><span></span><small class="num">ID 1 · Riva</small></div>
+    <div class="it sel" style="--g:#22c55e"><span class="gr md tim">Tim</span><b>AVANZINI A.</b><span class="tag ff">FF CT</span><small class="num">ID 73 · <span class="on-dot"></span>online</small></div>
+    <div class="it" style="--g:#fb923c"><span class="gr md ct">CT</span><b>SISTO S.</b><span></span><small class="num">ID 42 · Riva</small></div>
+  </div>
+  <div class="phone">
+    <span class="eb">‹ AGENTI</span>
+    <div class="badge"><div class="top"><span class="gr tim">Tim</span><div><div class="nm">AVANZINI A.</div><div class="id num">ID 73 · Riva</div></div></div><span class="ffpill"><span class="gr sm ct">CT</span>FF capo timoniere · fino al 30/11</span></div>
+    <div class="sez" style="--c:var(--teal)"><h3>👤 Ruolo e grado</h3><div class="row"><select><option>Agente</option></select><select><option>timoniere</option></select></div></div>
+    <div class="sez" style="--c:var(--violet)"><h3>⭐ FF</h3><p>capo timoniere · 01/06 – 30/11/2026</p></div>
+    <div class="sez" style="--c:var(--amber)"><h3>🏠 Residenza</h3><p>Riva</p></div>
+    <div class="sez" style="--c:var(--rose)"><h3>🔐 Accesso</h3><div class="row"><button class="b" style="--c:var(--amber)">PIN iniziale</button><button class="b" style="--c:var(--wa)">WhatsApp</button></div></div>
+  </div>
+</div>
+
+<ul class="notes">
+  <li><b>Distintivo del grado ovunque:</b> lo stesso cerchio colorato di Movimento, in Impostazioni, nell'elenco agenti e nelle schede.</li>
+  <li><b>Agenti più ordinata:</b> la scheda è divisa in riquadri per argomento (ruolo e grado, FF, residenza, accesso). Le azioni pericolose sono pulsanti a contorno, in fondo.</li>
+  <li><b>Filtri nuovi:</b> per residenza, per chi è in FF e per chi non ha ancora un PIN personale.</li>
+</ul>
