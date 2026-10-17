@@ -24,6 +24,6 @@
     load('assets/js/course-info.js?v=1');
     load('assets/js/push-summary.js?v=1');
     load('assets/js/push-notifications-v3.js?v=20261017-2');
-    load('assets/js/push-center.js?v=20261017-3');
+    load('assets/js/push-center.js?v=20261017-4');
   }
 })();
