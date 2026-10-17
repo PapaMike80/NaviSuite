@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v615-notifiche-larghezza';
+const CACHE_VERSION = 'navisuite-v616-memoria-sezioni';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -50,6 +50,7 @@ const CORE_ASSETS = [
   './assets/js/shared-roles.js',
   './assets/js/portal.js',
   './assets/js/shared-menu.js',
+  './assets/js/section-memory.js',
   './assets/js/oggi.js',
   './assets/js/course-info.js',
   './assets/js/announcements-recovered.js',
