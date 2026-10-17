@@ -224,15 +224,25 @@
     .stato-salvataggio{margin:-10px 2px 14px;color:var(--cyan-accent);font-size:13px;font-weight:700;min-height:1em}
     .campo-euro{position:relative;display:block}.campo-euro input{width:100%;padding-right:34px!important;box-sizing:border-box}.simbolo-euro{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:800;pointer-events:none}
 
-    /* ===== Proposta C3: piu' colore, binario dei passi, totali, rullo della data ===== */
-    :root{--c3-teal:#2dd4bf;--c3-cyan:#67d7e6;--c3-violet:#a78bfa;--c3-rose:#fb7185;--c3-amber:#fbbf24;--c3-green:#52c879;--c3-orange:#fb923c;--c3-on:#06231f}
-    body{background:radial-gradient(120% 60% at 0 0,rgba(45,212,191,.10),transparent 60%),radial-gradient(120% 60% at 100% 100%,rgba(167,139,250,.10),transparent 60%),var(--bg-main);background-attachment:fixed}
+    /* ===== Proposta C3 (come il mockup): chip, binario, totali, tessere dei tagli, rullo della data ===== */
+    :root{--c3-teal:#2dd4bf;--c3-cyan:#67d7e6;--c3-violet:#a78bfa;--c3-rose:#fb7185;--c3-amber:#fbbf24;--c3-green:#52c879;--c3-orange:#fb923c;--c3-on:#06231f;--c3-card:#102733;--c3-line:#1f4250;--c3-mono:"DM Mono",ui-monospace,monospace}
+    body{background:linear-gradient(160deg,color-mix(in srgb,var(--c3-teal) 9%,#0b1c26),#0b1c26 40%,color-mix(in srgb,var(--c3-violet) 9%,#0b1c26)) fixed;font-family:Manrope,"DM Sans",system-ui,sans-serif}
+    .container{max-width:460px}
+    .cc-head{margin:0 0 12px;padding-right:56px}
     .cc-eyebrow{font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.22em;color:var(--c3-teal)}
-    .cc-titolo{margin:2px 0 0;font:800 25px Manrope,system-ui,sans-serif;background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan) 50%,var(--c3-violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .cc-data{width:100%;display:flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--c3-teal);border-radius:999px;background:var(--c3-teal);color:var(--c3-on);font:800 16px "DM Sans",system-ui,sans-serif;padding:10px 14px;cursor:pointer}
-    .cc-picker{margin-top:8px;border-radius:16px;background:color-mix(in srgb,var(--c3-teal) 8%,var(--bg-panel));border:1px solid color-mix(in srgb,var(--c3-teal) 40%,transparent);overflow:hidden}
-    .cc-pk-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-color);font-size:13px}
-    .cc-pk-head button{border:0;background:none;color:var(--c3-teal);font:800 15px "DM Sans",system-ui,sans-serif;cursor:pointer;padding:4px}
+    .cc-titolo{margin:2px 0 0;font:800 23px Manrope,system-ui,sans-serif;background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan) 50%,var(--c3-violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .panel{background:transparent;border:0;box-shadow:none;margin-bottom:10px}
+    .cc-setup{display:grid;gap:8px}
+    .cc-chips{display:flex;gap:6px;flex-wrap:wrap}
+    .cc-chip{--c:var(--c3-teal);display:inline-flex;align-items:center;gap:6px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-radius:999px;padding:7px 12px;font:700 14px Manrope,system-ui,sans-serif;background:color-mix(in srgb,var(--c) 18%,var(--c3-card));color:color-mix(in srgb,var(--c) 70%,#fff);cursor:pointer;margin:0;text-transform:none;letter-spacing:0;width:auto}
+    .cc-chip.cc-on{background:var(--c3-teal);color:var(--c3-on);border-color:var(--c3-teal)}
+    .cc-agente{--c:var(--c3-violet);flex:1;min-width:150px}
+    .cc-agente input{border:0!important;background:transparent!important;padding:0!important;margin:0;color:inherit;font:700 14px Manrope,system-ui,sans-serif!important;text-align:left!important;min-width:0;width:100%;box-shadow:none!important;outline:0!important}
+    select.cc-sel{--c:var(--c3-cyan);flex:1;min-width:0;appearance:auto;padding:8px 10px!important;font:700 14px Manrope,system-ui,sans-serif!important;border-radius:999px!important;text-align:left}
+    #agente-nome.non-valido{color:var(--c3-rose)!important}
+    .cc-picker{border-radius:16px;background:color-mix(in srgb,var(--c3-teal) 8%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c3-teal) 40%,transparent);overflow:hidden}
+    .cc-pk-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--c3-line);font-size:13px}
+    .cc-pk-head button{border:0;background:none;color:var(--c3-teal);font:800 15px Manrope,system-ui,sans-serif;cursor:pointer;padding:4px}
     .cc-wheel-wrap{position:relative;height:180px}
     .cc-wheel{height:180px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
     .cc-wheel::-webkit-scrollbar{display:none}
@@ -241,51 +251,65 @@
     .cc-wheel div.has::after{content:" •";color:var(--c3-green)}
     .cc-wheel .pad{scroll-snap-align:none;cursor:default}
     .cc-wheel-band{position:absolute;left:10px;right:10px;top:72px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--c3-teal) 18%,transparent);border:1px solid color-mix(in srgb,var(--c3-teal) 50%,transparent);pointer-events:none}
-    #agente-nome{border-color:color-mix(in srgb,var(--c3-violet) 55%,transparent)!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--bg-input))!important}
-    #scalo-selezionato,#postazione-selezionata{border-color:color-mix(in srgb,var(--c3-cyan) 50%,transparent)!important;background:color-mix(in srgb,var(--c3-cyan) 10%,var(--bg-input))!important}
-    .panel{background:color-mix(in srgb,var(--bg-panel) 92%,transparent)}
+    .stato-salvataggio{margin:0 2px 8px}
     /* binario */
-    .wizard-steps{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px!important;padding:6px!important;background:rgba(7,16,24,.9)}
-    .step-btn{--c:var(--c3-green);display:block!important;border-radius:12px!important;padding:8px 6px!important;font:800 13px "DM Sans",system-ui,sans-serif!important;background:color-mix(in srgb,var(--c) 20%,transparent)!important;color:var(--c)!important;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)!important;box-shadow:none!important}
-    .step-btn small{display:block;margin-top:2px;font:600 12px "DM Mono",ui-monospace,monospace;opacity:.95}
+    .wizard-steps{display:grid!important;grid-template-columns:repeat(3,1fr);gap:4px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;margin-bottom:10px!important;top:6px!important;backdrop-filter:none}
+    .step-btn{--c:var(--c3-green);display:block!important;border-radius:10px!important;padding:6px 8px!important;font:800 12px Manrope,system-ui,sans-serif!important;background:color-mix(in srgb,var(--c) 22%,var(--c3-card))!important;color:var(--c)!important;border:0!important;box-shadow:none!important;text-align:center}
+    .step-btn small{display:block;font:600 12px var(--c3-mono)}
     .step-btn.status-warn{--c:var(--c3-amber)}.step-btn.status-danger{--c:var(--c3-rose)}
     .step-btn.active{background:var(--c)!important;color:var(--c3-on)!important}
-    /* pannelli dei passi */
-    #step-1{border-top:4px solid var(--c3-cyan)}#step-2{border-top:4px solid var(--c3-violet)}#step-3{border-top:4px solid var(--c3-teal)}
-    .section-title{color:var(--c3-teal)}
+    .cc-step{display:grid;gap:10px;padding:0}
+    .cc-step[style*="none"]{display:none!important}.cc-step[style*="block"]{display:grid!important}
     /* totali */
-    .cc-totali{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin-bottom:16px!important}.cc-totali .form-box{padding:10px!important}.cc-totali .box-val{font-size:17px;text-align:center}
-    .cc-totali .form-box:nth-child(1){background:color-mix(in srgb,var(--c3-cyan) 18%,transparent);border-color:color-mix(in srgb,var(--c3-cyan) 45%,transparent)}
-    .cc-totali .form-box:nth-child(2){background:color-mix(in srgb,var(--c3-violet) 18%,transparent);border-color:color-mix(in srgb,var(--c3-violet) 45%,transparent)}
-    .form-box.cc-auto{background:color-mix(in srgb,var(--c3-teal) 16%,transparent);border:1px dashed var(--c3-teal)}
-    .form-box.cc-auto label::after{content:" · auto";opacity:.7;text-transform:none}
-    .form-box.cc-auto .box-val{color:var(--c3-teal)}
-    .cc-storni{margin:-8px 0 20px;border:1px dashed var(--border-color);border-radius:12px;background:rgba(255,255,255,.02)}
-    .cc-storni>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;color:var(--text-muted);font-weight:700;font-size:14px}
-    .cc-storni>summary::-webkit-details-marker{display:none}
-    .cc-storni>summary b{font-variant-numeric:tabular-nums}
-    .cc-storni[open]>.form-box{margin:0 10px 10px}
-    .cc-storni.con-importo{border-color:var(--c3-rose);background:color-mix(in srgb,var(--c3-rose) 12%,transparent)}.cc-storni.con-importo>summary,.cc-storni.con-importo>summary b{color:var(--c3-rose)}
-    /* griglia contanti a colori */
-    .cash-row{border-left:4px solid var(--tc,transparent);padding-left:8px;border-radius:6px}
-    .cash-row label{color:var(--tc,var(--text-main))!important}
+    .cc-tot3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .cc-tc{border-radius:12px;padding:7px 9px;background:color-mix(in srgb,var(--c) 22%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);margin:0;text-transform:none;letter-spacing:0;display:block;min-width:0}
+    .cc-tc small{display:block;font:800 9px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--c) 70%,#fff)}
+    .cc-tc b,.cc-tc input{display:block;font:600 15px var(--c3-mono)!important;color:var(--text-main);font-variant-numeric:tabular-nums}
+    .cc-tc input{width:100%;border:0!important;background:transparent!important;padding:0!important;text-align:left!important;box-shadow:none!important;border-radius:0!important}
+    .cc-tc input:focus{outline:0!important;text-decoration:underline;text-decoration-color:var(--c)}
+    .cc-tc.cc-auto{border-style:dashed}.cc-tc.cc-auto small::after{content:" · auto";opacity:.7}
+    .cc-eq{margin:0;font:500 12px var(--c3-mono);color:var(--text-muted)}.cc-eq b{color:var(--c3-amber)}
+    .cc-storni{border-radius:12px;border:1px dashed var(--c3-line);background:var(--c3-card)}
+    .cc-storni>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;color:var(--text-muted);font-size:13px;font-weight:700}
+    .cc-storni>summary::-webkit-details-marker{display:none}.cc-storni>summary b{font-family:var(--c3-mono)}
+    .cc-storni input{margin:0 10px 10px;width:calc(100% - 20px)}
+    .cc-storni.con-importo{border-color:var(--c3-rose);background:color-mix(in srgb,var(--c3-rose) 12%,var(--c3-card))}.cc-storni.con-importo>summary{color:var(--c3-rose)}
+    /* tessere dei tagli */
+    .cc-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+    .cc-coin{display:block;margin:0;text-align:center;border-radius:10px;background:var(--c3-card);border-top:4px solid var(--tc);padding:4px 2px 5px;cursor:text;text-transform:none;letter-spacing:0}
+    .cc-coin input{width:100%;border:0!important;background:transparent!important;padding:2px 0!important;text-align:center!important;font:600 17px var(--c3-mono)!important;color:var(--tc)!important;box-shadow:none!important;border-radius:6px!important}
+    .cc-coin input:focus{background:color-mix(in srgb,var(--tc) 18%,transparent)!important;outline:0!important}
+    .cc-coin span{display:block;font:600 10px Manrope,system-ui,sans-serif;color:var(--text-muted)}
     .t10000{--tc:#4ade80}.t5000{--tc:#fb923c}.t2000{--tc:#60a5fa}.t1000{--tc:#f87171}.t500{--tc:#a3b5a6}.t200{--tc:#fbbf24}.t100{--tc:#fcd34d}.t50{--tc:#eab308}.t20{--tc:#f59e0b}.t10{--tc:#d97706}
-    .cash-col{background:rgba(0,0,0,.18)}
-    .cassetta-col{background:color-mix(in srgb,var(--c3-rose) 10%,transparent);border-color:color-mix(in srgb,var(--c3-rose) 40%,transparent)}
-    .grand-tot{background:color-mix(in srgb,var(--c3-teal) 12%,transparent);border-color:color-mix(in srgb,var(--c3-teal) 40%,transparent)}
-    .box-highlight-orange{border-left-color:var(--c3-teal)!important;background:color-mix(in srgb,var(--c3-teal) 12%,transparent)!important}.box-highlight-orange .box-val{color:var(--c3-teal)!important}
-    .box-highlight-green{border-left-color:var(--c3-orange)!important;background:color-mix(in srgb,var(--c3-orange) 10%,transparent)}.box-highlight-green .box-val{color:var(--c3-orange)!important}
-    .primary-button{background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan))!important;color:var(--c3-on)!important;border:0!important}
-    .secondary-button{background:color-mix(in srgb,var(--c3-violet) 16%,transparent);border-color:color-mix(in srgb,var(--c3-violet) 45%,transparent);color:var(--c3-violet)}
+    .cc-totfis{margin:6px 0 0;text-align:right;font:500 13px var(--c3-mono);color:var(--text-muted)}.cc-totfis b{color:var(--c3-teal);font-size:15px}
+    .cc-cassetta{margin-top:8px;border-radius:14px;background:color-mix(in srgb,var(--c3-rose) 14%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c3-rose) 40%,transparent);padding:0 10px}
+    .cc-cassetta[open]{padding-bottom:10px}
+    .cc-cassetta>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;font-weight:700}
+    .cc-cassetta>summary::-webkit-details-marker{display:none}.cc-cassetta>summary b{font-family:var(--c3-mono)}
+    .cc-cassetta .cc-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .cc-rosa{--c:var(--c3-rose);padding:4px 10px;font-size:12px}
+    /* risultato */
+    .cc-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px}
+    .cc-res>div{border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--c3-card))}
+    .cc-res small{display:block;font:800 9px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    .cc-res b{font:600 15px var(--c3-mono)}
+    .cc-dettagli{border-radius:12px;background:var(--c3-card);padding:0 10px}
+    .cc-dettagli>summary{list-style:none;cursor:pointer;padding:9px 0;font-size:13px;font-weight:700;color:var(--text-muted)}.cc-dettagli>summary::-webkit-details-marker{display:none}
+    .cc-dettagli[open]{padding-bottom:10px}
+    .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
-    details.storico{background:color-mix(in srgb,var(--c3-violet) 10%,var(--bg-panel));border-color:color-mix(in srgb,var(--c3-violet) 40%,transparent)}
-    details.storico>summary{list-style:none;cursor:pointer;margin:0}
+    details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
+    details.storico[open]{padding-bottom:10px!important}
+    details.storico>summary{list-style:none;cursor:pointer;margin:0!important;padding:10px 2px;display:flex;align-items:center;gap:8px}
     details.storico>summary::-webkit-details-marker{display:none}
-    details.storico>summary h3{color:var(--c3-violet)!important;flex:1}
-    details.storico>summary::after{content:"▾";color:var(--c3-violet);margin-left:4px}details.storico[open]>summary::after{content:"▴"}
-    details.storico[open]>summary{margin-bottom:8px}
-    .cc-cnt{font:800 12px "DM Sans",system-ui,sans-serif;padding:2px 9px;border-radius:999px;background:var(--c3-violet);color:var(--c3-on)}
+    details.storico>summary h3{color:var(--c3-violet)!important;flex:1;font-size:14px!important}
+    details.storico>summary::after{content:"▾";color:var(--c3-violet)}details.storico[open]>summary::after{content:"▴"}
+    details.storico>summary button{width:30px;height:30px}
+    .cc-cnt{font:800 12px Manrope,system-ui,sans-serif;padding:2px 9px;border-radius:999px;background:var(--c3-violet);color:var(--c3-on)}
     .storico-voce{border-left:4px solid var(--c3-teal)}
+    body.cassa-incompleta .cc-step{display:none!important}
+    .cc-step>.tag{display:none!important}
+    @media(max-width:600px){body{padding:12px!important}}
   </style>
 </head>
 <body>
@@ -294,273 +318,123 @@
 <button id="cassa-menu-button" type="button" aria-label="Apri menu">☰</button>
 
 <div class="container">
-  
-  <div style="margin-bottom: 20px; padding-right: 56px;">
+
+  <div class="cc-head">
     <div class="cc-eyebrow">CONTROLLO CASSA</div>
     <h1 class="cc-titolo" id="cc-titolo">Controllo cassa</h1>
   </div>
 
-  <!-- PANNELLO SETUP TURNO -->
-  <div class="panel" style="margin-bottom: 24px; border-top: 4px solid var(--cyan-accent);">
-    <div class="panel-body" style="padding: 16px 24px;">
-      <div class="form-grid" style="margin-bottom: 0;">
-        <div class="form-box transparent">
-          <label>Data</label>
-          <input type="date" id="data-turno" hidden>
-          <button type="button" class="cc-data" id="cc-data-btn" aria-haspopup="dialog">📅 <span id="cc-data-txt">Oggi</span> ▾</button>
-          <div class="cc-picker" id="cc-picker" hidden>
-            <div class="cc-pk-head"><button type="button" id="cc-pk-oggi">Oggi</button><b>Scegli il giorno</b><button type="button" id="cc-pk-ok">Fatto</button></div>
-            <div class="cc-wheel-wrap"><div class="cc-wheel" id="cc-wheel" tabindex="0" aria-label="Giorni"></div><div class="cc-wheel-band"></div></div>
-          </div>
-        </div>
-        <div class="form-box transparent">
-          <label>👤 Agente <span style="color:#fb7185">*</span></label>
-          <input type="text" id="agente-nome" list="agenti-lista" autocomplete="off" placeholder="Inizia a scrivere il cognome…" required><datalist id="agenti-lista"></datalist><input type="hidden" id="agente-id">
-        </div>
-        <div class="form-box transparent">
-          <label>Scalo</label>
-          <select id="scalo-selezionato" onchange="cambiaScalo()">
-            <option value="">— Scegli lo scalo —</option>
-            <option value="Maderno">Maderno</option>
-            <option value="Desenzano">Desenzano</option>
-            <option value="Garda">Garda</option>
-          </select>
-        </div>
-        <div class="form-box transparent">
-          <label>Postazione / Cassa</label>
-          <select id="postazione-selezionata" onchange="cambiaCassa()"><option value="">— Scegli la cassa —</option></select><small id="nota-turno" class="nota-turno"></small>
-        </div>
-      </div>
+  <!-- INTESTAZIONE: data, agente, cassa -->
+  <div class="panel cc-setup">
+    <div class="cc-chips">
+      <input type="date" id="data-turno" hidden>
+      <button type="button" class="cc-chip cc-on" id="cc-data-btn" aria-haspopup="dialog">📅 <span id="cc-data-txt">Oggi</span> ▾</button>
+      <label class="cc-chip cc-agente">👤 <input type="text" id="agente-nome" list="agenti-lista" autocomplete="off" placeholder="Agente" aria-label="Agente" required></label><datalist id="agenti-lista"></datalist><input type="hidden" id="agente-id">
     </div>
+    <div class="cc-picker" id="cc-picker" hidden>
+      <div class="cc-pk-head"><button type="button" id="cc-pk-oggi">Oggi</button><b>Scegli il giorno</b><button type="button" id="cc-pk-ok">Fatto</button></div>
+      <div class="cc-wheel-wrap"><div class="cc-wheel" id="cc-wheel" tabindex="0" aria-label="Giorni"></div><div class="cc-wheel-band"></div></div>
+    </div>
+    <div class="cc-chips">
+      <select class="cc-chip cc-sel" id="scalo-selezionato" onchange="cambiaScalo()" aria-label="Scalo">
+        <option value="">Scalo</option>
+        <option value="Maderno">Maderno</option>
+        <option value="Desenzano">Desenzano</option>
+        <option value="Garda">Garda</option>
+      </select>
+      <select class="cc-chip cc-sel" id="postazione-selezionata" onchange="cambiaCassa()" aria-label="Cassa"><option value="">Cassa</option></select>
+    </div>
+    <small id="nota-turno" class="nota-turno"></small>
   </div>
 
   <p id="stato-salvataggio" class="stato-salvataggio"></p>
   <p class="cassa-avviso">Scegli agente, scalo e postazione per iniziare il controllo.</p>
 
-  <!-- SELETTORE STEP (STICKY) -->
+  <!-- BINARIO DEI TRE MOMENTI -->
   <div class="wizard-steps">
     <button class="step-btn active status-ok" id="btn-step-1" onclick="goToStep(1)">Apertura<small id="esito-step-1">0,00</small></button>
     <button class="step-btn status-ok" id="btn-step-2" onclick="goToStep(2)">Diurno<small id="esito-step-2">0,00</small></button>
     <button class="step-btn status-ok" id="btn-step-3" onclick="goToStep(3)">Chiusura<small id="esito-step-3">0,00</small></button>
   </div>
 
-  <!-- STEP 1: APERTURA -->
-  <div class="panel" id="step-1">
-    <div class="panel-heading">
-      <h3>1. Verifica Fondo Cassa di Apertura</h3>
-      <span id="badge-apertura" class="tag tag-ok">CONFORME</span>
+  <!-- 1. APERTURA -->
+  <div class="panel cc-step" id="step-1">
+    <span id="badge-apertura" class="tag tag-ok" hidden>CONFORME</span>
+    <div class="cc-tot3">
+      <div class="cc-tc" style="--c:var(--c3-cyan)"><small>Fondo</small><input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" value="400.00" oninput="calculateAll()" aria-label="Fondo obiettivo"></div>
+      <div class="cc-tc cc-auto" style="--c:var(--c3-teal)"><small>Contato</small><b id="fondo-mattina-calc">€ 0,00</b></div>
+      <div class="cc-tc cc-auto" style="--c:var(--c3-green)"><small>Differenza</small><b id="diff-mattina">€ 0,00</b></div>
     </div>
-    <div class="panel-body">
-      <div class="form-grid">
-        <div class="form-box">
-          <label for="fondo-target">Fondo Obiettivo</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" step="0.01" value="400.00" oninput="calculateAll()">
-          <small>Quota fissa da mantenere</small>
-        </div>
-        <div class="form-box">
-          <label>Fondo Contato Effettivo</label>
-          <div class="box-val" id="fondo-mattina-calc" style="color: var(--cyan-accent);">€ 0,00</div>
-          <small>Calcolato dalla griglia sotto</small>
-        </div>
-        <div class="form-box">
-          <label>Differenza Mattina</label>
-          <div class="box-val" id="diff-mattina">€ 0,00</div>
-          <small id="diff-desc-mattina">Nessuna discrepanza</small>
-        </div>
-      </div>
-
-      <div id="grid-container-mattina"></div>
-
-      <div class="wizard-nav">
-        <div></div>
-        <button class="primary-button" onclick="goToStep(2)">Avanti: Controllo Diurno →</button>
-      </div>
-    </div>
+    <small id="diff-desc-mattina" hidden></small>
+    <div id="grid-container-mattina"></div>
   </div>
 
-  <!-- STEP 2: CONTROLLO DIURNO -->
-  <div class="panel" id="step-2" style="display:none;">
-    <div class="panel-heading">
-      <h3>2. Controllo Cassa Intermedio (Diurno)</h3>
-      <span id="badge-quadratura-diurno" class="tag tag-ok">IN PARI</span>
+  <!-- 2. DIURNO -->
+  <div class="panel cc-step" id="step-2" style="display:none;">
+    <span id="badge-quadratura-diurno" class="tag tag-ok" hidden>IN PARI</span>
+    <div class="cc-tot3">
+      <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" value="353.80" oninput="syncTotals()"></label>
+      <label class="cc-tc" style="--c:var(--c3-violet)"><small>POS</small><input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" value="225.40" oninput="syncTotals()"></label>
+      <div class="cc-tc cc-auto" style="--c:var(--c3-teal)"><small>Contanti</small><b id="contanti-netti-diurno">€ 0,00</b></div>
     </div>
-    <div class="panel-body">
-      <div class="form-grid cc-totali">
-        <div class="form-box">
-          <label for="totale-giornaliero-diurno">Incasso</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" step="0.01" value="353.80" oninput="syncTotals()">
-        </div>
-        <div class="form-box">
-          <label for="pos-giornaliero-diurno">POS</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" step="0.01" value="225.40" oninput="syncTotals()">
-        </div>
-        <div class="form-box cc-auto">
-          <label>Totale contanti</label>
-          <div class="box-val" id="contanti-netti-diurno">€ 0,00</div>
-        </div>
-      </div>
-      <details class="cc-storni" id="storni-diurno">
-        <summary><span>＋ Da stornare</span><b id="storni-diurno-val">€ 0,00</b></summary>
-        <div class="form-box"><label for="da-stornare-diurno">Da stornare</label><input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" step="0.01" value="0.00" oninput="syncTotals()"></div>
-      </details>
-
-      <div class="form-grid" style="grid-template-columns: 1fr;">
-        <div class="form-box" style="background: rgba(39, 169, 182, 0.1); border-color: var(--cyan-accent); display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <label style="color: var(--text-main); margin-bottom: 4px;">Contanti che Devi Avere Ora in Cassa:</label>
-            <small style="color: var(--text-muted); margin: 0;">Fondo + (Totale Sistema - POS - Storni)<span class="riga-ammin" id="ammin-diurno" hidden></span></small>
-          </div>
-          <div class="box-val" id="contanti-attesi-calc-diurno" style="color: var(--cyan-accent); font-size: 24px; margin: 0;">€ 400,00</div>
-        </div>
-      </div>
-
-      <div id="grid-container-diurno"></div>
-
-      <div class="form-grid" style="grid-template-columns: 1fr;">
-        <div class="form-box">
-          <label>Discrepanza Attuale (Ammanco/Esubero)</label>
-          <div class="box-val" id="ctrl-differenza-diurno">€ 0,00</div>
-        </div>
-      </div>
-
-      <div class="wizard-nav">
-        <button class="secondary-button" onclick="goToStep(1)">← Indietro</button>
-        <button class="primary-button" onclick="goToStep(3)">Avanti: Chiusura Serale →</button>
-      </div>
-    </div>
+    <p class="cc-eq">fondo + contanti = <b>attesi <span id="contanti-attesi-calc-diurno">€ 0,00</span></b><span class="riga-ammin" id="ammin-diurno" hidden></span></p>
+    <details class="cc-storni" id="storni-diurno">
+      <summary><span>＋ Da stornare</span><b id="storni-diurno-val">€ 0,00</b></summary>
+      <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" value="0.00" oninput="syncTotals()" aria-label="Da stornare">
+    </details>
+    <div id="grid-container-diurno"></div>
+    <div class="cc-res"><div style="--c:var(--c3-green)"><small>Discrepanza</small><b id="ctrl-differenza-diurno">€ 0,00</b></div></div>
   </div>
 
-  <!-- STEP 3: CHIUSURA SERALE & VERSAMENTO -->
-  <div class="panel" id="step-3" style="display:none;">
-    <div class="panel-heading">
-      <h3>3. Chiusura Serale & Versamento</h3>
-      <span id="badge-quadratura-sera" class="tag tag-ok">CASSA QUADRATA</span>
+  <!-- 3. CHIUSURA -->
+  <div class="panel cc-step" id="step-3" style="display:none;">
+    <span id="badge-quadratura-sera" class="tag tag-ok" hidden>CASSA QUADRATA</span>
+    <div class="cc-tot3">
+      <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" value="353.80" oninput="calculateAll()"></label>
+      <label class="cc-tc" style="--c:var(--c3-violet)"><small>POS</small><input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" value="225.40" oninput="calculateAll()"></label>
+      <div class="cc-tc cc-auto" style="--c:var(--c3-teal)"><small>Contanti</small><b id="contanti-netti-sera">€ 0,00</b></div>
     </div>
-    <div class="panel-body">
-      
-      <!-- SEZIONE A: DATI DI SISTEMA -->
-      <div class="section-title"><span>A. Dati di Sistema (Fine Turno)</span></div>
-      
-      <div class="form-grid cc-totali">
-        <div class="form-box">
-          <label for="totale-giornaliero-sera">Incasso</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" step="0.01" value="353.80" oninput="calculateAll()">
-        </div>
-        <div class="form-box">
-          <label for="pos-giornaliero-sera">POS</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" step="0.01" value="225.40" oninput="calculateAll()">
-        </div>
-        <div class="form-box cc-auto">
-          <label>Totale contanti</label>
-          <div class="box-val" id="contanti-netti-sera">€ 0,00</div>
-        </div>
-      </div>
-      <details class="cc-storni" id="storni-sera">
-        <summary><span>＋ Da stornare</span><b id="storni-sera-val">€ 0,00</b></summary>
-        <div class="form-box"><label for="da-stornare-sera">Da stornare</label><input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" step="0.01" value="0.00" oninput="calculateAll()"></div>
-      </details>
-      <div class="form-grid" style="grid-template-columns:1fr">
-        <div class="form-box box-contanti-sera">
-          <label>Contanti attesi in cassa</label>
-          <div class="box-val" id="contanti-attesi-calc-sera" style="color: var(--cyan-accent);">€ 400,00</div>
-          <small>Fondo Mattina (<span id="box-fm-sera">€ 400,00</span>) + Incasso Contanti (<span id="box-ic-sera">€ 0,00</span>)<span class="riga-ammin" id="ammin-sera" hidden></span></small>
-        </div>
-      </div>
+    <p class="cc-eq">fondo <span id="box-fm-sera">€ 0,00</span> + contanti <span id="box-ic-sera">€ 0,00</span> = <b>attesi <span id="contanti-attesi-calc-sera">€ 0,00</span></b><span class="riga-ammin" id="ammin-sera" hidden></span></p>
+    <details class="cc-storni" id="storni-sera">
+      <summary><span>＋ Da stornare</span><b id="storni-sera-val">€ 0,00</b></summary>
+      <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" value="0.00" oninput="calculateAll()" aria-label="Da stornare">
+    </details>
+    <div id="grid-container-sera"></div>
+    <div class="cc-res">
+      <div style="--c:var(--c3-green)"><small>Contati · discrepanza</small><b><span id="badge-tot-sera">€ 0,00</span> · <span id="ctrl-differenza-sera">€ 0,00</span></b></div>
+      <div style="--c:var(--c3-teal)"><small>Da versare</small><b id="box-versamento">€ 0,00</b></div>
+    </div>
+    <p class="cc-eq">Da versare: i soldi da portare in banca o in cassaforte. In cassa restano <b id="box-trattenuto">€ 0,00</b> per domani.</p>
 
-      <!-- SEZIONE B: CONTEGGIO FISICO -->
-      <div class="section-title">
-        <span>B. Conteggio Fisico in Cassa</span>
-        <span id="badge-tot-sera" class="tag tag-ok" style="background: transparent; border: none; font-size: 16px; color: var(--cyan-accent); padding: 0;">€ 0,00</span>
-      </div>
-      
-      <div id="grid-container-sera"></div>
-
-      <div class="form-grid" style="grid-template-columns: 1fr;">
-        <div class="form-box">
-          <label>Discrepanza Serale (Ammanco / Esubero)</label>
-          <div class="box-val" id="ctrl-differenza-sera">€ 0,00</div>
-        </div>
-      </div>
-
-      <!-- SEZIONE C: VERSAMENTO E RIPARTIZIONE -->
-      <div class="section-title"><span>C. Da versare e fondo per domani</span></div>
-
+    <details class="cc-dettagli">
+      <summary>Dettaglio dei tagli e foglio «31 righe» ▾</summary>
       <div class="switch-wrapper" id="resto-monete-switch">
-        <div>
-          <label>Usa Gestione "Resto Monete"</label>
-          <small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()">
-          <span class="slider"></span>
-        </label>
+        <div><label>Usa gestione «Resto monete»</label><small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small></div>
+        <label class="switch"><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"><span class="slider"></span></label>
       </div>
-
-      <div class="form-grid">
-        <div class="form-box box-highlight-orange">
-          <label>Da versare (banca o cassaforte)</label>
-          <div class="box-val" id="box-versamento">€ 0,00</div>
-        </div>
-        <div class="form-box box-highlight-blue" id="box-resto-monete-container">
-          <label>Totale Resto Monete</label>
-          <div class="box-val" id="box-resto-monete">€ 0,00</div>
-        </div>
-        <div class="form-box box-highlight-green">
-          <label>Fondo per domani</label>
-          <div class="box-val" id="box-trattenuto">€ 0,00</div>
-        </div>
-      </div>
-
-      <!-- TABELLA DETTAGLIO PEZZI (DA VERSARE / RESTO / FONDO) -->
+      <div class="cc-res" id="box-resto-monete-container"><div style="--c:var(--c3-amber)"><small>Resto monete</small><b id="box-resto-monete">€ 0,00</b></div></div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th style="text-align: left;">Taglio</th>
-              <th>Da versare</th>
-              <th>Resto monete</th>
-              <th>Fondo domani</th>
-            </tr>
-          </thead>
+          <thead><tr><th style="text-align: left;">Taglio</th><th>Da versare</th><th>Resto monete</th><th>Fondo domani</th></tr></thead>
           <tbody id="distinta-pezzi-body"></tbody>
         </table>
       </div>
-
-      <!-- RIEPILOGO PER 31 RIGHE -->
       <div class="riepilogo-31">
-        <h4>📋 Dati da copiare sul foglio "31 Righe"</h4>
+        <h4>📋 Dati da copiare sul foglio «31 righe»</h4>
         <div class="riepilogo-grid">
-          <div class="riepilogo-item">
-            <label>Totale giornaliero</label>
-            <div class="val" id="riepilogo-totale" style="color: var(--text-main);">€ 0,00</div>
-          </div>
-          <div class="riepilogo-item" style="border-color: var(--ok-color); background: rgba(245, 176, 65, 0.05);">
-            <label style="color: var(--ok-color);">Totale contanti</label>
-            <div class="val" id="riepilogo-saldo" style="color: var(--ok-color);">€ 0,00</div>
-          </div>
-          <div class="riepilogo-item">
-            <label>POS</label>
-            <div class="val" id="riepilogo-pos">€ 0,00</div>
-          </div>
-          <div class="riepilogo-item" style="border-color: var(--cyan-accent);">
-            <label style="color: var(--cyan-accent);">Totale Versamenti</label>
-            <div class="val" id="riepilogo-tot-vers">€ 0,00</div>
-          </div>
-          <div class="riepilogo-item riepilogo-resto-item" style="border-color: var(--teal-dark);">
-            <label>Resto moneta</label>
-            <div class="val" id="riepilogo-resto" style="color: var(--teal-dark);">€ 0,00</div>
-          </div>
+          <div class="riepilogo-item"><label>Totale giornaliero</label><div class="val" id="riepilogo-totale">€ 0,00</div></div>
+          <div class="riepilogo-item"><label>Totale contanti</label><div class="val" id="riepilogo-saldo">€ 0,00</div></div>
+          <div class="riepilogo-item"><label>POS</label><div class="val" id="riepilogo-pos">€ 0,00</div></div>
+          <div class="riepilogo-item"><label>Totale versamenti</label><div class="val" id="riepilogo-tot-vers">€ 0,00</div></div>
+          <div class="riepilogo-item riepilogo-resto-item"><label>Resto moneta</label><div class="val" id="riepilogo-resto">€ 0,00</div></div>
         </div>
       </div>
+    </details>
 
-      <div class="wizard-nav" style="margin-top: 24px;">
-        <button class="secondary-button" onclick="goToStep(2)">← Indietro (Diurno)</button>
-        <button class="primary-button" style="background: var(--cyan-accent); color: var(--bg-main);" onclick="salvaManuale()">Salva ora</button>
-      </div>
-    </div>
+    <button type="button" class="cc-salva" onclick="salvaManuale()">Salva chiusura</button>
   </div>
 
-  <!-- STORICO DEL GIORNO (chiuso all'apertura) -->
+  <!-- SALVATAGGI DEL GIORNO (chiusi all'apertura) -->
   <details class="panel storico" id="storico-cassa">
     <summary class="storico-head"><h3>💾 Salvataggi del giorno</h3><span class="cc-cnt" id="storico-cnt">0</span><button type="button" id="storico-aggiorna" aria-label="Aggiorna">↻</button></summary>
     <div id="storico-lista" class="storico-lista"><p class="storico-vuoto">Caricamento…</p></div>
@@ -628,49 +502,19 @@
       else btn.classList.add('status-danger');
   }
 
+  // Banconote e monete come tessere colorate per taglio (dal piu' grande al piu' piccolo); la cassetta rossa e' una sezione a parte
   function renderCashGrid(containerId, stepPrefix, dataObj, onInputFnName) {
-    let html = '<div class="cash-split">';
-    
-    html += '<div class="cash-col"><h4>Monete</h4>';
-    MONETE.forEach(d => {
-      html += `
-        <div class="cash-row t${d.val}">
-          <label>${d.label}</label>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
-          <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
-        </div>`;
-    });
-    html += `<div class="partial-tot"><span>Totale Monete</span><span id="tot-monete-${stepPrefix}">€ 0,00</span></div></div>`;
-
-    html += '<div class="cash-col"><h4>Banconote</h4>';
-    BANCONOTE.forEach(d => {
-      html += `
-        <div class="cash-row t${d.val}">
-          <label>${d.label}</label>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-${stepPrefix}-${d.val}" value="${dataObj[d.val] || 0}" oninput="${onInputFnName}(${d.val})">
-          <div class="sub" id="subtot-${stepPrefix}-${d.val}">€ 0,00</div>
-        </div>`;
-    });
-    html += `<div class="partial-tot"><span>Totale Banconote</span><span id="tot-banconote-${stepPrefix}">€ 0,00</span></div></div>`;
+    const tessera = (d, id, val, extra) => `<label class="cc-coin t${d.val}"><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="${id}" value="${val}" ${extra}><span>${d.label.replace(',00', '')}</span><i class="sub" id="sub${id.replace('qty', 'tot')}" hidden></i></label>`;
+    let html = '<div class="cc-grid">';
+    BANCONOTE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
+    MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
+    html += `</div><span id="tot-monete-${stepPrefix}" hidden></span><span id="tot-banconote-${stepPrefix}" hidden></span>`;
     if (cassettaAttiva()) {
-      html += `<div class="cash-col cassetta-col"><h4><span class="cr-icona" aria-hidden="true"></span>Cassetta rossa</h4>`;
-      MONETE.forEach(d => {
-        html += `
-        <div class="cash-row">
-          <label>${d.label}</label>
-          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="qty-cr-${stepPrefix}-${d.val}" value="${countsCassetta[stepPrefix][d.val] || 0}" oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)">
-          <div class="sub" id="subtot-cr-${stepPrefix}-${d.val}">€ 0,00</div>
-        </div>`;
-      });
-      html += `<div class="partial-tot"><span>Totale Cassetta</span><span id="tot-cr-${stepPrefix}">€ 0,00</span></div></div>`;
+      html += `<details class="cc-cassetta"><summary><span>🔴 Cassetta rossa <b id="tot-cr-${stepPrefix}">€ 0,00</b></span><span class="cc-chip cc-rosa">Preleva / Versa</span></summary><div class="cc-grid">`;
+      MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-cr-${stepPrefix}-${d.val}`, countsCassetta[stepPrefix][d.val] || 0, `oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)"`); });
+      html += '</div></details>';
     }
-    
-    html += `</div>
-      <div class="grand-tot">
-        <span>${stepPrefix === 'mattina' ? 'Totale Fondo Cassa:' : 'TOTALE FISICO:'}</span> 
-        <span class="val" id="tot-valore-${stepPrefix}">€ 0,00</span>
-      </div>`;
-    
+    html += `<p class="cc-totfis">${stepPrefix === 'mattina' ? 'Fondo contato' : 'Contati'}: <b id="tot-valore-${stepPrefix}">€ 0,00</b></p>`;
     document.getElementById(containerId).innerHTML = html;
   }
 
