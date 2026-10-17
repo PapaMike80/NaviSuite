@@ -1,0 +1,9 @@
+# Anteprime Vercel: solo l'app statica, come su GitHub Pages.
+# server.js e' il server per provare l'app sul computer: su Vercel diventerebbe una funzione che non parte.
+server.js
+backend
+firebase-pocketbase-sync
+ponteradio-worker
+pocketbase
+tests
+tools
