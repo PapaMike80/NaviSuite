@@ -546,7 +546,7 @@
       MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-cr-${stepPrefix}-${d.val}`, countsCassetta[stepPrefix][d.val] || 0, `oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)"`); });
       html += '</div></details>';
     }
-    html += `<div class="cc-sum"><div style="--c:var(--c3-cyan)"><small>Banconote</small><b id="tot-banconote-${stepPrefix}">€ 0,00</b></div><div style="--c:var(--c3-amber)"><small>Monete</small><b id="tot-monete-${stepPrefix}">€ 0,00</b></div><div class="cc-sum-tot"><small>${stepPrefix === 'mattina' ? 'Fondo contato' : 'Totale contato'}</small><b id="tot-valore-${stepPrefix}">€ 0,00</b></div></div>`;
+    html += `<div class="cc-sum"><div style="--c:var(--c3-cyan)"><small>Banconote</small><b id="tot-banconote-${stepPrefix}">€ 0,00</b></div><div style="--c:var(--c3-amber)"><small>Monete</small><b id="tot-monete-${stepPrefix}">€ 0,00</b></div><div class="cc-sum-tot"><small>${stepPrefix === 'mattina' ? 'Fondo contato' : 'Totale contanti'}</small><b id="tot-valore-${stepPrefix}">€ 0,00</b></div></div>`;
     document.getElementById(containerId).innerHTML = html;
   }
 
