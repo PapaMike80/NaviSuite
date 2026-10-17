@@ -135,13 +135,22 @@
   }
   async function getStatus(profile){
     const agentId=String(profile?.id||profile?.agentId||'').trim(),sub=await localSubscription(),permission='Notification' in window?Notification.permission:'unsupported';
-    const requiresMigration=Boolean(sub)&&currentVapidVersion()!==VAPID_VERSION,enabled=Boolean(sub)&&permission==='granted'&&!requiresMigration;
+    let requiresMigration=Boolean(sub)&&currentVapidVersion()!==VAPID_VERSION;
+    // registrazione cancellata (es. da un admin): il telefono crede di essere attivo ma non riceve piu' nulla
+    if(sub&&!requiresMigration&&agentId){try{const r=await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(agentId)}/${safeKey(deviceId())}`);if(!r.data)requiresMigration=true;}catch(_){ }}
+    const enabled=Boolean(sub)&&permission==='granted'&&!requiresMigration;
     return {supported:'Notification' in window&&'PushManager' in window,permission,enabled,requiresMigration,deviceId:deviceId(),preferences:preferences(agentId)};
   }
   async function listSubscriptions(agentId=''){
     const target=String(agentId||'').trim();
     if(target){const result=await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(target)}`);return Object.values(result.data||{}).filter(item=>item&&item.enabled!==false);}
     const result=await databaseRequest('private/adminUpdates/pushSubscriptions'),out=[];Object.values(result.data||{}).forEach(devices=>Object.values(devices||{}).forEach(item=>{if(item&&item.enabled!==false)out.push(item);}));return out;
+  }
+  // Admin: cancella tutti i dispositivi registrati di un agente (dovra' riattivare le notifiche su ogni telefono)
+  async function removeAgentSubscriptions(agentId){
+    const target=String(agentId||'').trim();if(!target)throw new Error('Scegli un agente');
+    const result=await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(target)}`);const n=Object.keys(result.data||{}).length;
+    await databaseRequest(`private/adminUpdates/pushSubscriptions/${safeKey(target)}`,{method:'DELETE'});return n;
   }
   async function queuePush(payload={}){
     const requestedByAgentId=String(payload.requestedByAgentId||'').trim(),targetAgentId=String(payload.targetAgentId||'').trim(),title=String(payload.title||'NaviSuite').trim().slice(0,120),body=String(payload.body||'').trim().slice(0,500);
@@ -152,5 +161,5 @@
   }
   async function listQueue(limit=20){const result=await databaseRequest('private/adminUpdates/pushQueue');return Object.values(result.data||{}).filter(Boolean).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).slice(0,Math.max(1,Number(limit||20)));}
 
-  window.NaviPush={VAPID_PUBLIC_KEY,VAPID_VERSION,subscribe,unsubscribe,updatePreferences,getStatus,listSubscriptions,queuePush,listQueue,localSubscription,preferences,defaultPreferences,normalizePreferences,isIos,isStandalone,deviceId,provider:'Web Push v3 + Firebase registry'};
+  window.NaviPush={VAPID_PUBLIC_KEY,VAPID_VERSION,subscribe,unsubscribe,updatePreferences,getStatus,listSubscriptions,removeAgentSubscriptions,queuePush,listQueue,localSubscription,preferences,defaultPreferences,normalizePreferences,isIos,isStandalone,deviceId,provider:'Web Push v3 + Firebase registry'};
 })();
