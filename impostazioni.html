@@ -562,12 +562,12 @@
     loadWeeks();
     loadDraftPeriod();
   </script>
-  <script src="assets/js/announcements-recovered.js?v=6"></script>
+  <script src="assets/js/announcements-recovered.js?v=7"></script>
 
   <script>
   // Impostazioni: ogni sezione si apre e chiude toccando il titolo; all'apertura sono tutte chiuse.
   (function(){
-    const riepilogo=sez=>[...sez.querySelectorAll('[aria-pressed="true"] .pref-label,[aria-pressed="true"]')].map(el=>(el.querySelector?.('.pref-label')||el).textContent.trim()).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).join(' · ');
+    const riepilogo=sez=>sez.dataset.riepilogo||[...sez.querySelectorAll('[aria-pressed="true"] .pref-label,[aria-pressed="true"]')].map(el=>(el.querySelector?.('.pref-label')||el).textContent.trim()).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).join(' · ');
     function prepara(sez){
       if(sez.classList.contains('ns-sez')||(sez.matches('section.section')&&sez.dataset.accordionReady))return;
       if(sez.matches('section.section'))sez.dataset.accordionReady='true';
@@ -580,13 +580,13 @@
       const giro=()=>{const chiusa=sez.classList.toggle('chiusa');head.setAttribute('aria-expanded',String(!chiusa));aggiorna(sez);};
       head.addEventListener('click',e=>{if(e.target.closest('a,button,select,input'))return;giro();});
       head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();giro();}});
-      new MutationObserver(()=>aggiorna(sez)).observe(sez,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+      new MutationObserver(()=>aggiorna(sez)).observe(sez,{subtree:true,attributes:true,attributeFilter:['aria-pressed','data-riepilogo']});
       aggiorna(sez);
     }
     function aggiorna(sez){const r=sez.querySelector('.ns-sez-riepilogo');if(r)r.textContent=riepilogo(sez);}
-    const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card,body.impostazioni-page main>section.section:not(.settings-foldable)').forEach(prepara);
+    const tutte=()=>document.querySelectorAll('body.impostazioni-page main>.pref-card,body.impostazioni-page main>.imp-col>.pref-card,body.impostazioni-page main>section.section:not(.settings-foldable)').forEach(prepara);
     tutte();
-    new MutationObserver(tutte).observe(document.querySelector('main')||document.body,{childList:true});
+    new MutationObserver(tutte).observe(document.querySelector('main')||document.body,{childList:true,subtree:true});
   })();
   </script>
   <script>

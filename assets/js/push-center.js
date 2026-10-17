@@ -28,51 +28,75 @@
     if($('notifiche-push'))return $('notifiche-push');
     const section=document.createElement('section');section.className='pref-card';section.id='notifiche-push';
     section.innerHTML=`
-      <div class="pref-head"><span class="pref-num" aria-hidden="true">03</span><div><h2>Notifiche</h2><p>Avvisi di NaviSuite anche con l’app chiusa o il telefono bloccato. Le scelte valgono per questo dispositivo.</p></div></div>
-      <div style="padding:15px;border:1px solid #31535e;border-radius:14px;background:#0b2029">
-        <strong id="push-device-title" style="display:block;margin-bottom:5px">Verifica notifiche…</strong>
-        <span id="push-device-copy" style="display:block;color:var(--muted);font-size:12px;line-height:1.45">Controllo lo stato di questo dispositivo.</span>
-        <div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:14px">
-          <button class="btn primary" id="push-enable" type="button">🔔 Attiva notifiche</button>
-          <button class="btn" id="push-disable" type="button" hidden>Disattiva su questo dispositivo</button>
-        </div>
+      <style>
+        #notifiche-push .np-box{--c:var(--s-violet,#a78bfa);display:grid;gap:8px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--c) 12%,#102733);border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+        #notifiche-push .np-box h3{margin:0;font:800 13px Manrope,system-ui,sans-serif;color:var(--c)}
+        #notifiche-push .np-box p{margin:0;font-size:12px;color:var(--s-muted,#9fb8c2);line-height:1.45}
+        #notifiche-push .np-riga{display:flex;align-items:center;gap:10px;width:100%;padding:4px 0;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
+        #notifiche-push .np-riga>span{flex:1;font-weight:800;font-size:13px;color:#eaf2f4}
+        #notifiche-push .np-riga small{display:block;font-weight:500;font-size:11px;color:var(--s-muted,#9fb8c2);line-height:1.4}
+        #notifiche-push .np-tg{position:relative;flex-shrink:0;width:46px;height:28px;border-radius:999px;background:#143140;transition:background .15s}
+        #notifiche-push .np-tg::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#9fb8c2;transition:left .15s}
+        #notifiche-push [aria-pressed="true"] .np-tg{background:var(--c)}
+        #notifiche-push [aria-pressed="true"] .np-tg::after{left:21px;background:#06231f}
+        #notifiche-push .np-riga:disabled{opacity:.5;cursor:default}
+        #notifiche-push.ns-sez:not(.chiusa){display:grid!important;gap:8px!important}
+        #notifiche-push.ns-sez:not(.chiusa)>.np-box{margin:0!important}
+        #notifiche-push .status:empty{display:none}
+        #notifiche-push .np-box .pref-tiles{margin-top:2px!important}
+        #notifiche-push label.np-riga input{position:absolute;opacity:0;pointer-events:none}
+        #notifiche-push label.np-riga:has(input:checked) .np-tg{background:var(--c)}
+        #notifiche-push label.np-riga:has(input:checked) .np-tg::after{left:21px;background:#06231f}
+        #notifiche-push #push-admin-day>summary{font:800 13px Manrope,system-ui,sans-serif!important}
+        #notifiche-push .np-admin{--c:var(--s-rose,#fb7185)}
+        #notifiche-push .np-admin .btn{width:100%}
+      </style>
+      <div class="pref-head"><div><h2>🔔 Notifiche</h2><p>Avvisi di NaviSuite anche con l’app chiusa. Le scelte valgono per questo telefono.</p></div></div>
+      <div class="np-box">
+        <button type="button" class="np-riga" id="push-device-tg" aria-pressed="false"><span><b id="push-device-title">Su questo telefono</b><small id="push-device-copy">Controllo lo stato di questo dispositivo…</small></span><i class="np-tg"></i></button>
+        <div hidden><button id="push-enable" type="button">Attiva</button><button id="push-disable" type="button" hidden>Disattiva</button></div>
+        <button class="btn" id="push-test" type="button" style="width:100%">🧪 Prova le notifiche</button>
         <div class="status" id="push-status" aria-live="polite"></div>
+        <div id="push-ios-help" style="display:none;padding:10px 12px;border:1px solid #795b24;border-radius:10px;background:#2b2415;color:#ffd27a;font-size:12px;line-height:1.5">Su iPhone le notifiche funzionano solo aprendo NaviSuite dall’icona sulla Home: in Safari tocca Condividi → «Aggiungi a Home», poi apri l’app da lì.</div>
       </div>
-      <div id="push-ios-help" style="display:none;padding:12px 14px;border:1px solid #795b24;border-radius:10px;background:#2b2415;color:#ffd27a;font-size:12px;line-height:1.5">Su iPhone le notifiche funzionano solo aprendo NaviSuite dall’icona sulla Home: in Safari tocca Condividi → «Aggiungi a Home», poi apri l’app da lì.</div>
 
-      <div><h3 style="margin:0 0 4px;font-size:16px">Riepilogo della giornata</h3><p style="margin:0 0 12px;color:var(--muted);font-size:13px">Servizio, nave, equipaggio, ormeggio e rifornimento. Scegli quando riceverlo.</p>
-      <div class="pref-tiles" role="group" aria-label="Riepilogo della giornata"><button type="button" class="pref-tile" data-sum="previous-day" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">🌙</span><span class="pref-check">✓</span></span><span><span class="pref-label">Il giorno prima</span><span class="pref-desc">A un’ora che scegli, la sera prima.</span></span></button><button type="button" class="pref-tile" data-sum="same-day" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">☀️</span><span class="pref-check">✓</span></span><span><span class="pref-label">La mattina</span><span class="pref-desc">A un’ora che scegli, il giorno stesso.</span></span></button><button type="button" class="pref-tile" data-sum="before-service" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">⏱</span><span class="pref-check">✓</span></span><span><span class="pref-label">Prima del servizio</span><span class="pref-desc">Un po’ prima dell’inizio del turno.</span></span></button><button type="button" class="pref-tile" data-sum="off" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">🔕</span><span class="pref-check">✓</span></span><span><span class="pref-label">Spento</span><span class="pref-desc">Nessun riepilogo.</span></span></button></div>
-      <div id="push-summary-schedule" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:12px">
-        <div class="field" id="push-summary-time-wrap" style="margin:0;min-width:120px"><label for="push-summary-time">Ora</label><input id="push-summary-time" type="time" value="22:05" step="60"></div>
+      <div class="np-box" style="--c:var(--s-teal,#2dd4bf)"><h3>📅 Riepilogo della giornata</h3><p>Servizio, nave, equipaggio, ormeggio e rifornimento.</p>
+      <div class="pref-tiles" role="group" aria-label="Riepilogo della giornata"><button type="button" class="pref-tile" data-sum="previous-day" aria-pressed="false"><span class="pref-label">🌙 Il giorno prima</span></button><button type="button" class="pref-tile" data-sum="same-day" aria-pressed="false"><span class="pref-label">☀️ La mattina</span></button><button type="button" class="pref-tile" data-sum="before-service" aria-pressed="false"><span class="pref-label">⏱ Prima del servizio</span></button><button type="button" class="pref-tile" data-sum="off" aria-pressed="false"><span class="pref-label">🔕 Spento</span></button></div>
+      <div id="push-summary-schedule" style="display:flex;gap:12px;flex-wrap:wrap;align-items:end">
+        <div class="field" id="push-summary-time-wrap" style="margin:0;min-width:110px"><label for="push-summary-time">Ora</label><input id="push-summary-time" type="time" value="22:05" step="60"></div>
         <div class="field" id="push-summary-lead-wrap" style="margin:0;min-width:160px" hidden><label for="push-summary-lead">Anticipo</label><select id="push-summary-lead"><option value="30">30 minuti prima</option><option value="60" selected>1 ora prima</option><option value="120">2 ore prima</option></select></div>
-        <p id="push-summary-copy" style="margin:0;flex:1 1 220px;color:var(--muted);font-size:12px;line-height:1.4"></p>
+        <p id="push-summary-copy" style="flex:1 1 200px"></p>
       </div></div>
 
-      <div><h3 style="margin:0 0 4px;font-size:16px">Navi</h3><p style="margin:0 0 12px;color:var(--muted);font-size:13px">10 minuti prima. A bordo: il <b>prossimo scalo</b>. A terra: la <b>prossima nave</b> in arrivo, con pontile e comandante.</p>
-      <div class="pref-tiles ticket" role="group" aria-label="Notifiche navi"><button type="button" class="pref-tile" data-navi="on" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">⛴</span><span class="pref-check">✓</span></span><span><span class="pref-label">Attive</span><span class="pref-desc">Prossimo scalo o prossima nave.</span></span></button><button type="button" class="pref-tile" data-navi="off" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">🔕</span><span class="pref-check">✓</span></span><span><span class="pref-label">Spente</span><span class="pref-desc">Nessun avviso delle navi.</span></span></button></div></div>
+      <div class="np-box" style="--c:var(--s-cyan,#67d7e6)">
+        <button type="button" class="np-riga" data-navi="tg" aria-pressed="false"><span>⛴ Navi<small>10 minuti prima: a bordo il prossimo scalo, a terra la prossima nave con pontile e comandante.</small></span><i class="np-tg"></i></button>
+      </div>
 
-      <div><h3 style="margin:0 0 4px;font-size:16px">Altri avvisi</h3><p style="margin:0 0 12px;color:var(--muted);font-size:13px">Tocca per accendere o spegnere.</p>
-      <div class="pref-tiles ticket" role="group" aria-label="Altri avvisi"><button type="button" class="pref-tile" data-altro="changes" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">⇄</span><span class="pref-check">✓</span></span><span><span class="pref-label">Cambi turno</span><span class="pref-desc">Richieste, approvazioni e modifiche.</span></span></button><button type="button" class="pref-tile" data-altro="ods" aria-pressed="false"><span class="pref-tile-top"><span class="pref-icon" style="font-size:22px">📋</span><span class="pref-check">✓</span></span><span><span class="pref-label">ODS e variazioni</span><span class="pref-desc">Nuovi ODS che ti riguardano.</span></span></button></div></div>
+      <div class="np-box" style="--c:var(--s-amber,#fbbf24)"><h3>Altri avvisi</h3>
+        <button type="button" class="np-riga" data-altro="changes" aria-pressed="false"><span>⇄ Cambi turno<small>Richieste, approvazioni e modifiche.</small></span><i class="np-tg"></i></button>
+        <button type="button" class="np-riga" data-altro="ods" aria-pressed="false"><span>📋 ODS e variazioni<small>Nuovi ODS che ti riguardano.</small></span><i class="np-tg"></i></button>
+      </div>
 
       <div hidden>
         <input id="push-pref-summary" type="checkbox"><input id="push-pref-changes" type="checkbox"><input id="push-pref-ods" type="checkbox"><input id="push-pref-arrivals" type="checkbox">
         <select id="push-summary-mode"><option value="previous-day"></option><option value="same-day"></option><option value="before-service"></option></select>
       </div>
-        <div id="push-admin-alerts" ${isAdmin?'':'hidden'}>
-          <div style="height:1px;background:#294b56;margin:2px 0 10px"></div>
-          <div class="section-head" style="margin-bottom:6px"><div><h3 style="margin:0 0 4px;font-size:16px">Avvisi amministratore</h3><p style="margin:0;color:var(--muted);font-size:12px">Impostazione condivisa: vale per tutti i dispositivi.</p></div><span class="badge">Admin</span></div>
-          <div class="switch-row" style="margin:0;padding:12px 0;border-bottom:0"><div class="switch-copy"><strong>Agente collegato a NaviSuite</strong><span>Ricevi una notifica ogni volta che un agente apre o riprende NaviSuite.</span></div><label class="switch"><input id="push-alert-connections" type="checkbox"><i></i></label></div>
+
+      <div class="np-box np-admin" ${isAdmin?'':'hidden'}><h3>Solo amministratori <span class="badge">ADMIN</span></h3>
+        <div id="push-admin-alerts">
+          <label class="np-riga" style="cursor:pointer"><span>Agente collegato<small>Una notifica quando un agente apre NaviSuite. Vale per tutti i dispositivi.</small></span><input id="push-alert-connections" type="checkbox"><i class="np-tg"></i></label>
           <div class="status" id="push-alert-status" aria-live="polite"></div>
         </div>
-
-        <div id="push-admin-day" ${isAdmin?'':'hidden'} style="padding-top:5px">
-          <div style="height:1px;background:#294b56;margin:2px 0 14px"></div>
-          <div class="section-head" style="margin-bottom:10px"><div><h3 style="margin:0 0 4px;font-size:16px">Invia giornata · Admin</h3><p style="margin:0;color:var(--muted);font-size:12px">Invia manualmente a un agente il riepilogo reale della giornata.</p></div><span class="badge">Admin</span></div>
-          <div class="grid"><div class="field"><label for="push-day-agent">Destinatario</label><select id="push-day-agent"><option value="">Caricamento…</option></select></div><div class="field"><label for="push-day-date">Giornata</label><input id="push-day-date" type="date" value="${todayRome()}"></div></div>
-          <div id="push-day-preview" style="margin-top:12px;padding:12px 14px;border:1px solid #294b56;border-radius:10px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5;white-space:pre-line">Scegli destinatario e giornata per vedere l’anteprima.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button><button class="btn" id="push-day-refresh" type="button">Aggiorna destinatari</button><button class="btn" id="push-day-remove" type="button" style="border-color:#fb7185;color:#fecdd3;background:transparent">Elimina dispositivi dell’agente</button></div>
+        <details id="push-admin-day">
+          <summary style="cursor:pointer;font-weight:800;color:var(--c)">Invia giornata · dispositivi degli agenti</summary>
+          <div style="display:grid;gap:10px;margin-top:10px">
+          <div class="grid"><div class="field"><label for="push-day-agent">Agente</label><select id="push-day-agent"><option value="">Caricamento…</option></select></div><div class="field"><label for="push-day-date">Giornata</label><input id="push-day-date" type="date" value="${todayRome()}"></div></div>
+          <div id="push-day-preview" style="padding:10px 12px;border:1px solid #294b56;border-radius:10px;background:#0b2029;color:var(--muted);font-size:12px;line-height:1.5;white-space:pre-line">Scegli agente e giornata per vedere l’anteprima.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><button class="btn primary" id="push-day-send" type="button">Invia giornata</button><button class="btn" id="push-day-refresh" type="button">Aggiorna elenco</button><button class="btn" id="push-day-remove" type="button" style="border-color:#fb7185;color:#fecdd3;background:transparent">Elimina dispositivi dell’agente</button></div>
           <div class="status" id="push-day-status" aria-live="polite"></div>
-        </div>
+          </div>
+        </details>
+      </div>
 `;
     const dopo=document.getElementById('ticket-preference')||document.getElementById('pagina-iniziale');
     if(dopo)dopo.insertAdjacentElement('afterend',section);else document.querySelector('main')?.prepend(section);
@@ -80,7 +104,7 @@
     const paint=()=>{
       const on=$('push-pref-summary').checked,mode=$('push-summary-mode').value;
       section.querySelectorAll('[data-sum]').forEach(t=>t.setAttribute('aria-pressed',String(on?t.dataset.sum===mode:t.dataset.sum==='off')));
-      section.querySelectorAll('[data-navi]').forEach(t=>t.setAttribute('aria-pressed',String((t.dataset.navi==='on')===$('push-pref-arrivals').checked)));
+      section.querySelectorAll('[data-navi]').forEach(t=>t.setAttribute('aria-pressed',String($('push-pref-arrivals').checked)));
       section.querySelectorAll('[data-altro]').forEach(t=>t.setAttribute('aria-pressed',String($(t.dataset.altro==='changes'?'push-pref-changes':'push-pref-ods').checked)));
       $('push-summary-schedule').hidden=!on;
     };
@@ -88,7 +112,7 @@
     section.addEventListener('click',event=>{
       const t=event.target.closest('[data-sum],[data-navi],[data-altro]');if(!t)return;
       if(t.dataset.sum){const off=t.dataset.sum==='off';$('push-pref-summary').checked=!off;if(!off)$('push-summary-mode').value=t.dataset.sum;cambia('push-summary-mode');}
-      else if(t.dataset.navi){$('push-pref-arrivals').checked=t.dataset.navi==='on';cambia('push-pref-arrivals');}
+      else if(t.dataset.navi){$('push-pref-arrivals').checked=!$('push-pref-arrivals').checked;cambia('push-pref-arrivals');}
       else{const id=t.dataset.altro==='changes'?'push-pref-changes':'push-pref-ods';$(id).checked=!$(id).checked;cambia(id);}
       paint();
     });
@@ -139,12 +163,19 @@
   async function savePrefs(message='Preferenze notifiche salvate.'){
     try{await NaviPush.updatePreferences(profile,prefsFromUi());$('push-status').textContent=message;}catch(error){$('push-status').textContent=error?.message||'Preferenze non salvate.';}
   }
+  // stato del telefono: interruttore in alto e riassunto sulla sezione chiusa (Attive / Spente / Da riattivare)
+  function statoTelefono(titolo,testo,acceso,riepilogo,bloccato=false){
+    $('push-device-title').textContent=titolo;$('push-device-copy').textContent=testo;
+    const tg=$('push-device-tg');tg.setAttribute('aria-pressed',String(acceso));tg.disabled=bloccato;
+    $('push-enable').hidden=acceso;$('push-disable').hidden=!acceso;
+    $('notifiche-push').dataset.riepilogo=riepilogo;
+  }
   async function refreshStatus(){
     const state=await NaviPush.getStatus(profile);fillPrefs(state.preferences);$('push-ios-help').style.display=NaviPush.isIos()&&!NaviPush.isStandalone()?'block':'none';
-    if(!state.supported){$('push-device-title').textContent='Dispositivo non compatibile';$('push-device-copy').textContent='Questo browser non espone le API Web Push.';$('push-enable').hidden=false;$('push-enable').disabled=true;$('push-disable').hidden=true;return;}
-    if(state.requiresMigration){$('push-device-title').textContent='🔄 Aggiornamento notifiche richiesto';$('push-device-copy').textContent='Tocca Riattiva notifiche una sola volta su questo dispositivo.';$('push-enable').textContent='🔔 Riattiva notifiche';$('push-enable').hidden=false;$('push-enable').disabled=false;$('push-disable').hidden=true;return;}
-    if(state.enabled){$('push-device-title').textContent='🔔 Notifiche attive su questo dispositivo';$('push-device-copy').textContent='NaviSuite può ricevere Web Push anche quando è chiusa.';$('push-enable').hidden=true;$('push-disable').hidden=false;}
-    else{$('push-device-title').textContent='🔕 Notifiche non attive';$('push-device-copy').textContent=state.permission==='denied'?'Il permesso è stato negato nelle impostazioni di iOS/browser.':'Attivale per ricevere gli avvisi di NaviSuite.';$('push-enable').hidden=false;$('push-enable').disabled=state.permission==='denied';$('push-disable').hidden=true;}
+    if(!state.supported)return statoTelefono('Su questo telefono','Questo browser non può ricevere notifiche.',false,'Non disponibili',true);
+    if(state.requiresMigration)return statoTelefono('Su questo telefono','🔄 Da riattivare: tocca l’interruttore una volta.',false,'Da riattivare');
+    if(state.enabled)return statoTelefono('Su questo telefono','Attive: arrivano anche con l’app chiusa.',true,'Attive');
+    statoTelefono('Su questo telefono',state.permission==='denied'?'Permesso negato nelle impostazioni di iOS o del browser.':'Spente: tocca per attivarle.',false,'Spente',state.permission==='denied');
   }
 
   async function removeDevices(){
@@ -195,6 +226,21 @@
 
   async function install(){
     createSection();await waitPush();
+    // Prova in due passi: 1) il telefono sa mostrare una notifica; 2) una vera notifica parte dal server (NAS) verso questo agente
+    $('push-test').addEventListener('click',async()=>{
+      const btn=$('push-test'),st=$('push-status');btn.disabled=true;
+      try{
+        if(!('Notification' in window))throw new Error('Questo browser non può mostrare notifiche.');
+        if(Notification.permission!=='granted')throw new Error('Prima attiva le notifiche con l’interruttore.');
+        const reg=await navigator.serviceWorker.ready;
+        await reg.showNotification('NaviSuite · prova sul telefono',{body:'1/2 · Questo telefono mostra le notifiche.',tag:'navi-test-locale'});
+        st.textContent='1/2 ✓ Il telefono mostra le notifiche. Invio della prova dal server…';
+        await NaviPush.queuePush({requestedByAgentId:agentId,requestedByName:profile?.name||'',targetAgentId:agentId,title:'NaviSuite · prova dal server',body:`2/2 · Le notifiche arrivano dal server (${new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}).`,url:'impostazioni.html',kind:'test'});
+        st.textContent='1/2 ✓ Il telefono mostra le notifiche. 2/2 Prova inviata al server: deve arrivare entro un minuto su tutti i tuoi dispositivi. Se non arriva, il problema è sul server delle notifiche.';
+      }catch(error){st.textContent=`Prova non riuscita: ${error?.message||error}`;}
+      finally{btn.disabled=false;}
+    });
+    $('push-device-tg').addEventListener('click',()=>{const on=$('push-device-tg').getAttribute('aria-pressed')==='true';$(on?'push-disable':'push-enable').click();});
     $('push-enable').addEventListener('click',async()=>{const btn=$('push-enable');btn.disabled=true;$('push-status').textContent='Attivazione notifiche…';try{await NaviPush.subscribe(profile,prefsFromUi());$('push-status').textContent='✅ Notifiche attive e dispositivo registrato.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Attivazione non riuscita.';}finally{btn.disabled=false;}});
     $('push-disable').addEventListener('click',async()=>{const btn=$('push-disable');btn.disabled=true;$('push-status').textContent='Disattivazione…';try{await NaviPush.unsubscribe(profile);$('push-status').textContent='Notifiche disattivate su questo dispositivo.';await refreshStatus();await loadRecipients();}catch(error){$('push-status').textContent=error?.message||'Disattivazione non riuscita.';}finally{btn.disabled=false;}});
     ['push-pref-summary','push-pref-changes','push-pref-ods','push-pref-arrivals'].forEach(id=>$(id).addEventListener('change',()=>{updateScheduleUi();savePrefs();}));
