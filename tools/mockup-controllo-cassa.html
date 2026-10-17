@@ -48,6 +48,19 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
 .notes li{background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--muted)}.notes b{color:var(--ink)}
 .sav{display:grid;gap:6px;margin-top:4px}.sv{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--c) 12%,var(--card));border-left:4px solid var(--c);font-size:13px}.sv small{grid-column:1/-1;color:var(--muted);font-size:11px;font-family:Manrope,system-ui,sans-serif}
 .row{grid-template-columns:minmax(300px,420px)}
+
+.chip{font-family:inherit;cursor:pointer}
+.picker{border-radius:16px;background:color-mix(in srgb,var(--teal) 8%,var(--card));border:1px solid color-mix(in srgb,var(--teal) 40%,transparent);overflow:hidden}
+.pk-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.pk-head button{border:0;background:none;color:var(--teal);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer;padding:4px}
+.wheel-wrap{position:relative;height:180px}
+.wheel{height:180px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent)}
+.wheel::-webkit-scrollbar{display:none}
+.wheel div{height:36px;line-height:36px;text-align:center;scroll-snap-align:center;font-size:17px;color:var(--muted);transition:color .15s,transform .15s}
+.wheel div.sel{color:var(--ink);font-weight:700;transform:scale(1.08)}
+.wheel div.has::after{content:" •";color:var(--green)}
+.wheel .pad{scroll-snap-align:none}
+.wheel-band{position:absolute;left:10px;right:10px;top:72px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--teal) 18%,transparent);border:1px solid color-mix(in srgb,var(--teal) 50%,transparent);pointer-events:none}
 </style>
 
 <h1>Controllo cassa · proposta C3</h1>
@@ -60,7 +73,11 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
   <p class="d">I tre momenti diventano un binario orizzontale colorato con il loro esito: si tocca per passare da uno all'altro. Sotto, solo il momento scelto, con i totali grandi e gli storni nascosti.</p>
   <div class="phone">
     <span class="eb">CONTROLLO CASSA</span><span class="tt">AgB · Desenzano</span>
-    <div class="chips"><span class="chip on">ven 16/10</span><span class="chip" style="--c:var(--violet)">👤 Pedroni M.</span><span class="chip" style="--c:var(--cyan)">‹ ieri</span></div>
+    <div class="chips"><button type="button" class="chip on" id="dataBtn">📅 <span id="dataTxt">ven 16 ott</span> ▾</button><span class="chip" style="--c:var(--violet)">👤 Pedroni M.</span></div>
+    <div class="picker" id="picker" hidden>
+      <div class="pk-head"><button type="button" id="pkOggi">Oggi</button><b>Scegli il giorno</b><button type="button" id="pkOk">Fatto</button></div>
+      <div class="wheel-wrap"><div class="wheel" id="wheel" tabindex="0" aria-label="Giorni"></div><div class="wheel-band"></div></div>
+    </div>
     <div class="rail num"><div style="--c:var(--green)">Apertura<small>0,00 ✓</small></div><div style="--c:var(--amber)">Diurno<small>−2,00</small></div><div class="on" style="--c:var(--teal)">Chiusura<small>0,00 ✓</small></div></div>
     <div class="tot3 num"><div class="tc" style="--c:var(--cyan)"><small>Incasso</small><b>1.284,50</b></div><div class="tc" style="--c:var(--violet)"><small>POS</small><b>512,00</b></div><div class="tc auto" style="--c:var(--teal)"><small>Contanti</small><b>772,50</b></div></div>
     <p class="eq num" style="margin:0">fondo 400,00 + contanti 772,50 = <b style="color:var(--amber)">attesi 1.172,50</b></p>
@@ -80,7 +97,30 @@ h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:v
 </div>
 
 <ul class="notes">
+  <li><b>Data:</b> tocca «📅 ven 16 ott» per aprire il rullo dei giorni, come sull'iPhone. Il pallino verde segna i giorni con un controllo già salvato; «Oggi» torna a oggi.</li>
   <li><b>Totale contanti</b> non si scrive: è incasso meno POS meno storni, ed è segnato «auto» con il bordo tratteggiato.</li>
   <li><b>Da stornare</b> resta a zero e chiuso. Quando c'è un importo la riga diventa rossa e mostra la cifra.</li>
   <li>Restano salvataggio automatico, cassetta rossa, storico del giorno e regole delle casse.</li>
 </ul>
+
+<script>
+(function(){
+  const wheel=document.getElementById('wheel'),picker=document.getElementById('picker'),btn=document.getElementById('dataBtn'),txt=document.getElementById('dataTxt');
+  const fmt=new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'numeric',month:'short'});
+  const base=new Date(2026,9,16,12),giorni=[];
+  for(let i=-60;i<=7;i++){const d=new Date(base);d.setDate(d.getDate()+i);giorni.push(d)}
+  const salvati=new Set([0,-1,-2,-4,-5,-7,-8,-9].map(n=>{const d=new Date(base);d.setDate(d.getDate()+n);return d.toDateString()}));
+  wheel.innerHTML='<div class="pad"></div><div class="pad"></div>'+giorni.map((d,i)=>`<div data-i="${i}" class="${salvati.has(d.toDateString())?'has':''}">${fmt.format(d).replace('.','')}</div>`).join('')+'<div class="pad"></div><div class="pad"></div>';
+  const righe=[...wheel.querySelectorAll('[data-i]')];
+  let scelto=60;
+  const centro=()=>Math.round(wheel.scrollTop/36);
+  const evidenzia=()=>{const c=centro();righe.forEach((r,i)=>r.classList.toggle('sel',i===c))};
+  const vai=(i,smooth)=>wheel.scrollTo({top:i*36,behavior:smooth?'smooth':'auto'});
+  wheel.addEventListener('scroll',()=>requestAnimationFrame(evidenzia));
+  wheel.addEventListener('click',e=>{const r=e.target.closest('[data-i]');if(r)vai(Number(r.dataset.i),true)});
+  const chiudi=()=>{scelto=centro();txt.textContent=fmt.format(giorni[scelto]).replace('.','');picker.hidden=true};
+  btn.addEventListener('click',()=>{picker.hidden=!picker.hidden;if(!picker.hidden){vai(scelto,false);evidenzia()}});
+  document.getElementById('pkOk').addEventListener('click',chiudi);
+  document.getElementById('pkOggi').addEventListener('click',()=>vai(60,true));
+})();
+</script>
