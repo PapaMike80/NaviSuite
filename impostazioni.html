@@ -549,7 +549,7 @@
     const distintivo = (el, q) => { const g = GRADI.find(([re]) => re.test(q || '')); el.textContent = g ? g[1] : '?'; el.style.setProperty('--g', g ? g[2] : '#9fb8c2'); el.title = q || ''; };
     const data = v => String(v || '').slice(0, 10).split('-').reverse().join('/');
     const oggi = new Date().toLocaleDateString('sv-SE');
-    const RUOLI = { admin: 'Amministratore', super_user: 'Super user', barista: 'Barista', '': 'Agente' };
+    const ruolo = r => ['admin', 'super_user', 'superuser'].includes(String(r || '').toLowerCase()) ? 'Amministratore' : 'Agente';
     function mostra(p = {}, reg = {}) {
       const grado = String(p.qualifica || io.qualifica || '').toLowerCase();
       $('ut-nome').textContent = io.name || p.name || '—';
@@ -558,7 +558,7 @@
       $('ut-grado').textContent = grado || '—';
       const res = p.residenzaNuova && p.residenzaDal && oggi >= p.residenzaDal ? p.residenzaNuova : (p.residence || io.residence || '—');
       $('ut-res').textContent = String(res).toLowerCase();
-      $('ut-ruolo').textContent = RUOLI[String(p.role ?? io.role ?? '').toLowerCase()] || String(p.role || io.role || 'Agente');
+      $('ut-ruolo').textContent = ruolo(p.role ?? io.role);
       $('ut-reg').textContent = reg.registeredAt ? data(reg.registeredAt) : '—';
       const mv = $('ut-move');
       if (p.residenzaNuova && p.residenzaDal) { mv.hidden = false; mv.innerHTML = `${oggi >= p.residenzaDal ? 'Spostato' : 'Si sposta'} ${p.residenzaPrecedente ? `da ${p.residenzaPrecedente} ` : ''}a <b>${p.residenzaNuova}</b> dal ${data(p.residenzaDal)}`; } else mv.hidden = true;
