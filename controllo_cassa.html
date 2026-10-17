@@ -227,6 +227,7 @@
     /* ===== Proposta C3 (come il mockup): chip, binario, totali, tessere dei tagli, rullo della data ===== */
     :root{--c3-teal:#2dd4bf;--c3-cyan:#67d7e6;--c3-violet:#a78bfa;--c3-rose:#fb7185;--c3-amber:#fbbf24;--c3-green:#52c879;--c3-orange:#fb923c;--c3-on:#06231f;--c3-card:#102733;--c3-line:#1f4250;--c3-mono:"DM Mono",ui-monospace,monospace}
     body{background:linear-gradient(160deg,color-mix(in srgb,var(--c3-teal) 9%,#0b1c26),#0b1c26 40%,color-mix(in srgb,var(--c3-violet) 9%,#0b1c26)) fixed;font-family:Manrope,"DM Sans",system-ui,sans-serif}
+    html{background:#0b1c26}
     .container{max-width:460px}
     .cc-head{margin:0 0 12px;padding-right:56px}
     .cc-eyebrow{font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.22em;color:var(--c3-teal)}
@@ -296,6 +297,28 @@
     .cc-dettagli{border-radius:12px;background:var(--c3-card);padding:0 10px}
     .cc-dettagli>summary{list-style:none;cursor:pointer;padding:9px 0;font-size:13px;font-weight:700;color:var(--text-muted)}.cc-dettagli>summary::-webkit-details-marker{display:none}
     .cc-dettagli[open]{padding-bottom:10px}
+    .cc-31{border-radius:14px;padding:10px;background:color-mix(in srgb,var(--c3-cyan) 8%,var(--c3-card));border:1px solid color-mix(in srgb,var(--c3-cyan) 35%,transparent)}
+    .cc-31-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;font-weight:800;font-size:14px;color:var(--c3-cyan)}.cc-31-head small{font-weight:600;font-size:11px;color:var(--text-muted)}
+    .cc-31-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .cc-31-v{display:block;text-align:left;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--c) 18%,var(--c3-card));color:var(--text-main);cursor:pointer;font:inherit}
+    .cc-31-v small{display:block;font:800 9px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    .cc-31-v b{font:600 16px var(--c3-mono)}
+    .cc-31-v:last-child:nth-child(odd){grid-column:1/-1}
+    .cc-31-v.copiato{outline:2px solid var(--c)}
+    .cc-dettagli .table-wrap{border:0;background:transparent;margin:8px 0 0}
+    .cc-dettagli th{color:var(--text-muted)!important;background:transparent!important}
+    .cc-dettagli td:first-child{color:var(--text-main)!important}
+    .cc-dettagli .switch-wrapper{background:transparent;margin-bottom:8px;padding:8px 0;border:0}
+    .cc-dettagli table{border-collapse:separate!important;border-spacing:0 4px}
+    .cc-dettagli th{font:800 9px Manrope,system-ui,sans-serif!important;letter-spacing:.1em;text-transform:uppercase;border:0!important;padding:4px!important}
+    .cc-dettagli th.c-vers{color:var(--c3-teal)!important}.cc-dettagli th.c-resto{color:var(--c3-amber)!important}.cc-dettagli th.c-fondo{color:var(--c3-orange)!important}
+    .cc-dettagli td{border:0!important;background:var(--c3-card);padding:5px 4px!important;font-family:var(--c3-mono)}
+    .cc-dettagli td.taglio{border-left:4px solid var(--tc)!important;border-radius:8px 0 0 8px;color:var(--tc)!important;font:800 13px Manrope,system-ui,sans-serif}
+    .cc-dettagli td:last-child{border-radius:0 8px 8px 0}
+    .cc-dettagli td.c-vers b{color:var(--c3-teal)}.cc-dettagli td.c-resto b{color:var(--c3-amber)}.cc-dettagli td.c-fondo b{color:var(--c3-orange)}
+    .cc-dettagli td small{color:var(--text-muted)}
+    .cc-dettagli td .zero{color:var(--c3-line)}
+    .cc-dettagli tr.vuota{opacity:.45}
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -407,7 +430,7 @@
     <p class="cc-eq">Da versare: i soldi da portare in banca o in cassaforte. In cassa restano <b id="box-trattenuto">€ 0,00</b> per domani.</p>
 
     <details class="cc-dettagli">
-      <summary>Dettaglio dei tagli e foglio «31 righe» ▾</summary>
+      <summary>Dettaglio dei tagli: da versare, resto e fondo ▾</summary>
       <div class="switch-wrapper" id="resto-monete-switch">
         <div><label>Usa gestione «Resto monete»</label><small>Attiva per versare solo banconote. Disattiva per versare tutto il contante in eccesso (Maderno).</small></div>
         <label class="switch"><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"><span class="slider"></span></label>
@@ -415,21 +438,23 @@
       <div class="cc-res" id="box-resto-monete-container"><div style="--c:var(--c3-amber)"><small>Resto monete</small><b id="box-resto-monete">€ 0,00</b></div></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th style="text-align: left;">Taglio</th><th>Da versare</th><th>Resto monete</th><th>Fondo domani</th></tr></thead>
+          <thead><tr><th class="taglio">Taglio</th><th class="c-vers">Da versare</th><th class="c-resto">Resto</th><th class="c-fondo">Fondo domani</th></tr></thead>
           <tbody id="distinta-pezzi-body"></tbody>
         </table>
       </div>
-      <div class="riepilogo-31">
-        <h4>📋 Dati da copiare sul foglio «31 righe»</h4>
-        <div class="riepilogo-grid">
-          <div class="riepilogo-item"><label>Totale giornaliero</label><div class="val" id="riepilogo-totale">€ 0,00</div></div>
-          <div class="riepilogo-item"><label>Totale contanti</label><div class="val" id="riepilogo-saldo">€ 0,00</div></div>
-          <div class="riepilogo-item"><label>POS</label><div class="val" id="riepilogo-pos">€ 0,00</div></div>
-          <div class="riepilogo-item"><label>Totale versamenti</label><div class="val" id="riepilogo-tot-vers">€ 0,00</div></div>
-          <div class="riepilogo-item riepilogo-resto-item"><label>Resto moneta</label><div class="val" id="riepilogo-resto">€ 0,00</div></div>
-        </div>
-      </div>
     </details>
+
+    <!-- Foglio 31 righe: i numeri da ricopiare -->
+    <div class="cc-31">
+      <div class="cc-31-head"><span>📋 Foglio «31 righe»</span><small>tocca un valore per copiarlo</small></div>
+      <div class="cc-31-grid">
+        <button type="button" class="cc-31-v" style="--c:var(--c3-cyan)"><small>Totale giornaliero</small><b id="riepilogo-totale">€ 0,00</b></button>
+        <button type="button" class="cc-31-v" style="--c:var(--c3-violet)"><small>POS</small><b id="riepilogo-pos">€ 0,00</b></button>
+        <button type="button" class="cc-31-v" style="--c:var(--c3-teal)"><small>Totale contanti</small><b id="riepilogo-saldo">€ 0,00</b></button>
+        <button type="button" class="cc-31-v" style="--c:var(--c3-orange)"><small>Totale versamenti</small><b id="riepilogo-tot-vers">€ 0,00</b></button>
+        <button type="button" class="cc-31-v riepilogo-resto-item" style="--c:var(--c3-amber)"><small>Resto moneta</small><b id="riepilogo-resto">€ 0,00</b></button>
+      </div>
+    </div>
 
     <button type="button" class="cc-salva" onclick="salvaManuale()">Salva chiusura</button>
   </div>
@@ -805,7 +830,7 @@
     const tbodyDistinta = document.getElementById("distinta-pezzi-body");
     tbodyDistinta.innerHTML = "";
 
-    DENOMINATIONS.forEach(d => {
+    DENOMINATIONS.slice().reverse().forEach(d => {
       const pB = pezziBusta[d.val] || 0;
       const pR = pezziResto[d.val] || 0;
       const pTotPresenti = countsSera[d.val] || 0;
@@ -817,13 +842,8 @@
       valResto0Cents += pR * d.val;
       valFondoCents += pF * d.val;
 
-      tbodyDistinta.innerHTML += `
-        <tr>
-          <td style="text-align: left; font-weight: 700; color: var(--cyan-accent);">${d.label}</td>
-          <td style="color: var(--ok-color);">${pB > 0 ? `<b>${pB}</b><small>${formatEuro(pB * d.val)}</small>` : '–'}</td>
-          <td style="color: var(--cyan-accent);">${pR > 0 ? `<b>${pR}</b><small>${formatEuro(pR * d.val)}</small>` : '–'}</td>
-          <td style="color: var(--accent-green);">${pF > 0 ? `<b>${pF}</b><small>${formatEuro(pF * d.val)}</small>` : '–'}</td>
-        </tr>`;
+      const cella = (n, cls) => `<td class="${cls}">${n > 0 ? `<b>${n}</b><small>${formatEuro(n * d.val)}</small>` : '<span class="zero">–</span>'}</td>`;
+      tbodyDistinta.innerHTML += `<tr class="t${d.val}${pB + pR + pF ? '' : ' vuota'}"><td class="taglio">${d.label.replace(',00', '')}</td>${cella(pB, 'c-vers')}${cella(pR, 'c-resto')}${cella(pF, 'c-fondo')}</tr>`;
     });
 
     document.getElementById("box-versamento").textContent = formatEuro(valBustaCents);
@@ -1271,6 +1291,15 @@
     document.addEventListener('change', e => { if (['scalo-selezionato', 'postazione-selezionata'].includes(e.target.id)) titolo(); });
     setInterval(() => { titolo(); if (picker.hidden) mostra(); }, 1000); setTimeout(() => { titolo(); mostra(); }, 300);
   })();
+</script>
+
+<script>
+  // Foglio 31 righe: un tocco copia il valore (senza il simbolo dell'euro)
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.cc-31-v'); if (!b) return;
+    const v = b.querySelector('b').textContent.replace(/[^0-9,.-]/g, '');
+    navigator.clipboard?.writeText(v).then(() => { b.classList.add('copiato'); setTimeout(() => b.classList.remove('copiato'), 900); }).catch(() => {});
+  });
 </script>
 </body>
 </html>
