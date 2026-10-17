@@ -335,6 +335,11 @@
     .cc-sum small{display:block;font:800 9px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
     .cc-sum b{font:600 14px var(--c3-mono);white-space:nowrap}
     .cc-sum>.cc-sum-tot{--c:var(--c3-on);background:var(--c3-teal);border-color:var(--c3-teal);color:var(--c3-on)}
+    .cc-sez{margin:6px 0 0;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--c3-teal) 30%,var(--c3-line));font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--c3-teal)}
+    .cc-sez.cc-sez-primo{border-top:0;padding-top:4px;margin-top:0}
+    .cc-sum{margin-top:8px}
+    .cc-cassetta{margin-top:6px!important}
+    .cc-31-head{justify-content:flex-end}
     .cc-salva{width:100%;border:0;border-radius:12px;padding:12px;font:800 15px Manrope,system-ui,sans-serif;color:var(--c3-on);background:linear-gradient(90deg,var(--c3-teal),var(--c3-cyan));cursor:pointer}
     /* salvataggi del giorno */
     details.storico{border-radius:14px!important;background:color-mix(in srgb,var(--c3-violet) 12%,var(--c3-card))!important;border:1px solid color-mix(in srgb,var(--c3-violet) 40%,transparent)!important;padding:0 10px!important;margin-top:12px}
@@ -399,18 +404,21 @@
   <!-- 1. APERTURA -->
   <div class="panel cc-step" id="step-1">
     <span id="badge-apertura" class="tag tag-ok" hidden>CONFORME</span>
+    <h4 class="cc-sez cc-sez-primo">Fondo</h4>
     <div class="cc-tot3">
       <div class="cc-tc" style="--c:var(--c3-cyan)"><small>Fondo</small><input type="text" inputmode="decimal" autocomplete="off" id="fondo-target" value="400.00" oninput="calculateAll()" aria-label="Fondo obiettivo"></div>
       <div class="cc-tc cc-auto" style="--c:var(--c3-teal)"><small>Contato</small><b id="fondo-mattina-calc">€ 0,00</b></div>
       <div class="cc-tc cc-auto" style="--c:var(--c3-green)"><small>Differenza</small><b id="diff-mattina">€ 0,00</b></div>
     </div>
     <small id="diff-desc-mattina" hidden></small>
+    <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-mattina"></div>
   </div>
 
   <!-- 2. DIURNO -->
   <div class="panel cc-step" id="step-2" style="display:none;">
     <span id="badge-quadratura-diurno" class="tag tag-ok" hidden>IN PARI</span>
+    <h4 class="cc-sez cc-sez-primo">Totali</h4>
     <div class="cc-tot3">
       <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-diurno" value="353.80" oninput="syncTotals()"></label>
       <label class="cc-tc" style="--c:var(--c3-violet)"><small>POS</small><input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-diurno" value="225.40" oninput="syncTotals()"></label>
@@ -421,13 +429,16 @@
       <summary><span>＋ Da stornare</span><b id="storni-diurno-val">€ 0,00</b></summary>
       <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-diurno" value="0.00" oninput="syncTotals()" aria-label="Da stornare">
     </details>
+    <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-diurno"></div>
+    <h4 class="cc-sez">Risultato</h4>
     <div class="cc-res"><div style="--c:var(--c3-green)"><small>Discrepanza</small><b id="ctrl-differenza-diurno">€ 0,00</b></div></div>
   </div>
 
   <!-- 3. CHIUSURA -->
   <div class="panel cc-step" id="step-3" style="display:none;">
     <span id="badge-quadratura-sera" class="tag tag-ok" hidden>CASSA QUADRATA</span>
+    <h4 class="cc-sez cc-sez-primo">Totali</h4>
     <div class="cc-tot3">
       <label class="cc-tc" style="--c:var(--c3-cyan)"><small>Incasso</small><input type="text" inputmode="decimal" autocomplete="off" id="totale-giornaliero-sera" value="353.80" oninput="calculateAll()"></label>
       <label class="cc-tc" style="--c:var(--c3-violet)"><small>POS</small><input type="text" inputmode="decimal" autocomplete="off" id="pos-giornaliero-sera" value="225.40" oninput="calculateAll()"></label>
@@ -438,11 +449,14 @@
       <summary><span>＋ Da stornare</span><b id="storni-sera-val">€ 0,00</b></summary>
       <input type="text" inputmode="decimal" autocomplete="off" id="da-stornare-sera" value="0.00" oninput="calculateAll()" aria-label="Da stornare">
     </details>
+    <h4 class="cc-sez">Conteggio</h4>
     <div id="grid-container-sera"></div>
+    <h4 class="cc-sez">Risultato</h4>
     <div class="cc-res">
       <div style="--c:var(--c3-green)"><small>Contati · discrepanza</small><b><span id="badge-tot-sera">€ 0,00</span> · <span id="ctrl-differenza-sera">€ 0,00</span></b></div>
     </div>
 
+    <h4 class="cc-sez">Divisione dei contanti</h4>
     <!-- Divisione dei contanti: tre buste con il totale e i pezzi -->
     <div class="cc-buste">
       <div class="cc-busta" style="--c:var(--c3-teal)"><div class="h"><span>Da versare <small>banca o cassaforte</small></span><b id="box-versamento">€ 0,00</b></div><div class="pz" id="pz-vers"></div></div>
@@ -451,9 +465,10 @@
       <div id="resto-monete-switch" hidden><input type="checkbox" id="usa-resto-monete" checked onchange="calculateAll()"></div>
     </div>
 
+    <h4 class="cc-sez">Foglio «31 righe»</h4>
     <!-- Foglio 31 righe: i numeri da ricopiare -->
     <div class="cc-31">
-      <div class="cc-31-head"><span>📋 Foglio «31 righe»</span><small>tocca un valore per copiarlo</small></div>
+      <div class="cc-31-head"><small>tocca un valore per copiarlo</small></div>
       <div class="cc-31-grid">
         <button type="button" class="cc-31-v" style="--c:var(--c3-cyan)"><small>Totale giornaliero</small><b id="riepilogo-totale">€ 0,00</b></button>
         <button type="button" class="cc-31-v" style="--c:var(--c3-violet)"><small>POS</small><b id="riepilogo-pos">€ 0,00</b></button>
@@ -541,12 +556,12 @@
     BANCONOTE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
     MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-${stepPrefix}-${d.val}`, dataObj[d.val] || 0, `oninput="${onInputFnName}(${d.val})"`); });
     html += '</div>';
+    html += `<div class="cc-sum"><div style="--c:var(--c3-cyan)"><small>Banconote</small><b id="tot-banconote-${stepPrefix}">€ 0,00</b></div><div style="--c:var(--c3-amber)"><small>Monete</small><b id="tot-monete-${stepPrefix}">€ 0,00</b></div><div class="cc-sum-tot"><small>${stepPrefix === 'mattina' ? 'Fondo contato' : 'Totale contanti'}</small><b id="tot-valore-${stepPrefix}">€ 0,00</b></div></div>`;
     if (cassettaAttiva()) {
-      html += `<details class="cc-cassetta"><summary><span>🔴 Cassetta rossa <b id="tot-cr-${stepPrefix}">€ 0,00</b></span><span class="cc-chip cc-rosa">Preleva / Versa</span></summary><div class="cc-grid">`;
+      html += `<h4 class="cc-sez">Cassetta rossa</h4><details class="cc-cassetta"><summary><span>🔴 Cassetta rossa <b id="tot-cr-${stepPrefix}">€ 0,00</b></span><span class="cc-chip cc-rosa">Preleva / Versa</span></summary><div class="cc-grid">`;
       MONETE.slice().reverse().forEach(d => { html += tessera(d, `qty-cr-${stepPrefix}-${d.val}`, countsCassetta[stepPrefix][d.val] || 0, `oninput="cassettaInput('${stepPrefix}', ${d.val})" onfocus="proponiPrelievo('${stepPrefix}', ${d.val}, this)"`); });
       html += '</div></details>';
     }
-    html += `<div class="cc-sum"><div style="--c:var(--c3-cyan)"><small>Banconote</small><b id="tot-banconote-${stepPrefix}">€ 0,00</b></div><div style="--c:var(--c3-amber)"><small>Monete</small><b id="tot-monete-${stepPrefix}">€ 0,00</b></div><div class="cc-sum-tot"><small>${stepPrefix === 'mattina' ? 'Fondo contato' : 'Totale contanti'}</small><b id="tot-valore-${stepPrefix}">€ 0,00</b></div></div>`;
     document.getElementById(containerId).innerHTML = html;
   }
 
