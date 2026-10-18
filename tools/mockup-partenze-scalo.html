@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup Partenze scalo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Roboto+Condensed:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Partenze di uno scalo come l'orario ufficiale della direzione: 1) nella pagina Scali (telefono), 2) foglio A4 da stampare. */
+:root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on:#06231f;--violet:#a78bfa;--mono:'DM Mono',monospace;
+  --nlg:#1d5aa8;--nlg2:#cfe3f3;--sr:#b3202a;--srbg:#fbd635}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;padding:28px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}.intro{margin:0 0 22px;color:var(--muted);max-width:70ch}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:28px;align-items:start}
+h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}.d{margin:4px 0 12px;color:var(--muted);font-size:13px}
+/* --- telefono --- */
+.phone{border:1px solid var(--line);border-radius:26px;padding:16px 12px;max-width:400px;display:grid;gap:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)))}
+.pc{border-radius:16px;background:color-mix(in srgb,#67d7e6 10%,var(--card));border:1px solid color-mix(in srgb,#67d7e6 38%,transparent);padding:12px;display:grid;gap:8px}
+.pc-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.pc-h b{color:#67d7e6;font-size:15px}.pc-h small{color:var(--muted);font-size:11px}
+.pc-per{font-size:11px;color:var(--muted)}
+.dep{display:grid;grid-template-columns:56px 1fr auto;gap:8px;align-items:center;padding:8px 9px;border-radius:12px;background:#0d2230;border-left:4px solid #67d7e6}
+.dep.alt{background:#10304a;border-left-color:#60a5fa}
+.dep.next{outline:2px solid var(--teal)}
+.dep .t{font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+.dep .s{font-size:12px;line-height:1.5}.dep .s b{font-weight:800}.dep .s span{font-family:var(--mono);color:var(--muted)}
+.dep .n{display:flex;gap:4px;font-size:14px}
+.dep.sr{border-left-color:#fbbf24;background:color-mix(in srgb,#fbbf24 10%,#0d2230)}
+.tag{font-size:9px;font-weight:900;padding:1px 6px;border-radius:999px;background:#fbbf24;color:var(--on);margin-right:4px}
+.leg{font-size:10px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:10px;font:800 13px Manrope;background:#67d7e6;color:var(--on);text-align:center}
+/* --- A4 --- */
+.a4wrap{background:#59666d;border-radius:14px;padding:16px;overflow-x:auto}
+.a4{width:595px;min-height:842px;margin:auto;background:#fffdf6;color:#11233a;padding:26px 22px;font-family:'Roboto Condensed',Arial Narrow,sans-serif;box-shadow:0 6px 24px #0007}
+.a4-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:6px;font:700 10px 'Roboto Condensed'}.logo i{width:30px;height:30px;border-radius:50%;background:#102a4c;display:inline-block}
+.scalo{text-align:center;color:var(--nlg);font:800 9px 'Roboto Condensed';letter-spacing:.04em}.scalo b{display:block;background:var(--nlg);color:#fff;font-size:20px;padding:2px 10px;margin-top:2px}
+.tit{text-align:center;color:var(--nlg);margin:12px 0 10px;line-height:1.15}.tit b{display:block;font-size:15px}.tit span{display:block;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{background:var(--nlg);color:#fff;font-weight:700;padding:4px 6px;text-align:left;font-size:11px}
+td{border:1px solid #9bb3c8;padding:4px 6px;vertical-align:middle;font-weight:700}
+td.o{width:62px;text-align:center;font-size:15px}
+td.nt{width:58px;text-align:center;font-size:13px;white-space:nowrap}
+tr.alt td{background:var(--nlg2)}
+tr.sr td{background:var(--srbg)}tr.sr td.o{background:var(--sr);color:#fff}
+.a4 .lg{margin-top:10px;border:1.5px solid var(--sr);padding:6px 8px;font-size:9.5px;display:grid;gap:3px}
+.a4 .lg b{color:var(--sr)}
+.foot{margin-top:8px;font-size:9px;color:#4b5d6e;text-align:right}
+</style></head><body>
+<h1>Partenze dello scalo · come l’orario della direzione</h1>
+<p class="intro">Stessi dati dell’app, già uguali al foglio: Maderno, 19 ottobre. Le corse SR barrate a mano sul foglio l’app le toglie da sola dopo l’11/10 e le rimette dal 20/3, in giallo come sul foglio. Vale per ogni scalo, non solo Maderno.</p>
+<div class="row">
+
+<section><h2>1 · Pagina Scali › Partenze (telefono)</h2><p class="d">Nuovo riquadro in «Allo scalo»: elenco delle partenze del giorno come sul foglio. La prossima è evidenziata.</p>
+<div class="phone">
+  <div class="pc">
+    <div class="pc-h"><b>🕘 Partenze da Maderno</b><small>lun 19 ott</small></div>
+    <div class="pc-per">Orario dal 5 ottobre all’1 novembre 2026 e dal 13 al 25 marzo 2027</div>
+    <div class="dep"><span class="t">9:15</span><span class="s"><b>Gardone</b> <span>9:30</span> · <b>Salò</b> <span>9:45</span> · <b>Portese</b> <span>9:55</span> · <b>Garda</b> <span>10:40</span> · <b>Bardolino</b> <span>10:55</span> · <b>Lazise</b> <span>11:12</span> · <b>Sirmione</b> <span>11:53</span> · <b>Desenzano</b> <span>12:15</span></span><span class="n">♿ 🚲</span></div>
+    <div class="dep alt next"><span class="t">11:03</span><span class="s"><b>Gardone</b> <span>11:16</span> · <b>Salò</b> <span>11:29</span> · <b>Portese</b> <span>11:40</span> · <b>Garda</b> <span>12:23</span> · <b>Sirmione</b> <span>13:09</span> · <b>Desenzano</b> <span>13:30</span></span><span class="n">♿ 🚲</span></div>
+    <div class="dep"><span class="t">11:31</span><span class="s"><b>Gargnano</b> <span>12:01</span> · <b>Brenzone</b> <span>12:29</span> · <b>Malcesine</b> <span>12:54</span> · <b>Limone</b> <span>13:14</span> · <b>Riva</b> <span>13:50</span></span><span class="n">♿ 🚲</span></div>
+    <div class="dep alt"><span class="t">14:00</span><span class="s"><b>Gardone</b> <span>14:14</span> · <b>Salò</b> <span>14:28</span> · <b>Portese</b> <span>14:40</span> · <b>Garda</b> <span>15:23</span> · <b>Bardolino</b> <span>15:38</span> · <b>Lazise</b> <span>15:55</span> · <b>Sirmione</b> <span>16:35</span> · <b>Desenzano</b> <span>16:55</span></span><span class="n">♿ 🚲</span></div>
+    <div class="dep alt"><span class="t">16:58</span><span class="s"><b>Gargnano</b> <span>17:28</span> · <b>Brenzone</b> <span>17:56</span> · <b>Malcesine</b> <span>18:20</span> · <b>Limone</b> <span>18:40</span> · <b>Torbole</b> <span>19:10</span> · <b>Riva</b> <span>19:25</span></span><span class="n">♿ 🚲</span></div>
+    <div class="dep"><span class="t">17:08</span><span class="s"><b>Gardone</b> <span>17:21</span> · <b>Salò</b> <span>17:35</span> · <b>Portese</b> <span>17:46</span> · <b>Garda</b> <span>18:30</span> · <b>Bardolino</b> <span>18:45</span> · <b>Lazise</b> <span>19:02</span> · <b>Peschiera</b> <span>19:30</span></span><span class="n">♿ 🚲</span></div>
+    <div class="leg"><span>♿ carrozzine: informarsi</span><span>🚲 bici limitate</span><span><span class="tag">SR</span>rapido con supplemento</span></div>
+    <div class="btn">🖨 Stampa orario A4</div>
+  </div>
+  <p class="d" style="margin:0">Esempio di un giorno con le SR (es. 10 ottobre): compaiono in giallo.</p>
+  <div class="pc" style="padding:8px"><div class="dep sr"><span class="t">10:09</span><span class="s"><span class="tag">SR</span><b>Gardone</b> <span>10:19</span> · <b>Salò</b> <span>10:32</span> · <b>Garda</b> <span>11:02</span> · <b>Sirmione</b> <span>11:30</span> · <b>Peschiera</b> <span>11:55</span></span><span class="n">♿ 🚳</span></div></div>
+</div></section>
+
+<section><h2>2 · Foglio A4 da stampare</h2><p class="d">Generato dall’app per lo scalo e il periodo scelti, con l’impaginazione della direzione. Solo le corse valide nel periodo: niente righe da barrare a mano.</p>
+<div class="a4wrap"><div class="a4">
+  <div class="a4-top"><span class="logo"><i></i>NAVIGAZIONE LAGO DI GARDA</span><span class="scalo">SERVIZIO PUBBLICO DI LINEA<b>SCALO DI MADERNO</b></span></div>
+  <div class="tit"><b>PARTENZE DAL 12 OTTOBRE ALL’1 NOVEMBRE 2026 E DAL 13 AL 19 MARZO 2027</b><span>Abfahrten vom 12. Oktober bis zum 1. November 2026 und vom 13. bis zum 19. März 2027</span><span>Departures from 12 October to 1 November 2026 and from 13 to 19 March 2027</span></div>
+  <table>
+    <tr><th>ORARIO</th><th>DESTINAZIONI DIRETTE – direkte Reiseziele – direct destinations</th><th>NOTE</th></tr>
+    <tr><td class="o">9:15</td><td>GARDONE 9:30 – SALÒ 9:45 – PORTESE 9:55 – GARDA 10:40 – BARDOLINO 10:55 – LAZISE 11:12 – SIRMIONE 11:53 – DESENZANO 12:15</td><td class="nt">♿ 🚲</td></tr>
+    <tr class="alt"><td class="o">11:03</td><td>GARDONE 11:16 – SALÒ 11:29 – PORTESE 11:40 – GARDA 12:23 – SIRMIONE 13:09 – DESENZANO 13:30</td><td class="nt">♿ 🚲</td></tr>
+    <tr><td class="o">11:31</td><td>GARGNANO 12:01 – BRENZONE 12:29 – MALCESINE 12:54 – LIMONE 13:14 – RIVA 13:50</td><td class="nt">♿ 🚲</td></tr>
+    <tr class="alt"><td class="o">14:00</td><td>GARDONE 14:14 – SALÒ 14:28 – PORTESE 14:40 – GARDA 15:23 – BARDOLINO 15:38 – LAZISE 15:55 – SIRMIONE 16:35 – DESENZANO 16:55</td><td class="nt">♿ 🚲</td></tr>
+    <tr class="alt"><td class="o">16:58</td><td>GARGNANO 17:28 – BRENZONE 17:56 – MALCESINE 18:20 – LIMONE 18:40 – TORBOLE 19:10 – RIVA 19:25</td><td class="nt">♿ 🚲</td></tr>
+    <tr><td class="o">17:08</td><td>GARDONE 17:21 – SALÒ 17:35 – PORTESE 17:46 – GARDA 18:30 – BARDOLINO 18:45 – LAZISE 19:02 – PESCHIERA 19:30</td><td class="nt">♿ 🚲</td></tr>
+  </table>
+  <div class="lg">
+    <div><b>SR</b> Servizio rapido con pagamento di supplemento. · Speed service with extra charge.</div>
+    <div>🚲 Corse con imbarco di biciclette limitato e condizionato dal traffico contingente. Informarsi presso le biglietterie o al n. verde 800-551801.</div>
+    <div>♿ I passeggeri in carrozzina sono invitati ad informarsi sulle condizioni del trasporto (tel. 030-9149511, numero verde 800-551801).</div>
+    <div>Per esigenze organizzative e/o cause di forza maggiore le navi in servizio possono essere sostituite con altre navi per le quali possono variare le condizioni del trasporto.</div>
+  </div>
+  <div class="foot">Stampato da NaviSuite · O.d.S. 39/2026</div>
+</div></div></section>
+
+</div>
+</body></html>
