@@ -6,7 +6,7 @@
   <title>NaviSuite · Partenze scalo</title>
   <style>
     /* Foglio A4 «Partenze dallo scalo» con l'impaginazione dell'orario ufficiale della direzione.
-       Dati: orario-corse.js (O.d.S. 39/2026) e periodi di orario-giorno.js. ?scalo=Maderno&data=2026-10-19 */
+       Dati: orario-corse.js (O.d.S. 39/2026) o, d'estate, orario-corse-estate.js (O.d.S. 16/2026), via orari-stagioni.js. ?scalo=Maderno&data=2026-10-19 */
     @font-face{font-family:'Roboto';font-style:normal;font-weight:400;font-display:block;src:url(assets/fonts/roboto-latin-400-normal.woff2) format('woff2')}
     @font-face{font-family:'Roboto';font-style:normal;font-weight:500;font-display:block;src:url(assets/fonts/roboto-latin-500-normal.woff2) format('woff2')}
     @font-face{font-family:'Roboto';font-style:normal;font-weight:700;font-display:block;src:url(assets/fonts/roboto-latin-700-normal.woff2) format('woff2')}
@@ -94,7 +94,9 @@
 
   <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
+  <script src="assets/js/orari-stagioni.js?v=1"></script>
   <script>
   (function () {
     'use strict';
@@ -114,15 +116,13 @@
       en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };
 
     const turniDel = day => O.TURNI.filter(c => !NO_TURNI.includes(c) && O.inServizio(c, day));
-    function partenze(scalo, day) {
-      return O.corseDelGiorno(day).filter(c => !NO_TURNI.includes(c.turno)).map(c => {
-        const i = c.scali.findIndex(s => s[0] === scalo);
-        if (i < 0 || i === c.scali.length - 1) return null;
-        return { ora: c.scali[i][1], turno: c.turno, numero: c.numero, sr: /^SR/.test(c.turno), dest: c.scali.slice(i + 1) };
-      }).filter(Boolean).sort((a, b) => O.minutes(a.ora) - O.minutes(b.ora));
-    }
+    const ST = window.NaviOrariStagioni;
+    const estate = day => ST.stagioneDel(day)?.fonte === 'estate';
+    // corse di linea dallo scalo (il traghetto Maderno - Torri ha il suo foglio)
+    const partenze = (scalo, day) => ST.partenze(scalo, day).filter(p => !p.traghetto);
     // Periodi con le stesse corse del giorno scelto (es. 12/10-1/11 e 13/3-19/3)
     function periodi(day) {
+      if (estate(day)) return ST.stagioneDel(day).periodi.map(p => [...p]);
       const firma = turniDel(day).join(',');
       const out = [];
       for (let d = DAL; d <= AL; d = piu(d, 1)) {
@@ -163,7 +163,7 @@
       const scalo = $('scalo').value, day = $('data').value;
       const lista = partenze(scalo, day);
       const per = periodi(day);
-      const conSr = lista.some(p => p.sr);
+      const conSr = lista.some(p => p.sr) && !estate(day);
       let n = 0;
       const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
       $('foglio').innerHTML = `
@@ -193,7 +193,7 @@
             <div class="cella"><div class="box"><b>NOTA GENERALE: per esigenze organizzative e/o cause di forza maggiore le navi in servizio possono essere sostituite con altre navi per le quali possono variare le condizioni del trasporto.</b><br><i>WICHTIG: aus organisatorischen Gründen, könnten die Schiffen in Dienst ersetzt werden: in diesem Fall könnten auch die Einrichtungen verändern.</i><br>GENERAL NOTE: due to organisational or to force majeure reasons, ships may be substituted by different ones, and the travel facilities may vary.</div></div>
           </div>
         </div>
-        <div class="piede"><span>Orario O.d.S. 39/2026</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
+        <div class="piede"><span>Orario ${esc(ST.stagioneDel(day)?.ods || "O.d.S. 39/2026")}</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
       document.title = `Partenze ${scalo} · ${per.map(([a, b]) => `${a.slice(8)}/${a.slice(5, 7)}-${b.slice(8)}/${b.slice(5, 7)}`).join(' ')}`;
       const url = new URL(location.href); url.searchParams.set('scalo', scalo); url.searchParams.set('data', day); history.replaceState(null, '', url);
     }
@@ -201,14 +201,20 @@
     const qs = new URLSearchParams(location.search);
     let profilo = null; try { profilo = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) {}
     const residenza = String(profilo?.residence || '').toLowerCase();
-    const scalo0 = SCALI.find(s => s.toLowerCase() === String(qs.get('scalo') || '').toLowerCase()) || SCALI.find(s => s.toLowerCase() === residenza) || 'Maderno';
+    const scalo0 = qs.get('scalo') || SCALI.find(s => s.toLowerCase() === residenza) || 'Maderno';
     // giorno: quello chiesto, oppure oggi; se oggi non ci sono corse di linea, il primo giorno della stagione che le ha
     let day0 = /^\d{4}-\d{2}-\d{2}$/.test(qs.get('data') || '') ? qs.get('data') : iso(new Date());
     if (!qs.get('data') && !turniDel(day0).length) { for (let d = day0 < DAL ? DAL : day0; d <= AL; d = piu(d, 1)) if (turniDel(d).length) { day0 = d; break; } }
-    $('scalo').innerHTML = SCALI.map(s => `<option${s === scalo0 ? ' selected' : ''}>${s}</option>`).join('');
+    // scali dell'orario del giorno (d'estate anche i minori: Bogliaco, Tignale, Campione...)
+    function elencoScali(scelto) {
+      const elenco = ST.scali($('data').value).filter(s => s !== 'Torri' || partenze('Torri', $('data').value).length);
+      const s0 = elenco.includes(scelto) ? scelto : elenco.includes('Maderno') ? 'Maderno' : elenco[0];
+      $('scalo').innerHTML = elenco.map(s => `<option${s === s0 ? ' selected' : ''}>${s}</option>`).join('');
+    }
     $('data').value = day0;
+    elencoScali(scalo0);
     $('scalo').addEventListener('change', disegna);
-    $('data').addEventListener('change', disegna);
+    $('data').addEventListener('change', () => { elencoScali($('scalo').value); disegna(); });
     $('stampa').addEventListener('click', () => window.print());
     disegna();
   })();
