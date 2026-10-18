@@ -191,7 +191,7 @@
     // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
     const mia = state.embed?.modo === 'nave' ? state.embed.turno : '';
     const aperte = mia ? [mia] : [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
-    const turni = [...new Set(g.viaggi.map(v => v.turno))];
+    const turni = [...new Set(g.viaggi.map(v => v.turno))].filter(code => !(senzaTraghetto() && /^T[12]$/.test(code)));
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
     // Le navi in navigazione restano sempre sulla loro rotta (spostarle per non sovrapporle le faceva
@@ -888,9 +888,11 @@
   }
   const fineCorsa = (v, numero) => v.scali.filter(s => s[2] === numero).pop()?.[0] || '';
 
+  // AgM (biglietteria di Maderno) non segue il traghetto Maderno - Torri: quello e' di AgT
+  const senzaTraghetto = () => state.embed?.modo === 'terra' && /^AGM/i.test(String(state.embed.turno || ''));
   function eventiScalo(g, scalo, conSospese = false) {
     const out = [];
-    [...g.viaggi, ...(conSospese ? g.sospese || [] : [])].forEach(v => v.scali.forEach(([nome, ora, corsa], i) => {
+    [...g.viaggi, ...(conSospese ? g.sospese || [] : [])].filter(v => !(senzaTraghetto() && /^T[12]$/.test(v.turno))).forEach(v => v.scali.forEach(([nome, ora, corsa], i) => {
       if (nome !== scalo) return;
       const prev = v.scali[i - 1], next = v.scali[i + 1];
       let kind = 'S';
