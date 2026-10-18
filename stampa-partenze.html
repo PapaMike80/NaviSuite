@@ -20,7 +20,7 @@
     /* intestazione */
     .top{display:grid;grid-template-columns:1.25fr 1fr 1.1fr;align-items:center;gap:4mm}
     .ente{display:flex;align-items:center;gap:2.5mm}
-    .ente .logo{flex:0 0 13mm;height:13mm;border-radius:50%;background:radial-gradient(circle at 50% 50%,#fff 0 38%,#13294b 39% 100%);display:grid;place-items:center;color:#13294b;font:800 7px 'Roboto Condensed';border:1.4px solid #13294b}
+    .ente .logo{flex:0 0 auto;height:15mm;width:auto}
     .ente b{display:block;font:700 11.5px 'Roboto Condensed';letter-spacing:.02em}
     .ente small{display:block;font-size:6.2px;line-height:1.3;color:#334}
     .min{display:flex;align-items:center;gap:2mm;font:700 7.5px 'Roboto Condensed';line-height:1.15;color:#223}
@@ -164,8 +164,8 @@
       const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : TURNI_BLU.includes(p.turno) ? 'blu' : ''}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
       $('foglio').innerHTML = `
         <div class="top">
-          <div class="ente"><span class="logo">NLG</span><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
-          <div class="min"><svg class="stella" viewBox="0 0 40 40"><path d="M20 3l4.6 11.2L37 15.3l-9.4 8 3 12.2L20 29l-10.6 6.5 3-12.2-9.4-8 12.4-1.1z" fill="none" stroke="#223" stroke-width="2"/><path d="M8 33c6-6 14-9 24-9" stroke="#2b8a3e" stroke-width="3" fill="none"/><path d="M8 36c6-5 14-8 24-8" stroke="#c0182a" stroke-width="3" fill="none"/></svg><span class="sep"></span><span>MINISTERO<br>DELLE INFRASTRUTTURE<br>E DEI TRASPORTI</span></div>
+          <div class="ente"><img class="logo" src="assets/images/logo-nlg.png" alt="Gestione Navigazione Laghi"><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
+          <div class="min"><img src="assets/images/logo-mit.png" alt="Ministero delle Infrastrutture e dei Trasporti" style="height:11mm"></div>
           <div class="scalo"><small>SERVIZIO PUBBLICO DI LINEA</small><b>SCALO DI<span>${esc(scalo.toUpperCase())}</span></b></div>
         </div>
         <div class="tit"><b>${esc(titolo(per, 'it'))}</b><span>${esc(titolo(per, 'de'))}</span><b style="font-size:15px">${esc(titolo(per, 'en'))}</b></div>
