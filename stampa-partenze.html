@@ -20,7 +20,7 @@
     .barra select,.barra input{font:600 13px Manrope,system-ui,sans-serif;padding:7px 9px;border-radius:9px;border:1px solid #1f4250;background:#102733;color:#eaf2f4}
     .barra button,.barra a{font:900 13px Manrope,system-ui,sans-serif;padding:8px 12px;border-radius:10px;border:0;background:#2dd4bf;color:#06231f;text-decoration:none;cursor:pointer}
     .barra a{background:#143140;color:#eaf2f4}
-    .fogli{padding:18px 0 40px;overflow-x:auto}
+    .fogli{padding:18px 8px 40px;overflow-x:hidden}
     .a4{width:210mm;min-height:297mm;margin:0 auto;background:#fffdf4;padding:12mm 11mm 10mm;box-shadow:0 8px 30px #0008;display:flex;flex-direction:column}
     /* intestazione */
     .top{display:grid;grid-template-columns:1.25fr 1fr 1.1fr;align-items:center;gap:4mm}
@@ -78,7 +78,7 @@
       body{background:#fff}
       .barra{display:none}
       .fogli{padding:0;overflow:visible}
-      .a4{box-shadow:none;margin:0;width:210mm;height:297mm;min-height:0;page-break-after:always}
+      .a4{zoom:1!important;box-shadow:none;margin:0;width:210mm;height:297mm;min-height:0;page-break-after:always}
       *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     }
   </style>
@@ -96,7 +96,7 @@
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
-  <script src="assets/js/orari-stagioni.js?v=4"></script>
+  <script src="assets/js/orari-stagioni.js?v=5"></script>
   <script>
   (function () {
     'use strict';
@@ -217,7 +217,17 @@
     $('scalo').addEventListener('change', disegna);
     $('data').addEventListener('change', () => { elencoScali($('scalo').value); disegna(); });
     $('stampa').addEventListener('click', () => window.print());
+    // a schermo il foglio si rimpicciolisce per stare tutto nella larghezza (in stampa resta A4 vero)
+    function adatta() {
+      const f = $('foglio'); f.style.zoom = '';
+      const z = Math.min(1, (document.documentElement.clientWidth - 16) / f.offsetWidth);
+      f.style.zoom = z < 1 ? String(z) : '';
+    }
+    addEventListener('resize', adatta);
+    addEventListener('beforeprint', () => { $('foglio').style.zoom = ''; });
+    addEventListener('afterprint', adatta);
     disegna();
+    adatta();
   })();
   </script>
 </body>

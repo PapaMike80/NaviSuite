@@ -51,19 +51,19 @@
     if (!s) return [];
     let corse = [];
     if (s.fonte === 'estate') {
-      corse = Object.entries(root.NaviOrarioCorseEstate || {}).map(([numero, scali]) => ({ numero, sr: SR_ESTATE.has(numero), scali }));
-      corse.push(...TRAGHETTO_ESTATE.map(([numero, t, da, a]) => ({ numero: String(numero), sr: false, traghetto: true, scali: [[da, t], [a, hhmm(minuti(t) + 30)]] })));
+      corse = Object.entries(root.NaviOrarioCorseEstate || {}).map(([numero, scali]) => ({ numero, turno: turnoDiEstate(numero), sr: SR_ESTATE.has(numero), scali }));
+      corse.push(...TRAGHETTO_ESTATE.map(([numero, t, da, a]) => ({ numero: String(numero), turno: turnoDiEstate(numero), sr: false, traghetto: true, scali: [[da, t], [a, hhmm(minuti(t) + 30)]] })));
     } else {
       const O = root.NaviOrarioGiorno;
-      if (s.fonte === 'inverno') corse = O.corseDelGiorno(day).filter(c => !/^T/.test(c.turno)).map(c => ({ numero: c.numero, sr: /^SR/.test(c.turno), scali: c.scali }));
-      (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(r => O.inServizio(r[2], day)).forEach(([t, k, , numero]) => {
-        corse.push({ numero, sr: false, traghetto: true, scali: k === 'P' ? [['Maderno', t], ['Torri', hhmm(minuti(t) + 30)]] : [['Torri', hhmm(minuti(t) - 30)], ['Maderno', t]] });
+      if (s.fonte === 'inverno') corse = O.corseDelGiorno(day).filter(c => !/^T/.test(c.turno)).map(c => ({ numero: c.numero, turno: c.turno, sr: /^SR/.test(c.turno), scali: c.scali }));
+      (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(r => O.inServizio(r[2], day)).forEach(([t, k, turno, numero]) => {
+        corse.push({ numero, turno, sr: false, traghetto: true, scali: k === 'P' ? [['Maderno', t], ['Torri', hhmm(minuti(t) + 30)]] : [['Torri', hhmm(minuti(t) - 30)], ['Maderno', t]] });
       });
     }
     return corse.map(c => {
       const i = c.scali.findIndex(x => x[0] === scalo);
       if (i < 0 || i === c.scali.length - 1) return null;
-      return { ora: c.scali[i][1], numero: c.numero, sr: c.sr, traghetto: !!c.traghetto, dest: c.scali.slice(i + 1) };
+      return { ora: c.scali[i][1], numero: c.numero, turno: c.turno || '', colore: COLORI[c.turno] || '#9fb8c2', sr: c.sr, traghetto: !!c.traghetto, dest: c.scali.slice(i + 1) };
     }).filter(Boolean).sort((a, b) => minuti(a.ora) - minuti(b.ora));
   }
   // Scali dell'orario della stagione, da Desenzano a Riva

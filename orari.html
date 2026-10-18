@@ -31,12 +31,13 @@
     .sez h2{margin:0;font-size:15px;font-weight:800;color:var(--c);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
     .sez h2 small{font:500 11px var(--mono);color:var(--muted)}
     .sez p{margin:0;font-size:12px;color:var(--muted)}
-    .scelte{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
+    .scelte{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end}
     .scelte label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    input[type=date]{-webkit-appearance:none;appearance:none;min-height:42px}
     select,input{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
     .a4{display:inline-flex;align-items:center;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font:800 12px Manrope,system-ui,sans-serif;text-decoration:none;white-space:nowrap}
     .a4[hidden]{display:none}
-    .dep{display:grid;grid-template-columns:54px 1fr;gap:8px;align-items:start;padding:8px 10px;border-radius:12px;background:#0d2230;border-left:4px solid var(--c)}
+    .dep{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:start;padding:8px 10px;border-radius:12px;background:#0d2230;border-left:4px solid var(--c)}
     .dep:nth-child(even of .dep){background:#10304a}
     .dep.passata{opacity:.45}
     .dep.prossima{outline:2px solid var(--teal)}
@@ -44,8 +45,10 @@
     .dep .t small{display:block;font:500 9.5px var(--mono);color:var(--muted)}
     .dep .s{font-size:12.5px;line-height:1.55;min-width:0;overflow-wrap:anywhere}
     .dep .s b{font-weight:800}.dep .s span{font-family:var(--mono);color:var(--muted)}
-    .dep.sr{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,#0d2230)}
-    .dep.trag{border-left-color:var(--violet)}
+    .dep{border-left-color:var(--tc,var(--c))}
+    .dep .t{color:var(--tc,var(--ink))}
+    .dep .tu{display:table;margin:2px 0 1px;font:900 9px Manrope,system-ui,sans-serif;padding:0 5px;border-radius:999px;background:var(--tc);color:var(--on)}
+    .dep.sr{background:color-mix(in srgb,var(--amber) 10%,#0d2230)}
     .tag{font:900 9px Manrope;padding:1px 6px;border-radius:999px;background:var(--amber);color:var(--on);margin-right:5px;vertical-align:1px}
     .tag.tr{background:var(--violet)}
     .vuoto{padding:18px;text-align:center;color:var(--muted)}
@@ -74,7 +77,8 @@
     .lin{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
     .lin.tr{background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px)}
     #graf-sel{font:600 12px Manrope,system-ui,sans-serif;color:var(--ink)}
-    .adm{--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    main>*{min-width:0;max-width:100%}
+    .adm{min-width:0;overflow:hidden;--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
     .adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-weight:800;font-size:15px;color:var(--c)}
     .adm>summary::-webkit-details-marker{display:none}.adm>summary span{flex:1}
     .adm>summary::after{content:'▾';color:var(--muted)}.adm[open]>summary::after{content:'▴'}
@@ -98,9 +102,8 @@
       <div class="scelte">
         <label>Scalo<select id="scalo"></select></label>
         <label>Giorno<input id="giorno" type="date"></label>
-        <a class="a4" id="a4" href="stampa-partenze.html">🖨 A4</a>
       </div>
-      <h2 id="titolo"></h2>
+      <div style="display:flex;align-items:center;gap:8px"><h2 id="titolo" style="flex:1;min-width:0"></h2><a class="a4" id="a4" href="stampa-partenze.html">🖨 A4</a></div>
       <div id="lista" style="display:grid;gap:6px"></div>
       <div class="leg"><span><span class="tag">SR</span>rapido con supplemento</span><span><span class="tag tr">TR</span>traghetto Maderno – Torri</span></div>
     </section>
@@ -126,7 +129,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=4"></script>
+  <script src="assets/js/orari-stagioni.js?v=5"></script>
   <script>
   (function () {
     'use strict';
@@ -226,7 +229,7 @@
       let prossima = adesso >= 0 ? lista.find(p => S.minuti(p.ora) >= adesso) : null;
       $('lista').innerHTML = lista.length ? lista.map(p => {
         const cls = [p.sr ? 'sr' : '', p.traghetto ? 'trag' : '', adesso >= 0 && S.minuti(p.ora) < adesso ? 'passata' : '', p === prossima ? 'prossima' : ''].filter(Boolean).join(' ');
-        return `<div class="dep ${cls}"><span class="t">${ora(p.ora)}<small>c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
+        return `<div class="dep ${cls}" style="--tc:${p.colore}"><span class="t">${ora(p.ora)}<small>${p.turno ? `<b class="tu">${esc(p.turno)}</b>` : ''}c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
       }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
       // totali in alto: corse del giorno, partenze dallo scalo, prossima partenza
       $('kpi').innerHTML = `<div><small>Corse del giorno</small><b>${totali.corse}</b></div><div style="--k:var(--cyan)"><small>Da ${esc(scalo)}</small><b>${lista.length}</b></div><div class="pieno"><small>${adesso >= 0 ? 'Prossima' : 'Prima'}</small><b>${adesso >= 0 ? (prossima ? ora(prossima.ora) : '—') : (lista[0] ? ora(lista[0].ora) : '—')}</b></div>`;
