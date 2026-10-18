@@ -18,6 +18,21 @@
   // Corse con supplemento (SR, aliscafo e catamarani) dalla riga "Note" dell'orario estivo
   const SR_ESTATE = new Set(['110', '111', '112', '113', '114', '151', '155', '156', '160', '161', '162', '163']);
 
+  // Colori dei turni come nella pagina Oggi
+  const COLORI = { D1: '#58d8c5', D2: '#44b8f1', D3: '#b78cff', D4: '#f1a960', BIS: '#f1ce62', T1: '#75d992', T2: '#b0df64', M1: '#48c7ba', R1: '#e988b2', R2: '#efac73',
+    R3: '#d782ef', R4: '#e67e7e', CAR: '#80b5ff', P1: '#80b5ff', P2: '#82d8ea', P3: '#71cdae', CAP: '#b8a2ff', SR1: '#e6cc75', SR2: '#f0b36b' };
+  // turno di una corsa estiva dall'elenco dell'O.d.S. 16/2026 (course-info.js, COURSE_TRIPS)
+  let turnoEstate = null;
+  function turnoDiEstate(numero) {
+    if (!turnoEstate) {
+      turnoEstate = {};
+      Object.entries(root.NaviCourseInfo?.COURSE_TRIPS || {}).forEach(([code, trips]) => String(trips).split('·').forEach(part => {
+        const [a, b] = part.trim().split(/[–-]/).map(Number);
+        for (let n = a; n && n <= (b || a); n += 1) turnoEstate[String(n)] = code;
+      }));
+    }
+    return turnoEstate[String(numero)] || '';
+  }
   const STAGIONI = [
     { id: 'primavera', nome: 'Primavera', icona: '🌱', colore: '#52c879', periodi: [['2027-03-13', '2027-03-25']], ods: 'O.d.S. 39/2026', fonte: 'inverno',
       nota: 'Stesso orario dell’autunno; le corse SR tornano dal 20 marzo.' },
@@ -72,14 +87,14 @@
     const s = stagioneDel(day);
     if (!s || s.fonte === 'traghetto') return [];
     let corse;
-    if (s.fonte === 'estate') corse = Object.entries(root.NaviOrarioCorseEstate || {}).map(([numero, scali]) => ({ numero, sr: SR_ESTATE.has(numero), scali }));
-    else corse = root.NaviOrarioGiorno.corseDelGiorno(day).filter(c => !/^T/.test(c.turno)).map(c => ({ numero: c.numero, sr: /^SR/.test(c.turno), scali: c.scali }));
+    if (s.fonte === 'estate') corse = Object.entries(root.NaviOrarioCorseEstate || {}).map(([numero, scali]) => ({ numero, turno: turnoDiEstate(numero), sr: SR_ESTATE.has(numero), scali }));
+    else corse = root.NaviOrarioGiorno.corseDelGiorno(day).filter(c => !/^T/.test(c.turno)).map(c => ({ numero: c.numero, turno: c.turno, sr: /^SR/.test(c.turno), scali: c.scali }));
     const fatte = [['Desenzano – Peschiera – Riva', c => Number(c.numero) % 2 === 0], ['Riva – Peschiera – Desenzano', c => Number(c.numero) % 2 === 1]].map(([titolo, verso]) => {
       const lista = corse.filter(verso).sort((a, b) => minuti(a.scali[0][1]) - minuti(b.scali[0][1]));
       // righe nell'ordine dell'orario ufficiale (scali senza corse tolti)
       const usati = new Set(lista.flatMap(c => c.scali.map(x => x[0])));
       const scaliTab = (titolo.startsWith('Desenzano') ? RIGHE_ANDATA : RIGHE_RITORNO).filter(n => usati.has(n));
-      return { titolo, corse: lista.map(c => ({ numero: c.numero, sr: c.sr, ore: Object.fromEntries(c.scali.map(([n, t]) => [n, t])) })), scali: scaliTab };
+      return { titolo, corse: lista.map(c => ({ numero: c.numero, turno: c.turno, colore: COLORI[c.turno] || '#9fb8c2', sr: c.sr, ore: Object.fromEntries(c.scali.map(([n, t]) => [n, t])) })), scali: scaliTab };
     }).filter(t => t.corse.length);
     return fatte;
   }
@@ -88,10 +103,10 @@
     const s = stagioneDel(day);
     if (!s) return [];
     const righe = s.fonte === 'estate'
-      ? TRAGHETTO_ESTATE.map(([numero, t, da, a]) => ({ numero: String(numero), da, a, parte: t, arriva: hhmm(minuti(t) + 30) }))
-      : (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(r => root.NaviOrarioGiorno.inServizio(r[2], day)).map(([t, k, , numero]) => k === 'P'
-        ? { numero, da: 'Maderno', a: 'Torri', parte: t, arriva: hhmm(minuti(t) + 30) } : { numero, da: 'Torri', a: 'Maderno', parte: hhmm(minuti(t) - 30), arriva: t });
+      ? TRAGHETTO_ESTATE.map(([numero, t, da, a]) => ({ numero: String(numero), turno: turnoDiEstate(numero), da, a, parte: t, arriva: hhmm(minuti(t) + 30) }))
+      : (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(r => root.NaviOrarioGiorno.inServizio(r[2], day)).map(r => [r, ...r]).map(([r, t, k, , numero]) => k === 'P'
+        ? { numero, turno: r[2], da: 'Maderno', a: 'Torri', parte: t, arriva: hhmm(minuti(t) + 30) } : { numero, turno: r[2], da: 'Torri', a: 'Maderno', parte: hhmm(minuti(t) - 30), arriva: t });
     return righe.sort((a, b) => minuti(a.parte) - minuti(b.parte));
   }
-  root.NaviOrariStagioni = { STAGIONI, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
+  root.NaviOrariStagioni = { STAGIONI, COLORI, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -61,17 +61,40 @@
     .uff tbody tr:nth-child(even) td,.uff tbody tr:nth-child(even) th.sc{background:#10304a}
     .uff tbody tr.mio td,.uff tbody tr.mio th.sc{background:color-mix(in srgb,var(--c) 28%,#0c2532);color:var(--ink);font-weight:500}
     .uff td.v{color:#4b6a78}
+    .uff thead th.tu{background:var(--t);color:var(--on);font:900 10.5px Manrope,system-ui,sans-serif;border-right:1px solid #0c2532;top:0}
+    .uff thead tr:nth-child(2) th{top:22px}
+    .uff .srb{font:900 8.5px Manrope;padding:0 4px;border-radius:999px;background:var(--amber);color:var(--on)}
+    .uff tbody tr.mio td{font-weight:500;filter:brightness(1.25)}
     .uff td.sr{background:color-mix(in srgb,var(--amber) 9%,transparent)}
+    .graf-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#081d27;max-width:100%}
+    .graf-wrap svg{display:block}
+    .graf-wrap .c{fill:none;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;opacity:.9;cursor:pointer}
+    .graf-wrap .c:hover,.graf-wrap .c.sel{stroke-width:3.4;opacity:1}
+    .graf-wrap .c.sr{stroke-dasharray:5 3}
+    .lin{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+    .lin.tr{background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px)}
+    #graf-sel{font:600 12px Manrope,system-ui,sans-serif;color:var(--ink)}
+    .adm{--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-weight:800;font-size:15px;color:var(--c)}
+    .adm>summary::-webkit-details-marker{display:none}.adm>summary span{flex:1}
+    .adm>summary::after{content:'▾';color:var(--muted)}.adm[open]>summary::after{content:'▴'}
+    .adm>:not(summary){margin:0 12px 10px}
+    .cnt{font:500 11px var(--mono);padding:2px 9px;border-radius:999px;background:var(--c);color:var(--on)}
+    .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .kpi div{--k:var(--teal);border-radius:12px;padding:7px 9px;background:color-mix(in srgb,var(--k) 18%,var(--card));border:1px solid color-mix(in srgb,var(--k) 40%,transparent)}
+    .kpi small{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--k)}
+    .kpi b{font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+    .kpi div.pieno{background:var(--k);color:var(--on)}.kpi div.pieno small{color:var(--on)}
     .leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted)}
   </style>
 </head>
 <body class="orari-page">
   <aside class="app-sidebar" id="orari-sidebar"></aside>
-  <header><div><small>NAVIGAZIONE · STAGIONI</small><h1>Orari</h1></div></header>
+  <header class="page-header"><div><small>NAVISUITE</small><h1>Orari</h1></div></header>
   <main>
     <div class="stagioni" id="stagioni" role="group" aria-label="Stagione"></div>
-    <section class="sez" id="info"></section>
-    <section class="sez" id="partenze-box">
+    <section class="sez" id="info" style="--c:var(--teal)"></section>
+    <section class="sez" id="partenze-box" style="--c:var(--cyan)">
       <div class="scelte">
         <label>Scalo<select id="scalo"></select></label>
         <label>Giorno<input id="giorno" type="date"></label>
@@ -81,12 +104,18 @@
       <div id="lista" style="display:grid;gap:6px"></div>
       <div class="leg"><span><span class="tag">SR</span>rapido con supplemento</span><span><span class="tag tr">TR</span>traghetto Maderno – Torri</span></div>
     </section>
-    <section class="sez" id="uff-box">
-      <h2>📋 Orario ufficiale<small id="uff-ods"></small></h2>
+    <details class="adm" id="graf-box" style="--c:var(--violet)">
+      <summary><span>📈 Orario grafico</span><b class="cnt" id="graf-info"></b></summary>
+      <div class="graf-wrap" id="graf"></div>
+      <div class="leg"><span><i class="lin" style="background:var(--teal)"></i>verso Riva</span><span><i class="lin" style="background:#fb923c"></i>verso Desenzano / Peschiera</span><span><i class="lin tr"></i>SR</span><span><i class="lin" style="background:var(--violet)"></i>traghetto</span></div>
+      <p>Ogni linea è una corsa: in orizzontale l’ora, in verticale gli scali. Più la linea è ripida, più la nave è veloce; i tratti orizzontali sono le soste. Tocca una linea per vedere la corsa.</p>
+    </details>
+    <details class="adm" id="uff-box" style="--c:var(--teal)">
+      <summary><span>📋 Orario ufficiale</span><b class="cnt" id="uff-ods"></b></summary>
       <div class="dirs" id="uff-dirs" role="group" aria-label="Direzione"></div>
       <div class="uff-wrap" id="uff"></div>
-      <p>Una colonna per corsa, come nell’orario dell’O.d.S.; in evidenza lo scalo scelto. Scorri di lato per vedere tutte le corse.</p>
-    </section>
+      <p>Una colonna per corsa con il suo turno (D1, D2…), nei colori dei turni; in evidenza lo scalo scelto. Scorri di lato per vedere tutte le corse.</p>
+    </details>
   </main>
 
   <script src="assets/js/shared-roles.js?v=9"></script>
@@ -97,7 +126,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=2"></script>
+  <script src="assets/js/orari-stagioni.js?v=4"></script>
   <script>
   (function () {
     'use strict';
@@ -123,9 +152,47 @@
     function disegnaStagioni() {
       $('stagioni').innerHTML = S.STAGIONI.map(s => `<button type="button" class="stagione${s === attuale ? ' ora' : ''}" style="--c:${s.colore}" data-id="${s.id}" aria-pressed="${s === stagione}"><span>${s.icona}</span>${esc(s.nome)}<small>${s.periodi.map(([a, b]) => `${breve(a)}–${breve(b)}`).join(' · ')}</small></button>`).join('');
     }
+    // Orario grafico: x = ora, y = scali nell'ordine dell'orario ufficiale (Desenzano in alto, Riva in basso)
+    function disegnaGrafico() {
+      const tab = S.tabelle(giorno), trag = S.traghetto(giorno);
+      const corse = [];
+      tab.forEach((t, i) => t.corse.forEach(c => corse.push({ numero: c.numero, sr: c.sr, colore: i === 0 ? '#2dd4bf' : '#fb923c', punti: t.scali.filter(n => c.ore[n]).map(n => [n, c.ore[n]]) })));
+      trag.forEach(r => corse.push({ numero: r.numero, sr: false, colore: '#a78bfa', punti: [[r.da, r.parte], [r.a, r.arriva]] }));
+      $('graf-info').textContent = `${corse.length} corse`; totali.corse = corse.length;
+      if (!corse.length) { $('graf').innerHTML = '<div class="vuoto">Nessuna corsa in orario.</div>'; return; }
+      const usati = new Set(corse.flatMap(c => c.punti.map(p => p[0])));
+      const righe = S.RIGHE_ANDATA.filter(n => usati.has(n));
+      const tutti = corse.flatMap(c => c.punti.map(p => S.minuti(p[1])));
+      const t0 = Math.floor(Math.min(...tutti) / 60) * 60, t1 = Math.ceil(Math.max(...tutti) / 60) * 60;
+      const L = 86, PX = 2.4, H = 22, T = 26, W = (t1 - t0) * PX + 44, Ht = T + righe.length * H + 8;
+      const x = m => 22 + (m - t0) * PX, y = n => T + righe.indexOf(n) * H + H / 2;
+      let svg = `<svg width="${W}" height="${Ht}" viewBox="0 0 ${W} ${Ht}" font-family="Manrope,system-ui,sans-serif">`;
+      const fondo = (n, i) => n === scalo ? 'rgba(45,212,191,.16)' : i % 2 ? '#0b2430' : 'transparent';
+      let nomi = `<svg width="${L}" height="${Ht}" font-family="Manrope,system-ui,sans-serif">`;
+      righe.forEach((n, i) => { svg += `<rect x="0" y="${T + i * H}" width="${W}" height="${H}" fill="${fondo(n, i)}"/>`; nomi += `<rect x="0" y="${T + i * H}" width="${L}" height="${H}" fill="${fondo(n, i)}"/><text x="6" y="${y(n) + 4}" font-size="11" font-weight="${n === scalo ? 800 : 600}" fill="${n === scalo ? '#eaf2f4' : '#9fb8c2'}">${esc(n)}</text>`; });
+      nomi += '</svg>';
+      for (let m = t0; m <= t1; m += 30) svg += `<line x1="${x(m)}" x2="${x(m)}" y1="${T - 4}" y2="${Ht - 8}" stroke="${m % 60 ? '#12303d' : '#1f4250'}"/>` + (m % 60 ? '' : `<text x="${x(m)}" y="16" font-size="10.5" font-weight="700" fill="#9fb8c2" text-anchor="middle">${m / 60}:00</text>`);
+      if (giorno === oggi) { const n = new Date().getHours() * 60 + new Date().getMinutes(); if (n >= t0 && n <= t1) svg += `<line x1="${x(n)}" x2="${x(n)}" y1="${T - 4}" y2="${Ht - 8}" stroke="#fb7185" stroke-width="1.5"/>`; }
+      corse.forEach(c => {
+        const pts = c.punti.map(([n, t]) => `${x(S.minuti(t)).toFixed(1)},${y(n)}`).join(' ');
+        const testo = `c. ${c.numero}${c.sr ? ' SR' : ''}: ` + c.punti.map(([n, t]) => `${n} ${ora(t)}`).join(' – ');
+        svg += `<polyline class="c${c.sr ? ' sr' : ''}" stroke="${c.sr ? '#fbbf24' : c.colore}" points="${pts}" data-t="${esc(testo)}"><title>${esc(testo)}</title></polyline>`;
+      });
+      svg += '</svg>';
+      $('graf').innerHTML = `<div style="display:flex"><div style="flex:0 0 ${L}px;border-right:1px solid #1f4250">${nomi}</div><div class="graf-scorri" style="overflow-x:auto;flex:1;min-width:0">${svg}</div></div><div id="graf-sel" style="padding:6px 10px"></div>`;
+      // il grafico parte dall'ora attuale
+      if (giorno === oggi) { const n = new Date().getHours() * 60; $('graf').querySelector('.graf-scorri').scrollLeft = Math.max(0, x(n - 60)); }
+    }
+    // aperto il riquadro, il grafico si porta sull'ora attuale
+    $('graf-box').addEventListener('toggle', () => { if ($('graf-box').open) disegnaGrafico(); });
+    $('graf').addEventListener('click', e => {
+      const l = e.target.closest('polyline'); if (!l) return;
+      $('graf').querySelectorAll('.sel').forEach(x => x.classList.remove('sel')); l.classList.add('sel');
+      $('graf-sel').textContent = l.dataset.t;
+    });
+    const totali = { corse: 0 };
     let direzione = 0;
     function disegnaUfficiale() {
-      $('uff-box').style.setProperty('--c', stagione.colore);
       $('uff-ods').textContent = stagione.ods;
       const tab = S.tabelle(giorno), trag = S.traghetto(giorno);
       const voci = [...tab.map(t => t.titolo), ...(trag.length ? ['Traghetto Maderno – Torri'] : [])];
@@ -134,20 +201,20 @@
       if (!voci.length) { $('uff').innerHTML = '<div class="vuoto">Nessuna corsa in orario.</div>'; return; }
       if (direzione < tab.length) {
         const t = tab[direzione];
-        $('uff').innerHTML = `<table class="uff"><thead><tr><th class="sc">Corsa</th>${t.corse.map(c => `<th class="${c.sr ? 'sr' : ''}">${esc(c.numero)}${c.sr ? '<br>SR' : ''}</th>`).join('')}</tr></thead><tbody>${t.scali.map(n => `<tr class="${n === scalo ? 'mio' : ''}"><th class="sc">${esc(n)}</th>${t.corse.map(c => c.ore[n] ? `<td class="${c.sr ? 'sr' : ''}">${ora(c.ore[n])}</td>` : `<td class="v">|</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+        $('uff').innerHTML = `<table class="uff"><thead><tr><th class="sc">Turno</th>${t.corse.map(c => `<th class="tu" style="--t:${c.colore}">${esc(c.turno || '–')}</th>`).join('')}</tr><tr><th class="sc">Corsa</th>${t.corse.map(c => `<th style="color:${c.colore}">${esc(c.numero)}${c.sr ? '<br><span class="srb">SR</span>' : ''}</th>`).join('')}</tr></thead><tbody>${t.scali.map(n => `<tr class="${n === scalo ? 'mio' : ''}"><th class="sc">${esc(n)}</th>${t.corse.map(c => c.ore[n] ? `<td style="color:${c.colore}">${ora(c.ore[n])}</td>` : `<td class="v">|</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       } else {
         const righe = ['Maderno', 'Torri'].map(da => trag.filter(r => r.da === da));
-        $('uff').innerHTML = righe.map(r => `<table class="uff" style="margin-bottom:6px"><thead><tr><th class="sc">Corsa</th>${r.map(x => `<th>${esc(x.numero)}</th>`).join('')}</tr></thead><tbody><tr class="${r[0]?.da === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.da || '')}</th>${r.map(x => `<td>${ora(x.parte)}</td>`).join('')}</tr><tr class="${r[0]?.a === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.a || '')}</th>${r.map(x => `<td>${ora(x.arriva)}</td>`).join('')}</tr></tbody></table>`).join('');
+        const col = x => S.COLORI[x.turno] || '#a78bfa';
+        $('uff').innerHTML = righe.map(r => `<table class="uff" style="margin-bottom:6px"><thead><tr><th class="sc">Turno</th>${r.map(x => `<th class="tu" style="--t:${col(x)}">${esc(x.turno || '–')}</th>`).join('')}</tr><tr><th class="sc">Corsa</th>${r.map(x => `<th style="color:${col(x)}">${esc(x.numero)}</th>`).join('')}</tr></thead><tbody><tr class="${r[0]?.da === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.da || '')}</th>${r.map(x => `<td style="color:${col(x)}">${ora(x.parte)}</td>`).join('')}</tr><tr class="${r[0]?.a === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.a || '')}</th>${r.map(x => `<td style="color:${col(x)}">${ora(x.arriva)}</td>`).join('')}</tr></tbody></table>`).join('');
       }
     }
     $('uff-dirs').addEventListener('click', e => { const b = e.target.closest('[data-dir]'); if (!b) return; direzione = Number(b.dataset.dir); disegnaUfficiale(); });
     function disegna() {
       disegnaStagioni();
       const [a, b] = [stagione.periodi[0][0], stagione.periodi[stagione.periodi.length - 1][1]];
-      $('info').style.setProperty('--c', stagione.colore);
-      $('info').innerHTML = `<h2>${stagione.icona} Orario ${esc(stagione.nome.toLowerCase())}<small>${esc(stagione.ods)}</small></h2><p>Dal ${data(a)} al ${data(b)}. ${esc(stagione.nota)}</p>`;
-      $('partenze-box').style.setProperty('--c', stagione.colore);
+      $('info').innerHTML = `<h2>${stagione.icona} Orario ${esc(stagione.nome.toLowerCase())}<small>${esc(stagione.ods)}</small></h2><p>Dal ${data(a)} al ${data(b)}. ${esc(stagione.nota)}</p><div class="kpi" id="kpi"></div>`;
       disegnaUfficiale();
+      disegnaGrafico();
       $('giorno').min = a; $('giorno').max = b; $('giorno').value = giorno;
       const elenco = S.scali(giorno);
       if (!elenco.includes(scalo)) scalo = elenco.includes('Maderno') ? 'Maderno' : elenco[0];
@@ -161,6 +228,8 @@
         const cls = [p.sr ? 'sr' : '', p.traghetto ? 'trag' : '', adesso >= 0 && S.minuti(p.ora) < adesso ? 'passata' : '', p === prossima ? 'prossima' : ''].filter(Boolean).join(' ');
         return `<div class="dep ${cls}"><span class="t">${ora(p.ora)}<small>c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
       }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
+      // totali in alto: corse del giorno, partenze dallo scalo, prossima partenza
+      $('kpi').innerHTML = `<div><small>Corse del giorno</small><b>${totali.corse}</b></div><div style="--k:var(--cyan)"><small>Da ${esc(scalo)}</small><b>${lista.length}</b></div><div class="pieno"><small>${adesso >= 0 ? 'Prossima' : 'Prima'}</small><b>${adesso >= 0 ? (prossima ? ora(prossima.ora) : '—') : (lista[0] ? ora(lista[0].ora) : '—')}</b></div>`;
       // foglio A4 delle corse di linea (d'inverno c'e' solo il traghetto)
       $('a4').hidden = stagione.fonte === 'traghetto';
       $('a4').href = `stampa-partenze.html?scalo=${encodeURIComponent(scalo)}&data=${giorno}`;
