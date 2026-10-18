@@ -123,7 +123,7 @@
         return `<div class="dep ${cls}"><span class="t">${ora(p.ora)}<small>c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
       }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
       // il foglio A4 per ora c'e' per l'orario dell'O.d.S. 39/2026
-      $('a4').hidden = stagione.fonte === 'estate';
+      $('a4').hidden = stagione.fonte !== 'inverno';
       $('a4').href = `stampa-partenze.html?scalo=${encodeURIComponent(scalo)}&data=${giorno}`;
       const url = new URL(location.href); url.search = `?stagione=${stagione.id}&scalo=${encodeURIComponent(scalo)}&giorno=${giorno}`; history.replaceState(null, '', url);
       prossima && document.querySelector('.dep.prossima')?.scrollIntoView?.({ block: 'nearest' });
