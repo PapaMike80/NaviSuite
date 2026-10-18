@@ -49,6 +49,19 @@
     .tag{font:900 9px Manrope;padding:1px 6px;border-radius:999px;background:var(--amber);color:var(--on);margin-right:5px;vertical-align:1px}
     .tag.tr{background:var(--violet)}
     .vuoto{padding:18px;text-align:center;color:var(--muted)}
+    .dirs{display:flex;gap:6px;flex-wrap:wrap}
+    .dirs button{padding:6px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:var(--card);color:var(--ink);font:800 11.5px Manrope,system-ui,sans-serif;cursor:pointer}
+    .dirs button[aria-pressed="true"]{background:var(--c);color:var(--on);border-color:var(--c)}
+    .uff-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line);max-width:100%}
+    .uff{border-collapse:separate;border-spacing:0;font:500 12px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .uff th,.uff td{padding:4px 7px;border-bottom:1px solid #18394a;text-align:center}
+    .uff thead th{position:sticky;top:0;background:#0c2532;color:var(--muted);font:800 11px Manrope,system-ui,sans-serif}
+    .uff thead th.sr{background:color-mix(in srgb,var(--amber) 30%,#0c2532);color:var(--amber)}
+    .uff th.sc{position:sticky;left:0;z-index:1;text-align:left;background:#0c2532;color:var(--ink);font:800 11.5px Manrope,system-ui,sans-serif;border-right:1px solid var(--line)}
+    .uff tbody tr:nth-child(even) td,.uff tbody tr:nth-child(even) th.sc{background:#10304a}
+    .uff tbody tr.mio td,.uff tbody tr.mio th.sc{background:color-mix(in srgb,var(--c) 28%,#0c2532);color:var(--ink);font-weight:500}
+    .uff td.v{color:#4b6a78}
+    .uff td.sr{background:color-mix(in srgb,var(--amber) 9%,transparent)}
     .leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted)}
   </style>
 </head>
@@ -68,6 +81,12 @@
       <div id="lista" style="display:grid;gap:6px"></div>
       <div class="leg"><span><span class="tag">SR</span>rapido con supplemento</span><span><span class="tag tr">TR</span>traghetto Maderno – Torri</span></div>
     </section>
+    <section class="sez" id="uff-box">
+      <h2>📋 Orario ufficiale<small id="uff-ods"></small></h2>
+      <div class="dirs" id="uff-dirs" role="group" aria-label="Direzione"></div>
+      <div class="uff-wrap" id="uff"></div>
+      <p>Una colonna per corsa, come nell’orario dell’O.d.S.; in evidenza lo scalo scelto. Scorri di lato per vedere tutte le corse.</p>
+    </section>
   </main>
 
   <script src="assets/js/shared-roles.js?v=9"></script>
@@ -78,7 +97,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=1"></script>
+  <script src="assets/js/orari-stagioni.js?v=2"></script>
   <script>
   (function () {
     'use strict';
@@ -98,17 +117,37 @@
     const attuale = S.stagioneDel(oggi);
     let stagione = S.STAGIONI.find(s => s.id === q.get('stagione')) || attuale || S.STAGIONI[2];
     let giorno = /^\d{4}-\d{2}-\d{2}$/.test(q.get('giorno') || '') && S.stagioneDel(q.get('giorno')) ? q.get('giorno') : (stagione === attuale ? oggi : stagione.periodi[0][0]);
+    if (!q.get('stagione')) stagione = S.stagioneDel(giorno) || stagione; // dalla pagina Scali arriva solo il giorno
     let scalo = q.get('scalo') || (() => { try { return localStorage.getItem('navisuite.orari.scalo'); } catch (_) { return ''; } })() || ({ desenzano: 'Desenzano', maderno: 'Maderno', riva: 'Riva', peschiera: 'Peschiera' })[String(profilo?.residence || '').toLowerCase()] || 'Maderno';
 
     function disegnaStagioni() {
       $('stagioni').innerHTML = S.STAGIONI.map(s => `<button type="button" class="stagione${s === attuale ? ' ora' : ''}" style="--c:${s.colore}" data-id="${s.id}" aria-pressed="${s === stagione}"><span>${s.icona}</span>${esc(s.nome)}<small>${s.periodi.map(([a, b]) => `${breve(a)}–${breve(b)}`).join(' · ')}</small></button>`).join('');
     }
+    let direzione = 0;
+    function disegnaUfficiale() {
+      $('uff-box').style.setProperty('--c', stagione.colore);
+      $('uff-ods').textContent = stagione.ods;
+      const tab = S.tabelle(giorno), trag = S.traghetto(giorno);
+      const voci = [...tab.map(t => t.titolo), ...(trag.length ? ['Traghetto Maderno – Torri'] : [])];
+      if (direzione >= voci.length) direzione = 0;
+      $('uff-dirs').innerHTML = voci.map((v, i) => `<button type="button" data-dir="${i}" aria-pressed="${i === direzione}">${esc(v)}</button>`).join('');
+      if (!voci.length) { $('uff').innerHTML = '<div class="vuoto">Nessuna corsa in orario.</div>'; return; }
+      if (direzione < tab.length) {
+        const t = tab[direzione];
+        $('uff').innerHTML = `<table class="uff"><thead><tr><th class="sc">Corsa</th>${t.corse.map(c => `<th class="${c.sr ? 'sr' : ''}">${esc(c.numero)}${c.sr ? '<br>SR' : ''}</th>`).join('')}</tr></thead><tbody>${t.scali.map(n => `<tr class="${n === scalo ? 'mio' : ''}"><th class="sc">${esc(n)}</th>${t.corse.map(c => c.ore[n] ? `<td class="${c.sr ? 'sr' : ''}">${ora(c.ore[n])}</td>` : `<td class="v">|</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      } else {
+        const righe = ['Maderno', 'Torri'].map(da => trag.filter(r => r.da === da));
+        $('uff').innerHTML = righe.map(r => `<table class="uff" style="margin-bottom:6px"><thead><tr><th class="sc">Corsa</th>${r.map(x => `<th>${esc(x.numero)}</th>`).join('')}</tr></thead><tbody><tr class="${r[0]?.da === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.da || '')}</th>${r.map(x => `<td>${ora(x.parte)}</td>`).join('')}</tr><tr class="${r[0]?.a === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.a || '')}</th>${r.map(x => `<td>${ora(x.arriva)}</td>`).join('')}</tr></tbody></table>`).join('');
+      }
+    }
+    $('uff-dirs').addEventListener('click', e => { const b = e.target.closest('[data-dir]'); if (!b) return; direzione = Number(b.dataset.dir); disegnaUfficiale(); });
     function disegna() {
       disegnaStagioni();
       const [a, b] = [stagione.periodi[0][0], stagione.periodi[stagione.periodi.length - 1][1]];
       $('info').style.setProperty('--c', stagione.colore);
       $('info').innerHTML = `<h2>${stagione.icona} Orario ${esc(stagione.nome.toLowerCase())}<small>${esc(stagione.ods)}</small></h2><p>Dal ${data(a)} al ${data(b)}. ${esc(stagione.nota)}</p>`;
       $('partenze-box').style.setProperty('--c', stagione.colore);
+      disegnaUfficiale();
       $('giorno').min = a; $('giorno').max = b; $('giorno').value = giorno;
       const elenco = S.scali(giorno);
       if (!elenco.includes(scalo)) scalo = elenco.includes('Maderno') ? 'Maderno' : elenco[0];
