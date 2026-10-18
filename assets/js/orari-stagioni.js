@@ -137,10 +137,35 @@
         return;
       }
       out.push({ a: na, b: nb, turnoA: a.turno, turnoB: b.turno, srA: a.sr, srB: b.sr, scalo: k.scalo, arriva, parte,
-        attesa: arriva ? minuti(parte) - minuti(arriva) : null, da: k.provenienti.join(', '), verso: k.per.join(', '),
-        provenienti: [...k.provenienti], per: k.per, catena: k.catena, periodo: k.periodo });
+        attesa: arriva ? minuti(parte) - minuti(arriva) : null, da: k.provenienti.join(', '),
+        provenienti: [...k.provenienti], per: k.per,
+        // destinazioni raggiungibili con il cambio e ora di arrivo (dall'orario della corsa b, dopo lo scalo di cambio)
+        verso: k.per.map(n => { const i = b.punti.findIndex(p => p[0] === k.scalo), t = b.punti.slice(i + 1).find(p => p[0] === n)?.[1]; return t ? `${n} ${String(t).replace('.', ':')}` : n; }).join(', '), catena: k.catena, periodo: k.periodo });
     })));
     return (cacheCoinc[day] = out);
   }
-  root.NaviOrariStagioni = { STAGIONI, COLORI, corseTutte, coincidenze, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
+  // Cambi possibili (NON coincidenze): allo stesso scalo la corsa a arriva e la b riparte entro max minuti, non con la
+  // stessa nave e non per tornare indietro. Servono biglietti separati, uno per nave (O.d.S. 16/2026 punto 4).
+  const cacheCambi = {};
+  function cambi(day, max = 20) {
+    const key = `${day}|${max}`;
+    if (cacheCambi[key]) return cacheCambi[key];
+    const corse = corseTutte(day), out = [];
+    corse.forEach(a => a.punti.forEach(([sc, ta], pa) => {
+      if (pa === 0) return;
+      const prima = a.punti[pa - 1][0], arr = minuti(ta);
+      corse.forEach(b => {
+        if (b.numero === a.numero || (a.turno && a.turno === b.turno)) return;
+        const pb = b.punti.findIndex(p => p[0] === sc);
+        if (pb < 0 || pb === b.punti.length - 1) return;
+        const attesa = minuti(b.punti[pb][1]) - arr;
+        if (attesa < 0 || attesa > max || b.punti[pb + 1][0] === prima) return;
+        out.push({ a: a.numero, b: b.numero, turnoA: a.turno, turnoB: b.turno, srA: a.sr, srB: b.sr, scalo: sc, arriva: ta, parte: b.punti[pb][1], attesa,
+          da: a.punti[0][0], verso: b.punti.slice(pb + 1).map(([n, t]) => `${n} ${String(t).replace('.', ':')}`).join(', '),
+          prima: a.punti.slice(0, pa).map(p => p[0]) });
+      });
+    }));
+    return (cacheCambi[key] = out);
+  }
+  root.NaviOrariStagioni = { STAGIONI, COLORI, corseTutte, coincidenze, cambi, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);
