@@ -74,7 +74,8 @@
     .lin{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
     .lin.tr{background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px)}
     #graf-sel{font:600 12px Manrope,system-ui,sans-serif;color:var(--ink)}
-    .adm{--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    main>*{min-width:0;max-width:100%}
+    .adm{min-width:0;overflow:hidden;--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
     .adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-weight:800;font-size:15px;color:var(--c)}
     .adm>summary::-webkit-details-marker{display:none}.adm>summary span{flex:1}
     .adm>summary::after{content:'▾';color:var(--muted)}.adm[open]>summary::after{content:'▴'}
