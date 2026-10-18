@@ -20,8 +20,11 @@
     .barra select,.barra input{font:600 13px Manrope,system-ui,sans-serif;padding:7px 9px;border-radius:9px;border:1px solid #1f4250;background:#102733;color:#eaf2f4}
     .barra button,.barra a{font:900 13px Manrope,system-ui,sans-serif;padding:8px 12px;border-radius:10px;border:0;background:#2dd4bf;color:#06231f;text-decoration:none;cursor:pointer}
     .barra a{background:#143140;color:#eaf2f4}
-    .fogli{padding:18px 8px 40px;overflow-x:hidden}
-    .a4{width:210mm;min-height:297mm;margin:0 auto;background:#fffdf4;padding:12mm 11mm 10mm;box-shadow:0 8px 30px #0008;display:flex;flex-direction:column}
+    .fogli{padding:18px 8px 40px;overflow-x:hidden;display:grid;gap:18px;justify-content:center}
+    .segue{display:flex;justify-content:space-between;align-items:center;margin-bottom:3mm;color:var(--nlg);font:700 12px 'Roboto'}
+    .segue b{background:var(--nlg);color:#fff;padding:1mm 3mm;font-size:13px}
+    html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    .a4{width:210mm;height:297mm;overflow:hidden;margin:0 auto;background:#fffdf4;padding:12mm 11mm 10mm;box-shadow:0 8px 30px #0008;display:flex;flex-direction:column}
     /* intestazione */
     .top{display:grid;grid-template-columns:1.25fr 1fr 1.1fr;align-items:center;gap:4mm}
     .ente{display:flex;align-items:center;gap:2.5mm}
@@ -77,8 +80,9 @@
       @page{size:A4;margin:0}
       body{background:#fff}
       .barra{display:none}
-      .fogli{padding:0;overflow:visible}
-      .a4{zoom:1!important;box-shadow:none;margin:0;width:210mm;height:297mm;min-height:0;page-break-after:always}
+      .fogli{padding:0;overflow:visible;display:block}
+      .a4{zoom:1!important;box-shadow:none;margin:0;width:210mm;height:296mm;min-height:0;break-after:page;page-break-after:always}
+      .a4:last-child{break-after:auto;page-break-after:auto}
       *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     }
   </style>
@@ -90,7 +94,7 @@
     <button type="button" id="stampa">🖨 Stampa</button>
     <a href="orari.html" id="indietro">← Orari</a>
   </div>
-  <div class="fogli"><div class="a4" id="foglio"></div></div>
+  <div class="fogli" id="fogli"></div>
 
   <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
@@ -165,19 +169,17 @@
       const per = periodi(day);
       const conSr = lista.some(p => p.sr) && !estate(day);
       let n = 0;
-      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
-      $('foglio').innerHTML = `
+      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`);
+      const intestazione = `
         <div class="top">
           <div class="ente"><img class="logo" src="assets/images/logo-nlg.png" alt="Gestione Navigazione Laghi"><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
           <div class="min"><img src="assets/images/logo-mit.png" alt="Ministero delle Infrastrutture e dei Trasporti" style="height:11mm"></div>
           <div class="scalo"><small>SERVIZIO PUBBLICO DI LINEA</small><b>SCALO DI<span>${esc(scalo.toUpperCase())}</span></b></div>
         </div>
         <div class="tit"><b>${esc(titolo(per, 'it'))}</b><span>${esc(titolo(per, 'de'))}</span><b style="font-size:15px">${esc(titolo(per, 'en'))}</b></div>
-        ${lista.length ? `<table>
-          <tr><th class="o">ORARIO – UHRZEIT<br>– TIME –</th><th${conSr ? ' colspan="2"' : ''}>DESTINAZIONI DIRETTE – direkte Reiseziele – direct destinations</th><th class="n">NOTE</th></tr>
-          ${righe}
-        </table>` : '<div class="vuoto">Nessuna partenza di linea da questo scalo nel giorno scelto.</div>'}
-        ${conSr ? `<div class="notaA"><b>[A]</b><div>Giornaliera fino all’11 ottobre 2026. Giornaliera dal 20 marzo 2027.<i>Täglich bis zum 11. Oktober 2026. Täglich ab dem 20. März 2027.</i><i>Daily until 11 October 2026. Daily from 20 March 2027.</i></div></div>` : ''}
+`;
+      const testaTabella = `<tr><th class="o">ORARIO – UHRZEIT<br>– TIME –</th><th${conSr ? ' colspan="2"' : ''}>DESTINAZIONI DIRETTE – direkte Reiseziele – direct destinations</th><th class="n">NOTE</th></tr>`;
+      const dopo = `${conSr ? `<div class="notaA"><b>[A]</b><div>Giornaliera fino all’11 ottobre 2026. Giornaliera dal 20 marzo 2027.<i>Täglich bis zum 11. Oktober 2026. Täglich ab dem 20. März 2027.</i><i>Daily until 11 October 2026. Daily from 20 March 2027.</i></div></div>` : ''}
         <div class="leg">
           <div class="lat">LEGENDA / LEGENDE / KEY</div>
           <div class="corpo">
@@ -192,8 +194,32 @@
             </div>
             <div class="cella"><div class="box"><b>NOTA GENERALE: per esigenze organizzative e/o cause di forza maggiore le navi in servizio possono essere sostituite con altre navi per le quali possono variare le condizioni del trasporto.</b><br><i>WICHTIG: aus organisatorischen Gründen, könnten die Schiffen in Dienst ersetzt werden: in diesem Fall könnten auch die Einrichtungen verändern.</i><br>GENERAL NOTE: due to organisational or to force majeure reasons, ships may be substituted by different ones, and the travel facilities may vary.</div></div>
           </div>
-        </div>
-        <div class="piede"><span>Orario ${esc(ST.stagioneDel(day)?.ods || "O.d.S. 39/2026")}</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
+        </div>`;
+      const piede = (i, n) => `<div class="piede"><span>Orario ${esc(ST.stagioneDel(day)?.ods || 'O.d.S. 39/2026')}${n > 1 ? ` · pagina ${i} di ${n}` : ''}</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
+      // impaginazione: le righe riempiono il foglio; quando non ci stanno piu' si passa a un nuovo A4
+      const fogli = $('fogli'); fogli.innerHTML = '';
+      const pagine = [];
+      const nuova = prima => {
+        const pg = document.createElement('div'); pg.className = 'a4'; fogli.appendChild(pg); pagine.push(pg);
+        pg.innerHTML = prima ? intestazione : `<div class="segue"><span>PARTENZE · ABFAHRTEN · DEPARTURES (segue)</span><b>SCALO DI ${esc(scalo.toUpperCase())}</b></div>`;
+        pg.insertAdjacentHTML('beforeend', '<div class="spazio-piede" style="height:11mm;flex:0 0 11mm;margin-top:auto"></div>');
+        return pg;
+      };
+      const pieno = pg => pg.scrollHeight > pg.clientHeight + 1;
+      let pg = nuova(true), corpo = null;
+      const tabella = () => { const t = document.createElement('table'); t.innerHTML = `<tbody>${testaTabella}</tbody>`; pg.insertBefore(t, pg.querySelector('.spazio-piede')); corpo = t.tBodies[0]; };
+      if (!lista.length) pg.insertBefore(Object.assign(document.createElement('div'), { className: 'vuoto', textContent: 'Nessuna partenza di linea da questo scalo nel giorno scelto.' }), pg.querySelector('.spazio-piede'));
+      else tabella();
+      righe.forEach(r => {
+        corpo.insertAdjacentHTML('beforeend', r);
+        if (pieno(pg) && corpo.rows.length > 2) { corpo.lastElementChild.remove(); pg = nuova(false); tabella(); corpo.insertAdjacentHTML('beforeend', r); }
+      });
+      const fine = document.createElement('div'); fine.innerHTML = dopo;
+      const metti = () => [...fine.children].forEach(el => pg.insertBefore(el, pg.querySelector('.spazio-piede')));
+      const copia = fine.innerHTML; metti();
+      if (pieno(pg)) { [...pg.querySelectorAll('.notaA,.leg')].forEach(el => el.remove()); pg = nuova(false); fine.innerHTML = copia; metti(); }
+      pagine.forEach((p, i) => { p.querySelector('.spazio-piede').remove(); p.insertAdjacentHTML('beforeend', piede(i + 1, pagine.length)); });
+      adatta();
       document.title = `Partenze ${scalo} · ${per.map(([a, b]) => `${a.slice(8)}/${a.slice(5, 7)}-${b.slice(8)}/${b.slice(5, 7)}`).join(' ')}`;
       $('indietro').href = `orari.html?scalo=${encodeURIComponent(scalo)}&giorno=${day}`;
       const url = new URL(location.href); url.searchParams.set('scalo', scalo); url.searchParams.set('data', day); history.replaceState(null, '', url);
@@ -219,15 +245,15 @@
     $('stampa').addEventListener('click', () => window.print());
     // a schermo il foglio si rimpicciolisce per stare tutto nella larghezza (in stampa resta A4 vero)
     function adatta() {
-      const f = $('foglio'); f.style.zoom = '';
-      const z = Math.min(1, (document.documentElement.clientWidth - 16) / f.offsetWidth);
-      f.style.zoom = z < 1 ? String(z) : '';
+      const fogli = [...document.querySelectorAll('.a4')]; if (!fogli.length) return;
+      fogli.forEach(f => { f.style.zoom = ''; });
+      const z = Math.min(1, (document.documentElement.clientWidth - 16) / fogli[0].offsetWidth);
+      fogli.forEach(f => { f.style.zoom = z < 1 ? String(z) : ''; });
     }
     addEventListener('resize', adatta);
-    addEventListener('beforeprint', () => { $('foglio').style.zoom = ''; });
+    addEventListener('beforeprint', () => document.querySelectorAll('.a4').forEach(f => { f.style.zoom = ''; }));
     addEventListener('afterprint', adatta);
     disegna();
-    adatta();
   })();
   </script>
 </body>
