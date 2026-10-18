@@ -38,6 +38,7 @@
         <button type="button" data-view="lago">Lago</button>
         <button type="button" data-view="viaggio">Da → A</button>
       </nav>
+      <a class="terra-day-today" id="orario-stampa" href="stampa-partenze.html" style="text-decoration:none" title="Orario delle partenze dello scalo, da stampare">🖨 Partenze A4</a>
     </div>
     <div class="terra-notice" id="orario-notice" hidden></div>
     <div id="orario-content"></div>
@@ -58,5 +59,13 @@
   <script src="assets/js/orario-page.js?v=67"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
+  <script>
+  // Partenze A4: stesso scalo e giorno della pagina
+  document.getElementById('orario-stampa')?.addEventListener('click', e => {
+    const q = new URLSearchParams(location.search), day = document.getElementById('orario-day-input')?.value || '';
+    const u = new URLSearchParams(); if (q.get('scalo')) u.set('scalo', q.get('scalo')); if (day) u.set('data', day);
+    e.currentTarget.href = 'stampa-partenze.html' + (u.toString() ? '?' + u : '');
+  });
+  </script>
 </body>
 </html>

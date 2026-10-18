@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviSuite · Partenze scalo</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,500;0,700;0,800;1,400&family=Manrope:wght@600;800&display=swap">
+  <style>
+    /* Foglio A4 «Partenze dallo scalo» con l'impaginazione dell'orario ufficiale della direzione.
+       Dati: orario-corse.js (O.d.S. 39/2026) e periodi di orario-giorno.js. ?scalo=Maderno&data=2026-10-19 */
+    :root{--nlg:#1f5ca8;--nlg-d:#14407a;--blu:#a9cdea;--sr:#b3202a;--srbg:#fbd635;--ink:#0f2440}
+    *{box-sizing:border-box}
+    body{margin:0;background:#4b5960;font-family:'Roboto Condensed','Arial Narrow',Arial,sans-serif;color:var(--ink)}
+    .barra{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));background:#0b1c26;font:600 13px Manrope,system-ui,sans-serif;color:#eaf2f4}
+    .barra select,.barra input{font:600 13px Manrope,system-ui,sans-serif;padding:7px 9px;border-radius:9px;border:1px solid #1f4250;background:#102733;color:#eaf2f4}
+    .barra button,.barra a{font:800 13px Manrope,system-ui,sans-serif;padding:8px 12px;border-radius:10px;border:0;background:#2dd4bf;color:#06231f;text-decoration:none;cursor:pointer}
+    .barra a{background:#143140;color:#eaf2f4}
+    .fogli{padding:18px 0 40px;overflow-x:auto}
+    .a4{width:210mm;min-height:297mm;margin:0 auto;background:#fffdf4;padding:12mm 11mm 10mm;box-shadow:0 8px 30px #0008;display:flex;flex-direction:column}
+    /* intestazione */
+    .top{display:grid;grid-template-columns:1.25fr 1fr 1.1fr;align-items:center;gap:4mm}
+    .ente{display:flex;align-items:center;gap:2.5mm}
+    .ente .logo{flex:0 0 13mm;height:13mm;border-radius:50%;background:radial-gradient(circle at 50% 50%,#fff 0 38%,#13294b 39% 100%);display:grid;place-items:center;color:#13294b;font:800 7px 'Roboto Condensed';border:1.4px solid #13294b}
+    .ente b{display:block;font:700 11.5px 'Roboto Condensed';letter-spacing:.02em}
+    .ente small{display:block;font-size:6.2px;line-height:1.3;color:#334}
+    .min{display:flex;align-items:center;gap:2mm;font:700 7.5px 'Roboto Condensed';line-height:1.15;color:#223}
+    .min .stella{width:9mm;height:9mm;flex:0 0 9mm}
+    .min .sep{width:1px;height:9mm;background:#223}
+    .scalo{text-align:center}
+    .scalo small{display:block;color:var(--nlg);font:700 10.5px 'Roboto Condensed';letter-spacing:.02em}
+    .scalo b{display:block;margin-top:1mm;background:var(--nlg);color:#fff;font:700 11px 'Roboto Condensed';padding:1mm 3mm;letter-spacing:.02em}
+    .scalo b span{font-size:22px;font-weight:800;margin-left:1.5mm;vertical-align:-2px}
+    .tit{text-align:center;color:var(--nlg);margin:5mm 0 4mm;line-height:1.2}
+    .tit b{display:block;font:700 16.5px 'Roboto Condensed';letter-spacing:.005em}
+    .tit span{display:block;font:500 14px 'Roboto Condensed'}
+    /* tabella */
+    table{width:100%;border-collapse:collapse}
+    th{background:var(--nlg);color:#fff;font:700 11.5px 'Roboto Condensed';padding:1.6mm 2mm;text-align:left;border:1.5px solid var(--nlg-d)}
+    th.o{text-align:center;width:23mm;font-size:10.5px;line-height:1.15}
+    th.n{text-align:center;width:17mm}
+    td{border:1.5px solid #6d8fb0;padding:1.6mm 2.2mm;font:700 13.2px 'Roboto Condensed';line-height:1.42;vertical-align:middle;background:#fff}
+    td.o{text-align:center;font:700 15px 'Roboto Condensed'}
+    td.n{text-align:center;white-space:nowrap}
+    tr.blu td{background:var(--blu)}
+    tr.sr td{background:var(--srbg)}
+    tr.sr td.o{background:var(--sr);color:#fff}
+    td.a{width:7mm;text-align:center;font-weight:800}
+    .ic{display:inline-grid;place-items:center;width:6.2mm;height:6.2mm;border:1px solid #556;border-radius:1mm;margin:0 .6mm;background:#fff;vertical-align:middle}
+    .ic.bici{background:#f6c533;border-color:#9a7a10}
+    .ic svg{width:4.6mm;height:4.6mm}
+    .notaA{display:flex;gap:3mm;align-items:center;margin-top:2mm}
+    .notaA b{font:800 20px 'Roboto Condensed'}
+    .notaA div{flex:1;background:var(--srbg);padding:1mm 2.5mm;font:500 9.5px 'Roboto Condensed';line-height:1.3}
+    .notaA i{display:block}
+    /* legenda */
+    .leg{margin-top:3mm;border:1.6px solid var(--sr);display:grid;grid-template-columns:6mm 1fr;}
+    .leg .lat{writing-mode:vertical-rl;transform:rotate(180deg);color:var(--sr);font:500 9px 'Roboto Condensed';letter-spacing:.06em;text-align:center;border-right:1.6px solid var(--sr)}
+    .leg .corpo{display:grid;grid-template-columns:1fr 62mm}
+    .leg .cella{padding:2mm 2.5mm;font:400 9px 'Roboto Condensed';line-height:1.28}
+    .leg .cella+.cella{border-left:0}
+    .leg .r1{border-bottom:1.6px solid var(--sr)}
+    .voce{display:grid;grid-template-columns:8mm 1fr;gap:1.5mm;margin-bottom:1.6mm;align-items:start}
+    .voce:last-child{margin-bottom:0}
+    .voce .k{font:800 13px 'Roboto Condensed';color:var(--sr)}
+    .voce b{font-weight:700}
+    .voce i,.box i{font-style:italic}
+    .box{border:1px solid #556;padding:1.6mm 2mm;text-align:center;font:400 8.6px 'Roboto Condensed';line-height:1.25;margin:2mm 2mm 2mm 0}
+    .box b{font-weight:700}
+    .piede{margin-top:auto;padding-top:3mm;font:400 8px 'Roboto Condensed';color:#556;display:flex;justify-content:space-between}
+    .vuoto{padding:10mm;text-align:center;font:500 15px 'Roboto Condensed';color:#556}
+    @media print{
+      @page{size:A4;margin:0}
+      body{background:#fff}
+      .barra{display:none}
+      .fogli{padding:0;overflow:visible}
+      .a4{box-shadow:none;margin:0;width:210mm;height:297mm;min-height:0;page-break-after:always}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    }
+  </style>
+</head>
+<body>
+  <div class="barra">
+    <label>Scalo <select id="scalo"></select></label>
+    <label>Giorno <input id="data" type="date"></label>
+    <button type="button" id="stampa">🖨 Stampa</button>
+    <a href="orario.html">← Scali</a>
+  </div>
+  <div class="fogli"><div class="a4" id="foglio"></div></div>
+
+  <script src="assets/js/course-info.js?v=1"></script>
+  <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/orario-giorno.js?v=6"></script>
+  <script>
+  (function () {
+    'use strict';
+    const O = window.NaviOrarioGiorno;
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const SCALI = ['Desenzano', 'Peschiera', 'Sirmione', 'Lazise', 'Bardolino', 'Garda', 'Torri', 'Portese', 'Salò', 'Gardone', 'Maderno', 'Gargnano', 'Brenzone', 'Malcesine', 'Limone', 'Torbole', 'Riva'];
+    // Stagione dell'O.d.S. 39/2026; il traghetto Maderno - Torri (T1, T2) ha il suo foglio.
+    const DAL = '2026-10-05', AL = '2027-03-25';
+    const NO_TURNI = ['T1', 'T2'];
+    // Righe azzurre come sul foglio della direzione (Maderno: corse dei turni R1 e D1).
+    const TURNI_BLU = ['R1', 'D1'];
+    const pad = n => String(n).padStart(2, '0');
+    const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const piu = (v, n) => { const [y, m, d] = v.split('-').map(Number); return iso(new Date(y, m - 1, d + n)); };
+    const ora = t => { const [h, m] = String(t).split('.'); return `${Number(h)}:${m}`; };
+    const MESI = { it: ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'],
+      de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+      en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };
+
+    const turniDel = day => O.TURNI.filter(c => !NO_TURNI.includes(c) && O.inServizio(c, day));
+    function partenze(scalo, day) {
+      return O.corseDelGiorno(day).filter(c => !NO_TURNI.includes(c.turno)).map(c => {
+        const i = c.scali.findIndex(s => s[0] === scalo);
+        if (i < 0 || i === c.scali.length - 1) return null;
+        return { ora: c.scali[i][1], turno: c.turno, numero: c.numero, sr: /^SR/.test(c.turno), dest: c.scali.slice(i + 1) };
+      }).filter(Boolean).sort((a, b) => O.minutes(a.ora) - O.minutes(b.ora));
+    }
+    // Periodi con le stesse corse del giorno scelto (es. 12/10-1/11 e 13/3-19/3)
+    function periodi(day) {
+      const firma = turniDel(day).join(',');
+      const out = [];
+      for (let d = DAL; d <= AL; d = piu(d, 1)) {
+        if (turniDel(d).join(',') !== firma) continue;
+        const ultimo = out[out.length - 1];
+        if (ultimo && piu(ultimo[1], 1) === d) ultimo[1] = d; else out.push([d, d]);
+      }
+      return out;
+    }
+    function dataTesto(v, lingua, anno) {
+      const [y, m, d] = v.split('-').map(Number);
+      const g = lingua === 'it' && d === 1 ? '1' : String(d);
+      const mese = MESI[lingua][m - 1];
+      if (lingua === 'it') return `${g === '1' ? "l’1" : g} ${mese}${anno ? ' ' + y : ''}`;
+      if (lingua === 'de') return `${d}. ${mese}${anno ? ' ' + y : ''}`;
+      return `${d} ${mese}${anno ? ' ' + y : ''}`;
+    }
+    function titolo(per, lingua) {
+      const parti = per.map(([a, b]) => {
+        const stessoMese = a.slice(0, 7) === b.slice(0, 7), anno = b.slice(0, 4);
+        const da = stessoMese ? String(Number(a.slice(8))) + (lingua === 'de' ? '.' : '') : dataTesto(a, lingua, a.slice(0, 4) !== anno);
+        const finale = dataTesto(b, lingua, true);
+        if (lingua === 'it') return `DAL ${da} AL${finale.startsWith('l’') ? '' : ' '}${finale.replace(/^l’/, 'L’')}`.toUpperCase().replace(/^DAL L’/, 'DALL’');
+        if (lingua === 'de') return `vom ${da} bis zum ${finale}`;
+        return `from ${da} to ${finale}`;
+      });
+      if (lingua === 'it') return 'PARTENZE ' + parti.join(' E ');
+      if (lingua === 'de') return 'Abfahrten ' + parti.join(' und ');
+      return 'DEPARTURES ' + parti.join(' AND ').toUpperCase();
+    }
+
+    const SVG_CARROZZINA = '<svg viewBox="0 0 24 24" fill="#223"><circle cx="11" cy="3.5" r="2"/><path d="M10 7h2v5h5l3 6-1.8.9L15.8 14H10z"/><path d="M8.6 9.6A6 6 0 1 0 16 18l-1.6-1.2A4 4 0 1 1 9.4 11.5z"/></svg>';
+    const SVG_BICI = '<svg viewBox="0 0 24 24" fill="none" stroke="#223" stroke-width="1.8"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 9h6l3.5 7M9 9l3 7h-6.5M12 6h2"/></svg>';
+    const SVG_NO_BICI = SVG_BICI.replace('</svg>', '<path d="M3 3 21 21" stroke="#c0182a" stroke-width="2.2"/></svg>');
+    const icona = (svg, cls = '') => `<span class="ic ${cls}">${svg}</span>`;
+
+    function disegna() {
+      const scalo = $('scalo').value, day = $('data').value;
+      const lista = partenze(scalo, day);
+      const per = periodi(day);
+      const conSr = lista.some(p => p.sr);
+      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : TURNI_BLU.includes(p.turno) ? 'blu' : ''}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
+      $('foglio').innerHTML = `
+        <div class="top">
+          <div class="ente"><span class="logo">NLG</span><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
+          <div class="min"><svg class="stella" viewBox="0 0 40 40"><path d="M20 3l4.6 11.2L37 15.3l-9.4 8 3 12.2L20 29l-10.6 6.5 3-12.2-9.4-8 12.4-1.1z" fill="none" stroke="#223" stroke-width="2"/><path d="M8 33c6-6 14-9 24-9" stroke="#2b8a3e" stroke-width="3" fill="none"/><path d="M8 36c6-5 14-8 24-8" stroke="#c0182a" stroke-width="3" fill="none"/></svg><span class="sep"></span><span>MINISTERO<br>DELLE INFRASTRUTTURE<br>E DEI TRASPORTI</span></div>
+          <div class="scalo"><small>SERVIZIO PUBBLICO DI LINEA</small><b>SCALO DI<span>${esc(scalo.toUpperCase())}</span></b></div>
+        </div>
+        <div class="tit"><b>${esc(titolo(per, 'it'))}</b><span>${esc(titolo(per, 'de'))}</span><b style="font-size:15px">${esc(titolo(per, 'en'))}</b></div>
+        ${lista.length ? `<table>
+          <tr><th class="o">ORARIO – UHRZEIT<br>– TIME –</th><th${conSr ? ' colspan="2"' : ''}>DESTINAZIONI DIRETTE – direkte Reiseziele – direct destinations</th><th class="n">NOTE</th></tr>
+          ${righe}
+        </table>` : '<div class="vuoto">Nessuna partenza di linea da questo scalo nel giorno scelto.</div>'}
+        ${conSr ? `<div class="notaA"><b>[A]</b><div>Giornaliera fino all’11 ottobre 2026. Giornaliera dal 20 marzo 2027.<i>Täglich bis zum 11. Oktober 2026. Täglich ab dem 20. März 2027.</i><i>Daily until 11 October 2026. Daily from 20 March 2027.</i></div></div>` : ''}
+        <div class="leg">
+          <div class="lat">LEGENDA / LEGENDE / KEY</div>
+          <div class="corpo">
+            <div class="cella r1">
+              <div class="voce"><span class="k">SR</span><span><b style="color:var(--sr)">Servizio rapido con pagamento di supplemento.</b> <i style="color:var(--sr)">Schnelldienst mit Zuschlag. - Speed service with extra charge.</i></span></div>
+              <div class="voce">${icona(SVG_NO_BICI)}<span><b>Non effettua trasporto biciclette.</b> <i>Fahrradmitnahme nicht möglich. - Bicycles not allowed.</i></span></div>
+              <div class="voce">${icona(SVG_BICI, 'bici')}<span><b>Corse con imbarco di biciclette limitato e condizionato dal traffico contingente. I viaggiatori sono invitati ad informarsi preventivamente presso le biglietterie o al n. verde 800-551801.</b> <i>Fahrradmitnahme beschränkt: hängt davon ab, ob es genügend Plätze zur Verfügung stehen. Wir empfehlen Ihnen, sich vorher am Fahrkartenschalter oder an der kostenlose Telefonnummer 800-551801 (nur innerhalb Italiens) darüber zu erkundigen.</i> Routes with limited access to bicycles due to incoming traffic. Passengers are kindly invited to ask in advance at the ticket offices or calling the freephone customer service 800-551801 (Italy only).</span></div>
+            </div>
+            <div class="cella r1"><div class="box"><b>NOTA GENERALE: l’imbarco delle bici potrà essere comunque limitato, a giudizio del Comandante, in caso che il trasporto delle stesse pregiudichi il servizio.</b><br><i>WICHTIG: der Kapitän kann die Fahrradmitnahme einschränken, falls sie den Passagierverkehr behindern.</i><br>GENERAL NOTE: the Captain can limit the number of bicycles to embark in case their transport would compromise the service.</div></div>
+            <div class="cella">
+              <div class="voce">${icona(SVG_CARROZZINA)}<span><b>I passeggeri in carrozzina sono invitati ad informarsi sulle condizioni del trasporto (tel. 030-9149511, numero verde 800-551801).</b> <i>Rollstuhlfahrer werden gebeten, sich über die Beförderungs-möglichkeit zu informieren (an den Telefonnummern 030-9149511 - kostenlose Hotline 800-551801 nur innerhalb Italiens).</i> Passengers with wheelchairs are invited to inform themselves regarding the travel facilities - phone: 030-9149511, freephone 800-551801 (Italy only).</span></div>
+            </div>
+            <div class="cella"><div class="box"><b>NOTA GENERALE: per esigenze organizzative e/o cause di forza maggiore le navi in servizio possono essere sostituite con altre navi per le quali possono variare le condizioni del trasporto.</b><br><i>WICHTIG: aus organisatorischen Gründen, könnten die Schiffen in Dienst ersetzt werden: in diesem Fall könnten auch die Einrichtungen verändern.</i><br>GENERAL NOTE: due to organisational or to force majeure reasons, ships may be substituted by different ones, and the travel facilities may vary.</div></div>
+          </div>
+        </div>
+        <div class="piede"><span>Orario O.d.S. 39/2026</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
+      document.title = `Partenze ${scalo} · ${per.map(([a, b]) => `${a.slice(8)}/${a.slice(5, 7)}-${b.slice(8)}/${b.slice(5, 7)}`).join(' ')}`;
+      const url = new URL(location.href); url.searchParams.set('scalo', scalo); url.searchParams.set('data', day); history.replaceState(null, '', url);
+    }
+
+    const qs = new URLSearchParams(location.search);
+    let profilo = null; try { profilo = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) {}
+    const residenza = String(profilo?.residence || '').toLowerCase();
+    const scalo0 = SCALI.find(s => s.toLowerCase() === String(qs.get('scalo') || '').toLowerCase()) || SCALI.find(s => s.toLowerCase() === residenza) || 'Maderno';
+    // giorno: quello chiesto, oppure oggi; se oggi non ci sono corse di linea, il primo giorno della stagione che le ha
+    let day0 = /^\d{4}-\d{2}-\d{2}$/.test(qs.get('data') || '') ? qs.get('data') : iso(new Date());
+    if (!qs.get('data') && !turniDel(day0).length) { for (let d = day0 < DAL ? DAL : day0; d <= AL; d = piu(d, 1)) if (turniDel(d).length) { day0 = d; break; } }
+    $('scalo').innerHTML = SCALI.map(s => `<option${s === scalo0 ? ' selected' : ''}>${s}</option>`).join('');
+    $('data').value = day0;
+    $('scalo').addEventListener('change', disegna);
+    $('data').addEventListener('change', disegna);
+    $('stampa').addEventListener('click', () => window.print());
+    disegna();
+  })();
+  </script>
+</body>
+</html>
