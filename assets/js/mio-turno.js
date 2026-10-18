@@ -103,8 +103,8 @@
     el.hidden = false;
   }
 
-  // Coincidenze allo scalo (orari-stagioni.js): chi arriva con questa corsa puo' prendere la corsa b (→),
-  // chi parte con questa corsa puo' arrivare con la corsa a (←). Cambio entro 20 minuti.
+  // Coincidenze ai fini tariffari dell'O.d.S. (orari-stagioni.js, coincidenze-ufficiali.js): solo quelle elencate,
+  // con gli scali di provenienza per cui valgono. Dentro Alto lago e Basso lago non ci sono coincidenze.
   function coincidenzeRiga(row, day) {
     const S = window.NaviOrariStagioni;
     if (!S?.coincidenze) return '';
@@ -114,8 +114,8 @@
     const dentro = row.kind !== 'A' ? tutte.filter(k => k.b === run && k.scalo === row.nome) : [];
     if (!via.length && !dentro.length) return '';
     const fmt = t => esc(String(t).replace('.', ':'));
-    return `<span class="mt-coinc">${via.map(k => `<span title="Coincidenza: arrivati con la corsa ${esc(run)} si prende la ${esc(k.b)}">🔗 → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} per ${esc(k.verso)} ${fmt(k.parte)}</span>`).join('')}` +
-      `${dentro.map(k => `<span title="Coincidenza: dalla corsa ${esc(k.a)} si sale sulla ${esc(run)}">🔗 ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''} da ${esc(k.da)} ${fmt(k.arriva)}</span>`).join('')}</span>`;
+    return `<span class="mt-coinc">${via.map(k => `<span title="Coincidenza ai fini tariffari (O.d.S.)">🔗 → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${fmt(k.parte)} per ${esc(k.verso)}<small>solo per chi viene da ${esc(k.da)}</small></span>`).join('')}` +
+      `${dentro.map(k => `<span title="Coincidenza ai fini tariffari (O.d.S.)">🔗 ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''}${k.arriva ? ` arr. ${fmt(k.arriva)}` : ''}: passeggeri da ${esc(k.da)}</span>`).join('')}</span>`;
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];

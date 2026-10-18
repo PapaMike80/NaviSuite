@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v637-orari-stagionali';
+const CACHE_VERSION = 'navisuite-v638-coincidenze-ufficiali';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -42,6 +42,7 @@ const CORE_ASSETS = [
   './orari.html',
   './assets/js/orario-corse-estate.js',
   './assets/js/orari-stagioni.js',
+  './assets/js/coincidenze-ufficiali.js',
   './assets/images/logo-nlg.png',
   './assets/images/logo-mit.png',
   './assets/fonts/roboto-latin-400-normal.woff2',
