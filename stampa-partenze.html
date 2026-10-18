@@ -56,6 +56,7 @@
     .ic{display:inline-grid;place-items:center;width:6.2mm;height:6.2mm;border:1px solid #556;border-radius:1mm;margin:0 .6mm;background:#fff;vertical-align:middle}
     .ic.bici{background:#f6c533;border-color:#9a7a10}
     .ic svg{width:4.6mm;height:4.6mm}
+    td .cambio{font:500 11px 'Roboto';margin-top:.6mm;color:#334}
     .notaA{display:flex;gap:3mm;align-items:center;margin-top:2mm}
     .notaA b{font:900 20px 'Roboto'}
     .notaA div{flex:1;background:var(--srbg);padding:1mm 2.5mm;font:500 9.5px 'Roboto';line-height:1.3}
@@ -103,6 +104,7 @@
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=7"></script>
+  <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
   <script src="assets/js/orari-stagioni.js?v=8"></script>
   <script>
   (function () {
@@ -171,8 +173,11 @@
       const lista = partenze(scalo, day);
       const per = periodi(day);
       const conSr = lista.some(p => p.sr) && !estate(day);
+      // coincidenze dell'O.d.S. valide per chi parte da questo scalo (dentro Alto e Basso lago non ce ne sono)
+      const tutte = ST.coincidenze ? ST.coincidenze(day) : [];
+      const cambi = p => tutte.filter(k => k.a === String(p.numero) && k.provenienti.includes(scalo));
       let n = 0;
-      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`);
+      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}${cambi(p).map(k => `<div class="cambio">↪ cambio a ${esc(k.scalo.toUpperCase())} ${ora(k.parte)} c. ${esc(k.b)}${k.srB ? ' SR' : ''} per ${esc(k.per.join(', ').toUpperCase())} · change · Umsteigen</div>`).join('')}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`);
       const intestazione = `
         <div class="top">
           <div class="ente"><img class="logo" src="assets/images/logo-nlg.png" alt="Gestione Navigazione Laghi"><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
