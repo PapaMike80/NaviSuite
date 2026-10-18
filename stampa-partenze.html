@@ -100,8 +100,6 @@
     // Stagione dell'O.d.S. 39/2026; il traghetto Maderno - Torri (T1, T2) ha il suo foglio.
     const DAL = '2026-10-05', AL = '2027-03-25';
     const NO_TURNI = ['T1', 'T2'];
-    // Righe azzurre come sul foglio della direzione (Maderno: corse dei turni R1 e D1).
-    const TURNI_BLU = ['R1', 'D1'];
     const pad = n => String(n).padStart(2, '0');
     const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const piu = (v, n) => { const [y, m, d] = v.split('-').map(Number); return iso(new Date(y, m - 1, d + n)); };
@@ -161,7 +159,8 @@
       const lista = partenze(scalo, day);
       const per = periodi(day);
       const conSr = lista.some(p => p.sr);
-      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : TURNI_BLU.includes(p.turno) ? 'blu' : ''}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
+      let n = 0;
+      const righe = lista.map(p => `<tr class="${p.sr ? 'sr' : (n++ % 2 ? 'blu' : '')}"><td class="o">${ora(p.ora)}${p.sr ? ' SR' : ''}</td>${conSr ? `<td class="a">${p.sr ? '[A]' : ''}</td>` : ''}<td>${esc(p.dest.map(([s, t]) => `${s.toUpperCase()} ${ora(t)}`).join(' – '))}</td><td class="n">${icona(SVG_CARROZZINA)}${p.sr ? icona(SVG_NO_BICI) : icona(SVG_BICI, 'bici')}</td></tr>`).join('');
       $('foglio').innerHTML = `
         <div class="top">
           <div class="ente"><img class="logo" src="assets/images/logo-nlg.png" alt="Gestione Navigazione Laghi"><div><b>NAVIGAZIONE LAGO DI GARDA</b><small>Direzione di Esercizio · Piazza Matteotti · 25015 Desenzano del Garda (BS)<br>tel +39.030.914.9511 · fax +39.030.914.9520<br>www.navigazionelaghi.it · infogarda@navigazionelaghi.it</small></div></div>
