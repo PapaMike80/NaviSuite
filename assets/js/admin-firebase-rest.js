@@ -875,6 +875,33 @@
     return item;
   }
 
+  // Ultimi 10 accessi per agente con le pagine visitate; una sessione = un'apertura dell'app.
+  async function registraVisita(profile = {}, pagina = "") {
+    await ensureAuth();
+    const id = String(profile.id || profile.agentId || "").trim();
+    if (!id || !pagina) return null;
+    let sessione = "";
+    try { sessione = sessionStorage.getItem("navi-sessione-visite") || ""; } catch {}
+    if (!sessione) { sessione = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); try { sessionStorage.setItem("navi-sessione-visite", sessione); } catch {} }
+    const path = `private/adminUpdates/attivita/${safeUserKey(id)}`;
+    const ora = new Date().toISOString();
+    const letti = (await databaseRequest(path)).data;
+    const lista = Array.isArray(letti) ? letti.filter(Boolean) : Object.values(letti || {});
+    let accesso = lista.find(item => item.s === sessione);
+    if (!accesso) { accesso = { s:sessione, inizio:ora, dispositivo:/iphone|ipad|android|mobile/i.test(navigator.userAgent) ? "Mobile" : "Computer", pagine:[] }; lista.push(accesso); }
+    accesso.ultimo = ora;
+    accesso.pagine = Array.isArray(accesso.pagine) ? accesso.pagine : [];
+    if (accesso.pagine[accesso.pagine.length - 1]?.p !== pagina) accesso.pagine.push({ p:pagina, t:ora });
+    accesso.pagine = accesso.pagine.slice(-40);
+    const tenuti = lista.sort((a,b)=>String(b.inizio||"").localeCompare(String(a.inizio||""))).slice(0, 10);
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(tenuti) });
+    return accesso;
+  }
+
+  async function getAttivita() {
+    return (await databaseRequest("private/adminUpdates/attivita")).data || {};
+  }
+
   async function listUserPresence(maxAgeMs = 120000) {
     const result = await databaseRequest("private/adminUpdates/userPresence");
     const limit = Date.now() - Number(maxAgeMs || 120000);
@@ -1258,6 +1285,8 @@
     saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,
+    registraVisita,
+    getAttivita,
     listUserPresence,
     getQuizCorrections,
     saveQuizCorrections,
