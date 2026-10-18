@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v644-agm-senza-traghetto';
+const CACHE_VERSION = 'navisuite-v645-agm-scheda';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
