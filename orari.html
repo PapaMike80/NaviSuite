@@ -48,6 +48,8 @@
     .dep{border-left-color:var(--tc,var(--c))}
     .dep .t{color:var(--tc,var(--ink))}
     .dep .tu{display:table;margin:2px 0 1px;font:900 9px Manrope,system-ui,sans-serif;padding:0 5px;border-radius:999px;background:var(--tc);color:var(--on)}
+    .dep .cambio{grid-column:2;display:block;margin-top:-4px;font-size:11.5px;color:#fde68a;font-weight:600}
+    .dep .cambio .tu{display:inline-block;margin:0 2px}
     .dep.sr{background:color-mix(in srgb,var(--amber) 10%,#0d2230)}
     .tag{font:900 9px Manrope;padding:1px 6px;border-radius:999px;background:var(--amber);color:var(--on);margin-right:5px;vertical-align:1px}
     .tag.tr{background:var(--violet)}
@@ -297,9 +299,13 @@
       $('titolo').innerHTML = `Partenze da ${esc(scalo)}<small>${GIORNI[new Date(y, m - 1, d).getDay()]} ${breve(giorno)} · ${lista.length}</small>`;
       const adesso = giorno === oggi ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
       let prossima = adesso >= 0 ? lista.find(p => S.minuti(p.ora) >= adesso) : null;
+      // coincidenze dell'O.d.S. valide per chi parte da questo scalo (es. Peschiera c. 2 -> a Riva c. 57 per Torbole)
+      const coinc = S.coincidenze(giorno);
+      const cambi = p => coinc.filter(k => k.a === String(p.numero) && k.provenienti.includes(scalo));
+      const colT = t => S.COLORI[t] || '#9fb8c2';
       $('lista').innerHTML = lista.length ? lista.map(p => {
         const cls = [p.sr ? 'sr' : '', p.traghetto ? 'trag' : '', adesso >= 0 && S.minuti(p.ora) < adesso ? 'passata' : '', p === prossima ? 'prossima' : ''].filter(Boolean).join(' ');
-        return `<div class="dep ${cls}" style="--tc:${p.colore}"><span class="t">${ora(p.ora)}<small>${p.turno ? `<b class="tu">${esc(p.turno)}</b>` : ''}c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
+        return `<div class="dep ${cls}" style="--tc:${p.colore}"><span class="t">${ora(p.ora)}<small>${p.turno ? `<b class="tu">${esc(p.turno)}</b>` : ''}c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span>${cambi(p).map(k => `<span class="cambio">↪ a <b>${esc(k.scalo)}</b>${k.arriva ? ` ${ora(k.arriva)}` : ''} cambio con <b class="tu" style="--tc:${colT(k.turnoB)}">${esc(k.turnoB || '')}</b> c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${ora(k.parte)} per ${esc(k.verso)}</span>`).join('')}</div>`;
       }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
       // totali in alto: corse del giorno, partenze dallo scalo, prossima partenza
       $('kpi').innerHTML = `<div><small>Corse del giorno</small><b>${totali.corse}</b></div><div style="--k:var(--cyan)"><small>Da ${esc(scalo)}</small><b>${lista.length}</b></div><div class="pieno"><small>${adesso >= 0 ? 'Prossima' : 'Prima'}</small><b>${adesso >= 0 ? (prossima ? ora(prossima.ora) : '—') : (lista[0] ? ora(lista[0].ora) : '—')}</b></div>`;
