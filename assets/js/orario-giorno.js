@@ -18,6 +18,10 @@
     T1: [['2026-10-05', '2027-03-25']],
     ALTRI: [['2026-10-05', '2026-11-01'], ['2027-03-13', '2027-03-25']]
   };
+  // Estate 2026 (O.d.S. 16/2026): tutte le corse giornaliere, orario in orario-corse-estate.js
+  const ESTATE = ['2026-05-16', '2026-10-04'];
+  const TURNI_ESTATE = ['D1', 'D2', 'D3', 'D4', 'P1', 'P2', 'P3', 'R1', 'R2', 'R3', 'R4', 'M1', 'T1', 'T2', 'CAR', 'CAP', 'SR1'];
+  const estate = day => day >= ESTATE[0] && day <= ESTATE[1];
   // Turni fermati o ripresi dall'Ufficio Movimento fuori dal calendario dell'O.d.S.: {codice: {stato: 'ferma' | 'attiva', dal, al}}
   // (al vuoto = fino a nuovo ordine). Letti dalle righe dei turni nave con il campo "stagione" (vedi stagioneDaRighe).
   function stagioneDaRighe(rows) {
@@ -35,6 +39,7 @@
   function inServizio(code, day) {
     const st = root.NaviStagione?.[code];
     if (st && day >= st.dal && (!st.al || day <= st.al)) return st.stato === 'attiva';
+    if (estate(day)) return TURNI_ESTATE.includes(code);
     if (code === 'T1' && day === '2026-12-25') return false;
     const periodi = /^SR/.test(code) ? PERIODI.SR : code === 'T1' ? PERIODI.T1 : PERIODI.ALTRI;
     return periodi.some(([from, to]) => day >= from && day <= to);
@@ -105,13 +110,18 @@
   // ritardi (facoltativo): quelli del turno, {numero: {minuti, oltre}}.
   function corseDelTurno(code, day, ritardi) { return conRitardi(corseDaOrario(code, day), ritardi); }
   function corseDaOrario(code, day) {
+    if ((code === 'T1' || code === 'T2') && estate(day)) {
+      // traghetto estivo (O.d.S. 16/2026, pag. 23) da orari-stagioni.js
+      return (root.NaviOrariStagioni?.traghetto(day) || []).filter(r => r.turno === code)
+        .map(r => ({ numero: String(r.numero), turno: code, scali: [[r.da, r.parte], [r.a, r.arriva]] }));
+    }
     if (code === 'T1' || code === 'T2') {
       return (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(row => row[2] === code).map(([time, kind, , run]) => ({
         numero: run, turno: code,
         scali: kind === 'P' ? [['Maderno', time], ['Torri', hhmm(minutes(time) + 30)]] : [['Torri', hhmm(minutes(time) - 30)], ['Maderno', time]]
       })).sort((a, b) => minutes(a.scali[0][1]) - minutes(b.scali[0][1]));
     }
-    const orario = root.NaviOrarioCorse || {};
+    const orario = (estate(day) ? root.NaviOrarioCorseEstate : root.NaviOrarioCorse) || {};
     const trips = root.NaviCourseInfo?.info(code, day)?.trips || '';
     const numeri = [];
     trips.split('·').forEach(part => {
@@ -126,7 +136,7 @@
 
   // Tutte le corse in servizio nel giorno; ritardi: {turno: {numero: r}}.
   function corseDelGiorno(day, ritardi = {}) {
-    return TURNI.filter(code => inServizio(code, day)).flatMap(code => corseDelTurno(code, day, ritardi[code]));
+    return (estate(day) ? TURNI_ESTATE : TURNI).filter(code => inServizio(code, day)).flatMap(code => corseDelTurno(code, day, ritardi[code]));
   }
 
   // Viaggi della nave: corse consecutive dello stesso turno unite quando la successiva parte dallo
@@ -170,6 +180,6 @@
   // Viaggi del BIS in aiuto (corse aggiuntive): le sostituzioni restano nei viaggi del turno.
   const viaggiBis = (incarichi, day, ritardi) => viaggiDaCorse('BIS', corseBis((incarichi || []).filter(inc => inc?.tipo === 'aiuto'), day, ritardi));
 
-  root.NaviOrarioGiorno = { TURNI, PERIODI, minutes, hhmm, inServizio, stagioneDaRighe, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
+  root.NaviOrarioGiorno = { TURNI, TURNI_ESTATE, ESTATE, PERIODI, minutes, hhmm, inServizio, stagioneDaRighe, senzaRipetizioni, corseDelTurno, corseDelGiorno, viaggiDelTurno, viaggiDaCorse, viaggiDelGiorno,
     corseIncarico, corseBis, bisPerCorsa, viaggiBis, conRitardi, testoRitardo, ritardiDelGiorno };
 })(typeof window !== 'undefined' ? window : globalThis);

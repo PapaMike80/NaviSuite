@@ -157,8 +157,9 @@
   // ---------------- Lago ----------------
   // Punti del turno nel giorno: [{scalo, t, corsa}] in ordine di tempo.
   function puntiDelTurno(viaggi, code) {
+    // gli scali minori dell'orario estivo (Bogliaco, Tignale...) non sono sulla mappa: la nave passa oltre
     return viaggi.filter(v => v.turno === code).flatMap(v => v.scali.map(([scalo, ora, corsa]) => ({ scalo, t: minutes(ora), corsa })))
-      .sort((a, b) => a.t - b.t);
+      .filter(p => POS[p.scalo]).sort((a, b) => a.t - b.t);
   }
   // Dove si trova il turno all'ora t.
   function posizione(punti, t) {
