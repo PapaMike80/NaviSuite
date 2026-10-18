@@ -83,6 +83,8 @@
       .fogli{padding:0;overflow:visible;display:block}
       .a4{zoom:1!important;box-shadow:none;margin:0;width:210mm;height:296mm;min-height:0;break-after:page;page-break-after:always}
       .a4:last-child{break-after:auto;page-break-after:auto}
+      /* A3: stesso foglio ingrandito di radice di 2 (A4 -> A3), piu' leggibile */
+      body.a3 .a4{zoom:1.41421!important}
       *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     }
   </style>
@@ -91,6 +93,7 @@
   <div class="barra">
     <label>Scalo <select id="scalo"></select></label>
     <label>Giorno <input id="data" type="date"></label>
+    <label>Foglio <select id="formato"><option value="A4">A4</option><option value="A3">A3 (più grande)</option></select></label>
     <button type="button" id="stampa">🖨 Stampa</button>
     <a href="orari.html" id="indietro">← Orari</a>
   </div>
@@ -243,6 +246,18 @@
     $('scalo').addEventListener('change', disegna);
     $('data').addEventListener('change', () => { elencoScali($('scalo').value); disegna(); });
     $('stampa').addEventListener('click', () => window.print());
+    // formato di stampa A4 o A3 (ricordato sul dispositivo)
+    const pagina = document.head.appendChild(document.createElement('style'));
+    function formato() {
+      const f = $('formato').value;
+      document.body.classList.toggle('a3', f === 'A3');
+      pagina.textContent = `@page{size:${f};margin:0}`;
+      try { localStorage.setItem('navisuite.partenze.formato', f); } catch (_) {}
+      const url = new URL(location.href); url.searchParams.set('formato', f); history.replaceState(null, '', url);
+    }
+    $('formato').value = qs.get('formato') === 'A3' || qs.get('formato') === 'A4' ? qs.get('formato') : (() => { try { return localStorage.getItem('navisuite.partenze.formato') || 'A4'; } catch (_) { return 'A4'; } })();
+    $('formato').addEventListener('change', formato);
+    formato();
     // a schermo il foglio si rimpicciolisce per stare tutto nella larghezza (in stampa resta A4 vero)
     function adatta() {
       const fogli = [...document.querySelectorAll('.a4')]; if (!fogli.length) return;
