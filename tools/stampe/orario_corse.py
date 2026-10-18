@@ -18,11 +18,17 @@ STAZIONI = [("DESENZANO", "Desenzano"), ("PESCHIERA", "Peschiera"), ("SIRMIONE",
             ("PORTESE", "Portese"), ("SALO", "Salò"), ("MADERNO", "Maderno"), ("GARGNANO", "Gargnano"),
             ("BRENZONE", "Brenzone"), ("MALCESINE", "Malcesine"), ("LIMONE", "Limone"), ("TORBOLE", "Torbole"),
             ("RIVA", "Riva")]
+# Con --tutti anche gli scali minori dell'orario estivo (pagina Orari)
+MINORI = [("PADENGHE", "Padenghe"), ("MONIGA", "Moniga"), ("MANERBA", "Manerba"), ("CISANO", "Cisano"),
+          ("SAN FELICE", "San Felice"), ("BOGLIACO", "Bogliaco"), ("TIGNALE", "Tignale"), ("ASSENZA", "Assenza"),
+          ("CASSONE", "Cassone"), ("CASTELLETTO", "Castelletto"), ("CAMPIONE", "Campione"), ("PUNTA SAN VIGILIO", "Punta San Vigilio"), ("PUNTA S. VIGILIO", "Punta San Vigilio")]
+TUTTI = "--tutti" in sys.argv
 
 
 def stazione(testo):
     nome = testo.upper().replace("’", "").replace("'", "")
-    return next((bello for chiave, bello in STAZIONI if nome.startswith(chiave)), None)
+    elenco = STAZIONI + (MINORI if TUTTI else [])
+    return next((bello for chiave, bello in sorted(elenco, key=lambda c: -len(c[0])) if nome.startswith(chiave)), None)
 
 
 def estrai(pdf_path, pagine):
@@ -33,17 +39,29 @@ def estrai(pdf_path, pagine):
         righe = {}
         for parola in parole:
             righe.setdefault(round(parola["top"] / 3), []).append(parola)
-        colonne = None
-        for _, riga in sorted(righe.items()):
+        colonne, attesa = None, False
+        for chiave, riga in sorted(righe.items()):
             riga.sort(key=lambda p: p["x0"])
             testo = " ".join(p["text"] for p in riga)
+            numeri = [(int(p["text"]), (p["x0"] + p["x1"]) / 2) for p in riga if re.fullmatch(r"\d{1,3}", p["text"])]
             if testo.startswith("N.") and "Corsa" in testo:
-                colonne = [(int(p["text"]), (p["x0"] + p["x1"]) / 2) for p in riga if re.fullmatch(r"\d{1,3}", p["text"])]
+                colonne = numeri or None
+                attesa = not numeri  # numeri delle corse nella riga sotto (orario estivo)
+                continue
+            if colonne is None and attesa and len(numeri) >= 5:
+                colonne, attesa = numeri, False
                 continue
             nome = stazione(riga[0]["text"]) if riga else None
+            orari = riga[1:] if nome else riga
+            if not nome and TUTTI:
+                # orari stampati un filo sopra o sotto il nome dello scalo: si prende lo scalo della riga vicina
+                vicine = [k for k in righe if abs(k - chiave) <= 2 and k != chiave and righe[k] and stazione(min(righe[k], key=lambda p: p["x0"])["text"])]
+                if vicine:
+                    k = min(vicine, key=lambda k: abs(k - chiave))
+                    nome = stazione(min(righe[k], key=lambda p: p["x0"])["text"])
             if not colonne or not nome:
                 continue
-            for parola in riga[1:]:
+            for parola in orari:
                 if not re.fullmatch(r"\d{1,2}\.\d{2}", parola["text"]):
                     continue
                 centro = (parola["x0"] + parola["x1"]) / 2
@@ -51,13 +69,16 @@ def estrai(pdf_path, pagine):
                 assert abs(x - centro) < 14, (numero, nome, parola["text"], corsa)
                 corse.setdefault(str(corsa), []).append([nome, parola["text"]])
     minuti = lambda t: tuple(map(int, t.split(".")))
-    for scali in corse.values():
+    for numero_corsa, scali in corse.items():
         scali.sort(key=lambda s: minuti(s[1]))
+        # stesso scalo due volte di fila (es. Limone centro e multipiano): resta il primo
+        corse[numero_corsa] = [s for i, s in enumerate(scali) if i == 0 or s[0] != scali[i - 1][0]]
     return dict(sorted(corse.items(), key=lambda kv: int(kv[0])))
 
 
 if __name__ == "__main__":
-    origine, pagine = sys.argv[1], [int(p) for p in sys.argv[2:]]
+    argomenti = [a for a in sys.argv[1:] if a != "--tutti"]
+    origine, pagine = argomenti[0], [int(p) for p in argomenti[1:]]
     corse = estrai(origine, pagine)
     nome = origine.replace("\\", "/").split("/")[-1]
     print(f"""// Orario di ogni corsa: {{numero: [[scalo, ora], ...]}} in ordine di orario.
