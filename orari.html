@@ -49,6 +49,8 @@
     .dep .t{color:var(--tc,var(--ink))}
     .dep .tu{display:table;margin:2px 0 1px;font:900 9px Manrope,system-ui,sans-serif;padding:0 5px;border-radius:999px;background:var(--tc);color:var(--on)}
     .dep .cambio{grid-column:2;display:block;margin-top:-4px;font-size:11.5px;color:#fde68a;font-weight:600}
+    .dep .cambio.cp{color:#9fb8c2;font-weight:500}
+    .dep .cambio.cp b{color:#cfe3ea}
     .dep .cambio .tu{display:inline-block;margin:0 2px}
     .dep.sr{background:color-mix(in srgb,var(--amber) 10%,#0d2230)}
     .tag{font:900 9px Manrope;padding:1px 6px;border-radius:999px;background:var(--amber);color:var(--on);margin-right:5px;vertical-align:1px}
@@ -99,6 +101,7 @@
     .pop-scali li{display:flex;gap:6px}.pop-scali li span{font-family:var(--mono);color:var(--muted);min-width:38px}
     .pop-scali li.mio{color:var(--teal);font-weight:800}
     .pop-c{display:grid;gap:3px;padding-top:6px;border-top:1px solid var(--line)}
+    .pop-cp{color:#9fb8c2}
     .pop-regola{font-size:11px;color:var(--amber);padding-top:4px;border-top:1px solid var(--line)}
     .pop-c i{color:var(--muted);font-style:normal;font-family:var(--mono)}
     main>*{min-width:0;max-width:100%}
@@ -156,7 +159,7 @@
   <script src="assets/js/orario-giorno.js?v=7"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
   <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
-  <script src="assets/js/orari-stagioni.js?v=8"></script>
+  <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script>
   (function () {
     'use strict';
@@ -244,8 +247,17 @@
       $('graf-pop').innerHTML = `<div class="pop-h"><span><b class="tu" style="background:${c.coloreTurno}">${esc(c.turno || '–')}</b> Corsa ${esc(c.numero)}${c.sr ? ' <span class="tag">SR</span>' : ''}</span><button type="button" data-chiudi aria-label="Chiudi">✕</button></div>
         <small>${esc(c.direzione)} · ${esc(c.punti[0][0])} ${ora(c.punti[0][1])} → ${esc(c.punti[c.punti.length - 1][0])} ${ora(c.punti[c.punti.length - 1][1])}</small>
         <ol class="pop-scali">${c.punti.map(([n, t]) => `<li class="${n === scalo ? 'mio' : ''}"><span>${ora(t)}</span>${esc(n)}</li>`).join('')}</ol>
-        ${arrivi.length || partenze.length ? `<div class="pop-c"><b>🔗 Coincidenze</b>${arrivi.map(k => `<div>a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} → ${nome(k.b)} alle ${ora(k.parte)} per ${esc(k.verso)}<br><i>solo per chi viene da ${esc(k.da)}</i></div>`).join('')}${partenze.map(k => `<div>a <b>${esc(k.scalo)}</b> da ${nome(k.a)} (arr. ${ora(k.arriva)}) → parte ${ora(k.parte)}<br><i>passeggeri da ${esc(k.da)}</i></div>`).join('')}</div>` : '<div class="pop-c"><i>Nessuna coincidenza ai fini tariffari.</i></div>'}<div class="pop-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</div>`;
+        ${arrivi.length || partenze.length ? `<div class="pop-c"><b>🔗 Coincidenze</b>${arrivi.map(k => `<div>a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} → ${nome(k.b)} alle ${ora(k.parte)} per ${esc(k.verso)}<br><i>solo per chi viene da ${esc(k.da)}</i></div>`).join('')}${partenze.map(k => `<div>a <b>${esc(k.scalo)}</b> da ${nome(k.a)} (arr. ${ora(k.arriva)}) → parte ${ora(k.parte)}<br><i>passeggeri da ${esc(k.da)}</i></div>`).join('')}</div>` : '<div class="pop-c"><i>Nessuna coincidenza ai fini tariffari.</i></div>'}${cambiCorsa(c)}<div class="pop-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</div>`;
       $('graf-pop').hidden = false;
+    }
+    // cambi possibili della corsa che non sono coincidenze dell'O.d.S. (biglietto per ogni nave)
+    function cambiCorsa(c) {
+      const uff = S.coincidenze(giorno), num = String(c.numero);
+      const lista = S.cambi(giorno).filter(k => (k.a === num || k.b === num) && !uff.some(u => u.a === k.a && u.b === k.b && u.scalo === k.scalo));
+      if (!lista.length) return '';
+      return `<div class="pop-c pop-cp"><b>⇄ Cambi possibili</b> <small>(non sono coincidenze: biglietto per ogni nave)</small>${lista.map(k => k.a === num
+        ? `<div>a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} → c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${ora(k.parte)} per ${esc(k.verso)}</div>`
+        : `<div>a <b>${esc(k.scalo)}</b> da c. ${esc(k.a)}${k.srA ? ' SR' : ''} (arr. ${ora(k.arriva)}) → parte ${ora(k.parte)}</div>`).join('')}</div>`;
     }
     function chiudiPop() {
       $('graf-pop').hidden = true;
@@ -301,11 +313,14 @@
       let prossima = adesso >= 0 ? lista.find(p => S.minuti(p.ora) >= adesso) : null;
       // coincidenze dell'O.d.S. valide per chi parte da questo scalo (es. Peschiera c. 2 -> a Riva c. 57 per Torbole)
       const coinc = S.coincidenze(giorno);
-      const cambi = p => coinc.filter(k => k.a === String(p.numero) && k.provenienti.includes(scalo));
+      const coincPer = p => coinc.filter(k => k.a === String(p.numero) && k.provenienti.includes(scalo));
+      // cambi possibili non in coincidenza: la nave arriva allo scalo dopo questo e un'altra riparte (biglietti separati)
+      const tuttiCambi = S.cambi(giorno);
+      const cambiPer = p => tuttiCambi.filter(k => k.a === String(p.numero) && k.prima.includes(scalo) && !coincPer(p).some(c => c.b === k.b && c.scalo === k.scalo));
       const colT = t => S.COLORI[t] || '#9fb8c2';
       $('lista').innerHTML = lista.length ? lista.map(p => {
         const cls = [p.sr ? 'sr' : '', p.traghetto ? 'trag' : '', adesso >= 0 && S.minuti(p.ora) < adesso ? 'passata' : '', p === prossima ? 'prossima' : ''].filter(Boolean).join(' ');
-        return `<div class="dep ${cls}" style="--tc:${p.colore}"><span class="t">${ora(p.ora)}<small>${p.turno ? `<b class="tu">${esc(p.turno)}</b>` : ''}c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span>${cambi(p).map(k => `<span class="cambio">↪ a <b>${esc(k.scalo)}</b>${k.arriva ? ` ${ora(k.arriva)}` : ''} cambio con <b class="tu" style="--tc:${colT(k.turnoB)}">${esc(k.turnoB || '')}</b> c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${ora(k.parte)} per ${esc(k.verso)}</span>`).join('')}</div>`;
+        return `<div class="dep ${cls}" style="--tc:${p.colore}"><span class="t">${ora(p.ora)}<small>${p.turno ? `<b class="tu">${esc(p.turno)}</b>` : ''}c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span>${coincPer(p).map(k => `<span class="cambio">🔗 <b>Coincidenza</b> a <b>${esc(k.scalo)}</b>${k.arriva ? ` ${ora(k.arriva)}` : ''} con <b class="tu" style="--tc:${colT(k.turnoB)}">${esc(k.turnoB || '')}</b> c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${ora(k.parte)} per ${esc(k.verso)} · un solo biglietto</span>`).join('')}${cambiPer(p).map(k => `<span class="cambio cp">⇄ <b>Cambio possibile</b> a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} con <b class="tu" style="--tc:${colT(k.turnoB)}">${esc(k.turnoB || '')}</b> c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${ora(k.parte)} per ${esc(k.verso)} · <u>non è una coincidenza: biglietto per ogni nave</u></span>`).join('')}</div>`;
       }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
       // totali in alto: corse del giorno, partenze dallo scalo, prossima partenza
       $('kpi').innerHTML = `<div><small>Corse del giorno</small><b>${totali.corse}</b></div><div style="--k:var(--cyan)"><small>Da ${esc(scalo)}</small><b>${lista.length}</b></div><div class="pieno"><small>${adesso >= 0 ? 'Prossima' : 'Prima'}</small><b>${adesso >= 0 ? (prossima ? ora(prossima.ora) : '—') : (lista[0] ? ora(lista[0].ora) : '—')}</b></div>`;

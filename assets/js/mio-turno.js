@@ -112,10 +112,17 @@
     const run = String(row.run), turno = t => t ? `<b class="mt-co-tu" style="background:${S.COLORI[t] || '#9fb8c2'}">${esc(t)}</b>` : '';
     const via = row.kind !== 'P' ? tutte.filter(k => k.a === run && k.scalo === row.nome) : [];
     const dentro = row.kind !== 'A' ? tutte.filter(k => k.b === run && k.scalo === row.nome) : [];
-    if (!via.length && !dentro.length) return '';
+    // cambi possibili che non sono coincidenze dell'O.d.S.: biglietto per ogni nave
+    let cp = []; try { cp = S.cambi ? S.cambi(day) : []; } catch (_) { cp = []; }
+    const ufficiale = k => tutte.some(c => c.a === k.a && c.b === k.b && c.scalo === k.scalo);
+    const cvia = row.kind !== 'P' ? cp.filter(k => k.a === run && k.scalo === row.nome && !ufficiale(k)) : [];
+    const cdentro = row.kind !== 'A' ? cp.filter(k => k.b === run && k.scalo === row.nome && !ufficiale(k)) : [];
+    if (!via.length && !dentro.length && !cvia.length && !cdentro.length) return '';
     const fmt = t => esc(String(t).replace('.', ':'));
     return `<span class="mt-coinc">${via.map(k => `<span title="Coincidenza ai fini tariffari (O.d.S.)">🔗 → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${fmt(k.parte)} per ${esc(k.verso)}<small>solo per chi viene da ${esc(k.da)}</small></span>`).join('')}` +
-      `${dentro.map(k => `<span title="Coincidenza ai fini tariffari (O.d.S.)">🔗 ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''}${k.arriva ? ` arr. ${fmt(k.arriva)}` : ''}: passeggeri da ${esc(k.da)}</span>`).join('')}</span>`;
+      `${dentro.map(k => `<span title="Coincidenza ai fini tariffari (O.d.S.)">🔗 ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''}${k.arriva ? ` arr. ${fmt(k.arriva)}` : ''}: passeggeri da ${esc(k.da)}</span>`).join('')}` +
+      `${cvia.map(k => `<span class="cp" title="Cambio possibile, non e' una coincidenza: biglietto per ogni nave">⇄ cambio → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${fmt(k.parte)} per ${esc(k.verso)}<small>non è una coincidenza: biglietto per ogni nave</small></span>`).join('')}` +
+      `${cdentro.map(k => `<span class="cp" title="Cambio possibile, non e' una coincidenza: biglietto per ogni nave">⇄ cambio ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''} arr. ${fmt(k.arriva)} da ${esc(k.da)}<small>non è una coincidenza: biglietto per ogni nave</small></span>`).join('')}</span>`;
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
