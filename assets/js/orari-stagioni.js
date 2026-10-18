@@ -108,5 +108,34 @@
         ? { numero, turno: r[2], da: 'Maderno', a: 'Torri', parte: t, arriva: hhmm(minuti(t) + 30) } : { numero, turno: r[2], da: 'Torri', a: 'Maderno', parte: hhmm(minuti(t) - 30), arriva: t });
     return righe.sort((a, b) => minuti(a.parte) - minuti(b.parte));
   }
-  root.NaviOrariStagioni = { STAGIONI, COLORI, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
+  // Tutte le corse del giorno (linea e traghetto) con turno e scali: [{numero, turno, sr, punti: [[scalo, ora], ...]}]
+  function corseTutte(day) {
+    const out = [];
+    tabelle(day).forEach(t => t.corse.forEach(c => out.push({ numero: String(c.numero), turno: c.turno || '', sr: c.sr, punti: t.scali.filter(n => c.ore[n]).map(n => [n, c.ore[n]]) })));
+    traghetto(day).forEach(r => out.push({ numero: String(r.numero), turno: r.turno || '', sr: false, punti: [[r.da, r.parte], [r.a, r.arriva]] }));
+    return out;
+  }
+  // Coincidenze del giorno: allo stesso scalo la corsa a arriva e la b riparte entro max minuti
+  // (non per tornare allo scalo da cui arriva a, non con la stessa nave). Usate dall'orario grafico (Orari) e da Il mio turno.
+  const cacheCoinc = {};
+  function coincidenze(day, max = 20) {
+    const k = `${day}|${max}`;
+    if (cacheCoinc[k]) return cacheCoinc[k];
+    const corse = corseTutte(day), out = [];
+    corse.forEach(a => a.punti.forEach(([sc, ta], pa) => {
+      if (pa === 0) return;
+      const da = a.punti[pa - 1][0], arr = minuti(ta);
+      corse.forEach(b => {
+        if (b.numero === a.numero || (a.turno && a.turno === b.turno)) return; // stessa nave: non e' un cambio
+        const pb = b.punti.findIndex(p => p[0] === sc);
+        if (pb < 0 || pb === b.punti.length - 1) return;
+        const dop = minuti(b.punti[pb][1]) - arr;
+        if (dop < 0 || dop > max || b.punti[pb + 1][0] === da) return;
+        out.push({ a: a.numero, b: b.numero, turnoA: a.turno, turnoB: b.turno, srA: a.sr, srB: b.sr, scalo: sc, arriva: ta, parte: b.punti[pb][1], attesa: dop,
+          da: a.punti[0][0], verso: b.punti[b.punti.length - 1][0] });
+      });
+    }));
+    return (cacheCoinc[k] = out);
+  }
+  root.NaviOrariStagioni = { STAGIONI, COLORI, corseTutte, coincidenze, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);

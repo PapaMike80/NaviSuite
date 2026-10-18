@@ -103,6 +103,20 @@
     el.hidden = false;
   }
 
+  // Coincidenze allo scalo (orari-stagioni.js): chi arriva con questa corsa puo' prendere la corsa b (→),
+  // chi parte con questa corsa puo' arrivare con la corsa a (←). Cambio entro 20 minuti.
+  function coincidenzeRiga(row, day) {
+    const S = window.NaviOrariStagioni;
+    if (!S?.coincidenze) return '';
+    let tutte; try { tutte = S.coincidenze(day); } catch (_) { return ''; }
+    const run = String(row.run), turno = t => t ? `<b class="mt-co-tu" style="background:${S.COLORI[t] || '#9fb8c2'}">${esc(t)}</b>` : '';
+    const via = row.kind !== 'P' ? tutte.filter(k => k.a === run && k.scalo === row.nome) : [];
+    const dentro = row.kind !== 'A' ? tutte.filter(k => k.b === run && k.scalo === row.nome) : [];
+    if (!via.length && !dentro.length) return '';
+    const fmt = t => esc(String(t).replace('.', ':'));
+    return `<span class="mt-coinc">${via.map(k => `<span title="Coincidenza: arrivati con la corsa ${esc(run)} si prende la ${esc(k.b)}">🔗 → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} per ${esc(k.verso)} ${fmt(k.parte)}</span>`).join('')}` +
+      `${dentro.map(k => `<span title="Coincidenza: dalla corsa ${esc(k.a)} si sale sulla ${esc(run)}">🔗 ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''} da ${esc(k.da)} ${fmt(k.arriva)}</span>`).join('')}</span>`;
+  }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
     const oggi = T.turniDelGiorno(turniNavi, day)[code] || {};
@@ -173,7 +187,7 @@
         return `${sep}<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
-          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
+          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
 
     servizioHeader(info.presentation, info.lastArrival, day, code);
