@@ -254,6 +254,19 @@ def note_sr(c, L, R, y):
     return y - 13 * mm
 
 
+def note_coincidenze(c, L, R, y):
+    """Regola delle coincidenze (O.d.S. 16/2026, punti 4 e 5)."""
+    c.setFillColor(black); c.setFont("DVB", 11); c.drawString(L, y, "↪")
+    c.setFont("DV", 9.5)
+    for k, s in enumerate(("coincidenze solo tra Alto e Basso lago; dentro Alto o Basso lago un biglietto per ogni nave",
+                           "connections only between upper and lower lake; within them one ticket per ship",
+                           "Anschluss nur zwischen oberem und unterem See; sonst eine Fahrkarte pro Schiff")):
+        c.setFillColor(black if k == 0 else GREY)
+        assert pdfmetrics.stringWidth(s, "DV", 9.5) <= R - L - 10 * mm, s
+        c.drawString(L + 10 * mm, y - k * 4.3 * mm, s)
+    return y - 13 * mm
+
+
 # ---------------------------------------------------------------- dati per localita'
 
 def per_destinazione(S):
@@ -328,6 +341,7 @@ def main(S, out):
                        getattr(S, "RIGA_MM", 11.5), S.PRIMA_CORSA) - (
                 9 * mm if i == len(blocchi) - 1 else 12 * mm)
         y = note_sr(c, L, R, y)
+        y = note_coincidenze(c, L, R, y)
         assert y > 5 * mm, (f"pagina {pagina + 1}", y / mm)
         c.showPage()
     c.save()
