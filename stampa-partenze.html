@@ -88,7 +88,7 @@
     <label>Scalo <select id="scalo"></select></label>
     <label>Giorno <input id="data" type="date"></label>
     <button type="button" id="stampa">🖨 Stampa</button>
-    <a href="orario.html">← Scali</a>
+    <a href="orari.html" id="indietro">← Orari</a>
   </div>
   <div class="fogli"><div class="a4" id="foglio"></div></div>
 
@@ -195,6 +195,7 @@
         </div>
         <div class="piede"><span>Orario ${esc(ST.stagioneDel(day)?.ods || "O.d.S. 39/2026")}</span><span>Stampato con NaviSuite il ${new Date().toLocaleDateString('it-IT')}</span></div>`;
       document.title = `Partenze ${scalo} · ${per.map(([a, b]) => `${a.slice(8)}/${a.slice(5, 7)}-${b.slice(8)}/${b.slice(5, 7)}`).join(' ')}`;
+      $('indietro').href = `orari.html?scalo=${encodeURIComponent(scalo)}&giorno=${day}`;
       const url = new URL(location.href); url.searchParams.set('scalo', scalo); url.searchParams.set('data', day); history.replaceState(null, '', url);
     }
 
