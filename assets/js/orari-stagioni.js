@@ -93,5 +93,5 @@
         ? { numero, da: 'Maderno', a: 'Torri', parte: t, arriva: hhmm(minuti(t) + 30) } : { numero, da: 'Torri', a: 'Maderno', parte: hhmm(minuti(t) - 30), arriva: t });
     return righe.sort((a, b) => minuti(a.parte) - minuti(b.parte));
   }
-  root.NaviOrariStagioni = { STAGIONI, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
+  root.NaviOrariStagioni = { STAGIONI, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);

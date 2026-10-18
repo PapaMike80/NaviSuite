@@ -62,6 +62,14 @@
     .uff tbody tr.mio td,.uff tbody tr.mio th.sc{background:color-mix(in srgb,var(--c) 28%,#0c2532);color:var(--ink);font-weight:500}
     .uff td.v{color:#4b6a78}
     .uff td.sr{background:color-mix(in srgb,var(--amber) 9%,transparent)}
+    .graf-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#081d27;max-width:100%}
+    .graf-wrap svg{display:block}
+    .graf-wrap .c{fill:none;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;opacity:.9;cursor:pointer}
+    .graf-wrap .c:hover,.graf-wrap .c.sel{stroke-width:3.4;opacity:1}
+    .graf-wrap .c.sr{stroke-dasharray:5 3}
+    .lin{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+    .lin.tr{background:repeating-linear-gradient(90deg,var(--amber) 0 5px,transparent 5px 8px)}
+    #graf-sel{font:600 12px Manrope,system-ui,sans-serif;color:var(--ink)}
     .leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted)}
   </style>
 </head>
@@ -81,6 +89,12 @@
       <div id="lista" style="display:grid;gap:6px"></div>
       <div class="leg"><span><span class="tag">SR</span>rapido con supplemento</span><span><span class="tag tr">TR</span>traghetto Maderno – Torri</span></div>
     </section>
+    <section class="sez" id="graf-box">
+      <h2>📈 Orario grafico<small id="graf-info"></small></h2>
+      <div class="graf-wrap" id="graf"></div>
+      <div class="leg"><span><i class="lin" style="background:var(--teal)"></i>verso Riva</span><span><i class="lin" style="background:#fb923c"></i>verso Desenzano / Peschiera</span><span><i class="lin tr"></i>SR</span><span><i class="lin" style="background:var(--violet)"></i>traghetto</span></div>
+      <p>Ogni linea è una corsa: in orizzontale l’ora, in verticale gli scali. Più la linea è ripida, più la nave è veloce; i tratti orizzontali sono le soste. Tocca una linea per vedere la corsa.</p>
+    </section>
     <section class="sez" id="uff-box">
       <h2>📋 Orario ufficiale<small id="uff-ods"></small></h2>
       <div class="dirs" id="uff-dirs" role="group" aria-label="Direzione"></div>
@@ -97,7 +111,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=2"></script>
+  <script src="assets/js/orari-stagioni.js?v=3"></script>
   <script>
   (function () {
     'use strict';
@@ -123,6 +137,43 @@
     function disegnaStagioni() {
       $('stagioni').innerHTML = S.STAGIONI.map(s => `<button type="button" class="stagione${s === attuale ? ' ora' : ''}" style="--c:${s.colore}" data-id="${s.id}" aria-pressed="${s === stagione}"><span>${s.icona}</span>${esc(s.nome)}<small>${s.periodi.map(([a, b]) => `${breve(a)}–${breve(b)}`).join(' · ')}</small></button>`).join('');
     }
+    // Orario grafico: x = ora, y = scali nell'ordine dell'orario ufficiale (Desenzano in alto, Riva in basso)
+    function disegnaGrafico() {
+      const tab = S.tabelle(giorno), trag = S.traghetto(giorno);
+      const corse = [];
+      tab.forEach((t, i) => t.corse.forEach(c => corse.push({ numero: c.numero, sr: c.sr, colore: i === 0 ? '#2dd4bf' : '#fb923c', punti: t.scali.filter(n => c.ore[n]).map(n => [n, c.ore[n]]) })));
+      trag.forEach(r => corse.push({ numero: r.numero, sr: false, colore: '#a78bfa', punti: [[r.da, r.parte], [r.a, r.arriva]] }));
+      $('graf-box').style.setProperty('--c', stagione.colore);
+      $('graf-info').textContent = `${corse.length} corse`;
+      if (!corse.length) { $('graf').innerHTML = '<div class="vuoto">Nessuna corsa in orario.</div>'; return; }
+      const usati = new Set(corse.flatMap(c => c.punti.map(p => p[0])));
+      const righe = S.RIGHE_ANDATA.filter(n => usati.has(n));
+      const tutti = corse.flatMap(c => c.punti.map(p => S.minuti(p[1])));
+      const t0 = Math.floor(Math.min(...tutti) / 60) * 60, t1 = Math.ceil(Math.max(...tutti) / 60) * 60;
+      const L = 86, PX = 2.4, H = 22, T = 26, W = (t1 - t0) * PX + 44, Ht = T + righe.length * H + 8;
+      const x = m => 22 + (m - t0) * PX, y = n => T + righe.indexOf(n) * H + H / 2;
+      let svg = `<svg width="${W}" height="${Ht}" viewBox="0 0 ${W} ${Ht}" font-family="Manrope,system-ui,sans-serif">`;
+      const fondo = (n, i) => n === scalo ? 'rgba(45,212,191,.16)' : i % 2 ? '#0b2430' : 'transparent';
+      let nomi = `<svg width="${L}" height="${Ht}" font-family="Manrope,system-ui,sans-serif">`;
+      righe.forEach((n, i) => { svg += `<rect x="0" y="${T + i * H}" width="${W}" height="${H}" fill="${fondo(n, i)}"/>`; nomi += `<rect x="0" y="${T + i * H}" width="${L}" height="${H}" fill="${fondo(n, i)}"/><text x="6" y="${y(n) + 4}" font-size="11" font-weight="${n === scalo ? 800 : 600}" fill="${n === scalo ? '#eaf2f4' : '#9fb8c2'}">${esc(n)}</text>`; });
+      nomi += '</svg>';
+      for (let m = t0; m <= t1; m += 30) svg += `<line x1="${x(m)}" x2="${x(m)}" y1="${T - 4}" y2="${Ht - 8}" stroke="${m % 60 ? '#12303d' : '#1f4250'}"/>` + (m % 60 ? '' : `<text x="${x(m)}" y="16" font-size="10.5" font-weight="700" fill="#9fb8c2" text-anchor="middle">${m / 60}:00</text>`);
+      if (giorno === oggi) { const n = new Date().getHours() * 60 + new Date().getMinutes(); if (n >= t0 && n <= t1) svg += `<line x1="${x(n)}" x2="${x(n)}" y1="${T - 4}" y2="${Ht - 8}" stroke="#fb7185" stroke-width="1.5"/>`; }
+      corse.forEach(c => {
+        const pts = c.punti.map(([n, t]) => `${x(S.minuti(t)).toFixed(1)},${y(n)}`).join(' ');
+        const testo = `c. ${c.numero}${c.sr ? ' SR' : ''}: ` + c.punti.map(([n, t]) => `${n} ${ora(t)}`).join(' – ');
+        svg += `<polyline class="c${c.sr ? ' sr' : ''}" stroke="${c.sr ? '#fbbf24' : c.colore}" points="${pts}" data-t="${esc(testo)}"><title>${esc(testo)}</title></polyline>`;
+      });
+      svg += '</svg>';
+      $('graf').innerHTML = `<div style="display:flex"><div style="flex:0 0 ${L}px;border-right:1px solid #1f4250">${nomi}</div><div class="graf-scorri" style="overflow-x:auto;flex:1;min-width:0">${svg}</div></div><div id="graf-sel" style="padding:6px 10px"></div>`;
+      // il grafico parte dall'ora attuale
+      if (giorno === oggi) { const n = new Date().getHours() * 60; $('graf').querySelector('.graf-scorri').scrollLeft = Math.max(0, x(n - 60)); }
+    }
+    $('graf').addEventListener('click', e => {
+      const l = e.target.closest('polyline'); if (!l) return;
+      $('graf').querySelectorAll('.sel').forEach(x => x.classList.remove('sel')); l.classList.add('sel');
+      $('graf-sel').textContent = l.dataset.t;
+    });
     let direzione = 0;
     function disegnaUfficiale() {
       $('uff-box').style.setProperty('--c', stagione.colore);
@@ -148,6 +199,7 @@
       $('info').innerHTML = `<h2>${stagione.icona} Orario ${esc(stagione.nome.toLowerCase())}<small>${esc(stagione.ods)}</small></h2><p>Dal ${data(a)} al ${data(b)}. ${esc(stagione.nota)}</p>`;
       $('partenze-box').style.setProperty('--c', stagione.colore);
       disegnaUfficiale();
+      disegnaGrafico();
       $('giorno').min = a; $('giorno').max = b; $('giorno').value = giorno;
       const elenco = S.scali(giorno);
       if (!elenco.includes(scalo)) scalo = elenco.includes('Maderno') ? 'Maderno' : elenco[0];
