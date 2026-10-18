@@ -61,6 +61,10 @@
     .uff tbody tr:nth-child(even) td,.uff tbody tr:nth-child(even) th.sc{background:#10304a}
     .uff tbody tr.mio td,.uff tbody tr.mio th.sc{background:color-mix(in srgb,var(--c) 28%,#0c2532);color:var(--ink);font-weight:500}
     .uff td.v{color:#4b6a78}
+    .uff thead th.tu{background:var(--t);color:var(--on);font:900 10.5px Manrope,system-ui,sans-serif;border-right:1px solid #0c2532;top:0}
+    .uff thead tr:nth-child(2) th{top:22px}
+    .uff .srb{font:900 8.5px Manrope;padding:0 4px;border-radius:999px;background:var(--amber);color:var(--on)}
+    .uff tbody tr.mio td{font-weight:500;filter:brightness(1.25)}
     .uff td.sr{background:color-mix(in srgb,var(--amber) 9%,transparent)}
     .graf-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--line);background:#081d27;max-width:100%}
     .graf-wrap svg{display:block}
@@ -110,7 +114,7 @@
       <summary><span>📋 Orario ufficiale</span><b class="cnt" id="uff-ods"></b></summary>
       <div class="dirs" id="uff-dirs" role="group" aria-label="Direzione"></div>
       <div class="uff-wrap" id="uff"></div>
-      <p>Una colonna per corsa, come nell’orario dell’O.d.S.; in evidenza lo scalo scelto. Scorri di lato per vedere tutte le corse.</p>
+      <p>Una colonna per corsa con il suo turno (D1, D2…), nei colori dei turni; in evidenza lo scalo scelto. Scorri di lato per vedere tutte le corse.</p>
     </details>
   </main>
 
@@ -122,7 +126,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=3"></script>
+  <script src="assets/js/orari-stagioni.js?v=4"></script>
   <script>
   (function () {
     'use strict';
@@ -197,10 +201,11 @@
       if (!voci.length) { $('uff').innerHTML = '<div class="vuoto">Nessuna corsa in orario.</div>'; return; }
       if (direzione < tab.length) {
         const t = tab[direzione];
-        $('uff').innerHTML = `<table class="uff"><thead><tr><th class="sc">Corsa</th>${t.corse.map(c => `<th class="${c.sr ? 'sr' : ''}">${esc(c.numero)}${c.sr ? '<br>SR' : ''}</th>`).join('')}</tr></thead><tbody>${t.scali.map(n => `<tr class="${n === scalo ? 'mio' : ''}"><th class="sc">${esc(n)}</th>${t.corse.map(c => c.ore[n] ? `<td class="${c.sr ? 'sr' : ''}">${ora(c.ore[n])}</td>` : `<td class="v">|</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+        $('uff').innerHTML = `<table class="uff"><thead><tr><th class="sc">Turno</th>${t.corse.map(c => `<th class="tu" style="--t:${c.colore}">${esc(c.turno || '–')}</th>`).join('')}</tr><tr><th class="sc">Corsa</th>${t.corse.map(c => `<th style="color:${c.colore}">${esc(c.numero)}${c.sr ? '<br><span class="srb">SR</span>' : ''}</th>`).join('')}</tr></thead><tbody>${t.scali.map(n => `<tr class="${n === scalo ? 'mio' : ''}"><th class="sc">${esc(n)}</th>${t.corse.map(c => c.ore[n] ? `<td style="color:${c.colore}">${ora(c.ore[n])}</td>` : `<td class="v">|</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       } else {
         const righe = ['Maderno', 'Torri'].map(da => trag.filter(r => r.da === da));
-        $('uff').innerHTML = righe.map(r => `<table class="uff" style="margin-bottom:6px"><thead><tr><th class="sc">Corsa</th>${r.map(x => `<th>${esc(x.numero)}</th>`).join('')}</tr></thead><tbody><tr class="${r[0]?.da === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.da || '')}</th>${r.map(x => `<td>${ora(x.parte)}</td>`).join('')}</tr><tr class="${r[0]?.a === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.a || '')}</th>${r.map(x => `<td>${ora(x.arriva)}</td>`).join('')}</tr></tbody></table>`).join('');
+        const col = x => S.COLORI[x.turno] || '#a78bfa';
+        $('uff').innerHTML = righe.map(r => `<table class="uff" style="margin-bottom:6px"><thead><tr><th class="sc">Turno</th>${r.map(x => `<th class="tu" style="--t:${col(x)}">${esc(x.turno || '–')}</th>`).join('')}</tr><tr><th class="sc">Corsa</th>${r.map(x => `<th style="color:${col(x)}">${esc(x.numero)}</th>`).join('')}</tr></thead><tbody><tr class="${r[0]?.da === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.da || '')}</th>${r.map(x => `<td style="color:${col(x)}">${ora(x.parte)}</td>`).join('')}</tr><tr class="${r[0]?.a === scalo ? 'mio' : ''}"><th class="sc">${esc(r[0]?.a || '')}</th>${r.map(x => `<td style="color:${col(x)}">${ora(x.arriva)}</td>`).join('')}</tr></tbody></table>`).join('');
       }
     }
     $('uff-dirs').addEventListener('click', e => { const b = e.target.closest('[data-dir]'); if (!b) return; direzione = Number(b.dataset.dir); disegnaUfficiale(); });
