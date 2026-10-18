@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v619-righe-alternate';
+const CACHE_VERSION = 'navisuite-v620-font-roboto';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -41,6 +41,12 @@ const CORE_ASSETS = [
   './stampa-partenze.html',
   './assets/images/logo-nlg.png',
   './assets/images/logo-mit.png',
+  './assets/fonts/roboto-latin-400-normal.woff2',
+  './assets/fonts/roboto-latin-500-normal.woff2',
+  './assets/fonts/roboto-latin-700-normal.woff2',
+  './assets/fonts/roboto-latin-900-normal.woff2',
+  './assets/fonts/roboto-latin-400-italic.woff2',
+  './assets/fonts/roboto-latin-500-italic.woff2',
   './manifest.json',
   './assets/css/portal.css',
   './assets/css/navi-shared.css',
