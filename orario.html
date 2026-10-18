@@ -38,7 +38,7 @@
         <button type="button" data-view="lago">Lago</button>
         <button type="button" data-view="viaggio">Da → A</button>
       </nav>
-      <a id="orario-stampa" href="stampa-partenze.html" title="Orario delle partenze dello scalo, da stampare" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #1f4250;border-radius:10px;background:#102733;color:#9fb8c2;font:800 11px Manrope,system-ui,sans-serif;text-decoration:none;white-space:nowrap">🖨 A4</a>
+      <a id="orario-stampa" href="orari.html" title="Orari della stagione e orario ufficiale" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #1f4250;border-radius:10px;background:#102733;color:#9fb8c2;font:800 11px Manrope,system-ui,sans-serif;text-decoration:none;white-space:nowrap">🕒 Orario</a>
     </div>
     <div class="terra-notice" id="orario-notice" hidden></div>
     <div id="orario-content"></div>
@@ -60,11 +60,11 @@
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
   <script>
-  // Partenze A4: stesso scalo e giorno della pagina
+  // Orario: stesso scalo e giorno della pagina
   document.getElementById('orario-stampa')?.addEventListener('click', e => {
     const q = new URLSearchParams(location.search), day = document.getElementById('orario-day-input')?.value || '';
-    const u = new URLSearchParams(); if (q.get('scalo')) u.set('scalo', q.get('scalo')); if (day) u.set('data', day);
-    e.currentTarget.href = 'stampa-partenze.html' + (u.toString() ? '?' + u : '');
+    const u = new URLSearchParams(); if (q.get('scalo')) u.set('scalo', q.get('scalo')); if (day) u.set('giorno', day);
+    e.currentTarget.href = 'orari.html' + (u.toString() ? '?' + u : '');
   });
   </script>
 </body>

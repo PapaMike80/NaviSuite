@@ -117,6 +117,7 @@
     const attuale = S.stagioneDel(oggi);
     let stagione = S.STAGIONI.find(s => s.id === q.get('stagione')) || attuale || S.STAGIONI[2];
     let giorno = /^\d{4}-\d{2}-\d{2}$/.test(q.get('giorno') || '') && S.stagioneDel(q.get('giorno')) ? q.get('giorno') : (stagione === attuale ? oggi : stagione.periodi[0][0]);
+    if (!q.get('stagione')) stagione = S.stagioneDel(giorno) || stagione; // dalla pagina Scali arriva solo il giorno
     let scalo = q.get('scalo') || (() => { try { return localStorage.getItem('navisuite.orari.scalo'); } catch (_) { return ''; } })() || ({ desenzano: 'Desenzano', maderno: 'Maderno', riva: 'Riva', peschiera: 'Peschiera' })[String(profilo?.residence || '').toLowerCase()] || 'Maderno';
 
     function disegnaStagioni() {
