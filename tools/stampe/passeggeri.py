@@ -33,6 +33,58 @@ SR_CORSE = {"102", "103", "104", "105", "106", "107", "111", "112", "113", "114"
 KEY_W = 34 * mm
 
 
+# ---------------------------------------------------------------- coincidenze valide
+
+def coincidenze_ufficiali(stagione="inverno"):
+    """Elenco delle coincidenze ai fini tariffari (assets/js/coincidenze-ufficiali.js, da coincidenze.py)."""
+    import json, os, re
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "js", "coincidenze-ufficiali.js")
+    testo = open(path, encoding="utf-8").read()
+    return json.loads(re.search(r"NaviCoincidenzeUfficiali = (\{.*\});", testo, re.S).group(1))[stagione]
+
+
+def _vale(elenco, da, scalo, a, origine, destinazione):
+    """Il cambio da corsa `da` a corsa `a` a `scalo` e' una coincidenza per chi va da `origine` a `destinazione`?
+    Dentro Alto lago e Basso lago non ci sono coincidenze: vale solo se l'O.d.S. la elenca per quegli scali."""
+    norm = lambda n: n.replace("Torri del Benaco", "Torri")
+    for k in elenco:
+        if da in k["da"].split("/") and a in k["a"].split("/") and k["scalo"] == scalo \
+                and norm(origine) in k["provenienti"] and norm(destinazione) in k["per"]:
+            return True
+    return False
+
+
+def solo_coincidenze_valide(S, elenco=None):
+    """Toglie dai fogli i cambi che non sono coincidenze dell'O.d.S. per questo scalo (scrive su stderr cosa toglie)."""
+    import sys
+    elenco = elenco if elenco is not None else coincidenze_ufficiali()
+    nome = S.NOME_TITOLO
+    tolti = []
+    def filtra(righe, ritorno):
+        out = []
+        for orario, nota, corsa, stops in righe:
+            tenuti = []
+            for st in stops:
+                if len(st) == 3:
+                    scalo, _arr, _part, dopo = st[2]
+                    if ritorno:  # dalla localita' st[0] con la prima corsa, cambio sulla `corsa` che arriva qui
+                        prima = S.PRIMA_CORSA.get((st[0], st[1]), "")
+                        ok = _vale(elenco, prima, scalo, corsa, st[0], nome)
+                    else:  # da qui con la `corsa`, cambio sulla `dopo` per la localita' st[0]
+                        ok = _vale(elenco, corsa, scalo, dopo, nome, st[0])
+                    if not ok:
+                        tolti.append(f"{'ritorno' if ritorno else 'partenza'} c.{corsa} {st[0]} via {scalo}")
+                        continue
+                tenuti.append(st)
+            out.append((orario, nota, corsa, tenuti))
+        return out
+    S.PARTENZE = filtra(S.PARTENZE, False)
+    S.RITORNI = filtra(S.RITORNI, True)
+    for t in tolti:
+        print(f"[{nome}] tolto, non e' una coincidenza dell'O.d.S.: {t}", file=sys.stderr)
+    return tolti
+
+
 def cambio(scalo, arrivo, partenza, corsa):
     """Coincidenza: si scende a `scalo` alle `arrivo` e si riparte alle `partenza` con la `corsa`."""
     return (scalo, arrivo, partenza, corsa)
@@ -202,6 +254,19 @@ def note_sr(c, L, R, y):
     return y - 13 * mm
 
 
+def note_coincidenze(c, L, R, y):
+    """Regola delle coincidenze (O.d.S. 16/2026, punti 4 e 5)."""
+    c.setFillColor(black); c.setFont("DVB", 11); c.drawString(L, y, "↪")
+    c.setFont("DV", 9.5)
+    for k, s in enumerate(("coincidenze solo tra Alto e Basso lago; dentro Alto o Basso lago un biglietto per ogni nave",
+                           "connections only between upper and lower lake; within them one ticket per ship",
+                           "Anschluss nur zwischen oberem und unterem See; sonst eine Fahrkarte pro Schiff")):
+        c.setFillColor(black if k == 0 else GREY)
+        assert pdfmetrics.stringWidth(s, "DV", 9.5) <= R - L - 10 * mm, s
+        c.drawString(L + 10 * mm, y - k * 4.3 * mm, s)
+    return y - 13 * mm
+
+
 # ---------------------------------------------------------------- dati per localita'
 
 def per_destinazione(S):
@@ -257,6 +322,7 @@ def per_origine(S):
 
 def main(S, out):
     """Navi di linea: pagina 1 partenze, pagina 2 ritorni."""
+    solo_coincidenze_valide(S)
     nome, Nome = S.NOME, S.NOME_TITOLO
     c = canvas.Canvas(out, pagesize=A4)
     c.setTitle(f"{Nome} - partenze e ritorni / departures and return / Abfahrten und Rückfahrt")
@@ -275,6 +341,7 @@ def main(S, out):
                        getattr(S, "RIGA_MM", 11.5), S.PRIMA_CORSA) - (
                 9 * mm if i == len(blocchi) - 1 else 12 * mm)
         y = note_sr(c, L, R, y)
+        y = note_coincidenze(c, L, R, y)
         assert y > 5 * mm, (f"pagina {pagina + 1}", y / mm)
         c.showPage()
     c.save()

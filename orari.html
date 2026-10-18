@@ -97,6 +97,7 @@
     .pop-scali li{display:flex;gap:6px}.pop-scali li span{font-family:var(--mono);color:var(--muted);min-width:38px}
     .pop-scali li.mio{color:var(--teal);font-weight:800}
     .pop-c{display:grid;gap:3px;padding-top:6px;border-top:1px solid var(--line)}
+    .pop-regola{font-size:11px;color:var(--amber);padding-top:4px;border-top:1px solid var(--line)}
     .pop-c i{color:var(--muted);font-style:normal;font-family:var(--mono)}
     main>*{min-width:0;max-width:100%}
     .adm{min-width:0;overflow:hidden;--c:var(--teal);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
@@ -134,7 +135,7 @@
       <div class="graf-wrap" id="graf"></div>
       <div class="graf-pop" id="graf-pop" hidden></div>
       <div class="leg"><span><i class="lin" style="background:var(--teal)"></i>verso Riva</span><span><i class="lin" style="background:#fb923c"></i>verso Desenzano / Peschiera</span><span><i class="lin tr"></i>SR</span><span><i class="lin" style="background:var(--violet)"></i>traghetto</span><span><i class="lin" style="background:#fff"></i>coincidenza</span></div>
-      <p>Ogni linea è una corsa: in orizzontale l’ora, in verticale gli scali. Più la linea è ripida, più la nave è veloce; i tratti orizzontali sono le soste. Tocca una linea per vedere la corsa e le sue coincidenze (cambio allo stesso scalo entro 20 minuti); tocca fuori per tornare a tutte le corse.</p>
+      <p>Ogni linea è una corsa: in orizzontale l’ora, in verticale gli scali. Più la linea è ripida, più la nave è veloce; i tratti orizzontali sono le soste. Tocca una linea per vedere la corsa e le sue coincidenze: solo quelle ai fini tariffari dell’O.d.S. (dentro Alto lago e Basso lago non ci sono coincidenze); tocca fuori per tornare a tutte le corse.</p>
     </details>
     <details class="adm" id="uff-box" style="--c:var(--teal)">
       <summary><span>📋 Orario ufficiale</span><b class="cnt" id="uff-ods"></b></summary>
@@ -150,9 +151,10 @@
   <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/orario-corse.js?v=1"></script>
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
-  <script src="assets/js/orario-giorno.js?v=6"></script>
+  <script src="assets/js/orario-giorno.js?v=7"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=6"></script>
+  <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
+  <script src="assets/js/orari-stagioni.js?v=8"></script>
   <script>
   (function () {
     'use strict';
@@ -182,23 +184,10 @@
     // Orario grafico: x = ora, y = scali nell'ordine dell'orario ufficiale (Desenzano in alto, Riva in basso)
     let grafCorse = [], grafCoinc = [];
     let mostraCoinc = (() => { try { return localStorage.getItem('navisuite.orari.coincidenze') === '1'; } catch (_) { return false; } })();
-    const MAX_COINC = 20; // minuti massimi fra arrivo e partenza perche' sia una coincidenza
-    // Coincidenze: allo stesso scalo una corsa arriva e un'altra parte entro MAX_COINC minuti (non per tornare indietro, non con la stessa nave)
+    // Coincidenze: solo quelle ai fini tariffari dell'O.d.S. (orari-stagioni.js); indici delle corse del grafico
     function coincidenze(corse) {
-      const out = [];
-      corse.forEach((a, ia) => a.punti.forEach(([sc, ta], pa) => {
-        if (pa === 0) return; // la corsa deve arrivare qui
-        const da = a.punti[pa - 1][0], arr = S.minuti(ta);
-        corse.forEach((b, ib) => {
-          if (ib === ia || b.numero === a.numero || (a.turno && a.turno === b.turno)) return; // stessa nave: non e' un cambio
-          const pb = b.punti.findIndex(p => p[0] === sc);
-          if (pb < 0 || pb === b.punti.length - 1) return; // deve ripartire da qui
-          const dop = S.minuti(b.punti[pb][1]) - arr;
-          if (dop < 0 || dop > MAX_COINC || b.punti[pb + 1][0] === da) return;
-          out.push({ a: ia, b: ib, scalo: sc, arriva: ta, parte: b.punti[pb][1], attesa: dop, verso: b.punti[b.punti.length - 1][0] });
-        });
-      }));
-      return out;
+      const idx = n => corse.findIndex(c => String(c.numero) === String(n));
+      return S.coincidenze(giorno).map(k => ({ ...k, a: idx(k.a), b: idx(k.b) })).filter(k => k.a >= 0 && k.b >= 0 && k.arriva);
     }
     function disegnaGrafico() {
       const tab = S.tabelle(giorno), trag = S.traghetto(giorno);
@@ -253,7 +242,7 @@
       $('graf-pop').innerHTML = `<div class="pop-h"><span><b class="tu" style="background:${c.coloreTurno}">${esc(c.turno || '–')}</b> Corsa ${esc(c.numero)}${c.sr ? ' <span class="tag">SR</span>' : ''}</span><button type="button" data-chiudi aria-label="Chiudi">✕</button></div>
         <small>${esc(c.direzione)} · ${esc(c.punti[0][0])} ${ora(c.punti[0][1])} → ${esc(c.punti[c.punti.length - 1][0])} ${ora(c.punti[c.punti.length - 1][1])}</small>
         <ol class="pop-scali">${c.punti.map(([n, t]) => `<li class="${n === scalo ? 'mio' : ''}"><span>${ora(t)}</span>${esc(n)}</li>`).join('')}</ol>
-        ${arrivi.length || partenze.length ? `<div class="pop-c"><b>🔗 Coincidenze</b>${arrivi.map(k => `<div>a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} → ${nome(k.b)} per ${esc(k.verso)} alle ${ora(k.parte)} <i>${k.attesa}′</i></div>`).join('')}${partenze.map(k => `<div>a <b>${esc(k.scalo)}</b> da ${nome(k.a)} (arr. ${ora(k.arriva)}) → parte ${ora(k.parte)} <i>${k.attesa}′</i></div>`).join('')}</div>` : '<div class="pop-c"><i>Nessuna coincidenza entro ' + MAX_COINC + ' minuti.</i></div>'}`;
+        ${arrivi.length || partenze.length ? `<div class="pop-c"><b>🔗 Coincidenze</b>${arrivi.map(k => `<div>a <b>${esc(k.scalo)}</b> ${ora(k.arriva)} → ${nome(k.b)} alle ${ora(k.parte)} per ${esc(k.verso)}<br><i>solo per chi viene da ${esc(k.da)}</i></div>`).join('')}${partenze.map(k => `<div>a <b>${esc(k.scalo)}</b> da ${nome(k.a)} (arr. ${ora(k.arriva)}) → parte ${ora(k.parte)}<br><i>passeggeri da ${esc(k.da)}</i></div>`).join('')}</div>` : '<div class="pop-c"><i>Nessuna coincidenza ai fini tariffari.</i></div>'}<div class="pop-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</div>`;
       $('graf-pop').hidden = false;
     }
     function chiudiPop() {

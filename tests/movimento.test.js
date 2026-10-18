@@ -105,7 +105,9 @@ O.stagioneDaRighe([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', stagio
 assert.strictEqual(O.inServizio('SR1', '2026-10-09'), true);
 assert.strictEqual(O.inServizio('SR1', '2026-12-01'), false);
 assert.strictEqual(O.inServizio('D3', '2026-10-20'), true);
-assert.strictEqual(O.inServizio('D3', '2026-09-01'), false);
+// prima dell'estate (10/5) D3 non e' in orario; d'estate (O.d.S. 16/2026) e' in servizio
+assert.strictEqual(O.inServizio('D3', '2026-05-10'), false);
+assert.strictEqual(O.inServizio('D3', '2026-09-01'), true);
 assert.deepStrictEqual(T.turniDelGiorno([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', fonte: 'movimento', attiva: true }], '2026-11-11'), {});
 assert.match(rest, /saveStagioneTurno/);
 O.stagioneDaRighe([]);

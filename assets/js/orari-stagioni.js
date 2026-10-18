@@ -115,27 +115,32 @@
     traghetto(day).forEach(r => out.push({ numero: String(r.numero), turno: r.turno || '', sr: false, punti: [[r.da, r.parte], [r.a, r.arriva]] }));
     return out;
   }
-  // Coincidenze del giorno: allo stesso scalo la corsa a arriva e la b riparte entro max minuti
-  // (non per tornare allo scalo da cui arriva a, non con la stessa nave). Usate dall'orario grafico (Orari) e da Il mio turno.
+  // Coincidenze del giorno: SOLO quelle ai fini tariffari dell'O.d.S. (coincidenze-ufficiali.js). Dentro Alto lago e
+  // Basso lago non ci sono coincidenze: non si calcolano dagli orari. Valgono se le due corse sono in servizio quel giorno
+  // (le note A/B dell'O.d.S. seguono la periodicita' delle corse). Usate dall'orario grafico (Orari) e da Il mio turno.
   const cacheCoinc = {};
-  function coincidenze(day, max = 20) {
-    const k = `${day}|${max}`;
-    if (cacheCoinc[k]) return cacheCoinc[k];
-    const corse = corseTutte(day), out = [];
-    corse.forEach(a => a.punti.forEach(([sc, ta], pa) => {
-      if (pa === 0) return;
-      const da = a.punti[pa - 1][0], arr = minuti(ta);
-      corse.forEach(b => {
-        if (b.numero === a.numero || (a.turno && a.turno === b.turno)) return; // stessa nave: non e' un cambio
-        const pb = b.punti.findIndex(p => p[0] === sc);
-        if (pb < 0 || pb === b.punti.length - 1) return;
-        const dop = minuti(b.punti[pb][1]) - arr;
-        if (dop < 0 || dop > max || b.punti[pb + 1][0] === da) return;
-        out.push({ a: a.numero, b: b.numero, turnoA: a.turno, turnoB: b.turno, srA: a.sr, srB: b.sr, scalo: sc, arriva: ta, parte: b.punti[pb][1], attesa: dop,
-          da: a.punti[0][0], verso: b.punti[b.punti.length - 1][0] });
-      });
-    }));
-    return (cacheCoinc[k] = out);
+  function coincidenze(day) {
+    if (cacheCoinc[day]) return cacheCoinc[day];
+    const s = stagioneDel(day), elenco = root.NaviCoincidenzeUfficiali?.[s?.fonte === 'estate' ? 'estate' : 'inverno'];
+    if (!s || s.fonte === 'traghetto' || !elenco) return (cacheCoinc[day] = []);
+    const corse = corseTutte(day), per = n => corse.find(c => c.numero === n);
+    const out = [];
+    elenco.forEach(k => k.da.split('/').forEach(na => k.a.split('/').forEach(nb => {
+      const a = per(na), b = per(nb);
+      if (!a || !b) return; // una delle due corse non c'e' quel giorno
+      const arriva = k.arriva || a.punti.find(p => p[0] === k.scalo)?.[1] || '';
+      const parte = b.punti.find(p => p[0] === k.scalo)?.[1] || k.parte;
+      const doppia = out.find(x => x.a === na && x.b === nb && x.scalo === k.scalo);
+      if (doppia) { // stessa coincidenza per altri scali di provenienza
+        k.provenienti.forEach(n => { if (!doppia.provenienti.includes(n)) doppia.provenienti.push(n); });
+        doppia.da = doppia.provenienti.join(', ');
+        return;
+      }
+      out.push({ a: na, b: nb, turnoA: a.turno, turnoB: b.turno, srA: a.sr, srB: b.sr, scalo: k.scalo, arriva, parte,
+        attesa: arriva ? minuti(parte) - minuti(arriva) : null, da: k.provenienti.join(', '), verso: k.per.join(', '),
+        provenienti: [...k.provenienti], per: k.per, catena: k.catena, periodo: k.periodo });
+    })));
+    return (cacheCoinc[day] = out);
   }
   root.NaviOrariStagioni = { STAGIONI, COLORI, corseTutte, coincidenze, RIGHE_ANDATA, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);
