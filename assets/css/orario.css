@@ -197,3 +197,6 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 .or-map-tip{margin:0;padding:6px 10px 8px;color:#9fb8c2;font-size:12px;text-align:center}
 .or-map-nota{margin:4px 2px 0}
 .or-port .or-hit{fill:transparent!important;stroke:none!important;pointer-events:all}
+/* Da -> A: coincidenza dell'O.d.S. (gialla) o cambio con biglietto per ogni nave (grigio) */
+.or-change.or-cambio{border-left-color:#64748b;color:#9fb8c2;text-transform:none;letter-spacing:0;font-size:11px;font-weight:700}
+.or-change.or-coinc{text-transform:none;letter-spacing:0;font-size:11px}

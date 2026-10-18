@@ -28,6 +28,11 @@ STRIPE = Color(0.93, 0.93, 0.93)
 W, H = A4
 # sigla dello scalo dove si cambia nave, accanto all'orario raggiungibile con il cambio
 SIGLA = {"Garda": "Ga", "Sirmione": "Si", "Salò": "Sa", "Malcesine": "Ma", "Riva": "Ri"}
+
+
+def sigla(cb):
+    """Sigla del cambio; con * se e' solo un cambio possibile (non una coincidenza dell'O.d.S.)."""
+    return SIGLA[cb[0]] + ("*" if len(cb) > 4 and cb[4] else "")
 # corse SR (servizio rapido con supplemento)
 SR_CORSE = {"102", "103", "104", "105", "106", "107", "111", "112", "113", "114"}
 KEY_W = 34 * mm
@@ -55,7 +60,8 @@ def _vale(elenco, da, scalo, a, origine, destinazione):
 
 
 def solo_coincidenze_valide(S, elenco=None):
-    """Toglie dai fogli i cambi che non sono coincidenze dell'O.d.S. per questo scalo (scrive su stderr cosa toglie)."""
+    """Segna come «cambio possibile» (sigla con *) i cambi che non sono coincidenze dell'O.d.S. per questo scalo:
+    si possono fare, ma con un biglietto per ogni nave (scrive su stderr quali sono)."""
     import sys
     elenco = elenco if elenco is not None else coincidenze_ufficiali()
     nome = S.NOME_TITOLO
@@ -74,14 +80,14 @@ def solo_coincidenze_valide(S, elenco=None):
                         ok = _vale(elenco, corsa, scalo, dopo, nome, st[0])
                     if not ok:
                         tolti.append(f"{'ritorno' if ritorno else 'partenza'} c.{corsa} {st[0]} via {scalo}")
-                        continue
+                        st = (st[0], st[1], (*st[2][:4], True))
                 tenuti.append(st)
             out.append((orario, nota, corsa, tenuti))
         return out
     S.PARTENZE = filtra(S.PARTENZE, False)
     S.RITORNI = filtra(S.RITORNI, True)
     for t in tolti:
-        print(f"[{nome}] tolto, non e' una coincidenza dell'O.d.S.: {t}", file=sys.stderr)
+        print(f"[{nome}] cambio possibile (non coincidenza dell'O.d.S.): {t}", file=sys.stderr)
     return tolti
 
 
@@ -140,7 +146,8 @@ def matrix(c, L, R, y, rows, places, ritorno, tsize, hsize, ordinati=True, riga=
             if len(st) == 3:
                 assert st[2][0] in SIGLA, st
                 first = (prima or {}).get((st[0], st[1]), "") if ritorno else ""
-                changes.setdefault(st[2][0], set()).add((st[2][2], st[2][3], first if first in SR_CORSE else ""))
+                cp = len(st[2]) > 4 and st[2][4]
+                changes.setdefault((st[2][0], cp), set()).add((st[2][2], st[2][3], first if first in SR_CORSE else ""))
         if ordinati:  # senza cambi gli orari crescono da sinistra a destra
             direct = [minutes(t) for p in places for s in stops if s[0] == p and len(s) == 2 for t in [s[1]]]
             assert direct == sorted(direct), stops
@@ -190,9 +197,9 @@ def matrix(c, L, R, y, rows, places, ritorno, tsize, hsize, ordinati=True, riga=
             if len(st) == 3:  # stessa misura degli altri orari, sigla del cambio in apice
                 ssize = round(tsize * 0.6, 1)
                 tw = pdfmetrics.stringWidth(st[1], "DV", tsize)
-                sw = pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", ssize)
+                sw = pdfmetrics.stringWidth(sigla(st[2]), "DVB", ssize)
                 c.drawCentredString(cx - sw / 2, ty, st[1])
-                c.setFont("DVB", ssize); c.drawString(cx - sw / 2 + tw / 2 + 0.2 * mm, ty + tsize * 0.13 * mm, SIGLA[st[2][0]])
+                c.setFont("DVB", ssize); c.drawString(cx - sw / 2 + tw / 2 + 0.2 * mm, ty + tsize * 0.13 * mm, sigla(st[2]))
             else:
                 c.drawCentredString(cx, ty, st[1])
         y -= rh
@@ -200,27 +207,37 @@ def matrix(c, L, R, y, rows, places, ritorno, tsize, hsize, ordinati=True, riga=
     for i in range(len(places) + 1):
         x = x_places + cw * i
         c.line(x, y, x, y + rh * len(rows) + head)
-    # coincidenze raggruppate per scalo di cambio: sigla, scalo e corse in partenza da li'
+    # coincidenze (O.d.S.) e cambi possibili (*, biglietto per ogni nave), raggruppati per scalo di cambio
     if changes:
-        y -= 5 * mm
-        c.setFont("DV", 8.6); c.setFillColor(GREY)
-        c.drawString(L, y, "cambio nave  ·  change ship  ·  Umsteigen")
-        col_w = R - L
-        for n, (scalo, conns) in enumerate(sorted(changes.items(), key=lambda kv: min(minutes(d) for d, _, _ in kv[1]))):
-            x = L
-            yy = y - 4.6 * mm * (n + 1)
-            c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(x, yy, SIGLA[scalo])
-            c.drawString(x + 6.5 * mm, yy, scalo)
-            xx = x + 6.5 * mm + pdfmetrics.stringWidth(scalo + "  ", "DVB", 9.5)
-            for k, (dep, run, sr_prima) in enumerate(sorted(conns, key=lambda dr: (minutes(dr[0]), dr[2]))):
-                piece = ("  ·  " if k else "") + dep
-                c.setFillColor(black); c.setFont("DV", 9.5); c.drawString(xx, yy, piece)
-                xx += pdfmetrics.stringWidth(piece + " ", "DV", 9.5)
-                # SR (solo fino all'11/10): la corsa del cambio, o quella presa prima nei ritorni
-                corsa = (f"corsa {sr_prima} SR › {run}" if sr_prima else f"corsa {run}") + (" SR" if run in SR_CORSE else "")
-                c.setFillColor(GREY); c.setFont("DV", 7.8); c.drawString(xx, yy, corsa)
-                xx += pdfmetrics.stringWidth(corsa, "DV", 7.8)
-            assert xx < x + col_w, (scalo, conns)
+        n = 0
+        for cp, titolo in ((False, "coincidenza  ·  connection  ·  Anschluss"),
+                           (True, "* cambio possibile, biglietto per ogni nave  ·  possible change, separate tickets  ·  getrennte Fahrkarten")):
+            gruppo = {k[0]: v for k, v in changes.items() if k[1] == cp}
+            if not gruppo:
+                continue
+            y -= 5 * mm if n == 0 else 4.6 * mm
+            c.setFont("DV", 8.6); c.setFillColor(GREY)
+            c.drawString(L, y - 4.6 * mm * n, titolo)
+            col_w = R - L
+            for scalo, conns in sorted(gruppo.items(), key=lambda kv: min(minutes(d) for d, _, _ in kv[1])):
+                n += 1
+                x = L
+                yy = y - 4.6 * mm * n
+                c.setFillColor(black); c.setFont("DVB", 9.5); c.drawString(x, yy, SIGLA[scalo] + ("*" if cp else ""))
+                c.drawString(x + 8 * mm, yy, scalo)
+                xx = x + 8 * mm + pdfmetrics.stringWidth(scalo + "  ", "DVB", 9.5)
+                for k, (dep, run, sr_prima) in enumerate(sorted(conns, key=lambda dr: (minutes(dr[0]), dr[2]))):
+                    piece = ("  ·  " if k else "") + dep
+                    c.setFillColor(black); c.setFont("DV", 9.5); c.drawString(xx, yy, piece)
+                    xx += pdfmetrics.stringWidth(piece + " ", "DV", 9.5)
+                    # SR (solo fino all'11/10): la corsa del cambio, o quella presa prima nei ritorni
+                    corsa = (f"corsa {sr_prima} SR › {run}" if sr_prima else f"corsa {run}") + (" SR" if run in SR_CORSE else "")
+                    c.setFillColor(GREY); c.setFont("DV", 7.8); c.drawString(xx, yy, corsa)
+                    xx += pdfmetrics.stringWidth(corsa, "DV", 7.8)
+                assert xx < x + col_w, (scalo, conns)
+            n += 1
+        y -= 4.6 * mm * (n - 1)
+        changes = {}
         y -= 4.6 * mm * len(changes)
     return y
 
@@ -236,7 +253,7 @@ def uniform_sizes(tables, L, R):
         cells = [s for _, _, _, stops in rows for s in stops]
         def width(st, size):
             w = pdfmetrics.stringWidth(st[1], "DV", size)
-            return w + (pdfmetrics.stringWidth(SIGLA[st[2][0]], "DVB", round(size * 0.6, 1)) + 0.2 * mm if len(st) == 3 else 0)
+            return w + (pdfmetrics.stringWidth(sigla(st[2]), "DVB", round(size * 0.6, 1)) + 0.2 * mm if len(st) == 3 else 0)
         while max(width(st, tsize) for st in cells) > cw - 1.2 * mm:
             tsize -= 0.1
     return round(tsize, 1), (hsize, int(hscale))

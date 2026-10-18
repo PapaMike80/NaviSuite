@@ -852,12 +852,25 @@
     const visibili = state.showPast ? tutte : tutte.filter(s => s.dep >= ora);
     const toggle = passate.length ? `<button type="button" class="past-toggle" data-past>${state.showPast ? '▴ Nascondi i viaggi già partiti' : `▾ Mostra i viaggi già partiti (${passate.length})`}</button>` : '';
     const scelta = Math.min(Number(state.viaggioScelto) || 0, Math.max(0, visibili.length - 1));
+    // Il cambio e' una coincidenza solo se l'O.d.S. la elenca per questo scalo di partenza e destinazione
+    // (coincidenze-ufficiali.js); altrimenti e' un cambio con biglietto per ogni nave.
+    const coincUff = window.NaviOrariStagioni?.coincidenze ? window.NaviOrariStagioni.coincidenze(g.day) : [];
+    const coincidenza = s => {
+      if (s.legs.length < 2) return null;
+      const [a, b] = s.legs;
+      const arrivo = a.v.scali.find(([sc, o]) => sc === a.to && minutes(o) === a.arr)?.[2];
+      return coincUff.find(k => k.a === String(arrivo) && k.b === String(b.corsa) && k.scalo === a.to &&
+        k.provenienti.includes(state.from) && k.per.includes(state.to)) || null;
+    };
     const righe = visibili.map((s, i) => {
       const durata = s.arr - s.dep;
+      const uff = coincidenza(s);
+      const sep = uff ? '<div class="or-change or-coinc">🔗 coincidenza · un solo biglietto</div>'
+        : '<div class="or-change or-cambio">⇄ cambio · non è una coincidenza: biglietto per ogni nave</div>';
       const tratte = s.legs.map(l => `<div class="or-leg">${chip(l.v.turno)}<span><b>${hhmm(l.dep)} ${esc(l.from)} → ${hhmm(l.arr)} ${esc(l.to)}</b>` +
-        `<small>corsa ${esc(l.corsa)}${badgeRitardo(g, l.v.turno, l.corsa)}${naveInfo(g, l.v.turno, l.corsa) ? ` · ${esc(naveInfo(g, l.v.turno, l.corsa))}` : ''}</small></span></div>`).join('<div class="or-change">cambio</div>');
+        `<small>corsa ${esc(l.corsa)}${badgeRitardo(g, l.v.turno, l.corsa)}${naveInfo(g, l.v.turno, l.corsa) ? ` · ${esc(naveInfo(g, l.v.turno, l.corsa))}` : ''}</small></span></div>`).join(sep);
       return `<div class="or-trip${i === 0 && realToday() && !state.showPast ? ' next' : ''}${s.dep < ora ? ' past' : ''}${i === scelta ? ' scelto' : ''}" data-trip="${i}" role="button" tabindex="0"><div class="or-trip-head"><b>${hhmm(s.dep)} → ${hhmm(s.arr)}</b>` +
-        `<span>${durata >= 60 ? `${Math.floor(durata / 60)}h${String(durata % 60).padStart(2, '0')}` : `${durata}min`} · ${s.legs.length === 1 ? 'diretta' : `1 cambio a ${esc(s.legs[0].to)}`}</span></div>${tratte}</div>`;
+        `<span>${durata >= 60 ? `${Math.floor(durata / 60)}h${String(durata % 60).padStart(2, '0')}` : `${durata}min`} · ${s.legs.length === 1 ? 'diretta' : `${uff ? 'coincidenza' : 'cambio'} a ${esc(s.legs[0].to)}`}</span></div>${tratte}</div>`;
     }).join('');
     const vuoto = state.from === state.to ? 'Scegli due scali diversi.' : tutte.length ? 'Nessun altro viaggio oggi.' : 'Nessun collegamento in questo giorno.';
     const mappa = state.from === state.to ? '' : `<div class="or-viaggio-mappa">${mappaViaggio(visibili[scelta] || null)}<p class="or-map-tip">Tocca uno scalo sulla mappa per sceglierlo come partenza</p></div>`;
