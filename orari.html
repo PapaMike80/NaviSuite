@@ -152,7 +152,7 @@
   <script src="assets/js/orario-corse-estate.js?v=1"></script>
   <script src="assets/js/orario-giorno.js?v=6"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/orari-stagioni.js?v=5"></script>
+  <script src="assets/js/orari-stagioni.js?v=6"></script>
   <script>
   (function () {
     'use strict';
@@ -183,14 +183,14 @@
     let grafCorse = [], grafCoinc = [];
     let mostraCoinc = (() => { try { return localStorage.getItem('navisuite.orari.coincidenze') === '1'; } catch (_) { return false; } })();
     const MAX_COINC = 20; // minuti massimi fra arrivo e partenza perche' sia una coincidenza
-    // Coincidenze: allo stesso scalo una corsa arriva e un'altra parte entro MAX_COINC minuti (non per tornare indietro)
+    // Coincidenze: allo stesso scalo una corsa arriva e un'altra parte entro MAX_COINC minuti (non per tornare indietro, non con la stessa nave)
     function coincidenze(corse) {
       const out = [];
       corse.forEach((a, ia) => a.punti.forEach(([sc, ta], pa) => {
         if (pa === 0) return; // la corsa deve arrivare qui
         const da = a.punti[pa - 1][0], arr = S.minuti(ta);
         corse.forEach((b, ib) => {
-          if (ib === ia || b.numero === a.numero) return;
+          if (ib === ia || b.numero === a.numero || (a.turno && a.turno === b.turno)) return; // stessa nave: non e' un cambio
           const pb = b.punti.findIndex(p => p[0] === sc);
           if (pb < 0 || pb === b.punti.length - 1) return; // deve ripartire da qui
           const dop = S.minuti(b.punti[pb][1]) - arr;
