@@ -190,7 +190,8 @@
     // arrivo o ferme li', altrimenti la prossima che ci passa). Quando una nave riparte la sua scheda si
     // chiude; una scheda chiusa a mano resta chiusa finche' non cambio scalo.
     const mia = state.embed?.modo === 'nave' ? state.embed.turno : '';
-    const aperte = mia ? [mia] : [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))];
+    const aperte = mia ? [mia] : [...new Set([state.selected, ...naviAlloScalo(g, t).filter(code => !state.chiuse.has(code))].filter(Boolean))]
+      .filter(code => !(senzaTraghetto() && /^T[12]$/.test(code)));
     const turni = [...new Set(g.viaggi.map(v => v.turno))].filter(code => !(senzaTraghetto() && /^T[12]$/.test(code)));
     const navi = turni.map(code => ({ code, punti: puntiDelTurno(g.viaggi, code) }))
       .map(item => ({ ...item, pos: posizione(item.punti, t) })).filter(item => item.pos);
@@ -284,7 +285,7 @@
   function naviAlloScalo(g, t) {
     if (!state.auto) return [];
     const recenti = new Set(eventiScalo(g, state.scalo).filter(e => e.t <= t && t < e.t + DOPO_PARTENZA).map(e => e.v.turno));
-    const qui = [...new Set(g.viaggi.map(v => v.turno))].map(code => ({ code, pos: posizione(puntiDelTurno(g.viaggi, code), t) }))
+    const qui = [...new Set(g.viaggi.map(v => v.turno))].filter(code => !(senzaTraghetto() && /^T[12]$/.test(code))).map(code => ({ code, pos: posizione(puntiDelTurno(g.viaggi, code), t) }))
       .filter(({ code, pos }) => (pos?.stato === 'naviga' && pos.a.scalo === state.scalo) || (pos?.stato === 'fermo' && pos.scalo === state.scalo) || recenti.has(code))
       .sort((a, b) => (a.pos?.a?.t ?? 0) - (b.pos?.a?.t ?? 0)).map(x => x.code);
     if (qui.length) return qui;
