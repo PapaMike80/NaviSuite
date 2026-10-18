@@ -62,5 +62,36 @@
     set.add('Maderno'); set.add('Torri');
     return [...set].sort((a, b) => (ORDINE.indexOf(a) + 99) % 99 - (ORDINE.indexOf(b) + 99) % 99 || a.localeCompare(b, 'it'));
   }
-  root.NaviOrariStagioni = { STAGIONI, stagioneDel, partenze, scali, minuti };
+  // Orario ufficiale della stagione come nell'O.d.S.: due tabelle (verso Riva: corse pari; verso Desenzano/Peschiera:
+  // dispari) con una colonna per corsa e una riga per scalo. Corse del giorno scelto (SR solo nei giorni in cui ci sono).
+  const RIGHE_ANDATA = ['Desenzano', 'Peschiera', 'Sirmione', 'Padenghe', 'Moniga', 'Lazise', 'Manerba', 'Cisano', 'Bardolino', 'Garda', 'Torri',
+    'Portese', 'Salò', 'Gardone', 'Maderno', 'Bogliaco', 'Gargnano', 'Tignale', 'Castelletto', 'Brenzone', 'Assenza', 'Campione', 'Malcesine', 'Limone', 'Torbole', 'Riva'];
+  const RIGHE_RITORNO = ['Riva', 'Torbole', 'Limone', 'Malcesine', 'Assenza', 'Brenzone', 'Castelletto', 'Campione', 'Tignale', 'Gargnano', 'Bogliaco', 'Maderno',
+    'Gardone', 'Salò', 'Portese', 'Torri', 'Garda', 'Bardolino', 'Cisano', 'Manerba', 'Lazise', 'Moniga', 'Padenghe', 'Sirmione', 'Peschiera', 'Desenzano'];
+  function tabelle(day) {
+    const s = stagioneDel(day);
+    if (!s || s.fonte === 'traghetto') return [];
+    let corse;
+    if (s.fonte === 'estate') corse = Object.entries(root.NaviOrarioCorseEstate || {}).map(([numero, scali]) => ({ numero, sr: SR_ESTATE.has(numero), scali }));
+    else corse = root.NaviOrarioGiorno.corseDelGiorno(day).filter(c => !/^T/.test(c.turno)).map(c => ({ numero: c.numero, sr: /^SR/.test(c.turno), scali: c.scali }));
+    const fatte = [['Desenzano – Peschiera – Riva', c => Number(c.numero) % 2 === 0], ['Riva – Peschiera – Desenzano', c => Number(c.numero) % 2 === 1]].map(([titolo, verso]) => {
+      const lista = corse.filter(verso).sort((a, b) => minuti(a.scali[0][1]) - minuti(b.scali[0][1]));
+      // righe nell'ordine dell'orario ufficiale (scali senza corse tolti)
+      const usati = new Set(lista.flatMap(c => c.scali.map(x => x[0])));
+      const scaliTab = (titolo.startsWith('Desenzano') ? RIGHE_ANDATA : RIGHE_RITORNO).filter(n => usati.has(n));
+      return { titolo, corse: lista.map(c => ({ numero: c.numero, sr: c.sr, ore: Object.fromEntries(c.scali.map(([n, t]) => [n, t])) })), scali: scaliTab };
+    }).filter(t => t.corse.length);
+    return fatte;
+  }
+  // Traghetto Maderno - Torri della stagione: [{numero, da, a, parte, arriva}]
+  function traghetto(day) {
+    const s = stagioneDel(day);
+    if (!s) return [];
+    const righe = s.fonte === 'estate'
+      ? TRAGHETTO_ESTATE.map(([numero, t, da, a]) => ({ numero: String(numero), da, a, parte: t, arriva: hhmm(minuti(t) + 30) }))
+      : (root.NaviServiziTerra?.DATA?.TRAGHETTO || []).filter(r => root.NaviOrarioGiorno.inServizio(r[2], day)).map(([t, k, , numero]) => k === 'P'
+        ? { numero, da: 'Maderno', a: 'Torri', parte: t, arriva: hhmm(minuti(t) + 30) } : { numero, da: 'Torri', a: 'Maderno', parte: hhmm(minuti(t) - 30), arriva: t });
+    return righe.sort((a, b) => minuti(a.parte) - minuti(b.parte));
+  }
+  root.NaviOrariStagioni = { STAGIONI, stagioneDel, partenze, scali, tabelle, traghetto, minuti };
 })(typeof window !== 'undefined' ? window : globalThis);
