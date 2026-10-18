@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1c26">
+  <title>NaviSuite · Orari</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <style>
+    /* Orari per stagione (Primavera, Estate, Autunno, Inverno) nello stile a riquadri (docs/STILE-NAVISUITE.md). */
+    :root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--rose:#fb7185;--mono:'DM Mono',ui-monospace,monospace}
+    *{box-sizing:border-box}
+    html{background:var(--surface)}
+    body.orari-page{margin:0;min-height:100vh;color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));padding-bottom:env(safe-area-inset-bottom,0px)}
+    .orari-page .app-sidebar{display:none}
+    .orari-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+    .orari-page>header small{display:block;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.22em}
+    .orari-page>header h1{margin:4px 0 0;font-size:24px;font-weight:800;background:linear-gradient(90deg,var(--teal),var(--cyan) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .orari-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{width:min(720px,calc(100% - 32px));margin:4px auto 40px;display:grid;gap:12px}
+    .stagioni{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+    .stagione{--c:var(--teal);display:grid;justify-items:center;gap:1px;padding:8px 4px;border-radius:14px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:color-mix(in srgb,var(--c) 8%,var(--card));color:var(--ink);font:800 12px Manrope,system-ui,sans-serif;cursor:pointer}
+    .stagione span{font-size:20px}
+    .stagione small{font:500 9.5px var(--mono);color:var(--muted);text-align:center;line-height:1.25}
+    .stagione[aria-pressed="true"]{background:var(--c);color:var(--on);border-color:var(--c)}
+    .stagione[aria-pressed="true"] small{color:var(--on)}
+    .stagione.ora::after{content:'ORA';font:900 8px Manrope;letter-spacing:.1em;padding:1px 5px;border-radius:999px;background:var(--on);color:var(--c);margin-top:2px}
+    .stagione[aria-pressed="true"].ora::after{background:var(--on);color:var(--c)}
+    .sez{--c:var(--cyan);display:grid;gap:8px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .sez h2{margin:0;font-size:15px;font-weight:800;color:var(--c);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+    .sez h2 small{font:500 11px var(--mono);color:var(--muted)}
+    .sez p{margin:0;font-size:12px;color:var(--muted)}
+    .scelte{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
+    .scelte label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    select,input{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+    .a4{display:inline-flex;align-items:center;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font:800 12px Manrope,system-ui,sans-serif;text-decoration:none;white-space:nowrap}
+    .a4[hidden]{display:none}
+    .dep{display:grid;grid-template-columns:54px 1fr;gap:8px;align-items:start;padding:8px 10px;border-radius:12px;background:#0d2230;border-left:4px solid var(--c)}
+    .dep:nth-child(even of .dep){background:#10304a}
+    .dep.passata{opacity:.45}
+    .dep.prossima{outline:2px solid var(--teal)}
+    .dep .t{font:500 18px var(--mono);font-variant-numeric:tabular-nums;line-height:1.2}
+    .dep .t small{display:block;font:500 9.5px var(--mono);color:var(--muted)}
+    .dep .s{font-size:12.5px;line-height:1.55;min-width:0;overflow-wrap:anywhere}
+    .dep .s b{font-weight:800}.dep .s span{font-family:var(--mono);color:var(--muted)}
+    .dep.sr{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,#0d2230)}
+    .dep.trag{border-left-color:var(--violet)}
+    .tag{font:900 9px Manrope;padding:1px 6px;border-radius:999px;background:var(--amber);color:var(--on);margin-right:5px;vertical-align:1px}
+    .tag.tr{background:var(--violet)}
+    .vuoto{padding:18px;text-align:center;color:var(--muted)}
+    .leg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted)}
+  </style>
+</head>
+<body class="orari-page">
+  <aside class="app-sidebar" id="orari-sidebar"></aside>
+  <header><div><small>NAVIGAZIONE · STAGIONI</small><h1>Orari</h1></div></header>
+  <main>
+    <div class="stagioni" id="stagioni" role="group" aria-label="Stagione"></div>
+    <section class="sez" id="info"></section>
+    <section class="sez" id="partenze-box">
+      <div class="scelte">
+        <label>Scalo<select id="scalo"></select></label>
+        <label>Giorno<input id="giorno" type="date"></label>
+        <a class="a4" id="a4" href="stampa-partenze.html">🖨 A4</a>
+      </div>
+      <h2 id="titolo"></h2>
+      <div id="lista" style="display:grid;gap:6px"></div>
+      <div class="leg"><span><span class="tag">SR</span>rapido con supplemento</span><span><span class="tag tr">TR</span>traghetto Maderno – Torri</span></div>
+    </section>
+  </main>
+
+  <script src="assets/js/shared-roles.js?v=9"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=84"></script>
+  <script src="assets/js/shared-menu.js?v=1.79"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
+  <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/orario-corse-estate.js?v=1"></script>
+  <script src="assets/js/orario-giorno.js?v=6"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=21"></script>
+  <script src="assets/js/orari-stagioni.js?v=1"></script>
+  <script>
+  (function () {
+    'use strict';
+    const S = window.NaviOrariStagioni;
+    const $ = id => document.getElementById(id);
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const pad = n => String(n).padStart(2, '0');
+    const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const oggi = iso(new Date());
+    const ora = t => { const [h, m] = String(t).replace(':', '.').split('.'); return `${Number(h)}:${m}`; };
+    const data = v => { const [y, m, d] = v.split('-'); return `${Number(d)}/${Number(m)}/${y}`; };
+    const breve = v => { const [, m, d] = v.split('-'); return `${Number(d)}/${Number(m)}`; };
+    const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
+
+    let profilo = null; try { profilo = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) {}
+    const q = new URLSearchParams(location.search);
+    const attuale = S.stagioneDel(oggi);
+    let stagione = S.STAGIONI.find(s => s.id === q.get('stagione')) || attuale || S.STAGIONI[2];
+    let giorno = /^\d{4}-\d{2}-\d{2}$/.test(q.get('giorno') || '') && S.stagioneDel(q.get('giorno')) ? q.get('giorno') : (stagione === attuale ? oggi : stagione.periodi[0][0]);
+    let scalo = q.get('scalo') || (() => { try { return localStorage.getItem('navisuite.orari.scalo'); } catch (_) { return ''; } })() || ({ desenzano: 'Desenzano', maderno: 'Maderno', riva: 'Riva', peschiera: 'Peschiera' })[String(profilo?.residence || '').toLowerCase()] || 'Maderno';
+
+    function disegnaStagioni() {
+      $('stagioni').innerHTML = S.STAGIONI.map(s => `<button type="button" class="stagione${s === attuale ? ' ora' : ''}" style="--c:${s.colore}" data-id="${s.id}" aria-pressed="${s === stagione}"><span>${s.icona}</span>${esc(s.nome)}<small>${s.periodi.map(([a, b]) => `${breve(a)}–${breve(b)}`).join(' · ')}</small></button>`).join('');
+    }
+    function disegna() {
+      disegnaStagioni();
+      const [a, b] = [stagione.periodi[0][0], stagione.periodi[stagione.periodi.length - 1][1]];
+      $('info').style.setProperty('--c', stagione.colore);
+      $('info').innerHTML = `<h2>${stagione.icona} Orario ${esc(stagione.nome.toLowerCase())}<small>${esc(stagione.ods)}</small></h2><p>Dal ${data(a)} al ${data(b)}. ${esc(stagione.nota)}</p>`;
+      $('partenze-box').style.setProperty('--c', stagione.colore);
+      $('giorno').min = a; $('giorno').max = b; $('giorno').value = giorno;
+      const elenco = S.scali(giorno);
+      if (!elenco.includes(scalo)) scalo = elenco.includes('Maderno') ? 'Maderno' : elenco[0];
+      $('scalo').innerHTML = elenco.map(s => `<option${s === scalo ? ' selected' : ''}>${esc(s)}</option>`).join('');
+      const lista = S.partenze(scalo, giorno);
+      const [y, m, d] = giorno.split('-').map(Number);
+      $('titolo').innerHTML = `Partenze da ${esc(scalo)}<small>${GIORNI[new Date(y, m - 1, d).getDay()]} ${breve(giorno)} · ${lista.length}</small>`;
+      const adesso = giorno === oggi ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
+      let prossima = adesso >= 0 ? lista.find(p => S.minuti(p.ora) >= adesso) : null;
+      $('lista').innerHTML = lista.length ? lista.map(p => {
+        const cls = [p.sr ? 'sr' : '', p.traghetto ? 'trag' : '', adesso >= 0 && S.minuti(p.ora) < adesso ? 'passata' : '', p === prossima ? 'prossima' : ''].filter(Boolean).join(' ');
+        return `<div class="dep ${cls}"><span class="t">${ora(p.ora)}<small>c. ${esc(p.numero)}</small></span><span class="s">${p.sr ? '<span class="tag">SR</span>' : ''}${p.traghetto ? '<span class="tag tr">TR</span>' : ''}${p.dest.map(([s, t]) => `<b>${esc(s)}</b> <span>${ora(t)}</span>`).join(' · ')}</span></div>`;
+      }).join('') : '<div class="vuoto">Nessuna partenza da questo scalo nel giorno scelto.</div>';
+      // il foglio A4 per ora c'e' per l'orario dell'O.d.S. 39/2026
+      $('a4').hidden = stagione.fonte === 'estate';
+      $('a4').href = `stampa-partenze.html?scalo=${encodeURIComponent(scalo)}&data=${giorno}`;
+      const url = new URL(location.href); url.search = `?stagione=${stagione.id}&scalo=${encodeURIComponent(scalo)}&giorno=${giorno}`; history.replaceState(null, '', url);
+      prossima && document.querySelector('.dep.prossima')?.scrollIntoView?.({ block: 'nearest' });
+    }
+    $('stagioni').addEventListener('click', e => {
+      const b = e.target.closest('[data-id]'); if (!b) return;
+      stagione = S.STAGIONI.find(s => s.id === b.dataset.id);
+      giorno = stagione === attuale ? oggi : stagione.periodi[0][0];
+      disegna();
+    });
+    $('scalo').addEventListener('change', () => { scalo = $('scalo').value; try { localStorage.setItem('navisuite.orari.scalo', scalo); } catch (_) {} disegna(); });
+    $('giorno').addEventListener('change', () => { const v = $('giorno').value; const s = v && S.stagioneDel(v); if (s) { giorno = v; stagione = s; } disegna(); });
+    disegna();
+  })();
+  </script>
+</body>
+</html>

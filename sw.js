@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v621-pulsante-a4';
+const CACHE_VERSION = 'navisuite-v622-orari-stagioni';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -39,6 +39,9 @@ const CORE_ASSETS = [
   './navidistinta.html',
   './verifica-busta.html',
   './stampa-partenze.html',
+  './orari.html',
+  './assets/js/orario-corse-estate.js',
+  './assets/js/orari-stagioni.js',
   './assets/images/logo-nlg.png',
   './assets/images/logo-mit.png',
   './assets/fonts/roboto-latin-400-normal.woff2',

@@ -79,10 +79,10 @@
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
+    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'orari.html':['🕒','Orari'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
       // pagine principali: Il mio turno e Scali
-      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['oggi.html','☀','Oggi']]),
+      ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['orari.html','🕒','Orari'],['oggi.html','☀','Oggi']]),
       ['naviturni.html','▦','Turni'],
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
@@ -95,7 +95,7 @@
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
     // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
     const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2],'oggi.html':['Navi ed equipaggi del giorno','#facc15',3],'orario.html':['Navi allo scalo, pontili, ritardi','#38bdf8',4]};
-    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','collegamenti.html':'#f59e0b','verifica-busta.html':'#4ade80','controllo_cassa.html':'#27a9b6'};
+    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','collegamenti.html':'#f59e0b','verifica-busta.html':'#4ade80','orari.html':'#fbbf24','controllo_cassa.html':'#27a9b6'};
     const linkHtml=([href,icon,label])=>{
       const key=href.split('?')[0].toLowerCase(),active=key===file,main=PRINCIPALI[key];
       const colore=main?.[1]||COLORI[key]||'#94a3b8';
