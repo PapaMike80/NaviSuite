@@ -286,6 +286,7 @@
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
+    window.NaviAdminFirebase.registraVisita?.(sessionAgent,(location.pathname.split('/').pop()||'index.html').toLowerCase()).catch(()=>{});
     setInterval(signalPresence,45000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)signalPresence();});
   }
