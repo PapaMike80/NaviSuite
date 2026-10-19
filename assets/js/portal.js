@@ -244,6 +244,7 @@ $('loginForm').addEventListener('submit', async event => {
       $('firstNewPin').focus();
       return;
     }
+    if (await window.NaviAdminFirebase?.accessoRevocato?.(agent.id).catch(() => false)) throw new Error('Periodo di servizio terminato: accesso non consentito. Rivolgiti all’amministratore.');
     localStorage.setItem(`navidiaria.pin.${agent.id}`, digest);
     localStorage.setItem(DIARIA_SESSION, JSON.stringify(agent));
     localStorage.setItem(TURNI_SESSION, JSON.stringify({ id:agent.id, name:agent.name, residence:agent.residence, qualifica:agent.qualifica, role:agent.role || '' }));

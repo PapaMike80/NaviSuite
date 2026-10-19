@@ -829,6 +829,28 @@
     await databaseRequest(path, { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
+  // Categoria dell'agente: stabili (indeterminato), stagionali o esterni (a termine, con inizio e fine).
+  // servizio = {categoria, inizio, fine, accessoForzato}; null lo toglie (= stabili).
+  async function saveAgentServizio(agentId, servizio) {
+    const id = String(agentId || "").trim();
+    if (!id) throw new Error("Agente non valido");
+    const path = `private/adminUpdates/agentProfiles/${safeUserKey(id)}/servizio`;
+    if (!servizio) { await databaseRequest(path, { method:"DELETE" }); return null; }
+    const categoria = ["stabili", "stagionali", "esterni"].includes(servizio.categoria) ? servizio.categoria : "stabili";
+    const termine = categoria !== "stabili";
+    const item = { categoria, inizio:termine ? String(servizio.inizio || "") : "", fine:termine ? String(servizio.fine || "") : "", accessoForzato:!!servizio.accessoForzato, updatedAt:new Date().toISOString() };
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+  // Fuori servizio: stagionali ed esterni dopo la data di fine, salvo "Forza accesso consentito"
+  function servizioTerminato(servizio, oggi = new Date().toLocaleDateString("sv-SE")) {
+    if (!servizio || !["stagionali", "esterni"].includes(servizio.categoria) || servizio.accessoForzato) return false;
+    return !!servizio.fine && oggi > servizio.fine;
+  }
+  async function accessoRevocato(agentId) {
+    const { profilo } = await getMioProfilo(agentId);
+    return servizioTerminato(profilo?.servizio);
+  }
   async function saveAgentProfile(agentId, values = {}) {
     const id = String(agentId || "").trim();
     if (!id) throw new Error("Agente non valido");
@@ -1285,6 +1307,9 @@
     saveAgentResidenceMove,
     deleteAgentProfile,
     touchUserPresence,
+    saveAgentServizio,
+    servizioTerminato,
+    accessoRevocato,
     registraVisita,
     getAttivita,
     listUserPresence,
