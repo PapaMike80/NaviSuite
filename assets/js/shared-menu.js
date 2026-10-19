@@ -286,6 +286,8 @@
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
+    // Stagionali ed esterni fuori servizio: sessione chiusa (salvo accesso forzato dall'amministratore)
+    if(!isAdminAgent(sessionAgent))window.NaviAdminFirebase.accessoRevocato?.(sessionAgent?.id).then(revocato=>{if(!revocato)return;localStorage.removeItem('navidiaria.activeAgent');localStorage.removeItem('naviturni_logged_agent');alert('Periodo di servizio terminato: accesso non consentito. Rivolgiti all’amministratore.');location.replace('index.html');}).catch(()=>{});
     window.NaviAdminFirebase.registraVisita?.(sessionAgent,(location.pathname.split('/').pop()||'index.html').toLowerCase()).catch(()=>{});
     setInterval(signalPresence,45000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)signalPresence();});
