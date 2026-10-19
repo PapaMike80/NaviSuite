@@ -1,0 +1,96 @@
+<!doctype html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mockup stima busta</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <style>
+    /* Schede a colori: barra unica in alto, linguette Confronto / Anno. Verde ok, rosso differenza, giallo da verificare;
+       azzurro lordo, rosa ritenute, turchese netto. */
+    :root{--bg:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on-teal:#06231f;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--green:#52c879;--violet:#a78bfa;--mono:'DM Mono',ui-monospace,monospace;color-scheme:dark}
+    html.navisuite-light{--bg:#f4f8f7;--card:#ffffff;--card2:#e8f1ef;--line:#dbe7e5;--ink:#102631;--muted:#5b7079;--teal:#0f9f8c;--on-teal:#ffffff;--cyan:#1590a8;--rose:#d9435e;--amber:#b7791f;--green:#2f9e5a;--violet:#7c5cd6;color-scheme:light}
+    *{box-sizing:border-box}
+    body.verifica-busta-page{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:500 15px/1.5 Manrope,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+    .verifica-busta-page .app-sidebar{display:none}
+    .verifica-busta-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px))}
+    .verifica-busta-page>header small{display:block;color:var(--teal);font-size:12px;font-weight:800;letter-spacing:.22em}
+    .verifica-busta-page>header h1{margin:4px 0 0;font-size:26px;font-weight:800;line-height:1.15}
+    .verifica-busta-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{display:flex;flex-direction:column;gap:12px;width:min(720px,100%);margin:0 auto 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+    .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+    .vb-login{margin:0;padding:16px;border-radius:16px;background:var(--card)}.vb-login a{color:var(--teal);font-weight:700}
+    .vb-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .chip.up{border-color:var(--teal);color:var(--teal);background:transparent}
+    .chip.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+    .chip:focus-visible,.vb-tabs button:focus-visible,.voce:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+    .chip select{border:0;background:transparent;color:inherit;font:inherit;padding:0;cursor:pointer}
+    .chip.is-busy{opacity:.6;cursor:progress}
+    .vb-info{margin:0;color:var(--muted);font-size:13px}.vb-info:empty{display:none}
+    .vb-meta{margin:0;color:var(--muted);font-size:12px}.vb-meta:empty{display:none}
+    #vbAlerts{display:grid;gap:8px}#vbAlerts:empty{display:none}
+    .vb-alert{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--amber) 50%,transparent);background:color-mix(in srgb,var(--amber) 14%,var(--card));font-size:13px}
+    .vb-alert.error{border-color:color-mix(in srgb,var(--rose) 50%,transparent);background:color-mix(in srgb,var(--rose) 14%,var(--card))}
+    .drop{display:block;border:2px dashed var(--teal);border-radius:20px;padding:30px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5;cursor:pointer;background:color-mix(in srgb,var(--teal) 6%,transparent)}
+    .drop b{display:block;color:var(--teal);font-size:18px;margin-bottom:4px}
+    .vb-private{margin:0;color:var(--muted);font-size:12px}
+    .vb-tabs{display:flex;background:var(--card);border-radius:14px;padding:4px}
+    .vb-tabs button{flex:1;padding:9px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:700 14px Manrope,system-ui,sans-serif;cursor:pointer}
+    .vb-tabs button[aria-selected="true"]{background:var(--teal);color:var(--on-teal)}
+    .sel{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.sel .chip{flex:0 0 auto}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c,var(--muted));flex-shrink:0}
+    .mtitle{margin:2px 0 0;font-size:20px;font-weight:800}.msub{margin:0;color:var(--muted);font-size:12px}
+    .tot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card)}
+    .tot small{display:block;font:800 10px Manrope,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .tot-n{font-size:22px;font-weight:600;color:var(--teal)}
+    .tot-side{text-align:right;font-size:12px;color:var(--muted);line-height:1.6}.tot-side b{color:var(--ink);font-weight:500}
+    .tile{display:inline-flex;align-items:baseline;gap:4px;border-radius:999px;padding:3px 8px;color:#06231f;font-size:11px;font-weight:700;white-space:nowrap}
+    .tile small{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+    .t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
+    html.navisuite-light .tile{color:#fff}
+    .sum{display:flex;gap:6px}.sum span{flex:1;text-align:center;border-radius:10px;padding:6px 0;font-size:12px;font-weight:800;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+    .voci{display:grid;gap:6px}
+    .voce{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;padding:11px 12px;border:0;border-left:4px solid var(--c);border-radius:12px;background:var(--card);color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+    .voce .n{font-weight:800;font-size:14px;min-width:0}
+    .voce .eur{font-weight:500;font-size:12px;color:var(--cyan);margin-left:4px}
+    .voce .c{color:var(--muted);font-size:12px;min-width:0}
+    .pill{grid-row:span 2;align-self:center;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);white-space:nowrap}
+    .det{grid-column:1/-1;display:none;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px}
+    .voce[aria-expanded="true"] .det{display:grid}
+    .det small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:800}
+    .det p{grid-column:1/-1;margin:0;color:var(--muted);line-height:1.45;font-family:Manrope,system-ui,sans-serif}
+    .altre{border-radius:12px}.altre>summary{list-style:none;cursor:pointer;text-align:center;padding:8px;color:var(--muted);font-size:13px;font-weight:700}.altre>summary::-webkit-details-marker{display:none}.altre[open]>summary{margin-bottom:6px}
+    .mail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--amber) 14%,var(--card));border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);font-size:13px}
+    .mail{display:block}.mail-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}.mail b{color:var(--amber)}.mail a{text-decoration:none}
+    .mail-ogg{margin:10px 0 4px;font-size:12px}.mail-testo{margin:0;max-height:520px;overflow:auto;padding:10px;border-radius:10px;background:var(--bg);color:var(--ink);font:11px/1.5 var(--mono);white-space:pre;user-select:text}
+    .ok-all{padding:12px;border-radius:14px;background:color-mix(in srgb,var(--green) 14%,var(--card));color:var(--green);font-weight:700;font-size:14px;text-align:center}
+    .spark{display:flex;align-items:flex-end;gap:4px;height:90px;padding:10px 10px 0;border-radius:14px;background:var(--card)}
+    .spark div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+    .spark i{display:block;width:100%;background:var(--teal);border-radius:4px 4px 0 0;min-height:2px}
+    .spark i.r{background:var(--rose)}.spark i.v{background:var(--line)}
+    .spark i{position:relative;overflow:hidden}.spark i b{position:absolute;left:0;right:0;bottom:0;background:var(--amber)}
+    .legenda{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;color:var(--muted);font-size:12px}.legenda .q{display:inline-block;width:10px;height:10px;border-radius:3px}.q-n{background:var(--teal)}.q-s{background:var(--amber)}.legenda b{color:var(--amber)}
+    .spark span{font-size:9px;color:var(--muted);padding-bottom:4px}
+    .ylist{display:grid;gap:6px}
+    .yr{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:11px 12px;border-radius:12px;background:var(--card);font-size:14px}
+    .yr button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left;padding:0}
+    .yr .mm{font-weight:800}.yr .x{color:var(--muted);font-size:16px;padding:0 4px}
+    .vtab{width:100%;border-collapse:collapse;font-size:13px}.vtab th,.vtab td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}.vtab th{color:var(--muted);font-size:11px}
+    .vtab td small{display:block;color:var(--muted);font-size:11px}.vwrap{overflow-x:auto}
+    body.vb-blur .eurv{filter:blur(7px);user-select:none}
+    @media(prefers-reduced-motion:no-preference){.voce,.chip{transition:background .15s,border-color .15s}}
+  </style>
+<style>.stima-tag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--amber) 20%,transparent);color:var(--amber);font-size:11px;font-weight:800}.range{font-size:12px;color:var(--muted)}.bar-prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden}.bar-prog i{display:block;height:100%;width:61%;background:var(--amber)}.grp{margin:6px 0 0;font:800 10px Manrope;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.voce.st{cursor:default;--c:var(--cyan)}.voce.fx{--c:var(--line)}.voce.rit{--c:var(--rose)}</style>
+</head><body class="verifica-busta-page"><header class="page-header"><div><small>VERIFICA BUSTA</small><h1>Stima novembre 2026</h1></div></header><main>
+<div class="vb-tabs"><button>Confronto</button><button>Anno</button><button aria-selected="true">Stima</button></div>
+<p class="msub">Busta di novembre 2026 → Distinta di ottobre 2026 (01/10 – 31/10) · giornate inserite fino al 19/10</p>
+<div class="bar-prog"><i></i></div><p class="msub">19 giorni su 31 nella Distinta: il resto del mese è stimato dai turni pubblicati.</p>
+<div class="tot num"><div><small>Netto stimato <span class="stima-tag">stima</span></small><span class="tot-n">≈ 2.140 €</span><div class="range">tra 2.060 € e 2.220 €</div></div><div class="tot-side">lordo <b>≈ 2.980 €</b><br>ritenute <b>≈ −840 €</b><br><span style="font-size:11px">ritenute al 28,2% come ottobre</span></div></div>
+<p class="grp">Voci variabili dalla Distinta · prezzi dell'ultima busta</p>
+<div class="voci">
+<div class="voce st"><span class="n">Straordinari <span class="eur num">412,30 €</span></span><span class="pill num">18,5 h</span><span class="c num">18,5 h × 22,29 € (334, busta di ottobre)</span></div>
+<div class="voce st"><span class="n">Indennità imbarco <span class="eur num">198,00 €</span></span><span class="pill num">22 gg</span><span class="c num">22 gg × 9,00 €</span></div>
+<div class="voce st"><span class="n">Diarie 24% <span class="eur num">96,00 €</span></span><span class="pill num">12 gg</span><span class="c num">12 gg × 8,00 €</span></div>
+<div class="voce st"><span class="n">Ore differenza paga 139 <span class="eur num">54,60 €</span></span><span class="pill num">84 h</span><span class="c num">84 h × 0,65 €</span></div>
+<div class="voce st"><span class="n">Domeniche lavorate <span class="eur num">48,00 €</span></span><span class="pill num">4 gg</span><span class="c num">4 gg × 12,00 €</span></div>
+<div class="voce st" style="--c:var(--amber)"><span class="n">Lavoro in festività</span><span class="pill num">—</span><span class="c">Nessun prezzo nell'ultima busta: non calcolata</span></div>
+</div>
+<details class="altre"><summary>Parte fissa · 2.171,10 € (come la busta di ottobre) ▾</summary><div class="voci"><div class="voce fx"><span class="n">Paga base <span class="eur num">1.890,00 €</span></span><span class="pill num">=</span><span class="c">uguale a ottobre</span></div><div class="voce fx"><span class="n">Scatti / EDR / altre <span class="eur num">281,10 €</span></span><span class="pill num">=</span><span class="c">uguale a ottobre</span></div></div></details>
+<p class="msub">È una stima: le ritenute sono in proporzione all'ultima busta. Non conta conguagli, arretrati, tredicesima e una tantum. Il ticket non è contato nel netto.</p>
+</main></body></html>

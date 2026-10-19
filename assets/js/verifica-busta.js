@@ -54,7 +54,6 @@
     const local = readLocalEntries(id);
     const warnings = [];
     if (localStorage.getItem(`navidiaria.cloudDirty.${id}`) === '1') {
-      warnings.push({ kind: 'warn', text: 'Hai modifiche della Distinta non ancora sincronizzate: uso la copia salvata su questo dispositivo. Apri la Distinta per sincronizzarla.' });
       return { entries: local, source: 'local', updatedAt: '', warnings };
     }
     // Come la Distinta: solo Firebase
@@ -215,6 +214,49 @@
     const distinta = calculator.compute(data.entries, item.month);
     return { p, distinta, result: window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() }) };
   }
+  // ---------------- Stime: busta attesa per ogni mese della Distinta con giornate inserite ----------------
+  const meseDopo = m => { const d = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 1, 12); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+  // Busta di riferimento per i prezzi: l'ultima salvata prima della busta da stimare (o la prima, se non ce ne sono prima)
+  function bustaRiferimento(bustaMonth) {
+    const mesi = Object.keys(state.archivio).filter(m => /^\d{4}-\d{2}$/.test(m)).sort();
+    const prima = mesi.filter(m => m < bustaMonth);
+    const m = prima[prima.length - 1] || mesi[0];
+    return m ? { mese: m, ...state.archivio[m] } : null;
+  }
+  function stimaBusta(bustaMonth, data, calculator) {
+    const ref = bustaRiferimento(bustaMonth);
+    if (!ref || ref.mese === bustaMonth) return null;
+    const month = window.NaviBustaParser.previousMonth({ year: Number(bustaMonth.slice(0, 4)), month: Number(bustaMonth.slice(5, 7)) });
+    const p = window.NaviDistintaTotals.competencePeriod(month);
+    if (!p.startIso) return null;
+    const distinta = calculator.compute(data.entries, month);
+    if (!distinta.entryCount) return null;
+    const s = window.NaviBustaCompare.stima(ref, distinta.totals);
+    return s && { ...s, bustaMonth, month, p, ref: ref.mese, giornate: distinta.entryCount };
+  }
+  // Stime per i mesi senza busta: tutti i mesi coperti da giornate della Distinta
+  function stimeSenzaBusta(data, calculator) {
+    const mesi = new Set();
+    (data?.entries || []).forEach(e => { const m = String(e?.date || '').slice(0, 7); if (/^\d{4}-\d{2}$/.test(m)) { mesi.add(meseDopo(m)); } });
+    const out = {};
+    [...mesi].sort().forEach(b => { if (state.archivio[b]) return; const st = stimaBusta(b, data, calculator); if (st) out[b] = st; });
+    return out;
+  }
+  const oggiIso = () => window.NaviDistintaTotals.iso(new Date());
+  function stimaHtml(st, intera) {
+    const giorni = (new Date(`${st.p.endIso}T12:00:00`) - new Date(`${st.p.startIso}T12:00:00`)) / 864e5 + 1;
+    const inCorso = st.p.endIso >= oggiIso();
+    const testa = `<div class="tot num stima"><div><small>Netto stimato <span class="stima-tag">stima</span></small><span class="tot-n">≈ ${eurv(st.netto)}</span><div class="range">tra ${eurv(st.netto - st.margine)} e ${eurv(st.netto + st.margine)}</div></div><div class="tot-side">lordo <b>≈ ${eurv(st.lordo)}</b><br>ritenute <b>≈ <span class="eurv">−${escapeHtml(euro(st.ritenute))}</span></b></div></div>`;
+    if (!intera) return testa;
+    const riga = r => r.importo === null
+      ? `<div class="voce st" style="--c:var(--amber)"><span class="n">${escapeHtml(r.label)}</span><span class="pill num">${unitValue(r.quantita, r.unit)}</span><span class="c">Nessun prezzo nella busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}: non calcolata</span></div>`
+      : `<div class="voce st"><span class="n">${escapeHtml(r.label)} <span class="eur num eurv">${escapeHtml(euro(r.importo))}</span></span><span class="pill num">${unitValue(r.quantita, r.unit)}</span><span class="c num">${unitValue(r.quantita, r.unit)} × <span class="eurv">${escapeHtml(number(r.base, 2))} €</span></span></div>`;
+    return `<p class="msub">${st.giornate} giornate nella Distinta su ${giorni} del periodo${inCorso ? ' · periodo in corso: la stima cresce con le giornate inserite' : ''}</p>${testa}`
+      + `<p class="grp">Voci dalla Distinta · prezzi della busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p><div class="voci">${st.righe.map(riga).join('') || '<p class="msub">Nessuna voce variabile.</p>'}</div>`
+      + `<p class="grp">Parte fissa · <span class="eurv">${escapeHtml(euro(st.fisso))}</span> come la busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p>`
+      + `<p class="msub">È una stima: ritenute al ${number(st.quotaRitenute * 100, 1)}% come la busta di riferimento. Non conta conguagli, arretrati, tredicesima e una tantum; il ticket elettronico non è nel netto.</p>`;
+  }
+
   const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';
 
   // Totali: netto in primo piano, lordo e ritenute piccoli a destra
@@ -233,10 +275,19 @@
 
   function renderConfronto(data, calculator, alerts) {
     const chiavi = chiaviOrdinate();
-    if (!chiavi.includes(state.corrente)) state.corrente = chiavi[chiavi.length - 1] || '';
+    const stime = stimeSenzaBusta(data, calculator);
+    const chiaviStima = Object.keys(stime).map(m => `stima:${m}`);
+    if (!chiavi.includes(state.corrente) && !chiaviStima.includes(state.corrente)) state.corrente = chiavi[chiavi.length - 1] || '';
+    const pills = chiavi.map(k => { const it = state.buste[k]; const c = confronta(it, data, calculator); return `<button type="button" class="chip${k === state.corrente ? ' on' : ''}" data-mese="${escapeHtml(k)}"><i class="dot" style="--c:${COLORE[statoMese(c)]}"></i>${escapeHtml(it.bustaMonth ? `${meseCorto(it.bustaMonth)} ${it.bustaMonth.slice(2, 4)}` : it.fileName)}</button>`; }).join('')
+      + Object.keys(stime).map(m => `<button type="button" class="chip chip-stima${`stima:${m}` === state.corrente ? ' on' : ''}" data-mese="stima:${m}">≈ ${escapeHtml(`${meseCorto(m)} ${m.slice(2, 4)}`)}</button>`).join('');
+    if (state.corrente.startsWith('stima:')) {
+      const st = stime[state.corrente.slice(6)];
+      els.titolo.textContent = `Stima ${monthLabel(st.bustaMonth).toLowerCase()}`;
+      els.confronto.innerHTML = `<div class="sel">${pills}</div><p class="msub">Stima della busta di ${escapeHtml(monthLabel(st.bustaMonth).toLowerCase())} → Distinta di ${escapeHtml(monthLabel(st.month).toLowerCase())} (${dateText(st.p.startIso)} – ${dateText(st.p.endIso)})</p>${stimaHtml(st, true)}`;
+      return;
+    }
     const item = state.buste[state.corrente];
     if (!item) { els.confronto.innerHTML = ''; return; }
-    const pills = chiavi.map(k => { const it = state.buste[k]; const c = confronta(it, data, calculator); return `<button type="button" class="chip${k === state.corrente ? ' on' : ''}" data-mese="${escapeHtml(k)}"><i class="dot" style="--c:${COLORE[statoMese(c)]}"></i>${escapeHtml(it.bustaMonth ? `${meseCorto(it.bustaMonth)} ${it.bustaMonth.slice(2, 4)}` : it.fileName)}</button>`; }).join('');
     const nome = nomeBusta(item);
     if (!item.busta.check.completa) alerts.push({ kind: item.busta.check.headerFound ? 'warn' : 'error', text: `${nome}: ${item.busta.check.message}` });
     const c = confronta(item, data, calculator);
@@ -257,29 +308,42 @@
         + mailHtml(item, c, calculator);
     }
     els.titolo.textContent = nome;
-    els.confronto.innerHTML = `<div class="sel">${pills}</div><div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {})}${corpo}`;
+    els.confronto.innerHTML = `<div class="sel">${pills}</div><div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {})}${scartoStima(item, data, calculator)}${corpo}`;
+  }
+  // Busta arrivata: quanto avrebbe detto la stima
+  function scartoStima(item, data, calculator) {
+    if (!item.bustaMonth) return '';
+    const st = stimaBusta(item.bustaMonth, data, calculator), netto = Number(item.busta.totals?.netto);
+    if (!st || !Number.isFinite(netto)) return '';
+    const d = netto - st.netto;
+    return `<p class="msub">Stima dalla Distinta: ≈ ${eurv(st.netto)} netto (prezzi di ${escapeHtml(monthLabel(st.ref).toLowerCase())}) · scarto ${eurv(Math.abs(d))} ${d >= 0 ? 'in più' : 'in meno'}</p>`;
   }
 
   function renderAnno(data, calculator) {
     const mesi = Object.keys(state.archivio).filter(m => /^\d{4}-\d{2}$/.test(m)).sort();
     if (!mesi.length) { els.anno.innerHTML = '<p class="msub">Nessuna busta salvata.</p>'; return; }
-    const anni = [...new Set(mesi.map(m => m.slice(0, 4)))].sort().reverse();
+    const stime = data && calculator ? stimeSenzaBusta(data, calculator) : {};
+    const anni = [...new Set([...mesi, ...Object.keys(stime)].map(m => m.slice(0, 4)))].sort().reverse();
     if (!anni.includes(state.anno)) state.anno = anni[0];
     const delAnno = mesi.filter(m => m.startsWith(state.anno));
     const tot = { competenze: 0, ritenute: 0, netto: 0 };
     delAnno.forEach(m => { const t = state.archivio[m].totals || {}; Object.keys(tot).forEach(k => { tot[k] += Number(t[k]) || 0; }); });
     const stato = m => data && calculator && state.buste[m] ? statoMese(confronta(state.buste[m], data, calculator)) : 'ok';
-    const max = Math.max(1, ...delAnno.map(m => Number(state.archivio[m].totals?.netto) || 0));
+    const stimeAnno = Object.keys(stime).filter(m => m.startsWith(state.anno));
+    const totStime = stimeAnno.reduce((t, m) => t + stime[m].netto, 0);
+    const max = Math.max(1, ...delAnno.map(m => Number(state.archivio[m].totals?.netto) || 0), ...stimeAnno.map(m => stime[m].netto));
     // Quota degli straordinari (voci 334 e 01Y) dentro la colonna del netto
     const STRAORD = ['334', '01Y'];
     const straord = m => (state.archivio[m]?.voci || []).filter(v => STRAORD.includes(v.code)).reduce((t, v) => t + (Number(v.amount) || 0), 0);
     const totStraord = delAnno.reduce((t, m) => t + straord(m), 0);
     const barre = Array.from({ length: 12 }, (_, i) => {
       const m = `${state.anno}-${String(i + 1).padStart(2, '0')}`, n = Number(state.archivio[m]?.totals?.netto) || 0, o = straord(m);
+      if (!state.archivio[m] && stime[m]) return `<div title="${escapeHtml(monthLabel(m))} · stima ≈ ${escapeHtml(euro(stime[m].netto))}"><i class="s" style="height:${Math.max(3, Math.round(stime[m].netto / max * 64))}px"></i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`;
       const quota = n ? Math.min(100, Math.round(o / n * 100)) : 0;
       return `<div title="${escapeHtml(monthLabel(m))}${o ? ` · straordinari ${escapeHtml(euro(o))}` : ''}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(3, Math.round(n / max * 64)) : 2}px">${quota ? `<b style="height:${quota}%"></b>` : ''}</i><span>${meseCorto(m).slice(0, 1).toUpperCase()}</span></div>`;
     }).join('');
-    const lista = delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(monthLabel(m).split(' ')[0])}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
+    const listaStime = stimeAnno.slice().reverse().map(m => `<div class="yr yr-stima"><i class="dot" style="--c:var(--amber)"></i><button type="button" class="mm" data-apri="stima:${m}">${escapeHtml(monthLabel(m).split(' ')[0])} <span class="stima-tag">stima</span></button><span class="num">≈ ${eurv(stime[m].netto)}</span><span></span></div>`).join('');
+    const lista = listaStime + delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(monthLabel(m).split(' ')[0])}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
     const voci = new Map();
     delAnno.forEach(m => (state.archivio[m].voci || []).forEach(v => {
       if (!v.code) return;
@@ -291,7 +355,7 @@
     els.titolo.textContent = `Anno ${state.anno}`;
     els.anno.innerHTML = `<div class="sel">${anni.map(a => `<button type="button" class="chip${a === state.anno ? ' on' : ''}" data-anno="${a}">${a}</button>`).join('')}</div>`
       + `<p class="msub">${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'} · netto mese per mese (rosso: differenze con la Distinta)</p>`
-      + `<div class="spark" aria-hidden="true">${barre}</div><p class="legenda"><i class="q q-n"></i>netto <i class="q q-s"></i>di cui straordinari${totStraord ? ` · <b class="num">${eurv(totStraord)}</b> nell'anno (${Math.round(totStraord / (tot.netto || 1) * 100)}% del netto)` : ''}</p>${tilesHtml(tot)}<div class="ylist">${lista}</div>`
+      + `<div class="spark" aria-hidden="true">${barre}</div><p class="legenda"><i class="q q-n"></i>netto <i class="q q-s"></i>di cui straordinari${stimeAnno.length ? ' <i class="q q-st"></i>stima' : ''}${totStraord ? ` · <b class="num">${eurv(totStraord)}</b> nell'anno (${Math.round(totStraord / (tot.netto || 1) * 100)}% del netto)` : ''}</p>${tilesHtml(tot)}${totStime ? `<p class="msub">Con ${stimeAnno.length === 1 ? 'la stima' : `le ${stimeAnno.length} stime`}: netto dell'anno ≈ ${eurv(tot.netto + totStime)}</p>` : ''}<div class="ylist">${lista}</div>`
       + (righeVoci ? `<details class="altre"><summary>Totali per voce nel ${state.anno} ▾</summary><div class="vwrap"><table class="vtab"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
   }
 

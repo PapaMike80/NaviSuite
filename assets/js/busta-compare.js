@@ -197,9 +197,41 @@
     }));
   }
 
+  // Stima di una busta: voci variabili = quantita' della Distinta x dato base della busta di riferimento;
+  // il resto del lordo resta come nella busta di riferimento; ritenute nella stessa proporzione sul lordo.
+  // ref: { voci, totals } di una busta salvata; distinta: totals di NaviDistintaTotals.
+  function stima(ref, distinta) {
+    const voci = Array.isArray(ref?.voci) ? ref.voci : [];
+    const t = ref?.totals || {};
+    const lordoRef = Number(t.competenze) || 0, ritenuteRef = Math.abs(Number(t.ritenute) || 0);
+    if (!lordoRef) return null;
+    const righe = [];
+    let variabileRef = 0, variabile = 0;
+    RULES.forEach(rule => {
+      const qta = round2(Number(rule.distinta(distinta || {})) || 0);
+      const fromBusta = bustaValue(rule, voci);
+      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, qta) : {};
+      const base = dp.base ?? fromBusta.base;
+      const importoRef = dp.importo ?? round2(sum(fromBusta.voci.map(v => Number(v.amount) || 0)));
+      // ticket elettronico: figurativo, non entra nel netto
+      if (rule.id === 'ticket') return;
+      if (base === null || base === undefined) { if (qta) righe.push({ id: rule.id, label: rule.label, unit: rule.unit, quantita: qta, base: null, importo: null }); return; }
+      const importo = round2(qta * base);
+      variabileRef += importoRef; variabile += importo;
+      if (qta || importoRef) righe.push({ id: rule.id, label: rule.label, unit: rule.unit, quantita: qta, base, importo, importoRef });
+    });
+    const fisso = round2(lordoRef - variabileRef);
+    const lordo = round2(fisso + variabile);
+    const quota = ritenuteRef / lordoRef;
+    const ritenute = round2(lordo * quota);
+    const netto = round2(lordo - ritenute);
+    righe.sort((a, b) => (b.importo || 0) - (a.importo || 0));
+    return { righe, fisso, lordo, ritenute, netto, quotaRitenute: quota, margine: round2(Math.abs(netto) * 0.04) };
+  }
+
   function knownCodes() {
     return new Set([...RULES.flatMap(rule => rule.codes), ...NOT_COMPARED.flatMap(item => item.codes)]);
   }
 
-  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, RELATIVE_TOLERANCE, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, coherence, euroText, knownCodes };
+  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, RELATIVE_TOLERANCE, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, stima, coherence, euroText, knownCodes };
 });
