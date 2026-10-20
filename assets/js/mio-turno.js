@@ -144,7 +144,7 @@
   const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
 
   // Riquadro rosa «Comitive sulle tue corse»: sempre in vista, sparisce quando sono tutte salite e scese
-  function riquadroComitive(rows, com, day) {
+  function riquadroComitive(rows, com, day, code) {
     const oggi = iso(new Date()), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
     const passata = r => day < oggi || (day === oggi && minutes(r.orario) < nowMin);
     const voci = [];
@@ -152,7 +152,7 @@
     if (!voci.length || voci.every(v => passata(v.r))) return '';
     const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
-      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}<small>c. ${esc(v.r.run)}</small></span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></div>`).join('') + '</details>';
+      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${window.NaviComitive.bolle.pag(v.c.pagamento)}</span></div>`).join('') + '</details>';
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
@@ -235,7 +235,7 @@
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
-    $('turno-content').innerHTML = `<div class="terra-col">${riquadroComitive(rows, com, day)}${right}</div>`;
+    $('turno-content').innerHTML = `<div class="terra-col">${riquadroComitive(rows, com, day, code)}${right}</div>`;
     $('turno-after').innerHTML = `<div class="terra-col">${left}</div>`;
   }
 
