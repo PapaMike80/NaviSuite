@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=17">
-  <link rel="stylesheet" href="assets/css/orario.css?v=37">
+  <link rel="stylesheet" href="assets/css/orario.css?v=38">
 </head>
 <body class="servizi-terra-page orario-page">
   <aside class="app-sidebar" id="orario-sidebar"></aside>
@@ -32,14 +32,16 @@
         <span class="terra-day-current"><span class="terra-day-label" id="orario-day-label"></span>
           <input type="date" class="terra-day-input" id="orario-day-input" aria-label="Scegli la giornata"></span>
         <button type="button" class="terra-day-nav" id="orario-day-next" aria-label="Giorno successivo">›</button>
-        <button type="button" class="terra-day-today" id="orario-day-today" hidden>Oggi</button>
-        <select class="terra-day-scalo" id="orario-scalo-top" aria-label="Scalo"></select>
       </span>
-      <nav class="or-tabs" id="orario-tabs" aria-label="Vista">
-        <button type="button" data-view="lago">Lago</button>
-        <button type="button" data-view="viaggio">Da → A</button>
-      </nav>
-      <a id="orario-stampa" href="orari.html" title="Orari della stagione e orario ufficiale" style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid #1f4250;border-radius:10px;background:#102733;color:#9fb8c2;font:800 11px Manrope,system-ui,sans-serif;text-decoration:none;white-space:nowrap">🕒 Orario</a>
+      <div class="or-ctrl">
+        <button type="button" class="terra-day-today or-b" id="orario-day-today" hidden>Oggi</button>
+        <select class="terra-day-scalo or-b" id="orario-scalo-top" aria-label="Scalo"></select>
+        <nav class="or-tabs" id="orario-tabs" aria-label="Vista">
+          <button type="button" data-view="lago">Scali</button>
+          <button type="button" data-view="viaggio">Da → A</button>
+        </nav>
+        <a id="orario-stampa" class="or-b" href="orari.html" title="Orari della stagione e orario ufficiale">🕒 Orario</a>
+      </div>
     </div>
     <div class="terra-notice" id="orario-notice" hidden></div>
     <div id="orario-content"></div>
