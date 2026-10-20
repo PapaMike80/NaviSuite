@@ -126,19 +126,37 @@
   }
   // Comitive (pagina Comitive, archivio PocketBase): sulla riga dello scalo dove salgono e dove scendono
   const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
-  function comitiveRiga(row, rows, day, code) {
-    const NC = window.NaviComitive;
-    if (!NC || !state.comitive.length) return '';
-    const corsa = rows.filter(r => r.run === row.run);
-    const voci = [];
-    NC.diCorsa(state.comitive, day, row.run, code).forEach(c => {
-      const sale = corsa.find(r => norm(r.nome) === norm(c.sale)) || corsa[0];
-      const scende = corsa.slice(corsa.indexOf(sale) + 1).find(r => norm(r.nome) === norm(c.scende));
-      const chi = `<b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}`;
-      if (sale === row) voci.push(`<span title="Comitiva">👥 salgono ${chi}${c.scende ? `<small>${esc(c.percorso)} · scendono a ${esc(c.scende)}</small>` : ''}</span>`);
-      else if (scende === row) voci.push(`<span title="Comitiva">👥 scendono ${chi}</span>`);
+  // per ogni riga: comitive che salgono e che scendono a quello scalo con quella corsa
+  function comitiveRighe(rows, day, code) {
+    const NC = window.NaviComitive, out = rows.map(() => ({ salgono: [], scendono: [] }));
+    if (!NC || !state.comitive.length) return out;
+    [...new Set(rows.map(r => r.run))].forEach(run => {
+      const corsa = rows.filter(r => r.run === run);
+      NC.diCorsa(state.comitive, day, run, code).forEach(c => {
+        const sale = corsa.find(r => norm(r.nome) === norm(c.sale)) || corsa[0];
+        const scende = corsa.slice(corsa.indexOf(sale) + 1).find(r => norm(r.nome) === norm(c.scende));
+        out[rows.indexOf(sale)].salgono.push(c);
+        if (scende) out[rows.indexOf(scende)].scendono.push(c);
+      });
     });
+    return out;
+  }
+  const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
+  function comitiveRiga(com) {
+    const chi = c => `<b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}`;
+    const voci = [...com.scendono.map(c => `<span title="Comitiva">👥 scendono ${chi(c)}</span>`), ...com.salgono.map(c => `<span title="Comitiva">👥 salgono ${chi(c)}${c.scende ? `<small>${esc(c.percorso)} · scendono a ${esc(c.scende)}</small>` : ''}</span>`)];
     return voci.length ? `<span class="mt-coinc mt-comit">${voci.join('')}</span>` : '';
+  }
+  // Riquadro rosa «Comitive sulle tue corse»: sempre in vista, sparisce quando sono tutte salite e scese
+  function riquadroComitive(rows, com, day) {
+    const oggi = iso(new Date()), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+    const passata = r => day < oggi || (day === oggi && minutes(r.orario) < nowMin);
+    const voci = [];
+    rows.forEach((r, i) => { com[i].scendono.forEach(c => voci.push({ c, r, i, su: false })); com[i].salgono.forEach(c => voci.push({ c, r, i, su: true })); });
+    if (!voci.length || voci.every(v => passata(v.r))) return '';
+    const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
+    return `<details class="or-com" open><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
+      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}"><span class="o">${esc(v.r.orario)}<small>c. ${esc(v.r.run)}</small></span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></div>`).join('') + '</details>';
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
@@ -179,6 +197,7 @@
         per: corsa.per || '', aiuto: corsa.tipo === 'aiuto', bis: code !== 'BIS' && !!bisPerCorsa(incarichi, code, corsa.numero, day) });
     }));
     if (rows.length) rows[rows.length - 1].kind = 'A';
+    const com = comitiveRighe(rows, day, code);
     let nextFound = false;
     rows.forEach(row => {
       row.stato = '';
@@ -205,12 +224,14 @@
         if (row.per) badges.push(`<b class="bis" title="${row.aiuto ? 'In aiuto' : 'Al posto della nave'} del ${esc(row.per)}">${row.aiuto ? 'aiuto' : 'al posto'} ${esc(row.per)}</b>`);
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
-        const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
+        const paxSu = paxDi(com[i].salgono), paxGiu = paxDi(com[i].scendono);
+        if (paxSu || paxGiu) badges.push(`<b class="com-tag" title="Comitive">👥 ${[paxSu ? `${paxSu} salgono` : '', paxGiu ? `${paxGiu} scendono` : ''].filter(Boolean).join(' · ')}</b>`);
+        const cls = `nave${paxSu || paxGiu ? ' hc' : ''}${/^T[12]$/.test(code) ? ' ferry' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
         const sep = row.sep ? `<div class="mt-sep" role="separator" aria-label="Corsa ${esc(row.sep)}"><span>${esc(row.sep)}</span></div>` : '';
         return `${sep}<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
-          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}${comitiveRiga(row, rows, day, code)}</span></div>`;
+          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}${comitiveRiga(com[i])}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
     // regola delle coincidenze sotto la lista, se ce ne sono
     const regola = listaCorse.includes('mt-coinc') ? '<p class="mt-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</p>' : '';
@@ -219,7 +240,7 @@
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
-    $('turno-content').innerHTML = `<div class="terra-col">${right}</div>`;
+    $('turno-content').innerHTML = `<div class="terra-col">${riquadroComitive(rows, com, day)}${right}</div>`;
     $('turno-after').innerHTML = `<div class="terra-col">${left}</div>`;
   }
 

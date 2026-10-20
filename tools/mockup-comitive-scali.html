@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup · Comitive in Scali e Il mio turno</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--rose:#fb7185;--mono:'DM Mono',ui-monospace,monospace;--com:#f472b6}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;padding:16px}
+h1{margin:0 0 4px;font-size:20px}
+.nota{color:var(--muted);font-size:12px;margin:0 0 14px;max-width:900px}
+.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px;max-width:900px}
+.tel{border:1px solid var(--line);border-radius:26px;padding:14px;background:var(--surface);display:grid;gap:10px;align-content:start}
+.eb{color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.2em}
+.tt{font-size:22px;font-weight:800;margin:0}
+/* Riquadro comitive del giorno */
+.com{--c:var(--com);border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 50%,transparent);background:color-mix(in srgb,var(--c) 14%,var(--card));padding:10px 12px;display:grid;gap:6px}
+.com h3{margin:0;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--c)}
+.com h3 .cnt{margin-left:auto;padding:2px 9px;border-radius:999px;background:var(--c);color:var(--on);font:500 11px var(--mono)}
+.cr{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;background:var(--card)}
+.cr .o{font:500 13px var(--mono)}
+.cr .o small{display:block;font-size:10px;color:var(--muted)}
+.cr b{font-size:13px}
+.cr .d{display:block;font-size:11px;color:var(--muted)}
+.ss{font-size:9px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:999px;margin-right:4px}
+.ss.su{background:#16a34a33;color:#4ade80}.ss.giu{background:#fb718533;color:#fda4af}
+.px{display:inline-grid;place-items:center;min-width:38px;height:30px;padding:0 6px;border-radius:999px;border:2px solid var(--c);color:var(--c);font:500 12px var(--mono)}
+.chip{display:inline-block;padding:0 6px;border-radius:6px;font:800 10px Manrope;color:var(--on)}
+/* righe navi */
+.card{border-radius:16px;background:var(--card);border:1px solid var(--line);padding:10px;display:grid;gap:4px}
+.card h4{margin:0 0 4px;font-size:13px;color:var(--teal)}
+.nave{display:grid;grid-template-columns:52px 86px 1fr;gap:8px;align-items:start;padding:7px 8px;border-radius:10px;background:#0d2230;border-left:4px solid var(--line)}
+.nave.hc{border-left-color:var(--com);background:color-mix(in srgb,var(--com) 10%,#0d2230)}
+.nave .ora{font:500 14px var(--mono)}
+.nave .tipo{font-size:9px;font-weight:900;letter-spacing:.1em;color:var(--muted)}
+.nave .tipo small{display:block;font-weight:600;letter-spacing:0}
+.nave .dove b{font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--com);color:var(--on);font:800 10px Manrope;vertical-align:middle}
+.det{display:block;margin-top:3px;font-size:11.5px;color:#fbcfe8;font-weight:600}
+.det small{color:var(--muted);font-weight:500}
+.leg{font-size:11px;color:var(--muted);margin:0}
+</style>
+</head>
+<body>
+<h1>Comitive: Scali e Il mio turno</h1>
+<p class="nota">Proposta: se nel giorno ci sono comitive, in alto compare un riquadro rosa «👥 Comitive oggi», con le comitive in ordine di orario: ora, corsa, turno, se salgono o scendono, cliente, pax e pagamento. Toccando una riga si scende alla nave. Nella lista delle navi, le corse con una comitiva hanno il bordo rosa e la pastiglia «👥 37». Se nel giorno non ci sono comitive, il riquadro non compare.</p>
+<div class="wrap">
+
+<div class="tel">
+  <div><span class="eb">SCALI</span><p class="tt">Salò</p></div>
+  <div class="com">
+    <h3>👥 Comitive oggi a Salò <b class="cnt">3 · 115 pax</b></h3>
+    <div class="cr"><span class="o">11.04<small>c. 2</small></span><span><span class="ss giu">SCENDONO</span><b>Ag. Viaggi Rebellato</b><span class="d">da Bardolino · voucher</span></span><span class="px">21</span></div>
+    <div class="cr"><span class="o">11.04<small>c. 2</small></span><span><span class="ss giu">SCENDONO</span><b>Ag. Michelangelo (229119)</b><span class="d">da Bardolino · voucher · poi riparte 14.28</span></span><span class="px">37</span></div>
+    <div class="cr"><span class="o">14.28<small>c. 17</small></span><span><span class="ss su">SALGONO</span><b>Ag. Sabtours</b><span class="d">per Sirmione · diretto</span></span><span class="px">20</span></div>
+  </div>
+  <div class="card">
+    <h4>Allo scalo</h4>
+    <div class="nave hc"><span class="ora">11.04</span><span class="tipo">SCALO<small>corsa 2 <span class="chip" style="background:#93c5fd">P1</span></small></span><span class="dove"><b>Bardolino › Riva</b><span class="tag">👥 58</span><span class="det">👥 scendono Ag. Viaggi Rebellato · 21 · voucher<br>👥 scendono Ag. Michelangelo (229119) · 37 · voucher</span></span></div>
+    <div class="nave"><span class="ora">12.10</span><span class="tipo">PARTENZA<small>corsa 7 <span class="chip" style="background:#fb7185">R1</span></small></span><span class="dove"><b>per Desenzano</b></span></div>
+    <div class="nave hc"><span class="ora">14.28</span><span class="tipo">SCALO<small>corsa 17 <span class="chip" style="background:#2dd4bf">D1</span></small></span><span class="dove"><b>Gargnano › Desenzano</b><span class="tag">👥 57</span><span class="det">👥 salgono Ag. Michelangelo (229119) · 37 · voucher <small>per Bardolino</small><br>👥 salgono Ag. Sabtours · 20 · diretto <small>per Sirmione</small></span></span></div>
+  </div>
+  <p class="leg">Il riquadro rosa si apre da solo. Si può chiudere: chiuso resta la riga «👥 3 comitive · 115 pax».</p>
+</div>
+
+<div class="tel">
+  <div><span class="eb">IL MIO TURNO</span><p class="tt"><span class="chip" style="background:#2dd4bf;font-size:13px">D1</span> San Marco</p></div>
+  <div class="com">
+    <h3>👥 Comitive sulle tue corse <b class="cnt">2 · 57 pax</b></h3>
+    <div class="cr"><span class="o">14.28<small>c. 17</small></span><span><span class="ss su">SALGONO</span><b>Ag. Michelangelo (229119)</b><span class="d">Salò → Bardolino · voucher</span></span><span class="px">37</span></div>
+    <div class="cr"><span class="o">14.28<small>c. 17</small></span><span><span class="ss su">SALGONO</span><b>Ag. Sabtours</b><span class="d">Salò → Sirmione · diretto</span></span><span class="px">20</span></div>
+  </div>
+  <div class="card">
+    <h4>Corse e scali</h4>
+    <div class="nave"><span class="ora">13.40</span><span class="tipo">PARTENZA<small>corsa 17</small></span><span class="dove"><b>Riva</b></span></div>
+    <div class="nave hc"><span class="ora">14.28</span><span class="tipo">SCALO<small>corsa 17</small></span><span class="dove"><b>Salò</b><span class="tag">👥 57 salgono</span><span class="det">👥 salgono Ag. Michelangelo (229119) · 37 · voucher <small>fino a Bardolino</small><br>👥 salgono Ag. Sabtours · 20 · diretto <small>fino a Sirmione</small></span></span></div>
+    <div class="nave hc"><span class="ora">15.05</span><span class="tipo">SCALO<small>corsa 17</small></span><span class="dove"><b>Sirmione</b><span class="tag">👥 20 scendono</span><span class="det">👥 scendono Ag. Sabtours · 20 · diretto</span></span></div>
+    <div class="nave hc"><span class="ora">15.35</span><span class="tipo">SCALO<small>corsa 17</small></span><span class="dove"><b>Bardolino</b><span class="tag">👥 37 scendono</span><span class="det">👥 scendono Ag. Michelangelo (229119) · 37 · voucher</span></span></div>
+  </div>
+  <p class="leg">Anche quando le corse sono chiuse, il riquadro rosa resta sempre visibile in alto. I turni a terra vedono le comitive del proprio scalo, come in Scali.</p>
+</div>
+
+</div>
+</body>
+</html>
