@@ -152,7 +152,7 @@
     if (!voci.length || voci.every(v => passata(v.r))) return '';
     const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
-      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${window.NaviComitive.bolle.pag(v.c.pagamento)}</span></div>`).join('') + '</details>';
+      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></div>`).join('') + '</details>';
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
