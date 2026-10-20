@@ -520,14 +520,32 @@
   }
 
   // Comitive allo scalo (pagina Comitive): chi sale con la corsa in partenza, chi scende da quella in arrivo
-  function comitiveScalo(g, r) {
+  function comitiveDi(g, r) {
     const NC = window.NaviComitive;
-    if (!NC || !state.comitive?.length || r.propria) return '';
+    if (!NC || !state.comitive?.length || r.propria) return { salgono: [], scendono: [] };
     const parte = r.kind !== 'A' ? r.corsa : '', arriva = r.arr ? r.arr.corsa : r.kind === 'A' ? r.corsa : (r.v.scali[r.i]?.[2] || '');
-    const { salgono, scendono } = NC.alloScalo(state.comitive, g.day, state.scalo, parte, arriva, r.v.turno);
+    return NC.alloScalo(state.comitive, g.day, state.scalo, parte, arriva, r.v.turno);
+  }
+  function comitiveScalo(com) {
     const voce = (c, testo) => `<span>👥 ${testo} <b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}</span>`;
-    const righe = [...scendono.map(c => voce(c, `scendono${c.da ? ` (da ${esc(c.da)})` : ''}`)), ...salgono.map(c => voce(c, `salgono${c.verso ? ` (per ${esc(c.verso)})` : ''}`))];
+    const righe = [...com.scendono.map(c => voce(c, `scendono${c.da ? ` (da ${esc(c.da)})` : ''}`)), ...com.salgono.map(c => voce(c, `salgono${c.verso ? ` (per ${esc(c.verso)})` : ''}`))];
     return righe.length ? `<span class="mt-coinc mt-comit">${righe.join('')}</span>` : '';
+  }
+  const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
+  // Riquadro rosa «Comitive oggi»: in ordine di orario, con turno; sparisce quando sono tutte partite o arrivate
+  function riquadroComitive(g, righe, t) {
+    const voci = [];
+    righe.forEach((r, i) => {
+      const com = comitiveDi(g, r);
+      com.scendono.forEach(c => voci.push({ c, i, r, su: false, ora: r.arr ? r.arr.ora : r.ora, t: r.arr ? r.arr.t : r.t, corsa: r.arr ? r.arr.corsa : r.corsa }));
+      com.salgono.forEach(c => voci.push({ c, i, r, su: true, ora: r.ora, t: r.t, corsa: r.corsa }));
+    });
+    if (!voci.length || voci.every(v => v.t < t)) return '';
+    voci.sort((a, b) => a.t - b.t || a.su - b.su);
+    const pax = voci.reduce((n, v) => n + (parseInt(v.c.pax, 10) || 0), 0), clienti = new Set(voci.map(v => v.c.chiave)).size;
+    return `<details class="or-com" open><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
+      voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}"><span class="o">${esc(v.ora)}<small>c. ${esc(v.corsa)} ${chip(v.r.v.turno)}</small></span>` +
+        `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></a>`).join('') + '</details>';
   }
   function alloScalo(g, t, aperte = [], navi = []) {
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
@@ -544,7 +562,9 @@
     const nascoste = Math.max(0, pastIdx.length - 1);
     const prossima = righe.findIndex(r => r.t >= t);
     const ritardiOk = puoRitardi(), miaNave = miaNaveOggi();
+    const riquadroCom = riquadroComitive(g, righe, t);
     const html = righe.map((r, i) => {
+      const com = comitiveDi(g, r), paxCom = paxDi(com.salgono) + paxDi(com.scendono);
       if (r.t < t && i !== lastPast && !state.showPastLago) return '';
       const code = r.v.turno;
       if (r.v.sospesa) {
@@ -578,13 +598,14 @@
       const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
       const manca = mancaRaw && verso === r && r.arr ? { ...mancaRaw, testo: mancaRaw.testo.replace('in arrivo · ', 'parte ') } : mancaRaw;
       const info = r.propria ? [naveDi(g, 'BIS'), G.comandante(g.crews.BIS)].filter(Boolean).join(' · ') : naveInfo(g, code, r.corsa);
-      const cls = `nave${/^T[12]$/.test(code) ? ' ferry' : ''}${r.t < t ? ' past' : ''}${i === prossima ? ' next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(code) ? ' active' : ''}`;
+      if (paxCom) badges.push(`<b class="com-tag" title="Comitive">👥 ${paxCom}</b>`);
+      const cls = `nave${paxCom ? ' hc' : ''}${/^T[12]$/.test(code) ? ' ferry' : ''}${r.t < t ? ' past' : ''}${i === prossima ? ' next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(code) ? ' active' : ''}`;
       const arrivo = r.arr ? `<small class="arr" title="Arrivo">arr. ${esc(r.arr.ora)}</small>` : '';
-      return `<div class="${cls}"${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
+      return `<div class="${cls}"${paxCom ? ` id="or-com-${i}"` : ''}${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
         `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa, state.scalo)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : code !== 'BIS' && (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(r.corsa))) ? '<b class="sosp-tag bis" title="Il BIS fa la corsa in aiuto">BIS IN AIUTO</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
-        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${comitiveScalo(g, r)}</span></div>`;
+        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${comitiveScalo(com)}</span></div>`;
     }).join('');
     const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
     const vuoto = righe.length ? '' : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>';
@@ -604,7 +625,7 @@
       `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
       `${res ? `<p class="or-sub or-agenti-title">Agenti di servizio</p>${agentiDiServizio(res, t)}` : ''}`, `or-at-card${chiuso ? ' or-at-chiuso' : ''}`);
-    return scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
+    return riquadroCom + scheda.replace('</h2></div><div class="terra-card-body">', `</h2>${prossimaNave}</div><div class="terra-card-body">`).replace('<h2>Allo scalo</h2>', `<h2><button type="button" class="or-at-titolo" data-at-toggle aria-expanded="${!chiuso}" title="${chiuso ? 'Mostra tutti gli scali' : 'Riduci alla prossima nave'}">${chiuso ? '▸' : '▾'} Allo scalo</button></h2>`);
   }
 
   // Solo nella giornata di oggi: "Adesso" sempre della stessa misura; acceso se l'ora segue l'orologio, con un bordino verde

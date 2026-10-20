@@ -206,3 +206,23 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 .mt-comit{flex:1 0 100%;width:100%;min-width:0;display:flex;flex-direction:column;gap:2px;margin-top:4px;font-size:11.5px;color:#67d7e6;font-weight:600}
 .mt-comit>span{display:block;line-height:1.35}
 .mt-comit b{color:#eaf2f4}
+/* riquadro rosa delle comitive del giorno (Scali, Il mio turno) */
+.or-com{--c:#f472b6;display:grid;gap:6px;margin:0 0 10px;padding:10px 12px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 50%,transparent);background:color-mix(in srgb,var(--c) 14%,#102733);color:#eaf2f4}
+.or-com>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:800;color:var(--c)}
+.or-com>summary::-webkit-details-marker{display:none}
+.or-com>summary span{flex:1}
+.or-com>summary::after{content:'▾';color:#9fb8c2}.or-com:not([open])>summary::after{content:'▸'}
+.or-com .cnt{padding:2px 9px;border-radius:999px;background:var(--c);color:#06231f;font:500 11px 'DM Mono',ui-monospace,monospace}
+.or-com-r{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;background:#102733;color:inherit;text-decoration:none}
+.or-com-r.past{opacity:.45}
+.or-com-r .o{font:500 13px 'DM Mono',ui-monospace,monospace}
+.or-com-r .o small{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:10px;color:#9fb8c2}
+.or-com-r .o .chip{font-size:9px;padding:0 4px}
+.or-com-r b{font-size:13px;overflow-wrap:anywhere}
+.or-com-r .d{display:block;font-size:11px;color:#9fb8c2}
+.or-com .ss{font-size:9px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:999px;margin-right:4px}
+.or-com .ss.su{background:#16a34a33;color:#4ade80}.or-com .ss.giu{background:#fb718533;color:#fda4af}
+.or-com .px{display:inline-grid;place-items:center;min-width:38px;height:30px;padding:0 6px;border-radius:999px;border:2px solid var(--c);color:var(--c);font:500 12px 'DM Mono',ui-monospace,monospace}
+.navi-list .nave.hc{border-left:4px solid #f472b6;background:color-mix(in srgb,#f472b6 10%,transparent)}
+.badges .com-tag{background:#f472b6;color:#06231f;border-radius:999px;padding:1px 7px;font-weight:800}
+.mt-comit{color:#fbcfe8}
