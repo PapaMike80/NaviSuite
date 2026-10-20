@@ -42,6 +42,13 @@
     .tr .c{text-align:center;justify-self:center}
     .tr:not(.th){cursor:pointer}.tr.edit{outline:2px solid var(--cyan)}
     .btn[hidden]{display:none}
+    .tappe{display:grid;gap:6px}.tappe .lbl{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    #f-tappe{display:grid;gap:6px}
+    .tp{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;align-items:end}
+    .tp-n{display:grid;place-items:center;width:26px;height:26px;margin-bottom:8px;border-radius:50%;background:var(--c);color:var(--on);font:800 12px Manrope,system-ui,sans-serif}
+    .tp label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.tp label i{font-style:normal;text-transform:none;letter-spacing:0;font-weight:600}
+    .tp-x{height:40px;width:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+    .tp-add{justify-self:start;min-height:40px;padding:0 16px;border-radius:12px;border:1px dashed var(--c);background:color-mix(in srgb,var(--c) 10%,transparent);color:var(--c);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
     .annulla{background:transparent;border:1px solid var(--line);color:var(--muted)}
     .sugg{display:grid;gap:6px}.sugg:empty{display:none}
     .sugg .leg{display:grid;gap:4px;padding:8px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
@@ -127,7 +134,7 @@
         <label class="w">Cliente<input type="text" id="f-cliente" list="dl-clienti" placeholder="Ag. Michelangelo (230154)" required></label><datalist id="dl-clienti"></datalist>
         <label>Città<input type="text" id="f-citta" placeholder="Riva del Garda"></label>
         <label>Naz.<input type="text" id="f-naz" placeholder="I" maxlength="3"></label>
-        <label class="w">Percorso<input type="text" id="f-percorso" list="dl-percorsi" placeholder="Malcesine-Limone-Malcesine" required></label><datalist id="dl-percorsi"></datalist>
+        <div class="w tappe"><span class="lbl">Percorso</span><input type="hidden" id="f-percorso"><div id="f-tappe"></div><datalist id="dl-scali"></datalist></div>
         <div class="w sugg" id="f-sugg"></div>
         <label>Corse<input type="text" id="f-corse" placeholder="62-57" required></label>
         <label>Pagamento<select id="f-pagamento"><option value="voucher">voucher</option><option value="diretto">diretto</option></select></label>
@@ -236,7 +243,8 @@
       state.clienti.forEach(c=>nomi.set(c.nome,c));
       state.anagrafica=nomi;
       $('dl-clienti').innerHTML=[...nomi.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'it')).map(c=>`<option value="${esc(c.nome)}">${esc([c.citta,c.naz].filter(Boolean).join(' · '))}</option>`).join('');
-      $('dl-percorsi').innerHTML=[...new Set(tutte().map(c=>c.percorso))].sort((a,b)=>a.localeCompare(b,'it')).map(p=>`<option value="${esc(p)}">`).join('');
+      let sc=[];try{sc=window.NaviOrariStagioni?.scali?.(v('f-data')||oggi)||[];}catch{sc=[];}
+      $('dl-scali').innerHTML=sc.map(n=>`<option value="${esc(n)}">`).join('');
     }
     // cliente gia' in anagrafica: completa citta', nazione e pagamento
     $('f-cliente').addEventListener('change',()=>{
@@ -268,7 +276,7 @@
         const parti=v('f-percorso').split('+'),scali=parti[0].split('-').map(x=>x.trim()).filter(Boolean),k=+b.dataset.tratto,corse=C.numeri(v('f-corse'));
         while(corse.length<scali.length-1)corse.push('?');
         scali.splice(k+1,0,b.dataset.cambio);corse.splice(k,1,b.dataset.corsa,b.dataset.corsa2);
-        $('f-percorso').value=[scali.join('-'),...parti.slice(1)].join('+');
+        $('f-percorso').value=[scali.join('-'),...parti.slice(1)].join('+');tappeDaPercorso();
         $('f-corse').value=corse.join('-').replace(/(-\?)+$/,'');
         corsePossibili();return;
       }
@@ -278,9 +286,33 @@
       $('f-corse').value=corse.map(x=>x||'?').join('-').replace(/(-\?)+$/,'');
       corsePossibili();
     });
+    // Percorso a tappe: «＋ Partenza», poi Destinazione, poi altre destinazioni facoltative (scalo scritto o dall'elenco)
+    state.tappe=[];state.partenza=false;
+    const tappeDaPercorso=()=>{state.tappe=v('f-percorso').split(/[-+]/).map(x=>x.trim()).filter(Boolean);state.partenza=state.tappe.length>0;renderTappe();};
+    function scriviPercorso(){$('f-percorso').value=state.tappe.join('-');corsePossibili();}
+    function renderTappe(){
+      const box=$('f-tappe');
+      if(!state.partenza){box.innerHTML='<button type="button" class="tp-add" data-tp-start>＋ Partenza</button>';return;}
+      const nome=i=>i===0?'Partenza':i===1?'Destinazione':'Altra destinazione';
+      const campi=[...state.tappe,''];
+      box.innerHTML=campi.map((t,i)=>`<div class="tp"><span class="tp-n">${i+1}</span><label>${nome(i)}${i>1&&!t?' <i>(facoltativa)</i>':''}<input type="text" list="dl-scali" data-tp="${i}" value="${esc(t)}" placeholder="Scrivi o scegli uno scalo"></label>${t?`<button type="button" class="tp-x" data-tp-x="${i}" aria-label="Togli ${esc(t)}">✕</button>`:''}</div>`).join('');
+    }
+    $('f-tappe').addEventListener('click',e=>{
+      if(e.target.closest('[data-tp-start]')){state.partenza=true;renderTappe();$('f-tappe').querySelector('input')?.focus();return;}
+      const x=e.target.closest('[data-tp-x]');if(!x)return;
+      state.tappe.splice(+x.dataset.tpX,1);if(!state.tappe.length)state.partenza=false;scriviPercorso();renderTappe();
+    });
+    $('f-tappe').addEventListener('change',e=>{
+      const i=e.target.dataset?.tp;if(i===undefined)return;
+      const val=e.target.value.trim();
+      if(val)state.tappe[+i]=val;else state.tappe.splice(+i,1);
+      scriviPercorso();renderTappe();
+      $('f-tappe').querySelector(`[data-tp="${state.tappe.length}"]`)?.focus();
+    });
     function modulo(c){
       state.edit=c||null;
       F.forEach(k=>{$(`f-${k}`).value=c?(c[k]||''):(k==='pagamento'?'voucher':'');});
+      tappeDaPercorso();
       $('form-titolo').textContent=c?`✎ Modifica · ${c.cliente}`:'＋ Nuova comitiva';
       $('f-salva').textContent=c?'Salva modifiche':'Salva comitiva';
       $('f-annulla').hidden=!c;$('f-msg').textContent='';
@@ -299,6 +331,7 @@
       e.preventDefault();
       const msg=$('f-msg');
       const campi=Object.fromEntries(F.map(k=>[k,v(`f-${k}`)]));campi.naz=campi.naz.toUpperCase();
+      if(state.tappe.length<2){msg.className='msg bad';msg.textContent='Indica almeno la partenza e una destinazione.';return;}
       if(!campi.data||!campi.cliente||!campi.percorso||!campi.pax||!campi.corse){msg.className='msg bad';msg.textContent='Compila data, cliente, percorso, pax e corse.';return;}
       msg.className='msg';msg.textContent='Salvataggio…';
       try{
@@ -310,6 +343,7 @@
     });
 
     (async()=>{
+      renderTappe();
       const r=await C.carica();state.lista=r.lista;state.pb=r.pb;render();suggerimenti();
       if(r.pb)C.caricaClienti().then(l=>{state.clienti=l;suggerimenti();});
       // le comitive dell'O.d.S. non ancora in archivio vengono copiate una volta
