@@ -173,5 +173,15 @@
     return out.sort((x, y) => minuti(x.prima.parte) - minuti(y.prima.parte)).slice(0, max);
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta, corseConCambio };
+  // Bolle come nella pagina Comitive: pagamento (viola voucher, giallo diretto), pax nel colore del pagamento, corsa con turno
+  const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const COL_PAG = { voucher: '#a78bfa', diretto: '#fbbf24' };
+  const colPag = p => COL_PAG[String(p || '').toLowerCase()] || '#67d7e6';
+  const bolle = {
+    pag: p => `<span class="cm-pg" style="--p:${colPag(p)}">${escH(p)}</span>`,
+    pax: c => `<span class="cm-px" style="--p:${colPag(c.pagamento)}">${escH(c.pax)}</span>`,
+    corsa: (n, turno) => `<span class="cm-ct" style="--t:${root.NaviOrariStagioni?.COLORI?.[turno] || '#9fb8c2'}"><i>${escH(n)}</i>${turno ? `<b>${escH(turno)}</b>` : ''}</span>`
+  };
+
+  root.NaviComitive = { bolle, colPag, chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta, corseConCambio };
 })(typeof window !== 'undefined' ? window : globalThis);
