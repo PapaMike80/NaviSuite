@@ -40,6 +40,7 @@
     .it .dx{display:grid;gap:4px;justify-items:end}
     .pg{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:color-mix(in srgb,var(--p) 20%,transparent);color:var(--p);border:1px solid color-mix(in srgb,var(--p) 45%,transparent)}
     .nuova{font-size:9px;font-weight:900;color:var(--violet)}
+    .tc{display:flex!important;flex-wrap:wrap;gap:4px;margin-top:3px}.it .n .ct{display:inline-flex;align-items:center;gap:4px;padding:1px 2px 1px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--t) 55%,transparent);font-size:11px;color:var(--ink)}.ct i{font-style:normal}.ct b{padding:0 6px;border-radius:999px;background:var(--t);color:var(--on);font:800 10px Manrope,system-ui,sans-serif}
     .it select{width:auto;min-width:72px;padding:5px 6px;font:500 12px var(--mono);border-radius:8px}
     .it select.on{background:var(--teal);border-color:var(--teal);color:var(--on)}
     select,input{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink)}
@@ -107,8 +108,15 @@
   <script src="assets/js/admin-firebase-rest.js?v=88"></script>
   <script src="assets/js/shared-menu.js?v=1.82"></script>
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
+  <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/orario-corse-estate.js?v=1"></script>
+  <script src="assets/js/orario-giorno.js?v=7"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=21"></script>
+  <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
+  <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
-  <script src="assets/js/comitive.js?v=3"></script>
+  <script src="assets/js/comitive.js?v=4"></script>
   <script>
   (function(){
     const $=id=>document.getElementById(id);
@@ -119,7 +127,6 @@
     if(!ammesso(agent)){location.replace('index.html');return;}
     $('pagina').hidden=false;
 
-    const TURNI=['D1','D2','BIS','T1','T2','M1','R1','R2','R3','P1','P2','S.S.'];
     const C=window.NaviComitive,ODS=window.NaviComitiveOds||{ods:'',comitive:[]};
     const autore=String(agent?.name||agent?.id||'');
     const state={lista:[],pb:false};
@@ -128,20 +135,21 @@
     const oggi=new Date().toLocaleDateString('sv-SE');
     const paxN=p=>parseInt(String(p),10)||0;
     const tutte=()=>state.lista.slice().sort((a,b)=>a.data.localeCompare(b.data)||a.percorso.localeCompare(b.percorso,'it')||a.cliente.localeCompare(b.cliente,'it'));
+    const COLORI=window.NaviOrariStagioni?.COLORI||{};
     const COL_PAG={voucher:'var(--violet)',diretto:'var(--amber)'};
     const trova=k=>state.lista.find(c=>c.chiave===k);
 
     function riga(c){
       const col=COL_PAG[c.pagamento]||'var(--cyan)';
       return `<div class="it" style="--g:${col}"><span class="gr" style="--g:${col}">${esc(c.pax)}</span>`
-        +`<div class="n"><b>${esc(c.cliente)}</b><span class="mono">${esc(c.percorso)} · corse ${esc(c.corse)}</span><span class="mono">${esc([c.citta,c.naz].filter(Boolean).join(' · '))}${c.fonte==='manuale'?' <i class="nuova">NUOVA</i>':''}</span></div>`
-        +`<div class="dx"><span class="pg" style="--p:${col}">${esc(c.pagamento)}</span><select data-turno="${esc(c.chiave)}" class="${c.turno?'on':''}" aria-label="Turno per ${esc(c.cliente)}"${state.pb?'':' disabled'}><option value="">Turno…</option>${TURNI.map(x=>`<option${x===c.turno?' selected':''}>${x}</option>`).join('')}</select>${c.fonte==='manuale'&&c.id?`<button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</div></div>`;
+        +`<div class="n"><b>${esc(c.cliente)}</b><span class="mono">${esc(c.percorso)}</span><span class="tc">${C.turniCorse(c).map(x=>`<span class="ct" style="--t:${COLORI[x.turno]||'var(--muted)'}"><i class="mono">c. ${esc(x.numero)}</i>${x.turno?`<b>${esc(x.turno)}</b>`:'<b title="Corsa non trovata nell\'orario del giorno">?</b>'}</span>`).join('')}</span><span class="mono">${esc([c.citta,c.naz].filter(Boolean).join(' · '))}${c.fonte==='manuale'?' <i class="nuova">NUOVA</i>':''}</span></div>`
+        +`<div class="dx"><span class="pg" style="--p:${col}">${esc(c.pagamento)}</span>${c.fonte==='manuale'&&c.id?`<button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</div></div>`;
     }
 
     function render(){
       const lista=tutte(),giorni=[...new Set(lista.map(c=>c.data))];
-      $('fonte').textContent=`${ODS.ods?`O.d.S. ${ODS.ods} · `:''}${giorni.length} giorni${state.pb?'':' · archivio non raggiungibile: turni e nuove comitive non si possono salvare'}`;
-      $('kpi').innerHTML=`<div><small>Comitive</small><b>${lista.length}</b></div><div><small>Passeggeri</small><b>${lista.reduce((t,c)=>t+paxN(c.pax),0)}</b></div><div><small>Con turno</small><b>${lista.filter(c=>c.turno).length}</b></div>`;
+      $('fonte').textContent=`${ODS.ods?`O.d.S. ${ODS.ods} · `:''}${giorni.length} giorni${state.pb?'':' · archivio non raggiungibile: le nuove comitive non si possono salvare'}`;
+      $('kpi').innerHTML=`<div><small>Comitive</small><b>${lista.length}</b></div><div><small>Passeggeri</small><b>${lista.reduce((t,c)=>t+paxN(c.pax),0)}</b></div><div><small>Corse</small><b>${new Set(lista.flatMap(c=>C.numeri(c.corse).map(n=>c.data+n))).size}</b></div>`;
       $('nuove-cnt').textContent=lista.filter(c=>c.fonte==='manuale').length;
       $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=lista.filter(c=>c.data===d);return `<section class="sez${d===oggi?' oggi':''}" style="--c:var(--teal)"><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3>${del.map(riga).join('')}</section>`}).join(''):'<p class="vuoto">Nessuna comitiva.</p>';
     }
@@ -156,12 +164,6 @@
     }
     $('stampa-btn').addEventListener('click',stampa);
 
-    document.addEventListener('change',async e=>{
-      const sel=e.target.closest('[data-turno]');if(!sel)return;
-      const c=trova(sel.dataset.turno);if(!c)return;
-      const prima=c.turno;c.turno=sel.value;render();
-      try{Object.assign(c,await C.salva(c,autore));}catch(err){c.turno=prima;render();alert(`Turno non salvato: ${err.message}`)}
-    });
     document.addEventListener('click',async e=>{
       const b=e.target.closest('[data-togli]');if(!b)return;
       if(!confirm('Togliere questa comitiva?'))return;
