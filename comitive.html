@@ -48,6 +48,7 @@
     .sugg button b{padding:0 6px;border-radius:999px;background:var(--t);color:var(--on);font:800 10px Manrope,system-ui,sans-serif}
     .sugg button[aria-pressed="true"]{background:color-mix(in srgb,var(--t) 30%,transparent);outline:2px solid var(--t)}
     .sugg p{margin:0;font-size:11px;color:var(--muted)}
+    .sugg .cmb{flex-wrap:wrap;border-radius:12px;text-align:left}.sugg .cmb i{font-style:normal;color:var(--amber);font:800 11px Manrope,system-ui,sans-serif}
     .tr .perc{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
     .tr .cli b{font-weight:800;overflow-wrap:anywhere}
     .tr .cit{color:var(--muted);text-align:center}
@@ -147,7 +148,7 @@
   <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
   <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
-  <script src="assets/js/comitive.js?v=6"></script>
+  <script src="assets/js/comitive.js?v=7"></script>
   <script>
   (function(){
     const $=id=>document.getElementById(id);
@@ -246,12 +247,25 @@
       const scelte=C.numeri(v('f-corse'));
       box.innerHTML=scali.slice(1).map((a,k)=>{
         const da=scali[k],opz=C.corsePerTratta(data,da,a);
-        return `<div class="leg"><b>${esc(da)} → ${esc(a)}</b>${opz.length?`<div class="opz">${opz.map(o=>`<button type="button" data-tratto="${k}" data-corsa="${esc(o.numero)}" aria-pressed="${scelte[k]===o.numero}" style="--t:${COLORI[o.turno]||'var(--muted)'}">${esc(o.parte)}→${esc(o.arriva)} · c. ${esc(o.numero)}${o.sr?' SR':''} <b>${esc(o.turno||'?')}</b></button>`).join('')}</div>`:'<p>Nessuna corsa diretta nell\'orario del giorno.</p>'}</div>`;
+        const pill=o=>`${esc(o.parte)}→${esc(o.arriva)} · c. ${esc(o.numero)}${o.sr?' SR':''} <b style="background:${COLORI[o.turno]||'var(--muted)'}">${esc(o.turno||'?')}</b>`;
+        if(opz.length)return `<div class="leg"><b>${esc(da)} → ${esc(a)}</b><div class="opz">${opz.map(o=>`<button type="button" data-tratto="${k}" data-corsa="${esc(o.numero)}" aria-pressed="${scelte[k]===o.numero}" style="--t:${COLORI[o.turno]||'var(--muted)'}">${pill(o)}</button>`).join('')}</div></div>`;
+        // nessuna corsa diretta: soluzioni con un cambio (il cambio entra nel percorso)
+        const cambi=C.corseConCambio(data,da,a);
+        return `<div class="leg"><b>${esc(da)} → ${esc(a)} · con cambio</b>${cambi.length?`<div class="opz cambi">${cambi.map(o=>`<button type="button" class="cmb" data-tratto="${k}" data-corsa="${esc(o.prima.numero)}" data-corsa2="${esc(o.poi.numero)}" data-cambio="${esc(o.cambio)}" style="--t:var(--amber)">${pill(o.prima)}<i>⇄ ${esc(o.cambio)}</i>${pill(o.poi)}</button>`).join('')}</div><p>Un tocco aggiunge al percorso lo scalo del cambio.</p>`:'<p>Nessuna soluzione con un cambio nell\'orario del giorno.</p>'}</div>`;
       }).join('');
     }
     ['f-data','f-percorso','f-corse'].forEach(id=>$(id).addEventListener('input',corsePossibili));
     $('f-sugg').addEventListener('click',e=>{
       const b=e.target.closest('[data-tratto]');if(!b)return;
+      if(b.dataset.cambio){
+        // tratto con cambio: Da-X-A nel percorso e le due corse al posto di una
+        const parti=v('f-percorso').split('+'),scali=parti[0].split('-').map(x=>x.trim()).filter(Boolean),k=+b.dataset.tratto,corse=C.numeri(v('f-corse'));
+        while(corse.length<scali.length-1)corse.push('?');
+        scali.splice(k+1,0,b.dataset.cambio);corse.splice(k,1,b.dataset.corsa,b.dataset.corsa2);
+        $('f-percorso').value=[scali.join('-'),...parti.slice(1)].join('+');
+        $('f-corse').value=corse.join('-').replace(/(-\?)+$/,'');
+        corsePossibili();return;
+      }
       const n=v('f-percorso').split('+')[0].split('-').filter(x=>x.trim()).length-1,corse=C.numeri(v('f-corse'));
       while(corse.length<n)corse.push('');
       corse[+b.dataset.tratto]=b.dataset.corsa;

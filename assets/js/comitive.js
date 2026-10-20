@@ -144,5 +144,34 @@
     }).filter(Boolean).sort((x, y) => String(x.parte).replace(':', '.').padStart(5, '0').localeCompare(String(y.parte).replace(':', '.').padStart(5, '0')));
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta };
+  // Senza corsa diretta: soluzioni con un cambio di nave (almeno 5 minuti allo scalo del cambio).
+  // [{cambio, prima: {numero, turno, parte, arriva}, poi: {...}}], prima la soluzione che arriva prima per ogni partenza.
+  const minuti = t => { const [h, m] = String(t).replace(':', '.').split('.').map(Number); return h * 60 + (m || 0); };
+  function corseConCambio(giorno, da, a, max = 8) {
+    const S = root.NaviOrariStagioni;
+    let corse = []; try { corse = S?.corseTutte ? S.corseTutte(giorno) : []; } catch (_) { corse = []; }
+    const tratto = (c, i, j) => ({ numero: c.numero, turno: c.turno, sr: c.sr, parte: c.punti[i][1], arriva: c.punti[j][1] });
+    const out = [];
+    corse.forEach(c1 => {
+      const i = c1.punti.findIndex(p => stessoScalo(p[0], da));
+      if (i < 0) return;
+      let migliore = null;
+      for (let j = i + 1; j < c1.punti.length; j++) {
+        const x = c1.punti[j][0], arr = minuti(c1.punti[j][1]);
+        if (stessoScalo(x, a)) break;
+        corse.forEach(c2 => {
+          if (c2 === c1) return;
+          const k = c2.punti.findIndex(p => stessoScalo(p[0], x) && minuti(p[1]) >= arr + 5);
+          const l = k < 0 ? -1 : c2.punti.findIndex((p, n) => n > k && stessoScalo(p[0], a));
+          if (l < 0) return;
+          const sol = { cambio: x, prima: tratto(c1, i, j), poi: tratto(c2, k, l) };
+          if (!migliore || minuti(sol.poi.arriva) < minuti(migliore.poi.arriva)) migliore = sol;
+        });
+      }
+      if (migliore) out.push(migliore);
+    });
+    return out.sort((x, y) => minuti(x.prima.parte) - minuti(y.prima.parte)).slice(0, max);
+  }
+
+  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta, corseConCambio };
 })(typeof window !== 'undefined' ? window : globalThis);
