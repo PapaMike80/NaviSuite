@@ -63,20 +63,25 @@
       .cc-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;align-items:start}
     }
     /* ---------- Stampa: tabella come l'allegato «Comitive O.d.S.», fondo bianco ---------- */
+    .passati{width:100%;padding:9px;border:1px dashed var(--line);border-radius:12px;background:transparent;color:var(--muted);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .sett{width:auto;min-width:0;flex:0 1 auto;padding:8px 10px;font:600 13px Manrope,system-ui,sans-serif}
+    /* ---------- Stampa: come l'allegato «Comitive O.d.S.» (Arial, celle riquadrate, una settimana da sabato a venerdì) ---------- */
     #stampa{display:none}
     @media print{
-      @page{size:A4 portrait;margin:12mm 10mm}
+      @page{size:A4 portrait;margin:10mm 8mm}
       html,body.comitive-page{background:#fff!important;color:#000;padding:0}
       body.comitive-page>*:not(#stampa){display:none!important}
-      #stampa{display:block;font:9pt/1.25 Arial,Helvetica,sans-serif;color:#000}
-      #stampa h1{margin:0 0 4mm;font:bold 12pt Arial,Helvetica,sans-serif;text-align:center}
-      #stampa table{width:100%;border-collapse:collapse;page-break-inside:auto}
-      #stampa th,#stampa td{border:0.5pt solid #000;padding:1.2mm 1.5mm;text-align:left;vertical-align:top}
-      #stampa th{background:#d9d9d9;font-weight:bold}
-      #stampa tr.giorno{page-break-after:avoid;break-after:avoid}#stampa tr.giorno td{background:#f2f2f2;font-weight:bold;text-transform:lowercase}
-      #stampa tr{page-break-inside:avoid}
+      #stampa{display:block;font:7.5pt/1.15 Arial,Helvetica,sans-serif;color:#000}
+      #stampa h1{margin:0 0 5mm;font:bold 11pt Arial,Helvetica,sans-serif;text-align:center}
+      #stampa table{width:100%;border-collapse:separate;border-spacing:1.1mm .5mm;table-layout:fixed}
+      #stampa th{font-weight:bold;text-align:center;padding:0 .8mm .6mm;border-bottom:.6pt solid #000}
+      #stampa th.l{text-align:left}
+      #stampa td{border:.5pt solid #000;padding:.3mm .8mm;text-align:center;white-space:nowrap;overflow:hidden}
+      #stampa td.l{text-align:left}
+      #stampa tr.giorno td{border:0;padding:1.6mm 0 .2mm;text-align:left;font-weight:bold;text-decoration:underline}
+      #stampa tr.giorno{break-after:avoid;page-break-after:avoid}
+      #stampa tr{break-inside:avoid;page-break-inside:avoid}
       #stampa thead{display:table-header-group}
-      #stampa .c{text-align:center}
     }
   </style>
 </head>
@@ -84,7 +89,7 @@
   <aside class="app-sidebar" id="comitive-sidebar"></aside>
   <header class="page-header"><div><small>MOVIMENTO</small><h1>Comitive</h1></div></header>
   <main id="pagina" hidden>
-    <div class="bar"><p id="fonte"></p><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
+    <div class="bar"><p id="fonte"></p><select class="sett" id="settimana" aria-label="Settimana da stampare"></select><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
     <div class="kpi" id="kpi"></div>
     <details class="adm" id="nuova-box" style="--c:var(--cyan)">
       <summary><span>＋ Nuova comitiva</span><b class="cnt" id="nuove-cnt">0</b></summary>
@@ -146,25 +151,41 @@
         +`<div class="dx"><span class="pg" style="--p:${col}">${esc(c.pagamento)}</span>${c.fonte==='manuale'&&c.id?`<button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</div></div>`;
     }
 
+    // Settimane da sabato a venerdi'
+    const piuGiorni=(d,n)=>{const x=new Date(`${d}T12:00:00`);x.setDate(x.getDate()+n);return x.toLocaleDateString('sv-SE');};
+    const sabato=d=>piuGiorni(d,-((new Date(`${d}T12:00:00`).getDay()+1)%7));
+    const titoloSettimana=s=>{const f=piuGiorni(s,6),fmt=(d,o)=>new Intl.DateTimeFormat('it-IT',o).format(new Date(`${d}T12:00:00`));return s.slice(0,7)===f.slice(0,7)?`dal ${fmt(s,{weekday:'long',day:'numeric'})} al ${fmt(f,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`:`dal ${fmt(s,{weekday:'long',day:'numeric',month:'long'})} al ${fmt(f,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}`;};
+    state.mostraPassati=false;
     function render(){
-      const lista=tutte(),giorni=[...new Set(lista.map(c=>c.data))];
-      $('fonte').textContent=`${ODS.ods?`O.d.S. ${ODS.ods} · `:''}${giorni.length} giorni${state.pb?'':' · archivio non raggiungibile: le nuove comitive non si possono salvare'}`;
+      const lista=tutte(),tuttiGiorni=[...new Set(lista.map(c=>c.data))];
+      const passati=tuttiGiorni.filter(d=>d<oggi),giorni=state.mostraPassati?tuttiGiorni:tuttiGiorni.filter(d=>d>=oggi);
+      const settimane=[...new Set(tuttiGiorni.map(sabato))],scelta=$('settimana').value;
+      const proposta=settimane.find(s=>piuGiorni(s,6)>=oggi)||settimane[settimane.length-1]||'';
+      $('settimana').innerHTML=settimane.map(s=>`<option value="${s}">${esc(giornoCorto(s))} – ${esc(giornoCorto(piuGiorni(s,6)))}</option>`).join('');
+      $('settimana').value=settimane.includes(scelta)?scelta:proposta;
+      $('settimana').hidden=settimane.length<2;
+      $('fonte').textContent=`${tuttiGiorni.length} giorni${state.pb?'':' · archivio non raggiungibile: le nuove comitive non si possono salvare'}`;
       $('kpi').innerHTML=`<div><small>Comitive</small><b>${lista.length}</b></div><div><small>Passeggeri</small><b>${lista.reduce((t,c)=>t+paxN(c.pax),0)}</b></div><div><small>Corse</small><b>${new Set(lista.flatMap(c=>C.numeri(c.corse).map(n=>c.data+n))).size}</b></div>`;
       $('nuove-cnt').textContent=lista.filter(c=>c.fonte==='manuale').length;
-      $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=lista.filter(c=>c.data===d);return `<section class="sez${d===oggi?' oggi':''}" style="--c:var(--teal)"><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3>${del.map(riga).join('')}</section>`}).join(''):'<p class="vuoto">Nessuna comitiva.</p>';
+      $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=lista.filter(c=>c.data===d);return `<section class="sez${d===oggi?' oggi':''}" style="--c:var(--teal)"><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3>${del.map(riga).join('')}</section>`}).join(''):'<p class="vuoto">Nessuna comitiva da oggi in poi.</p>';
+      if(passati.length)$('giorni').insertAdjacentHTML('afterbegin',`<button type="button" class="passati" data-passati>${state.mostraPassati?'▴ Nascondi i giorni passati':`▾ Mostra i giorni passati (${passati.length})`}</button>`);
     }
 
     // Stampa: tabella dell'allegato «Comitive O.d.S.» su fondo bianco
     function stampa(){
-      const lista=tutte(),giorni=[...new Set(lista.map(c=>c.data))];
-      $('stampa').innerHTML=`<h1>Comitive O.d.S.${ODS.ods?` ${esc(ODS.ods)}`:''}</h1><table><thead><tr><th>percorso</th><th>cliente</th><th>città</th><th class="c">naz.</th><th class="c">n. pax</th><th>pagamento</th><th>pranzo</th><th>corse</th></tr></thead><tbody>`
-        +giorni.map(d=>`<tr class="giorno"><td colspan="8">${esc(giornoLungo(d))}</td></tr>`+lista.filter(c=>c.data===d).map(c=>`<tr><td>${esc(c.percorso)}</td><td>${esc(c.cliente)}</td><td>${esc(c.citta)}</td><td class="c">${esc(c.naz)}</td><td class="c">${esc(c.pax)}</td><td>${esc(c.pagamento)}</td><td></td><td>${esc(c.corse)}</td></tr>`).join('')).join('')
+      const s0=$('settimana').value,s1=piuGiorni(s0,6);
+      const lista=tutte().filter(c=>c.data>=s0&&c.data<=s1),giorni=[...new Set(lista.map(c=>c.data))];
+      const vuoto=v=>esc(v||'');
+      $('stampa').innerHTML=`<h1>Comitive ${esc(titoloSettimana(s0))}</h1><table><colgroup><col style="width:21.5%"><col style="width:25%"><col style="width:15%"><col style="width:4%"><col style="width:8%"><col style="width:8%"><col style="width:3%"><col style="width:8%"></colgroup>`
+        +`<thead><tr><th class="l">percorso</th><th>cliente</th><th>città</th><th>naz.</th><th>n. pax</th><th>pagamento</th><th>pranzo</th><th>corse</th></tr></thead><tbody>`
+        +giorni.map(d=>`<tr class="giorno"><td colspan="8">${esc(giornoLungo(d))}</td></tr>`+lista.filter(c=>c.data===d).map(c=>`<tr><td class="l">${esc(c.percorso)}</td><td class="l">${esc(c.cliente)}</td><td>${c.citta?esc(c.citta):'---'}</td><td>${c.naz?esc(c.naz):'-'}</td><td>${esc(c.pax)}</td><td>${esc(c.pagamento)}</td><td></td><td>${esc(c.corse)}</td></tr>`).join('')).join('')
         +'</tbody></table>';
       window.print();
     }
     $('stampa-btn').addEventListener('click',stampa);
 
     document.addEventListener('click',async e=>{
+      if(e.target.closest('[data-passati]')){state.mostraPassati=!state.mostraPassati;render();return;}
       const b=e.target.closest('[data-togli]');if(!b)return;
       if(!confirm('Togliere questa comitiva?'))return;
       try{await C.togli(b.dataset.togli);state.lista=state.lista.filter(c=>c.id!==b.dataset.togli);render();}catch(err){alert(`Non tolta: ${err.message}`)}
