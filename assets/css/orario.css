@@ -265,3 +265,4 @@ html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;co
 .navi-list .dove:has(.com-bolle){flex-wrap:wrap}
 .or-com-r.sel{outline:2px solid #f472b6;background:color-mix(in srgb,#f472b6 22%,#102733)}
 #turno-content .nave[data-com-go]{cursor:pointer}
+#orario .nave[data-com-go]{cursor:pointer}
