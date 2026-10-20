@@ -762,8 +762,18 @@
     const pq = partita || (iQui >= 0 ? resto[iQui] : null);
     const ritBox = pq?.corsa && !pq.sosp && realToday() && (puoRitardi() || miaNaveOggi() === code)
       ? `<div class="or-rit-veloce"><span>Ritardo a ${esc(state.scalo)} · corsa ${esc(pq.corsa)}</span>${ritardoSelect(g, code, pq.corsa, orarioProgrammato(g, code, pq.corsa, state.scalo, false) || hhmm(pq.t))}</div>` : '';
-    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}`.trim(), G.comandante(crew) || '',
-      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${ritBox}${sospBlocco}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
+    // comitive su questa nave al mio scalo (chi scende e chi sale qui)
+    let comBox = '';
+    if (iQui >= 0 && window.NaviComitive && state.comitive?.length) {
+      let fine = iQui; while (resto[fine + 1]?.scalo === state.scalo) fine += 1;
+      const corse = [...new Set(resto.slice(iQui, fine + 1).map(p => String(p.corsa)).concat(resto[fine + 1] ? [String(resto[fine + 1].corsa)] : []))];
+      const su = [], giu = [], visti = new Set();
+      corse.forEach(n => { const r = window.NaviComitive.alloScalo(state.comitive, g.day, state.scalo, n, n); r.salgono.forEach(x => { if (!visti.has('s' + x.chiave)) { visti.add('s' + x.chiave); su.push(x); } }); r.scendono.forEach(x => { if (!visti.has('g' + x.chiave)) { visti.add('g' + x.chiave); giu.push(x); } }); });
+      const voce = (x, su) => `<li><span class="ss ${su ? 'su' : 'giu'}">${su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(x.cliente)}</b> · ${esc(x.pax)} pax · ${esc(x.pagamento)}${su && x.verso ? ` <small>per ${esc(x.verso)}</small>` : !su && x.da ? ` <small>da ${esc(x.da)}</small>` : ''}</li>`;
+      if (su.length || giu.length) comBox = `<div class="or-com-nave"><p>👥 Comitiva su questa nave a ${esc(state.scalo)}</p><ul>${[...giu.map(x => voce(x, false)), ...su.map(x => voce(x, true))].join('')}</ul></div>`;
+    }
+    return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}${comBox ? ' · 👥' : ''}`.trim(), G.comandante(crew) || '',
+      `<p class="or-status">${esc(statoTesto(pos))}</p>${prossimi ? `<p class="or-sub">${giornata ? 'Giornata della nave' : soloQui ? (partita ? `Partita da ${esc(state.scalo)} alle ${hhmm(partita.t)}` : `A ${esc(state.scalo)}`) : 'Prossimo scalo'}</p><ol class="mt-scali or-next">${prossimi}</ol>` : ''}${comBox}${ritBox}${sospBlocco}${freccia}${equipaggio}`, 'or-detail', `data-detail="${esc(code)}"`);
   }
 
   // ---------------- Da -> A ----------------

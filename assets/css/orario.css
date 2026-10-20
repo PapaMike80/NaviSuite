@@ -251,3 +251,10 @@ html.navisuite-light #orario .or-ctrl .or-tabs button{background:#e3f7f3;color:#
 }
 html.navisuite-light #orario .or-ctrl .or-b{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
 html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;color:#0b2731}
+/* comitiva sulla prossima nave (scheda della nave in Scali) */
+.or-com-nave{margin:6px 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(244,114,182,.55);background:rgba(244,114,182,.14)}
+.or-com-nave p{margin:0 0 4px;color:#f472b6;font-weight:800;font-size:13px}
+.or-com-nave ul{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:12.5px}
+.or-com-nave small{color:#9fb8c2}
+.or-com-nave .ss{font-size:9px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:999px;margin-right:5px}
+.or-com-nave .ss.su{background:#16a34a33;color:#4ade80}.or-com-nave .ss.giu{background:#fb718533;color:#fda4af}
