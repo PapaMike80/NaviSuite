@@ -155,7 +155,7 @@
     rows.forEach((r, i) => { com[i].scendono.forEach(c => voci.push({ c, r, i, su: false })); com[i].salgono.forEach(c => voci.push({ c, r, i, su: true })); });
     if (!voci.length || voci.every(v => passata(v.r))) return '';
     const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
-    return `<details class="or-com" open><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
+    return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}"><span class="o">${esc(v.r.orario)}<small>c. ${esc(v.r.run)}</small></span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></div>`).join('') + '</details>';
   }
   function renderNave(code, day, me) {
@@ -429,6 +429,7 @@
   };
 
   render();
+  document.addEventListener('toggle', e => { if (e.target.classList?.contains('or-com')) state.comAperto = e.target.open; }, true);
   // comitive dall'archivio (o dall'O.d.S. se non raggiungibile): poi si ridisegna
   window.NaviComitive?.carica().then(r => { state.comitive = r.lista; if (r.lista.length) render(); }).catch(() => {});
   window.NaviSharedData?.loadCacheFirst?.((data, meta) => { state.schedule = data || { residenze: {} }; state.fresco = !meta?.stale; render(); })

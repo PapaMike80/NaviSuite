@@ -233,21 +233,21 @@ html.navisuite-light #orario .terra-day-scalo{background:#e3f7f3;color:#0b2731;b
 /* Scali: barra dei comandi, tutti i pulsanti uguali (stessa altezza, bordo e carattere) */
 #orario .terra-bar{display:flex;flex-direction:column;align-items:center;gap:10px}
 #orario .or-ctrl{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:8px;width:100%}
-#orario .or-ctrl .or-b,#orario .or-ctrl .or-tabs{height:46px;min-height:46px;margin:0;border:2px solid rgba(45,212,191,.55);border-radius:14px;background:rgba(45,212,191,.10);color:#e6fffb;font:800 16px/1 Manrope,Inter,sans-serif;box-sizing:border-box}
+#orario .or-ctrl .or-b{height:46px;min-height:46px;margin:0;border:2px solid rgba(45,212,191,.55);border-radius:14px;background:rgba(45,212,191,.10);color:#e6fffb;font:800 16px/1 Manrope,Inter,sans-serif;box-sizing:border-box}
 #orario .or-ctrl .terra-day-today{flex:0 0 auto;width:auto;padding:0 18px;opacity:1}
 #orario .or-ctrl .terra-day-today[hidden]{display:inline-flex;visibility:hidden}
 #orario .or-ctrl .terra-day-today.on{border-color:#2dd4bf;background:rgba(45,212,191,.28);color:#99f6e4;box-shadow:0 0 12px rgba(45,212,191,.45)}
 #orario .or-ctrl .terra-day-scalo{flex:0 1 11em;min-width:8em;padding:0 10px;color-scheme:dark}
 #orario .or-ctrl .terra-day-scalo option{background:#0b2731;color:#eaf2f4}
-#orario .or-ctrl .or-tabs{display:inline-flex;flex:0 0 auto;width:auto;gap:3px;padding:3px}
-#orario .or-ctrl .or-tabs button{min-height:0;height:100%;padding:0 14px;border-radius:10px;font:800 15px/1 Manrope,Inter,sans-serif;color:#9bc8d5}
-#orario .or-ctrl .or-tabs button.active{background:#2dd4bf;color:#05221e}
+#orario .or-ctrl .or-tabs{display:contents}
+#orario .or-ctrl .or-tabs button{flex:0 0 auto;height:46px;min-height:46px;padding:0 16px;border:2px solid rgba(45,212,191,.55);border-radius:14px;background:rgba(45,212,191,.10);color:#e6fffb;font:800 16px/1 Manrope,Inter,sans-serif;cursor:pointer}
+#orario .or-ctrl .or-tabs button.active{background:#2dd4bf;border-color:#2dd4bf;color:#05221e}
+html.navisuite-light #orario .or-ctrl .or-tabs button{background:#e3f7f3;color:#0b2731;border-color:#087b6e}html.navisuite-light #orario .or-ctrl .or-tabs button.active{background:#087b6e;color:#fff}
 #orario .or-ctrl #orario-stampa{display:inline-flex;align-items:center;gap:6px;padding:0 14px;text-decoration:none;white-space:nowrap}
 @media(max-width:560px){
   #orario .or-ctrl .terra-day-scalo{flex:1 1 60%}
-  #orario .or-ctrl .or-tabs{flex:1 1 0}
-  #orario .or-ctrl .or-tabs button{flex:1}
+  #orario .or-ctrl .or-tabs button{flex:1 1 0;padding:0 8px}
   #orario .or-ctrl #orario-stampa{flex:0 0 auto}
 }
-html.navisuite-light #orario .or-ctrl .or-b,html.navisuite-light #orario .or-ctrl .or-tabs{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
+html.navisuite-light #orario .or-ctrl .or-b{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
 html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;color:#0b2731}

@@ -543,7 +543,7 @@
     if (!voci.length || voci.every(v => v.t < t)) return '';
     voci.sort((a, b) => a.t - b.t || a.su - b.su);
     const pax = voci.reduce((n, v) => n + (parseInt(v.c.pax, 10) || 0), 0), clienti = new Set(voci.map(v => v.c.chiave)).size;
-    return `<details class="or-com" open><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
+    return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}"><span class="o">${esc(v.ora)}<small>c. ${esc(v.corsa)} ${chip(v.r.v.turno)}</small></span>` +
         `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></a>`).join('') + '</details>';
   }
@@ -1143,6 +1143,7 @@
     };
   }
   render();
+  document.addEventListener('toggle', e => { if (e.target.classList?.contains('or-com')) state.comAperto = e.target.open; }, true);
   // comitive (archivio PocketBase, o O.d.S. se non raggiungibile): sulle navi allo scalo
   window.NaviComitive?.carica().then(r => { state.comitive = r.lista; if (r.lista.length) render(); }).catch(() => {});
   window.NaviSharedData?.loadCacheFirst?.(data => { state.schedule = data || { residenze: {} }; render(); })
