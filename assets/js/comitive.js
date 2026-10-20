@@ -121,5 +121,57 @@
     return { salgono, scendono };
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo };
+  // Anagrafica clienti (collection «clienti_comitive»): nome senza i dati tra parentesi (prenotazione, referente)
+  const nomeBase = cliente => String(cliente || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+  async function caricaClienti() {
+    try { return (await PB().list('clienti_comitive', { perPage: 1000, sort: 'nome' })).map(r => ({ id: r.id, nome: r.nome, citta: r.citta || '', naz: r.naz || '', pagamento: r.pagamento || '' })); }
+    catch (error) { console.warn('Clienti comitive non raggiungibili', error); return []; }
+  }
+  async function salvaCliente(c) {
+    const nome = nomeBase(c.cliente || c.nome);
+    if (!nome) return null;
+    const dati = { nome, citta: c.citta || '', naz: c.naz || '', pagamento: c.pagamento || '' };
+    const r = await PB().findOne('clienti_comitive', `nome = "${nome.replace(/"/g, '\\"')}"`).catch(() => null);
+    return r ? PB().patch('clienti_comitive', r.id, dati) : PB().create('clienti_comitive', dati);
+  }
+  // Corse del giorno che vanno da uno scalo all'altro (orario della stagione): [{numero, turno, parte, arriva}]
+  function corsePerTratta(giorno, da, a) {
+    const S = root.NaviOrariStagioni;
+    let corse = []; try { corse = S?.corseTutte ? S.corseTutte(giorno) : []; } catch (_) { corse = []; }
+    return corse.map(c => {
+      const i = c.punti.findIndex(p => stessoScalo(p[0], da)), j = c.punti.findIndex((p, k) => k > i && stessoScalo(p[0], a));
+      return i >= 0 && j > i ? { numero: c.numero, turno: c.turno, sr: c.sr, parte: c.punti[i][1], arriva: c.punti[j][1] } : null;
+    }).filter(Boolean).sort((x, y) => String(x.parte).replace(':', '.').padStart(5, '0').localeCompare(String(y.parte).replace(':', '.').padStart(5, '0')));
+  }
+
+  // Senza corsa diretta: soluzioni con un cambio di nave (almeno 5 minuti allo scalo del cambio).
+  // [{cambio, prima: {numero, turno, parte, arriva}, poi: {...}}], prima la soluzione che arriva prima per ogni partenza.
+  const minuti = t => { const [h, m] = String(t).replace(':', '.').split('.').map(Number); return h * 60 + (m || 0); };
+  function corseConCambio(giorno, da, a, max = 8) {
+    const S = root.NaviOrariStagioni;
+    let corse = []; try { corse = S?.corseTutte ? S.corseTutte(giorno) : []; } catch (_) { corse = []; }
+    const tratto = (c, i, j) => ({ numero: c.numero, turno: c.turno, sr: c.sr, parte: c.punti[i][1], arriva: c.punti[j][1] });
+    const out = [];
+    corse.forEach(c1 => {
+      const i = c1.punti.findIndex(p => stessoScalo(p[0], da));
+      if (i < 0) return;
+      let migliore = null;
+      for (let j = i + 1; j < c1.punti.length; j++) {
+        const x = c1.punti[j][0], arr = minuti(c1.punti[j][1]);
+        if (stessoScalo(x, a)) break;
+        corse.forEach(c2 => {
+          if (c2 === c1) return;
+          const k = c2.punti.findIndex(p => stessoScalo(p[0], x) && minuti(p[1]) >= arr + 5);
+          const l = k < 0 ? -1 : c2.punti.findIndex((p, n) => n > k && stessoScalo(p[0], a));
+          if (l < 0) return;
+          const sol = { cambio: x, prima: tratto(c1, i, j), poi: tratto(c2, k, l) };
+          if (!migliore || minuti(sol.poi.arriva) < minuti(migliore.poi.arriva)) migliore = sol;
+        });
+      }
+      if (migliore) out.push(migliore);
+    });
+    return out.sort((x, y) => minuti(x.prima.parte) - minuti(y.prima.parte)).slice(0, max);
+  }
+
+  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta, corseConCambio };
 })(typeof window !== 'undefined' ? window : globalThis);
