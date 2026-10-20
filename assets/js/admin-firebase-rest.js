@@ -831,6 +831,26 @@
   }
   // Categoria dell'agente: stabili (indeterminato), stagionali o esterni (a termine, con inizio e fine).
   // servizio = {categoria, inizio, fine, accessoForzato}; null lo toglie (= stabili).
+  // Comitive (pagina Comitive): {nuove:{id:{data,percorso,cliente,citta,naz,pax,pagamento,corse}}, turni:{chiave:"D1"}}
+  async function getComitive() {
+    await ensureAuth();
+    return (await databaseRequest("private/adminUpdates/comitive")).data || {};
+  }
+  async function saveComitiva(item = {}) {
+    const id = item.id || `c${Date.now().toString(36)}`;
+    const pulito = { id, data:String(item.data || ""), percorso:String(item.percorso || "").trim(), cliente:String(item.cliente || "").trim(), citta:String(item.citta || "").trim(), naz:String(item.naz || "").trim(), pax:String(item.pax || "").trim(), pagamento:String(item.pagamento || "").trim(), corse:String(item.corse || "").trim(), createdAt:new Date().toISOString() };
+    await databaseRequest(`private/adminUpdates/comitive/nuove/${safeUserKey(id)}`, { method:"PUT", body:JSON.stringify(pulito) });
+    return pulito;
+  }
+  async function deleteComitiva(id) {
+    await databaseRequest(`private/adminUpdates/comitive/nuove/${safeUserKey(id)}`, { method:"DELETE" });
+  }
+  async function saveTurnoComitiva(chiave, turno) {
+    const path = `private/adminUpdates/comitive/turni/${safeUserKey(chiave)}`;
+    if (!turno) { await databaseRequest(path, { method:"DELETE" }); return null; }
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(String(turno)) });
+    return turno;
+  }
   async function saveAgentServizio(agentId, servizio) {
     const id = String(agentId || "").trim();
     if (!id) throw new Error("Agente non valido");
@@ -1308,6 +1328,10 @@
     deleteAgentProfile,
     touchUserPresence,
     saveAgentServizio,
+    getComitive,
+    saveComitiva,
+    deleteComitiva,
+    saveTurnoComitiva,
     servizioTerminato,
     accessoRevocato,
     registraVisita,

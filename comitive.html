@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1c26">
+  <title>NaviSuite · Comitive</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <style>
+    /* Comitive dell'O.d.S. giorno per giorno, nello stile a riquadri (docs/STILE-NAVISUITE.md). Solo admin e Ufficio Movimento. */
+    :root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--green:#52c879;--mono:'DM Mono',ui-monospace,monospace}
+    *{box-sizing:border-box}
+    html{background:var(--surface)}
+    body.comitive-page{margin:0;min-height:100vh;color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));padding-bottom:env(safe-area-inset-bottom,0px)}
+    .comitive-page .app-sidebar{display:none}
+    .comitive-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+    .comitive-page>header small{display:block;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.22em}
+    .comitive-page>header h1{margin:4px 0 0;font-size:24px;font-weight:800;background:linear-gradient(90deg,var(--teal),var(--cyan) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .comitive-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{width:min(460px,calc(100% - 32px));margin:4px auto 40px;display:grid;gap:12px}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .bar p{flex:1 1 180px;margin:0;font-size:12px;color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 14px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .btn.out{background:transparent;border:1px solid color-mix(in srgb,var(--rose) 55%,transparent);color:var(--rose);min-height:30px;padding:4px 10px;font-size:11px}
+    .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .kpi div{display:grid;gap:2px;padding:8px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+    .kpi small{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+    .kpi b{font:500 20px var(--mono)}
+    .sez{--c:var(--teal);display:grid;gap:8px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .sez h3{margin:0;font-size:14px;font-weight:800;color:var(--c);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+    .sez h3 small{font:500 11px var(--mono);color:var(--muted)}
+    .sez.oggi{box-shadow:0 0 0 2px var(--c)}
+    .it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--card);border-left:4px solid var(--g,var(--cyan))}
+    .gr{--g:var(--cyan);display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 4px;border:3px solid var(--g);border-radius:999px;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:500 13px var(--mono)}
+    .it .n{min-width:0}
+    .it .n b{display:block;font-size:13px;font-weight:800;overflow-wrap:anywhere}
+    .it .n span{display:block;font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+    .it .dx{display:grid;gap:4px;justify-items:end}
+    .pg{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:color-mix(in srgb,var(--p) 20%,transparent);color:var(--p);border:1px solid color-mix(in srgb,var(--p) 45%,transparent)}
+    .nuova{font-size:9px;font-weight:900;color:var(--violet)}
+    .it select{width:auto;min-width:72px;padding:5px 6px;font:500 12px var(--mono);border-radius:8px}
+    .it select.on{background:var(--teal);border-color:var(--teal);color:var(--on)}
+    select,input{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink)}
+    input[type=date]{-webkit-appearance:none;appearance:none;min-height:42px}
+    .adm{--c:var(--cyan);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-size:14px;font-weight:800;color:var(--c)}
+    .adm>summary::-webkit-details-marker{display:none}
+    .adm>summary span{flex:1}
+    .adm>summary::after{content:'▾';color:var(--muted)}
+    .adm[open]>summary::after{content:'▴'}
+    .cnt{padding:2px 9px;border-radius:999px;background:var(--c);color:var(--on);font:500 11px var(--mono)}
+    .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 12px}
+    .form label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    .form .w{grid-column:1/-1}
+    .msg{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted)}.msg.bad{color:var(--rose)}.msg.ok{color:var(--green)}
+    .cc-col{display:contents}
+    .vuoto{margin:0;font-size:12px;color:var(--muted)}
+    @media(min-width:1000px){
+      main{width:min(1380px,calc(100% - 48px))}
+      .cc-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;align-items:start}
+    }
+    /* ---------- Stampa: tabella come l'allegato «Comitive O.d.S.», fondo bianco ---------- */
+    #stampa{display:none}
+    @media print{
+      @page{size:A4 portrait;margin:12mm 10mm}
+      html,body.comitive-page{background:#fff!important;color:#000;padding:0}
+      body.comitive-page>*:not(#stampa){display:none!important}
+      #stampa{display:block;font:9pt/1.25 Arial,Helvetica,sans-serif;color:#000}
+      #stampa h1{margin:0 0 4mm;font:bold 12pt Arial,Helvetica,sans-serif;text-align:center}
+      #stampa table{width:100%;border-collapse:collapse;page-break-inside:auto}
+      #stampa th,#stampa td{border:0.5pt solid #000;padding:1.2mm 1.5mm;text-align:left;vertical-align:top}
+      #stampa th{background:#d9d9d9;font-weight:bold}
+      #stampa tr.giorno{page-break-after:avoid;break-after:avoid}#stampa tr.giorno td{background:#f2f2f2;font-weight:bold;text-transform:lowercase}
+      #stampa tr{page-break-inside:avoid}
+      #stampa thead{display:table-header-group}
+      #stampa .c{text-align:center}
+    }
+  </style>
+</head>
+<body class="comitive-page">
+  <aside class="app-sidebar" id="comitive-sidebar"></aside>
+  <header class="page-header"><div><small>MOVIMENTO</small><h1>Comitive</h1></div></header>
+  <main id="pagina" hidden>
+    <div class="bar"><p id="fonte"></p><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
+    <div class="kpi" id="kpi"></div>
+    <details class="adm" id="nuova-box" style="--c:var(--cyan)">
+      <summary><span>＋ Nuova comitiva</span><b class="cnt" id="nuove-cnt">0</b></summary>
+      <form class="form" id="nuova-form" autocomplete="off">
+        <label>Data<input type="date" id="f-data" required></label>
+        <label>Pax<input type="text" id="f-pax" inputmode="numeric" placeholder="40" required></label>
+        <label class="w">Cliente<input type="text" id="f-cliente" placeholder="Ag. Michelangelo (230154)" required></label>
+        <label>Città<input type="text" id="f-citta" placeholder="Riva del Garda"></label>
+        <label>Naz.<input type="text" id="f-naz" placeholder="I" maxlength="3"></label>
+        <label class="w">Percorso<input type="text" id="f-percorso" placeholder="Malcesine-Limone-Malcesine" required></label>
+        <label>Corse<input type="text" id="f-corse" placeholder="62-57" required></label>
+        <label>Pagamento<select id="f-pagamento"><option value="voucher">voucher</option><option value="diretto">diretto</option></select></label>
+        <button class="btn w" type="submit">Salva comitiva</button>
+        <p class="msg" id="f-msg"></p>
+      </form>
+    </details>
+    <div class="cc-col" id="giorni"></div>
+  </main>
+  <div id="stampa"></div>
+  <script src="assets/js/shared-roles.js?v=9"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=87"></script>
+  <script src="assets/js/shared-menu.js?v=1.82"></script>
+  <script src="assets/js/comitive-ods.js?v=1"></script>
+  <script>
+  (function(){
+    const $=id=>document.getElementById(id);
+    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let agent=null;try{agent=JSON.parse(localStorage.getItem('naviturni_logged_agent')||localStorage.getItem('navidiaria.activeAgent')||'null')}catch{}
+    // Solo amministratori e Ufficio Movimento
+    const ammesso=a=>!!a&&(window.NaviRoles?.isAdminAgent?.(a)||String(a.qualifica||'').toLowerCase()==='movimento');
+    if(!ammesso(agent)){location.replace('index.html');return;}
+    $('pagina').hidden=false;
+
+    const TURNI=['D1','D2','BIS','T1','T2','M1','R1','R2','R3','P1','P2','S.S.'];
+    const ODS=window.NaviComitiveOds||{ods:'',comitive:[]};
+    const state={nuove:{},turni:{}};
+    // stessa chiave usata su Firebase (senza . # $ [ ] /)
+    const chiave=c=>String(c.id||`${c.data}|${c.percorso}|${c.cliente}|${c.corse}`).replace(/[.#$\[\]\/]/g,'_');
+    const giornoLungo=d=>new Intl.DateTimeFormat('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(`${d}T12:00:00`));
+    const giornoCorto=d=>new Intl.DateTimeFormat('it-IT',{weekday:'short',day:'numeric',month:'short'}).format(new Date(`${d}T12:00:00`));
+    const oggi=new Date().toLocaleDateString('sv-SE');
+    const paxN=p=>parseInt(String(p),10)||0;
+    const tutte=()=>[...ODS.comitive,...Object.values(state.nuove).filter(Boolean)].sort((a,b)=>a.data.localeCompare(b.data)||a.percorso.localeCompare(b.percorso,'it')||a.cliente.localeCompare(b.cliente,'it'));
+    const COL_PAG={voucher:'var(--violet)',diretto:'var(--amber)'};
+
+    function riga(c){
+      const k=chiave(c),t=state.turni[k]||'';
+      return `<div class="it" style="--g:${COL_PAG[c.pagamento]||'var(--cyan)'}"><span class="gr" style="--g:${COL_PAG[c.pagamento]||'var(--cyan)'}">${esc(c.pax)}</span>`
+        +`<div class="n"><b>${esc(c.cliente)}</b><span class="mono">${esc(c.percorso)} · corse ${esc(c.corse)}</span><span class="mono">${esc([c.citta,c.naz].filter(Boolean).join(' · '))}${c.id?' <i class="nuova">NUOVA</i>':''}</span></div>`
+        +`<div class="dx"><span class="pg" style="--p:${COL_PAG[c.pagamento]||'var(--cyan)'}">${esc(c.pagamento)}</span><select data-turno="${esc(k)}" class="${t?'on':''}" aria-label="Turno per ${esc(c.cliente)}"><option value="">Turno…</option>${TURNI.map(x=>`<option${x===t?' selected':''}>${x}</option>`).join('')}</select>${c.id?`<button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</div></div>`;
+    }
+
+    function render(){
+      const lista=tutte(),giorni=[...new Set(lista.map(c=>c.data))];
+      const assegnate=lista.filter(c=>state.turni[chiave(c)]).length;
+      $('fonte').textContent=ODS.ods?`Dall'O.d.S. ${ODS.ods} · ${giorni.length} giorni`:'';
+      $('kpi').innerHTML=`<div><small>Comitive</small><b>${lista.length}</b></div><div><small>Passeggeri</small><b>${lista.reduce((t,c)=>t+paxN(c.pax),0)}</b></div><div><small>Con turno</small><b>${assegnate}</b></div>`;
+      $('nuove-cnt').textContent=Object.keys(state.nuove).length;
+      $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=lista.filter(c=>c.data===d);return `<section class="sez${d===oggi?' oggi':''}" style="--c:var(--teal)"><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3>${del.map(riga).join('')}</section>`}).join(''):'<p class="vuoto">Nessuna comitiva.</p>';
+    }
+
+    // Stampa: tabella dell'allegato «Comitive O.d.S.» su fondo bianco
+    function stampa(){
+      const lista=tutte(),giorni=[...new Set(lista.map(c=>c.data))];
+      $('stampa').innerHTML=`<h1>Comitive O.d.S.${ODS.ods?` ${esc(ODS.ods)}`:''}</h1><table><thead><tr><th>percorso</th><th>cliente</th><th>città</th><th class="c">naz.</th><th class="c">n. pax</th><th>pagamento</th><th>pranzo</th><th>corse</th></tr></thead><tbody>`
+        +giorni.map(d=>`<tr class="giorno"><td colspan="8">${esc(giornoLungo(d))}</td></tr>`+lista.filter(c=>c.data===d).map(c=>`<tr><td>${esc(c.percorso)}</td><td>${esc(c.cliente)}</td><td>${esc(c.citta)}</td><td class="c">${esc(c.naz)}</td><td class="c">${esc(c.pax)}</td><td>${esc(c.pagamento)}</td><td></td><td>${esc(c.corse)}</td></tr>`).join('')).join('')
+        +'</tbody></table>';
+      window.print();
+    }
+    $('stampa-btn').addEventListener('click',stampa);
+
+    document.addEventListener('change',async e=>{
+      const sel=e.target.closest('[data-turno]');if(!sel)return;
+      const k=sel.dataset.turno,v=sel.value;
+      if(v)state.turni[k]=v;else delete state.turni[k];
+      sel.classList.toggle('on',!!v);render();
+      try{await NaviAdminFirebase.saveTurnoComitiva(k,v)}catch(err){alert(`Turno non salvato: ${err.message}`)}
+    });
+    document.addEventListener('click',async e=>{
+      const b=e.target.closest('[data-togli]');if(!b)return;
+      if(!confirm('Togliere questa comitiva?'))return;
+      try{await NaviAdminFirebase.deleteComitiva(b.dataset.togli);delete state.nuove[b.dataset.togli];render();}catch(err){alert(`Non tolta: ${err.message}`)}
+    });
+    $('nuova-form').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const msg=$('f-msg'),v=id=>$(id).value.trim();
+      const item={data:v('f-data'),cliente:v('f-cliente'),percorso:v('f-percorso'),pax:v('f-pax'),corse:v('f-corse'),pagamento:v('f-pagamento'),citta:v('f-citta'),naz:v('f-naz').toUpperCase()};
+      if(!item.data||!item.cliente||!item.percorso||!item.pax||!item.corse){msg.className='msg bad';msg.textContent='Compila data, cliente, percorso, pax e corse.';return;}
+      msg.className='msg';msg.textContent='Salvataggio…';
+      try{const saved=await NaviAdminFirebase.saveComitiva(item);state.nuove[saved.id]=saved;e.target.reset();msg.className='msg ok';msg.textContent='Comitiva salvata.';render();}
+      catch(err){msg.className='msg bad';msg.textContent=`Non salvata: ${err.message}`;}
+    });
+
+    render();
+    (async()=>{try{await NaviAdminFirebase.ready;const d=await NaviAdminFirebase.getComitive();state.nuove=d.nuove||{};state.turni=d.turni||{};render();}catch(err){$('fonte').textContent+=' · dati salvati non raggiungibili';}})();
+  })();
+  </script>
+</body>
+</html>
