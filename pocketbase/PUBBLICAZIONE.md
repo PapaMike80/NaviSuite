@@ -61,3 +61,7 @@ Importa `pocketbase/comitive.json` (Settings → Import collections, **senza** s
 Una riga per comitiva (`chiave` unica): quelle dell'O.d.S. le copia la pagina Comitive alla prima apertura di un admin o
 dell'Ufficio Movimento, quelle nuove hanno `fonte = manuale`. `turno` = turno nave assegnato (D1, D2, …).
 Tutti gli agenti collegati le leggono (Il mio turno le mostra sulle corse); la pagina che le modifica è solo per admin e Movimento.
+
+## Clienti delle comitive (pagina Comitive)
+Importa anche `pocketbase/clienti_comitive.json`: anagrafica dei clienti (nome senza il numero di prenotazione, città,
+nazione, pagamento abituale). Si aggiorna da sola quando si salva una comitiva e serve per i suggerimenti del modulo.

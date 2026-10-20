@@ -121,5 +121,28 @@
     return { salgono, scendono };
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo };
+  // Anagrafica clienti (collection «clienti_comitive»): nome senza i dati tra parentesi (prenotazione, referente)
+  const nomeBase = cliente => String(cliente || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+  async function caricaClienti() {
+    try { return (await PB().list('clienti_comitive', { perPage: 1000, sort: 'nome' })).map(r => ({ id: r.id, nome: r.nome, citta: r.citta || '', naz: r.naz || '', pagamento: r.pagamento || '' })); }
+    catch (error) { console.warn('Clienti comitive non raggiungibili', error); return []; }
+  }
+  async function salvaCliente(c) {
+    const nome = nomeBase(c.cliente || c.nome);
+    if (!nome) return null;
+    const dati = { nome, citta: c.citta || '', naz: c.naz || '', pagamento: c.pagamento || '' };
+    const r = await PB().findOne('clienti_comitive', `nome = "${nome.replace(/"/g, '\\"')}"`).catch(() => null);
+    return r ? PB().patch('clienti_comitive', r.id, dati) : PB().create('clienti_comitive', dati);
+  }
+  // Corse del giorno che vanno da uno scalo all'altro (orario della stagione): [{numero, turno, parte, arriva}]
+  function corsePerTratta(giorno, da, a) {
+    const S = root.NaviOrariStagioni;
+    let corse = []; try { corse = S?.corseTutte ? S.corseTutte(giorno) : []; } catch (_) { corse = []; }
+    return corse.map(c => {
+      const i = c.punti.findIndex(p => stessoScalo(p[0], da)), j = c.punti.findIndex((p, k) => k > i && stessoScalo(p[0], a));
+      return i >= 0 && j > i ? { numero: c.numero, turno: c.turno, sr: c.sr, parte: c.punti[i][1], arriva: c.punti[j][1] } : null;
+    }).filter(Boolean).sort((x, y) => String(x.parte).replace(':', '.').padStart(5, '0').localeCompare(String(y.parte).replace(':', '.').padStart(5, '0')));
+  }
+
+  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta };
 })(typeof window !== 'undefined' ? window : globalThis);

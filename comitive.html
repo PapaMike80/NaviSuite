@@ -37,6 +37,17 @@
     .tr{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(170px,1.6fr) minmax(110px,1fr) 44px 64px 86px minmax(120px,1fr);gap:8px;align-items:center;min-width:820px;padding:6px 10px;border-radius:10px;background:var(--card);border-left:4px solid var(--g,var(--cyan));font-size:12.5px}
     .tr.th{background:transparent;border-left-color:transparent;padding-top:0;padding-bottom:2px;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
     .tr .c{text-align:center;justify-self:center}
+    .tr:not(.th){cursor:pointer}.tr.edit{outline:2px solid var(--cyan)}
+    .btn[hidden]{display:none}
+    .annulla{background:transparent;border:1px solid var(--line);color:var(--muted)}
+    .sugg{display:grid;gap:6px}.sugg:empty{display:none}
+    .sugg .leg{display:grid;gap:4px;padding:8px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+    .sugg .leg>b{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+    .sugg .opz{display:flex;flex-wrap:wrap;gap:4px}
+    .sugg button{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--t) 60%,transparent);background:transparent;color:var(--ink);font:500 12px var(--mono);cursor:pointer}
+    .sugg button b{padding:0 6px;border-radius:999px;background:var(--t);color:var(--on);font:800 10px Manrope,system-ui,sans-serif}
+    .sugg button[aria-pressed="true"]{background:color-mix(in srgb,var(--t) 30%,transparent);outline:2px solid var(--t)}
+    .sugg p{margin:0;font-size:11px;color:var(--muted)}
     .tr .perc{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
     .tr .cli b{font-weight:800;overflow-wrap:anywhere}
     .tr .cit{color:var(--muted);text-align:center}
@@ -105,17 +116,19 @@
     <div class="bar"><p id="fonte"></p><select class="sett" id="settimana" aria-label="Settimana da stampare"></select><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
     <div class="kpi" id="kpi"></div>
     <details class="adm" id="nuova-box" style="--c:var(--cyan)">
-      <summary><span>＋ Nuova comitiva</span><b class="cnt" id="nuove-cnt">0</b></summary>
+      <summary><span id="form-titolo">＋ Nuova comitiva</span><b class="cnt" id="nuove-cnt">0</b></summary>
       <form class="form" id="nuova-form" autocomplete="off">
         <label>Data<input type="date" id="f-data" required></label>
         <label>Pax<input type="text" id="f-pax" inputmode="numeric" placeholder="40" required></label>
-        <label class="w">Cliente<input type="text" id="f-cliente" placeholder="Ag. Michelangelo (230154)" required></label>
+        <label class="w">Cliente<input type="text" id="f-cliente" list="dl-clienti" placeholder="Ag. Michelangelo (230154)" required></label><datalist id="dl-clienti"></datalist>
         <label>Città<input type="text" id="f-citta" placeholder="Riva del Garda"></label>
         <label>Naz.<input type="text" id="f-naz" placeholder="I" maxlength="3"></label>
-        <label class="w">Percorso<input type="text" id="f-percorso" placeholder="Malcesine-Limone-Malcesine" required></label>
+        <label class="w">Percorso<input type="text" id="f-percorso" list="dl-percorsi" placeholder="Malcesine-Limone-Malcesine" required></label><datalist id="dl-percorsi"></datalist>
+        <div class="w sugg" id="f-sugg"></div>
         <label>Corse<input type="text" id="f-corse" placeholder="62-57" required></label>
         <label>Pagamento<select id="f-pagamento"><option value="voucher">voucher</option><option value="diretto">diretto</option></select></label>
-        <button class="btn w" type="submit">Salva comitiva</button>
+        <button class="btn w" type="submit" id="f-salva">Salva comitiva</button>
+        <button class="btn w annulla" type="button" id="f-annulla" hidden>Annulla modifica</button>
         <p class="msg" id="f-msg"></p>
       </form>
     </details>
@@ -134,7 +147,7 @@
   <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
   <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
-  <script src="assets/js/comitive.js?v=5"></script>
+  <script src="assets/js/comitive.js?v=6"></script>
   <script>
   (function(){
     const $=id=>document.getElementById(id);
@@ -161,7 +174,7 @@
     const TESTA='<div class="tr th"><span>percorso</span><span>cliente</span><span>città</span><span class="c">naz.</span><span class="c">n. pax</span><span class="c">pagamento</span><span>corse</span></div>';
     function riga(c){
       const col=COL_PAG[c.pagamento]||'var(--cyan)';
-      return `<div class="tr" style="--g:${col}"><span class="perc">${esc(c.percorso)}</span><span class="cli"><b>${esc(c.cliente)}</b>${c.fonte==='manuale'?' <i class="nuova">NUOVA</i>':''}${c.fonte==='manuale'&&c.id?` <button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</span>`
+      return `<div class="tr" style="--g:${col}" data-k="${esc(c.chiave)}" role="button" tabindex="0" title="Tocca per modificare"><span class="perc">${esc(c.percorso)}</span><span class="cli"><b>${esc(c.cliente)}</b>${c.fonte==='manuale'?' <i class="nuova">NUOVA</i>':''}${c.fonte==='manuale'&&c.id?` <button class="btn out" type="button" data-togli="${esc(c.id)}">Togli</button>`:''}</span>`
         +`<span class="cit">${esc(c.citta||'---')}<i class="naz-tel">${c.naz?` · ${esc(c.naz)}`:''}</i></span><span class="c mono">${esc(c.naz||'-')}</span><span class="c"><span class="gr">${esc(c.pax)}</span></span><span class="c"><span class="pg" style="--p:${col}">${esc(c.pagamento)}</span></span>`
         +`<span class="tc">${C.turniCorse(c).map(x=>`<span class="ct" style="--t:${COLORI[x.turno]||'var(--muted)'}"><i class="mono">${esc(x.numero)}</i>${x.turno?`<b>${esc(x.turno)}</b>`:'<b title="Corsa non trovata nell\'orario del giorno">?</b>'}</span>`).join('')}</span></div>`;
     }
@@ -205,18 +218,80 @@
       if(!confirm('Togliere questa comitiva?'))return;
       try{await C.togli(b.dataset.togli);state.lista=state.lista.filter(c=>c.id!==b.dataset.togli);render();}catch(err){alert(`Non tolta: ${err.message}`)}
     });
+    // ---------- Modulo: nuova comitiva o modifica (tocco su una riga) ----------
+    const F=['data','cliente','percorso','pax','corse','pagamento','citta','naz'];
+    const v=id=>$(id).value.trim();
+    state.clienti=[];state.edit=null;
+    function suggerimenti(){
+      // clienti: anagrafica + clienti delle comitive (nome senza numero di prenotazione)
+      const nomi=new Map();
+      tutte().forEach(c=>{const n=C.nomeBase(c.cliente);if(n)nomi.set(n,{nome:n,citta:c.citta,naz:c.naz,pagamento:c.pagamento});});
+      state.clienti.forEach(c=>nomi.set(c.nome,c));
+      state.anagrafica=nomi;
+      $('dl-clienti').innerHTML=[...nomi.values()].sort((a,b)=>a.nome.localeCompare(b.nome,'it')).map(c=>`<option value="${esc(c.nome)}">${esc([c.citta,c.naz].filter(Boolean).join(' · '))}</option>`).join('');
+      $('dl-percorsi').innerHTML=[...new Set(tutte().map(c=>c.percorso))].sort((a,b)=>a.localeCompare(b,'it')).map(p=>`<option value="${esc(p)}">`).join('');
+    }
+    // cliente gia' in anagrafica: completa citta', nazione e pagamento
+    $('f-cliente').addEventListener('change',()=>{
+      const c=state.anagrafica?.get(C.nomeBase(v('f-cliente')));
+      if(!c)return;
+      if(!v('f-citta'))$('f-citta').value=c.citta||'';
+      if(!v('f-naz'))$('f-naz').value=c.naz||'';
+      if(c.pagamento)$('f-pagamento').value=c.pagamento;
+    });
+    // corse possibili per ogni tratto del percorso, dall'orario del giorno scelto
+    function corsePossibili(){
+      const box=$('f-sugg'),data=v('f-data'),scali=v('f-percorso').split('+')[0].split('-').map(x=>x.trim()).filter(Boolean);
+      if(!data||scali.length<2){box.innerHTML='';return;}
+      const scelte=C.numeri(v('f-corse'));
+      box.innerHTML=scali.slice(1).map((a,k)=>{
+        const da=scali[k],opz=C.corsePerTratta(data,da,a);
+        return `<div class="leg"><b>${esc(da)} → ${esc(a)}</b>${opz.length?`<div class="opz">${opz.map(o=>`<button type="button" data-tratto="${k}" data-corsa="${esc(o.numero)}" aria-pressed="${scelte[k]===o.numero}" style="--t:${COLORI[o.turno]||'var(--muted)'}">${esc(o.parte)}→${esc(o.arriva)} · c. ${esc(o.numero)}${o.sr?' SR':''} <b>${esc(o.turno||'?')}</b></button>`).join('')}</div>`:'<p>Nessuna corsa diretta nell\'orario del giorno.</p>'}</div>`;
+      }).join('');
+    }
+    ['f-data','f-percorso','f-corse'].forEach(id=>$(id).addEventListener('input',corsePossibili));
+    $('f-sugg').addEventListener('click',e=>{
+      const b=e.target.closest('[data-tratto]');if(!b)return;
+      const n=v('f-percorso').split('+')[0].split('-').filter(x=>x.trim()).length-1,corse=C.numeri(v('f-corse'));
+      while(corse.length<n)corse.push('');
+      corse[+b.dataset.tratto]=b.dataset.corsa;
+      $('f-corse').value=corse.map(x=>x||'?').join('-').replace(/(-\?)+$/,'');
+      corsePossibili();
+    });
+    function modulo(c){
+      state.edit=c||null;
+      F.forEach(k=>{$(`f-${k}`).value=c?(c[k]||''):(k==='pagamento'?'voucher':'');});
+      $('form-titolo').textContent=c?`✎ Modifica · ${c.cliente}`:'＋ Nuova comitiva';
+      $('f-salva').textContent=c?'Salva modifiche':'Salva comitiva';
+      $('f-annulla').hidden=!c;$('f-msg').textContent='';
+      document.querySelectorAll('.tr.edit').forEach(x=>x.classList.remove('edit'));
+      corsePossibili();
+    }
+    $('f-annulla').addEventListener('click',()=>modulo(null));
+    $('giorni').addEventListener('click',e=>{
+      if(e.target.closest('button'))return;
+      const r=e.target.closest('.tr[data-k]');if(!r)return;
+      const c=trova(r.dataset.k);if(!c)return;
+      modulo(c);r.classList.add('edit');
+      $('nuova-box').open=true;$('nuova-box').scrollIntoView({behavior:'smooth',block:'start'});
+    });
     $('nuova-form').addEventListener('submit',async e=>{
       e.preventDefault();
-      const msg=$('f-msg'),v=id=>$(id).value.trim();
-      const item={data:v('f-data'),cliente:v('f-cliente'),percorso:v('f-percorso'),pax:v('f-pax'),corse:v('f-corse'),pagamento:v('f-pagamento'),citta:v('f-citta'),naz:v('f-naz').toUpperCase(),fonte:'manuale'};
-      if(!item.data||!item.cliente||!item.percorso||!item.pax||!item.corse){msg.className='msg bad';msg.textContent='Compila data, cliente, percorso, pax e corse.';return;}
+      const msg=$('f-msg');
+      const campi=Object.fromEntries(F.map(k=>[k,v(`f-${k}`)]));campi.naz=campi.naz.toUpperCase();
+      if(!campi.data||!campi.cliente||!campi.percorso||!campi.pax||!campi.corse){msg.className='msg bad';msg.textContent='Compila data, cliente, percorso, pax e corse.';return;}
       msg.className='msg';msg.textContent='Salvataggio…';
-      try{state.lista.push(await C.salva(item,autore));e.target.reset();msg.className='msg ok';msg.textContent='Comitiva salvata.';render();}
-      catch(err){msg.className='msg bad';msg.textContent=`Non salvata: ${err.message}`;}
+      try{
+        const prima=state.edit,salvata=await C.salva(prima?{...prima,...campi}:{...campi,fonte:'manuale'},autore);
+        if(prima)state.lista=state.lista.map(c=>c===prima?salvata:c);else state.lista.push(salvata);
+        C.salvaCliente(salvata).then(()=>C.caricaClienti()).then(l=>{state.clienti=l;suggerimenti();}).catch(err=>console.warn('Cliente non salvato',err));
+        modulo(null);msg.className='msg ok';msg.textContent=prima?'Modifiche salvate.':'Comitiva salvata.';render();suggerimenti();
+      }catch(err){msg.className='msg bad';msg.textContent=`Non salvata: ${err.message}`;}
     });
 
     (async()=>{
-      const r=await C.carica();state.lista=r.lista;state.pb=r.pb;render();
+      const r=await C.carica();state.lista=r.lista;state.pb=r.pb;render();suggerimenti();
+      if(r.pb)C.caricaClienti().then(l=>{state.clienti=l;suggerimenti();});
       // le comitive dell'O.d.S. non ancora in archivio vengono copiate una volta
       if(r.pb&&state.lista.some(c=>!c.id&&c.fonte==='ods')){try{await C.copiaOds(state.lista,autore);render();}catch(err){console.warn('Comitive O.d.S. non copiate',err)}}
     })();
