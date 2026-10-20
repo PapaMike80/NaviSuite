@@ -230,3 +230,31 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 #orario .terra-day-scalo{flex:0 1 9em;min-width:0;min-height:48px;padding:0 .6em;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.12);color:#f2fffd;font:900 clamp(15px,4.2vw,22px)/1.1 Manrope,Inter,sans-serif}
 #orario .terra-day-scalo[hidden]{display:none}
 html.navisuite-light #orario .terra-day-scalo{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
+/* Scali: barra dei comandi, tutti i pulsanti uguali (stessa altezza, bordo e carattere) */
+#orario .terra-bar{display:flex;flex-direction:column;align-items:center;gap:10px}
+#orario .or-ctrl{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:8px;width:100%}
+#orario .or-ctrl .or-b{height:46px;min-height:46px;margin:0;border:2px solid rgba(45,212,191,.55);border-radius:14px;background:rgba(45,212,191,.10);color:#e6fffb;font:800 16px/1 Manrope,Inter,sans-serif;box-sizing:border-box}
+#orario .or-ctrl .terra-day-today{flex:0 0 auto;width:auto;padding:0 18px;opacity:1}
+#orario .or-ctrl .terra-day-today[hidden]{display:inline-flex;visibility:hidden}
+#orario .or-ctrl .terra-day-today.on{border-color:#2dd4bf;background:rgba(45,212,191,.28);color:#99f6e4;box-shadow:0 0 12px rgba(45,212,191,.45)}
+#orario .or-ctrl .terra-day-scalo{flex:0 1 11em;min-width:8em;padding:0 10px;color-scheme:dark}
+#orario .or-ctrl .terra-day-scalo option{background:#0b2731;color:#eaf2f4}
+#orario .or-ctrl .or-tabs{display:contents}
+#orario .or-ctrl .or-tabs button{flex:0 0 auto;height:46px;min-height:46px;padding:0 16px;border:2px solid rgba(45,212,191,.55);border-radius:14px;background:rgba(45,212,191,.10);color:#e6fffb;font:800 16px/1 Manrope,Inter,sans-serif;cursor:pointer}
+#orario .or-ctrl .or-tabs button.active{background:#2dd4bf;border-color:#2dd4bf;color:#05221e}
+html.navisuite-light #orario .or-ctrl .or-tabs button{background:#e3f7f3;color:#0b2731;border-color:#087b6e}html.navisuite-light #orario .or-ctrl .or-tabs button.active{background:#087b6e;color:#fff}
+#orario .or-ctrl #orario-stampa{display:inline-flex;align-items:center;gap:6px;padding:0 14px;text-decoration:none;white-space:nowrap}
+@media(max-width:560px){
+  #orario .or-ctrl .terra-day-scalo{flex:1 1 60%}
+  #orario .or-ctrl .or-tabs button{flex:1 1 0;padding:0 8px}
+  #orario .or-ctrl #orario-stampa{flex:0 0 auto}
+}
+html.navisuite-light #orario .or-ctrl .or-b{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
+html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;color:#0b2731}
+/* comitiva sulla prossima nave (scheda della nave in Scali) */
+.or-com-nave{margin:6px 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(244,114,182,.55);background:rgba(244,114,182,.14)}
+.or-com-nave p{margin:0 0 4px;color:#f472b6;font-weight:800;font-size:13px}
+.or-com-nave ul{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:12.5px}
+.or-com-nave small{color:#9fb8c2}
+.or-com-nave .ss{font-size:9px;font-weight:900;letter-spacing:.08em;padding:1px 6px;border-radius:999px;margin-right:5px}
+.or-com-nave .ss.su{background:#16a34a33;color:#4ade80}.or-com-nave .ss.giu{background:#fb718533;color:#fda4af}
