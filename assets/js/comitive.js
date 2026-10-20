@@ -37,10 +37,18 @@
   }
   const togli = id => PB().remove('comitive', id);
 
-  // Comitive di una corsa in un giorno: per il turno assegnato, o per qualunque turno se non e' assegnato.
+  // Turno che fa ogni corsa della comitiva quel giorno (orario della stagione, orari-stagioni.js): [{numero, turno}]
+  const cacheCorse = {};
+  function turniCorse(c) {
+    const S = root.NaviOrariStagioni;
+    let corse = cacheCorse[c.data];
+    if (!corse) { try { corse = cacheCorse[c.data] = S?.corseTutte ? S.corseTutte(c.data) : []; } catch (_) { corse = []; } }
+    return numeri(c.corse).map(n => ({ numero: n, turno: corse.find(x => x.numero === n)?.turno || '' }));
+  }
+  // Comitive di una corsa in un giorno (la corsa la fa un solo turno: chi la fa le vede)
   // tratta: da dove a dove con quella corsa (i-esima corsa = i-esimo tratto del percorso).
   function diCorsa(lista, giorno, numero, turno = '') {
-    return lista.filter(c => c.data === giorno && numeri(c.corse).includes(String(numero)) && (!c.turno || !turno || c.turno === turno)).map(c => {
+    return lista.filter(c => c.data === giorno && numeri(c.corse).includes(String(numero))).map(c => {
       const scali = String(c.percorso).split('+')[0].split('-').map(s => s.trim()).filter(Boolean), i = numeri(c.corse).indexOf(String(numero));
       return { ...c, sale: scali[i] || '', scende: scali[i + 1] || '' };
     });
@@ -101,7 +109,7 @@
   const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
   function alloScalo(lista, giorno, scalo, corsaParte, corsaArriva, turno = '') {
     const salgono = [], scendono = [];
-    lista.filter(c => c.data === giorno && (!c.turno || !turno || c.turno === turno)).forEach(c => {
+    lista.filter(c => c.data === giorno).forEach(c => {
       const scali = String(c.percorso).split('+')[0].split('-').map(s => s.trim()).filter(Boolean);
       numeri(c.corse).forEach((n, i) => {
         if (corsaParte && n === String(corsaParte) && norm(scali[i]) === norm(scalo)) salgono.push({ ...c, verso: scali[i + 1] || '' });
@@ -111,5 +119,5 @@
     return { salgono, scendono };
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo };
+  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse };
 })(typeof window !== 'undefined' ? window : globalThis);
