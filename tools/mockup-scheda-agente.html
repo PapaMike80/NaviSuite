@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup · Scheda agente</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--green:#52c879;--pink:#f472b6;--sky:#38bdf8;--mono:'DM Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));color:var(--ink);font:500 13px/1.45 Manrope,system-ui,sans-serif}
+.sol{max-width:760px;margin:0 auto 26px;display:grid;gap:8px}
+.sol>h2{margin:0;font-size:16px;color:var(--teal)}.sol>p{margin:0;color:var(--muted);font-size:12px}
+.mono{font-family:var(--mono)}
+/* intestazione comune */
+.ag{display:grid;gap:10px;padding:12px;border-radius:16px;border:1px solid color-mix(in srgb,#e8f3f6 30%,var(--line));border-left:5px solid #e8f3f6;background:linear-gradient(100deg,color-mix(in srgb,#e8f3f6 8%,var(--card)),var(--card) 45%)}
+.top{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.gr{display:inline-grid;place-items:center;width:44px;height:44px;border:3px solid #e8f3f6;border-radius:50%;background:#e8f3f622;color:#e8f3f6;font-size:12px;font-weight:900}
+.nm b{display:block;font-size:17px;font-weight:800}.nm small{color:var(--muted)}
+.chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;border:1px solid var(--line);color:var(--muted);margin-right:4px}
+.chip.c{border-color:var(--sky);color:var(--sky)}.chip.ff{border-color:var(--violet);color:#ddd6fe;background:#2a2148}.chip.ok{border-color:var(--green);color:var(--green)}
+.acc{text-align:right;font-size:11px;color:var(--muted)}.acc b{display:block;color:var(--ink);font:500 13px var(--mono)}
+.row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+label{min-width:0;display:grid;gap:3px;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+select,input{width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font:600 13px Manrope,system-ui,sans-serif}
+.btn{min-height:38px;padding:0 14px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);font:800 12px Manrope,system-ui,sans-serif;white-space:nowrap}
+.btn.c{background:transparent;border:1px solid var(--c);color:var(--c)}
+.btn.out{background:transparent;border:1px solid color-mix(in srgb,var(--rose) 60%,transparent);color:var(--rose)}
+/* A: sezioni richiudibili */
+.adm{--c:var(--teal);border-radius:12px;background:color-mix(in srgb,var(--c) 9%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.adm summary{list-style:none;display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-weight:800;color:var(--c)}
+.adm summary::after{content:'▾';color:var(--muted)}.adm[open] summary::after{content:'▴'}
+.adm summary span{flex:1}.adm summary i{font-style:normal;font-weight:600;color:var(--ink);font-size:12px}
+.adm .body{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;padding:0 12px 12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
+/* B: linguette */
+.tabs{display:flex;gap:4px;padding:3px;border-radius:12px;background:var(--card2);overflow-x:auto}
+.tabs button{flex:1;min-height:34px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:800 12px Manrope,system-ui,sans-serif;white-space:nowrap}
+.tabs button.on{background:var(--c,var(--teal));color:var(--on)}
+.pan{--c:var(--sky);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--c) 9%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+.pan p{grid-column:1/-1;margin:0;color:var(--muted);font-size:12px}
+/* C: tessere */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tile{--c:var(--teal);display:grid;gap:2px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent);text-align:left;color:var(--ink)}
+.tile small{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.tile b{font-size:13px}.tile span{font-size:10.5px;color:var(--muted)}
+.tile.sel{outline:2px solid var(--c);background:color-mix(in srgb,var(--c) 20%,var(--card))}
+.altro{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.ag,.sol{min-width:0}.tile{min-width:0;overflow:hidden}.tile span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acl{margin:0;padding-left:18px;font-size:12px}.acl li{margin:3px 0}.acl small{display:block;color:var(--muted)}
+@media(max-width:560px){.top{grid-template-columns:auto 1fr}.acc{grid-column:1/-1;text-align:left}.row{grid-template-columns:1fr 1fr}.row .btn{grid-column:1/-1}.grid2{grid-template-columns:1fr}.tiles{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<section class="sol" id="A">
+  <h2>Soluzione A · Sezioni richiudibili con riassunto</h2>
+  <p>In alto restano sempre i dati principali. Categoria, Residenza, FF, Accessi e PIN/Elimina diventano righe chiuse: ognuna mostra a destra il proprio stato e si apre con un tocco. Da PC le righe stanno su due colonne.</p>
+  <div class="ag">
+    <div class="top"><span class="gr">Mar</span><div class="nm"><b>REGA F.</b><small class="mono">ID 129 · MADERNO</small><div><span class="chip">MARINAIO</span><span class="chip c">STABILE</span></div></div><div class="acc">Ultimo accesso<b>20/10 14:03</b>Il mio turno</div></div>
+    <div class="row"><label>Ruolo<select><option>Agente</option></select></label><label>Grado<select><option>marinaio</option></select></label><button class="btn">Salva</button></div>
+    <div class="grid2">
+      <details class="adm" style="--c:var(--sky)"><summary><span>🏷 Categoria</span><i>Stabili</i></summary></details>
+      <details class="adm" style="--c:var(--amber)"><summary><span>🏠 Residenza</span><i>Maderno · dal 05/10</i></summary></details>
+      <details class="adm" style="--c:var(--violet)"><summary><span>⭐ FF</span><i>nessuno</i></summary></details>
+      <details class="adm" style="--c:var(--teal)" open><summary><span>🕑 Ultimi accessi</span><i>10 · ultimo 20/10</i></summary><div class="body" style="display:block"><ol class="acl"><li><b class="mono">20/10 14:03</b> · Mobile<small>Il mio turno</small></li><li><b class="mono">20/10 11:32</b> · Mobile<small>Orari → NaviTurni → Il mio turno → Oggi</small></li><li><b class="mono">20/10 06:15</b> · Mobile<small>Il mio turno</small></li></ol></div></details>
+    </div>
+    <details class="adm" style="--c:var(--rose)"><summary><span>🔑 PIN e registrazione</span><i>Genera PIN · Elimina</i></summary></details>
+  </div>
+</section>
+
+<section class="sol" id="B">
+  <h2>Soluzione B · Linguette</h2>
+  <p>Una barra di linguette sotto il nome: si vede un argomento alla volta, la scheda resta sempre bassa. La linguetta prende il colore del suo argomento.</p>
+  <div class="ag">
+    <div class="top"><span class="gr">Mar</span><div class="nm"><b>REGA F.</b><small class="mono">ID 129 · MADERNO</small><div><span class="chip">MARINAIO</span><span class="chip c">STABILE</span></div></div><div class="acc">Ultimo accesso<b>20/10 14:03</b>Il mio turno</div></div>
+    <div class="tabs"><button>Profilo</button><button class="on" style="--c:var(--sky)">Categoria</button><button>Residenza</button><button>FF</button><button>Accessi</button><button>PIN</button></div>
+    <div class="pan" style="--c:var(--sky)"><p>Tempo indeterminato.</p><label>Categoria<select><option>Stabili</option></select></label><button class="btn c" style="--c:var(--sky)">Salva categoria</button></div>
+  </div>
+</section>
+
+<section class="sol" id="C">
+  <h2>Soluzione C · Tessere di stato</h2>
+  <p>Quattro tessere mostrano subito lo stato di ogni argomento. Toccandone una si apre sotto il suo modulo, uno alla volta. PIN ed eliminazione stanno in fondo, piccoli.</p>
+  <div class="ag">
+    <div class="top"><span class="gr">Mar</span><div class="nm"><b>REGA F.</b><small class="mono">ID 129 · MADERNO</small><div><span class="chip">MARINAIO</span></div></div><div class="acc">Ultimo accesso<b>20/10 14:03</b>Il mio turno</div></div>
+    <div class="row"><label>Ruolo<select><option>Agente</option></select></label><label>Grado<select><option>marinaio</option></select></label><button class="btn">Salva</button></div>
+    <div class="tiles">
+      <button class="tile" style="--c:var(--sky)"><small>Categoria</small><b>Stabili</b><span>indeterminato</span></button>
+      <button class="tile sel" style="--c:var(--amber)"><small>Residenza</small><b>Maderno</b><span>da Peschiera · 05/10</span></button>
+      <button class="tile" style="--c:var(--violet)"><small>FF</small><b>—</b><span>nessuno</span></button>
+      <button class="tile" style="--c:var(--teal)"><small>Accessi</small><b class="mono">10</b><span>ultimo 20/10 14:03</span></button>
+    </div>
+    <div class="pan" style="--c:var(--amber)"><p>Residenza attuale <b style="color:var(--amber)">MADERNO</b> · spostato da Peschiera dal 05/10/2026 (dal turno caricato)</p><label>Nuova residenza<select><option>Scegli…</option></select></label><label>Dal<input type="date"></label><button class="btn c" style="--c:var(--amber)">Cambia residenza</button></div>
+    <div class="altro"><button class="btn c" style="--c:var(--amber);min-height:30px">Genera PIN iniziale</button><button class="btn out" style="min-height:30px">Elimina registrazione</button><button class="btn out" style="min-height:30px">Elimina agente</button></div>
+  </div>
+</section>
+</body>
+</html>
