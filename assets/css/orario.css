@@ -200,3 +200,9 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 /* Da -> A: coincidenza dell'O.d.S. (gialla) o cambio con biglietto per ogni nave (grigio) */
 .or-change.or-cambio{border-left-color:#64748b;color:#9fb8c2;text-transform:none;letter-spacing:0;font-size:11px;font-weight:700}
 .or-change.or-coinc{text-transform:none;letter-spacing:0;font-size:11px}
+
+/* comitive allo scalo (pagina Comitive) */
+.navi-list .dove:has(.mt-comit){flex-wrap:wrap}
+.mt-comit{flex:1 0 100%;width:100%;min-width:0;display:flex;flex-direction:column;gap:2px;margin-top:4px;font-size:11.5px;color:#67d7e6;font-weight:600}
+.mt-comit>span{display:block;line-height:1.35}
+.mt-comit b{color:#eaf2f4}

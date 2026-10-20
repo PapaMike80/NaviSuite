@@ -519,6 +519,16 @@
       `<div class="or-ship-list">${righe + bisRiga || '<p class="legend">Nessuna nave in servizio in questo giorno.</p>'}</div></details>`;
   }
 
+  // Comitive allo scalo (pagina Comitive): chi sale con la corsa in partenza, chi scende da quella in arrivo
+  function comitiveScalo(g, r) {
+    const NC = window.NaviComitive;
+    if (!NC || !state.comitive?.length || r.propria) return '';
+    const parte = r.kind !== 'A' ? r.corsa : '', arriva = r.arr ? r.arr.corsa : r.kind === 'A' ? r.corsa : (r.v.scali[r.i]?.[2] || '');
+    const { salgono, scendono } = NC.alloScalo(state.comitive, g.day, state.scalo, parte, arriva, r.v.turno);
+    const voce = (c, testo) => `<span>👥 ${testo} <b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}</span>`;
+    const righe = [...scendono.map(c => voce(c, `scendono${c.da ? ` (da ${esc(c.da)})` : ''}`)), ...salgono.map(c => voce(c, `salgono${c.verso ? ` (per ${esc(c.verso)})` : ''}`))];
+    return righe.length ? `<span class="mt-coinc mt-comit">${righe.join('')}</span>` : '';
+  }
   function alloScalo(g, t, aperte = [], navi = []) {
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
     const res = RESIDENZA_SCALO[state.scalo] || '';
@@ -574,7 +584,7 @@
         `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa, state.scalo)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : code !== 'BIS' && (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(r.corsa))) ? '<b class="sosp-tag bis" title="Il BIS fa la corsa in aiuto">BIS IN AIUTO</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
-        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}</span></div>`;
+        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${comitiveScalo(g, r)}</span></div>`;
     }).join('');
     const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
     const vuoto = righe.length ? '' : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>';
@@ -1108,6 +1118,8 @@
     };
   }
   render();
+  // comitive (archivio PocketBase, o O.d.S. se non raggiungibile): sulle navi allo scalo
+  window.NaviComitive?.carica().then(r => { state.comitive = r.lista; if (r.lista.length) render(); }).catch(() => {});
   window.NaviSharedData?.loadCacheFirst?.(data => { state.schedule = data || { residenze: {} }; render(); })
     .catch(error => console.warn('Orario: turni non disponibili', error));
   (async () => {

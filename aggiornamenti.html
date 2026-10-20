@@ -169,6 +169,8 @@
   <script src="assets/js/shared-data.js?v=137"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
+  <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
+  <script src="assets/js/comitive.js?v=3"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -177,7 +179,7 @@
     document.querySelectorAll('.card.foldable').forEach(card=>{const toggle=card.querySelector('.card-fold-toggle'),heading=card.querySelector('.card-heading');const change=()=>card.dataset.collapsed=card.dataset.collapsed==='true'?'false':'true';toggle.addEventListener('click',change);heading.addEventListener('click',event=>{if(!event.target.closest('button,input,select,textarea,a'))change()})});
     const state={odsVariations:[],manualVariations:[],baristas:[],approvedChangeRequests:[],dismissedOdsApprovals:[],scheduleImports:[],turniNavi:[]};
     let schedule=null;
-    let pendingOds=[],pendingOdsNavi=[],pendingBaristas=[],pendingNavi=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
+    let pendingOds=[],pendingOdsNavi=[],pendingComitive=[],pendingBaristas=[],pendingNavi=[],pendingTurnImport=null,pendingSheetImport=null,adminDocuments=[],changeRequests=[];
     const $=id=>document.getElementById(id);
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const profile=()=>window.TurniShared?.readLoggedAgentProfile?.()||JSON.parse(localStorage.getItem('naviturni_logged_agent')||'null');
@@ -1120,6 +1122,13 @@
         return {attiva:true,data:value('data'),corsa:value('corsa').toUpperCase(),nave:value('nave'),rifornimento_mattina:value('rifornimento_mattina'),ormeggio_serale:value('ormeggio_serale'),ods:$('new-ods-number').value.trim()||'importato',inserita_il:new Date().toISOString()};
       }).filter(row=>row.data&&row.corsa&&(row.nave||row.rifornimento_mattina||row.ormeggio_serale));
     }
+    // Comitive lette dall'ODS → PocketBase (pagina Comitive, Il mio turno, Scali)
+    async function salvaComitive(){
+      if(!pendingComitive.length)return;
+      const p=profile();
+      try{const r=await NaviComitive.salvaOds(pendingComitive,String(p?.name||p?.id||''));setStatus(`Comitive salvate: ${r.nuove} nuove, ${r.aggiornate} aggiornate.`,'ok');pendingComitive=[];}
+      catch(error){setStatus(`ODS salvato, ma le comitive non sono state salvate: ${error.message}`,'bad');}
+    }
     async function parseImport(kind){
       const input=$(kind==='ods'?'new-ods-file':kind==='nave'?'new-nave-file':'new-bariste-file'),file=input.files?.[0];
       if(!file)throw new Error('Seleziona prima un file');
@@ -1133,13 +1142,15 @@
       if(kind==='ods'){
         pendingOds=records;
         pendingOdsNavi=/\.pdf$/i.test(file.name)?parseOdsNaviPdf(pages,$('new-ods-number').value.trim()):[];
-        $('save-new-ods').disabled=!(pendingOds.length||pendingOdsNavi.length);
+        // comitive dell'allegato «Comitive O.d.S.»: si salvano su PocketBase insieme all'ODS
+        try{pendingComitive=pages&&window.NaviComitive?NaviComitive.daPdf(pages,$('new-ods-number').value.trim()):[]}catch(error){console.warn('Comitive non lette',error);pendingComitive=[]}
+        $('save-new-ods').disabled=!(pendingOds.length||pendingOdsNavi.length||pendingComitive.length);
       }
       else if(kind==='nave'){pendingNavi=records;$('save-new-nave').disabled=!records.length}
       else{pendingBaristas=records;$('save-new-bariste').disabled=!records.length}
       renderPending(kind);
       const total=kind==='ods'?pendingOds.length+pendingOdsNavi.length:records.length;
-      const message=kind==='ods'?`${pendingOds.length} variazioni e ${pendingOdsNavi.length} turni nave riconosciuti.${pendingOds.avvisi?.length?` ⚠ ${pendingOds.avvisi.length} da controllare (vedi sotto).`:''} Controlla entrambe le anteprime prima di salvare.`:`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`;
+      const message=kind==='ods'?`${pendingOds.length} variazioni, ${pendingOdsNavi.length} turni nave e ${pendingComitive.length} comitive riconosciuti.${pendingOds.avvisi?.length?` ⚠ ${pendingOds.avvisi.length} da controllare (vedi sotto).`:''} Controlla entrambe le anteprime prima di salvare.`:`${records.length} righe riconosciute. Controllale e correggile prima di salvare.`;
       setStatus(message,total?'ok':'bad');
     }
     async function init(){
@@ -1281,7 +1292,9 @@
       try{await save();schedule=await window.NaviSharedData.load('',{force:true});$('save-turn-sheet').disabled=true;setStatus('✓ Foglio Google applicato a Firebase. I turni sono stati aggiornati.','ok')}catch(error){state.scheduleImports=previous;setStatus(`Errore applicazione Foglio Google: ${error.message}`,'bad')}
     });
     $('save-new-ods').addEventListener('click',async()=>{
-      const rows=collectPending('ods'),navi=collectOdsNavi();if(!rows.length&&!navi.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
+      const rows=collectPending('ods'),navi=collectOdsNavi();
+      if(!rows.length&&!navi.length&&pendingComitive.length){await salvaComitive();$('save-new-ods').disabled=true;return;}
+      if(!rows.length&&!navi.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
       const selectedKeys=rows.map(row=>`${row.data}|${row.id_agente}`);if(new Set(selectedKeys).size!==selectedKeys.length)return setStatus('Conflitto ODS: per lo stesso agente e giorno seleziona una sola variazione.','bad');
       if(rows.length)state.odsVariations=merge(state.odsVariations,rows,variationKey);
       if(navi.length){
@@ -1296,6 +1309,7 @@
         return !request||!touchesRequest(request)||!odsConfirmationFor(request).complete;
       });
       await save();renderHistory();renderChangeApprovals();$('save-new-ods').disabled=true;pendingOdsNavi=[];
+      await salvaComitive();
       // Nuovi ormeggi serali: rigenera i Servizi a terra in Documenti.
       let terra='';
       if(navi.length){try{await saveServiziTerraDocuments(state.turniNavi,serviziTerraMonday());terra=' Servizi a terra aggiornati in Documenti.'}catch(error){terra=` Servizi a terra non aggiornati (${error.message}).`}}
