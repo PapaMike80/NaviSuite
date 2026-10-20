@@ -526,11 +526,16 @@
     const parte = r.kind !== 'A' ? r.corsa : '', arriva = r.arr ? r.arr.corsa : r.kind === 'A' ? r.corsa : (r.v.scali[r.i]?.[2] || '');
     return NC.alloScalo(state.comitive, g.day, state.scalo, parte, arriva, r.v.turno);
   }
-  function comitiveScalo(com) {
-    const voce = (c, testo) => `<span>👥 ${testo} <b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}</span>`;
-    const righe = [...com.scendono.map(c => voce(c, `scendono${c.da ? ` (da ${esc(c.da)})` : ''}`)), ...com.salgono.map(c => voce(c, `salgono${c.verso ? ` (per ${esc(c.verso)})` : ''}`))];
-    return righe.length ? `<span class="mt-coinc mt-comit">${righe.join('')}</span>` : '';
+  function vaiAllaComitiva(root, i) {
+    const box = root.querySelector('.or-com');
+    if (!box) return;
+    state.comAperto = true; box.open = true;
+    root.querySelectorAll('.or-com-r.sel').forEach(x => x.classList.remove('sel'));
+    const riga = box.querySelector(`[data-com-riga="${i}"]`) || box;
+    riga.classList.add('sel');
+    riga.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
+
   const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
   // Riquadro rosa «Comitive oggi»: in ordine di orario, con turno; sparisce quando sono tutte partite o arrivate
   function riquadroComitive(g, righe, t) {
@@ -544,7 +549,7 @@
     voci.sort((a, b) => a.t - b.t || a.su - b.su);
     const pax = voci.reduce((n, v) => n + (parseInt(v.c.pax, 10) || 0), 0), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
-      voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}"><span class="o">${esc(v.ora)}<small>c. ${esc(v.corsa)} ${chip(v.r.v.turno)}</small></span>` +
+      voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}" data-com-riga="${v.i}"><span class="o">${esc(v.ora)}<small>c. ${esc(v.corsa)} ${chip(v.r.v.turno)}</small></span>` +
         `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></a>`).join('') + '</details>';
   }
   function alloScalo(g, t, aperte = [], navi = []) {
@@ -598,14 +603,14 @@
       const mancaRaw = r.propria ? null : (verso.t >= t ? quantoManca(g, verso, t) : null);
       const manca = mancaRaw && verso === r && r.arr ? { ...mancaRaw, testo: mancaRaw.testo.replace('in arrivo · ', 'parte ') } : mancaRaw;
       const info = r.propria ? [naveDi(g, 'BIS'), G.comandante(g.crews.BIS)].filter(Boolean).join(' · ') : naveInfo(g, code, r.corsa);
-      if (paxCom) badges.push(`<b class="com-tag" title="Comitive">👥 ${paxCom}</b>`);
+      const paxSu = paxDi(com.salgono), paxGiu = paxDi(com.scendono);
       const cls = `nave${paxCom ? ' hc' : ''}${/^T[12]$/.test(code) ? ' ferry' : ''}${r.t < t ? ' past' : ''}${i === prossima ? ' next' : ''}${manca?.arriva ? ' arriva' : ''}${aperte.includes(code) ? ' active' : ''}`;
       const arrivo = r.arr ? `<small class="arr" title="Arrivo">arr. ${esc(r.arr.ora)}</small>` : '';
-      return `<div class="${cls}"${paxCom ? ` id="or-com-${i}"` : ''}${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
+      return `<div class="${cls}"${paxCom ? ` id="or-com-${i}" data-com-go="${i}"` : ''}${r.propria ? '' : ` data-ship="${esc(code)}" data-from="scalo" tabindex="0" role="button" aria-label="Apri la corsa ${esc(r.corsa)} del ${esc(code)}"`}>` +
         `<span class="ora">${arrivo}${esc(r.ora)}${badgeRitardo(g, code, r.corsa, state.scalo)}</span>` +
         `<span class="tipo ${r.kind}">${KIND[r.kind]}<small>${r.corsa ? `corsa ${esc(r.corsa)}` : '–'}</small></span>${chip(code)}` +
         `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(r.dove)}</span>${badgeManca(manca)}${code !== 'BIS' && chi(g, code, r.corsa) === 'BIS' ? '<b class="sosp-tag bis" title="La corsa e\' sostituita dal BIS">SOSTITUITA DAL BIS</b>' : code !== 'BIS' && (g.incarichi || []).some(inc => inc.tipo === 'aiuto' && inc.turno === code && O.corseIncarico(inc, g.day).some(x => x.numero === String(r.corsa))) ? '<b class="sosp-tag bis" title="Il BIS fa la corsa in aiuto">BIS IN AIUTO</b>' : ''}${info ? `<span class="cte">${esc(info)}</span>` : ''}</span>` +
-        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${comitiveScalo(com)}</span></div>`;
+        `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${paxCom ? `<span class="com-bolle" data-com-go="${i}" role="button" tabindex="0" title="Vedi la comitiva">${paxSu ? `<b class="com-tag">👥 ${paxSu} salgono</b>` : ''}${paxGiu ? `<b class="com-tag giu">👥 ${paxGiu} scendono</b>` : ''}</span>` : ''}</span></div>`;
     }).join('');
     const toggle = nascoste ? `<button type="button" class="past-toggle" data-past-lago>${state.showPastLago ? '▴ Nascondi le navi già passate' : `▾ Mostra le navi già passate (${nascoste})`}</button>` : '';
     const vuoto = righe.length ? '' : '<p class="legend">Nessuna nave in questo scalo nel giorno scelto.</p>';
@@ -1056,6 +1061,13 @@
     state.showPast = false;
     render();
   });
+  // bolla della comitiva: apre il riquadro comitive sulla comitiva di quella nave
+  content.addEventListener('click', event => {
+    const go = event.target.closest('[data-com-go]');
+    if (!go) return;
+    event.stopPropagation(); event.preventDefault();
+    vaiAllaComitiva(content, go.dataset.comGo);
+  }, true);
   content.addEventListener('click', event => {
     const port = event.target.closest('[data-port]');
     if (port) {

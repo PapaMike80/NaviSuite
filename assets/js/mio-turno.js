@@ -133,8 +133,8 @@
     [...new Set(rows.map(r => r.run))].forEach(run => {
       const corsa = rows.filter(r => r.run === run);
       NC.diCorsa(state.comitive, day, run, code).forEach(c => {
-        const sale = corsa.find(r => norm(r.nome) === norm(c.sale)) || corsa[0];
-        const scende = corsa.slice(corsa.indexOf(sale) + 1).find(r => norm(r.nome) === norm(c.scende));
+        const sale = corsa.find(r => NC.stessoScalo(r.nome, c.sale)) || corsa[0];
+        const scende = corsa.slice(corsa.indexOf(sale) + 1).find(r => NC.stessoScalo(r.nome, c.scende));
         out[rows.indexOf(sale)].salgono.push(c);
         if (scende) out[rows.indexOf(scende)].scendono.push(c);
       });
@@ -142,11 +142,7 @@
     return out;
   }
   const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
-  function comitiveRiga(com) {
-    const chi = c => `<b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}`;
-    const voci = [...com.scendono.map(c => `<span title="Comitiva">👥 scendono ${chi(c)}</span>`), ...com.salgono.map(c => `<span title="Comitiva">👥 salgono ${chi(c)}${c.scende ? `<small>${esc(c.percorso)} · scendono a ${esc(c.scende)}</small>` : ''}</span>`)];
-    return voci.length ? `<span class="mt-coinc mt-comit">${voci.join('')}</span>` : '';
-  }
+
   // Riquadro rosa «Comitive sulle tue corse»: sempre in vista, sparisce quando sono tutte salite e scese
   function riquadroComitive(rows, com, day) {
     const oggi = iso(new Date()), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
@@ -156,7 +152,7 @@
     if (!voci.length || voci.every(v => passata(v.r))) return '';
     const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
-      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}"><span class="o">${esc(v.r.orario)}<small>c. ${esc(v.r.run)}</small></span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></div>`).join('') + '</details>';
+      voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}<small>c. ${esc(v.r.run)}</small></span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`} · ${esc(v.c.pagamento)}</span></span><span class="px">${esc(v.c.pax)}</span></div>`).join('') + '</details>';
   }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
@@ -225,13 +221,12 @@
         if (row.bolgetta) badges.push(`<b class="bolgetta" title="Bolgetta: ${row.bolgetta}">B</b>`);
         if (i === rows.length - 1 && oggi.ormeggio) badges.push(`<b class="ormeggio" title="Ormeggio della sera">⚓ ${esc(pontLabel(oggi.ormeggio))}</b>`);
         const paxSu = paxDi(com[i].salgono), paxGiu = paxDi(com[i].scendono);
-        if (paxSu || paxGiu) badges.push(`<b class="com-tag" title="Comitive">👥 ${[paxSu ? `${paxSu} salgono` : '', paxGiu ? `${paxGiu} scendono` : ''].filter(Boolean).join(' · ')}</b>`);
         const cls = `nave${paxSu || paxGiu ? ' hc' : ''}${/^T[12]$/.test(code) ? ' ferry' : ''}${row.stato === 'past' ? ' past' : ''}${row.stato === 'next' ? ' next' : ''}`;
         const sep = row.sep ? `<div class="mt-sep" role="separator" aria-label="Corsa ${esc(row.sep)}"><span>${esc(row.sep)}</span></div>` : '';
-        return `${sep}<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
+        return `${sep}<div class="${cls}"${paxSu || paxGiu ? ` data-com-go="${i}"` : ''}><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
-          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}${comitiveRiga(com[i])}</span></div>`;
+          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${paxSu || paxGiu ? `<span class="com-bolle" data-com-go="${i}" role="button" tabindex="0" title="Vedi la comitiva">${paxSu ? `<b class="com-tag">👥 ${paxSu} salgono</b>` : ''}${paxGiu ? `<b class="com-tag giu">👥 ${paxGiu} scendono</b>` : ''}</span>` : ''}${coincidenzeRiga(row, day)}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
     // regola delle coincidenze sotto la lista, se ce ne sono
     const regola = listaCorse.includes('mt-coinc') ? '<p class="mt-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</p>' : '';
@@ -429,6 +424,18 @@
   };
 
   render();
+  // tocco su uno scalo con comitiva: si apre il riquadro comitive sulla comitiva di quello scalo
+  document.addEventListener('click', e => {
+    const go = e.target.closest('#turno-content [data-com-go]');
+    if (!go) return;
+    const box = document.querySelector('#turno-content .or-com');
+    if (!box) return;
+    state.comAperto = true; box.open = true;
+    box.querySelectorAll('.or-com-r.sel').forEach(x => x.classList.remove('sel'));
+    const riga = box.querySelector(`[data-com-riga="${go.dataset.comGo}"]`) || box;
+    riga.classList.add('sel');
+    riga.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   document.addEventListener('toggle', e => { if (e.target.classList?.contains('or-com')) state.comAperto = e.target.open; }, true);
   // comitive dall'archivio (o dall'O.d.S. se non raggiungibile): poi si ridisegna
   window.NaviComitive?.carica().then(r => { state.comitive = r.lista; if (r.lista.length) render(); }).catch(() => {});

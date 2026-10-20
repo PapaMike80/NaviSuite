@@ -106,18 +106,20 @@
   }
 
   // Allo scalo: comitive che salgono con la corsa in partenza e che scendono da quella in arrivo
-  const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
+  // stesso scalo: nome intero, o abbreviazione con il punto dell'O.d.S. («Pesc.», «Sirm.»)
+  const pulito = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z.]/g, '');
+  const stessoScalo = (scalo, nome) => { const a = pulito(scalo).replace(/\./g, ''), b = pulito(nome); return !!b && (b.endsWith('.') ? a.startsWith(b.slice(0, -1)) : a === b.replace(/\./g, '')); };
   function alloScalo(lista, giorno, scalo, corsaParte, corsaArriva, turno = '') {
     const salgono = [], scendono = [];
     lista.filter(c => c.data === giorno).forEach(c => {
       const scali = String(c.percorso).split('+')[0].split('-').map(s => s.trim()).filter(Boolean);
       numeri(c.corse).forEach((n, i) => {
-        if (corsaParte && n === String(corsaParte) && norm(scali[i]) === norm(scalo)) salgono.push({ ...c, verso: scali[i + 1] || '' });
-        if (corsaArriva && n === String(corsaArriva) && norm(scali[i + 1]) === norm(scalo)) scendono.push({ ...c, da: scali[i] || '' });
+        if (corsaParte && n === String(corsaParte) && stessoScalo(scalo, scali[i])) salgono.push({ ...c, verso: scali[i + 1] || '' });
+        if (corsaArriva && n === String(corsaArriva) && stessoScalo(scalo, scali[i + 1])) scendono.push({ ...c, da: scali[i] || '' });
       });
     });
     return { salgono, scendono };
   }
 
-  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse };
+  root.NaviComitive = { chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo };
 })(typeof window !== 'undefined' ? window : globalThis);
