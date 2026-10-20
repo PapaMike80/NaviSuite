@@ -550,7 +550,7 @@
     const pax = voci.reduce((n, v) => n + (parseInt(v.c.pax, 10) || 0), 0), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}" data-com-riga="${v.i}"><span class="o">${esc(v.ora)}${window.NaviComitive.bolle.corsa(v.corsa, v.r.v.turno)}</span>` +
-        `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${window.NaviComitive.bolle.pag(v.c.pagamento)}</span></a>`).join('') + '</details>';
+        `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></a>`).join('') + '</details>';
   }
   function alloScalo(g, t, aperte = [], navi = []) {
     const KIND = { P: 'PARTENZA', A: 'ARRIVO', S: 'SCALO' };
@@ -774,7 +774,7 @@
       const corse = [...new Set(resto.slice(iQui, fine + 1).map(p => String(p.corsa)).concat(resto[fine + 1] ? [String(resto[fine + 1].corsa)] : []))];
       const su = [], giu = [], visti = new Set();
       corse.forEach(n => { const r = window.NaviComitive.alloScalo(state.comitive, g.day, state.scalo, n, n); r.salgono.forEach(x => { if (!visti.has('s' + x.chiave)) { visti.add('s' + x.chiave); su.push(x); } }); r.scendono.forEach(x => { if (!visti.has('g' + x.chiave)) { visti.add('g' + x.chiave); giu.push(x); } }); });
-      const voce = (x, su) => `<li><span class="ss ${su ? 'su' : 'giu'}">${su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(x.cliente)}</b> ${window.NaviComitive.bolle.pax(x)} ${window.NaviComitive.bolle.pag(x.pagamento)}${su && x.verso ? ` <small>per ${esc(x.verso)}</small>` : !su && x.da ? ` <small>da ${esc(x.da)}</small>` : ''}</li>`;
+      const voce = (x, su) => `<li><span class="ss ${su ? 'su' : 'giu'}">${su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(x.cliente)}</b> ${window.NaviComitive.bolle.pax(x)}${su ? ` ${window.NaviComitive.bolle.pag(x.pagamento)}` : ''}${su && x.verso ? ` <small>per ${esc(x.verso)}</small>` : !su && x.da ? ` <small>da ${esc(x.da)}</small>` : ''}</li>`;
       if (su.length || giu.length) comBox = `<div class="or-com-nave"><p>👥 Comitiva su questa nave a ${esc(state.scalo)}</p><ul>${[...giu.map(x => voce(x, false)), ...su.map(x => voce(x, true))].join('')}</ul></div>`;
     }
     return card(`${code}${c !== code ? ' · BIS' : ''} ${naveDi(g, c)}${manca ? ` · ${manca}` : ''}${comBox ? ' · 👥' : ''}`.trim(), G.comandante(crew) || '',
