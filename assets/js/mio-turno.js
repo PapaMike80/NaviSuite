@@ -41,7 +41,7 @@
   const params = new URLSearchParams(location.search);
   // «Prova turno» (provare la pagina con un altro turno) solo per gli admin
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
-  const state = { day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
+  const state = { comitive: [], day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
   if (!admin) document.querySelector('.mt-test')?.remove();
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
@@ -124,6 +124,22 @@
       `${cvia.map(k => `<span class="cp" title="Cambio possibile, non e' una coincidenza: biglietto per ogni nave">⇄ cambio → ${turno(k.turnoB)}c. ${esc(k.b)}${k.srB ? ' SR' : ''} ${fmt(k.parte)} per ${esc(k.verso)}<small>non è una coincidenza: biglietto per ogni nave</small></span>`).join('')}` +
       `${cdentro.map(k => `<span class="cp" title="Cambio possibile, non e' una coincidenza: biglietto per ogni nave">⇄ cambio ← ${turno(k.turnoA)}c. ${esc(k.a)}${k.srA ? ' SR' : ''} arr. ${fmt(k.arriva)} da ${esc(k.da)}<small>non è una coincidenza: biglietto per ogni nave</small></span>`).join('')}</span>`;
   }
+  // Comitive (pagina Comitive, archivio PocketBase): sulla riga dello scalo dove salgono e dove scendono
+  const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 4);
+  function comitiveRiga(row, rows, day, code) {
+    const NC = window.NaviComitive;
+    if (!NC || !state.comitive.length) return '';
+    const corsa = rows.filter(r => r.run === row.run);
+    const voci = [];
+    NC.diCorsa(state.comitive, day, row.run, code).forEach(c => {
+      const sale = corsa.find(r => norm(r.nome) === norm(c.sale)) || corsa[0];
+      const scende = corsa.slice(corsa.indexOf(sale) + 1).find(r => norm(r.nome) === norm(c.scende));
+      const chi = `<b>${esc(c.cliente)}</b> · ${esc(c.pax)} pax · ${esc(c.pagamento)}`;
+      if (sale === row) voci.push(`<span title="Comitiva">👥 salgono ${chi}${c.scende ? `<small>${esc(c.percorso)} · scendono a ${esc(c.scende)}</small>` : ''}</span>`);
+      else if (scende === row) voci.push(`<span title="Comitiva">👥 scendono ${chi}</span>`);
+    });
+    return voci.length ? `<span class="mt-coinc mt-comit">${voci.join('')}</span>` : '';
+  }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
     const oggi = T.turniDelGiorno(turniNavi, day)[code] || {};
@@ -194,7 +210,7 @@
         return `${sep}<div class="${cls}"><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
-          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}</span></div>`;
+          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${coincidenzeRiga(row, day)}${comitiveRiga(row, rows, day, code)}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
     // regola delle coincidenze sotto la lista, se ce ne sono
     const regola = listaCorse.includes('mt-coinc') ? '<p class="mt-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</p>' : '';
@@ -392,6 +408,8 @@
   };
 
   render();
+  // comitive dall'archivio (o dall'O.d.S. se non raggiungibile): poi si ridisegna
+  window.NaviComitive?.carica().then(r => { state.comitive = r.lista; if (r.lista.length) render(); }).catch(() => {});
   window.NaviSharedData?.loadCacheFirst?.((data, meta) => { state.schedule = data || { residenze: {} }; state.fresco = !meta?.stale; render(); })
     .then(fresh => { if (!fresh && state.schedule) { state.fresco = 'offline'; render(); } })
     .catch(error => { console.warn('Il mio turno: dati non disponibili', error); if (!state.schedule) notice('Non riesco a caricare i turni.'); });

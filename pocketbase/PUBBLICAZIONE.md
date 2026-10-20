@@ -55,3 +55,9 @@ dai telefoni dei colleghi), si può invertire: PocketBase archivio principale, F
 ## Buste paga (Verifica busta)
 Importa `pocketbase/buste_paga.json` (Settings → Import collections, **senza** spuntare l'eliminazione delle altre collezioni).
 Ogni agente vede e modifica solo le proprie buste, gli admin tutte. Si salvano solo i dati letti, mai il PDF.
+
+## Comitive (pagina Comitive e Il mio turno)
+Importa `pocketbase/comitive.json` (Settings → Import collections, **senza** spuntare l'eliminazione delle altre collezioni).
+Una riga per comitiva (`chiave` unica): quelle dell'O.d.S. le copia la pagina Comitive alla prima apertura di un admin o
+dell'Ufficio Movimento, quelle nuove hanno `fonte = manuale`. `turno` = turno nave assegnato (D1, D2, …).
+Tutti gli agenti collegati le leggono (Il mio turno le mostra sulle corse); la pagina che le modifica è solo per admin e Movimento.
