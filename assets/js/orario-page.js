@@ -620,7 +620,7 @@
     const lato = chiuso ? '' : (righe.length ? `${righe.length} passaggi` : '');
     // chiuso: turno, nave, ora e destinazione, corsa della prossima nave (es. T2 San Vigilio 15.05 per Torri · c. 12)
     const prossimaNave = chiuso && next ? `<small class="or-at-next">${chip(next.v.turno)}${naveDi(g, next.v.turno) ? ` <b>${esc(naveDi(g, next.v.turno))}</b>` : ''} ${next.arr ? `<span title="Arrivo">arr. ${esc(next.arr.ora)}</span> › ` : ''}<b>${esc(next.ora)}</b> ${esc(next.dove)}${next.corsa ? ` · c. ${esc(next.corsa)}` : ''}</small>` : '';
-    const scheda = card('Allo scalo', lato, `${selectScalo('or-scalo-lago')}${gpsHint(state.scalo)}` +
+    const scheda = card('Allo scalo', lato, `${EMBED ? selectScalo('or-scalo-lago') : ''}${gpsHint(state.scalo)}` +
       `${toggle}${html ? `<div class="navi-list">${html}</div>` : ''}${vuoto}<p class="legend">${esc(legenda)}</p>` +
       `${naviInLinea(g, navi, t)}${note}` +
       // agenti di servizio in fondo a tutto
@@ -956,6 +956,9 @@
       $('orario-day-input').value = day;
       $('orario-day-today').hidden = false;
       $('orario-day-today').classList.toggle('on', realToday());
+      // scalo accanto a Oggi (solo nella vista Lago)
+      const top = $('orario-scalo-top');
+      if (top) { top.hidden = state.view !== 'lago'; top.innerHTML = SCALI.map(nome => `<option${nome === state.scalo ? ' selected' : ''}>${esc(nome)}</option>`).join(''); }
       document.querySelectorAll('#orario-tabs [data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === state.view));
     }
     const attivi = O.TURNI.filter(code => O.inServizio(code, day));
@@ -1002,6 +1005,7 @@
   if (!EMBED) $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   if (!EMBED) $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
   if (!EMBED) $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  if (!EMBED) $('orario-scalo-top')?.addEventListener('change', event => { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); state.showPast = false; render(); });
   if (!EMBED) $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('orario-tabs')?.addEventListener('click', event => {
     const button = event.target.closest('[data-view]');

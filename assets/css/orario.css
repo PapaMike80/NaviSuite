@@ -226,3 +226,7 @@ html.navisuite-light #orario .terra-day-label,html.navisuite-light #mio-turno .t
 .navi-list .nave.hc{border-left:4px solid #f472b6;background:color-mix(in srgb,#f472b6 10%,transparent)}
 .badges .com-tag{background:#f472b6;color:#06231f;border-radius:999px;padding:1px 7px;font-weight:800}
 .mt-comit{color:#fbcfe8}
+/* Scali: scelta dello scalo accanto a Oggi */
+#orario .terra-day-scalo{flex:0 1 9em;min-width:0;min-height:48px;padding:0 .6em;border:2px solid #2dd4bf;border-radius:14px;background:rgba(45,212,191,.12);color:#f2fffd;font:900 clamp(15px,4.2vw,22px)/1.1 Manrope,Inter,sans-serif}
+#orario .terra-day-scalo[hidden]{display:none}
+html.navisuite-light #orario .terra-day-scalo{background:#e3f7f3;color:#0b2731;border-color:#087b6e}
