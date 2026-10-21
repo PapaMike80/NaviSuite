@@ -387,6 +387,7 @@ h1 em{
 .app-card.updates{--app:74,222,128}
 .app-card.agents{--app:251,113,133}
 .app-card.movimento{--app:56,189,248}
+.app-card.orari-pag{--app:251,191,36}.app-card.cassa{--app:39,169,182}.app-card.quiz{--app:244,114,182}.app-card.comitive{--app:103,215,230}.app-card.collegamenti{--app:245,158,11}
 
 .app-card .app-icon{
   background:rgba(var(--app),.16);
