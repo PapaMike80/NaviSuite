@@ -150,6 +150,8 @@ function showChoice(agent) {
   if (orariPag) orariPag.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
   if (comitive) comitive.hidden = !(isAdminAgent(agent) || String(agent?.qualifica || '').toLowerCase() === 'movimento');
   if (collegamenti) collegamenti.hidden = !isAdminAgent(agent);
+  const quiz = document.querySelector('.app-card.quiz');
+  if (quiz) quiz.hidden = !isAdminAgent(agent);
 }
 
 function applyDirectory(directory) {

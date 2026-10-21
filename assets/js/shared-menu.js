@@ -88,7 +88,7 @@
       ['documenti.html','▤','Documenti'],
       ['cambi_turno.html','⇄','Cambio'],
       ['controllo_cassa.html','$','Cassa'],
-      ['quiz.html','✎','Quiz'],
+      ...(isAdmin?[['quiz.html','✎','Quiz']]:[]),
       ['impostazioni.html','⚙','Impostazioni'],
       ...(isAdmin||String(agent?.qualifica||'').toLowerCase()==='movimento'?[['comitive.html','⛴','Comitive']]:[]),
       ...(isAdmin?[['agenti.html','♙','Agenti'],['aggiornamenti.html','↻','Aggiornamenti'],['movimento.html','⚓','Movimento'],['collegamenti.html','⇆','Collegamenti']]:[])
