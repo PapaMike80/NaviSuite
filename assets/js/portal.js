@@ -145,6 +145,13 @@ function showChoice(agent) {
   if (agentAdmin) agentAdmin.hidden = !isAdminAgent(agent);
   if (movimento) movimento.hidden = !isAdminAgent(agent);
   if (shipManagement) shipManagement.hidden = !isAdminAgent(agent);
+  // come nel menu: Orari a tutti tranne le bariste, Comitive ad admin e Ufficio Movimento, Collegamenti agli admin
+  const orariPag = document.querySelector('.app-card.orari-pag'), comitive = document.querySelector('.app-card.comitive'), collegamenti = document.querySelector('.app-card.collegamenti');
+  if (orariPag) orariPag.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
+  if (comitive) comitive.hidden = !(isAdminAgent(agent) || String(agent?.qualifica || '').toLowerCase() === 'movimento');
+  if (collegamenti) collegamenti.hidden = !isAdminAgent(agent);
+  const quiz = document.querySelector('.app-card.quiz');
+  if (quiz) quiz.hidden = !isAdminAgent(agent);
 }
 
 function applyDirectory(directory) {
