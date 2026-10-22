@@ -147,6 +147,16 @@
     <div id="tab-comitive">
     <div class="bar"><p id="fonte"></p><select class="sett" id="settimana" aria-label="Settimana da stampare"></select><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
     <div class="kpi" id="kpi"></div>
+    <details class="adm" id="cerca-box" style="--c:var(--teal)">
+      <summary><span>🔍 Cerca comitiva</span><b class="cnt" id="cerca-cnt"></b></summary>
+      <form class="form" id="cerca-form" autocomplete="off" onsubmit="return false">
+        <label>Data<input type="date" id="c-data"></label>
+        <label>Agenzia<input type="text" id="c-ag" list="dl-clienti" placeholder="Ag. Michelangelo"></label>
+        <label>Partenza<input type="text" id="c-da" list="dl-scali" placeholder="Riva del Garda"></label>
+        <label>Arrivo<input type="text" id="c-a" list="dl-scali" placeholder="Malcesine"></label>
+        <button class="btn w annulla" type="button" id="c-azzera">Azzera ricerca</button>
+      </form>
+    </details>
     <details class="adm" id="nuova-box" style="--c:var(--cyan)">
       <summary><span id="form-titolo">＋ Nuova comitiva</span><b class="cnt" id="nuove-cnt">0</b></summary>
       <form class="form" id="nuova-form" autocomplete="off">
@@ -246,9 +256,19 @@
     // giorni chiusi all'apertura (resta aperto quello che si apre a mano, anche dopo un aggiornamento)
     state.aperti=new Set();
     document.addEventListener('toggle',e=>{const d=e.target.dataset?.giorno;if(d){if(e.target.open)state.aperti.add(d);else state.aperti.delete(d);}},true);
+    // Cerca comitiva: data, agenzia, partenza (prima tappa), arrivo (ultima tappa); cerca in tutti i giorni, anche passati
+    state.f={data:'',ag:'',da:'',a:''};
+    const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const filtroAttivo=()=>Object.values(state.f).some(Boolean);
+    function corrisponde(c){
+      const t=String(c.percorso||'').split(/[-+]/).map(x=>x.trim()).filter(Boolean),f=state.f;
+      return (!f.data||c.data===f.data)&&(!f.ag||norm(c.cliente).includes(norm(f.ag)))&&(!f.da||norm(t[0]).includes(norm(f.da)))&&(!f.a||norm(t[t.length-1]).includes(norm(f.a)));
+    }
     function render(){
       const lista=tutte(),tuttiGiorni=[...new Set(lista.map(c=>c.data))];
-      const passati=tuttiGiorni.filter(d=>d<oggi),giorni=state.mostraPassati?tuttiGiorni:tuttiGiorni.filter(d=>d>=oggi);
+      const cerca=filtroAttivo(),vista=cerca?lista.filter(corrisponde):lista;
+      const passati=cerca?[]:tuttiGiorni.filter(d=>d<oggi),giorni=cerca?[...new Set(vista.map(c=>c.data))]:state.mostraPassati?tuttiGiorni:tuttiGiorni.filter(d=>d>=oggi);
+      $('cerca-cnt').textContent=cerca?vista.length:'';
       const settimane=[...new Set(tuttiGiorni.map(sabato))],scelta=$('settimana').value;
       const proposta=settimane.find(s=>piuGiorni(s,6)>=oggi)||settimane[settimane.length-1]||'';
       $('settimana').innerHTML=settimane.map(s=>`<option value="${s}">${esc(giornoCorto(s))} – ${esc(giornoCorto(piuGiorni(s,6)))}</option>`).join('');
@@ -257,7 +277,7 @@
       $('fonte').textContent=`${tuttiGiorni.length} giorni${state.pb?'':' · archivio non raggiungibile: le nuove comitive non si possono salvare'}`;
       $('kpi').innerHTML=`<div><small>Comitive</small><b>${lista.length}</b></div><div><small>Passeggeri</small><b>${lista.reduce((t,c)=>t+paxN(c.pax),0)}</b></div><div><small>Corse</small><b>${new Set(lista.flatMap(c=>C.numeri(c.corse).map(n=>c.data+n))).size}</b></div>`;
       $('nuove-cnt').textContent=lista.filter(c=>c.fonte==='manuale').length;
-      $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=lista.filter(c=>c.data===d);return `<details class="sez giorno${d===oggi?' oggi':''}" data-giorno="${d}" style="--c:var(--teal)"${state.aperti.has(d)?' open':''}><summary><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} comitive · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3></summary><div class="tab">${TESTA}${del.map(riga).join('')}</div></details>`}).join(''):'<p class="vuoto">Nessuna comitiva da oggi in poi.</p>';
+      $('giorni').innerHTML=giorni.length?giorni.map(d=>{const del=vista.filter(c=>c.data===d);return `<details class="sez giorno${d===oggi?' oggi':''}" data-giorno="${d}" style="--c:var(--teal)"${cerca||state.aperti.has(d)?' open':''}><summary><h3>${esc(giornoCorto(d))}${d===oggi?' · oggi':''}<small>${del.length} comitive · ${del.reduce((t,c)=>t+paxN(c.pax),0)} pax</small></h3></summary><div class="tab">${TESTA}${del.map(riga).join('')}</div></details>`}).join(''):`<p class="vuoto">${cerca?'Nessuna comitiva trovata.':'Nessuna comitiva da oggi in poi.'}</p>`;
       if(passati.length)$('giorni').insertAdjacentHTML('afterbegin',`<button type="button" class="passati" data-passati>${state.mostraPassati?'▴ Nascondi i giorni passati':`▾ Mostra i giorni passati (${passati.length})`}</button>`);
     }
 
@@ -273,6 +293,8 @@
       window.print();
     }
     $('stampa-btn').addEventListener('click',stampa);
+    [['data','c-data'],['ag','c-ag'],['da','c-da'],['a','c-a']].forEach(([k,id])=>$(id).addEventListener('input',()=>{state.f[k]=$(id).value.trim();render();}));
+    $('c-azzera').addEventListener('click',()=>{state.f={data:'',ag:'',da:'',a:''};['c-data','c-ag','c-da','c-a'].forEach(id=>{$(id).value='';});render();});
 
     document.addEventListener('click',async e=>{
       if(e.target.closest('[data-passati]')){state.mostraPassati=!state.mostraPassati;render();return;}
