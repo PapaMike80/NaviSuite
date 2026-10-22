@@ -606,7 +606,7 @@
     function renderUploadedDocuments(){
       const box=$('uploaded-documents');if(!box)return;
       const rows=[...adminDocuments].sort((a,b)=>String(b.uploadedAt||'').localeCompare(String(a.uploadedAt||'')));
-      box.innerHTML=rows.length?rows.map(doc=>{const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc.id)&&item.attiva!==false);return `<div class="uploaded-document"><div><strong>${esc(doc.titolo||doc.filename)}</strong><small>${esc(doc.tipo==='servizi_terra'?'Servizi a terra':doc.tipo==='bozza'?'Bozza':'Turno')} · ${esc(doc.tipo==='servizi_terra'&&!doc.inizio?'orario invernale':`${doc.inizio||''} → ${doc.fine||''}`)} · ${esc(doc.filename||'')}${imported?` · ${imported.rows?.length||0} agenti applicati`:''}</small></div><button class="danger" data-delete-document="${esc(doc.id)}">Elimina${imported?' dati e PDF':''}</button></div>`}).join(''):'<div class="empty">Nessun turno o bozza caricato da Firebase.</div>';
+      box.innerHTML=rows.length?rows.map(doc=>{const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc.id)&&item.attiva!==false);return `<div class="uploaded-document"><div><strong>${esc(doc.titolo||doc.filename)}</strong><small>${esc(doc.tipo==='servizi_terra'?'Servizi a terra':doc.tipo==='bozza'?'Bozza':doc.tipo==='ods'?'ODS':'Turno')} · ${esc(doc.tipo==='servizi_terra'&&!doc.inizio?'orario invernale':`${doc.inizio||''} → ${doc.fine||''}`)} · ${esc(doc.filename||'')}${imported?` · ${imported.rows?.length||0} agenti applicati`:''}</small></div><button class="danger" data-delete-document="${esc(doc.id)}">Elimina${imported?' dati e PDF':''}</button></div>`}).join(''):'<div class="empty">Nessun turno o bozza caricato da Firebase.</div>';
       box.querySelectorAll('[data-delete-document]').forEach(button=>button.addEventListener('click',async()=>{
         const doc=adminDocuments.find(item=>String(item.id)===String(button.dataset.deleteDocument));
         const imported=(state.scheduleImports||[]).find(item=>String(item.documentId||item.id)===String(doc?.id)&&item.attiva!==false);
@@ -1291,9 +1291,20 @@
       const previous=[...state.scheduleImports];state.scheduleImports=state.scheduleImports.map(item=>item.source==='google_sheet'&&item.attiva!==false?{...item,attiva:false,replacedAt:new Date().toISOString()}:item).concat(pendingSheetImport);
       try{await save();schedule=await window.NaviSharedData.load('',{force:true});$('save-turn-sheet').disabled=true;setStatus('✓ Foglio Google applicato a Firebase. I turni sono stati aggiornati.','ok')}catch(error){state.scheduleImports=previous;setStatus(`Errore applicazione Foglio Google: ${error.message}`,'bad')}
     });
+    // Il PDF dell'ODS salvato finisce in Documenti › Archivio ODS (stesso id della copia GitHub: la sostituisce).
+    async function salvaPdfOds(){
+      const file=$('new-ods-file').files?.[0];
+      if(!file||!/\.pdf$/i.test(file.name))return '';
+      if(file.size>7*1024*1024)return ' PDF non aggiunto a Documenti (supera 7 MB).';
+      const numero=Number.parseInt($('new-ods-number').value.match(/\d+/)?.[0]||'0',10);
+      const oggi=new Date().toISOString().slice(0,10);
+      const metadata={id:numero?`ods-${numero}-${oggi.slice(0,4)}`:`ods-${Date.now()}`,tipo:'ods',numero:numero||null,titolo:numero?`Ordine di servizio n. ${numero}`:file.name.replace(/\.pdf$/i,''),data:oggi,filename:file.name,size:file.size,mimeType:file.type||'application/pdf'};
+      try{await window.NaviAdminFirebase.saveAdminDocument(metadata,await fileAsDataUrl(file));adminDocuments=await window.NaviAdminFirebase.getAdminDocuments();renderUploadedDocuments();return ' PDF aggiunto in Documenti.';}
+      catch(error){return ` PDF non aggiunto a Documenti (${error.message}).`;}
+    }
     $('save-new-ods').addEventListener('click',async()=>{
       const rows=collectPending('ods'),navi=collectOdsNavi();
-      if(!rows.length&&!navi.length&&pendingComitive.length){await salvaComitive();$('save-new-ods').disabled=true;return;}
+      if(!rows.length&&!navi.length&&pendingComitive.length){await salvaComitive();await salvaPdfOds();$('save-new-ods').disabled=true;return;}
       if(!rows.length&&!navi.length)return setStatus('Nessuna riga ODS valida da salvare.','bad');
       const selectedKeys=rows.map(row=>`${row.data}|${row.id_agente}`);if(new Set(selectedKeys).size!==selectedKeys.length)return setStatus('Conflitto ODS: per lo stesso agente e giorno seleziona una sola variazione.','bad');
       if(rows.length)state.odsVariations=merge(state.odsVariations,rows,variationKey);
@@ -1313,7 +1324,8 @@
       // Nuovi ormeggi serali: rigenera i Servizi a terra in Documenti.
       let terra='';
       if(navi.length){try{await saveServiziTerraDocuments(state.turniNavi,serviziTerraMonday());terra=' Servizi a terra aggiornati in Documenti.'}catch(error){terra=` Servizi a terra non aggiornati (${error.message}).`}}
-      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave.${terra} Il Foglio Google si aggiornerà da solo entro 5 minuti.`, 'ok');
+      const pdf=await salvaPdfOds();
+      setStatus(`✓ ODS salvato: ${rows.length} variazioni e ${navi.length} turni nave.${terra}${pdf} Il Foglio Google si aggiornerà da solo entro 5 minuti.`, 'ok');
     });
     $('save-new-bariste').addEventListener('click',async()=>{
       const rows=collectPending('barista');if(!rows.length)return setStatus('Nessun turno barista valido da salvare.','bad');
