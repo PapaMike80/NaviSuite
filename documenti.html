@@ -341,6 +341,22 @@
       }
     }
   </style>
+  <style>
+    /* Tutorial (Documenti): guide animate richiudibili; la GIF si scarica solo aprendo la guida */
+    .tutorial-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:44px;align-items:start}
+    .tutorial{--c:#2dd4bf;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:color-mix(in srgb,var(--c) 9%,#0d202b);color:#edf6f7}
+    .tutorial>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer}
+    .tutorial>summary::-webkit-details-marker{display:none}
+    .tutorial>summary::after{content:'▾';margin-left:auto;color:#9bb4bc}.tutorial[open]>summary::after{content:'▴'}
+    .tutorial>summary strong{display:block;color:var(--c);font:800 16px Manrope,system-ui,sans-serif}
+    .tutorial>summary small{display:block;color:#9bb4bc;font-size:12.5px}
+    .tut-ic{flex:none;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);font-size:20px}
+    .tut-corpo{display:grid;gap:10px;padding:0 16px 16px}
+    .tut-corpo img{display:block;max-width:100%;max-height:62vh;margin:0 auto;border-radius:14px;border:1px solid #234452;background:#071923}
+    .tut-corpo ol{margin:0;padding-left:22px;display:grid;gap:4px;font-size:14px}.tut-corpo ol b{color:var(--c)}
+    .tut-corpo p{margin:0;font-size:12.5px;color:#9bb4bc}
+    @media(max-width:720px){.tutorial-grid{grid-template-columns:1fr}}
+  </style>
 </head>
 
 <body class="turni-page">
@@ -382,6 +398,33 @@
 
   <main>
     <div id="notice" class="archive-notice" hidden></div>
+
+    <section id="tutorial-docs" class="section-heading">
+      <div>
+        <p>COME SI FA</p>
+        <h2>Tutorial</h2>
+      </div>
+      <span class="count">2 guide</span>
+    </section>
+
+    <div id="tutorialGrid" class="tutorial-grid">
+      <details class="tutorial" style="--c:#2dd4bf" data-gif="assets/images/guide/guida-menu.gif">
+        <summary><span class="tut-ic">☰</span><span><strong>Spostare le pagine nel menu</strong><small>Metti in alto le pagine che usi di più</small></span></summary>
+        <div class="tut-corpo">
+          <img alt="Guida animata: Spostare le pagine nel menu">
+          <ol><li><b>Tocca il menu ☰</b> in alto a destra.</li><li><b>Tieni premuto</b> su una pagina per mezzo secondo.</li><li><b>Trascina la pagina</b> dove vuoi, tra le principali o le altre.</li><li><b>Rilascia</b>: il menu si riordina da solo e resta salvato.</li></ol>
+          <p>La scelta vale solo per te; con «Ripristina il menu» torni al menu di base.</p>
+        </div>
+      </details>
+      <details class="tutorial" style="--c:#fb923c" data-gif="assets/images/guide/guida-distinta.gif">
+        <summary><span class="tut-ic">≈</span><span><strong>Modificare una giornata nella Distinta</strong><small>Ritardi, cambi, ticket, diaria…</small></span></summary>
+        <div class="tut-corpo">
+          <img alt="Guida animata: Modificare una giornata nella Distinta">
+          <ol><li><b>Tocca il giorno</b> da modificare nella Distinta mensile.</li><li><b>Tocca la voce</b> da cambiare (es. Ritardo) e <b>scrivi il nuovo valore</b>.</li><li><b>Tocca una bolla</b> per cambiarne il contenuto (Ticket, Diaria, Pernotto…).</li><li><b>Chiudi con la ✕</b>: la giornata è salvata e il foglio si aggiorna.</li></ol>
+          <p>Per una giornata passata NaviSuite chiede conferma prima di salvare.</p>
+        </div>
+      </details>
+    </div>
 
     <section id="turni-docs" class="section-heading">
       <div>
@@ -430,7 +473,7 @@
   </section>
 
   <script src="assets/js/shared-roles.js?v=15"></script>
-  <script src="assets/js/shared-menu.js?v=1.94"></script>
+  <script src="assets/js/shared-menu.js?v=1.95"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/admin-firebase-rest.js?v=92"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
@@ -440,5 +483,9 @@
   <!-- Navigazione Mobile Liquid Glass -->
 
   <script src="assets/js/announcements-recovered.js?v=11"></script>
+  <script>
+    // Tutorial: la GIF si scarica solo quando si apre la guida (e riparte dall'inizio)
+    document.querySelectorAll('details.tutorial[data-gif]').forEach(d=>d.addEventListener('toggle',()=>{const img=d.querySelector('img');if(d.open)img.src=d.dataset.gif;else img.removeAttribute('src');}));
+  </script>
 </body>
 </html>

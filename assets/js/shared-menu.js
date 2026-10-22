@@ -91,7 +91,6 @@
       ...(isAdmin?[['quiz.html','✎','Quiz']]:[]),
       ['backup-dati.html','⤓','Backup'],
       ['impostazioni.html','⚙','Impostazioni'],
-      ['istruzioni.html','❓','Istruzioni'],
       ...(roles.puoAprire?.('comitive.html',agent)?[['comitive.html','⛴','Comitive']]:[]),
       ...(roles.puoAprire?.('verifica-busta.html',agent)?[['verifica-busta.html','✔','Verifica busta']]:[]),
       ...(roles.puoAprire?.('agenti.html',agent)?[['agenti.html','♙','Agenti']]:[]),
@@ -102,7 +101,7 @@
     const escapeText=value=>String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
     // Riquadri come nella Home: le 5 pagine principali grandi (Distinta per prima, larga), le altre piccole.
     const PRINCIPALI={'navidiaria.html':['Ore, ritardi e competenze','#fb923c',0],'mio-turno.html':['Nave, corse e colleghi','#2dd4bf',1],'naviturni.html':['Turni di tutti gli agenti','#2dd4bf',2],'oggi.html':['Navi ed equipaggi del giorno','#facc15',3],'orario.html':['Navi allo scalo, pontili, ritardi','#38bdf8',4]};
-    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','collegamenti.html':'#f59e0b','verifica-busta.html':'#4ade80','backup-dati.html':'#67d7e6','orari.html':'#fbbf24','comitive.html':'#67d7e6','istruzioni.html':'#a78bfa','controllo_cassa.html':'#27a9b6'};
+    const COLORI={'index.html':'#94a3b8','cambi_turno.html':'#a78bfa','documenti.html':'#f59e0b','impostazioni.html':'#94a3b8','quiz.html':'#f472b6','agenti.html':'#fb7185','aggiornamenti.html':'#4ade80','movimento.html':'#38bdf8','collegamenti.html':'#f59e0b','verifica-busta.html':'#4ade80','backup-dati.html':'#67d7e6','orari.html':'#fbbf24','comitive.html':'#67d7e6','controllo_cassa.html':'#27a9b6'};
     const linkHtml=([href,icon,label])=>{
       if(href==='condividi.html')return condividi;
       const key=href.split('?')[0].toLowerCase(),active=key===file,main=sezioneDi(key)==='principali'?PRINCIPALI[key]:undefined;
@@ -444,7 +443,7 @@
     specific=`<span class="sidebar-menu-label">AMMINISTRAZIONE</span>${item('aggiornamenti.html','↻','Aggiornamenti turni',page==='aggiornamenti','aggiornamentiNav')}${item('agenti.html','♙','Gestione agenti',isAgenti,'agentiNav')}${item('movimento.html','⚓','Movimento',isMovimento,'movimentoNav')}`;
     user=`<div class="sidebar-user-actions"><strong id="settingsSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="settingsLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="settingsChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }else{
-    specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#terra-docs','⛴','Servizi a terra')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
+    specific=`<span class="sidebar-menu-label">DOCUMENTI</span>${item('#tutorial-docs','❓','Tutorial')}${item('#turni-docs','▦','Turni e bozze')}${item('#ods-docs','≡','ODS 2026')}${item('#terra-docs','⛴','Servizi a terra')}${item('#adminUploadPanel','＋','Carica documenti',false,'archiveAdminNav')}`;
     user=`<div class="sidebar-user-actions"><button class="sidebar-footer-update" type="button" onclick="typeof loadDocuments==='function'?loadDocuments():location.reload()"><span>↻</span>Aggiorna</button><small id="archiveMenuStatus" class="sidebar-data-status">Locale</small><strong id="archiveSidebarAgent" class="sidebar-agent-name">AGENTE</strong><button id="archiveLogout" class="sidebar-action sidebar-exit" type="button">Esci</button><button id="archiveChangePin" class="sidebar-action" type="button">Cambia PIN</button></div>`;
   }
 
