@@ -62,7 +62,7 @@
     .mt-g .t{min-width:40px;padding:1px 7px;border-radius:999px;background:var(--c,#334155);color:#06231f;font:900 11px Manrope,system-ui,sans-serif;text-align:center}
     .mt-g .t.rip{background:transparent;border:1px solid #1f4250;color:#9fb8c2;font-weight:700}
     /* intestazione ad altezza fissa: righe di altezza fissa, mai a capo, cosi' la striscia dei giorni non si sposta */
-    .mio-turno-page #turno-title{flex-wrap:nowrap;height:38px;white-space:nowrap;overflow:hidden}
+    .mio-turno-page #turno-title{flex-wrap:nowrap;height:38px;white-space:nowrap;overflow:hidden;cursor:pointer}
     #turno-context{height:20px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     #turno-servizio{display:block!important;height:24px;line-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     #turno-servizio.vuoto{color:#9fb8c2;font-size:.9rem}
@@ -84,7 +84,7 @@
 
   <header class="page-header">
     <p class="terra-label">IL MIO TURNO</p>
-    <h1 class="terra-title" id="turno-title">Il mio turno</h1>
+    <h1 class="terra-title" id="turno-title" role="link" tabindex="0" title="Apri la giornata nella Distinta">Il mio turno</h1>
     <p class="terra-context" id="turno-context">Caricamento…</p>
     <p class="mt-servizio" id="turno-servizio" hidden></p>
   </header>
@@ -129,7 +129,7 @@
   <script src="assets/js/admin-firebase-rest.js?v=92"></script>
   <script src="assets/js/shared-data.js?v=137"></script>
   <script src="assets/js/firebase-auth.js?v=2"></script>
-  <script src="assets/js/shared-menu.js?v=1.95"></script>
+  <script src="assets/js/shared-menu.js?v=1.96"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/course-info.js?v=1"></script>
   <script src="assets/js/turni-giorno.js?v=10"></script>
@@ -146,7 +146,7 @@
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
   <script src="assets/js/comitive.js?v=8"></script>
-  <script src="assets/js/mio-turno.js?v=59"></script>
+  <script src="assets/js/mio-turno.js?v=60"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>

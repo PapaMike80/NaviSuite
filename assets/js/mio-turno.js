@@ -539,6 +539,10 @@
     if (!tocco) return; const t = e.changedTouches[0], dx = t.clientX - tocco.x, dy = t.clientY - tocco.y; tocco = null;
     if (Math.abs(dx) > 70 && Math.abs(dy) < 45) goToDay(addDays(today(), dx < 0 ? 1 : -1));
   }, { passive: true });
+  // tocco sul turno (titolo): apre la giornata mostrata nella Distinta, con il popup di modifica
+  const apriDistinta = () => { location.href = `navidiaria.html?editDate=${encodeURIComponent(today())}`; };
+  $('turno-title').addEventListener('click', apriDistinta);
+  $('turno-title').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apriDistinta(); } });
   $('turno-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   $('turno-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
   $('turno-day-today').addEventListener('click', () => goToDay(iso(new Date())));
