@@ -654,7 +654,8 @@
     const { t, svg, side } = lagoParti();
     if (state.embed?.modo === 'nave') {
       // Il mio turno, corsa di linea: solo la mappa con la mia nave, la sua rotta e il tratto fatto
-      $('orario-content').innerHTML = card('Lago', 'la mia corsa all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`, 'or-mia');
+      // in Il mio turno: solo il cursore del tempo e la mappa, senza intestazione «Lago»
+      $('orario-content').innerHTML = `<section class="terra-card or-mia"><div class="terra-card-body"><div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div></div></section>`;
       return;
     }
     $('orario-content').innerHTML = `<div class="terra-grid or-lago"><div class="terra-col">` +

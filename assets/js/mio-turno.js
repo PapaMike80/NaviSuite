@@ -76,7 +76,8 @@
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
       `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
       `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>` + modHtml;
-    return card('Il mio turno', '', head + crewHtml);
+    // con l'equipaggio la riga del turno non serve (e' gia' nell'intestazione); senza (riposo) resta la pastiglia
+    return crewHtml ? card('Equipaggio', '', modHtml + crewHtml) : card('Il mio turno', '', head);
   }
 
   function prossimoServizio(day) {
@@ -364,8 +365,10 @@
         let t = ''; try { t = state.schedule ? String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim() : ''; } catch (_) { t = ''; }
         t = lavoroDi(t) || t;
         const rip = RIPOSO.test(t), c = G.coloreTurno(t);
-        return `<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
-          `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'riposo' : '—') : esc(t)}</span></button>`;
+        // settimane separate: prima di ogni lunedi' uno spazio con il numero della settimana; domenica in rosso
+        const wd = parseIso(d).getDay(), sett = wd === 1 ? `<span class="mt-sett" aria-hidden="true"><em>sett. ${settimanaIso(d)}</em></span>` : '';
+        return `${sett}<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}${wd === 0 ? ' dom' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
+          `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'rip' : '—') : esc(t)}</span></button>`;
       }).join('');
     }
     box.querySelectorAll('.mt-g').forEach(g => g.classList.toggle('on', g.dataset.giorno === day));
@@ -378,6 +381,12 @@
     }
     scalaGiorni();
   }
+  // numero della settimana (ISO, da lunedi')
+  function settimanaIso(d) {
+    const x = parseIso(d); x.setDate(x.getDate() + 3 - (x.getDay() + 6) % 7);
+    const g4 = new Date(x.getFullYear(), 0, 4);
+    return 1 + Math.round(((x - g4) / 864e5 - 3 + (g4.getDay() + 6) % 7) / 7);
+  }
   // le tessere crescono e si accendono man mano che passano al centro della striscia
   let scalaRaf = 0;
   function scalaGiorni() {
@@ -386,9 +395,9 @@
       const box = $('turno-giorni'); if (!box) return;
       const centro = box.scrollLeft + box.clientWidth / 2;
       box.querySelectorAll('.mt-g').forEach(g => {
-        const k = Math.min(Math.abs(g.offsetLeft + g.offsetWidth / 2 - centro) / (g.offsetWidth + 8), 3);
-        g.style.setProperty('--s', (1 - Math.min(k, 1) * .12).toFixed(3));
-        g.style.setProperty('--o', Math.max(g.classList.contains('oggi') ? .85 : .3, 1 - k * .38).toFixed(2));
+        const k = Math.min(Math.abs(g.offsetLeft + g.offsetWidth / 2 - centro) / (g.offsetWidth + 4), 3);
+        g.style.setProperty('--s', (1 - Math.min(k, 1) * .08).toFixed(3));
+        g.style.setProperty('--o', Math.max(g.classList.contains('oggi') ? .9 : .5, 1 - k * .17).toFixed(2));
       });
     });
   }
@@ -399,7 +408,6 @@
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
     $('turno-day-input').value = day;
     // Distinta: apre la giornata mostrata (come da Turni)
-    if ($('turno-distinta')) $('turno-distinta').href = `navidiaria.html?editDate=${encodeURIComponent(day)}`;
     $('turno-day-today').hidden = false;
     $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
@@ -478,7 +486,7 @@
   const goToDay = day => {
     const prima = today();
     if (day === prima) return;
-    const verso = day > prima ? 'sx' : 'dx', els = ['turno-content', 'turno-after'].map($).filter(Boolean);
+    const verso = day > prima ? 'sx' : 'dx', els = ['turno-content', 'turno-scali', 'turno-after'].map($).filter(el => el && !el.hidden);
     clearTimeout(cambioTimer);
     els.forEach(el => { el.classList.remove('mt-entra-sx', 'mt-entra-dx', 'mt-esce-sx', 'mt-esce-dx'); void el.offsetWidth; el.classList.add(`mt-esce-${verso}`); });
     const strip = $('turno-giorni');
@@ -508,16 +516,15 @@
     }, 140);
   }, { passive: true });
   $('turno-giorni')?.addEventListener('scrollend', () => { setTimeout(() => { giorniBloccati = false; }, 60); });
-  // scorrimento del turno col dito: a sinistra il giorno dopo, a destra il giorno prima
+  // scorrimento col dito in qualunque punto della pagina: a sinistra il giorno dopo, a destra il giorno prima
+  // (non sulla striscia dei giorni, che scorre da sola, ne' sui comandi come il cursore del tempo della mappa)
   let tocco = null;
-  ['turno-content', 'turno-after'].forEach(id => {
-    const el = $(id); if (!el) return;
-    el.addEventListener('touchstart', e => { const t = e.touches[0]; tocco = { x: t.clientX, y: t.clientY }; }, { passive: true });
-    el.addEventListener('touchend', e => {
-      if (!tocco) return; const t = e.changedTouches[0], dx = t.clientX - tocco.x, dy = t.clientY - tocco.y; tocco = null;
-      if (Math.abs(dx) > 70 && Math.abs(dy) < 45 && !e.target.closest('input,select,.graf-wrap')) goToDay(addDays(today(), dx < 0 ? 1 : -1));
-    }, { passive: true });
-  });
+  const pagina = $('mio-turno') || document.body;
+  pagina.addEventListener('touchstart', e => { const t = e.touches[0]; tocco = e.touches.length === 1 && !e.target.closest('#turno-giorni,input,select,textarea,.graf-wrap,.or-time') ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
+  pagina.addEventListener('touchend', e => {
+    if (!tocco) return; const t = e.changedTouches[0], dx = t.clientX - tocco.x, dy = t.clientY - tocco.y; tocco = null;
+    if (Math.abs(dx) > 70 && Math.abs(dy) < 45) goToDay(addDays(today(), dx < 0 ? 1 : -1));
+  }, { passive: true });
   $('turno-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   $('turno-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
   $('turno-day-today').addEventListener('click', () => goToDay(iso(new Date())));

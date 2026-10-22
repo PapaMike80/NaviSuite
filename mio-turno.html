@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=17">
-  <link rel="stylesheet" href="assets/css/orario.css?v=43">
+  <link rel="stylesheet" href="assets/css/orario.css?v=44">
   <link rel="stylesheet" href="assets/css/mio-turno.css?v=17">
   <style>
     /* coincidenze sotto lo scalo (Il mio turno) */
@@ -41,6 +41,20 @@
     /* oggi: tessera piu' alta con la scritta OGGI, sempre in evidenza; scorrendo ci si ferma sempre su oggi */
     .mt-g.oggi{scroll-snap-stop:always;padding-top:5px;padding-bottom:10px;border:2px dashed rgba(45,212,191,.7)}
     .mt-g.oggi.on{border-style:solid}
+    /* settimane separate: domenica in rosso, prima del lunedi' spazio con il numero della settimana */
+    .mt-g.dom:not(.on){border-color:rgba(251,113,133,.55);background:color-mix(in srgb,#fb7185 12%,#102733)}
+    .mt-g.dom small,.mt-g.dom b{color:#fb7185}
+    .mt-giorni{padding-top:20px}
+    /* tessere strette: una settimana intera (e qualche giorno in piu') in una schermata */
+    .mt-giorni{gap:4px;padding-left:calc(50% - 23px);padding-right:calc(50% - 23px)}
+    .mt-g{flex:0 0 46px;gap:1px;padding:5px 0;border-radius:11px;position:relative}
+    .mt-g small{font-size:9px;letter-spacing:.06em}
+    .mt-g b{font-size:16px}
+    .mt-g .t{min-width:0;max-width:42px;padding:0 5px;font-size:9px;overflow:hidden;text-overflow:clip;white-space:nowrap}
+    .mt-g.oggi{padding-top:5px;padding-bottom:5px}
+    .mt-oggi{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:8px;padding:0 5px}
+    .mt-sett{flex:0 0 2px;align-self:stretch;position:relative;margin:-14px 3px 0;background:rgba(45,212,191,.35)}
+    .mt-sett em{position:absolute;top:0;left:5px;font:800 9px Manrope,system-ui,sans-serif;font-style:normal;letter-spacing:.08em;color:#2dd4bf;white-space:nowrap}
     .mt-oggi{font:900 10px Manrope,system-ui,sans-serif;font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#06231f;background:#2dd4bf;border-radius:999px;padding:1px 8px}
     .mt-g b{font:500 19px 'DM Mono',ui-monospace,monospace}
     .mt-g .t{min-width:40px;padding:1px 7px;border-radius:999px;background:var(--c,#334155);color:#06231f;font:900 11px Manrope,system-ui,sans-serif;text-align:center}
@@ -56,8 +70,8 @@
     @keyframes mt-esce-dx{to{opacity:0;transform:translateX(56px) scale(.98)}}
     @keyframes mt-entra-sx{from{opacity:0;transform:translateX(64px)}to{opacity:1;transform:none}}
     @keyframes mt-entra-dx{from{opacity:0;transform:translateX(-64px)}to{opacity:1;transform:none}}
-    #turno-content.mt-esce-sx,#turno-after.mt-esce-sx{animation:mt-esce-sx .15s ease-in forwards}
-    #turno-content.mt-esce-dx,#turno-after.mt-esce-dx{animation:mt-esce-dx .15s ease-in forwards}
+    #turno-content.mt-esce-sx,#turno-scali.mt-esce-sx,#turno-after.mt-esce-sx{animation:mt-esce-sx .15s ease-in forwards}
+    #turno-content.mt-esce-dx,#turno-scali.mt-esce-dx,#turno-after.mt-esce-dx{animation:mt-esce-dx .15s ease-in forwards}
     .mt-entra-sx>*{animation:mt-entra-sx .38s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*45ms)}
     .mt-entra-dx>*{animation:mt-entra-dx .38s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*45ms)}
     @media (prefers-reduced-motion:reduce){.mt-esce-sx,.mt-esce-dx,.mt-entra-sx>*,.mt-entra-dx>*{animation:none!important}}
@@ -68,7 +82,6 @@
 
   <header class="page-header">
     <p class="terra-label">IL MIO TURNO</p>
-    <a class="mt-distinta" id="turno-distinta" href="navidiaria.html" aria-label="Apri la giornata nella Distinta">≈ Distinta</a>
     <h1 class="terra-title" id="turno-title">Il mio turno</h1>
     <p class="terra-context" id="turno-context">Caricamento…</p>
     <p class="mt-servizio" id="turno-servizio" hidden></p>
@@ -126,12 +139,12 @@
   <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/orario-lago.js?v=2"></script>
   <script>window.NaviOrarioEmbed = true;</script>
-  <script src="assets/js/orario-page.js?v=82"></script>
+  <script src="assets/js/orario-page.js?v=83"></script>
   <script src="assets/js/shift-competence.js?v=4"></script>
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
   <script src="assets/js/comitive.js?v=8"></script>
-  <script src="assets/js/mio-turno.js?v=52"></script>
+  <script src="assets/js/mio-turno.js?v=57"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>
