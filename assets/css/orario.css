@@ -279,3 +279,6 @@ html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;co
 .or-com-r .o{display:grid;justify-items:start}
 .or-com-r .dx{display:grid;justify-items:end;gap:4px}
 .or-com-nave li{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+/* riquadri comitive: la bolla dei passeggeri prende il colore di SALGONO (verde) o SCENDONO (rosso) */
+.or-com-r:has(.ss.su) .cm-px{--p:#4ade80!important}
+.or-com-r:has(.ss.giu) .cm-px{--p:#fda4af!important}
