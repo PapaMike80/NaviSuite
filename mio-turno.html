@@ -28,6 +28,28 @@
     .mt-coinc>span.cp{color:#9fb8c2;font-weight:500}
     .mt-co-tu{display:inline-block;font:900 9px Manrope,system-ui,sans-serif;padding:0 5px;margin-right:3px;border-radius:999px;color:#06231f;vertical-align:1px}
   </style>
+  <style>
+    /* niente barra della data: si cambia giorno solo dalla striscia dei giorni */
+    #mio-turno .terra-bar .terra-day{display:none!important}
+    /* striscia dei giorni (Il mio turno): il giorno scelto al centro, gli altri in trasparenza */
+    .mt-giorni{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px calc(50% - 40px) 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .mt-giorni::-webkit-scrollbar{display:none}
+    .mt-g{flex:0 0 80px;scroll-snap-align:center;display:grid;justify-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:1px solid #1f4250;background:#102733;color:#eaf2f4;opacity:var(--o,.35);transform:scale(var(--s,.88));transition:opacity .25s,transform .25s;cursor:pointer;font:inherit}
+    .mt-g.on{border:2px solid #2dd4bf;background:color-mix(in srgb,#2dd4bf 14%,#102733);box-shadow:0 0 14px rgba(45,212,191,.35)}
+    .mt-g small{font:800 10px Manrope,system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#9fb8c2}
+    .mt-giorni{align-items:center}
+    /* oggi: tessera piu' alta con la scritta OGGI, sempre in evidenza; scorrendo ci si ferma sempre su oggi */
+    .mt-g.oggi{scroll-snap-stop:always;padding-top:5px;padding-bottom:10px;border:2px dashed rgba(45,212,191,.7)}
+    .mt-g.oggi.on{border-style:solid}
+    .mt-oggi{font:900 10px Manrope,system-ui,sans-serif;font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:#06231f;background:#2dd4bf;border-radius:999px;padding:1px 8px}
+    .mt-g b{font:500 19px 'DM Mono',ui-monospace,monospace}
+    .mt-g .t{min-width:40px;padding:1px 7px;border-radius:999px;background:var(--c,#334155);color:#06231f;font:900 11px Manrope,system-ui,sans-serif;text-align:center}
+    .mt-g .t.rip{background:transparent;border:1px solid #1f4250;color:#9fb8c2;font-weight:700}
+    @keyframes mt-da-destra{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+    @keyframes mt-da-sinistra{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+    #turno-content.da-destra,#turno-after.da-destra{animation:mt-da-destra .25s ease-out}
+    #turno-content.da-sinistra,#turno-after.da-sinistra{animation:mt-da-sinistra .25s ease-out}
+  </style>
 </head>
 <body class="servizi-terra-page mio-turno-page">
   <aside class="app-sidebar" id="mio-turno-sidebar"></aside>
@@ -54,6 +76,8 @@
         <select id="turno-test" aria-label="Prova con un altro turno"></select>
       </label>
     </div>
+    <!-- giorni attorno a oggi: si scorrono a destra e sinistra insieme al turno -->
+    <div class="mt-giorni" id="turno-giorni" aria-label="Giorni"></div>
     <div class="mt-mod-bar" id="turno-modified-bar" hidden>
       <span class="mt-badge-mod" id="turno-modified-badge">Modificato da: <strong id="turno-modified-by"></strong></span>
       <button type="button" class="mt-restore-btn" id="turno-restore-btn" disabled>Ripristina turno originale</button>
@@ -95,7 +119,7 @@
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
   <script src="assets/js/comitive.js?v=8"></script>
-  <script src="assets/js/mio-turno.js?v=43"></script>
+  <script src="assets/js/mio-turno.js?v=46"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>
