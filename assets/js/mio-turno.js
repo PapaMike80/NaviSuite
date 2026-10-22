@@ -79,11 +79,24 @@
     return card('Il mio turno', '', head + crewHtml);
   }
 
+  function prossimoServizio(day) {
+    try {
+      const me = profile();
+      for (let k = 1; k <= 21 && state.schedule; k++) {
+        const d = addDays(day, k);
+        let x = String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim(); x = lavoroDi(x) || x;
+        if (x && !RIPOSO.test(x)) return `Prossimo servizio: ${GIORNI[parseIso(d).getDay()].slice(0, 3).toLowerCase()} ${parseIso(d).getDate()} · ${x}`;
+      }
+    } catch (_) { /* dati non pronti */ }
+    return 'Nessun servizio in questo giorno';
+  }
   // Intestazione: ore del servizio e, oggi, quanto manca all'inizio o alla fine della giornata.
   function servizioHeader(inizio, fine, day, code = '') {
     const el = $('turno-servizio');
     if (!el) return;
-    if (!inizio || !fine) { el.hidden = true; el.textContent = ''; return; }
+    el.hidden = false; el.classList.remove('vuoto');
+    // senza orari la riga resta (altezza fissa) e mostra il prossimo giorno di servizio
+    if (!inizio || !fine) { el.classList.add('vuoto'); el.textContent = prossimoServizio(day); return; }
     const durata = m => `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}'` : ''}`;
     let resto = '';
     if (day === iso(new Date())) {
@@ -136,15 +149,19 @@
     });
     return out;
   }
+  // da dove arrivano (sopra «scendono») e dove vanno (sotto «salgono»): scali diversi separati da virgola
+  const luoghi = (nomi, pre) => { const u = [...new Set(nomi.filter(Boolean))]; return u.length ? `<small class="com-luogo">${pre} ${esc(u.join(', '))}</small>` : ''; };
   const paxDi = list => list.reduce((n, c) => n + (parseInt(c.pax, 10) || 0), 0);
 
   // Riquadro rosa «Comitive sulle tue corse»: sempre in vista, sparisce quando sono tutte salite e scese
   function riquadroComitive(rows, com, day, code) {
     const oggi = iso(new Date()), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
     const passata = r => day < oggi || (day === oggi && minutes(r.orario) < nowMin);
+    // una comitiva sparisce 30 minuti dopo il passaggio allo scalo (gli orari delle corse includono gia' il ritardo)
+    const transitata = r => day < oggi || (day === oggi && minutes(r.orario) + 30 < nowMin);
     const voci = [];
-    rows.forEach((r, i) => { com[i].scendono.forEach(c => voci.push({ c, r, i, su: false })); com[i].salgono.forEach(c => voci.push({ c, r, i, su: true })); });
-    if (!voci.length || voci.every(v => passata(v.r))) return '';
+    rows.forEach((r, i) => { if (transitata(r)) return; com[i].scendono.forEach(c => voci.push({ c, r, i, su: false })); com[i].salgono.forEach(c => voci.push({ c, r, i, su: true })); });
+    if (!voci.length) return '';
     const pax = paxDi([...new Map(voci.map(v => [v.c.chiave, v.c])).values()]), clienti = new Set(voci.map(v => v.c.chiave)).size;
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></div>`).join('') + '</details>';
@@ -221,7 +238,7 @@
         return `${sep}<div class="${cls}"${paxSu || paxGiu ? ` data-com-go="${i}"` : ''}><span class="ora">${esc(row.orario)}${row.rit ? `<small class="rit" title="Ritardo">${esc(testoRitardo(row.rit))}</small>` : ''}</span>` +
           `<span class="tipo ${row.kind}">${KIND[row.kind]}<small>corsa ${esc(row.run)}</small></span>${chip(row.per || code)}` +
           `<span class="dove"><span class="ship-line"><span class="ship-name">${esc(row.nome)}</span></span>` +
-          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${paxSu || paxGiu ? `<span class="com-bolle" data-com-go="${i}" role="button" tabindex="0" title="Vedi la comitiva">${paxSu ? `<b class="com-tag">👥 ${paxSu} salgono</b>` : ''}${paxGiu ? `<b class="com-tag giu">👥 ${paxGiu} scendono</b>` : ''}</span>` : ''}${coincidenzeRiga(row, day)}</span></div>`;
+          `${badges.length ? `<span class="badges">${badges.join('')}</span>` : ''}${paxSu || paxGiu ? `<span class="com-bolle" data-com-go="${i}" role="button" tabindex="0" title="Vedi la comitiva">${paxGiu ? `<span class="com-g">${luoghi(com[i].scendono.map(c => c.sale), 'da')}<b class="com-tag giu">👥 ${paxGiu} scendono</b></span>` : ''}${paxSu ? `<span class="com-g"><b class="com-tag">👥 ${paxSu} salgono</b>${luoghi(com[i].salgono.map(c => c.scende), 'per')}</span>` : ''}</span>` : ''}${coincidenzeRiga(row, day)}</span></div>`;
       }).join('')}</div>` : '<p class="legend">Orario delle corse non disponibile per questo turno.</p>';
     // regola delle coincidenze sotto la lista, se ce ne sono
     const regola = listaCorse.includes('mt-coinc') ? '<p class="mt-regola">↪ Coincidenze solo tra Alto e Basso lago (O.d.S., punti 4–5): dentro l’Alto o il Basso lago si fa un biglietto per ogni nave.</p>' : '';
@@ -339,17 +356,41 @@
     const oggi = iso(new Date());
     const giorni = Array.from({ length: 29 }, (_, k) => addDays(oggi, k - 14));
     if (!giorni.includes(day)) giorni.push(day), giorni.sort();
-    box.innerHTML = giorni.map(d => {
-      let t = ''; try { t = state.schedule ? String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim() : ''; } catch (_) { t = ''; }
-      t = lavoroDi(t) || t;
-      const dist = Math.abs((parseIso(d) - parseIso(day)) / 864e5), rip = RIPOSO.test(t);
-      const stile = `--o:${dist === 0 ? 1 : d === oggi ? .85 : dist === 1 ? .62 : dist === 2 ? .45 : .3};--s:${dist === 0 ? 1 : dist === 1 ? .94 : .88}`;
-      const c = G.coloreTurno(t);
-      return `<button type="button" class="mt-g${d === day ? ' on' : ''}${d === oggi ? ' oggi' : ''}" data-giorno="${d}" style="${stile}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
-        `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'riposo' : '—') : esc(t)}</span></button>`;
-    }).join('');
+    // la striscia si ricostruisce solo quando cambiano i giorni o i turni: cambiando giorno le tessere restano e scorrono
+    const chiave = `${oggi}|${me?.id || ''}|${state.schedule ? 1 : 0}|${giorni[0]}|${giorni[giorni.length - 1]}|${giorni.length}`;
+    if (box.dataset.chiave !== chiave) {
+      box.dataset.chiave = chiave;
+      box.innerHTML = giorni.map(d => {
+        let t = ''; try { t = state.schedule ? String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim() : ''; } catch (_) { t = ''; }
+        t = lavoroDi(t) || t;
+        const rip = RIPOSO.test(t), c = G.coloreTurno(t);
+        return `<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
+          `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'riposo' : '—') : esc(t)}</span></button>`;
+      }).join('');
+    }
+    box.querySelectorAll('.mt-g').forEach(g => g.classList.toggle('on', g.dataset.giorno === day));
     const sel = box.querySelector('.mt-g.on');
-    if (sel) { giorniBloccati = true; box.scrollTo({ left: sel.offsetLeft - (box.clientWidth - sel.offsetWidth) / 2, behavior: box.dataset.pronto ? 'smooth' : 'auto' }); box.dataset.pronto = '1'; clearTimeout(giorniTimer); giorniTimer = setTimeout(() => { giorniBloccati = false; }, 500); }
+    if (sel) {
+      giorniBloccati = true;
+      box.scrollTo({ left: sel.offsetLeft - (box.clientWidth - sel.offsetWidth) / 2, behavior: box.dataset.pronto ? 'smooth' : 'auto' });
+      box.dataset.pronto = '1';
+      clearTimeout(giorniTimer); giorniTimer = setTimeout(() => { giorniBloccati = false; }, 900);
+    }
+    scalaGiorni();
+  }
+  // le tessere crescono e si accendono man mano che passano al centro della striscia
+  let scalaRaf = 0;
+  function scalaGiorni() {
+    cancelAnimationFrame(scalaRaf);
+    scalaRaf = requestAnimationFrame(() => {
+      const box = $('turno-giorni'); if (!box) return;
+      const centro = box.scrollLeft + box.clientWidth / 2;
+      box.querySelectorAll('.mt-g').forEach(g => {
+        const k = Math.min(Math.abs(g.offsetLeft + g.offsetWidth / 2 - centro) / (g.offsetWidth + 8), 3);
+        g.style.setProperty('--s', (1 - Math.min(k, 1) * .12).toFixed(3));
+        g.style.setProperty('--o', Math.max(g.classList.contains('oggi') ? .85 : .3, 1 - k * .38).toFixed(2));
+      });
+    });
   }
   function render() {
     const day = today(), shown = parseIso(day), realToday = day === iso(new Date());
@@ -432,16 +473,31 @@
     $('turno-notice').textContent = text || '';
   }
 
-  // cambio giorno con l'effetto di scorrimento del turno (da destra se avanti, da sinistra se indietro)
+  // cambio giorno: il turno esce dal lato opposto e quello nuovo entra scorrendo, con le righe una dopo l'altra
+  let cambioTimer = 0;
   const goToDay = day => {
     const prima = today();
-    state.day = day === iso(new Date()) ? '' : day; state.showPast = false; render();
     if (day === prima) return;
-    ['turno-content', 'turno-after'].forEach(id => { const el = $(id); if (!el) return; el.classList.remove('da-destra', 'da-sinistra'); void el.offsetWidth; el.classList.add(day > prima ? 'da-destra' : 'da-sinistra'); });
+    const verso = day > prima ? 'sx' : 'dx', els = ['turno-content', 'turno-after'].map($).filter(Boolean);
+    clearTimeout(cambioTimer);
+    els.forEach(el => { el.classList.remove('mt-entra-sx', 'mt-entra-dx', 'mt-esce-sx', 'mt-esce-dx'); void el.offsetWidth; el.classList.add(`mt-esce-${verso}`); });
+    const strip = $('turno-giorni');
+    // la striscia parte subito, il turno cambia a meta' animazione
+    if (strip) { strip.querySelectorAll('.mt-g').forEach(g => g.classList.toggle('on', g.dataset.giorno === day)); const sel = strip.querySelector('.mt-g.on'); if (sel) { giorniBloccati = true; strip.scrollTo({ left: sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2, behavior: 'smooth' }); } }
+    cambioTimer = setTimeout(() => {
+      state.day = day === iso(new Date()) ? '' : day; state.showPast = false; render();
+      els.forEach(el => {
+        el.classList.remove('mt-esce-sx', 'mt-esce-dx'); void el.offsetWidth; el.classList.add(`mt-entra-${verso}`);
+        [...el.children].slice(0, 10).forEach((c, i) => c.style.setProperty('--i', i));
+      });
+      // finita l'entrata si toglie la classe, cosi' gli aggiornamenti successivi non rifanno l'animazione
+      cambioTimer = setTimeout(() => els.forEach(el => el.classList.remove('mt-entra-sx', 'mt-entra-dx')), 900);
+    }, 150);
   };
   // striscia dei giorni: tocco su un giorno, oppure scorrimento (si sceglie il giorno al centro)
   $('turno-giorni')?.addEventListener('click', event => { const g = event.target.closest('[data-giorno]'); if (g) goToDay(g.dataset.giorno); });
   $('turno-giorni')?.addEventListener('scroll', () => {
+    scalaGiorni();
     if (giorniBloccati) return;
     clearTimeout(giorniTimer);
     giorniTimer = setTimeout(() => {
@@ -451,6 +507,7 @@
       if (scelto && scelto.dataset.giorno !== today()) goToDay(scelto.dataset.giorno);
     }, 140);
   }, { passive: true });
+  $('turno-giorni')?.addEventListener('scrollend', () => { setTimeout(() => { giorniBloccati = false; }, 60); });
   // scorrimento del turno col dito: a sinistra il giorno dopo, a destra il giorno prima
   let tocco = null;
   ['turno-content', 'turno-after'].forEach(id => {
