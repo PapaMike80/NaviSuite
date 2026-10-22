@@ -124,7 +124,7 @@
   // Anagrafica clienti (collection «clienti_comitive»): nome senza i dati tra parentesi (prenotazione, referente)
   const nomeBase = cliente => String(cliente || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
   async function caricaClienti() {
-    try { return (await PB().list('clienti_comitive', { perPage: 1000, sort: 'nome' })).map(r => ({ id: r.id, nome: r.nome, citta: r.citta || '', naz: r.naz || '', pagamento: r.pagamento || '' })); }
+    try { return (await PB().list('clienti_comitive', { perPage: 1000, sort: 'nome' })).map(r => ({ id: r.id, nome: r.nome, citta: r.citta || '', naz: r.naz || '', pagamento: r.pagamento || '', indirizzo: r.indirizzo || '', telefono: r.telefono || '', mail: r.mail || '', note: r.note || '', rag_sociale: r.rag_sociale || '', piva: r.piva || '', sdi: r.sdi || '', pec: r.pec || '', indirizzo_fatt: r.indirizzo_fatt || '' })); }
     catch (error) { console.warn('Clienti comitive non raggiungibili', error); return []; }
   }
   async function salvaCliente(c) {
@@ -134,6 +134,12 @@
     const r = await PB().findOne('clienti_comitive', `nome = "${nome.replace(/"/g, '\\"')}"`).catch(() => null);
     return r ? PB().patch('clienti_comitive', r.id, dati) : PB().create('clienti_comitive', dati);
   }
+  // Anagrafica agenzie: modifica per id (anche rinomina) o nuova; elimina
+  async function salvaAgenzia(id, dati) {
+    const d = { nome: nomeBase(dati.nome), citta: dati.citta || '', naz: dati.naz || '', pagamento: dati.pagamento || '', indirizzo: dati.indirizzo || '', telefono: dati.telefono || '', mail: dati.mail || '', note: dati.note || '', rag_sociale: dati.rag_sociale || '', piva: dati.piva || '', sdi: dati.sdi || '', pec: dati.pec || '', indirizzo_fatt: dati.indirizzo_fatt || '' };
+    return id ? PB().patch('clienti_comitive', id, d) : PB().create('clienti_comitive', d);
+  }
+  const eliminaAgenzia = id => PB().remove('clienti_comitive', id);
   // Corse del giorno che vanno da uno scalo all'altro (orario della stagione): [{numero, turno, parte, arriva}]
   function corsePerTratta(giorno, da, a) {
     const S = root.NaviOrariStagioni;
@@ -183,5 +189,5 @@
     corsa: (n, turno) => `<span class="cm-ct" style="--t:${root.NaviOrariStagioni?.COLORI?.[turno] || '#9fb8c2'}"><i>${escH(n)}</i>${turno ? `<b>${escH(turno)}</b>` : ''}</span>`
   };
 
-  root.NaviComitive = { bolle, colPag, chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, corsePerTratta, corseConCambio };
+  root.NaviComitive = { bolle, colPag, chiave, numeri, carica, copiaOds, salva, togli, diCorsa, daPdf, salvaOds, alloScalo, turniCorse, stessoScalo, nomeBase, caricaClienti, salvaCliente, salvaAgenzia, eliminaAgenzia, corsePerTratta, corseConCambio };
 })(typeof window !== 'undefined' ? window : globalThis);
