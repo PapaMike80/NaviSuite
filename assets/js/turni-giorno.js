@@ -78,7 +78,13 @@
     } catch (error) { console.warn('Turni: modifiche NaviDiaria non disponibili', error); }
     try {
       const id = String(profile?.id || '');
-      if (id && root.localStorage) aggiungiModifiche(map, id, JSON.parse(root.localStorage.getItem(`navidiaria.entries.v1.${id}`) || '[]'));
+      if (id && root.localStorage) {
+        const proprie = JSON.parse(root.localStorage.getItem(`navidiaria.entries.v1.${id}`) || '[]');
+        // le proprie giornate sul dispositivo valgono piu' della copia online (che puo' essere indietro):
+        // una giornata riportata al turno originale toglie la modifica, anche se online c'e' ancora
+        (proprie || []).forEach(entry => { if (entry?.date && !(entry.manualOverride === true && entry.manualModified === true)) { const k = `${id}|${String(entry.date).slice(0, 10)}`; map.delete(k); map.da?.delete(k); } });
+        aggiungiModifiche(map, id, proprie);
+      }
     } catch { /* copia locale non leggibile */ }
     modifiche = map;
     return map;
