@@ -358,12 +358,19 @@
     const giorni = Array.from({ length: 29 }, (_, k) => addDays(oggi, k - 14));
     if (!giorni.includes(day)) giorni.push(day), giorni.sort();
     // la striscia si ricostruisce solo quando cambiano i giorni o i turni: cambiando giorno le tessere restano e scorrono
-    const chiave = `${oggi}|${me?.id || ''}|${state.schedule ? 1 : 0}|${giorni[0]}|${giorni[giorni.length - 1]}|${giorni.length}`;
+    // turno di ogni giorno (con i cambi turno); per il giorno mostrato vale il turno modificato, se c'e'
+    const turni = giorni.map(d => {
+      let t = ''; try { t = state.schedule ? String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim() : ''; } catch (_) { t = ''; }
+      if (d === day && state.isModified && state.currentShift?.turno) t = String(state.currentShift.turno).trim();
+      return lavoroDi(t) || t;
+    });
+    // la striscia si ricostruisce quando cambiano i giorni o i turni (anche un cambio turno arrivato dopo):
+    // cambiando solo giorno le tessere restano e scorrono
+    const chiave = `${oggi}|${me?.id || ''}|${giorni[0]}|${giorni.length}|${turni.join(',')}`;
     if (box.dataset.chiave !== chiave) {
       box.dataset.chiave = chiave;
-      box.innerHTML = giorni.map(d => {
-        let t = ''; try { t = state.schedule ? String(G.turnoAgente(state.schedule, me, d)?.turno || '').trim() : ''; } catch (_) { t = ''; }
-        t = lavoroDi(t) || t;
+      box.innerHTML = giorni.map((d, k) => {
+        const t = turni[k];
         const rip = RIPOSO.test(t), c = G.coloreTurno(t);
         // settimane separate: prima di ogni lunedi' uno spazio con il numero della settimana; domenica in rosso
         const wd = parseIso(d).getDay(), sett = wd === 1 ? `<span class="mt-sett" aria-hidden="true"><em>sett. ${settimanaIso(d)}</em></span>` : '';
@@ -421,7 +428,6 @@
     $('turno-after').innerHTML = '';
     servizioHeader('', '', day);
     const me = profile();
-    renderGiorni(day, me);
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
     if (state._dayLoaded !== day) {
       state._dayLoaded = day;
@@ -451,6 +457,8 @@
       restoreBtn.hidden = !state.isModified;
       restoreBtn.disabled = !state.isModified;
     }
+    // striscia dei giorni dopo aver letto il turno del giorno (cosi' vede anche il cambio turno)
+    renderGiorni(day, me);
     renderTestSelect(found ? (G.naveCode(found.turno) || G.terraCode(found.turno) || found.turno) : '');
     if (!state.schedule && !state.test && !state.currentShift) { $('turno-content').innerHTML = ''; return; }
     const turno = (state.isModified && state.currentShift?.turno) ? state.currentShift.turno : (state.test || found?.turno || '');
