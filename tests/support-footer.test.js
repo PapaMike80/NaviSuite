@@ -20,7 +20,7 @@ assert.doesNotMatch(settings,/paypal/i);
 
 for(const file of ['index.html','naviturni.html','cambi_turno.html','navidiaria.html','documenti.html','agenti.html','impostazioni.html','aggiornamenti.html','quiz.html','cambia-pin.html','movimento.html','mio-turno.html','orario.html']){
   const html=fs.readFileSync(file,'utf8');
-  assert.match(html,/assets\/js\/shared-menu\.js\?v=1\.93/,'shared footer cache version missing in '+file);
+  assert.match(html,/assets\/js\/shared-menu\.js\?v=1\.95/,'shared footer cache version missing in '+file);
 }
 
 console.log('Support footer regression test passed');
