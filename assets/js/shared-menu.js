@@ -370,6 +370,8 @@
   }
   // NaviDiaria è disponibile dal menu mobile a ogni agente autenticato.
   if((page==='agenti'||page==='aggiornamenti'||page==='collegamenti'||page==='movimento')&&!isAdminAgent(sessionAgent)&&!(page==='aggiornamenti'&&isHibaBarista(sessionAgent))){location.replace('index.html');return}
+  // guide animate alla prima apertura (menu, Distinta)
+  if(!document.getElementById('navi-guida-js')){const g=document.createElement('script');g.id='navi-guida-js';g.src='assets/js/guida-primo-uso.js?v=1';g.defer=true;document.head.appendChild(g);}
   if(window.NaviAdminFirebase?.touchUserPresence){
     const signalPresence=()=>window.NaviAdminFirebase.touchUserPresence(sessionAgent).catch(()=>{});
     signalPresence();
