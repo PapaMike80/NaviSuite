@@ -227,12 +227,12 @@
   }
 
   // Colori dei turni come in NaviTurni (naviturni-page.js: classify + shiftBorderColor)
-  const COLORI_NAVITURNI = { d1: '#3b6bcc', d2: '#2d9e6b', d3: '#e07b3a', d4: '#c45cba', dt: '#e6d44a', bis: '#5ec4d4', pond: '#f08080', rip: '#6b7280', cong: '#a78bfa', agb: '#60a5fa', fp: '#94a3b8', rf: '#84cc16', other: '#94a3b8' };
+  const COLORI_NAVITURNI = { d1: '#3b6bcc', d2: '#2d9e6b', d3: '#e07b3a', d4: '#c45cba', dt: '#e6d44a', bis: '#5ec4d4', pond: '#f08080', rip: '#6b7280', cong: '#a78bfa', agb: '#60a5fa', fp: '#94a3b8', rf: '#84cc16', lav: '#c49a6c', agm: '#f472b6', agt: '#818cf8', other: '#94a3b8' };
   function coloreTurno(code) {
     const u = String(code || '').toUpperCase().trim().replace(/\*/g, '');
     if (!u || /^(R|RIP|RIPOSO)$/.test(u)) return COLORI_NAVITURNI.rip;
     const k = /^(D1|R1|P1|T1)/.test(u) ? 'd1' : /^(D2|R2|P2|T2)/.test(u) ? 'd2' : /^(D3|R3|P3|M1)/.test(u) ? 'd3' : /^(D4|R4|P4)/.test(u) ? 'd4'
-      : /^DT/.test(u) ? 'dt' : /^BIS/.test(u) ? 'bis' : /^POND/.test(u) ? 'pond' : /^AGB/.test(u) ? 'agb' : /^CON/.test(u) ? 'cong' : /^(FP|F\.P\.|CORSO)$/.test(u) ? 'fp' : u === 'RF' ? 'rf' : 'other';
+      : /^DT/.test(u) ? 'dt' : /^BIS/.test(u) ? 'bis' : /^POND/.test(u) ? 'pond' : /^AGB/.test(u) ? 'agb' : /^CON/.test(u) ? 'cong' : /^(FP|F\.P\.|CORSO)$/.test(u) ? 'fp' : u === 'RF' ? 'rf' : /^(LAV|TERRA)/.test(u) ? 'lav' : /^AGM/.test(u) ? 'agm' : /^AGT/.test(u) ? 'agt' : 'other';
     return COLORI_NAVITURNI[k];
   }
   // testo chiaro sui colori scuri, scuro su quelli chiari

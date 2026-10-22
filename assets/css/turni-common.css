@@ -819,6 +819,18 @@
       color: var(--rf);
       background: var(--rf-bg);
     }
+    .c-lav {
+      color: var(--lav);
+      background: var(--lav-bg);
+    }
+    .c-agm {
+      color: var(--agm);
+      background: var(--agm-bg);
+    }
+    .c-agt {
+      color: var(--agt);
+      background: var(--agt-bg);
+    }
     .c-other {
       color: var(--other);
       background: var(--other-bg);
