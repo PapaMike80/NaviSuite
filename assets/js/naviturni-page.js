@@ -655,6 +655,9 @@
       "c-agb": "#60a5fa",
       "c-fp": "#94a3b8",
       "c-rf": "#84cc16",
+      "c-lav": "#c49a6c",
+      "c-agm": "#f472b6",
+      "c-agt": "#818cf8",
       "c-other": "#94a3b8"
     };
 
@@ -829,6 +832,9 @@
       if (uPulito.startsWith("CONG") || uPulito === "CON;") return "c-cong";
       if (uPulito === "FP" || uPulito === "F.P." || uPulito === "CORSO") return "c-fp";
       if (uPulito === "RF") return "c-rf";
+      if (/^(LAV|TERRA)/.test(uPulito)) return "c-lav";
+      if (/^AGM/.test(uPulito)) return "c-agm";
+      if (/^AGT/.test(uPulito)) return "c-agt";
       return "c-other";
     }
 
