@@ -16,449 +16,163 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Usa esattamente la grafica della vecchia pagina turni.html -->
-  <link rel="stylesheet" href="assets/css/turni.css?v=20260716-4">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
 
   <style>
-    /* Piccole integrazioni, senza cambiare la grafica originale */
-    .archive-status {
-      margin-top: auto;
-      padding: 16px 13px 0;
-      border-top: 1px solid rgba(124, 173, 189, .20);
-      color: #7cadbd;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    /* Stile NaviSuite a riquadri: un riquadro colorato per argomento (Tutorial, Turni, ODS, Servizi a terra). */
+    :root{--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--green:#52c879;--sky:#38bdf8;--mono:'DM Mono',ui-monospace,monospace;color-scheme:dark}
+    html.navisuite-light{--surface:#f4f8f7;--card:#ffffff;--card2:#e8f1ef;--line:#dbe7e5;--ink:#102631;--muted:#5b7079;--on:#ffffff;--teal:#0f9f8c;--cyan:#1590a8;--violet:#7c5cd6;--amber:#b7791f;--orange:#c2621a;--rose:#d9435e;--green:#2f9e5a;--sky:#1d7fbf;color-scheme:light}
+    *{box-sizing:border-box}
+    body.archive-page{margin:0;min-height:100vh;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));color:var(--ink);font:500 15px/1.45 Manrope,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+    html{background:var(--surface)}
+    .archive-page .app-sidebar{display:none}
+    .archive-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;width:min(1380px,100%);margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px))}
+    .archive-page>header small{display:block;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.2em}
+    .archive-page>header h1{margin:4px 0 0;font-size:25px;font-weight:800;line-height:1.15;background:linear-gradient(90deg,var(--teal),var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .archive-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{display:grid;gap:12px;width:min(1380px,100%);margin:0 auto 48px;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+    .barra{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);border-radius:999px;background:transparent;color:var(--teal);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .chip:disabled{opacity:.55;cursor:progress}
+    .fonte{color:var(--muted);font-size:12px}.fonte b{color:var(--ink);font-weight:700}
+    .archive-notice{margin:0;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--amber) 50%,transparent);background:color-mix(in srgb,var(--amber) 14%,var(--card));font-size:13px}
+    .colonne{display:grid;gap:12px;align-items:start}
+    @media(min-width:1000px){.colonne{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-    .archive-status strong {
-      font-size: 12px;
-      color: #9bc8d5;
-    }
+    /* Riquadro di sezione */
+    .sez{--c:var(--teal);display:grid;gap:10px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent);min-width:0}
+    .sez-head{display:flex;align-items:center;gap:10px;min-width:0}
+    .sez-head.collapsible{cursor:pointer;user-select:none}
+    .sez-head:focus-visible{outline:2px solid var(--c);outline-offset:4px;border-radius:10px}
+    .sez-ic{flex:none;display:inline-grid;place-items:center;width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);font-size:18px}
+    .sez-head>div{flex:1;min-width:0}
+    .sez-head small{display:block;color:var(--c);font-size:10px;font-weight:800;letter-spacing:.14em}
+    .sez-head h2{margin:1px 0 0;font-size:17px;font-weight:800;color:var(--ink)}
+    .count{flex:none;padding:2px 10px;border-radius:999px;background:var(--c);color:var(--on);font:500 12px var(--mono);white-space:nowrap}
+    .section-toggle{display:inline-flex;align-items:center;gap:8px}
+    .section-chevron{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);color:var(--c);font-size:15px;transition:transform .18s}
+    .sez-head:not(.is-collapsed) .section-chevron{transform:rotate(180deg)}
+    .document-grid{display:grid;gap:8px}
+    .document-grid:empty{display:none}
+    .document-grid.is-collapsed{display:none}
 
-    .archive-status span {
-      font-size: 11px;
-    }
+    /* Riga documento (creata da documenti.js) */
+    .document{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);cursor:pointer}
+    .document:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent)}
+    .document:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+    .document.published-document{background:color-mix(in srgb,var(--c) 8%,var(--card))}
+    .pdf-icon,.ods-number{display:inline-grid;place-items:center;min-width:42px;height:42px;padding:0 6px;border-radius:11px;font:500 12px var(--mono);background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c)}
+    .ods-number{font-size:15px}
+    .document small{display:block;color:var(--c);font-size:9.5px;font-weight:800;letter-spacing:.1em}
+    .document strong{display:block;font-size:14px;font-weight:800;overflow-wrap:anywhere}
+    .document p{margin:2px 0 0;color:var(--muted);font-size:12px}
+    .document p a{color:var(--c);font-weight:700}
+    .document-actions{display:flex;gap:6px}
+    .document-action{min-height:34px;padding:0 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--c,var(--teal)) 45%,transparent);background:transparent;color:var(--c,var(--teal));font:800 12px Manrope,system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+    .document-actions .document-action:first-child{background:var(--c);border-color:var(--c);color:var(--on)}
+    .document-action.delete{border-color:color-mix(in srgb,var(--rose) 60%,transparent);color:var(--rose);background:transparent}
+    .document-action:disabled{opacity:.5;cursor:not-allowed}
+    .archive-empty{display:none;padding:30px 16px;border-radius:16px;background:var(--card);text-align:center;color:var(--muted)}
+    .archive-empty strong{display:block;margin-bottom:4px;color:var(--ink);font-size:17px}
 
-    .archive-status .version {
-      margin-top: 7px;
-      padding-top: 7px;
-      border-top: 1px solid rgba(124, 173, 189, .15);
-      color: #19e3c1;
-      font-weight: 700;
-    }
-
-    .document {
-      cursor: pointer;
-    }
-
-    /* Sezioni richiudibili: all'apertura sono tutte chiuse. */
-    .section-heading.collapsible {
-      cursor: pointer;
-      user-select: none;
-      padding-bottom: 14px;
-      border-bottom: 1px solid rgba(124, 173, 189, .20);
-    }
-
-    .section-heading.collapsible:focus-visible {
-      outline: 2px solid #19e3c1;
-      outline-offset: 4px;
-    }
-
-    .section-heading .section-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-heading .section-toggle .count {
-      white-space: nowrap;
-      margin-top: 0;
-    }
-
-    .section-heading.collapsible.ods-heading {
-      margin-top: 36px;
-    }
-
-    .section-heading .section-chevron {
-      display: grid;
-      place-items: center;
-      width: 32px;
-      height: 32px;
-      border: 1px solid #2d6570;
-      border-radius: 50%;
-      background: #12313b;
-      color: #a7fff0;
-      font-size: 16px;
-      transition: transform .18s;
-    }
-
-    .section-heading.is-collapsed .section-chevron {
-      transform: rotate(-90deg);
-    }
-
-    .document-grid.is-collapsed {
-      display: none;
-    }
-
-    .document p a {
-      color: #5eead4;
-    }
-
-    .document:focus-visible {
-      outline: 2px solid #19e3c1;
-      outline-offset: 3px;
-    }
-
-    .document-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      align-items: stretch;
-    }
-
-    .document-action {
-      min-width: 82px;
-      padding: 8px 10px;
-      border: 1px solid #2d6570;
-      border-radius: 8px;
-      background: #12313b;
-      color: #dffcff;
-      font: 800 11px DM Sans, sans-serif;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .document-action:hover {
-      border-color: #38d6bf;
-      background: #17434a;
-    }
-
-    .document-action.download {
-      color: #86efac;
-    }
-
-    .document-action.delete {
-      border-color: #7f1d1d;
-      background: #3b1111;
-      color: #fca5a5;
-    }
-
-    .document-action.delete:hover {
-      border-color: #ef4444;
-      background: #4c1414;
-      color: #fecaca;
-    }
-
-    .document-action.delete:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-
-    .document-viewer[hidden] {
-      display: none;
-    }
-
-    .document-viewer {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      min-width: 0;
-      min-height: 0;
-      padding: 14px;
-      background: rgba(2, 13, 18, .94);
-      backdrop-filter: blur(8px);
-    }
-
-    .viewer-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-      padding: 10px 12px;
-      border: 1px solid #28515d;
-      border-bottom: 0;
-      border-radius: 12px 12px 0 0;
-      background: #0c2530;
-    }
-
-    .viewer-toolbar strong {
-      min-width: 0;
-      margin-right: auto;
-      overflow: hidden;
-      color: #edfafa;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .viewer-toolbar .document-action {
-      flex: 0 0 auto;
-    }
-
-    .document-pages {
-      min-width: 0;
-      min-height: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-      padding: 12px;
-      border: 1px solid #28515d;
-      border-radius: 0 0 12px 12px;
-      background: #5d6367;
-      scroll-behavior: smooth;
-    }
-
-    .document-page {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-      margin: 0 auto 12px;
-    }
-
-    .document-page:last-child { margin-bottom: 0; }
-
-    .document-page canvas {
-      display: block;
-      max-width: 100%;
-      height: auto;
-      background: white;
-      box-shadow: 0 3px 16px rgba(0, 0, 0, .35);
-    }
-
-    .document-loading,
-    .document-error {
-      display: grid;
-      min-height: 45vh;
-      place-items: center;
-      padding: 24px;
-      color: white;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    #documentFrame {
-      display: none;
-      width: 100%;
-      height: 100%;
-      border: 1px solid #28515d;
-      border-radius: 0 0 12px 12px;
-      background: white;
-    }
-
-    body.document-viewer-open {
-      overflow: hidden;
-    }
-
-    body.document-viewer-open .mobile-liquid-nav { display: none !important; }
-
-    .archive-notice {
-      margin: 0 0 22px;
-      padding: 13px 16px;
-      border: 1px solid #90641f;
-      background: #2c2415;
-      color: #ffd48a;
-      border-radius: 12px;
-      font-size: 13px;
-    }
-
-    .archive-empty {
-      display: none;
-      padding: 45px 20px;
-      text-align: center;
-      color: #82aebb;
-    }
-
-    .archive-empty strong,
-    .archive-empty span {
-      display: block;
-    }
-
-    .archive-empty strong {
-      margin-bottom: 7px;
-      color: white;
-      font-family: Manrope, sans-serif;
-      font-size: 19px;
-    }
-
-    @media (max-width: 720px) {
-      .archive-status {
-        margin-top: 20px;
-      }
-
-      .document {
-        grid-template-columns: auto 1fr;
-      }
-
-      .document-actions {
-        grid-column: 1 / -1;
-        flex-direction: row;
-      }
-
-      .document-action {
-        flex: 1;
-      }
-
-      .document-viewer {
-        padding:
-          env(safe-area-inset-top, 0px)
-          0
-          env(safe-area-inset-bottom, 0px);
-      }
-
-      .viewer-toolbar {
-        min-height: 58px;
-        padding: 8px 10px;
-        border-radius: 0;
-      }
-
-      .viewer-toolbar strong { font-size: 14px; }
-
-      .viewer-toolbar .document-action {
-        min-width: 0;
-        padding: 8px 9px;
-        font-size: 11px;
-      }
-
-      .document-pages {
-        padding: 6px 0 18px;
-        border-right: 0;
-        border-bottom: 0;
-        border-left: 0;
-        border-radius: 0;
-      }
-
-      .document-page { margin-bottom: 7px; }
-
-      #documentFrame {
-        border-radius: 0;
-      }
-    }
-  </style>
-  <style>
-    /* Tutorial (Documenti): guide animate richiudibili; la GIF si scarica solo aprendo la guida */
-    .tutorial-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:44px;align-items:start}
-    .tutorial{--c:#2dd4bf;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:color-mix(in srgb,var(--c) 9%,#0d202b);color:#edf6f7}
-    .tutorial>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer}
+    /* Tutorial: la GIF si scarica solo aprendo la guida */
+    .tutorial-grid{display:grid;gap:8px}
+    .tutorial{--t:var(--teal);border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--t)}
+    .tutorial>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer}
     .tutorial>summary::-webkit-details-marker{display:none}
-    .tutorial>summary::after{content:'▾';margin-left:auto;color:#9bb4bc}.tutorial[open]>summary::after{content:'▴'}
-    .tutorial>summary strong{display:block;color:var(--c);font:800 16px Manrope,system-ui,sans-serif}
-    .tutorial>summary small{display:block;color:#9bb4bc;font-size:12.5px}
-    .tut-ic{flex:none;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--c) 20%,transparent);color:var(--c);font-size:20px}
-    .tut-corpo{display:grid;gap:10px;padding:0 16px 16px}
-    .tut-corpo img{display:block;max-width:100%;max-height:62vh;margin:0 auto;border-radius:14px;border:1px solid #234452;background:#071923}
-    .tut-corpo ol{margin:0;padding-left:22px;display:grid;gap:4px;font-size:14px}.tut-corpo ol b{color:var(--c)}
-    .tut-corpo p{margin:0;font-size:12.5px;color:#9bb4bc}
-    @media(max-width:720px){.tutorial-grid{grid-template-columns:1fr}}
+    .tutorial>summary::after{content:'▾';margin-left:auto;color:var(--muted)}.tutorial[open]>summary::after{content:'▴'}
+    .tutorial>summary strong{display:block;color:var(--t);font-size:14px;font-weight:800}
+    .tutorial>summary small{display:block;color:var(--muted);font-size:12px}
+    .tut-ic{flex:none;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:11px;background:color-mix(in srgb,var(--t) 18%,transparent);color:var(--t);font-size:19px}
+    .tut-corpo{display:grid;gap:10px;padding:0 12px 12px}
+    .tut-corpo img{display:block;max-width:100%;max-height:62vh;margin:0 auto;border-radius:14px;border:1px solid var(--line);background:#071923}
+    .tut-corpo ol{margin:0;padding-left:22px;display:grid;gap:4px;font-size:13.5px}.tut-corpo ol b{color:var(--t)}
+    .tut-corpo p{margin:0;font-size:12px;color:var(--muted)}
+
+    /* Visualizzatore */
+    .document-viewer[hidden]{display:none}
+    .document-viewer{position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto 1fr;min-width:0;min-height:0;padding:14px;background:rgba(2,13,18,.94);backdrop-filter:blur(8px)}
+    .viewer-toolbar{--c:var(--teal);display:flex;align-items:center;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--card)}
+    .viewer-toolbar strong{min-width:0;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+    .viewer-toolbar .document-action.download{background:var(--teal);border-color:var(--teal);color:var(--on)}
+    .document-pages{min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border:1px solid var(--line);border-radius:0 0 14px 14px;background:#5d6367}
+    .document-page{display:flex;justify-content:center;width:100%;margin:0 auto 12px}
+    .document-page:last-child{margin-bottom:0}
+    .document-page canvas{display:block;max-width:100%;height:auto;background:#fff;box-shadow:0 3px 16px rgba(0,0,0,.35)}
+    .document-loading,.document-error{display:grid;min-height:45vh;place-items:center;padding:24px;color:#fff;font-weight:700;text-align:center}
+    #documentFrame{display:none;width:100%;height:100%;border:1px solid var(--line);border-radius:0 0 14px 14px;background:#fff}
+    body.document-viewer-open{overflow:hidden}
+    body.document-viewer-open .mobile-liquid-nav{display:none!important}
+
+    @media(max-width:560px){
+      .document{grid-template-columns:auto minmax(0,1fr)}
+      .document-actions{grid-column:1/-1}
+      .document-action{flex:1}
+      .document-viewer{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+      .viewer-toolbar{min-height:58px;padding:8px 10px;border-radius:0}
+      .viewer-toolbar .document-action{padding:0 9px}
+      .document-pages{padding:6px 0 18px;border-width:1px 0 0;border-radius:0}
+      .document-page{margin-bottom:7px}
+      #documentFrame{border-radius:0}
+    }
   </style>
 </head>
 
-<body class="turni-page">
-  <aside class="turni-sidebar app-sidebar" id="archive-sidebar">
-  
-    <a class="turni-sidebar-brand" href="index.html">
-      <span>N</span> Documenti
-    </a>
+<body class="turni-page archive-page">
+  <aside class="app-sidebar" id="archive-sidebar" aria-hidden="true"></aside>
 
-    <nav>
-      <a href="naviturni.html"><span>▦</span> NaviTurni</a>
-      <a href="navidiaria.html"><span>≈</span> NaviDiaria</a>
-      <a class="active" href="documenti.html"><span>▤</span> Documenti</a>
-
-      <button id="refreshButton" type="button">
-        <span>↻</span> Aggiorna
-      </button>
-
-      <span class="turni-menu-label">DOCUMENTI</span>
-      <a href="#turni-docs"><span>▦</span> Turni e bozze</a>
-      <a href="#ods-docs"><span>≡</span> ODS 2026</a>
-      <a href="#terra-docs"><span>⛴</span> Servizi a terra</a>
-    </nav>
-
-    <div class="archive-status">
-      <strong id="sourceLabel">Archivio GitHub</strong>
-      <span id="lastUpdate">Caricamento…</span>
-      <span class="version">Versione v1.03</span>
-    </div>
-  </aside>
-
-  <header class="archive-header">
-    <div class="header-copy">
-      <p>DOCUMENTI OPERATIVI</p>
-      <h1>Turni, bozze e<br><em>ordini di servizio.</em></h1>
-      <span>Tutti i PDF delle cartelle GitHub raccolti e ordinati automaticamente.</span>
-    </div>
-  </header>
+  <header class="page-header"><div><small>DOCUMENTI</small><h1>Turni, ODS e guide</h1></div></header>
 
   <main>
+    <div class="barra">
+      <button id="refreshButton" class="chip" type="button">↻ Aggiorna</button>
+      <span class="fonte"><b id="sourceLabel">Archivio</b> · <span id="lastUpdate">Caricamento…</span></span>
+    </div>
     <div id="notice" class="archive-notice" hidden></div>
 
-    <section id="tutorial-docs" class="section-heading">
-      <div>
-        <p>COME SI FA</p>
-        <h2>Tutorial</h2>
-      </div>
-      <span class="count">2 guide</span>
-    </section>
+    <div class="colonne">
+      <section class="sez" style="--c:var(--teal)">
+        <div id="tutorial-docs" class="sez-head"><span class="sez-ic">❓</span><div><small>COME SI FA</small><h2>Tutorial</h2></div><span class="count">2 guide</span></div>
+        <div id="tutorialGrid" class="tutorial-grid">
+          <details class="tutorial" style="--t:var(--teal)" data-gif="assets/images/guide/guida-menu.gif">
+            <summary><span class="tut-ic">☰</span><span><strong>Spostare le pagine nel menu</strong><small>Metti in alto le pagine che usi di più</small></span></summary>
+            <div class="tut-corpo">
+              <img alt="Guida animata: Spostare le pagine nel menu">
+              <ol><li><b>Tocca il menu ☰</b> in alto a destra.</li><li><b>Tieni premuto</b> su una pagina per mezzo secondo.</li><li><b>Trascina la pagina</b> dove vuoi, tra le principali o le altre.</li><li><b>Rilascia</b>: il menu si riordina da solo e resta salvato.</li></ol>
+              <p>La scelta vale solo per te; con «Ripristina il menu» torni al menu di base.</p>
+            </div>
+          </details>
+          <details class="tutorial" style="--t:var(--orange)" data-gif="assets/images/guide/guida-distinta.gif">
+            <summary><span class="tut-ic">≈</span><span><strong>Modificare una giornata nella Distinta</strong><small>Ritardi, cambi, ticket, diaria…</small></span></summary>
+            <div class="tut-corpo">
+              <img alt="Guida animata: Modificare una giornata nella Distinta">
+              <ol><li><b>Tocca il giorno</b> da modificare nella Distinta mensile.</li><li><b>Tocca la voce</b> da cambiare (es. Ritardo) e <b>scrivi il nuovo valore</b>.</li><li><b>Tocca una bolla</b> per cambiarne il contenuto (Ticket, Diaria, Pernotto…).</li><li><b>Chiudi con la ✕</b>: la giornata è salvata e il foglio si aggiorna.</li></ol>
+              <p>Per una giornata passata NaviSuite chiede conferma prima di salvare.</p>
+            </div>
+          </details>
+        </div>
+      </section>
 
-    <div id="tutorialGrid" class="tutorial-grid">
-      <details class="tutorial" style="--c:#2dd4bf" data-gif="assets/images/guide/guida-menu.gif">
-        <summary><span class="tut-ic">☰</span><span><strong>Spostare le pagine nel menu</strong><small>Metti in alto le pagine che usi di più</small></span></summary>
-        <div class="tut-corpo">
-          <img alt="Guida animata: Spostare le pagine nel menu">
-          <ol><li><b>Tocca il menu ☰</b> in alto a destra.</li><li><b>Tieni premuto</b> su una pagina per mezzo secondo.</li><li><b>Trascina la pagina</b> dove vuoi, tra le principali o le altre.</li><li><b>Rilascia</b>: il menu si riordina da solo e resta salvato.</li></ol>
-          <p>La scelta vale solo per te; con «Ripristina il menu» torni al menu di base.</p>
-        </div>
-      </details>
-      <details class="tutorial" style="--c:#fb923c" data-gif="assets/images/guide/guida-distinta.gif">
-        <summary><span class="tut-ic">≈</span><span><strong>Modificare una giornata nella Distinta</strong><small>Ritardi, cambi, ticket, diaria…</small></span></summary>
-        <div class="tut-corpo">
-          <img alt="Guida animata: Modificare una giornata nella Distinta">
-          <ol><li><b>Tocca il giorno</b> da modificare nella Distinta mensile.</li><li><b>Tocca la voce</b> da cambiare (es. Ritardo) e <b>scrivi il nuovo valore</b>.</li><li><b>Tocca una bolla</b> per cambiarne il contenuto (Ticket, Diaria, Pernotto…).</li><li><b>Chiudi con la ✕</b>: la giornata è salvata e il foglio si aggiorna.</li></ol>
-          <p>Per una giornata passata NaviSuite chiede conferma prima di salvare.</p>
-        </div>
-      </details>
+      <section class="sez" style="--c:var(--sky)">
+        <div id="turni-docs" class="sez-head"><span class="sez-ic">▦</span><div><small>PIANIFICAZIONE</small><h2>Turni e bozze</h2></div><span id="turniCount" class="count">0 documenti</span></div>
+        <div id="turniGrid" class="document-grid"></div>
+      </section>
+
+      <section class="sez" style="--c:var(--violet)">
+        <div id="ods-docs" class="sez-head"><span class="sez-ic">≡</span><div><small>ORDINI DI SERVIZIO</small><h2>Archivio ODS 2026</h2></div><span id="odsCount" class="count">0 documenti</span></div>
+        <div id="odsGrid" class="document-grid"></div>
+      </section>
+
+      <section class="sez" style="--c:var(--amber)">
+        <div id="terra-docs" class="sez-head"><span class="sez-ic">⛴</span><div><small>SERVIZI A TERRA</small><h2>Servizi a terra e stampe</h2></div><span id="terraCount" class="count">0 documenti</span></div>
+        <div id="terraGrid" class="document-grid"></div>
+      </section>
     </div>
-
-    <section id="turni-docs" class="section-heading">
-      <div>
-        <p>PIANIFICAZIONE</p>
-        <h2>Turni e bozze</h2>
-      </div>
-      <span id="turniCount" class="count">0 documenti</span>
-    </section>
-
-    <div id="turniGrid" class="document-grid"></div>
-
-    <section id="ods-docs" class="section-heading ods-heading">
-      <div>
-        <p>ORDINI DI SERVIZIO</p>
-        <h2>Archivio ODS 2026</h2>
-      </div>
-      <span id="odsCount" class="count">0 documenti</span>
-    </section>
-
-    <div id="odsGrid" class="document-grid"></div>
-
-    <section id="terra-docs" class="section-heading ods-heading">
-      <div>
-        <p>SERVIZI A TERRA</p>
-        <h2>Servizi a terra e stampe</h2>
-      </div>
-      <span id="terraCount" class="count">0 documenti</span>
-    </section>
-
-    <div id="terraGrid" class="document-grid"></div>
 
     <div id="emptyState" class="archive-empty">
       <strong>Nessun documento trovato</strong>
-      <span>Controlla che nelle cartelle turni e ods siano presenti file PDF.</span>
+      <span>Al momento non ci sono documenti da mostrare.</span>
     </div>
   </main>
 
