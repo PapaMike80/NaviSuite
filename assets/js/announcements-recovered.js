@@ -8,7 +8,7 @@
     script.async=false;
     document.head.appendChild(script);
   };
-  load('assets/js/announcements-core-20260903.js?v=1');
+  load('assets/js/announcements-core-20260903.js?v=2');
   load('assets/js/turn-pdf-import-repair-v2.js?v=20260921-1');
   load('assets/js/ods-navi-pdf-repair.js?v=20260904-1');
 

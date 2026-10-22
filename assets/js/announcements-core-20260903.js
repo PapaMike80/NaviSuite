@@ -73,6 +73,8 @@
   let announcementCheckRunning=false;
   let pendingAnnouncementId='';
   async function loadPublished(){
+    // nessun popup di avvisi/novita' all'apertura delle pagine (resta solo l'anteprima per l'admin)
+    return;
     // Prima dell'accesso nessun avviso viene mostrato. Nella Home aspettiamo
     // inoltre che sia comparsa la scelta delle applicazioni.
     profile=getProfile();
