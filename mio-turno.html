@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <link rel="stylesheet" href="assets/css/servizi-terra.css?v=17">
-  <link rel="stylesheet" href="assets/css/orario.css?v=42">
+  <link rel="stylesheet" href="assets/css/orario.css?v=43">
   <link rel="stylesheet" href="assets/css/mio-turno.css?v=17">
   <style>
     /* coincidenze sotto lo scalo (Il mio turno) */
@@ -45,10 +45,22 @@
     .mt-g b{font:500 19px 'DM Mono',ui-monospace,monospace}
     .mt-g .t{min-width:40px;padding:1px 7px;border-radius:999px;background:var(--c,#334155);color:#06231f;font:900 11px Manrope,system-ui,sans-serif;text-align:center}
     .mt-g .t.rip{background:transparent;border:1px solid #1f4250;color:#9fb8c2;font-weight:700}
-    @keyframes mt-da-destra{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
-    @keyframes mt-da-sinistra{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
-    #turno-content.da-destra,#turno-after.da-destra{animation:mt-da-destra .25s ease-out}
-    #turno-content.da-sinistra,#turno-after.da-sinistra{animation:mt-da-sinistra .25s ease-out}
+    /* intestazione ad altezza fissa: righe di altezza fissa, mai a capo, cosi' la striscia dei giorni non si sposta */
+    .mio-turno-page #turno-title{flex-wrap:nowrap;height:38px;white-space:nowrap;overflow:hidden}
+    #turno-context{height:20px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #turno-servizio{display:block!important;height:24px;line-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #turno-servizio.vuoto{color:#9fb8c2;font-size:.9rem}
+    /* cambio giorno: il turno esce da un lato ed entra dall'altro, le righe arrivano una dopo l'altra */
+    .mt-g{transition:opacity .12s linear,transform .12s linear,border-color .3s,background .3s,box-shadow .3s}
+    @keyframes mt-esce-sx{to{opacity:0;transform:translateX(-56px) scale(.98)}}
+    @keyframes mt-esce-dx{to{opacity:0;transform:translateX(56px) scale(.98)}}
+    @keyframes mt-entra-sx{from{opacity:0;transform:translateX(64px)}to{opacity:1;transform:none}}
+    @keyframes mt-entra-dx{from{opacity:0;transform:translateX(-64px)}to{opacity:1;transform:none}}
+    #turno-content.mt-esce-sx,#turno-after.mt-esce-sx{animation:mt-esce-sx .15s ease-in forwards}
+    #turno-content.mt-esce-dx,#turno-after.mt-esce-dx{animation:mt-esce-dx .15s ease-in forwards}
+    .mt-entra-sx>*{animation:mt-entra-sx .38s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*45ms)}
+    .mt-entra-dx>*{animation:mt-entra-dx .38s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*45ms)}
+    @media (prefers-reduced-motion:reduce){.mt-esce-sx,.mt-esce-dx,.mt-entra-sx>*,.mt-entra-dx>*{animation:none!important}}
   </style>
 </head>
 <body class="servizi-terra-page mio-turno-page">
@@ -114,12 +126,12 @@
   <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/orario-lago.js?v=2"></script>
   <script>window.NaviOrarioEmbed = true;</script>
-  <script src="assets/js/orario-page.js?v=80"></script>
+  <script src="assets/js/orario-page.js?v=82"></script>
   <script src="assets/js/shift-competence.js?v=4"></script>
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
   <script src="assets/js/comitive.js?v=8"></script>
-  <script src="assets/js/mio-turno.js?v=48"></script>
+  <script src="assets/js/mio-turno.js?v=52"></script>
   <script src="assets/js/push-arrivi.js?v=9"></script>
   <script src="assets/js/arrivi-avvisi.js?v=1"></script>
 </body>

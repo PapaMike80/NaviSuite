@@ -263,6 +263,10 @@ html.navisuite-light #orario .or-ctrl .terra-day-scalo option{background:#fff;co
 .com-bolle .com-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:999px;background:#f472b6;color:#06231f;font:800 12px Manrope,system-ui,sans-serif;white-space:nowrap}
 .com-bolle .com-tag.giu{background:transparent;color:#f9a8d4;border:1.5px solid #f472b6}
 .navi-list .dove:has(.com-bolle){flex-wrap:wrap}
+/* comitive: da dove arrivano sopra la bolla «scendono», dove vanno sotto la bolla «salgono» */
+.com-bolle .com-g{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px}
+.com-bolle .com-luogo{padding-left:4px;color:#f9a8d4;font:700 12px Manrope,system-ui,sans-serif;white-space:nowrap}
+.com-bolle{row-gap:6px}
 .or-com-r.sel{outline:2px solid #f472b6;background:color-mix(in srgb,#f472b6 22%,#102733)}
 #turno-content .nave[data-com-go]{cursor:pointer}
 #orario .nave[data-com-go]{cursor:pointer}
