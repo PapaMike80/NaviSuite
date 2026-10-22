@@ -1063,14 +1063,22 @@
     // in Firebase le chiavi non possono contenere il punto: "quiz" -> "quiz.html"
     const result = await databaseRequest("private/adminUpdates/pageAccess");
     const out = {};
-    Object.entries(result.data || {}).forEach(([key, value]) => { out[key === "updatedAt" ? key : `${key}.html`] = value; });
+    Object.entries(result.data || {}).forEach(([key, value]) => {
+      if (key === "menuEpoch") out.menuEpoch = Number(value) || 0;
+      else if (key === "ordine") out.ordine = (Array.isArray(value) ? value : Object.values(value || {})).map(pagina => `${pagina}.html`);
+      else if (key === "sezioni") out.sezioni = Object.fromEntries(Object.entries(value || {}).map(([pagina, sezione]) => [`${pagina}.html`, sezione]));
+      else out[key === "updatedAt" ? key : `${key}.html`] = value;
+    });
     return out;
   }
   async function savePageAccess(access = {}) {
     await ensureAuth();
     const item = {};
     // una lista vuota (solo admin) Firebase la cancellerebbe: si salva come "admin"
-    Object.entries(access).forEach(([key, value]) => { if (key !== "updatedAt") item[key.replace(/\.html$/, "")] = Array.isArray(value) && !value.length ? "admin" : value; });
+    Object.entries(access).forEach(([key, value]) => {
+      if (key === "ordine") { const ordine = (Array.isArray(value) ? value : []).map(pagina => String(pagina).replace(/\.html$/, "")); if (ordine.length) item.ordine = ordine; return; }
+      if (key === "sezioni") { const sezioni = Object.fromEntries(Object.entries(value || {}).map(([pagina, sezione]) => [pagina.replace(/\.html$/, ""), sezione])); if (Object.keys(sezioni).length) item.sezioni = sezioni; return; }
+      if (key !== "updatedAt") item[key.replace(/\.html$/, "")] = Array.isArray(value) && !value.length ? "admin" : value; });
     item.updatedAt = new Date().toISOString();
     await databaseRequest("private/adminUpdates/pageAccess", { method:"PUT", body:JSON.stringify(item) });
     return { ...access, updatedAt:item.updatedAt };

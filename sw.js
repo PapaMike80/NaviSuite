@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v676-agenti-sola-lettura';
+const CACHE_VERSION = 'navisuite-v677-backup-menu';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -38,6 +38,7 @@ const CORE_ASSETS = [
   './documenti.html',
   './navidistinta.html',
   './verifica-busta.html',
+  './backup-dati.html',
   './stampa-partenze.html',
   './orari.html',
   './assets/js/orario-corse-estate.js',
@@ -74,6 +75,10 @@ const CORE_ASSETS = [
   './assets/js/distinta-totals.js',
   './assets/js/busta-compare.js',
   './assets/js/verifica-busta.js',
+  './assets/js/backup-dati.js',
+  './assets/js/backup-diff.js',
+  './assets/js/diaria-backup.js',
+  './assets/js/navidiaria-backup-k.js',
   './v2/assets/pb.js',
   './assets/css/orario.css', './assets/css/mio-turno.css', './assets/css/servizi-terra.css', './assets/css/turni.css',
   './assets/js/orario-page.js', './assets/js/orario-giorno.js', './assets/js/orario-corse.js', './assets/js/orario-lago.js',
