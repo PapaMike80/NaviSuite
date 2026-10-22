@@ -226,5 +226,17 @@
     return null;
   }
 
-  root.NaviTurniGiorno = { SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
+  // Colori dei turni come in NaviTurni (naviturni-page.js: classify + shiftBorderColor)
+  const COLORI_NAVITURNI = { d1: '#3b6bcc', d2: '#2d9e6b', d3: '#e07b3a', d4: '#c45cba', dt: '#e6d44a', bis: '#5ec4d4', pond: '#f08080', rip: '#6b7280', cong: '#a78bfa', agb: '#60a5fa', fp: '#94a3b8', rf: '#84cc16', other: '#94a3b8' };
+  function coloreTurno(code) {
+    const u = String(code || '').toUpperCase().trim().replace(/\*/g, '');
+    if (!u || /^(R|RIP|RIPOSO)$/.test(u)) return COLORI_NAVITURNI.rip;
+    const k = /^(D1|R1|P1|T1)/.test(u) ? 'd1' : /^(D2|R2|P2|T2)/.test(u) ? 'd2' : /^(D3|R3|P3|M1)/.test(u) ? 'd3' : /^(D4|R4|P4)/.test(u) ? 'd4'
+      : /^DT/.test(u) ? 'dt' : /^BIS/.test(u) ? 'bis' : /^POND/.test(u) ? 'pond' : /^AGB/.test(u) ? 'agb' : /^CON/.test(u) ? 'cong' : /^(FP|F\.P\.|CORSO)$/.test(u) ? 'fp' : u === 'RF' ? 'rf' : 'other';
+    return COLORI_NAVITURNI[k];
+  }
+  // testo chiaro sui colori scuri, scuro su quelli chiari
+  const testoSu = hex => { const n = parseInt(String(hex).slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; return l > 0.6 ? '#06231f' : '#ffffff'; };
+
+  root.NaviTurniGiorno = { coloreTurno, testoSu, SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
 })(typeof window !== 'undefined' ? window : globalThis);
