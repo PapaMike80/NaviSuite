@@ -429,7 +429,8 @@
     servizioHeader('', '', day);
     const me = profile();
     const found = state.schedule ? G.turnoAgente(state.schedule, me, day) : null;
-    if (state._dayLoaded !== day) {
+    // si rilegge anche quando il turno del giorno cambia (cambi turno ricaricati dalla Distinta o da NaviTurni)
+    if (state._dayLoaded !== day || String(found?.turno ?? '') !== String(state.currentShift?.turno ?? '') || Boolean(found?.isModified) !== state.isModified) {
       state._dayLoaded = day;
       if (found) {
         state.originalShift = found.originalShift ? JSON.parse(JSON.stringify(found.originalShift)) : { ...found };
@@ -606,6 +607,8 @@
   const aggiornaModifiche = () => G.caricaModifiche(profile()).then(() => { if (state.schedule) render(); });
   aggiornaModifiche();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) aggiornaModifiche(); });
+  // tornando con «Indietro» la pagina puo' essere ripresa dalla memoria del browser: ricarico i cambi
+  window.addEventListener('pageshow', event => { if (event.persisted) aggiornaModifiche(); });
   window.addEventListener('storage', event => { if (String(event.key || '').startsWith('navidiaria.entries.v1.')) aggiornaModifiche(); });
   setInterval(() => { if (state.schedule) aggiornaModifiche(); }, 60000);
 })();
