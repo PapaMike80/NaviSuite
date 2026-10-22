@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NaviSuite">
+  <meta name="theme-color" content="#0d1a1c">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Backup e fonti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
+  <style>
+    :root{--bg:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--teal:#2dd4bf;--on-teal:#06231f;--cyan:#67d7e6;--rose:#fb7185;--amber:#fbbf24;--green:#52c879;--violet:#a78bfa;--mono:'DM Mono',ui-monospace,monospace;color-scheme:dark}
+    html.navisuite-light{--bg:#f4f8f7;--card:#ffffff;--card2:#e8f1ef;--line:#dbe7e5;--ink:#102631;--muted:#5b7079;--teal:#0f9f8c;--on-teal:#ffffff;--cyan:#1590a8;--rose:#d9435e;--amber:#b7791f;--green:#2f9e5a;--violet:#7c5cd6;color-scheme:light}
+    *{box-sizing:border-box}
+    body.bd-page{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:500 15px/1.5 Manrope,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+    .bd-page .app-sidebar{display:none}
+    .bd-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px))}
+    .bd-page>header small{display:block;color:var(--teal);font-size:12px;font-weight:800;letter-spacing:.22em}
+    .bd-page>header h1{margin:4px 0 0;font-size:26px;font-weight:800;line-height:1.15}
+    .bd-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{display:flex;flex-direction:column;gap:14px;width:min(760px,100%);margin:0 auto 40px;padding:0 max(16px,env(safe-area-inset-left,0px))}
+    h2{margin:0;font-size:18px}h3{margin:0 0 4px;font-size:15px}p{margin:0}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer;text-decoration:none}
+    .chip.up{border-color:var(--teal);color:var(--teal);background:transparent}
+    .chip.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+    .chip:disabled{opacity:.5;cursor:not-allowed}
+    select{min-height:38px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 13px Manrope,system-ui,sans-serif;padding:0 12px}
+    .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+    .bd-box,.bd-card{padding:14px 16px;border-radius:16px;background:var(--card)}
+    .bd-fonti{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+    .bd-card p{color:var(--muted);font-size:13px;overflow-wrap:anywhere}.bd-azioni{margin-top:10px}
+    .bd-warn{color:var(--amber)}.bd-ok{color:var(--green);font-weight:800}
+    .bd-barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .bd-diff-head p{color:var(--muted);font-size:13px}
+    .bd-lista{display:flex;flex-direction:column}
+    .bd-lista{gap:12px}
+    .bd-giorno{display:grid;gap:8px;padding:12px;border:1px solid rgba(114,160,170,.28);border-radius:16px;background:rgba(255,255,255,.03);cursor:pointer}
+    .bd-giorno-testa{display:flex;align-items:center;gap:10px}.bd-giorno-testa input{width:22px;height:22px;accent-color:var(--teal);flex:0 0 auto}
+    .bd-turno{display:flex;justify-content:center;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--c);border-left-width:5px;border-radius:10px;background:color-mix(in srgb,var(--c) 18%,transparent);color:color-mix(in srgb,var(--c) 55%,#fff);text-align:center}
+    .bd-turno b{font:900 1.05rem Manrope,sans-serif}.bd-turno small{font:800 .74rem Manrope,sans-serif;opacity:.85}
+    .bd-straord{display:grid;gap:8px;padding:10px;border:1px solid rgba(250,204,21,.34);border-radius:14px;background:rgba(250,204,21,.07)}
+    .bd-straord>small{color:#facc15;font:900 .72rem Manrope,sans-serif;letter-spacing:.06em}
+    .bd-bolle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .bd-bolla{display:grid;place-items:center;gap:1px;min-height:58px;padding:6px;border:1px solid rgba(114,160,170,.28);border-radius:12px;background:rgba(255,255,255,.045);text-align:center}
+    .bd-bolla span{color:#94adb5;font:800 .72rem Manrope,sans-serif;text-transform:uppercase}
+    .bd-bolla strong{font:900 1rem Manrope,sans-serif;color:#fff;overflow-wrap:anywhere}
+    .bd-bolla small{color:#94adb5;font:700 .68rem Manrope,sans-serif}.bd-bolla s{color:var(--rose)}
+    .bd-bolla.cambiata{border-color:rgb(var(--cc));background:rgba(var(--cc),.18)}.bd-bolla.cambiata strong{color:rgb(var(--cc));filter:brightness(1.35)}
+    .bd-tag{margin-left:auto;padding:1px 10px;border-radius:999px;font-size:11px;font-weight:800;background:var(--amber);color:#1a1100}.bd-tag.nuovo{background:var(--green)}
+    .bd-conv{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+    .bd-applica{align-self:flex-start;min-height:44px}
+    .bd-nota{color:var(--muted);font-size:13px;margin:4px 0 10px}
+    #bdMain{display:flex;flex-direction:column;gap:14px}#bdMain[hidden]{display:none}.bd-vuoto{color:var(--muted);padding:8px}
+  </style>
+</head>
+<body class="bd-page">
+  <aside class="app-sidebar" aria-hidden="true"></aside>
+  <header class="page-header"><div><small>DISTINTA</small><h1>Backup e fonti</h1></div></header>
+  <main>
+    <p class="bd-box" id="bdLogin" hidden>Accedi prima a NaviSuite: <a href="index.html">vai all’accesso</a>.</p>
+    <p class="bd-box bd-warn" id="bdBeta" hidden>NaviBeta è in sola lettura: puoi caricare un backup e vedere le differenze, ma non applicarle.</p>
+    <div id="bdMain" hidden>
+      <section class="bd-box">
+        <h2>Carica backup</h2>
+        <p class="bd-nota">Scegli da dove arriva il file. Prima vedi le differenze giorno per giorno, poi scegli quali applicare.</p>
+        <div class="bd-barra">
+          <label class="chip up" for="bdFileNavi">＋ Da NaviSuite</label><input class="sr-only" type="file" id="bdFileNavi" accept=".zip,.json,application/zip,application/json">
+          <label class="chip up" for="bdFileK">＋ Da Ore NaviG 4.3</label><input class="sr-only" type="file" id="bdFileK" accept=".json,application/json">
+        </div>
+        <p id="bdFileInfo" aria-live="polite" class="bd-warn"></p>
+      </section>
+      <section id="bdDiff" class="bd-box" hidden></section>
+      <section class="bd-box">
+        <h2>Scarica backup</h2>
+        <p class="bd-nota">Un file .zip con il backup della tua Distinta (per ripristinarla) e il CSV da aprire con Excel.</p>
+        <div class="bd-barra"><button type="button" class="chip on" id="bdScarica">⤓ Scarica backup NaviSuite</button></div>
+      </section>
+      <section id="bdAdmin" hidden><h2 style="margin-bottom:8px">Fonti dei dati</h2><p class="bd-nota" style="margin-bottom:8px">Solo amministratori: controlla che il database sul dispositivo e quello su Firebase siano uguali.</p><div class="bd-fonti" id="bdFonti"></div></section>
+    </div>
+  </main>
+  <script src="assets/js/shared-roles.js?v=15"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=92"></script>
+  <script src="assets/js/shared-menu.js?v=1.92"></script>
+  <script src="assets/js/offline.js?v=2"></script>
+  <script src="assets/js/overtime-components.js?v=11"></script>
+  <script src="assets/js/shift-competence.js?v=4"></script>
+  <script src="assets/js/distinta-totals.js?v=10"></script>
+  <script src="assets/js/diaria-backup.js?v=9"></script>
+  <script src="assets/js/navidiaria-backup-k.js?v=1"></script>
+  <script src="assets/js/backup-diff.js?v=1"></script>
+  <script src="assets/js/backup-dati.js?v=1"></script>
+</body>
+</html>

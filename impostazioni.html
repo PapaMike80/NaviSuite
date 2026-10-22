@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="NaviDiaria">
   <meta name="theme-color" content="#002b5e">
@@ -325,10 +326,10 @@
     <p class="pref-saved" id="pref-saved" role="status" aria-live="polite"><i aria-hidden="true"></i><span>Salvato automaticamente sul tuo profilo</span></p>
     <div class="pref-support"><span>NaviSuite ti è utile?</span><a href="https://ko-fi.com/papamike80" target="_blank" rel="noopener noreferrer" aria-label="Offrimi un caffè e sostieni NaviSuite tramite Ko-fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M9 3v3M12 3v3"/></svg>Offrimi un caffè</a></div>
   </footer>
-  <script src="assets/js/shared-roles.js?v=9"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=88"></script>
+  <script src="assets/js/shared-roles.js?v=15"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=92"></script>
   <script src="assets/js/draft-period.js?v=2"></script>
-  <script src="assets/js/shared-menu.js?v=1.83"></script>
+  <script src="assets/js/shared-menu.js?v=1.92"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
   <script src="assets/js/calendar-settings-v2.js?v=6"></script>
@@ -371,7 +372,7 @@
       const box=document.getElementById('pagina-tutti'),sel=document.getElementById('pagina-tutti-select'),stato=document.getElementById('pagina-tutti-stato');
       box.hidden=false;
       const nomiRuoli=Object.fromEntries(roles.RUOLI||[]);
-      const pagine=[['auto','Automatica (Il mio turno)'],['index.html','Home'],...(roles.PAGINE||[]).filter(([f])=>!['impostazioni.html','quiz.html','verifica-busta.html'].includes(f))];
+      const pagine=[['auto','Automatica (Il mio turno)'],['index.html','Home'],...(roles.PAGINE||[]).filter(([f])=>!['impostazioni.html','quiz.html','verifica-busta.html','comitive.html','backup-dati.html','agenti.html','movimento.html','collegamenti.html'].includes(f))];
       sel.innerHTML=pagine.map(([f,t])=>{const r=f==='auto'||f==='index.html'?'':` (${(roles.consentiti?.(f)||[]).map(x=>nomiRuoli[x]||x).join(', ')||'solo admin'})`;return `<option value="${f}">${t}${r}</option>`;}).join('');
       const mostra=d=>{if(d?.ts)stato.textContent=`Ultimo reset: ${new Date(d.ts).toLocaleString('it-IT')}${d.da?` da ${d.da}`:''} → ${(pagine.find(([f])=>f.replace(/\.html$/,'')===d.pagina)||[,d.pagina])[1]}`;};
       try{await NaviAdminFirebase.ready;mostra(await NaviAdminFirebase.getPaginaIniziale());}catch(_){}

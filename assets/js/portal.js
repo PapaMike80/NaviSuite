@@ -142,16 +142,41 @@ function showChoice(agent) {
   if (orariTabella) orariTabella.hidden = isBaristaAgent(agent);
   if (settings) settings.hidden = isBaristaAgent(agent);
   if (updates) updates.hidden = !(isAdminAgent(agent) || isHibaBarista(agent));
-  if (agentAdmin) agentAdmin.hidden = !isAdminAgent(agent);
-  if (movimento) movimento.hidden = !isAdminAgent(agent);
+  if (agentAdmin) agentAdmin.hidden = !window.NaviRoles?.puoAprire?.('agenti.html', agent);
+  if (movimento) movimento.hidden = !window.NaviRoles?.puoAprire?.('movimento.html', agent);
   if (shipManagement) shipManagement.hidden = !isAdminAgent(agent);
   // come nel menu: Orari a tutti tranne le bariste, Comitive ad admin e Ufficio Movimento, Collegamenti agli admin
   const orariPag = document.querySelector('.app-card.orari-pag'), comitive = document.querySelector('.app-card.comitive'), collegamenti = document.querySelector('.app-card.collegamenti');
   if (orariPag) orariPag.hidden = isBaristaAgent(agent) && !isHibaBarista(agent);
-  if (comitive) comitive.hidden = !(isAdminAgent(agent) || String(agent?.qualifica || '').toLowerCase() === 'movimento');
-  if (collegamenti) collegamenti.hidden = !isAdminAgent(agent);
+  if (comitive) comitive.hidden = !window.NaviRoles?.puoAprire?.('comitive.html', agent);
+  if (collegamenti) collegamenti.hidden = !window.NaviRoles?.puoAprire?.('collegamenti.html', agent);
   const quiz = document.querySelector('.app-card.quiz');
   if (quiz) quiz.hidden = !isAdminAgent(agent);
+  const backup = document.querySelector('.app-card.backup');
+  if (backup) backup.hidden = isBaristaAgent(agent);
+  // sezioni scelte dagli admin: ogni scheda va nella griglia della sua sezione
+  if (window.NaviRoles?.sezioneDi) {
+    const griglie = { principali: document.querySelector('#appChoice .app-principali'), altre: document.querySelector('#appChoice .app-altre:not(#adminGrid)'), amministrazione: document.getElementById('adminGrid') };
+    document.querySelectorAll('#appChoice .app-card').forEach(card => {
+      const sezione = window.NaviRoles.sezioneDi(card.getAttribute('href') || ''), dest = griglie[sezione];
+      if (dest && card.parentElement !== dest) dest.append(card);
+      card.querySelectorAll('p').forEach(p => { p.hidden = sezione !== 'principali'; });
+    });
+  }
+  if (window.NaviRoles?.ordineDi) {
+    document.querySelectorAll('#appChoice .app-grid').forEach(g => [...g.querySelectorAll(':scope > .app-card')].map((c, i) => [c, i])
+      .sort((x, y) => (window.NaviRoles.ordineDi(x[0].getAttribute('href')) - window.NaviRoles.ordineDi(y[0].getAttribute('href'))) || (x[1] - y[1])).forEach(([c]) => g.append(c)));
+  }
+  // la prima scheda delle principali occupa tutta la riga
+  const grigliaPrincipali = document.querySelector('#appChoice .app-principali');
+  if (grigliaPrincipali) {
+    const schede = [...grigliaPrincipali.querySelectorAll(':scope > .app-card')];
+    schede.forEach(c => c.classList.remove('primo'));
+    schede.find(c => !c.hidden)?.classList.add('primo');
+  }
+  // sezione Amministrazione: solo se c'e' almeno una voce visibile
+  const adminGrid = document.getElementById('adminGrid'), adminTitolo = document.getElementById('adminTitolo');
+  if (adminGrid) { const vuota = !adminGrid.querySelector('.app-card:not([hidden])'); adminGrid.hidden = vuota; if (adminTitolo) adminTitolo.hidden = vuota; }
 }
 
 function applyDirectory(directory) {
