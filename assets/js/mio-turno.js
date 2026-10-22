@@ -72,12 +72,12 @@
     const comp = C?.shiftForCode(code === 'RIP' ? 'Riposo' : code, day) || {};
     const lavoro = code !== 'RIP' && Number(comp.hours) > 0;
     const orario = inizio && fine ? `<span class="mt-orario">${esc(ora(inizio))} → ${esc(ora(fine))}</span>` : '';
-    const modHtml = state.isModified ? `<div class="mt-card-mod"><span class="mt-badge-mod">Modificato da: ${esc(state.modifiedBy)}</span><button type="button" class="mt-restore-btn" data-act="restore-original">Ripristina turno originale</button></div>` : '';
+    // niente riquadro «Modificato da / Ripristina turno originale»: il cambio turno si vede nella striscia dei giorni
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
       `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
-      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>` + modHtml;
+      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>`;
     // con l'equipaggio la riga del turno non serve (e' gia' nell'intestazione); senza (riposo) resta la pastiglia
-    return crewHtml ? card('Equipaggio', '', modHtml + crewHtml) : card('Il mio turno', '', head);
+    return crewHtml ? card('Equipaggio', '', crewHtml) : card('Il mio turno', '', head);
   }
 
   function prossimoServizio(day) {
