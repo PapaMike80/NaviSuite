@@ -134,23 +134,23 @@ assert.deepStrictEqual(states(), [true, false, true]);
 toggle(map, false, 'turno-scali');
 assert.deepStrictEqual(states(), [true, false, false]);
 toggle(turno, false, 'turno-after');
+// Aprire Corse e scali non apre la mappa: ogni sezione si apre e si chiude da sola.
 toggle(corse, true, 'turno-content');
+assert.deepStrictEqual(states(), [false, true, false]);
+assert.strictEqual(map.open, false);
+toggle(map, true, 'turno-scali');
 assert.deepStrictEqual(states(), [false, true, true]);
-assert.strictEqual(map.open, true);
-// L'evento automatico della mappa non modifica le altre sezioni.
-listeners['turno-scali']({ target: map });
+// Un evento iniziale da un render di corse gia' aperte non cambia la mappa.
+listeners['turno-content']({ target: corse });
 assert.deepStrictEqual(states(), [false, true, true]);
 toggle(map, false, 'turno-scali');
-assert.deepStrictEqual(states(), [false, true, false]);
-// Un evento iniziale da un render di corse gia' aperte non riapre la mappa.
-listeners['turno-content']({ target: corse });
 assert.deepStrictEqual(states(), [false, true, false]);
 assert.match(sectionCard('Corse e scali', '', '', '', 'corse'), /data-mt-section="corse" open/);
 assert.doesNotMatch(sectionCard('Il mio turno', '', ''), / open/);
 toggle(corse, false, 'turno-content');
 assert.deepStrictEqual(states(), [false, false, false]);
+toggle(map, true, 'turno-scali');
 toggle(corse, true, 'turno-content');
-assert.deepStrictEqual(states(), [false, true, true]);
 toggle(corse, false, 'turno-content');
 assert.deepStrictEqual(states(), [false, false, true]); // chiudere corse non chiude mappa
 toggle(turno, true, 'turno-after');

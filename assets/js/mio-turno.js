@@ -53,13 +53,8 @@
   function sectionToggle(event) {
     const section = event.target.dataset?.mtSection;
     if (!event.target.isConnected || !Object.hasOwn(state.sections, section)) return;
-    const wasOpen = state.sections[section];
+    // ogni sezione (anche la Mappa) si apre e si chiude da sola, toccandone il titolo
     state.sections[section] = event.target.open;
-    // Solo il passaggio chiuso -> aperto delle corse apre anche la mappa.
-    if (section === 'corse' && !wasOpen && event.target.open) {
-      state.sections.mappa = true;
-      $('turno-map').open = true;
-    }
   }
   ['turno-content', 'turno-after', 'turno-scali'].forEach(id => $(id).addEventListener('toggle', sectionToggle, true));
 
