@@ -367,7 +367,7 @@
         const rip = RIPOSO.test(t), c = G.coloreTurno(t);
         // settimane separate: prima di ogni lunedi' uno spazio con il numero della settimana; domenica in rosso
         const wd = parseIso(d).getDay(), sett = wd === 1 ? `<span class="mt-sett" aria-hidden="true"><em>sett. ${settimanaIso(d)}</em></span>` : '';
-        return `${sett}<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}${wd === 0 ? ' dom' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
+        return `${sett}<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}${wd === 0 ? ' dom' : ''}${d === giornoPaga(d) ? ' paga' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
           `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'rip' : '—') : esc(t)}</span></button>`;
       }).join('');
     }
@@ -380,6 +380,12 @@
       clearTimeout(giorniTimer); giorniTimer = setTimeout(() => { giorniBloccati = false; }, 900);
     }
     scalaGiorni();
+  }
+  // giorno di paga del mese: il 27; se cade di sabato si anticipa al 26, di domenica si posticipa al lunedi' 28
+  function giornoPaga(d) {
+    const x = new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, 27), wd = x.getDay();
+    if (wd === 6) x.setDate(26); else if (wd === 0) x.setDate(28);
+    return iso(x);
   }
   // numero della settimana (ISO, da lunedi')
   function settimanaIso(d) {
