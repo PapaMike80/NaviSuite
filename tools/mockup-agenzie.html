@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup Agenzie</title><style>
+    /* Comitive dell'O.d.S. giorno per giorno, nello stile a riquadri (docs/STILE-NAVISUITE.md). Solo admin e Ufficio Movimento. */
+    :root{color-scheme:dark;--bg:#071923;--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--orange:#fb923c;--rose:#fb7185;--green:#52c879;--mono:'DM Mono',ui-monospace,monospace}
+    *{box-sizing:border-box}
+    html{background:var(--surface)}
+    body.comitive-page{margin:0;min-height:100vh;color:var(--ink);font:500 14px/1.45 Manrope,system-ui,sans-serif;background:linear-gradient(160deg,color-mix(in srgb,var(--teal) 9%,var(--surface)),var(--surface) 40%,color-mix(in srgb,var(--violet) 9%,var(--surface)));padding-bottom:env(safe-area-inset-bottom,0px)}
+    .comitive-page .app-sidebar{display:none}
+    .comitive-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+    .comitive-page>header small{display:block;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.22em}
+    .comitive-page>header h1{margin:4px 0 0;font-size:24px;font-weight:800;background:linear-gradient(90deg,var(--teal),var(--cyan) 50%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .comitive-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--line)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{width:min(460px,calc(100% - 32px));margin:4px auto 40px;display:grid;gap:12px}
+    .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+    .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .bar p{flex:1 1 180px;margin:0;font-size:12px;color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 14px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .btn.out{background:transparent;border:1px solid color-mix(in srgb,var(--rose) 55%,transparent);color:var(--rose);min-height:30px;padding:4px 10px;font-size:11px}
+    .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .kpi div{display:grid;gap:2px;padding:8px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+    .kpi small{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+    .kpi b{font:500 20px var(--mono)}
+    .sez{--c:var(--teal);display:grid;gap:8px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .sez h3{margin:0;font-size:14px;font-weight:800;color:var(--c);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+    .sez h3 small{font:500 11px var(--mono);color:var(--muted)}
+    .giorno>summary{list-style:none;cursor:pointer}.giorno>summary::-webkit-details-marker{display:none}
+    .giorno>summary h3::before{content:'▸';margin-right:6px;color:var(--muted)}.giorno[open]>summary h3::before{content:'▾'}
+    .giorno>summary h3{justify-content:flex-start}.giorno>summary h3 small{margin-left:auto}
+    .sez.oggi{box-shadow:0 0 0 2px var(--c)}
+    /* tabella delle comitive: colonne come l'allegato dell'O.d.S., con i colori di NaviSuite */
+    .tab{display:grid;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .tr{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(170px,1.6fr) minmax(110px,1fr) 44px 64px 86px minmax(120px,1fr);gap:8px;align-items:center;min-width:820px;padding:6px 10px;border-radius:10px;background:var(--card);border-left:4px solid var(--g,var(--cyan));font-size:12.5px}
+    .tr.th{background:transparent;border-left-color:transparent;padding-top:0;padding-bottom:2px;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+    .tr .c{text-align:center;justify-self:center}
+    .tr:not(.th){cursor:pointer}.tr.edit{outline:2px solid var(--cyan)}
+    .btn[hidden]{display:none}
+    .tappe{display:grid;gap:6px}.tappe .lbl{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    #f-tappe{display:grid;gap:6px}
+    .tp{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;align-items:end}
+    .tp-n{display:grid;place-items:center;width:26px;height:26px;margin-bottom:8px;border-radius:50%;background:var(--c);color:var(--on);font:800 12px Manrope,system-ui,sans-serif}
+    .tp label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.tp label i{font-style:normal;text-transform:none;letter-spacing:0;font-weight:600}
+    .tp-x{height:40px;width:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+    .tp-add{justify-self:start;min-height:40px;padding:0 16px;border-radius:12px;border:1px dashed var(--c);background:color-mix(in srgb,var(--c) 10%,transparent);color:var(--c);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .annulla{background:transparent;border:1px solid var(--line);color:var(--muted)}
+    .sugg{display:grid;gap:6px}.sugg:empty{display:none}
+    .sugg .leg{display:grid;gap:4px;padding:8px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+    .sugg .leg>b{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+    .sugg .opz{display:flex;flex-wrap:wrap;gap:4px}
+    .sugg button{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--t) 60%,transparent);background:transparent;color:var(--ink);font:500 12px var(--mono);cursor:pointer}
+    .sugg button b{padding:0 6px;border-radius:999px;background:var(--t);color:var(--on);font:800 10px Manrope,system-ui,sans-serif}
+    .sugg button[aria-pressed="true"]{background:color-mix(in srgb,var(--t) 30%,transparent);outline:2px solid var(--t)}
+    .sugg p{margin:0;font-size:11px;color:var(--muted)}
+    .sugg .cmb{flex-wrap:wrap;border-radius:12px;text-align:left}.sugg .cmb i{font-style:normal;color:var(--amber);font:800 11px Manrope,system-ui,sans-serif}
+    .tr .perc{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
+    .tr .cli b{font-weight:800;overflow-wrap:anywhere}
+    .tr .cit{color:var(--muted);text-align:center}
+    .gr{display:inline-grid;place-items:center;min-width:38px;height:28px;padding:0 6px;border:2px solid var(--g);border-radius:999px;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font:500 12px var(--mono);white-space:nowrap}
+    .pg{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:color-mix(in srgb,var(--p) 20%,transparent);color:var(--p);border:1px solid color-mix(in srgb,var(--p) 45%,transparent)}
+    .nuova{font-size:9px;font-weight:900;color:var(--violet);font-style:normal}
+    .tr.th span:nth-child(3){text-align:center}
+    .naz-tel{display:none;font-style:normal}@media(max-width:720px){.naz-tel{display:inline}}
+    /* telefono: stesse informazioni su due righe (percorso e corse; cliente, città, naz.), pax e pagamento a destra */
+    @media(max-width:720px){
+      .tab{overflow:visible}
+      .tr{min-width:0;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"perc pax" "cli pag" "cit cit" "tc tc";gap:3px 8px}
+      .tr.th{display:none}
+      .tr .perc{grid-area:perc;font-weight:500}.tr .cli{grid-area:cli}.tr .tc{grid-area:tc}
+      .tr .cit{grid-area:cit;text-align:left;font-size:11px}
+      .tr>span:nth-child(4){display:none}
+      .tr>span:nth-child(5){grid-area:pax;justify-self:end}.tr>span:nth-child(6){grid-area:pag;justify-self:end}
+    }
+    .tc{display:flex;flex-wrap:wrap;gap:4px}.ct{display:inline-flex;align-items:center;gap:4px;padding:1px 2px 1px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--t) 55%,transparent);font-size:11px;color:var(--ink)}.ct i{font-style:normal}.ct b{padding:0 6px;border-radius:999px;background:var(--t);color:var(--on);font:800 10px Manrope,system-ui,sans-serif}
+    select,input{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink)}
+    input[type=date]{-webkit-appearance:none;appearance:none;min-height:42px}
+    .adm{--c:var(--cyan);border-radius:16px;background:color-mix(in srgb,var(--c) 10%,var(--card));border:1px solid color-mix(in srgb,var(--c) 38%,transparent)}
+    .adm>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px;cursor:pointer;font-size:14px;font-weight:800;color:var(--c)}
+    .adm>summary::-webkit-details-marker{display:none}
+    .adm>summary span{flex:1}
+    .adm>summary::after{content:'▾';color:var(--muted)}
+    .adm[open]>summary::after{content:'▴'}
+    .cnt{padding:2px 9px;border-radius:999px;background:var(--c);color:var(--on);font:500 11px var(--mono)}
+    .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 12px}
+    .form label{display:grid;gap:3px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+    .form .w{grid-column:1/-1}
+    .msg{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted)}.msg.bad{color:var(--rose)}.msg.ok{color:var(--green)}
+    .cc-col{display:contents}
+    .vuoto{margin:0;font-size:12px;color:var(--muted)}
+    @media(min-width:1000px){
+      main{width:min(1380px,calc(100% - 48px))}
+      .cc-col{display:grid;gap:12px}
+    }
+    /* ---------- Stampa: tabella come l'allegato «Comitive O.d.S.», fondo bianco ---------- */
+    .passati{width:100%;padding:9px;border:1px dashed var(--line);border-radius:12px;background:transparent;color:var(--muted);font:700 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .sett{width:auto;min-width:0;flex:0 1 auto;padding:8px 10px;font:600 13px Manrope,system-ui,sans-serif}
+    /* ---------- Stampa: come l'allegato «Comitive O.d.S.» (Arial, celle riquadrate, una settimana da sabato a venerdì) ---------- */
+    #stampa{display:none}
+    @media print{
+      @page{size:A4 portrait;margin:10mm 8mm}
+      html,body.comitive-page{background:#fff!important;color:#000;padding:0}
+      body.comitive-page>*:not(#stampa){display:none!important}
+      #stampa{display:block;font:7.5pt/1.15 Arial,Helvetica,sans-serif;color:#000}
+      #stampa h1{margin:0 0 5mm;font:bold 11pt Arial,Helvetica,sans-serif;text-align:center}
+      #stampa table{width:100%;border-collapse:separate;border-spacing:1.1mm .5mm;table-layout:fixed}
+      #stampa th{font-weight:bold;text-align:center;padding:0 .8mm .6mm;border-bottom:.6pt solid #000}
+      #stampa th.l{text-align:left}
+      #stampa td{border:.5pt solid #000;padding:.3mm .8mm;text-align:center;white-space:nowrap;overflow:hidden}
+      #stampa td.l{text-align:left}
+      #stampa tr.giorno td{border:0;padding:1.6mm 0 .2mm;text-align:left;font-weight:bold;text-decoration:underline}
+      #stampa tr.giorno{break-after:avoid;page-break-after:avoid}
+      #stampa tr{break-inside:avoid;page-break-inside:avoid}
+      #stampa thead{display:table-header-group}
+    }
+    /* tab Comitive / Agenzie */
+    .tabs{display:flex;gap:6px}
+    .tabs button{flex:1;min-height:42px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .tabs button[aria-selected="true"]{background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);border-color:transparent}
+    #tab-agenzie{display:grid;gap:12px}#tab-agenzie[hidden],#tab-comitive[hidden]{display:none}
+    #tab-comitive{display:contents}
+    .ag{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--card);border-left:4px solid var(--g,var(--cyan));cursor:pointer}
+    .ag.edit{outline:2px solid var(--cyan)}
+    .ag b{font-weight:800;overflow-wrap:anywhere}.ag small{grid-column:1;color:var(--muted);font-size:11.5px;overflow-wrap:anywhere}
+    .ag .pg{justify-self:end}.ag .btn{grid-row:2/4;grid-column:2;justify-self:end}
+    .ag-l{display:grid;gap:4px}
+    textarea{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);resize:vertical}
+    @media(min-width:1000px){.ag-l{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .form .sub{padding-top:6px;border-top:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}.ag-com{grid-column:1/-1;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px}.ag-com>summary{cursor:pointer;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}.ag-com .cr{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}.ag-com .cr:last-child{border-bottom:0}.ag-com .cr.pas{opacity:.65}.ag-com .cr .perc{font-family:var(--mono)}.ag-com .cr small{grid-column:2/-1}</style></head><body class="comitive-page">
+<header class="page-header"><div><small>MOVIMENTO</small><h1>Comitive</h1></div></header>
+<main>
+<div class="tabs"><button type="button" aria-selected="false">Comitive</button><button type="button" aria-selected="true">Agenzie</button></div>
+<div id="tab-agenzie">
+<details class="adm" open style="--c:var(--cyan)"><summary><span>✎ Modifica · Ag. Michelangelo</span><b class="cnt">12</b></summary>
+<form class="form" onsubmit="return false">
+<label class="w">Agenzia<input value="Ag. Michelangelo"></label>
+<label class="w">Indirizzo<input value="Via Roma 12"></label>
+<label>Città<input value="Verona"></label><label>Naz.<input value="I"></label>
+<label>Telefono<input value="+39 045 123456"></label><label>Mail<input value="booking@michelangelo.it"></label>
+<span class="w sub">Fatturazione</span>
+<label class="w">Ragione sociale<input value="Michelangelo Viaggi S.r.l."></label>
+<label>P.IVA / C.F.<input value="01234567890"></label><label>Codice SDI<input value="M5UXCR1"></label>
+<label class="w">PEC<input value="michelangelo@pec.it"></label>
+<label class="w">Indirizzo di fatturazione<input placeholder="se diverso dall'indirizzo"></label>
+<label class="w">Pagamento<select><option>voucher</option></select></label>
+<label class="w">Note<textarea rows="3">Referente: Sig.ra Rossi. Fatturazione a fine mese.</textarea></label>
+<button class="btn w">Salva modifiche</button><button class="btn w annulla">Annulla modifica</button>
+</form></details>
+<input type="search" placeholder="Cerca agenzia, città, nazione, mail…">
+<div class="ag-l">
+<div class="ag edit" style="--g:var(--violet)"><b>Ag. Michelangelo</b><span class="pg" style="--p:var(--violet)">voucher</span><small>Via Roma 12 · Verona · I</small><small>+39 045 123456 · booking@michelangelo.it</small><small>Fatt.: Michelangelo Viaggi S.r.l. · P.IVA 01234567890 · SDI M5UXCR1 · michelangelo@pec.it</small><small>8 comitive · 312 pax · Referente: Sig.ra Rossi</small><button class="btn out">Elimina</button>
+<details class="ag-com" open><summary>Comitive (8)</summary>
+<div class="cr"><span class="mono">sab 25 ott</span><span class="perc">Riva-Limone-Malcesine</span><span class="gr">40</span><small>voucher · corse 62-57</small></div>
+<div class="cr"><span class="mono">ven 24 ott</span><span class="perc">Riva-Sirmione</span><span class="gr">52</span><small>voucher · corse 14</small></div>
+<div class="cr pas"><span class="mono">mar 14 ott</span><span class="perc">Desenzano-Salò</span><span class="gr">38</span><small>voucher · corse 21-24</small></div>
+</details></div>
+<div class="ag" style="--g:var(--amber)"><b>Reisen Müller GmbH</b><span class="pg" style="--p:var(--amber)">diretto</span><small>Hauptstr. 4 · München · D</small><small>+49 89 555 0101 · info@reisen-mueller.de</small><small>2 comitive · 95 pax</small><button class="btn out">Elimina</button>
+<details class="ag-com" open><summary>Comitive (2)</summary>
+<div class="cr"><span class="mono">dom 26 ott</span><span class="perc">Riva-Malcesine</span><span class="gr">45</span><small>diretto · corse 18</small></div>
+<div class="cr pas"><span class="mono">gio 9 ott</span><span class="perc">Riva-Limone</span><span class="gr">50</span><small>diretto · corse 12-15</small></div>
+</details></div>
+<div class="ag" style="--g:var(--violet)"><b>Tours Lac de Garde</b><span class="pg" style="--p:var(--violet)">voucher</span><small>Lyon · F</small><small>2 comitive · 74 pax</small></div>
+<div class="ag" style="--g:var(--cyan)"><b>Ag. Dolomiti Viaggi <i class="nuova">DA COMITIVE</i></b><span></span><small>---</small><small>1 comitive · 40 pax</small></div>
+</div></div></main></body></html>

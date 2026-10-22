@@ -118,12 +118,33 @@
       #stampa tr{break-inside:avoid;page-break-inside:avoid}
       #stampa thead{display:table-header-group}
     }
+    /* tab Comitive / Agenzie */
+    .tabs{display:flex;gap:6px}
+    .tabs button{flex:1;min-height:42px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:800 13px Manrope,system-ui,sans-serif;cursor:pointer}
+    .tabs button[aria-selected="true"]{background:linear-gradient(90deg,var(--teal),var(--cyan));color:var(--on);border-color:transparent}
+    #tab-agenzie{display:grid;gap:12px}#tab-agenzie[hidden],#tab-comitive[hidden]{display:none}
+    #tab-comitive{display:contents}
+    .ag{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--card);border-left:4px solid var(--g,var(--cyan));cursor:pointer}
+    .ag.edit{outline:2px solid var(--cyan)}
+    .ag b{font-weight:800;overflow-wrap:anywhere}.ag small{grid-column:1;color:var(--muted);font-size:11.5px;overflow-wrap:anywhere}
+    .ag .pg{justify-self:end}.ag .btn{grid-row:2/4;grid-column:2;justify-self:end}
+    .ag-l{display:grid;gap:4px}
+    .ag-com{grid-column:1/-1;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;cursor:default}
+    .ag-com>summary{cursor:pointer;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+    .ag-com .cr{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+    .ag-com .cr:last-child{border-bottom:0}.ag-com .cr.pas{opacity:.65}
+    .ag-com .cr .perc{font-family:var(--mono);overflow-wrap:anywhere}.ag-com .cr small{grid-column:2/-1}
+    .form .sub{padding-top:6px;border-top:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--violet)}
+    textarea{width:100%;min-width:0;font:600 14px Manrope,system-ui,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);resize:vertical}
+    @media(min-width:1000px){.ag-l{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
 </head>
 <body class="comitive-page">
   <aside class="app-sidebar" id="comitive-sidebar"></aside>
   <header class="page-header"><div><small>MOVIMENTO</small><h1>Comitive</h1></div></header>
   <main id="pagina" hidden>
+    <div class="tabs" role="tablist"><button type="button" role="tab" id="t-com" aria-selected="true" data-tab="comitive">Comitive</button><button type="button" role="tab" id="t-age" aria-selected="false" data-tab="agenzie">Agenzie</button></div>
+    <div id="tab-comitive">
     <div class="bar"><p id="fonte"></p><select class="sett" id="settimana" aria-label="Settimana da stampare"></select><button class="btn" id="stampa-btn" type="button">🖨 Stampa OdS Comitive</button></div>
     <div class="kpi" id="kpi"></div>
     <details class="adm" id="nuova-box" style="--c:var(--cyan)">
@@ -144,6 +165,33 @@
       </form>
     </details>
     <div class="cc-col" id="giorni"></div>
+    </div>
+    <div id="tab-agenzie" hidden>
+      <details class="adm" id="ag-box" style="--c:var(--cyan)">
+        <summary><span id="ag-titolo">＋ Nuova agenzia</span><b class="cnt" id="ag-cnt">0</b></summary>
+        <form class="form" id="ag-form" autocomplete="off">
+          <label class="w">Agenzia<input type="text" id="a-nome" placeholder="Ag. Michelangelo" required></label>
+          <label class="w">Indirizzo<input type="text" id="a-indirizzo" placeholder="Via, numero"></label>
+          <label>Città<input type="text" id="a-citta" placeholder="Riva del Garda"></label>
+          <label>Naz.<input type="text" id="a-naz" placeholder="I" maxlength="3"></label>
+          <label>Telefono<input type="tel" id="a-telefono" placeholder="+39 0464 000000"></label>
+          <label>Mail<input type="email" id="a-mail" placeholder="info@agenzia.it"></label>
+          <span class="w sub">Fatturazione</span>
+          <label class="w">Ragione sociale<input type="text" id="a-rag_sociale"></label>
+          <label>P.IVA / C.F.<input type="text" id="a-piva" placeholder="01234567890"></label>
+          <label>Codice SDI<input type="text" id="a-sdi" maxlength="7" placeholder="0000000"></label>
+          <label class="w">PEC<input type="email" id="a-pec" placeholder="agenzia@pec.it"></label>
+          <label class="w">Indirizzo di fatturazione<input type="text" id="a-indirizzo_fatt" placeholder="se diverso dall'indirizzo"></label>
+          <label class="w">Pagamento<select id="a-pagamento"><option value="voucher">voucher</option><option value="diretto">diretto</option></select></label>
+          <label class="w">Note<textarea id="a-note" rows="3"></textarea></label>
+          <button class="btn w" type="submit" id="a-salva">Salva agenzia</button>
+          <button class="btn w annulla" type="button" id="a-annulla" hidden>Annulla modifica</button>
+          <p class="msg" id="a-msg"></p>
+        </form>
+      </details>
+      <input type="search" id="ag-cerca" placeholder="Cerca agenzia, città, nazione, mail…" aria-label="Cerca agenzia">
+      <div class="ag-l" id="ag-lista"></div>
+    </div>
   </main>
   <div id="stampa"></div>
   <script src="assets/js/shared-roles.js?v=15"></script>
@@ -158,7 +206,7 @@
   <script src="assets/js/coincidenze-ufficiali.js?v=1"></script>
   <script src="assets/js/orari-stagioni.js?v=9"></script>
   <script src="assets/js/comitive-ods.js?v=1"></script>
-  <script src="assets/js/comitive.js?v=8"></script>
+  <script src="assets/js/comitive.js?v=10"></script>
   <script>
   (function(){
     const $=id=>document.getElementById(id);
@@ -342,10 +390,75 @@
       }catch(err){msg.className='msg bad';msg.textContent=`Non salvata: ${err.message}`;}
     });
 
+    // ---------- Tab Agenzie: anagrafica (clienti_comitive) con numero di comitive e pax ----------
+    state.agEdit=null;state.agAperti=new Set();
+    document.addEventListener('toggle',e=>{const n=e.target.dataset?.agc;if(n){if(e.target.open)state.agAperti.add(n);else state.agAperti.delete(n);}},true);
+    function renderAgenzie(){
+      const per=new Map();
+      state.lista.forEach(c=>{const n=C.nomeBase(c.cliente);if(!n)return;const x=per.get(n)||{n:0,pax:0,l:[]};x.n++;x.pax+=paxN(c.pax);x.l.push(c);per.set(n,x);});
+      const tutti=new Map();
+      per.forEach((_,n)=>tutti.set(n,{nome:n,citta:'',naz:'',pagamento:'',indirizzo:'',telefono:'',mail:'',note:'',rag_sociale:'',piva:'',sdi:'',pec:'',indirizzo_fatt:''}));
+      state.lista.forEach(c=>{const a=tutti.get(C.nomeBase(c.cliente));if(a){a.citta=a.citta||c.citta||'';a.naz=a.naz||c.naz||'';a.pagamento=a.pagamento||c.pagamento||'';}});
+      state.clienti.forEach(c=>tutti.set(c.nome,c));
+      const q=$('ag-cerca').value.trim().toLowerCase();
+      const righe=[...tutti.values()].filter(a=>!q||[a.nome,a.citta,a.naz,a.indirizzo,a.telefono,a.mail,a.note,a.rag_sociale,a.piva,a.sdi,a.pec,a.indirizzo_fatt].join(' ').toLowerCase().includes(q)).sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
+      $('ag-cnt').textContent=tutti.size;
+      $('ag-lista').innerHTML=righe.length?righe.map(a=>{
+        const col=COL_PAG[a.pagamento]||'var(--cyan)',s=per.get(a.nome);
+        const sel=state.agEdit&&(state.agEdit.id?state.agEdit.id===a.id:state.agEdit.nome===a.nome);
+        const luogo=[a.indirizzo,a.citta,a.naz].filter(Boolean).join(' · ')||'---',contatti=[a.telefono,a.mail].filter(Boolean).join(' · '),fatt=[a.rag_sociale,a.piva&&`P.IVA ${a.piva}`,a.sdi&&`SDI ${a.sdi}`,a.pec].filter(Boolean).join(' · ');
+        return `<div class="ag${sel?' edit':''}" style="--g:${col}" data-ag="${esc(a.nome)}" role="button" tabindex="0" title="Tocca per modificare"><b>${esc(a.nome)}${a.id?'':' <i class="nuova">DA COMITIVE</i>'}</b>${a.pagamento?`<span class="pg" style="--p:${col}">${esc(a.pagamento)}</span>`:'<span></span>'}<small>${esc(luogo)}</small>${contatti?`<small>${esc(contatti)}</small>`:''}${fatt?`<small>Fatt.: ${esc(fatt)}</small>`:''}<small>${s?`${s.n} comitive · ${s.pax} pax`:'nessuna comitiva'}${a.note?` · ${esc(a.note)}`:''}</small>${a.id?`<button class="btn out" type="button" data-ag-del="${esc(a.id)}">Elimina</button>`:''}${s?`<details class="ag-com" data-agc="${esc(a.nome)}"${state.agAperti.has(a.nome)||sel?' open':''}><summary>Comitive (${s.n})</summary>${s.l.slice().sort((x,y)=>y.data.localeCompare(x.data)).map(c=>`<div class="cr${c.data<oggi?' pas':''}"><span class="mono">${esc(giornoCorto(c.data))}</span><span class="perc">${esc(c.percorso)}</span><span class="gr">${esc(c.pax)}</span><small>${esc(c.pagamento)} · corse ${esc(c.corse)}</small></div>`).join('')}</details>`:''}</div>`;
+      }).join(''):'<p class="vuoto">Nessuna agenzia.</p>';
+      state.agTutti=tutti;
+    }
+    const AG=['nome','indirizzo','citta','naz','telefono','mail','rag_sociale','piva','sdi','pec','indirizzo_fatt','note'];
+    function moduloAg(a){
+      state.agEdit=a||null;
+      AG.forEach(k=>{$(`a-${k}`).value=a?.[k]||'';});$('a-pagamento').value=a?.pagamento||'voucher';
+      $('ag-titolo').textContent=a?`✎ Modifica · ${a.nome}`:'＋ Nuova agenzia';
+      $('a-salva').textContent=a?'Salva modifiche':'Salva agenzia';
+      $('a-annulla').hidden=!a;$('a-msg').textContent='';renderAgenzie();
+    }
+    function tab(nome){
+      const ag=nome==='agenzie';
+      $('tab-comitive').hidden=ag;$('tab-agenzie').hidden=!ag;
+      $('t-com').setAttribute('aria-selected',String(!ag));$('t-age').setAttribute('aria-selected',String(ag));
+      if(ag)renderAgenzie();
+    }
+    document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)tab(b.dataset.tab);});
+    $('ag-cerca').addEventListener('input',renderAgenzie);
+    $('a-annulla').addEventListener('click',()=>moduloAg(null));
+    $('ag-lista').addEventListener('click',async e=>{
+      const d=e.target.closest('[data-ag-del]');
+      if(d){
+        if(!confirm("Eliminare questa agenzia dall'anagrafica? Le comitive già inserite restano."))return;
+        try{await C.eliminaAgenzia(d.dataset.agDel);state.clienti=state.clienti.filter(c=>c.id!==d.dataset.agDel);if(state.agEdit?.id===d.dataset.agDel)moduloAg(null);else renderAgenzie();suggerimenti();}catch(err){alert(`Non eliminata: ${err.message}`)}
+        return;
+      }
+      if(e.target.closest('.ag-com'))return;
+      const r=e.target.closest('[data-ag]');if(!r)return;
+      const a=state.agTutti?.get(r.dataset.ag);if(!a)return;
+      moduloAg(a);$('ag-box').open=true;$('ag-box').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    $('ag-form').addEventListener('submit',async e=>{
+      e.preventDefault();
+      const msg=$('a-msg'),dati=Object.fromEntries(AG.map(k=>[k,$(`a-${k}`).value.trim()]));dati.naz=dati.naz.toUpperCase();dati.sdi=dati.sdi.toUpperCase();dati.pagamento=$('a-pagamento').value;
+      if(!C.nomeBase(dati.nome)){msg.className='msg bad';msg.textContent="Indica il nome dell'agenzia.";return;}
+      if(!state.pb){msg.className='msg bad';msg.textContent='Archivio non raggiungibile: non si può salvare.';return;}
+      msg.className='msg';msg.textContent='Salvataggio…';
+      try{
+        const prima=state.agEdit,gia=state.clienti.find(c=>c.nome===C.nomeBase(dati.nome));
+        if(gia&&gia.id!==prima?.id)throw new Error("esiste già un'agenzia con questo nome");
+        await C.salvaAgenzia(prima?.id||'',dati);
+        state.clienti=await C.caricaClienti();suggerimenti();
+        moduloAg(null);msg.className='msg ok';msg.textContent=prima?'Modifiche salvate.':'Agenzia salvata.';
+      }catch(err){msg.className='msg bad';msg.textContent=`Non salvata: ${err.message}`;}
+    });
+
     (async()=>{
       renderTappe();
       const r=await C.carica();state.lista=r.lista;state.pb=r.pb;render();suggerimenti();
-      if(r.pb)C.caricaClienti().then(l=>{state.clienti=l;suggerimenti();});
+      if(r.pb)C.caricaClienti().then(l=>{state.clienti=l;suggerimenti();if(!$('tab-agenzie').hidden)renderAgenzie();});
       // le comitive dell'O.d.S. non ancora in archivio vengono copiate una volta
       if(r.pb&&state.lista.some(c=>!c.id&&c.fonte==='ods')){try{await C.copiaOds(state.lista,autore);render();}catch(err){console.warn('Comitive O.d.S. non copiate',err)}}
     })();
