@@ -336,13 +336,12 @@
   }
 
   // Striscia dei giorni: due settimane prima e dopo oggi, con il mio turno; il giorno scelto al centro
-  const COLORI_TERRA = { DT: '#d4a900', AGB: '#60a5fa', POND: '#f87171', AGM: '#60a5fa', AGT: '#d4a900', AGT1: '#d4a900', AGT2: '#d4a900', PONM: '#f87171', IE: '#94a3b8' };
   const RIPOSO = /^(R|RIP|RIPOSO|RF|CON|F|FE|FERIE|M|MAL|MALATTIA|=+|-+|LIBERO)?$/i;
   let giorniBloccati = false, giorniTimer = 0;
   function renderGiorni(day, me) {
     const box = $('turno-giorni');
     if (!box) return;
-    const oggi = iso(new Date()), colori = window.NaviOrariStagioni?.COLORI || {};
+    const oggi = iso(new Date());
     const giorni = Array.from({ length: 29 }, (_, k) => addDays(oggi, k - 14));
     if (!giorni.includes(day)) giorni.push(day), giorni.sort();
     box.innerHTML = giorni.map(d => {
@@ -350,9 +349,9 @@
       t = lavoroDi(t) || t;
       const dist = Math.abs((parseIso(d) - parseIso(day)) / 864e5), rip = RIPOSO.test(t);
       const stile = `--o:${dist === 0 ? 1 : d === oggi ? .85 : dist === 1 ? .62 : dist === 2 ? .45 : .3};--s:${dist === 0 ? 1 : dist === 1 ? .94 : .88}`;
-      const c = colori[t.toUpperCase()] || COLORI_TERRA[t.toUpperCase().replace(/\s+/g, '')] || (lavoroDi(t) ? '#d4d4d8' : '#9fb8c2');
+      const c = G.coloreTurno(t);
       return `<button type="button" class="mt-g${d === day ? ' on' : ''}${d === oggi ? ' oggi' : ''}" data-giorno="${d}" style="${stile}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
-        `<span class="t${rip ? ' rip' : ''}" style="--c:${c}">${rip ? (t ? 'riposo' : '—') : esc(t)}</span></button>`;
+        `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'riposo' : '—') : esc(t)}</span></button>`;
     }).join('');
     const sel = box.querySelector('.mt-g.on');
     if (sel) { giorniBloccati = true; box.scrollTo({ left: sel.offsetLeft - (box.clientWidth - sel.offsetWidth) / 2, behavior: box.dataset.pronto ? 'smooth' : 'auto' }); box.dataset.pronto = '1'; clearTimeout(giorniTimer); giorniTimer = setTimeout(() => { giorniBloccati = false; }, 500); }
