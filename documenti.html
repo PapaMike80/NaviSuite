@@ -55,7 +55,7 @@
     .sez-head:not(.is-collapsed) .section-chevron{transform:rotate(180deg)}
     .document-grid{display:grid;gap:8px}
     .document-grid:empty{display:none}
-    .document-grid.is-collapsed{display:none}
+    .document-grid.is-collapsed,.tutorial-grid.is-collapsed{display:none}
 
     /* Riga documento (creata da documenti.js) */
     .document{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c);cursor:pointer}
@@ -192,7 +192,7 @@
   <script src="assets/js/admin-firebase-rest.js?v=92"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
-  <script src="assets/js/documenti.js?v=1.21"></script>
+  <script src="assets/js/documenti.js?v=1.22"></script>
 
   <!-- Navigazione Mobile Liquid Glass -->
 

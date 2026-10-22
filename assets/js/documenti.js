@@ -796,7 +796,7 @@ async function loadDocuments() {
 
 // Sezioni Turni, ODS e Servizi a terra: chiuse all'apertura, si aprono toccando il titolo
 // (o dal menu, che porta all'ancora della sezione).
-const SECTIONS = [['turni-docs', 'turniGrid'], ['ods-docs', 'odsGrid'], ['terra-docs', 'terraGrid']];
+const SECTIONS = [['tutorial-docs', 'tutorialGrid'], ['turni-docs', 'turniGrid'], ['ods-docs', 'odsGrid'], ['terra-docs', 'terraGrid']];
 
 function setSectionOpen(headingId, open) {
   const pair = SECTIONS.find(([id]) => id === headingId);
