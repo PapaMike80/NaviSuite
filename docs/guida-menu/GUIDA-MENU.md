@@ -2,6 +2,8 @@
 
 ![Passi](guida-menu-passi.png)
 
+![Come si fa](guida-menu.gif)
+
 Video: [guida-menu.mp4](guida-menu.mp4)
 
 1. **Apri il menu** con il pulsante ☰ in alto a destra.
