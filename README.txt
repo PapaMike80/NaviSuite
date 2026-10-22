@@ -30,5 +30,4 @@ File principali:
 
 Configurazione Firebase:
 - assets/js/admin-firebase-rest.js
-- assets/js/firebase-data.js
 - firebase-rules-aggiornamenti.json
