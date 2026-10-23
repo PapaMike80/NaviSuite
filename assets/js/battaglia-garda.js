@@ -2,7 +2,7 @@
 // I bersagli sono i battelli in corsa, nel punto in cui li mette l'orario a un'ora a caso della giornata (diversa a ogni partita) (in navigazione sulla
 // rotta, oppure all'ormeggio davanti allo scalo): uguale per tutti i colleghi. Ogni battello e' una casella sola; si hanno
 // 10 siluri in acqua (chi colpisce ritira; ogni siluro in acqua dice a quante caselle e' il battello piu' vicino) e un sonar
-// da usare una volta (il raggio fa un giro e accende i battelli mentre ci passa sopra): in classifica va davanti chi ne affonda di piu', a parita' chi usa meno siluri. Conta la prima partita del giorno.
+// da usare una volta (il raggio fa un giro e accende i battelli mentre ci passa sopra): in classifica va davanti chi ne affonda di piu', a parita' chi usa meno siluri. Si gioca quante volte si vuole: in classifica resta il miglior risultato del giorno.
 (function (root) {
   'use strict';
   const MAPPA = root.NaviLagoMappa;
@@ -154,8 +154,6 @@
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const oggi = iso(new Date());
   const profilo = (() => { try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; } })();
-  const FATTA = `navisuite.battagliaGarda.fatta.${oggi}`;
-  const giaFatta = () => { try { return localStorage.getItem(FATTA); } catch { return null; } };
   const hhmm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const nomeCella = i => { const [x, y] = centro(i); return `davanti a ${Object.entries(POS).sort((a, b) => Math.hypot(a[1][0] - x, a[1][1] - y) - Math.hypot(b[1][0] - x, b[1][1] - y))[0][0]}`; };
@@ -170,10 +168,9 @@
     const t = ore.length ? ore[Math.floor(Math.random() * ore.length)] : 0, aCaso = true;
     const navi = ore.length ? piazzaOrario(posizioni(corse, t).filter(n => !n.fermo)) : [];
     const chiuso = navi.length < 2;
-    const valida = !giaFatta();
     // rotta della giornata di ogni nave: si disegna quando la nave viene affondata
     navi.forEach(n => { n.rotta = rottaGiornata(corse, n.nome); });
-    g = { navi: chiuso ? [] : navi, chiuso, aCaso, ora: t, sonarUsato: false, giro: false, colpi: new Set(), dist: {}, ultimo: null, valida, log: chiuso ? `Adesso ${navi.length ? 'c\'è una sola nave' : 'non ci sono navi'} in navigazione: si gioca quando almeno due navi stanno facendo una corsa.` : 'Tocca una casella d\'acqua per sparare (non sugli scali).', colore: 'var(--teal)' };
+    g = { navi: chiuso ? [] : navi, chiuso, aCaso, ora: t, sonarUsato: false, giro: false, colpi: new Set(), dist: {}, ultimo: null, log: chiuso ? `Adesso ${navi.length ? 'c\'è una sola nave' : 'non ci sono navi'} in navigazione: si gioca quando almeno due navi stanno facendo una corsa.` : 'Tocca una casella d\'acqua per sparare (non sugli scali).', colore: 'var(--teal)' };
     render();
   }
 
@@ -244,11 +241,11 @@
 
   function render() {
     const affondate = g.navi.filter(n => n.colpi.size === n.len).length, fine = finePartita();
-    $('bg-info').innerHTML = g.chiuso ? `Oggi non ci sono navi in corsa: nessuna sfida.` : `${g.navi.length} battelli in navigazione alle <b>${hhmm(g.ora)}</b> (ora a caso, cambia a ogni partita)${g.valida ? '' : ' · <b>allenamento</b>: la partita di oggi è già in classifica'}`;
+    $('bg-info').innerHTML = g.chiuso ? `Oggi non ci sono navi in corsa: nessuna sfida.` : `${g.navi.length} battelli in navigazione alle <b>${hhmm(g.ora)}</b> (ora a caso, cambia a ogni partita)`;
     $('bg-punti').innerHTML = `🚀 Siluri <b>${COLPI - acqua()}</b>/${COLPI} · Affondati <b>${affondate}</b>/${g.navi.length}`;
     const t = $('bg-turno');
-    t.textContent = g.chiuso ? 'Navi ferme' : fine ? (finita(g.navi) ? 'Tutti affondati!' : 'Colpi finiti') : g.valida ? 'Sfida del giorno' : 'Allenamento';
-    t.className = `turno${fine ? ' fine' : g.valida ? '' : ' cpu'}`;
+    t.textContent = g.chiuso ? 'Navi ferme' : fine ? (finita(g.navi) ? 'Tutti affondati!' : 'Colpi finiti') : 'Sfida del giorno';
+    t.className = `turno${fine ? ' fine' : ''}`;
     lago($('bg-lago'), g.navi, g.colpi, fine, g.ultimo);
     $('bg-sonar').disabled = g.sonarUsato || !!fine; $('bg-sonar').style.opacity = g.sonarUsato || fine ? .4 : 1;
     $('bg-lago').classList.toggle('attesa', !!fine);
@@ -268,15 +265,16 @@
       if (classifica[mio] && !letta[mio]) letta[mio] = classifica[mio]; // il mio appena salvato
       classifica = letta;
     } catch { /* resta quella che c'era */ }
-    // gia' in classifica (anche da un altro telefono): questa partita e' un allenamento
-    if (g && mio && classifica[mio] && g.valida && !g.colpi.size) g.valida = false;
     if (g) render();
   }
   async function salvaRisultato() {
-    try { localStorage.setItem(FATTA, String(g.colpi.size)); } catch { /* niente */ }
     if (!profilo?.id) return;
+    // si gioca quante volte si vuole: in classifica resta il miglior risultato di oggi (piu' battelli, poi meno colpi)
+    const chiave = String(profilo.id).replace(/[.#$\[\]\/]/g, '_'), prima = classifica[chiave];
     const r = { affondate: g.navi.filter(x => x.colpi.size === x.len).length, colpi: g.colpi.size, nome: profilo.name || profilo.agente || profilo.id, t: Date.now() };
-    classifica[String(profilo.id).replace(/[.#$\[\]\/]/g, '_')] = r;
+    if (prima && ((prima.affondate || 0) > r.affondate || ((prima.affondate || 0) === r.affondate && prima.colpi <= r.colpi))) { g.log += ' · in classifica resta il tuo record di oggi'; render(); return; }
+    if (prima) g.log += ' · 🏅 nuovo record di oggi!';
+    classifica[chiave] = r;
     try { await window.NaviAdminFirebase?.saveRisultatoGarda?.(oggi, profilo.id, r); } catch (error) { console.warn('Risultato non salvato', error); }
     caricaClassifica();
   }
@@ -297,9 +295,8 @@
     if (finePartita()) {
       const n = g.navi.filter(x => x.colpi.size === x.len).length;
       g.log = finita(g.navi) ? `🏆 Hai affondato tutta la flotta Navigarda (${n} battelli) in <b>${g.colpi.size} siluri</b>!` : `Siluri finiti: hai affondato <b>${n} ${n === 1 ? 'battello' : 'battelli'} su ${g.navi.length}</b>.`;
-      if (!g.valida) g.log += ' (allenamento, non conta)';
       g.colore = 'var(--green)';
-      if (g.valida) salvaRisultato();
+      salvaRisultato();
     }
     render();
   });
@@ -313,7 +310,7 @@
     render();
     setTimeout(() => { g.giro = false; g.log = '📡 Giro del sonar finito: ora i siluri.'; render(); }, GIRO_MS + 700);
   });
-  $('bg-nuova').addEventListener('click', () => { if (!g.colpi.size || finePartita() || confirm('Ricominciare? Se è la sfida del giorno, questa partita non conterà.')) { if (g.colpi.size && !finePartita() && g.valida) { try { localStorage.setItem(FATTA, 'abbandonata'); } catch { /* niente */ } } nuova(); } });
+  $('bg-nuova').addEventListener('click', () => { if (!g.colpi.size || finePartita() || confirm('Ricominciare? Questa partita non verrà salvata.')) nuova(); });
   $('bg-lago').setAttribute('viewBox', `0 0 ${LARGO} ${ALTO}`);
   nuova();
   caricaClassifica();
