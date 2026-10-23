@@ -104,6 +104,9 @@
         const si = await chiedi({ date: e.date, turno: turno(e), minuti: min, nome: String(r.nome || ''), quando: quando(r), modifica: prima > 0 });
         if (si) {
           window.NaviDiariaOvertime.setOrdinary(e, min, servizio(e));
+          // ore lavorate scritte a mano: tornano a servizio + ritardo + cambio + sentine (come nel popup della giornata)
+          const oc = window.NaviOvertimeComponents;
+          if (oc?.isWorkedManual?.(e)) oc.setWorked(e, servizio(e) + min + (Number(oc.changes(e)) || 0) + (Number(oc.sentine(e)) || 0), servizio(e));
           e.ritardoEquipaggio = { da: String(r.nome || ''), minuti: min, at: quando(r) };
           e.ritardoPubblicato = min; // registrato: non riparte da me
           e.imported = false;
