@@ -27,8 +27,9 @@ function agente(id, db, adm) {
     async saveRitardoEquipaggio(g, t, a, v) { ((db[g] ||= {})[t] ||= {})[a] = v; },
   };
   vm.createContext(ctx);
+  ctx.NaviRitardiEquipaggio = { chiedi: async () => ctx.risposta !== false };
   vm.runInContext(codice, ctx);
-  return { e: ctx.entries[0], segna: async min => { ctx.entries[0].rit = min; ctx.entries[0].modificatoIl = Date.now(); await ctx.saveEntriesToFirebase(); await ctx.NaviRitardiEquipaggio.pubblica(); }, ricevi: () => ctx.NaviRitardiEquipaggio.ricevi() };
+  return { e: ctx.entries[0], segna: async min => { ctx.entries[0].rit = min; ctx.entries[0].modificatoIl = Date.now(); await ctx.saveEntriesToFirebase(); await ctx.NaviRitardiEquipaggio.pubblica(); }, ricevi: (risposta = true) => { ctx.risposta = risposta; return ctx.NaviRitardiEquipaggio.ricevi(); } };
 }
 
 (async () => {
@@ -58,5 +59,12 @@ function agente(id, db, adm) {
   assert.deepStrictEqual([caio.e.rit, tizio.e.rit], [40, 40], 'ogni modifica dell admin passa di nuovo');
   await caio.segna(15); await caio.ricevi();
   assert.strictEqual(caio.e.rit, 15, 'senza nuove modifiche dell admin la correzione di Caio resta');
+  // Annulla: il ritardo non entra e il popup non ricompare
+  const db2 = {}, a1 = agente('A1', db2), a2 = agente('A2', db2);
+  await a1.segna(30);
+  await a2.ricevi(false);
+  assert.strictEqual(a2.e.rit, undefined, 'Annulla non registra');
+  await a2.ricevi(true);
+  assert.strictEqual(a2.e.rit, undefined, 'dopo Annulla non viene riproposto');
   console.log('ritardi-equipaggio: ok');
 })().catch(e => { console.error(e); process.exit(1); });
