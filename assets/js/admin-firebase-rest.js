@@ -1185,6 +1185,15 @@
     await databaseRequest(path, { method:"PUT", body:JSON.stringify(value) });
   }
 
+  // Classifica giornaliera della Battaglia sul Garda: giochi/battagliaGarda/<giorno>/<agente> = { colpi, affondate, nome, t }
+  async function getClassificaGarda(day) {
+    const result = await databaseRequest(`private/adminUpdates/giochi/battagliaGarda/${safeUserKey(day)}`);
+    return result.data || {};
+  }
+  async function saveRisultatoGarda(day, agentId, value) {
+    await databaseRequest(`private/adminUpdates/giochi/battagliaGarda/${safeUserKey(day)}/${safeUserKey(agentId)}`, { method:"PUT", body:JSON.stringify(value) });
+  }
+
   // Richiesta di accesso dalla pagina di login: arriva come notifica all'admin (nessun numero pubblicato).
   async function richiestaAccesso({ agentId = "", nome = "", telefono = "", nota = "" } = {}) {
     const auth = await ensureAuth();
@@ -1336,6 +1345,8 @@
     deleteRichiestaAccesso,
     chiudiRichiesteAccesso,
     getRitardiEquipaggio,
+    getClassificaGarda,
+    saveRisultatoGarda,
     saveRitardoEquipaggio,
     getDiariaConversioni,
     getBustePaga,

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NaviSuite">
+  <meta name="theme-color" content="#0d1a1c">
+  <title>NaviSuite Battaglia sul Garda</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
+  <style>
+    /* Battaglia sul Garda: tabellone a forma di lago, navi nemiche anche secondo l'orario (docs/STILE-NAVISUITE.md) */
+    :root{--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--amber:#fbbf24;--rose:#fb7185;--green:#52c879}
+    *{box-sizing:border-box}
+    body.gioco-page{margin:0;min-height:100vh;background:var(--surface);color:var(--ink);font-family:Manrope,system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+    .gioco-page .app-sidebar{display:none}
+    .gioco-page>header{display:flex;align-items:center;justify-content:space-between;gap:16px;width:min(520px,100%);margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 10px}
+    .gioco-page>header small{display:block;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.2em}
+    .gioco-page>header h1{margin:4px 0 0;font-size:25px;font-weight:800}
+    .gioco-page>header #navisuite-header-menu{position:static!important;flex-shrink:0;width:48px!important;height:48px!important;border:1px solid var(--teal)!important;border-radius:14px!important;background:var(--card)!important;color:var(--teal)!important;font-size:22px!important}
+    main{width:min(520px,100%);margin:0 auto;padding:6px 14px 40px}
+    .vs{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:13px}
+    .vs b{font-size:15px}.turno{background:var(--teal);color:var(--on);font-weight:800;border-radius:99px;padding:4px 10px;font-size:12px;white-space:nowrap}.turno.cpu{background:var(--violet)}.turno.fine{background:var(--amber)}
+    h2{font-size:11px;letter-spacing:.18em;margin:12px 0 6px;color:var(--c)}
+    .g{display:grid;grid-template-columns:18px repeat(10,minmax(0,1fr));gap:2px}
+    .h{font-size:9px;color:var(--muted);text-align:center;align-self:center}
+    .c{aspect-ratio:1;background:#0f3a4d;border:0;border-radius:4px;display:grid;place-items:center;font:900 13px Manrope,system-ui,sans-serif;color:#9fd8e6;padding:0;min-width:0}
+    .nemico .c{background:linear-gradient(160deg,#124a61,#0d3446);cursor:pointer}
+    .nemico.attesa .c{cursor:default}
+    .c.nave{background:#5b7280}.c.colpita{background:var(--amber);color:#3b2600}.c.affondata{background:var(--rose);color:#3b0010}.c.acqua{color:var(--cyan)}
+    .c.ultimo{outline:2px solid var(--ink);outline-offset:-2px}
+    .log{margin-top:10px;background:var(--card);border-left:3px solid var(--c,var(--teal));border-radius:10px;padding:9px 12px;font-size:13px;min-height:40px}
+    .row{display:flex;gap:12px;align-items:flex-start;margin-top:8px}
+    .mini{width:52%}.mini h2,.flotta h2{white-space:nowrap;letter-spacing:.12em}.mini .c{font-size:9px;border-radius:2px}
+    .flotta{flex:1;font-size:12px;color:var(--muted);min-width:0}.flotta #bn-flotta>div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line)}.flotta s{color:var(--rose)}
+    .azioni{display:flex;gap:8px;margin-top:12px}.azioni button{flex:1;padding:12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);background:var(--card);color:var(--ink);font:800 14px Manrope,system-ui,sans-serif}
+    .azioni button.ok{background:var(--teal);color:var(--on);border:0}
+    .modi{display:flex;gap:6px;margin-bottom:8px}.modi button{flex:1;padding:9px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:800 13px Manrope,system-ui,sans-serif}.modi button.on{background:var(--teal);color:var(--on);border-color:var(--teal)}
+    .info{font-size:12.5px;color:var(--muted);margin:8px 2px}.info b{color:var(--amber)}
+    #bg-lago{width:100%;height:auto;display:block;touch-action:manipulation;background:radial-gradient(circle at 50% 54%,#0e2a36,#0b1c26 70%);border:1px solid #1f4250;border-radius:18px;padding:6px 0}
+    .sonar-pulsa{transform-box:fill-box;transform-origin:center;animation:sonar-pulsa 1.6s ease-out infinite}@keyframes sonar-pulsa{from{transform:scale(1);opacity:.9}to{transform:scale(2.6);opacity:0}}
+    .sonar-blip{opacity:0;animation:sonar-blip 900ms ease-out both}@keyframes sonar-blip{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){.sonar-pulsa{animation:none}}#bg-lago rect{cursor:pointer}#bg-lago.attesa rect{cursor:default}
+    #bg-mio{width:100%;height:auto;display:block}
+    .flotta #bg-flotta>div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}.flotta i{font-style:normal;color:var(--ink);font-weight:800}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+    .classifica #bg-classifica>div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}.classifica b{color:var(--amber);margin-right:4px}.classifica .io{color:var(--ink);font-weight:800}.classifica p{margin:0;font-size:12px}.classifica small{color:var(--muted);font-size:10.5px}
+  </style>
+</head>
+<body class="gioco-page">
+  <aside class="app-sidebar" aria-hidden="true"></aside>
+  <header class="page-header"><div><small>NAVISUITE · GIOCO</small><h1>Battaglia sul Garda</h1></div></header>
+  <main>
+    <div class="vs"><span id="bg-punti"></span><span class="turno" id="bg-turno"></span></div>
+    <p class="info" id="bg-info"></p>
+    <h2 style="--c:var(--rose)">10 SILURI IN ACQUA · CHI COLPISCE RITIRA</h2>
+    <svg id="bg-lago" xmlns="http://www.w3.org/2000/svg" aria-label="Lago di Garda"></svg>
+    <div class="azioni"><button type="button" id="bg-sonar">📡 Sonar (una volta)</button><button type="button" class="ok" id="bg-nuova">Ricomincia</button></div>
+    <div class="log" id="bg-log"></div>
+    <p class="info leg">🚀 Il numero sul siluro in acqua dice a quante caselle è il battello più vicino: <b style="color:#fb7185">1</b> <b style="color:#fb923c">2</b> <b style="color:#fbbf24">3</b> <b style="color:#a3e635">4-5</b> <b style="color:#67d7e6">6+</b>. 📡 Il sonar fa un giro e accende i battelli per un attimo, una volta sola.</p>
+    <div class="row">
+      <div class="flotta"><h2 style="--c:var(--cyan)">BATTELLI DI OGGI</h2><div id="bg-flotta"></div></div>
+      <div class="flotta classifica"><h2 style="--c:var(--amber)">CLASSIFICA DI OGGI</h2><div id="bg-classifica"></div></div>
+    </div>
+  </main>
+  <script src="assets/js/shared-roles.js?v=15"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=93"></script>
+  <script src="assets/js/shared-data.js?v=137"></script>
+  <script src="assets/js/firebase-auth.js?v=2"></script>
+  <script src="assets/js/shared-menu.js?v=1.98"></script>
+  <script src="assets/js/offline.js?v=2"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
+  <script src="assets/js/turni-giorno.js?v=12"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=21"></script>
+  <script src="assets/js/orario-corse.js?v=1"></script>
+  <script src="assets/js/orario-corse-estate.js?v=1"></script>
+  <script src="assets/js/orario-giorno.js?v=7"></script>
+  <script src="assets/js/orari-stagioni.js?v=9"></script>
+  <script src="assets/js/orario-lago.js?v=2"></script>
+  <script src="assets/js/battaglia-garda.js?v=17"></script>
+</body>
+</html>

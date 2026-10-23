@@ -87,6 +87,7 @@
       ['navidiaria.html','≈','Distinta'],
       ['documenti.html','▤','Documenti'],
       ['cambi_turno.html','⇄','Cambio'],
+      ['battaglia-garda.html','⛴','Battaglia sul Garda'],
       ['controllo_cassa.html','$','Cassa'],
       ...(isAdmin?[['quiz.html','✎','Quiz']]:[]),
       ['backup-dati.html','⤓','Backup'],
