@@ -55,7 +55,11 @@
 .mt-sep::before,.mt-sep::after{content:"";flex:1;height:2px;border-radius:1px;background:linear-gradient(90deg,transparent,#2f6f73 18%,#2f6f73 82%,transparent)}
 .mt-servizio { margin:.35rem 0 0; font-size:1.05rem; }
 .mt-servizio b { font-variant-numeric:tabular-nums; }
-.mt-resto { display:inline-block; padding:.05rem .5rem; border-radius:999px; background:#ffe08a; color:#5a4300; font-weight:700; }
+.mt-resto { display:inline-block; padding:.05rem .5rem; border-radius:999px; background:#67d7e6; color:#06232a; font-weight:700; }
+/* prima dell'inizio e a giornata finita: azzurro; «fine tra»: rosso nel primo terzo del servizio, giallo nel secondo, verde nell'ultimo */
+.mt-resto.inizio { background:#fb7185; color:#3b0010; }
+.mt-resto.meta { background:#ffe08a; color:#5a4300; }
+.mt-resto.fine { background:#52c879; color:#06231f; }
 .mt-durata { opacity:.8; }
 /* Distinta: in alto a destra, accanto al menu */
 .mio-turno-page .page-header{position:relative}
@@ -67,3 +71,9 @@
 .mt-restore-btn:hover:not(:disabled){background:rgba(245,158,11,.35)}
 .mt-restore-btn:disabled{opacity:.4;cursor:not-allowed}
 .mt-card-mod{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(245,158,11,.3);flex-wrap:wrap}
+
+/* Prova ora (solo admin): slider per portare avanti o indietro l'ora della giornata */
+.mt-ora-prova{display:flex;align-items:center;gap:8px;margin:4px 0 0;font-size:12px;color:#9fb8c2}
+.mt-ora-prova input{flex:1;accent-color:#2dd4bf}
+.mt-ora-prova b{min-width:48px;color:#fbbf24;font-variant-numeric:tabular-nums}
+.mt-ora-prova button{border:1px solid #1f4250;background:#102733;color:#eaf2f4;border-radius:999px;padding:3px 10px;font:700 11px inherit}
