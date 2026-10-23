@@ -1190,6 +1190,11 @@
     const result = await databaseRequest(`private/adminUpdates/giochi/battagliaGarda/${safeUserKey(day)}`);
     return result.data || {};
   }
+  // Tutte le classifiche (generale e quelle giornaliere di prima): { <giorno|generale>: { <agente>: {...} } }
+  async function getTutteClassificheGarda() {
+    const result = await databaseRequest("private/adminUpdates/giochi/battagliaGarda");
+    return result.data || {};
+  }
   async function saveRisultatoGarda(day, agentId, value) {
     await databaseRequest(`private/adminUpdates/giochi/battagliaGarda/${safeUserKey(day)}/${safeUserKey(agentId)}`, { method:"PUT", body:JSON.stringify(value) });
   }
@@ -1346,6 +1351,7 @@
     chiudiRichiesteAccesso,
     getRitardiEquipaggio,
     getClassificaGarda,
+    getTutteClassificheGarda,
     saveRisultatoGarda,
     saveRitardoEquipaggio,
     getDiariaConversioni,
