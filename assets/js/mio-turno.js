@@ -488,10 +488,7 @@
     if (state.test) messages.push(`Prova con il turno ${state.test === 'RIP' ? 'Riposo' : state.test}: i tuoi dati non cambiano.`);
     else if (!found) messages.push('Non trovo il tuo turno nei dati di NaviTurni.');
     if (nave && !inServizio(nave, day)) messages.push(`Il turno ${nave} non è in servizio in questo giorno secondo l'orario in vigore.`);
-    // Corse sospese dall'Ufficio Movimento (pagina Movimento)
-    const sospesa = nave && state.schedule ? T.turniDelGiorno([...(state.schedule.turni_navi || []), ...state.firebaseNavi], day)[nave] : null;
-    if (!sospesa?.sospesa && sospesa?.corseSospese?.length) messages.push(`⚠ ${nave}: ${sospesa.corseSospese.length === 1 ? 'corsa' : 'corse'} ${sospesa.corseSospese.join(', ')} sospesa dall'Ufficio Movimento.`);
-    if (sospesa?.sospesa) messages.push(`⚠ Corse del ${nave} sospese dall'Ufficio Movimento${sospesa.motivo ? `: ${sospesa.motivo}` : ''}.`);
+    // Le corse sospese dall'Ufficio Movimento non hanno un avviso in alto: restano segnate «SOSPESA» nell'elenco delle corse
     notice(messages.join(' · '));
     if (!nave && !terra) window.NaviOrarioPage?.hide();
     if (nave) {
