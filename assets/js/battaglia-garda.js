@@ -1,8 +1,8 @@
-// Battaglia sul Garda: sfida del giorno su un tabellone a forma di lago (costa di orario-lago.js divisa in caselle d'acqua).
+// Battaglia sul Garda: battaglia navale su un tabellone a forma di lago (costa di orario-lago.js divisa in caselle d'acqua).
 // I bersagli sono i battelli in corsa, nel punto in cui li mette l'orario a un'ora a caso della giornata (diversa a ogni partita) (in navigazione sulla
 // rotta, oppure all'ormeggio davanti allo scalo): uguale per tutti i colleghi. Ogni battello e' una casella sola; si hanno
 // 10 siluri in acqua (chi colpisce ritira; ogni siluro in acqua dice a quante caselle e' il battello piu' vicino) e un sonar
-// da usare una volta (il raggio fa un giro e accende i battelli mentre ci passa sopra): in classifica va davanti chi ne affonda di piu', a parita' chi usa meno siluri. Si gioca quante volte si vuole: in classifica resta il miglior risultato del giorno.
+// da usare una volta (il raggio fa un giro e accende i battelli mentre ci passa sopra): in classifica va davanti chi ne affonda di piu', a parita' chi usa meno siluri. Si gioca quante volte si vuole: in classifica (generale) resta il miglior risultato di ciascuno.
 (function (root) {
   'use strict';
   const MAPPA = root.NaviLagoMappa;
@@ -153,6 +153,7 @@
   const O = root.NaviOrarioGiorno;
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const oggi = iso(new Date());
+  const CLASSIFICA = 'generale'; // classifica di sempre: il miglior risultato di ciascuno, non solo di oggi
   const profilo = (() => { try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; } })();
   const hhmm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -236,7 +237,7 @@
     const mio = String(profilo?.id || '').replace(/[.#$\[\]\/]/g, '_');
     $('bg-classifica').innerHTML = righe.length
       ? righe.slice(0, 20).map((r, k) => `<div class="${r.id === mio ? 'io' : ''}"><span><b>${k + 1}</b> ${esc(r.nome || r.id)}</span><span>${r.affondate || 0} 🎯 · ${r.colpi} colpi</span></div>`).join('')
-      : '<p>Ancora nessuno ha giocato la sfida di oggi.</p>';
+      : '<p>Ancora nessuno in classifica.</p>';
   }
 
   function render() {
@@ -244,7 +245,7 @@
     $('bg-info').innerHTML = g.chiuso ? `Oggi non ci sono navi in corsa: nessuna sfida.` : `${g.navi.length} battelli in navigazione alle <b>${hhmm(g.ora)}</b> (ora a caso, cambia a ogni partita)`;
     $('bg-punti').innerHTML = `🚀 Siluri <b>${COLPI - acqua()}</b>/${COLPI} · Affondati <b>${affondate}</b>/${g.navi.length}`;
     const t = $('bg-turno');
-    t.textContent = g.chiuso ? 'Navi ferme' : fine ? (finita(g.navi) ? 'Tutti affondati!' : 'Colpi finiti') : 'Sfida del giorno';
+    t.textContent = g.chiuso ? 'Navi ferme' : fine ? (finita(g.navi) ? 'Tutti affondati!' : 'Colpi finiti') : 'Partita';
     t.className = `turno${fine ? ' fine' : ''}`;
     lago($('bg-lago'), g.navi, g.colpi, fine, g.ultimo);
     $('bg-sonar').disabled = g.sonarUsato || !!fine; $('bg-sonar').style.opacity = g.sonarUsato || fine ? .4 : 1;
@@ -261,7 +262,7 @@
     const mio = String(profilo?.id || '').replace(/[.#$\[\]\/]/g, '_');
     try {
       await window.NaviAdminFirebase?.ready;
-      const letta = await window.NaviAdminFirebase?.getClassificaGarda?.(oggi) || {};
+      const letta = await window.NaviAdminFirebase?.getClassificaGarda?.(CLASSIFICA) || {};
       if (classifica[mio] && !letta[mio]) letta[mio] = classifica[mio]; // il mio appena salvato
       classifica = letta;
     } catch { /* resta quella che c'era */ }
@@ -269,13 +270,13 @@
   }
   async function salvaRisultato() {
     if (!profilo?.id) return;
-    // si gioca quante volte si vuole: in classifica resta il miglior risultato di oggi (piu' battelli, poi meno colpi)
+    // si gioca quante volte si vuole: in classifica resta il miglior risultato di sempre (piu' battelli, poi meno colpi)
     const chiave = String(profilo.id).replace(/[.#$\[\]\/]/g, '_'), prima = classifica[chiave];
     const r = { affondate: g.navi.filter(x => x.colpi.size === x.len).length, colpi: g.colpi.size, nome: profilo.name || profilo.agente || profilo.id, t: Date.now() };
-    if (prima && ((prima.affondate || 0) > r.affondate || ((prima.affondate || 0) === r.affondate && prima.colpi <= r.colpi))) { g.log += ' · in classifica resta il tuo record di oggi'; render(); return; }
-    if (prima) g.log += ' · 🏅 nuovo record di oggi!';
+    if (prima && ((prima.affondate || 0) > r.affondate || ((prima.affondate || 0) === r.affondate && prima.colpi <= r.colpi))) { g.log += ' · in classifica resta il tuo record'; render(); return; }
+    if (prima) g.log += ' · 🏅 nuovo record personale!';
     classifica[chiave] = r;
-    try { await window.NaviAdminFirebase?.saveRisultatoGarda?.(oggi, profilo.id, r); } catch (error) { console.warn('Risultato non salvato', error); }
+    try { await window.NaviAdminFirebase?.saveRisultatoGarda?.(CLASSIFICA, profilo.id, r); } catch (error) { console.warn('Risultato non salvato', error); }
     caricaClassifica();
   }
 
