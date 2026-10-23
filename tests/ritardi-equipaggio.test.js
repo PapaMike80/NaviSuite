@@ -46,7 +46,7 @@ function agente(id, db, adm) {
   assert.strictEqual(sempronio.e.rit, 20, 'Sempronio non riceve la correzione di Caio');
   await tizio.segna(10);
   const nuovo = agente('MEVIO', db); await nuovo.ricevi();
-  assert.strictEqual(nuovo.e.rit, 20, 'la correzione di Tizio non cambia quello dei colleghi');
+  assert.strictEqual(nuovo.e.rit, 10, 'chi arriva dopo riceve il valore aggiornato da Tizio');
   assert.strictEqual(sempronio.e.rit, 20);
   // Admin: il suo ritardo passa sempre, anche a chi l'ha gia' ricevuto o corretto, e a ogni sua modifica
   const capo = agente('ADMIN', db, true);
@@ -57,7 +57,7 @@ function agente(id, db, adm) {
   await capo.segna(40);
   await caio.ricevi(); await tizio.ricevi();
   assert.deepStrictEqual([caio.e.rit, tizio.e.rit], [40, 40], 'ogni modifica dell admin passa di nuovo');
-  await caio.segna(15); await caio.ricevi();
+  await caio.segna(15); await caio.ricevi(false);
   assert.strictEqual(caio.e.rit, 15, 'senza nuove modifiche dell admin la correzione di Caio resta');
   // Annulla: il ritardo non entra e il popup non ricompare
   const db2 = {}, a1 = agente('A1', db2), a2 = agente('A2', db2);
@@ -66,5 +66,19 @@ function agente(id, db, adm) {
   assert.strictEqual(a2.e.rit, undefined, 'Annulla non registra');
   await a2.ricevi(true);
   assert.strictEqual(a2.e.rit, undefined, 'dopo Annulla non viene riproposto');
+  // Chi l'ha segnato per primo lo cambia o lo cancella: il popup ripassa ai colleghi
+  const db3 = {}, b1 = agente('B1', db3), b2 = agente('B2', db3), b3 = agente('B3', db3);
+  await b1.segna(20);
+  await b2.ricevi(true); await b3.ricevi(false);
+  await new Promise(r => setTimeout(r, 5));
+  await b1.segna(35);
+  await b2.ricevi(true); await b3.ricevi(true);
+  assert.deepStrictEqual([b2.e.rit, b3.e.rit], [35, 35], 'la modifica del primo ripassa (anche a chi aveva annullato)');
+  await new Promise(r => setTimeout(r, 5));
+  await b1.segna(0);
+  await b2.ricevi(false); await b3.ricevi(true);
+  assert.deepStrictEqual([b2.e.rit, b3.e.rit], [35, 0], 'cancellato: chi registra lo toglie, chi annulla lo tiene');
+  await b2.ricevi(true);
+  assert.strictEqual(b2.e.rit, 35, 'non riproposto dopo Annulla');
   console.log('ritardi-equipaggio: ok');
 })().catch(e => { console.error(e); process.exit(1); });
