@@ -95,10 +95,10 @@
   </main>
   <script src="assets/js/shared-roles.js?v=15"></script>
   <script src="assets/js/admin-firebase-rest.js?v=92"></script>
-  <script src="assets/js/shared-menu.js?v=1.96"></script>
+  <script src="assets/js/shared-menu.js?v=1.97"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/shared-data.js?v=137"></script>
-  <script src="assets/js/turni-giorno.js?v=11"></script>
+  <script src="assets/js/turni-giorno.js?v=12"></script>
   <script>
     // Messaggio WhatsApp di benvenuto con PIN iniziale e istruzioni principali
     window.messaggioBenvenuto=(nomeAgente,pin,sito)=>{const nome=String(nomeAgente||'').toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());return [
@@ -139,10 +139,10 @@
     // Due soli ruoli: Agente o Amministratore (i vecchi ruoli si mostrano come Agente e si salvano come tale)
     const roleOptions=['','admin'];
     const roleLabels={'':'Agente',admin:'Amministratore'};
-    const gradeDefaults=['marinaio','motorista','capitano','ufficio','barista'];
+    const gradeDefaults=['marinaio','motorista','capitano','applicato','ufficio','barista'];
     const officeOptions=['movimento','amministrazione','personale','controllo','direzione'];
     const officeLabel=value=>{const v=String(value||'').trim().toLowerCase();return v?v.charAt(0).toLocaleUpperCase('it')+v.slice(1):v;};
-    const gradeRank={capitano:1,comandante:1,'capo timoniere':1,capotimoniere:1,motorista:2,timoniere:3,'aiuto motorista':4,aiutomotorista:4,marinaio:5,operaio:6,ufficio:7,barista:8,movimento:9,amministrazione:10,personale:11,controllo:12,direzione:13};
+    const gradeRank={capitano:1,comandante:1,'capo timoniere':1,capotimoniere:1,motorista:2,timoniere:3,'aiuto motorista':4,aiutomotorista:4,marinaio:5,applicato:6,operaio:6,ufficio:7,barista:8,movimento:9,amministrazione:10,personale:11,controllo:12,direzione:13};
     async function pinHash(pin){
       const bytes=new TextEncoder().encode('NaviDiaria:'+pin);
       const digest=await crypto.subtle.digest('SHA-256',bytes);
@@ -183,9 +183,9 @@
     const gradeColor=value=>{
       const office={movimento:'#facc15',amministrazione:'#38bdf8',personale:'#fb923c',controllo:'#34d399',direzione:'#f472b6'}[String(value||'').toLowerCase()];
       if(office)return office;
-      return ({capitano:'#facc15',comandante:'#facc15','capo timoniere':'#fb923c',capotimoniere:'#fb923c',timoniere:'#22c55e','aiuto motorista':'#3b82f6',aiutomotorista:'#3b82f6',motorista:'#a855f7',marinaio:'#9ca3af',operaio:'#14b8a6',ufficio:'#22d3ee',barista:'#ec4899'}[String(value||'').toLowerCase()]||'#9ca3af');
+      return ({capitano:'#facc15',comandante:'#facc15','capo timoniere':'#fb923c',capotimoniere:'#fb923c',timoniere:'#22c55e','aiuto motorista':'#3b82f6',aiutomotorista:'#3b82f6',motorista:'#a855f7',marinaio:'#9ca3af',applicato:'#a3e635',operaio:'#14b8a6',ufficio:'#22d3ee',barista:'#ec4899'}[String(value||'').toLowerCase()]||'#9ca3af');
     };
-    const siglaGrado=g=>({capitano:'Cap',comandante:'Cap','capo timoniere':'CT',capotimoniere:'CT',timoniere:'Tim','aiuto motorista':'AM',aiutomotorista:'AM',motorista:'Mot',marinaio:'Mar',barista:'Bar',operaio:'Op'}[String(g||'').toLowerCase()]||String(g||'?').slice(0,3));
+    const siglaGrado=g=>({capitano:'Cap',comandante:'Cap','capo timoniere':'CT',capotimoniere:'CT',timoniere:'Tim','aiuto motorista':'AM',aiutomotorista:'AM',motorista:'Mot',marinaio:'Mar',applicato:'App',barista:'Bar',operaio:'Op'}[String(g||'').toLowerCase()]||String(g||'?').slice(0,3));
     const itDate=iso=>String(iso||'').slice(0,10).split('-').reverse().join('/');
     const todayIso=()=>new Date().toLocaleDateString('sv-SE');
     const noMoveResidences=['uffici','bariste'];

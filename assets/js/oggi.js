@@ -9,7 +9,8 @@
     [/motorista/i,'Motorista','#a855f7',3],
     [/timoniere/i,'Timoniere','#22c55e',4],
     [/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','#3b82f6',5],
-    [/marinaio/i,'Marinaio','#94a3b8',6]
+    [/marinaio/i,'Marinaio','#94a3b8',6],
+    [/applicato/i,'Applicato','#a3e635',7]
   ];
   const WEEKDAY_LABELS=['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
   const MONTH_LABELS=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SETT','OTT','NOV','DIC'];

@@ -170,7 +170,7 @@
     // Intestazione: "Ciao Pedroni M." con il distintivo del grado come in Movimento
     const nome=String(agent?.name||agent?.agente||'').trim().toLowerCase().replace(/(^|[\s'.-])\S/g,c=>c.toUpperCase());
     const qualifica=String(agent?.qualifica||agent?.grado||(window.NaviSharedData?.directory?.()||[]).find(a=>String(a.id)===String(agent?.id))?.qualifica||'');
-    const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6'],[/motorista/i,'Motorista','Mot','#a855f7'],[/timoniere/i,'Timoniere','Tim','#22c55e'],[/marinaio/i,'Marinaio','Mar','#e8f3f6']].find(([re])=>re.test(qualifica));
+    const grado=[[/capitano|comandante/i,'Capitano','Cap','#facc15'],[/capo\s*tim|capotim/i,'Capo timoniere','CT','#fb923c'],[/aiuto\s*motorista|aiutomotorista/i,'Aiuto motorista','AM','#3b82f6'],[/motorista/i,'Motorista','Mot','#a855f7'],[/timoniere/i,'Timoniere','Tim','#22c55e'],[/marinaio/i,'Marinaio','Mar','#e8f3f6'],[/applicato/i,'Applicato','App','#a3e635']].find(([re])=>re.test(qualifica));
     const saluto=`<span class="ns-saluto">${nome?`Ciao ${escapeText(nome)}`:'Menu'}${grado?`<span class="ns-grado" style="--g:${grado[3]}" title="${grado[1]}">${grado[2]}</span>`:''}</span>`;
     const popup=document.createElement('div');
     popup.id='navisuite-popup';

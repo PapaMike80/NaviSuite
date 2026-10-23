@@ -16,7 +16,7 @@
   const titolo = text => String(text).charAt(0) + String(text).slice(1).toLowerCase();
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Capitano: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
-    'Aiuto motorista': ['AM', '#3b82f6'], Marinaio: ['Mar', '#e8f3f6'] };
+    'Aiuto motorista': ['AM', '#3b82f6'], Marinaio: ['Mar', '#e8f3f6'], Applicato: ['App', '#a3e635'] };
   const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra' };
   const nomeTurno = t => NOMI[t] || t || '—';
 

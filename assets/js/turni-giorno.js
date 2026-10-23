@@ -30,7 +30,8 @@
     [/aiuto\s*motorista|aiutomotorista/i, 'Aiuto motorista', '#3b82f6', 4],
     [/motorista/i, 'Motorista', '#a855f7', 2],
     [/timoniere/i, 'Timoniere', '#22c55e', 3],
-    [/marinaio/i, 'Marinaio', '#ffffff', 5]
+    [/marinaio/i, 'Marinaio', '#ffffff', 5],
+    [/applicato/i, 'Applicato', '#a3e635', 6]
   ];
   const gradoOf = agent => GRADI.find(([pattern]) => pattern.test(String(agent?.qualifica || agent?.grado || '')))?.slice(1) || ['', '#e8f3f6', 9];
   // Comandante della nave: il capitano/comandante o, se manca, il capo timoniere (a bordo fa da capitano).

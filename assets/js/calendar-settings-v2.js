@@ -15,6 +15,7 @@
     [/motorista/i, 'Motorista', 30],
     [/timoniere/i, 'Timoniere', 50],
     [/marinaio/i, 'Marinaio', 60],
+    [/applicato/i, 'Applicato', 65],
     [/barista/i, 'Barista', 70]
   ];
 

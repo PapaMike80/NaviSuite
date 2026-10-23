@@ -600,6 +600,7 @@
     tr.grado-aiuto { --grade-rgb: 59, 130, 246; --grade-text: var(--ink); }
     tr.grado-motorista { --grade-rgb: 168, 85, 247; --grade-text: var(--ink); }
     tr.grado-marinaio { --grade-rgb: 156, 163, 175; --grade-text: var(--ink); }
+    tr.grado-applicato { --grade-rgb: 163, 230, 53; --grade-text: var(--ink); }
 
     tr td.td-num,
     tr td.td-name {
@@ -871,6 +872,9 @@
     }
     .grado-marinaio td:first-child {
       border-left: 3px solid #9ca3af;
+    }
+    .grado-applicato td:first-child {
+      border-left: 3px solid #a3e635;
     }
 
     .grado-capo {

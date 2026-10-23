@@ -8,7 +8,7 @@ const html = fs.readFileSync('oggi.html', 'utf8');
 const source = fs.readFileSync('assets/js/oggi.js', 'utf8');
 assert.match(html, /class="turni-page oggi-page"/);
 assert.match(html, /assets\/js\/shared-data\.js/);
-assert.match(html, /assets\/js\/course-info\.js\?v=1"><\/script>\s*<script src="assets\/js\/oggi\.js\?v=18/);
+assert.match(html, /assets\/js\/course-info\.js\?v=1"><\/script>\s*<script src="assets\/js\/oggi\.js\?v=19/);
 assert.match(html, /\.oggi-grid\[hidden\]/);
 assert.match(html, /\.oggi-trip-numbers/);
 assert.match(source, /turni_navi/);
