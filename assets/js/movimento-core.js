@@ -49,13 +49,38 @@
   const variazioneMovimento = (day, id) => (state.schedule?.variazioni_ods || [])
     .filter(item => item?.ods === 'MOVIMENTO' && String(item.data).slice(0, 10) === day && String(item.id_agente) === String(id)).pop() || null;
 
+  // Agenti della scheda (pagina Agenti) che non sono nel turno, es. l'utente di prova: senza servizio, con residenza e grado della scheda
+  let extraAgenti = [];
+  async function caricaExtra() {
+    try {
+      const data = await window.NaviAdminFirebase?.getAgentAdminData?.();
+      if (!data) return;
+      const profili = data.profiles || {};
+      extraAgenti = (data.users || []).map(u => {
+        const p = profili[String(u.id)] || {};
+        const residenza = String(p.residence || u.residence || '').trim();
+        return { id: String(u.id || ''), agente: String(p.name || u.name || u.id || ''), name: String(p.name || u.name || u.id || ''), qualifica: String(p.qualifica || u.qualifica || ''), residenza };
+      }).filter(a => a.id && a.residenza && !/^uffic/i.test(a.residenza) && a.qualifica && !/uffic/i.test(a.qualifica));
+      if (state.schedule && !state.busy && !editing()) render();
+    } catch { /* senza la scheda restano solo gli agenti del turno */ }
+  }
+  function residenzeConExtra() {
+    const res = Object.fromEntries(Object.entries(state.schedule?.residenze || {}).map(([k, v]) => [k, [...(v || [])]]));
+    const presenti = new Set(Object.values(res).flat().map(a => String(a?.id || '')));
+    extraAgenti.filter(a => !presenti.has(a.id)).forEach(({ residenza, ...agent }) => {
+      const chiave = Object.keys(res).find(k => k.toUpperCase() === residenza.toUpperCase()) || residenza.toUpperCase();
+      (res[chiave] ||= []).push(agent);
+    });
+    return res;
+  }
+
   function agenti(day) {
-    const seen = new Set(), out = [];
-    Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => {
+    const seen = new Set(), out = [], residenze = residenzeConExtra(), dati = extraAgenti.length ? { ...state.schedule, residenze } : state.schedule;
+    Object.entries(residenze).forEach(([residenza, list]) => (list || []).forEach(agent => {
       const id = String(agent?.id || '');
       if (!id || seen.has(id) || window.NaviRoles?.isBaristaAgent?.(agent)) return;
       seen.add(id);
-      out.push({ agent, residenza, turno: String(G.turnoAgente(state.schedule, { id }, day)?.turno || '').trim().toUpperCase() });
+      out.push({ agent, residenza, turno: String(G.turnoAgente(dati, { id }, day)?.turno || '').trim().toUpperCase() });
     }));
     return out.sort((a, b) => String(a.agent.agente).localeCompare(String(b.agent.agente), 'it'));
   }
@@ -271,7 +296,7 @@
   function richieste({ conApprovate = false } = {}) {
     const oggi = iso(new Date());
     const agentiMap = new Map();
-    Object.entries(state.schedule?.residenze || {}).forEach(([residenza, list]) => (list || []).forEach(agent => { if (agent?.id) agentiMap.set(String(agent.id), { agent, residenza }); }));
+    Object.entries(residenzeConExtra()).forEach(([residenza, list]) => (list || []).forEach(agent => { if (agent?.id) agentiMap.set(String(agent.id), { agent, residenza }); }));
     const chiave = (id, day) => `${String(id).replace(/[.#$\[\]/]/g, '-')}_${day}`;
     return G.modificheManuali().filter(m => m.day >= oggi && agentiMap.has(String(m.id))).map(m => {
       const { agent, residenza } = agentiMap.get(String(m.id));
@@ -376,6 +401,7 @@
     setStatus('Caricamento turni e navi…');
     showTab(saved);
     carica();
+    caricaExtra();
     caricaModifiche();
     aggiorna();
     // Le modifiche dei colleghi: turni nave ogni minuto, turni degli agenti ogni 5 minuti.
