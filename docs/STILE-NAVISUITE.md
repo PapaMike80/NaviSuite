@@ -61,6 +61,7 @@ Fondo pagina con una leggera sfumatura:
 | Motorista | Mot | `#a855f7` |
 | Timoniere | Tim | `#22c55e` |
 | Marinaio | Mar | `#e8f3f6` |
+| Applicato | App | `#a3e635` |
 | Barista | Bar | `#f472b6` |
 
 ### Colori dei tagli (contanti)

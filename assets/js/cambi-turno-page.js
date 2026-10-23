@@ -393,6 +393,7 @@
       "grado-aiuto": { label: "Aiuto Motorista", color: "#3b82f6" },
       "grado-motorista": { label: "Motorista", color: "#a855f7" },
       "grado-marinaio": { label: "Marinaio", color: "#9ca3af" },
+      "grado-applicato": { label: "Applicato", color: "#a3e635" },
       "grado-operaio": { label: "Operaio", color: "#14b8a6" }
       ,"grado-barista": { label: "Barista", color: "#f472b6" }
       ,"grado-ufficio-movimento": { label: "Movimento", color: "#facc15" }
@@ -516,6 +517,7 @@
         "aiuto motorista": "grado-aiuto",
         "aiutomotorista": "grado-aiuto",
         "marinaio": "grado-marinaio",
+        "applicato": "grado-applicato",
         "operaio": "grado-operaio"
         ,"barista": "grado-barista"
         ,"movimento": "grado-ufficio-movimento"
@@ -1299,6 +1301,7 @@
         "grado-motorista": 3,
         "grado-aiuto": 4,
         "grado-marinaio": 5,
+        "grado-applicato": 6,
         "grado-operaio": 6
         ,"grado-ufficio-movimento": 7
         ,"grado-ufficio-amministrazione": 8
@@ -1763,6 +1766,7 @@
         "grado-motorista": 3,
         "grado-aiuto": 4,
         "grado-marinaio": 5,
+        "grado-applicato": 6,
         "grado-operaio": 6
         ,"grado-barista": 7
         ,"grado-ufficio-movimento": 8

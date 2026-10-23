@@ -98,7 +98,7 @@ const GRADE_INFO={
   'capo timoniere':{label:'Capo Timoniere',className:'grade-capo'},'capotimoniere':{label:'Capo Timoniere',className:'grade-capo'},
   'timoniere':{label:'Timoniere',className:'grade-timoniere'},'aiuto motorista':{label:'Aiuto Motorista',className:'grade-aiuto'},
   'aiutomotorista':{label:'Aiuto Motorista',className:'grade-aiuto'},'motorista':{label:'Motorista',className:'grade-motorista'},
-  'marinaio':{label:'Marinaio',className:'grade-marinaio'},'operaio':{label:'Operaio',className:'grade-operaio'},'ufficio':{label:'Ufficio',className:'grade-ufficio'}
+  'marinaio':{label:'Marinaio',className:'grade-marinaio'},'applicato':{label:'Applicato',className:'grade-applicato'},'operaio':{label:'Operaio',className:'grade-operaio'},'ufficio':{label:'Ufficio',className:'grade-ufficio'}
 };
 function formatAgentName(name){return String(name||'').trim().split(/\s+/).map(part=>/^[A-ZÀ-ÖØ-Ý]+[.,]?$/.test(part)&&part.replace(/[.,]/g,'').length>1?part.charAt(0)+part.slice(1).toLowerCase():part).join(' ')}
 function updateWelcome(){if(!activeAgent)return;const name=formatAgentName(activeAgent.name);$('welcomeName').textContent='NaviSuite Diaria';$('sidebarAgentName').textContent=name.toLocaleUpperCase('it')}
