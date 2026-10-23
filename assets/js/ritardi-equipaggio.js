@@ -1,5 +1,5 @@
 // Ritardi dell'equipaggio (NaviDiaria e NaviDistinta).
-// Chiunque segni, modifichi o cancelli (0) un ritardo su una corsa (stesso turno, stesso giorno) lo manda a tutti i colleghi
+// Solo per la giornata di oggi. Chiunque segni, modifichi o cancelli (0) un ritardo su una corsa (stesso turno, stesso giorno) lo manda a tutti i colleghi
 // di quel turno: a ognuno compare un popup con l'ultima modifica fatta da un altro. Registra la mette nella sua distinta,
 // Annulla tiene il suo valore (quella modifica non ricompare; la prossima di qualcuno si'). Admin compreso.
 // Firebase: ritardiEquipaggio/<giorno>/<TURNO>/<agente> = { minuti, nome, t, at } (at = ora dell'ultima modifica).
@@ -8,12 +8,11 @@
 // Usa le variabili globali della pagina: entries, activeAgent, persist, saveEntriesToFirebase, syncEntriesWithFirebase.
 (function () {
   if (typeof entries === 'undefined' || typeof saveEntriesToFirebase !== 'function') return;
-  const GIORNI = 40;
   const NON_SERVIZIO = ['', 'RIPOSO', 'RIP', 'MALATTIA', 'FERIE', '-', '--', '---', '—'];
   const fb = () => window.NaviAdminFirebase;
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const oggi = () => iso(new Date());
-  const dal = () => iso(new Date(Date.now() - GIORNI * 864e5));
+  const dal = oggi; // solo la giornata di oggi: i ritardi passati o futuri restano personali
   const id = () => String(activeAgent?.id || '').trim();
   const mio = () => id().replace(/[.#$\[\]\/]/g, '_');
   const turno = e => String(e?.shift || '').trim().toUpperCase().replace(/\s+/g, '').replace(/\*+$/, '');
@@ -24,7 +23,7 @@
   const cambiataOra = e => Number(e?.modificatoIl) >= avvio;
   const avvisa = t => { try { if (typeof notify === 'function') notify(t); } catch { /* niente */ } };
   const servizio = e => Math.max(0, Math.round(Number(e?.serviceMinutes) || 0));
-  const recenti = () => entries.filter(e => inServizio(e) && e.date >= dal() && e.date <= oggi());
+  const recenti = () => entries.filter(e => inServizio(e) && e.date === oggi());
   const quando = r => Number(r?.at || r?.t) || 0;
   // L'ultima modifica fatta da un altro agente su quel giorno e quel turno
   const ultimo = (dati, e) => Object.entries(dati?.[e.date]?.[turno(e)] || {})

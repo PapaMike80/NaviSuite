@@ -60,5 +60,9 @@ const pausa = () => new Promise(r => setTimeout(r, 3));
   await pausa(); await tizio.segna(45);
   await mevio.ricevi();
   assert.strictEqual(mevio.e.rit, 45, 'chi arriva dopo riceve l ultima modifica');
+  // Giornate passate o future: niente invio
+  const db4 = {}, x1 = agente('X1', db4);
+  x1.e.date = '2020-01-01'; await x1.segna(30);
+  assert.deepStrictEqual(db4, {}, 'un ritardo non di oggi non parte');
   console.log('ritardi-equipaggio: ok');
 })().catch(e => { console.error(e); process.exit(1); });
