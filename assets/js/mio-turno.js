@@ -108,7 +108,7 @@
     // durata: le ore del turno (senza le pause), altrimenti da inizio a fine
     const ore = Number(C?.shiftForCode(code, day)?.hours) || 0;
     const tot = ore > 0 ? durata(Math.round(ore * 60)) : durata(minutes(ora(fine)) - minutes(ora(inizio)));
-    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b> <span class="mt-durata">(${esc(tot)})</span>${resto ? ` · <span class="mt-resto">${esc(resto)}</span>` : ''}`;
+    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b> <span class="mt-durata">(${esc(tot)})</span>${resto ? `<span class="mt-resto">${esc(resto)}</span>` : ''}`;
     el.hidden = false;
   }
 

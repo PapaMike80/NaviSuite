@@ -64,9 +64,10 @@
     /* intestazione ad altezza fissa: righe di altezza fissa, mai a capo, cosi' la striscia dei giorni non si sposta */
     .mio-turno-page #turno-title{flex-wrap:nowrap;height:38px;white-space:nowrap;overflow:hidden;cursor:pointer}
     #turno-context{height:20px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    /* due righe sempre riservate: «inizia tra / fine tra» puo' andare a capo senza cambiare l'altezza */
-    #turno-servizio{display:block!important;height:52px;line-height:26px;overflow:hidden}
-    #turno-servizio .mt-resto{white-space:nowrap}
+    /* riga del servizio su una riga sola, con «inizia tra / fine tra» a destra; caratteri piu' piccoli sui telefoni stretti */
+    #turno-servizio{display:flex!important;align-items:center;gap:5px;height:28px;white-space:nowrap;overflow:hidden;font-size:clamp(12.5px,3.9vw,16.8px)}
+    #turno-servizio b,#turno-servizio .mt-durata{flex:none}
+    #turno-servizio .mt-resto{flex:none;margin-left:auto;font-size:.8em;padding:.1rem .55rem}
     #turno-servizio.vuoto{color:#9fb8c2;font-size:.9rem}
     /* cambio giorno: il turno esce da un lato ed entra dall'altro, le righe arrivano una dopo l'altra */
     .mt-g{transition:opacity .12s linear,transform .12s linear,border-color .3s,background .3s,box-shadow .3s}
