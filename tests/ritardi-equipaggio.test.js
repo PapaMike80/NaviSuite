@@ -19,7 +19,7 @@ function agente(id, db, adm) {
   ctx.window = ctx;
   ctx.NaviDiariaOvertime = {
     ordinary: e => e.rit || 0,
-    setOrdinary: (e, v) => { e.rit = v; e.overtimeMeta = { ordinaryMode: 'manual' }; },
+    setOrdinary: (e, v) => { e.rit = v; },
   };
   ctx.NaviAdminFirebase = {
     ready: Promise.resolve(),
@@ -28,7 +28,7 @@ function agente(id, db, adm) {
   };
   vm.createContext(ctx);
   vm.runInContext(codice, ctx);
-  return { e: ctx.entries[0], segna: async min => { ctx.NaviDiariaOvertime.setOrdinary(ctx.entries[0], min); await ctx.saveEntriesToFirebase(); await ctx.NaviRitardiEquipaggio.pubblica(); }, ricevi: () => ctx.NaviRitardiEquipaggio.ricevi() };
+  return { e: ctx.entries[0], segna: async min => { ctx.entries[0].rit = min; ctx.entries[0].modificatoIl = Date.now(); await ctx.saveEntriesToFirebase(); await ctx.NaviRitardiEquipaggio.pubblica(); }, ricevi: () => ctx.NaviRitardiEquipaggio.ricevi() };
 }
 
 (async () => {

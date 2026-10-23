@@ -18,7 +18,10 @@
   const turno = e => String(e?.shift || '').trim().toUpperCase().replace(/\s+/g, '').replace(/\*+$/, '');
   const inServizio = e => !!e?.date && !NON_SERVIZIO.includes(turno(e)) && !turno(e).startsWith('#');
   const ordinario = e => Math.max(0, Math.round(Number(window.NaviDiariaOvertime?.ordinary?.(e)) || 0));
-  const manuale = e => e?.overtimeMeta?.ordinaryMode === 'manual';
+  const avvio = Date.now();
+  // Giornata cambiata in questa sessione (ritardo, ore lavorate o altro): solo queste partono verso i colleghi
+  const cambiataOra = e => Number(e?.modificatoIl) >= avvio;
+  const avvisa = t => { try { if (typeof notify === 'function') notify(t); } catch { /* niente */ } };
   const servizio = e => Math.max(0, Math.round(Number(e?.serviceMinutes) || 0));
   const recenti = () => entries.filter(e => inServizio(e) && e.date >= dal() && e.date <= oggi());
   // Il primo ritardo segnato da un altro agente su quel giorno e quel turno
@@ -36,7 +39,7 @@
   async function pubblica() {
     if (!id() || !fb()?.saveRitardoEquipaggio || !navigator.onLine) return;
     if (admin()) return pubblicaAdmin();
-    const da = recenti().filter(e => !e.ritardoEquipaggio && !e.ritardoInviato && manuale(e) && ordinario(e) > 0);
+    const da = recenti().filter(e => !e.ritardoEquipaggio && !e.ritardoInviato && cambiataOra(e) && ordinario(e) > 0);
     if (!da.length) return;
     await fb().ready;
     const dati = await fb().getRitardiEquipaggio(dal());
@@ -44,13 +47,14 @@
       e.ritardoInviato = true; // anche se un collega e' arrivato prima: il mio valore resta mio
       if (primo(dati, e, true)) continue;
       await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: Date.now() });
+      avvisa(`Ritardo inviato ai colleghi della ${turno(e)}`);
     }
     segnaModificato();
   }
 
   // Admin: ogni ritardo cambiato a mano parte sempre (t resta quello del primo invio, at e' l'ora della modifica)
   async function pubblicaAdmin() {
-    const da = recenti().filter(e => manuale(e) && e.ritardoAdminInviato !== ordinario(e) && !(e.ritardoEquipaggio && e.ritardoEquipaggio.minuti === ordinario(e)));
+    const da = recenti().filter(e => cambiataOra(e) && ordinario(e) > 0 && e.ritardoAdminInviato !== ordinario(e) && !(e.ritardoEquipaggio && e.ritardoEquipaggio.minuti === ordinario(e)));
     if (!da.length) return;
     await fb().ready;
     const dati = await fb().getRitardiEquipaggio(dal());
@@ -59,6 +63,7 @@
       const at = Date.now();
       await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: Number(mioPrima?.t) || at, at, admin: true });
       e.ritardoAdminInviato = ordinario(e);
+      avvisa(`Ritardo inviato ai colleghi della ${turno(e)}`);
       e.ritardoInviato = true;
     }
     segnaModificato();
@@ -85,7 +90,7 @@
           cambiati++;
           continue;
         }
-        if (e.ritardoEquipaggio || e.ritardoInviato || (manuale(e) && ordinario(e) > 0)) continue;
+        if (e.ritardoEquipaggio || e.ritardoInviato || ordinario(e) > 0) continue;
         const r = primo(dati, e, false);
         if (!r) continue;
         const min = Math.max(0, Math.round(Number(r.minuti) || 0));
@@ -96,6 +101,7 @@
         cambiati++;
       }
       if (cambiati) {
+        avvisa(cambiati === 1 ? 'Ricevuto il ritardo di un collega' : `Ricevuti ${cambiati} ritardi dei colleghi`);
         persist();
         document.dispatchEvent(new CustomEvent('navidiaria:render'));
       }
