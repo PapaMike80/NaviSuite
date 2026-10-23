@@ -92,23 +92,41 @@
     return 'Nessun servizio in questo giorno';
   }
   // Intestazione: ore del servizio e, oggi, quanto manca all'inizio o alla fine della giornata.
+  // Prova dell'ora (solo admin): uno slider sotto il servizio porta avanti o indietro l'ora della giornata
+  let oraProva = null, ultimoServizio = null;
+  function sliderOra() {
+    if (!admin || $('turno-ora-prova')) return;
+    const box = document.createElement('label');
+    box.id = 'turno-ora-prova'; box.className = 'mt-ora-prova';
+    box.innerHTML = '<span>Prova ora</span><input type="range" min="0" max="1439" step="5" aria-label="Prova un\'altra ora della giornata"><b>adesso</b><button type="button">Adesso</button>';
+    $('turno-servizio').after(box);
+    const input = box.querySelector('input'), testo = box.querySelector('b');
+    const now = new Date(); input.value = now.getHours() * 60 + now.getMinutes();
+    const aggiorna = () => { testo.textContent = oraProva == null ? 'adesso' : `${String(Math.floor(oraProva / 60)).padStart(2, '0')}:${String(oraProva % 60).padStart(2, '0')}`; if (ultimoServizio) servizioHeader(...ultimoServizio); };
+    input.addEventListener('input', () => { oraProva = Number(input.value); aggiorna(); });
+    box.querySelector('button').addEventListener('click', () => { oraProva = null; const d = new Date(); input.value = d.getHours() * 60 + d.getMinutes(); aggiorna(); });
+  }
   function servizioHeader(inizio, fine, day, code = '') {
+    ultimoServizio = [inizio, fine, day, code];
+    sliderOra();
     const el = $('turno-servizio');
     if (!el) return;
     el.hidden = false; el.classList.remove('vuoto');
     // senza orari la riga resta (altezza fissa) e mostra il prossimo giorno di servizio
     if (!inizio || !fine) { el.classList.add('vuoto'); el.textContent = prossimoServizio(day); return; }
     const durata = m => `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}'` : ''}`;
-    let resto = '';
+    let resto = '', fase = '';
     if (day === iso(new Date())) {
-      const now = new Date(), n = now.getHours() * 60 + now.getMinutes();
+      const now = new Date(), n = oraProva ?? now.getHours() * 60 + now.getMinutes();
       const a = minutes(ora(inizio)), b = minutes(ora(fine));
       resto = n < a ? `inizia tra ${durata(a - n)}` : n < b ? `fine tra ${durata(b - n)}` : 'giornata finita';
+      // durante il servizio: rosso nel primo terzo, giallo nel secondo, verde nell'ultimo
+      if (n >= a && n < b) { const f = (n - a) / Math.max(1, b - a); fase = f < 1 / 3 ? ' inizio' : f < 2 / 3 ? ' meta' : ' fine'; }
     }
     // durata: le ore del turno (senza le pause), altrimenti da inizio a fine
     const ore = Number(C?.shiftForCode(code, day)?.hours) || 0;
     const tot = ore > 0 ? durata(Math.round(ore * 60)) : durata(minutes(ora(fine)) - minutes(ora(inizio)));
-    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b> <span class="mt-durata">(${esc(tot)})</span>${resto ? `<span class="mt-resto">${esc(resto)}</span>` : ''}`;
+    el.innerHTML = `Servizio <b>${esc(ora(inizio))} – ${esc(ora(fine))}</b> <span class="mt-durata">(${esc(tot)})</span>${resto ? `<span class="mt-resto${fase}">${esc(resto)}</span>` : ''}`;
     el.hidden = false;
   }
 
