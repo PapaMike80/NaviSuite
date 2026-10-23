@@ -17,6 +17,7 @@ function agente(id, db, adm) {
     addEventListener() {},
   };
   ctx.window = ctx;
+  ctx.NaviOvertimeComponents = { isWorkedManual: e => e.overtimeMeta?.workedMode === 'manual', changes: () => 0, sentine: () => 0, setWorked: (e, v) => { e.workedMinutes = v; } };
   ctx.NaviDiariaOvertime = {
     ordinary: e => e.rit || 0,
     setOrdinary: (e, v) => { e.rit = v; },
@@ -64,5 +65,12 @@ const pausa = () => new Promise(r => setTimeout(r, 3));
   const db4 = {}, x1 = agente('X1', db4);
   x1.e.date = '2020-01-01'; await x1.segna(30);
   assert.deepStrictEqual(db4, {}, 'un ritardo non di oggi non parte');
+  // Ore lavorate a mano: con il ritardo cancellato tornano al servizio
+  const db5 = {}, y1 = agente('Y1', db5), y2 = agente('Y2', db5);
+  y2.e.workedMinutes = 900; y2.e.overtimeMeta = { workedMode: 'manual' };
+  await y1.segna(90); await y2.ricevi();
+  assert.strictEqual(y2.e.workedMinutes, 480 + 90);
+  await pausa(); await y1.segna(0); await y2.ricevi();
+  assert.deepStrictEqual([y2.e.rit, y2.e.workedMinutes], [0, 480], 'cancellato: ore lavorate tornano al servizio');
   console.log('ritardi-equipaggio: ok');
 })().catch(e => { console.error(e); process.exit(1); });
