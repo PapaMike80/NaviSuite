@@ -40,22 +40,32 @@
   async function pubblica() {
     if (!id() || !fb()?.saveRitardoEquipaggio || !navigator.onLine) return;
     if (admin()) return pubblicaAdmin();
-    const da = recenti().filter(e => !e.ritardoEquipaggio && !e.ritardoInviato && cambiataOra(e) && ordinario(e) > 0);
-    if (!da.length) return;
+    const nuovi = recenti().filter(e => !e.ritardoEquipaggio && !e.ritardoInviato && cambiataOra(e) && ordinario(e) > 0);
+    // Chi l'ha segnato per primo: ogni sua modifica (anche 0 = cancellato) ripassa ai colleghi
+    const modificati = recenti().filter(e => e.ritardoMio && cambiataOra(e) && ordinario(e) !== Number(e.ritardoMio.minuti));
+    if (!nuovi.length && !modificati.length) return;
     await fb().ready;
     const dati = await fb().getRitardiEquipaggio(dal());
-    for (const e of da) {
+    for (const e of nuovi) {
       e.ritardoInviato = true; // anche se un collega e' arrivato prima: il mio valore resta mio
       if (primo(dati, e, true)) continue;
-      await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: Date.now() });
+      const t = Date.now();
+      await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t, at: t });
+      e.ritardoMio = { t, minuti: ordinario(e) };
       avvisa(`Ritardo inviato ai colleghi della ${turno(e)}`);
+    }
+    for (const e of modificati) {
+      const at = Date.now();
+      await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: e.ritardoMio.t, at });
+      e.ritardoMio = { ...e.ritardoMio, minuti: ordinario(e) };
+      avvisa(ordinario(e) ? `Ritardo aggiornato per i colleghi della ${turno(e)}` : `Ritardo cancellato per i colleghi della ${turno(e)}`);
     }
     segnaModificato();
   }
 
   // Admin: ogni ritardo cambiato a mano parte sempre (t resta quello del primo invio, at e' l'ora della modifica)
   async function pubblicaAdmin() {
-    const da = recenti().filter(e => cambiataOra(e) && ordinario(e) > 0 && e.ritardoAdminInviato !== ordinario(e) && !(e.ritardoEquipaggio && e.ritardoEquipaggio.minuti === ordinario(e)));
+    const da = recenti().filter(e => cambiataOra(e) && (ordinario(e) > 0 || Number(e.ritardoAdminInviato) > 0) && e.ritardoAdminInviato !== ordinario(e) && !(e.ritardoEquipaggio && e.ritardoEquipaggio.minuti === ordinario(e)));
     if (!da.length) return;
     await fb().ready;
     const dati = await fb().getRitardiEquipaggio(dal());
@@ -91,7 +101,7 @@
       }
       const ov = document.createElement('div'); ov.className = 'rit-eq-ov';
       const chi = esc(p.nome || 'Un collega');
-      ov.innerHTML = `<div class="rit-eq" role="dialog" aria-modal="true"><small>RITARDO DELL'EQUIPAGGIO</small><h3>${chi} ha segnato un ritardo</h3><p>Sulla tua stessa corsa. Vuoi registrarlo anche nella tua distinta?</p>`
+      ov.innerHTML = `<div class="rit-eq" role="dialog" aria-modal="true"><small>RITARDO DELL'EQUIPAGGIO</small><h3>${chi} ${p.modifica ? (p.minuti ? 'ha modificato il ritardo' : 'ha cancellato il ritardo') : 'ha segnato un ritardo'}</h3><p>Sulla tua stessa corsa. ${p.modifica && !p.minuti ? 'Vuoi toglierlo anche dalla tua distinta?' : 'Vuoi registrarlo anche nella tua distinta?'}</p>`
         + `<div class="rit-eq-box"><div class="rit-eq-ch">${esc(p.turno)}</div><div class="rit-eq-n">${esc(giornoLungo(p.date))}<span>da ${esc(p.nome || '')} · alle ${oraDi(p.quando)}</span></div><div class="rit-eq-v">${hhmm(p.minuti)}</div></div>`
         + '<div class="rit-eq-b"><button type="button" data-no>Annulla</button><button type="button" class="ok" data-si>Registra</button></div><div class="rit-eq-f">Se registri, potrai sempre modificarlo dalla giornata.</div></div>';
       const chiudi = v => { ov.remove(); fine(v); };
@@ -114,20 +124,26 @@
       for (const e of recenti().sort((x, y) => x.date.localeCompare(y.date))) {
         const a = ultimoAdmin(dati, e), atA = a ? Number(a.at || a.t) : 0;
         if (a && atA > (Number(e.ritardoEquipaggio?.at) || 0) && atA > (Number(e.ritardoAdminVisto) || 0)) { proposte.push({ e, r: a, admin: true, quando: atA }); continue; }
-        if (e.ritardoEquipaggio || e.ritardoInviato || ordinario(e) > 0) continue;
         const r = primo(dati, e, false);
-        if (r && Number(e.ritardoRifiutato) !== Number(r.t)) proposte.push({ e, r, admin: false, quando: r.t });
+        if (!r) continue;
+        const at = Number(r.at || r.t);
+        // gia' visto (registrato o annullato): ripropongo solo se chi l'ha segnato l'ha cambiato dopo
+        const ricevuto = e.ritardoEquipaggio && !e.ritardoEquipaggio.admin && Number(e.ritardoEquipaggio.t) === Number(r.t);
+        const visto = Math.max(Number(e.ritardoVistoAt) || 0, Number(e.ritardoRifiutato) === Number(r.t) ? Number(r.t) : 0, ricevuto ? Number(e.ritardoEquipaggio.at || e.ritardoEquipaggio.t) : 0);
+        if (ricevuto || visto) { if (at > visto) proposte.push({ e, r, admin: false, quando: at, modifica: true }); continue; }
+        if (e.ritardoEquipaggio || e.ritardoInviato || ordinario(e) > 0) continue;
+        proposte.push({ e, r, admin: false, quando: at });
       }
       let cambiati = 0;
-      for (const { e, r, admin: daAdmin, quando } of proposte) {
+      for (const { e, r, admin: daAdmin, quando, modifica } of proposte) {
         const min = Math.max(0, Math.round(Number(r.minuti) || 0));
-        const si = await chiedi({ date: e.date, turno: turno(e), minuti: min, nome: String(r.nome || ''), admin: daAdmin, quando });
+        const si = await chiedi({ date: e.date, turno: turno(e), minuti: min, nome: String(r.nome || ''), admin: daAdmin, quando, modifica: !!modifica || (daAdmin && !!e.ritardoEquipaggio) });
         if (si) {
           window.NaviDiariaOvertime.setOrdinary(e, min, servizio(e));
-          e.ritardoEquipaggio = { da: String(r.nome || ''), minuti: min, t: r.t, ...(daAdmin ? { at: quando, admin: true } : {}) };
+          e.ritardoEquipaggio = { da: String(r.nome || ''), minuti: min, t: r.t, at: quando, ...(daAdmin ? { admin: true } : {}) };
           e.imported = false;
         } else e.ritardoRifiutato = Number(r.t);
-        if (daAdmin) e.ritardoAdminVisto = quando;
+        if (daAdmin) e.ritardoAdminVisto = quando; else e.ritardoVistoAt = quando;
         e.modificatoIl = Date.now();
         cambiati++;
       }
