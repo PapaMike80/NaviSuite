@@ -5,10 +5,11 @@ const vm = require('vm');
 const codice = fs.readFileSync('assets/js/ritardi-equipaggio.js', 'utf8');
 const oggi = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
 
-function agente(id, db) {
+function agente(id, db, adm) {
   const ctx = {
     entries: [{ date: oggi, shift: 'R3', serviceMinutes: 480 }],
     activeAgent: { id, name: id },
+    isAdmin: () => !!adm,
     persist() {}, writeEntriesLocal() {}, markCloudDirty() {},
     async saveEntriesToFirebase() {},
     navigator: { onLine: true }, document: { visibilityState: 'hidden', addEventListener() {}, dispatchEvent() {} },
@@ -46,5 +47,16 @@ function agente(id, db) {
   const nuovo = agente('MEVIO', db); await nuovo.ricevi();
   assert.strictEqual(nuovo.e.rit, 20, 'la correzione di Tizio non cambia quello dei colleghi');
   assert.strictEqual(sempronio.e.rit, 20);
+  // Admin: il suo ritardo passa sempre, anche a chi l'ha gia' ricevuto o corretto, e a ogni sua modifica
+  const capo = agente('ADMIN', db, true);
+  await capo.segna(35);
+  await caio.ricevi(); await tizio.ricevi(); await sempronio.ricevi();
+  assert.deepStrictEqual([caio.e.rit, tizio.e.rit, sempronio.e.rit], [35, 35, 35], 'il ritardo dell admin passa a tutti');
+  await caio.segna(5);
+  await capo.segna(40);
+  await caio.ricevi(); await tizio.ricevi();
+  assert.deepStrictEqual([caio.e.rit, tizio.e.rit], [40, 40], 'ogni modifica dell admin passa di nuovo');
+  await caio.segna(15); await caio.ricevi();
+  assert.strictEqual(caio.e.rit, 15, 'senza nuove modifiche dell admin la correzione di Caio resta');
   console.log('ritardi-equipaggio: ok');
 })().catch(e => { console.error(e); process.exit(1); });

@@ -1,6 +1,7 @@
 // Ritardi dell'equipaggio (NaviDiaria e NaviDistinta).
 // Il primo agente che segna un ritardo su una corsa (stesso turno, stesso giorno) lo passa a tutti i colleghi di quel turno.
 // Dopo, ognuno puo' correggere il proprio: la correzione resta solo sua, anche se a correggere e' chi l'aveva inviato.
+// Prova e correzione: il ritardo segnato da un admin passa sempre ai colleghi, anche se l'avevano gia' ricevuto o corretto.
 // Firebase: ritardiEquipaggio/<giorno>/<TURNO>/<agente> = { minuti, nome, t }; vale solo il primo (t piu' basso).
 // Sulla giornata: ritardoInviato = l'ho inviato io; ritardoEquipaggio = { da, minuti, t } ricevuto da un collega.
 // Usa le variabili globali della pagina: entries, activeAgent, persist, saveEntriesToFirebase, syncEntriesWithFirebase.
@@ -24,11 +25,17 @@
   const primo = (dati, e, ancheMio) => Object.entries(dati?.[e.date]?.[turno(e)] || {})
     .filter(([chi, r]) => (ancheMio || chi !== mio()) && r && Number.isFinite(Number(r.t)))
     .map(([, r]) => r).sort((a, b) => a.t - b.t)[0] || null;
+  const admin = () => { try { return typeof isAdmin === 'function' && !!isAdmin(); } catch { return false; } };
+  // L'ultimo ritardo inviato da un admin (diverso da me)
+  const ultimoAdmin = (dati, e) => Object.entries(dati?.[e.date]?.[turno(e)] || {})
+    .filter(([chi, r]) => chi !== mio() && r?.admin && Number.isFinite(Number(r.at || r.t)))
+    .map(([, r]) => r).sort((a, b) => (b.at || b.t) - (a.at || a.t))[0] || null;
   const segnaModificato = () => { try { writeEntriesLocal('ritardo equipaggio'); markCloudDirty(); } catch { /* niente */ } };
 
   // Dopo un salvataggio: un ritardo segnato a mano parte verso i colleghi solo se nessuno l'ha gia' segnato
   async function pubblica() {
     if (!id() || !fb()?.saveRitardoEquipaggio || !navigator.onLine) return;
+    if (admin()) return pubblicaAdmin();
     const da = recenti().filter(e => !e.ritardoEquipaggio && !e.ritardoInviato && manuale(e) && ordinario(e) > 0);
     if (!da.length) return;
     await fb().ready;
@@ -37,6 +44,22 @@
       e.ritardoInviato = true; // anche se un collega e' arrivato prima: il mio valore resta mio
       if (primo(dati, e, true)) continue;
       await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: Date.now() });
+    }
+    segnaModificato();
+  }
+
+  // Admin: ogni ritardo cambiato a mano parte sempre (t resta quello del primo invio, at e' l'ora della modifica)
+  async function pubblicaAdmin() {
+    const da = recenti().filter(e => manuale(e) && e.ritardoAdminInviato !== ordinario(e) && !(e.ritardoEquipaggio && e.ritardoEquipaggio.minuti === ordinario(e)));
+    if (!da.length) return;
+    await fb().ready;
+    const dati = await fb().getRitardiEquipaggio(dal());
+    for (const e of da) {
+      const mioPrima = dati?.[e.date]?.[turno(e)]?.[mio()];
+      const at = Date.now();
+      await fb().saveRitardoEquipaggio(e.date, turno(e), id(), { minuti: ordinario(e), nome: activeAgent?.name || id(), t: Number(mioPrima?.t) || at, at, admin: true });
+      e.ritardoAdminInviato = ordinario(e);
+      e.ritardoInviato = true;
     }
     segnaModificato();
   }
@@ -51,6 +74,17 @@
       const dati = await fb().getRitardiEquipaggio(dal());
       let cambiati = 0;
       for (const e of recenti()) {
+        const a = ultimoAdmin(dati, e), atA = a ? Number(a.at || a.t) : 0;
+        if (a && atA > (Number(e.ritardoEquipaggio?.at) || 0) && atA > (Number(e.ritardoAdminVisto) || 0)) {
+          const min = Math.max(0, Math.round(Number(a.minuti) || 0));
+          window.NaviDiariaOvertime.setOrdinary(e, min, servizio(e));
+          e.ritardoEquipaggio = { da: String(a.nome || ''), minuti: min, t: a.t, at: atA, admin: true };
+          e.ritardoAdminVisto = atA;
+          e.imported = false;
+          e.modificatoIl = Date.now();
+          cambiati++;
+          continue;
+        }
         if (e.ritardoEquipaggio || e.ritardoInviato || (manuale(e) && ordinario(e) > 0)) continue;
         const r = primo(dati, e, false);
         if (!r) continue;
