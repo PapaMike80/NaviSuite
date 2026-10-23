@@ -262,7 +262,11 @@
     const mio = String(profilo?.id || '').replace(/[.#$\[\]\/]/g, '_');
     try {
       await window.NaviAdminFirebase?.ready;
-      const letta = await window.NaviAdminFirebase?.getClassificaGarda?.(CLASSIFICA) || {};
+      // classifica generale piu' le partite salvate prima nelle classifiche di ogni giorno: per ciascuno il risultato migliore
+      const meglio = (x, y) => !x || (y.affondate || 0) > (x.affondate || 0) || ((y.affondate || 0) === (x.affondate || 0) && Number(y.colpi) < Number(x.colpi));
+      const tutte = await window.NaviAdminFirebase?.getTutteClassificheGarda?.() || {};
+      const letta = {};
+      Object.values(tutte).forEach(giro => Object.entries(giro || {}).forEach(([chi, r]) => { if (r && Number(r.colpi) > 0 && meglio(letta[chi], r)) letta[chi] = r; }));
       if (classifica[mio] && !letta[mio]) letta[mio] = classifica[mio]; // il mio appena salvato
       classifica = letta;
     } catch { /* resta quella che c'era */ }
