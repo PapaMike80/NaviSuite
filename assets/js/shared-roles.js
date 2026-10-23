@@ -133,10 +133,14 @@
     localStorage.setItem(ACCESS_KEY, JSON.stringify(salvato));
     return { locale: false };
   }
+  // Pagina messa dagli admin nella sezione Amministrazione (disposizione per tutti, non le scelte personali)
+  const inAmministrazione = (file, access = accesso()) => scegliSezione(disposizioneGlobale(access).sezioni, file) === 'amministrazione';
   function puoAprire(file, agent = sessione(), access = accesso()) {
     file = String(file || 'index.html').toLowerCase();
     if (isAdminAgent(agent)) return true;
     if (PAGINE.some(([f]) => f === file)) return consentiti(file, access).includes(ruoloDi(agent));
+    // le pagine senza scelta d'accesso (giochi, pagine nuove...) spostate in Amministrazione: solo admin
+    if (inAmministrazione(file, access)) return false;
     // le altre pagine (Home, cambio PIN, pagine admin con i loro controlli): agli scali solo Home e cambio PIN
     return !isScaloAgent(agent) || ['index.html', 'cambia-pin.html', ''].includes(file);
   }
@@ -155,7 +159,8 @@
       return;
     }
     // link alle pagine chiuse: nascosti nel menu e nella Home
-    const chiuse = PAGINE.map(([f]) => f).filter(f => !puoAprire(f, agent, access));
+    const altre = [...Object.keys(disposizioneGlobale(access).sezioni), ...Object.keys(SEZIONE_PREDEFINITA)].filter(f => !PAGINE.some(([p]) => p === f));
+    const chiuse = [...new Set([...PAGINE.map(([f]) => f), ...altre])].filter(f => !puoAprire(f, agent, access));
     let style = document.getElementById('navi-page-access');
     if (!style) { style = document.createElement('style'); style.id = 'navi-page-access'; (document.head || document.documentElement).appendChild(style); }
     style.textContent = chiuse.map(f => `a[href^="${f}"]`).join(',') + (chiuse.length ? '{display:none!important}' : '');
