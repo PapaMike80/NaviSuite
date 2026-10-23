@@ -90,8 +90,8 @@
         document.head.appendChild(st);
       }
       const ov = document.createElement('div'); ov.className = 'rit-eq-ov';
-      const chi = p.admin ? "L'ufficio" : esc(p.nome || 'Un collega');
-      ov.innerHTML = `<div class="rit-eq" role="dialog" aria-modal="true"><small>${p.admin ? "RITARDO SEGNATO DALL'UFFICIO" : "RITARDO DELL'EQUIPAGGIO"}</small><h3>${chi} ha segnato un ritardo</h3><p>Sulla tua stessa corsa. Vuoi registrarlo anche nella tua distinta?</p>`
+      const chi = esc(p.nome || 'Un collega');
+      ov.innerHTML = `<div class="rit-eq" role="dialog" aria-modal="true"><small>RITARDO DELL'EQUIPAGGIO</small><h3>${chi} ha segnato un ritardo</h3><p>Sulla tua stessa corsa. Vuoi registrarlo anche nella tua distinta?</p>`
         + `<div class="rit-eq-box"><div class="rit-eq-ch">${esc(p.turno)}</div><div class="rit-eq-n">${esc(giornoLungo(p.date))}<span>da ${esc(p.nome || '')} · alle ${oraDi(p.quando)}</span></div><div class="rit-eq-v">${hhmm(p.minuti)}</div></div>`
         + '<div class="rit-eq-b"><button type="button" data-no>Annulla</button><button type="button" class="ok" data-si>Registra</button></div><div class="rit-eq-f">Se registri, potrai sempre modificarlo dalla giornata.</div></div>';
       const chiudi = v => { ov.remove(); fine(v); };
