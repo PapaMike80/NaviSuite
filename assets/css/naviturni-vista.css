@@ -1,0 +1,205 @@
+/* NaviTurni nello stile NaviSuite (docs/STILE-NAVISUITE.md): riquadro «Con chi navighi» e grafica nuova della tabella
+   di naviturni-page.js, che tiene il suo scorrimento e le sue regole */
+#nt-vista{--surface:#0b1c26;--card:#102733;--card2:#143140;--line:#1f4250;--ink:#eaf2f4;--muted:#9fb8c2;--on:#06231f;--teal:#2dd4bf;--cyan:#67d7e6;--violet:#a78bfa;--orange:#fb923c;--rose:#fb7185;color:var(--ink);font-family:Manrope,system-ui,sans-serif;max-width:900px;margin:0 auto 14px}
+.nt-sez{--c:var(--teal);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:color-mix(in srgb,var(--c) 10%,var(--card));border-radius:16px;padding:11px 12px;margin-bottom:10px}
+.nt-sez h2{margin:0 0 8px;font-size:11px;letter-spacing:.16em;color:var(--c);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nt-x{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 9px;font:700 10.5px Manrope,system-ui,sans-serif;letter-spacing:0}
+.nt-mio{display:flex;align-items:center;gap:12px}.nt-code{background:var(--t,var(--teal));color:var(--on);font-weight:900;font-size:22px;border-radius:12px;padding:8px 12px;min-width:58px;text-align:center}.nt-code.rip{background:var(--card2);color:var(--muted)}
+.nt-mio b{font-size:15px}.nt-mio small{display:block;color:var(--muted);font-size:12px}
+.nt-nave{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:10px}.nt-nave b{color:var(--ink)}
+.nt-crew{display:grid;gap:6px;margin-top:8px}@media(min-width:700px){.nt-crew{grid-template-columns:1fr 1fr}}
+.nt-cw{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:10px;padding:7px 9px;font-size:13px}.nt-cw.io{outline:1px solid color-mix(in srgb,var(--teal) 55%,transparent)}.nt-cw em{margin-left:auto;font-style:normal;font-size:11px;color:var(--teal);font-weight:800}
+.nt-gr{display:inline-block;min-width:32px;text-align:center;font-size:9.5px;font-weight:900;border-radius:6px;padding:2px 4px;background:var(--g);color:#06231f}
+.nt-vuoto{margin:0;font-size:12px;color:var(--muted)}
+/* applicato = bigliettaio di bordo */
+.nt-ruolo{font-size:11px;color:var(--muted);font-weight:700}
+body.nt-stile .ops-bar,body.nt-stile .date-head-legend{display:none!important}
+body.nt-stile #nt-vista{margin-bottom:10px}
+/* bolle piene con i colori dei turni */
+body.nt-stile #tbody .cell-pill{display:inline-block;min-width:32px;padding:4px 6px;border:0!important;border-radius:999px;font-weight:900;font-size:11.5px;line-height:1;color:#fff!important;background:var(--t,#94a3b8)!important;box-shadow:none!important;text-transform:uppercase}
+body.nt-stile #tbody .c-d1{--t:#3b6bcc}body.nt-stile #tbody .c-d2{--t:#2d9e6b}body.nt-stile #tbody .c-d3{--t:#e07b3a}body.nt-stile #tbody .c-d4{--t:#c45cba}
+body.nt-stile #tbody .c-dt{--t:#e6d44a;color:#06231f!important}body.nt-stile #tbody .c-bis{--t:#5ec4d4;color:#06231f!important}body.nt-stile #tbody .c-pond{--t:#f08080}
+body.nt-stile #tbody .c-cong{--t:#a78bfa}body.nt-stile #tbody .c-agb{--t:#60a5fa}body.nt-stile #tbody .c-fp{--t:#94a3b8}body.nt-stile #tbody .c-rf{--t:#84cc16}
+body.nt-stile #tbody .c-lav{--t:#c49a6c}body.nt-stile #tbody .c-agm{--t:#f472b6}body.nt-stile #tbody .c-agt{--t:#818cf8}body.nt-stile #tbody .c-other{--t:#94a3b8}
+/* riposo: solo un trattino spento */
+body.nt-stile #tbody .cell-pill.c-rip{background:transparent!important;color:transparent!important;font-size:0;min-width:0;padding:0}
+body.nt-stile #tbody .cell-pill.c-rip::after{content:'—';font-size:12px;color:#4f6b77}
+/* righe neutre, il grado e' un pallino colorato prima del nome */
+body.nt-stile #tbody tr td{background:transparent!important;border-left-color:transparent!important}
+body.nt-stile #tbody tr td.td-name{background:#102733!important;text-align:left!important;font-size:12.5px!important;font-weight:800;padding-left:8px!important;box-shadow:none!important}
+body.nt-stile #tbody tr td.td-name::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--g,#e8f3f6);vertical-align:1px}
+body.nt-stile #tbody tr.grado-capitano{--g:#facc15}body.nt-stile #tbody tr.grado-capo{--g:#fb923c}body.nt-stile #tbody tr.grado-motorista{--g:#a855f7}
+body.nt-stile #tbody tr.grado-aiuto{--g:#3b82f6}body.nt-stile #tbody tr.grado-timoniere{--g:#22c55e}body.nt-stile #tbody tr.grado-applicato{--g:#a3e635}body.nt-stile #tbody tr.grado-marinaio{--g:#e8f3f6}
+body.nt-stile #tbody tr{border-left:0!important}
+body.nt-stile #tbody tr.logged-agent-row td.td-name,body.nt-stile #tbody tr.cross-residence-logged-row td.td-name{background:color-mix(in srgb,#2dd4bf 24%,#102733)!important;color:#2dd4bf!important}
+body.nt-stile #tbody tr.logged-agent-row td,body.nt-stile #tbody tr.logged-agent-row td.nt-oggi{background:color-mix(in srgb,#2dd4bf 12%,#0f2129)!important}
+/* oggi: intestazione verde acqua piena con OGGI, colonna bordata e piu' accesa */
+/* bolla toccata */
+/* niente pulsanti OGGI e menu sopra la tabella: resta solo il mese, in una riga bassa */
+body.nt-stile #matrix-scroll-wrap .month-header th.turni-header-actions>*{display:none!important}
+/* righe fisse una attaccata all'altra: mese, date e la mia riga (le altezze vere le misura naviturni-page.js) */
+body.nt-stile #matrix-scroll-wrap .month-header th{height:26px!important;min-height:26px!important;max-height:26px!important;padding:0!important}
+body.nt-stile #matrix-scroll-wrap .month-visible-label{height:26px!important;line-height:26px}
+body.nt-stile #matrix-scroll-wrap .date-header th{top:calc(env(safe-area-inset-top,0px) + var(--nt-testa,0px) + var(--nt-mese,26px))!important}
+body.nt-stile #matrix-scroll-wrap .month-header th{top:calc(env(safe-area-inset-top,0px) + var(--nt-testa,0px))!important}
+body.nt-stile #matrix-scroll-wrap #tbody tr.logged-agent-row td{position:sticky!important;top:calc(env(safe-area-inset-top,0px) + var(--nt-testa,0px) + var(--nt-mia,70px))!important}
+.nt-crew{margin-top:10px}
+/* bolle più piccole, sempre dentro la loro cella */
+body.nt-stile #tbody .cell-pill:not(.c-rip){box-sizing:border-box;min-width:0;max-width:calc(100% - 2px);padding:4px 4px;font-size:10.5px;overflow:hidden;white-space:nowrap;text-overflow:clip;vertical-align:middle}
+/* il riquadro dell'equipaggio resta fermo anche scorrendo a destra e sinistra */
+body.nt-stile #nt-vista{position:sticky;left:8px;width:min(900px,calc(100vw - 16px));box-sizing:border-box;margin-left:8px;margin-right:0}
+body.nt-stile #turni-operativi{width:max-content!important;min-width:100%!important;max-width:none!important}
+body.nt-stile #nt-vista{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 14px)}
+/* cognomi lunghi: carattere un po' più piccolo e a capo invece dei puntini */
+body.nt-stile #tbody tr td.td-name,body.nt-stile #tbody tr td.td-name .agent-name-text{white-space:normal!important;text-overflow:clip!important;overflow-wrap:anywhere;hyphens:auto;line-height:1.1!important}
+body.nt-stile #tbody tr td.td-name{font-size:11.5px!important}
+/* nomi sempre su una riga */
+body.nt-stile #tbody tr td.td-name,body.nt-stile #tbody tr td.td-name .agent-name-text{white-space:nowrap!important;overflow-wrap:normal;letter-spacing:-.01em}
+/* testo delle bolle centrato: se è lungo si taglia uguale ai due lati */
+body.nt-stile #tbody .cell-pill:not(.c-rip){display:inline-flex;justify-content:center;align-items:center;text-align:center;letter-spacing:-.02em}
+body.nt-stile>header.page-header{position:sticky!important;left:0!important;z-index:5;width:100vw;max-width:100vw;box-sizing:border-box}
+body.nt-stile{width:max-content!important;min-width:100%!important}
+body.nt-stile>footer{position:sticky!important;left:0!important;width:100vw;max-width:100vw;box-sizing:border-box}
+/* app installata: lo spazio della tacca lo mette già html, non di nuovo il body */
+@media (display-mode: standalone){body.nt-stile.turni-page{padding-top:0!important}}
+/* equipaggio come nel Mio turno */
+#nt-vista .nt-cw{justify-content:space-between;padding:11px 13px;border-radius:12px;font-size:15px}
+#nt-vista .nt-cw b{font-weight:900;letter-spacing:.01em}
+#nt-vista .nt-cw.io{outline:0;border:1.5px solid var(--teal);background:color-mix(in srgb,var(--teal) 10%,var(--surface))}
+#nt-vista .nt-cw em{margin:0;font-size:inherit;color:var(--teal)}
+#nt-vista .nt-cw .nt-ruolo{font-size:12.5px;color:var(--muted);font-weight:700}
+#nt-vista .nt-cw.io b{color:#eaf2f4!important}
+/* app installata: in Turni il menu partiva sotto l'ora e la batteria; almeno l'altezza della barra di stato */
+@media (display-mode: standalone){
+  body.nt-stile #navisuite-popup .ns-menu-dialog{top:calc(12px + max(env(safe-area-inset-top,0px),47px))!important;max-height:calc(100dvh - max(env(safe-area-inset-top,0px),47px) - env(safe-area-inset-bottom,0px) - 32px)!important}
+}
+/* bolle come nel Mio turno: fondo scuro del colore del turno, bordo e scritta colorati */
+body.nt-stile #tbody .cell-pill:not(.c-rip){background:color-mix(in srgb,var(--t,#94a3b8) 22%,#0b1c26)!important;border:1.5px solid color-mix(in srgb,var(--t,#94a3b8) 70%,transparent)!important;color:color-mix(in srgb,var(--t,#94a3b8) 40%,#ffffff)!important;font-weight:800}
+#nt-vista .nt-dist{display:inline-grid;place-items:center;flex:none;width:34px;height:34px;box-sizing:border-box;border:3px solid var(--g);border-radius:50%;background:color-mix(in srgb,var(--g) 18%,transparent);color:var(--g);font-size:11px;font-weight:900;line-height:1}
+#nt-vista .nt-cw{padding-top:7px;padding-bottom:7px}
+/* codice del turno come il badge del Mio turno */
+#nt-vista .nt-code:not(.rip){background:color-mix(in srgb,var(--t) 22%,#0b1c26)!important;border:2px solid color-mix(in srgb,var(--t) 70%,transparent);color:color-mix(in srgb,var(--t) 40%,#ffffff)!important;border-radius:999px}
+/* riquadro equipaggio = sezione Equipaggio del Mio turno */
+#nt-vista .terra-card{min-width:0;border:1px solid #244653;border-radius:16px;background:linear-gradient(160deg,#0d2530,#0a1d26);box-shadow:0 12px 30px rgba(0,0,0,.22);overflow:hidden}
+#nt-vista .terra-card-head{display:flex;align-items:center;gap:10px;padding:13px 16px 10px;border-bottom:1px solid rgba(124,173,189,.16);cursor:pointer;list-style:none}
+#nt-vista .terra-card-head::-webkit-details-marker{display:none}
+#nt-vista .terra-card-head::before{content:"▸";color:#e8f7f7}
+#nt-vista details[open]>.terra-card-head::before{content:"▾"}
+#nt-vista .terra-card-head h2{flex:1;margin:0;font:800 18px Manrope,sans-serif;letter-spacing:.02em;color:#e8f7f7}
+#nt-vista .terra-card-head small{color:#86a5af;font-size:11px;font-weight:700}
+#nt-vista .terra-card-head .nt-code{font-size:13px;min-width:0;padding:3px 10px;border-width:1.5px}
+#nt-vista .terra-card-body{padding:10px 12px 12px}
+#nt-vista .mt-crew{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+#nt-vista .mt-crew li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.025)}
+#nt-vista .mt-crew li b{font-size:15px;font-weight:900}
+#nt-vista .mt-crew li small{color:#86a5af;font-size:12px;font-weight:700}
+#nt-vista .mt-crew li.me{outline:1.5px solid #2dd4bf;background:rgba(45,212,191,.10)}
+#nt-vista .mt-crew li.me b::after{content:" (tu)";color:#2dd4bf;font-weight:700}
+/* equipaggio compatto: nomi in bolle col pallino del grado */
+#nt-vista .nt-eq{border:1px solid #244653;border-radius:14px;background:linear-gradient(160deg,#0d2530,#0a1d26);padding:8px 10px}
+#nt-vista .nt-eq-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+#nt-vista .nt-eq-hd .nt-code{font-size:12px;min-width:0;padding:1px 9px;border-width:1.5px}
+#nt-vista .nt-eq-hd small{margin-left:auto;color:#86a5af;font-size:11px;font-weight:700}
+#nt-vista .nt-eq-nomi{display:flex;flex-wrap:wrap;gap:5px}
+#nt-vista .nt-eq-nomi span{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12.5px;font-weight:900}
+#nt-vista .nt-eq-nomi span::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--g)}
+#nt-vista .nt-eq-nomi span.me{outline:2px solid #2dd4bf;outline-offset:1px}
+body.nt-stile #nt-vista{width:calc(100vw - 32px)!important;max-width:900px}
+/* testata come il Mio turno, ad altezza fissa */
+body.nt-stile #nt-vista:empty{display:none}
+#nt-testata .terra-label{margin:0 0 4px;color:#2dd4bf;font-size:12px;font-weight:800;letter-spacing:.2em}
+#nt-testata .terra-title{display:flex;align-items:center;gap:10px;margin:0;height:38px;white-space:nowrap;overflow:hidden;font:800 26px/1.1 Manrope,system-ui,sans-serif;color:#eaf2f4;max-width:calc(100% - 60px)}
+#nt-testata .chip{--c:#94a3b8;display:inline-flex;align-items:center;justify-content:center;min-width:38px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);font:900 16px/1 Manrope,sans-serif}
+#nt-testata .terra-context{margin:5px 0 8px;height:20px;line-height:20px;color:#9bc8d5;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nt-testata .nt-eq-nomi{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;height:55px;overflow:hidden}
+#nt-testata .nt-eq-nomi span{display:inline-flex;align-items:center;gap:5px;height:25px;box-sizing:border-box;padding:0 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12px;font-weight:900;white-space:nowrap}
+#nt-testata .nt-eq-nomi span::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--g)}
+body.nt-stile>header.page-header .turni-header-copy[hidden]{display:none!important}
+/* testata sempre ferma in alto, anche scorrendo la tabella in giù; la tabella si incolla sotto */
+body.nt-stile>header.page-header{top:env(safe-area-inset-top,0px)!important;z-index:200!important;background:#091c25!important}
+/* colonna di oggi anche dentro le celle «A residenza» */
+body.nt-stile #tbody td.elsewhere-span{box-shadow:none!important}
+#nt-testata .terra-title .chip{flex:none}
+/* caratteri della tabella più grandi e colonne un po' più larghe per starci */
+body.nt-stile #tbody .cell-pill:not(.c-rip){font-size:12.5px;padding:5px 4px}
+body.nt-stile #tbody tr td.td-name{font-size:13.5px!important}
+body.nt-stile #matrix-scroll-wrap .date-header th[data-col]{min-width:40px!important;width:40px!important}
+body.nt-stile #tbody td[data-col]:not(.elsewhere-span){min-width:40px!important;width:40px!important}
+/* riquadro «Caricamento turni» dentro lo schermo */
+body.nt-stile #welcome-notice{position:sticky;left:16px;width:calc(100vw - 32px);max-width:900px;box-sizing:border-box;margin-left:0!important;margin-right:0!important}
+#nt-testata{flex:1 1 auto;width:100%;min-width:0}
+/* riga delle date a tessere, come la striscia del Mio turno */
+body.nt-stile #matrix-scroll-wrap .date-header th[data-col]{height:56px!important;min-height:56px!important;max-height:56px!important;padding:0!important;background:#0b1c26!important;vertical-align:middle!important;box-shadow:none!important;border:0!important}
+body.nt-stile .date-header th[data-col]::before{content:'';position:absolute;inset:4px 2px;border-radius:11px;border:1px solid #1f4250;background:#102733;z-index:0}
+body.nt-stile .date-header th[data-col]>span{position:relative;z-index:1;display:block;line-height:1.1}
+body.nt-stile .date-header th[data-col] .date-head-day{font:800 9px Manrope,system-ui,sans-serif!important;letter-spacing:.06em;text-transform:uppercase;color:#9fb8c2!important}
+body.nt-stile .date-header th[data-col] .date-head-num{font:500 18px 'DM Mono',ui-monospace,monospace!important;color:#eaf2f4!important}
+body.nt-stile .date-header th.nt-dom::before{border-color:rgba(251,113,133,.55);background:color-mix(in srgb,#fb7185 12%,#102733)}
+body.nt-stile .date-header th.nt-dom .date-head-day,body.nt-stile .date-header th.nt-dom .date-head-num{color:#fb7185!important}
+body.nt-stile .date-header th.nt-paga::before{background:linear-gradient(160deg,color-mix(in srgb,#fbbf24 55%,#102733),color-mix(in srgb,#f59e0b 30%,#102733));border-color:#fbbf24}
+body.nt-stile .date-header th.nt-paga .date-head-day{color:#fde68a!important}
+body.nt-stile .date-header th.nt-oggi::before{border:2px dashed rgba(45,212,191,.85);box-shadow:none}
+body.nt-stile #matrix-scroll-wrap thead tr.date-header th.nt-oggi span.date-head-day{font-size:0!important;letter-spacing:0!important}
+body.nt-stile #matrix-scroll-wrap thead tr.date-header th.nt-oggi span.date-head-day::after{content:'OGGI';font:900 8px Manrope,system-ui,sans-serif;letter-spacing:.12em;color:#06231f;background:#2dd4bf;border-radius:99px;padding:1px 5px}
+/* la mia riga dentro la riga delle date (striscia del Mio turno) */
+body.nt-stile #matrix-scroll-wrap .date-header th[data-col]{height:74px!important;min-height:74px!important;max-height:74px!important}
+body.nt-stile .date-header th[data-col] .nt-mt{position:relative;z-index:1;display:inline-block;margin-top:3px;min-width:28px;max-width:34px;box-sizing:border-box;padding:2px 4px;border-radius:999px;background:var(--c);color:#fff;font:900 10px/1.1 Manrope,system-ui,sans-serif;text-align:center;overflow:hidden;white-space:nowrap}
+body.nt-stile .date-header th[data-col] .nt-mt.rip{background:transparent;border:1px solid #1f4250;color:#9fb8c2;font-weight:700}
+body.nt-stile .date-header th[data-col] .date-head-markers,body.nt-stile .date-header th[data-col] .week-draft-label{display:none!important}
+
+body.nt-stile.nt-mia-in-date #tbody tr.logged-agent-row{display:none!important}
+/* bolle di tutti come il Mio turno: piene, scritta bianca */
+body.nt-stile #tbody .cell-pill:not(.c-rip){background:var(--t,#94a3b8)!important;border:0!important;color:#fff!important}
+body.nt-stile .date-header th.nt-bozza::before{border:1.5px dashed #f59e0b}
+/* prima casella: bolle delle residenze sopra, il mio nome in basso in linea con le bolle dei turni */
+body.nt-stile .date-header th.nt-primo{vertical-align:bottom!important;padding:0 0 12px 8px!important;text-align:left!important}
+body.nt-stile .date-header th.nt-primo>*:not(.nt-mionome){transform:scale(.88);transform-origin:left bottom;margin-bottom:-3px}
+body.nt-stile .date-header th.nt-primo .nt-mionome{display:block;margin-top:6px;color:#2dd4bf;font:900 14px Manrope,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* bolle dei turni: stessa misura nelle date e nella tabella, centrate */
+body.nt-stile #tbody .cell-pill:not(.c-rip),body.nt-stile .date-header th[data-col] .nt-mt{display:inline-flex;justify-content:center;align-items:center;width:34px;min-width:34px;max-width:34px;box-sizing:border-box;padding:4px 0!important;font-size:12px;font-weight:900;border-radius:999px}
+body.nt-stile .date-header th[data-col] .nt-mt{margin:3px auto 0;line-height:1.1}
+body.nt-stile .date-header th[data-col]{text-align:center!important}
+/* oggi: colonna tratteggiata dalla tessera fino in fondo */
+body.nt-stile .date-header th.nt-oggi::before,body.nt-stile .date-header th.nt-selcol::before{inset:4px 0 0 0;border-bottom:0!important;border-radius:11px 11px 0 0}
+/* giorno toccato: bordo pieno; il giorno di paga tutto dorato */
+body.nt-stile .date-header th.nt-selcol::before{border:2px solid #2dd4bf;box-shadow:0 0 12px rgba(45,212,191,.3)}
+body.nt-stile .date-header th.nt-selcol.nt-oro::before{border-color:#fbbf24;box-shadow:0 0 14px rgba(251,191,36,.5)}
+/* bolle come il codice in testata: fondo trasparente tinto, bordo e scritta del colore del turno; più strette perché il bordo della colonna le contenga */
+body.nt-stile #tbody .cell-pill:not(.c-rip){width:30px;min-width:30px;max-width:30px;background:color-mix(in srgb,var(--t,#94a3b8) 14%,transparent)!important;border:1px solid color-mix(in srgb,var(--t,#94a3b8) 55%,transparent)!important;color:color-mix(in srgb,var(--t,#94a3b8) 78%,#ffffff)!important}
+body.nt-stile .date-header th[data-col] .nt-mt:not(.rip){width:30px;min-width:30px;max-width:30px;background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 55%,transparent);color:color-mix(in srgb,var(--c) 78%,#ffffff)}
+body.nt-stile .date-header th[data-col] .nt-mt.rip{width:30px;min-width:30px;max-width:30px}
+/* la bolla «A RIVA» resta larga quanto serve */
+body.nt-stile #tbody td.elsewhere-span .cell-pill{width:auto!important;min-width:0!important;max-width:none!important;padding:4px 10px!important}
+/* domenica scelta: tutta la colonna nel rosso trasparente della domenica */
+body.nt-stile .date-header th.nt-selcol.nt-rosso::before{border-color:rgba(251,113,133,.55);background:color-mix(in srgb,#fb7185 12%,#102733);box-shadow:none}
+body.nt-stile .date-header th.nt-primo .nt-mionome{transform:translateY(var(--sposta,0px))}
+/* cornici delle colonne (oggi tratteggiata, giorno scelto piena) sopra tutta la tabella */
+body.nt-stile #tbody td.elsewhere-span{background:transparent!important}
+.nt-cornice{position:absolute;z-index:1;pointer-events:none;box-sizing:border-box;border:2px dashed rgba(45,212,191,.85);border-top:0;border-radius:0 0 10px 10px;background:rgba(45,212,191,.07)}
+.nt-cornice-sel{border-style:solid;border-color:#2dd4bf;background:rgba(45,212,191,.12)}
+.nt-cornice-sel.nt-oro{border-color:#fbbf24;background:rgba(251,191,36,.16)}
+.nt-cornice-sel.nt-rosso{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.12)}
+/* oggi è subito accanto alla colonna dei nomi (che ha il suo bordo): tessera e colonna rientrano di 2px, insieme */
+body.nt-stile .date-header th.nt-oggi:not(.nt-selcol)::before{left:2px}
+.nt-cornice-oggi{margin-left:2px;width:calc(var(--w) - 2px)!important}
+/* testo delle bolle centrato al pixel: altezza fissa e lettere centrate sull'altezza delle maiuscole */
+body.nt-stile #tbody .cell-pill:not(.c-rip),body.nt-stile .date-header th[data-col] .nt-mt{height:24px;padding-top:0!important;padding-bottom:0!important;line-height:1!important;text-box:trim-both cap alphabetic;align-items:center;justify-content:center;text-align:center}
+body.nt-stile #tbody td.elsewhere-span .cell-pill{height:26px}
+/* turni in comune con me: niente bordo giallo, bolla piena con un leggero bagliore del suo colore */
+body.nt-stile #tbody td.shared-crew-day::before,body.nt-stile #tbody td.shared-crew-day::after,body.nt-stile #tbody td.pinned-shared-crew-day::before,body.nt-stile #tbody td.pinned-shared-crew-day::after{display:none!important}
+body.nt-stile #tbody td.shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.pinned-shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.selected-shared-crew-day .cell-pill:not(.c-rip){background:var(--t,#94a3b8)!important;border-color:var(--t,#94a3b8)!important;color:#fff!important;outline:0!important;box-shadow:0 0 6px var(--t,#94a3b8)!important}
+/* turni in comune (e le mie bolle nelle date): colore un po' più scuro per un bel contrasto con la scritta bianca, bagliore leggero */
+body.nt-stile #tbody td.shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.pinned-shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.selected-shared-crew-day .cell-pill:not(.c-rip){background:color-mix(in srgb,var(--t,#94a3b8) 72%,#000)!important;border-color:color-mix(in srgb,var(--t,#94a3b8) 85%,#fff)!important;color:#fff!important;box-shadow:0 0 3px var(--t,#94a3b8)!important;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+body.nt-stile .date-header th[data-col] .nt-mt:not(.rip){background:color-mix(in srgb,var(--c) 72%,#000);border-color:color-mix(in srgb,var(--c) 85%,#fff);color:#fff;box-shadow:0 0 3px var(--c);text-shadow:0 1px 1px rgba(0,0,0,.35)}
+/* bolle piene (turni in comune e i miei): colore pieno acceso, scritta del colore dello sfondo; uguali in tabella e nelle date */
+body.nt-stile #tbody td.shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.pinned-shared-crew-day .cell-pill:not(.c-rip),body.nt-stile #tbody td.selected-shared-crew-day .cell-pill:not(.c-rip){background:var(--t,#94a3b8)!important;border:1px solid var(--t,#94a3b8)!important;color:#0b1c26!important;text-shadow:none!important;box-shadow:0 0 3px var(--t,#94a3b8)!important;font-weight:900}
+body.nt-stile .date-header th[data-col] .nt-mt:not(.rip){background:var(--c)!important;border:1px solid var(--c)!important;color:#0b1c26!important;text-shadow:none!important;box-shadow:0 0 3px var(--c)!important;font-weight:900}
+/* riposo: la linea come in tabella */
+body.nt-stile .date-header th[data-col] .nt-mt.rip{background:transparent!important;border:0!important;color:#4f6b77!important;font-size:12px}
+/* corsa scelta: la bolla pulsa con un leggerissimo bagliore del suo colore */
+/* (le bolle hanno box-shadow bloccato con !important: il bagliore animato usa filter) */
+@keyframes nt-pulsa{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 4px var(--t,var(--c,#2dd4bf))) drop-shadow(0 0 9px var(--t,var(--c,#2dd4bf)))}}
+body.nt-stile .date-header .nt-mt.nt-pulsa,body.nt-stile #tbody .cell-pill.nt-pulsa{animation:nt-pulsa 1.8s ease-in-out infinite!important}
+@media (prefers-reduced-motion:reduce){body.nt-stile .date-header .nt-mt.nt-pulsa,body.nt-stile #tbody .cell-pill.nt-pulsa{animation:none!important;filter:drop-shadow(0 0 4px var(--t,#2dd4bf))}}
+/* una vecchia regola (naviturni.html) spegne animazioni e filtri sulle bolle in comune: qui vince la pulsazione */
+body.nt-stile #tbody td.shared-crew-day .cell-pill.nt-pulsa,body.nt-stile #tbody td.pinned-shared-crew-day .cell-pill.nt-pulsa,body.nt-stile #tbody td.selected-shared-crew-day .cell-pill.nt-pulsa{animation:nt-pulsa 1.8s ease-in-out infinite!important}

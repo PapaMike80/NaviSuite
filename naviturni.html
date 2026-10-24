@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="assets/css/navidiaria-weekly.css?v=110">
   <link rel="stylesheet" href="assets/css/navidiaria-monthly.css?v=120">
   <link rel="stylesheet" href="assets/css/naviturni-page.css?v=4">
+  <link rel="stylesheet" href="assets/css/naviturni-vista.css?v=50">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <link rel="stylesheet" href="assets/css/naviturni-page-fixes.css?v=1">
 </head>
@@ -67,6 +68,7 @@
   </header>
 
   <main id="turni-operativi">
+    <section id="nt-vista" aria-label="Turni"></section>
 
     <section class="ops-bar" aria-label="Riepilogo operativo">
       <label class="search-box">
@@ -132,7 +134,11 @@
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.98"></script>
   <script src="assets/js/offline.js?v=2"></script>
-  <script src="assets/js/naviturni-page.js?v=19"></script>
+  <script src="assets/js/naviturni-page.js?v=20"></script>
+  <script src="assets/js/course-info.js?v=1"></script>
+  <script src="assets/js/servizi-terra-a4.js?v=21"></script>
+  <script src="assets/js/turni-giorno.js?v=12"></script>
+  <script src="assets/js/naviturni-vista.js?v=45"></script>
 
   <!-- Navigazione Mobile Liquid Glass -->
 
@@ -209,9 +215,6 @@
 }
 #tbody td.my-change-request .cell-pill::after,#tbody td.peer-change-request .cell-pill::after{content:none!important;display:none!important}
 #tbody tr.peer-change-row td.td-name .agent-name-text::after{content:none!important}
-.crew-hover-tooltip{position:fixed;z-index:99999;min-width:150px;max-width:280px;padding:8px 12px;border:1px solid rgba(45,212,191,.45);border-radius:10px;background:#0d1f27;color:#e8f3f6;box-shadow:0 14px 35px rgba(0,0,0,.5);font-size:12px;line-height:1.55;pointer-events:none}
-.crew-hover-tooltip .crew-hover-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f3f6}
-.crew-hover-tooltip .crew-hover-name.is-logged{font-weight:800}
   .ff-tag{display:inline-block;margin-left:5px;padding:1px 5px;border-radius:6px;background:#2a2148;border:1px solid #a78bfa;color:#ddd6fe;font-size:9px;font-weight:900;letter-spacing:.04em;vertical-align:middle}
 </style>
 <script src="assets/js/naviturni-change-requests.js?v=1"></script>
