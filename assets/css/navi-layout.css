@@ -230,11 +230,11 @@ body.impostazioni-page .brand span{
   background:var(--accent);
   color:#06221f;
 }
-body.impostazioni-page nav{
+body.impostazioni-page nav:not(.ns-menu-links){
   display:grid;
   gap:6px;
 }
-body.impostazioni-page nav a{
+body.impostazioni-page nav:not(.ns-menu-links) a{
   display:flex;
   align-items:center;
   gap:11px;
@@ -246,14 +246,14 @@ body.impostazioni-page nav a{
   font-size:13px;
   font-weight:700;
 }
-body.impostazioni-page nav a:not(.ns-tile) span{
+body.impostazioni-page nav:not(.ns-menu-links) a:not(.ns-tile) span{
   width:20px;
   color:var(--accent);
   font-size:17px;
   text-align:center;
 }
-body.impostazioni-page nav a:hover,
-body.impostazioni-page nav a.active{
+body.impostazioni-page nav:not(.ns-menu-links) a:hover,
+body.impostazioni-page nav:not(.ns-menu-links) a.active{
   border-color:#28505a;
   background:var(--nav-2);
   color:#fff;
