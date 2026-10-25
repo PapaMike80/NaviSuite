@@ -16,7 +16,7 @@
   load('assets/js/connection-webpush.js?v=20260909-2');
 
   // Sondaggio anonimo: popup per gli agenti, esportazione Excel e gestione in Impostazioni (admin).
-  load('assets/js/survey-gate.js?v=2');
+  load('assets/js/survey-gate.js?v=3');
   load('assets/js/survey-xlsx.js?v=1');
   load('assets/js/survey-admin.js?v=2');
 

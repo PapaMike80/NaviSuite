@@ -745,4 +745,6 @@
     link.classList.add('ns-navigation-pending');
     link.setAttribute('aria-busy','true');
   },true);
+  // Sondaggio anonimo su tutte le pagine (il popup si mostra solo se l'admin lo ha attivato)
+  if(!window.NaviSurvey&&!document.querySelector('script[src*="survey-gate.js"]')){const sg=document.createElement('script');sg.src='assets/js/survey-gate.js?v=3';sg.defer=true;document.head.appendChild(sg);}
 })();
