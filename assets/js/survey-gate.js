@@ -3,6 +3,7 @@
 // Le risposte non contengono nome, id o ora: solo il giorno. Se la rete non risponde l'app non si blocca.
 (function () {
   'use strict';
+  if (window.NaviSurvey) return; // caricato due volte (menu e annunci): basta una
   // Domande di riserva (le stesse di partenza): di solito arrivano dal sondaggio, modificabili dall'admin
   const QUESTIONS = [
     { key: 'frequency', icon: '🕒', title: 'Con quale frequenza usi NaviSuite?', color: '#67d7e6', type: 'single',
