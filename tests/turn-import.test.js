@@ -156,15 +156,17 @@ console.log('turn-import ok');
   assert.deepEqual(Object.values(madBefore.turni_settimanali_completi)[0],Array(7).fill('r1'));
   assert.equal(before.residenze.MADERNO.find(agent=>agent.id==='1').turni_settimanali_completi,undefined);
 
-  // Alla decorrenza (e dopo): sparisce del tutto da DESENZANO, in MADERNO e'
-  // una riga normale con i turni veri, senza etichette ne' dati "completi".
+  // Alla decorrenza (e dopo): in ogni residenza i turni veri dei giorni svolti li'.
+  // DESENZANO: turni veri fino alla decorrenza, poi "A MADERNO"; MADERNO: "A DESENZANO" prima, poi i turni veri.
   ['2026-10-05','2026-10-10'].forEach(todayIso=>{
     const after=makeAdapt(todayIso)(dataset(todayIso));
-    assert.equal(after.residenze.DESENZANO.find(agent=>agent.id==='3'),undefined,`scomparso da Desenzano il ${todayIso}`);
+    const des=after.residenze.DESENZANO.find(agent=>agent.id==='3');
+    assert.ok(des,`ancora a Desenzano per i giorni svolti li' il ${todayIso}`);
+    assert.deepEqual(weekOf(des),['r1',...Array(6).fill('A MADERNO')]);
     const mad=after.residenze.MADERNO.find(agent=>agent.id==='3');
     assert.ok(mad,`presente a Maderno il ${todayIso}`);
-    assert.deepEqual(weekOf(mad),Array(7).fill('r1'));
-    assert.equal(mad.turni_settimanali_completi,undefined);
+    assert.deepEqual(weekOf(mad),['A DESENZANO',...Array(6).fill('r1')]);
+    assert.deepEqual(Object.values(mad.turni_settimanali_completi)[0],Array(7).fill('r1'));
   });
 
   // Variazione ODS su un giorno etichettato "A MADERNO": solo nei dati completi.

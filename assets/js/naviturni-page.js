@@ -1680,10 +1680,15 @@
       // parte che dovrebbe restare visibile di default.
       const todayIso = localIsoToday();
       const startIsPast = dateCalendario[calIdx].iso < todayIso;
+      // ne' il confine dei giorni passati mostrati: una cella unita a cavallo tra giorni nascosti e visibili sposterebbe le colonne
+      const mostraTutto = typeof showPastColumns !== 'undefined' && showPastColumns, daQuando = typeof automaticPastFromTime === 'undefined' ? null : automaticPastFromTime;
+      const nascosto = c => c.iso < todayIso && !mostraTutto && (daQuando === null || !c.realObj || c.realObj.getTime() < daQuando);
+      const startHidden = nascosto(dateCalendario[calIdx]);
       let span = 1;
       while (calIdx + span < dateCalendario.length) {
         const nextIso = dateCalendario[calIdx + span].iso;
         if ((nextIso < todayIso) !== startIsPast) break;
+        if (nascosto(dateCalendario[calIdx + span]) !== startHidden) break;
         if (getAgentShiftOnDate(agenteObj, nextIso) !== turnoVal) break;
         span++;
       }
@@ -2194,7 +2199,8 @@
           if (iso < floorIso) return;
           checked = true;
           const shift = ottieniTurnoPulito(shifts[index] || "rip");
-          if (shift !== "" && shift !== "CON") real = true;
+          // "A <residenza>": quel giorno e' altrove, non e' un turno svolto qui
+          if (shift !== "" && shift !== "CON" && !/^A [A-ZÀ-Ý' ]+$/.test(String(shifts[index] || ""))) real = true;
         });
       });
       return checked && !real;
@@ -2616,17 +2622,28 @@
             moved.push({ ag, dal, home: residenza });
             return buildRow(ag, iso => iso >= dal, () => label);
           }
+          // Cambio gia' avvenuto: qui (nuova residenza) i giorni prima della decorrenza
+          // erano nell'altra; li' compare con i turni veri fino alla decorrenza.
+          if (ag.residenzaDal && ag.residenzaNuova && ag.residenzaPrecedente && today >= ag.residenzaDal &&
+            residenza.toUpperCase() === String(ag.residenzaNuova).toUpperCase() &&
+            String(ag.residenzaPrecedente).toUpperCase() !== residenza.toUpperCase()) {
+            const dal = ag.residenzaDal;
+            moved.push({ ag, dal, home: ag.residenzaPrecedente, dopo: true });
+            return buildRow(ag, iso => iso < dal, () => `A ${String(ag.residenzaPrecedente).toUpperCase()}`);
+          }
           return buildRow(ag, () => false);
         });
       });
 
       // Copia "in anteprima" nella residenza futura: prima della decorrenza mostra
       // dov'e' davvero l'agente ("A <residenza attuale>"), poi i turni veri.
-      moved.forEach(({ ag, dal, home }) => {
-        const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(ag.residenzaNuova).toUpperCase());
+      // Dopo la decorrenza: copia nella residenza precedente con i turni veri fino alla decorrenza
+      // (si vede guardando il passato; nei giorni attuali e' "altrove" e la riga si nasconde).
+      moved.forEach(({ ag, dal, home, dopo }) => {
+        const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(dopo ? home : ag.residenzaNuova).toUpperCase());
         if (!otherKey) return;
-        const label = `A ${String(home).toUpperCase()}`;
-        const copy = buildRow(ag, iso => iso < dal, () => label);
+        const label = `A ${String(dopo ? ag.residenzaNuova : home).toUpperCase()}`;
+        const copy = buildRow(ag, dopo ? (iso => iso >= dal) : (iso => iso < dal), () => label);
         const rank = name => (window.NaviSharedData?.seniorityRank ? window.NaviSharedData.seniorityRank(name) : Number.POSITIVE_INFINITY);
         const list = residenze[otherKey];
         const position = list.findIndex(item => rank(item.agente) > rank(copy.agente));
