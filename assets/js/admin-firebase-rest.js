@@ -1185,6 +1185,25 @@
     await databaseRequest(path, { method:"PUT", body:JSON.stringify(value) });
   }
 
+  // Controllo cassa: un salvataggio per agente e giorno (ogni agente puo' salvare il suo).
+  // controlliCassa/<giorno>/<agente> = { ...record, id, created, updated }
+  async function getControlliCassa(dal, al) {
+    const query = `orderBy=${encodeURIComponent('"$key"')}&startAt=${encodeURIComponent(JSON.stringify(String(dal)))}&endAt=${encodeURIComponent(JSON.stringify(String(al)))}`;
+    const result = await databaseRequest("private/adminUpdates/controlliCassa", { query });
+    return Object.values(result.data || {}).flatMap(giorno => Object.values(giorno || {})).filter(Boolean);
+  }
+  async function saveControlloCassa(record) {
+    const giorno = String(record?.data || "").slice(0, 10), agente = String(record?.agente_id || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(giorno) || !agente) throw new Error("Data o agente mancanti");
+    const path = `private/adminUpdates/controlliCassa/${giorno}/${safeUserKey(agente)}`;
+    const prima = (await databaseRequest(path)).data || null;
+    const ora = new Date().toISOString();
+    const item = { ...record, id:`${giorno}|${safeUserKey(agente)}`, created:prima?.created || record.created || ora, updated:ora };
+    delete item._id;
+    await databaseRequest(path, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+
   // Classifica della Battaglia sul Garda: giochi/battagliaGarda/generale/<agente> = { colpi, affondate, nome, t }
   async function getClassificaGarda(day) {
     const result = await databaseRequest(`private/adminUpdates/giochi/battagliaGarda/${safeUserKey(day)}`);
@@ -1271,6 +1290,8 @@
 
   window.NaviAdminFirebase = {
     ready,
+    getControlliCassa,
+    saveControlloCassa,
     listChangeRequests,
     saveChangeRequest,
     deleteChangeRequest,
