@@ -976,6 +976,83 @@
     return { ...(value || {}), id:String(value?.id || id) };
   }
 
+  // Sondaggio anonimo: configurazione (con le domande modificabili dall'admin), segnalino "fatto" per agente
+  // e risposte senza alcun dato identificativo.
+  const SURVEY_VERSION_RE = /^[A-Za-z0-9_-]{1,40}$/;
+  const SURVEY_TYPES = ["single", "multi", "text"];
+  const DEFAULT_SURVEY_QUESTIONS = [
+    { key:"frequency", icon:"🕒", title:"Con quale frequenza usi NaviSuite?", color:"#67d7e6", type:"single", options:["Ogni giorno", "Qualche volta a settimana", "Qualche volta al mese", "Quasi mai"] },
+    { key:"ease", icon:"🧭", title:"Quanto è facile trovare quello che ti serve?", color:"#fbbf24", type:"single", options:["Molto facile", "Abbastanza facile", "Un po' difficile", "Difficile"] },
+    { key:"features", icon:"⭐", title:"Quali sezioni usi di più?", color:"#a78bfa", type:"multi", options:["Turni", "Oggi", "Cambio turno", "Diaria", "Documenti", "Orario", "Ponte Radio", "Segnalazioni"] },
+    { key:"comment", icon:"💬", title:"Cosa ti manca o non funziona?", color:"#fb923c", type:"text", options:[] }
+  ];
+  const surveyVersion = version => {
+    const v = String(version || "").trim();
+    if (!SURVEY_VERSION_RE.test(v)) throw new Error("Versione del sondaggio non valida");
+    return v;
+  };
+  // Domande pulite: al massimo 10, testi brevi, colori solo #rrggbb, risposte (scelte) al massimo 12
+  function normalizeSurveyQuestions(list) {
+    const src = Array.isArray(list) && list.length ? list : DEFAULT_SURVEY_QUESTIONS;
+    const used = new Set();
+    return src.slice(0, 10).map((q, index) => {
+      const type = SURVEY_TYPES.includes(q?.type) ? q.type : "single";
+      let key = String(q?.key || "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 30) || `q${index + 1}`;
+      while (used.has(key) || key === "day") key = `${key}_${index + 1}`;
+      used.add(key);
+      const options = type === "text" ? [] : [...new Set((Array.isArray(q?.options) ? q.options : []).map(o => safeFeedbackText(o, 60)).filter(Boolean))].slice(0, 12);
+      return { key, icon:safeFeedbackText(q?.icon, 4), title:safeFeedbackText(q?.title, 140) || `Domanda ${index + 1}`,
+        color:/^#[0-9a-fA-F]{6}$/.test(String(q?.color || "")) ? q.color : "#2dd4bf", type, options };
+    }).filter(q => q.type === "text" || q.options.length);
+  }
+  async function getSurveyConfig() {
+    const data = (await databaseRequest("private/adminUpdates/surveyConfig")).data;
+    return data && typeof data === "object" ? { ...data, questions:normalizeSurveyQuestions(data.questions) } : null;
+  }
+  async function saveSurveyConfig(config = {}) {
+    const item = { enabled:Boolean(config.enabled), version:surveyVersion(config.version), questions:normalizeSurveyQuestions(config.questions), updatedAt:new Date().toISOString() };
+    await databaseRequest("private/adminUpdates/surveyConfig", { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+  async function hasSurveyDone(agentId, version) {
+    const key = safeUserKey(agentId);
+    if (!key) return false;
+    return Boolean((await databaseRequest(`private/adminUpdates/surveyDone/${surveyVersion(version)}/${key}`)).data);
+  }
+  function randomSurveyId() {
+    const bytes = new Uint8Array(12);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function submitSurvey(agentId, version, payload = {}) {
+    const v = surveyVersion(version), key = safeUserKey(agentId);
+    if (!key) throw new Error("Agente non valido");
+    // si accettano solo le domande e le scelte della versione in corso
+    const config = await getSurveyConfig().catch(() => null);
+    const questions = config?.version === v ? config.questions : normalizeSurveyQuestions(null);
+    const d = new Date(), answer = { day:`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` };
+    let hasData = false;
+    questions.forEach(q => {
+      const value = payload[q.key];
+      if (q.type === "text") answer[q.key] = safeFeedbackText(value, 500);
+      else if (q.type === "multi") answer[q.key] = [...new Set((Array.isArray(value) ? value : []).filter(o => q.options.includes(o)))];
+      else answer[q.key] = q.options.includes(value) ? value : "";
+      if (Array.isArray(answer[q.key]) ? answer[q.key].length : answer[q.key]) hasData = true;
+    });
+    // prima la risposta (anonima), poi il segnalino "fatto": nodi separati, nessun legame tra i due
+    if (hasData) await databaseRequest(`private/adminUpdates/surveyResponses/${v}/${randomSurveyId()}`, { method:"PUT", body:JSON.stringify(answer) });
+    await databaseRequest(`private/adminUpdates/surveyDone/${v}/${key}`, { method:"PUT", body:"true" });
+    return hasData;
+  }
+  async function listSurveyResponses(version) {
+    const data = (await databaseRequest(`private/adminUpdates/surveyResponses/${surveyVersion(version)}`)).data || {};
+    return Object.values(data).filter(item => item && typeof item === "object");
+  }
+  async function countSurveyDone(version) {
+    const data = (await databaseRequest(`private/adminUpdates/surveyDone/${surveyVersion(version)}`, { query:"shallow=true" })).data || {};
+    return Object.keys(data).length;
+  }
+
   async function listFeedbackTickets(agentId = "") {
     const result = await databaseRequest("private/adminUpdates/feedbackTickets");
     const target = String(agentId || "").trim();
@@ -1290,6 +1367,14 @@
 
   window.NaviAdminFirebase = {
     ready,
+    getSurveyConfig,
+    saveSurveyConfig,
+    hasSurveyDone,
+    submitSurvey,
+    listSurveyResponses,
+    countSurveyDone,
+    defaultSurveyQuestions:() => normalizeSurveyQuestions(null),
+    normalizeSurveyQuestions,
     getControlliCassa,
     saveControlloCassa,
     listChangeRequests,
