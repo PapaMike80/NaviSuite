@@ -253,6 +253,59 @@
   const inCima = () => [0, 120, 400].forEach(t => setTimeout(() => window.scrollTo({ top: 0, left: window.scrollX, behavior: 'auto' }), t));
   if (typeof window.selectResidence === 'function') { const orig = window.selectResidence; window.selectResidence = function (...a) { const r = orig.apply(this, a); inCima(); return r; }; }
   let primaVolta = true;
+  // Passato «a strappo»: con la tabella ferma su oggi (inizio) bisogna tirarla con decisione verso destra;
+  // superata la soglia compaiono altri 30 giorni passati, e così via a ogni nuovo strappo.
+  const PASSO = 30, SOGLIA = 150;
+  let giorniPassati = 0, storicoMio = false;
+  const scorritori = () => [document.scrollingElement, document.body, document.getElementById('matrix-scroll-wrap')].filter(Boolean);
+  const xScroll = () => Math.max(...scorritori().map(e => e.scrollLeft || 0));
+  const spostaX = d => scorritori().forEach(e => { if (e.scrollWidth > e.clientWidth + 1) e.scrollLeft += d; });
+  const tira = document.createElement('div'); tira.id = 'nt-tira'; document.body.appendChild(tira);
+  function mostraPassato() {
+    if (typeof dateCalendario === 'undefined' || typeof refreshCurrentResidenceData !== 'function') return;
+    const prima = document.querySelector('#tbody tr td[data-col]:not([style*="none"])');
+    const x0 = prima ? prima.getBoundingClientRect().left : 0;
+    giorniPassati += PASSO;
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - giorniPassati);
+    try { if (typeof caricaStorico === 'function') caricaStorico(); } catch { /* niente */ }
+    // anche l'equipaggio dei giorni passati: i dati completi (lo storico) servono pure alla testata
+    if (!storicoMio && schedule?.__leggeroDal && window.NaviSharedData?.loadCompleto) { storicoMio = true; window.NaviSharedData.loadCompleto({ onLocale: d => { if (d && !d.__leggeroDal) carica(d); } }).then(d => { if (d && !d.__leggeroDal) carica(d); }).catch(() => { storicoMio = false; }); }
+    automaticPastFromTime = d.getTime();
+    refreshCurrentResidenceData(); renderTable(); hidePastColumns();
+    // la colonna che si vedeva prima resta ferma sotto il dito: i giorni nuovi sono a sinistra
+    const col = prima?.dataset.col;
+    const allinea = () => { const c = col && document.querySelector(`.date-header th[data-col="${col}"]`); if (c) spostaX(c.getBoundingClientRect().left - x0); segnaOggi(); };
+    requestAnimationFrame(allinea); [120, 350, 700].forEach(t => setTimeout(allinea, t));
+  }
+  let x0 = null, y0 = 0, tirando = false;
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('#matrix-scroll-wrap') || xScroll() > 2) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; tirando = false;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (x0 === null) return;
+    const dx = e.touches[0].clientX - x0, dy = Math.abs(e.touches[0].clientY - y0);
+    if (!tirando && (dx < 12 || dy > dx)) { if (dx < -6 || dy > 20) x0 = null; return; }
+    tirando = true;
+    const f = Math.min(1, dx / SOGLIA);
+    tira.style.opacity = String(Math.min(1, f * 1.4)); tira.style.setProperty('--f', f);
+    tira.textContent = f >= 1 ? `↻ Lascia per altri ${PASSO} giorni` : `‹ Tira per ${PASSO} giorni passati`;
+    tira.classList.toggle('pronto', f >= 1);
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    if (x0 === null) return;
+    const pronto = tira.classList.contains('pronto');
+    x0 = null; tirando = false; tira.style.opacity = '0'; tira.classList.remove('pronto');
+    if (pronto) mostraPassato();
+  });
+  // col mouse: rotella/trackpad verso sinistra oltre l'inizio, con decisione
+  let accumulo = 0, tAccumulo = 0;
+  document.addEventListener('wheel', e => {
+    if (!e.target.closest('#matrix-scroll-wrap') || xScroll() > 2 || e.deltaX >= 0) return;
+    const ora = Date.now(); if (ora - tAccumulo > 400) accumulo = 0; tAccumulo = ora;
+    accumulo -= e.deltaX; if (accumulo > SOGLIA * 4) { accumulo = 0; mostraPassato(); }
+  }, { passive: true });
+
   function carica(data) { schedule = data || { residenze: {} }; cache.clear(); disegnaScheda(); segnaOggi(); if (primaVolta) { primaVolta = false; inCima(); } }
   window.NaviSharedData?.loadCacheFirst?.(data => carica(data))?.catch?.(() => {});
   G.caricaModifiche?.(profilo())?.then?.(() => { if (schedule) { cache.clear(); disegnaScheda(); } })?.catch?.(() => {});
