@@ -15,6 +15,11 @@
   // Notifica l'amministratore quando un agente torna attivo su NaviSuite.
   load('assets/js/connection-webpush.js?v=20260909-2');
 
+  // Sondaggio anonimo: popup per gli agenti, esportazione Excel e gestione in Impostazioni (admin).
+  load('assets/js/survey-gate.js?v=2');
+  load('assets/js/survey-xlsx.js?v=1');
+  load('assets/js/survey-admin.js?v=2');
+
   // Centro Web Push di produzione: attivazione dispositivo, orari automatici,
   // invio giornata admin. I messaggi tra agenti sono in Ponte Radio.
   if(/(?:^|\/)impostazioni\.html$/i.test(location.pathname)){
