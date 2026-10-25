@@ -1034,15 +1034,31 @@
       dispositivo: navigator.userAgent.slice(0, 200)
     };
   }
-  async function inviaControlloCassa(record) {
-    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 15000);
+  // ---------------- Archivio su Firebase (ogni agente puo' salvare il suo controllo) ----------------
+  const isoGiorno = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const spostaGiorno = (g, n) => { const d = new Date(g + 'T12:00:00'); d.setDate(d.getDate() + n); return isoGiorno(d); };
+  async function ccFirebase() { const F = window.NaviAdminFirebase; if (!F?.getControlliCassa) throw new Error('Firebase non disponibile'); await F.ready?.catch?.(() => {}); return F; }
+  async function ccLista(dal, al) { return (await ccFirebase()).getControlliCassa(dal, al); }
+  const piuRecente = (a, b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || ''));
+  async function inviaControlloCassa(record) { return (await ccFirebase()).saveControlloCassa(record); }
+  // Una volta sola (per telefono, solo admin): i controlli salvati prima su PocketBase passano su Firebase
+  async function importaDaPocketBase() {
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(await pbAuth()) }, body: JSON.stringify(record), signal: ctrl.signal });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) { const e = new Error(out?.message || `PocketBase ${res.status}`); e.status = res.status; e.data = out; throw e; }
-      return out;
-    } finally { clearTimeout(t); }
+      if (!window.NaviRoles?.isAdminAgent?.(sessione()) || localStorage.getItem('navisuite.cc.importatoPB')) return;
+      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=500&sort=-updated`, { headers: { ...(await pbAuth()), Accept: 'application/json' }, cache: 'no-store' });
+      if (!res.ok) return;
+      const items = (await res.json()).items || [], F = await ccFirebase();
+      const visti = new Set();
+      for (const r of items) {
+        const k = `${String(r.data).slice(0, 10)}|${r.agente_id}`; if (visti.has(k) || !r.agente_id) continue; visti.add(k);
+        const gia = (await F.getControlliCassa(String(r.data).slice(0, 10), String(r.data).slice(0, 10))).some(x => String(x.agente_id) === String(r.agente_id));
+        if (!gia) { const { id, collectionId, collectionName, ...resto } = r; await F.saveControlloCassa({ ...resto, created: String(r.created || '').replace(' ', 'T') }); }
+      }
+      localStorage.setItem('navisuite.cc.importatoPB', new Date().toISOString());
+      caricaStorico(); caricaGiorniSalvati();
+    } catch (_) { /* si riprova la prossima volta */ }
   }
+  setTimeout(importaDaPocketBase, 3000);
   async function salvaManuale() {
     if (!controllaIntestazione()) { alert('Scegli agente, scalo e postazione.'); return; }
     alert(await salvaOra(true) ? '✅ Controllo cassa salvato.' : '❌ Controllo non salvato: riprova.');
@@ -1082,15 +1098,11 @@
     const mioId = document.getElementById('agente-id').value || String(sessione()?.id || '');
     const admin = !!window.NaviRoles?.isAdminAgent?.(sessione());
     document.querySelector('.storico-head h3').textContent = admin ? 'Salvataggi del giorno · tutti gli agenti' : 'I tuoi salvataggi del giorno';
-    const filtro = `data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"` + (admin ? '' : ` && agente_id = "${mioId.replace(/"/g, '')}"`);
-    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
     try {
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=200&sort=agente_nome,-updated&filter=${encodeURIComponent(filtro)}`, { headers: { ...(await pbAuth()), Accept: 'application/json' }, signal: ctrl.signal, cache: 'no-store' });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(out?.message || `PocketBase ${res.status}`);
+      const items = (await ccLista(giorno, giorno)).filter(r => admin || String(r.agente_id) === String(mioId));
       // un solo salvataggio per agente: il piu' recente
       const visti = new Set();
-      storico = (out.items || []).slice().sort((a, b) => String(b.updated || b.created).localeCompare(String(a.updated || a.created)))
+      storico = items.slice().sort(piuRecente)
         .filter(r => { const k = String(r.agente_id); if (visti.has(k)) return false; visti.add(k); return true; })
         .sort((a, b) => String(a.agente_nome).localeCompare(String(b.agente_nome), 'it'));
       const cnt = document.getElementById('storico-cnt'); if (cnt) cnt.textContent = storico.length;
@@ -1102,18 +1114,16 @@
         return `<button type="button" class="storico-voce" data-storico="${i}"><span class="ora">${e(ora)}</span><span class="chi">${e(r.agente_nome)}</span><span class="soldi" style="color:${disc === 0 ? 'var(--accent-green)' : disc > 0 ? 'var(--ok-color)' : 'var(--accent-red)'}">${disc === 0 ? 'OK' : (disc > 0 ? '+' : '') + formatEuro(Math.round(disc * 100))}</span><span class="dove">${e(r.scalo)} · ${e(r.postazione)} · da versare ${formatEuro(Math.round((Number(r.saldo_versato) || 0) * 100))}${r.inserito_da && !String(r.inserito_da).startsWith(String(r.agente_id) + ' ') ? ` · inserito da ${e(r.inserito_da.replace(/^\S+\s*/, ''))}` : ''}</span></button>`;
       }).join('');
     } catch (error) {
-      box.innerHTML = `<p class="storico-vuoto">Storico non disponibile: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}.</p>`;
-    } finally { clearTimeout(t); }
+      box.innerHTML = `<p class="storico-vuoto">Storico non disponibile: ${error.message}.</p>`;
+    }
   }
   // Giorni con almeno un controllo salvato negli ultimi due mesi: pallino verde nel rullo della data
   async function caricaGiorniSalvati() {
     try {
-      const da = new Date(); da.setDate(da.getDate() - 62);
+      const oggi = isoGiorno(new Date());
       const admin = !!window.NaviRoles?.isAdminAgent?.(sessione()), mioId = document.getElementById('agente-id').value || String(sessione()?.id || '');
-      const f = `data >= "${da.toISOString().slice(0, 10)} 00:00:00"` + (admin ? '' : ` && agente_id = "${mioId.replace(/"/g, '')}"`);
-      const res = await fetch(`${pbBase()}/api/collections/controlli_cassa/records?perPage=500&fields=data&filter=${encodeURIComponent(f)}`, { headers: { ...(await pbAuth()), Accept: 'application/json' }, cache: 'no-store' });
-      const out = await res.json().catch(() => ({}));
-      if (res.ok) window.ccGiorniSalvati = [...new Set((out.items || []).map(r => String(r.data).slice(0, 10)))];
+      const items = (await ccLista(spostaGiorno(oggi, -62), spostaGiorno(oggi, 8))).filter(r => admin || String(r.agente_id) === String(mioId));
+      window.ccGiorniSalvati = [...new Set(items.map(r => String(r.data).slice(0, 10)))];
     } catch (_) {}
   }
   // Apre un salvataggio: riporta nella pagina tutti i dati di quel controllo
@@ -1160,16 +1170,10 @@
     } finally { clearTimeout(t); }
   }
   const q = v => String(v || '').replace(/"/g, '');
-  async function trovaMio(agenteId, giorno) {
-    const f = `agente_id = "${q(agenteId)}" && data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
-    return (await pb(`?perPage=1&sort=-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
-  }
   // salva o aggiorna il record dell'agente per quel giorno (usato anche dalla coda senza rete)
   async function upsertControllo(record) {
-    const giorno = String(record.data).slice(0, 10);
-    const esistente = record._id ? { id: record._id } : await trovaMio(record.agente_id, giorno);
     const corpo = { ...record }; delete corpo._id;
-    return esistente ? pb(`/${encodeURIComponent(esistente.id)}`, { method: 'PATCH', body: JSON.stringify(corpo) }) : pb('', { method: 'POST', body: JSON.stringify(corpo) });
+    return inviaControlloCassa(corpo);
   }
   function pianificaSalvataggio() {
     if (caricando || !controllaIntestazione() || !giornoSel()) return;
@@ -1217,8 +1221,8 @@
     statoSalva('Caricamento…');
     try {
       // tutti i dati dell'ultimo salvataggio di questa postazione in questo giorno, di chiunque sia
-      const fg = `postazione = "${q(post)}" && data >= "${giorno} 00:00:00" && data <= "${giorno} 23:59:59"`;
-      const ultimo = (await pb(`?perPage=1&sort=-updated&filter=${encodeURIComponent(fg)}`)).items?.[0] || null;
+      const vicini = (await ccLista(spostaGiorno(giorno, -120), giorno)).filter(r => r.postazione === post);
+      const ultimo = vicini.filter(r => String(r.data).slice(0, 10) === giorno).sort(piuRecente)[0] || null;
       if (ultimo) {
         const nomeAg = document.getElementById('agente-nome').value, idAg = id;
         apriSalvataggio(ultimo);
@@ -1230,8 +1234,7 @@
         statoSalva(String(ultimo.agente_id) === String(idAg) ? `✓ Ultimo salvataggio: ${quando}` : `Dati di ${ultimo.agente_nome} del ${quando}`);
         return;
       }
-      const f = `postazione = "${q(post)}" && data <= "${giorno} 23:59:59"`;
-      const prec = (await pb(`?perPage=1&sort=-data,-updated&filter=${encodeURIComponent(f)}`)).items?.[0] || null;
+      const prec = vicini.slice().sort((a, b) => String(b.data).localeCompare(String(a.data)) || piuRecente(a, b))[0] || null;
       azzeraConteggi();
       const c = prec?.dettagli?.conteggi || {};
       DENOMINATIONS.forEach(d => { const v = Number(c.mattina?.[d.val]) || 0; countsMattina[d.val] = v; countsDiurno[d.val] = v; countsSera[d.val] = v; });
@@ -1242,7 +1245,7 @@
       statoSalva(prec ? `Giornata nuova · fondo cassa dal ${new Date(String(prec.data).slice(0, 10) + 'T12:00:00').toLocaleDateString('it-IT')}` : 'Giornata nuova · nessun fondo cassa salvato prima di questa data');
     } catch (error) {
       chiaveGiorno = '';
-      statoSalva(`Dati non caricati: ${error.name === 'AbortError' ? 'PocketBase non risponde' : error.message}`);
+      statoSalva(`Dati non caricati: ${error.message}`);
     } finally { caricando = false; }
   }
   // Si salva solo quando l'utente modifica un campo dei conteggi o dei totali (non nei ricalcoli automatici)
@@ -1290,7 +1293,7 @@
   });
 </script>
 <script src="assets/js/shared-roles.js?v=16"></script>
-<script src="assets/js/admin-firebase-rest.js?v=94"></script>
+<script src="assets/js/admin-firebase-rest.js?v=95"></script>
 <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
 <script src="assets/js/shared-data.js?v=137"></script>
 <script src="assets/js/turni-giorno.js?v=12"></script>
