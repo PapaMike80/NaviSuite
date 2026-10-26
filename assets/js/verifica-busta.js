@@ -5,9 +5,12 @@
   const $ = id => document.getElementById(id);
   const els = {
     login: $('vbLogin'), bar: $('vbBar'), fileInput: $('vbFileInput'), fileLabel: $('vbFileLabel'), fileInfo: $('vbFileInfo'),
+    userData: $('vbUserData'), profileUser: $('vbProfileUser'), profileGrado: $('vbProfileGrado'), profileGradoSub: $('vbProfileGradoSub'),
+    profileParametro: $('vbProfileParametro'), profileParametroSub: $('vbProfileParametroSub'), profileFerie: $('vbProfileFerie'), profileFerieSub: $('vbProfileFerieSub'),
     source: $('vbSource'), alerts: $('vbAlerts'), vuoto: $('vbVuoto'), tabs: $('vbTabs'), confronto: $('vbConfronto'), anno: $('vbAnno'), titolo: $('vbTitolo')
   };
 
+  const round2 = value => Math.round((Number(value) || 0) * 100) / 100;
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const number = (value, decimals = 2) => Number(value).toLocaleString('it-IT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const euro = value => `${number(value, 2)} €`;
@@ -94,6 +97,73 @@
   // Tolleranza scelta (0, 5 o 10%), ricordata sul dispositivo
   const TOLL_KEY = 'navisuite.verificaBusta.tolleranza';
   const tolleranza = () => { const v = Number($('vbToll')?.value); return Number.isFinite(v) ? v / 100 : 0.1; };
+
+  const ROLE_INFO = [
+    [/capitano|comandante/i, 'Capitano'],
+    [/capo\s*timoniere|capotimoniere/i, 'Capo timoniere'],
+    [/motorista/i, 'Motorista'],
+    [/timoniere/i, 'Timoniere'],
+    [/aiuto\s*motorista|aiutomotorista/i, 'Aiuto motorista'],
+    [/marinaio/i, 'Marinaio'],
+    [/applicato/i, 'Applicato'],
+    [/barista/i, 'Barista']
+  ];
+
+  function gradoAgente(ag) {
+    const raw = String(ag?.qualifica || ag?.grado || ag?.role || '').trim();
+    if (!raw) return 'Non specificato';
+    const match = ROLE_INFO.find(([pattern]) => pattern.test(raw));
+    return match ? match[1] : (raw.charAt(0).toUpperCase() + raw.slice(1));
+  }
+
+  function meseRiferimento() {
+    if (state.corrente && state.buste[state.corrente]?.busta?.period) {
+      const p = state.buste[state.corrente].busta.period;
+      return { anno: Number(p.year) || new Date().getFullYear(), mese: Number(p.month) || (new Date().getMonth() + 1) };
+    }
+    const ora = new Date();
+    return { anno: ora.getFullYear(), mese: ora.getMonth() + 1 };
+  }
+
+  function renderUserData() {
+    if (!els.userData) return;
+    if (!agent?.id) {
+      els.userData.hidden = true;
+      return;
+    }
+    els.userData.hidden = false;
+    const nome = String(agent.name || agent.agente || agent.cognome || '').trim();
+    const matricola = agent.id ? `Matr. ${agent.id}` : '';
+    if (els.profileUser) els.profileUser.textContent = [nome, matricola].filter(Boolean).join(' · ') || 'Utente';
+
+    const grado = gradoAgente(agent);
+    if (els.profileGrado) els.profileGrado.textContent = grado;
+    if (els.profileGradoSub) {
+      const q = String(agent.qualifica || agent.role || '').trim();
+      els.profileGradoSub.textContent = q && q.toLowerCase() !== grado.toLowerCase() ? q : 'Ruolo contrattuale';
+    }
+
+    const paramVal = $('vbParametro')?.value || '139';
+    const scattiVal = Number($('vbScatti')?.value) || 0;
+    const ccnlDb = window.NaviCCNLConfig?.CCNL_DB || window.CCNL_DB;
+    const pInfo = ccnlDb?.parametri?.[paramVal];
+    if (els.profileParametro) els.profileParametro.textContent = `P.${paramVal}${scattiVal > 0 ? ` (+${scattiVal} scatt${scattiVal === 1 ? 'o' : 'i'})` : ''}`;
+    if (els.profileParametroSub) {
+      els.profileParametroSub.textContent = pInfo?.descrizione ? pInfo.descrizione : 'CCNL Autoferrotranvieri';
+    }
+
+    const ref = meseRiferimento();
+    const mesiMaturati = Math.max(1, Math.min(12, ref.mese));
+    let ferieTot = round2(mesiMaturati * 2.08);
+    if (typeof window.NaviCCNLConfig?.calcolaRateiMaturati === 'function') {
+      ferieTot = window.NaviCCNLConfig.calcolaRateiMaturati(mesiMaturati, 'ferie');
+    }
+    if (els.profileFerie) els.profileFerie.textContent = `${number(ferieTot, 2)} gg`;
+    if (els.profileFerieSub) {
+      const nomeMese = new Intl.DateTimeFormat('it-IT', { month: 'short' }).format(new Date(ref.anno, ref.mese - 1, 1));
+      els.profileFerieSub.textContent = `Maturate a ${nomeMese} (${mesiMaturati} ${mesiMaturati === 1 ? 'mese' : 'mesi'} × 2,08)`;
+    }
+  }
 
   // Differenze fuori dalla tolleranza scelta: mail pronta per l'ufficio personale (si apre nell'app di posta, si puo' anche copiare)
   // Giorni della Distinta che compongono una voce contestata: tabella per la mail all'ufficio.
@@ -362,6 +432,7 @@
   }
 
   async function render() {
+    renderUserData();
     const vuoto = !Object.keys(state.buste).length;
     els.bar.hidden = false;
     els.vuoto.hidden = !vuoto;

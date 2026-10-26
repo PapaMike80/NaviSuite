@@ -541,5 +541,12 @@ console.log('Busta verifica test passed');
   assert.match(html, /<option\s+value="139"\s+selected>/, 'parametro 139 default');
   assert.match(html, /<select\s+id="vbScatti"/, 'select vbScatti presente nel DOM');
   assert.match(html, /<option\s+value="0"\s+selected>/, 'scatti 0 default');
+
+  // Controlli scheda "I miei dati"
+  assert.match(html, /id="vbUserData"/, 'sezione vbUserData presente');
+  assert.match(html, /id="vbProfileUser"/, 'elemento vbProfileUser presente');
+  assert.match(html, /id="vbProfileGrado"/, 'elemento vbProfileGrado presente');
+  assert.match(html, /id="vbProfileParametro"/, 'elemento vbProfileParametro presente');
+  assert.match(html, /id="vbProfileFerie"/, 'elemento vbProfileFerie presente');
 }
 console.log('CCNL e verifiche dinamiche: passed');
