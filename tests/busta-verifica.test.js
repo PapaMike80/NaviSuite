@@ -12,6 +12,7 @@ const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const parser = require('../assets/js/busta-parser.js');
 const totalsModule = require('../assets/js/distinta-totals.js');
+const ccnlModule = require('../assets/js/ccnl-config.js');
 const compareModule = require('../assets/js/busta-compare.js');
 const shiftCompetence = require('../assets/js/shift-competence.js');
 
@@ -403,12 +404,12 @@ assert.equal(wrong[1].ok, true);
   const html = read('verifica-busta.html');
   const scripts = [...html.matchAll(/<script src="([^"?]+)(?:\?[^"]*)?"><\/script>/g)].map(match => match[1]);
   scripts.forEach(src => assert.ok(fs.existsSync(path.join(root, src)), `script mancante: ${src}`));
-  const order = ['assets/js/admin-firebase-rest.js', 'assets/js/overtime-components.js', 'assets/js/shift-competence.js', 'vendor/pdfjs/pdf.min.js', 'assets/js/busta-parser.js', 'assets/js/distinta-totals.js', 'assets/js/busta-compare.js', 'assets/js/verifica-busta.js'];
+  const order = ['assets/js/admin-firebase-rest.js', 'assets/js/overtime-components.js', 'assets/js/shift-competence.js', 'vendor/pdfjs/pdf.min.js', 'assets/js/busta-parser.js', 'assets/js/distinta-totals.js', 'assets/js/ccnl-config.js', 'assets/js/busta-compare.js', 'assets/js/verifica-busta.js'];
   order.forEach(src => assert.ok(scripts.includes(src), `manca ${src}`));
   for (let index = 1; index < order.length; index += 1) assert.ok(scripts.indexOf(order[index - 1]) < scripts.indexOf(order[index]), `${order[index - 1]} prima di ${order[index]}`);
   assert.match(read('navidiaria.html'), /<button id="monthlyVerifyPayslip" class="monthly-today-button"[^>]*verifica-busta\.html[^>]*>Verifica busta<\/button>/);
   const sw = read('sw.js');
-  ['./verifica-busta.html', './assets/js/busta-parser.js', './assets/js/distinta-totals.js', './assets/js/busta-compare.js', './assets/js/verifica-busta.js'].forEach(asset => assert.ok(sw.includes(`'${asset}'`), `sw.js: ${asset}`));
+  ['./verifica-busta.html', './assets/js/ccnl-config.js', './assets/js/busta-parser.js', './assets/js/distinta-totals.js', './assets/js/busta-compare.js', './assets/js/verifica-busta.js'].forEach(asset => assert.ok(sw.includes(`'${asset}'`), `sw.js: ${asset}`));
 }
 
 console.log('Busta verifica test passed');
@@ -449,3 +450,96 @@ console.log('Busta verifica test passed');
   assert.match(rows.find(r => r.id === 'overtime').notes.join(' '), /trascurabile/);
   assert.equal(rows.find(r => r.id === 'dailyDM').status, 'ok', '1 giorno = 0,52 euro');
 }
+
+// --- CCNL Config & Calcoli Dinamici (Parametro 121, 139, scatti, differenze parametro e ratei) ---
+{
+  const db = ccnlModule.CCNL_DB;
+  assert.ok(db, 'CCNL_DB esiste');
+  assert.equal(db.divisoreOrario, 166, 'divisore orario CCNL 166');
+
+  // Parametro 121 (Marinaio) da agosto 2026
+  const p121 = db.parametri[121];
+  assert.ok(p121, 'Parametro 121 presente');
+  assert.equal(p121.retribuzioneMensile, 1695.95, 'retribuzione mensile 002 P.121');
+  assert.equal(p121.composizione.minimo, 938.80);
+  assert.equal(p121.composizione.contingenza, 527.56);
+  assert.equal(p121.composizione.cau, 16.53);
+  assert.equal(p121.composizione.indProduttivita, 4.65);
+  assert.equal(p121.composizione.tdr, 172.70);
+  assert.equal(p121.composizione.mensa, 35.71);
+  assert.equal(p121.baseOraria.festivo, 12.14059, '013 base festivo P.121');
+  assert.equal(p121.baseOraria.straordinario, 10.92637, '334 base straordinario P.121');
+
+  // Voci fisse aggiuntive
+  assert.equal(db.vociFisse['03N'].importo, 27.66);
+  assert.equal(db.vociFisse['01P'].importo, 6.00);
+  assert.equal(db.vociFisse['10Z'].importo, 40.00);
+
+  // Indennità P.121
+  assert.equal(db.indennita['43X'].importo, 2.02);
+  assert.equal(db.indennita['47X'].importo, 12.00);
+  assert.equal(db.indennita['49X'].importo, 0.52);
+  assert.equal(db.indennita['1TK'].importo, 8.00);
+
+  // Differenze parametro 139B (Mansioni superiori per P.121)
+  const dp139 = db.differenzeParametro['139B'];
+  assert.ok(dp139, 'Differenze parametro 139B presenti');
+  assert.equal(dp139['01Y'].baseOraria, 11.56263);
+  assert.equal(dp139['55Y'].baseOraria, 9.22020);
+  assert.equal(dp139['56Y'].baseOraria, 8.34262);
+
+  // Ratei mensili ferie ed ex festività
+  assert.equal(db.rateiMensili.ferie, 2.08);
+  assert.equal(db.rateiMensili.exFestivita, 2.60);
+  assert.equal(ccnlModule.calcolaRateiMaturati(2, 'ferie'), 4.16, 'ferie a luglio (2 ratei)');
+  assert.equal(ccnlModule.calcolaRateiMaturati(4, 'ferie'), 8.32, 'ferie a settembre (4 ratei)');
+  assert.equal(ccnlModule.calcolaRateiMaturati(2, 'exFestivita'), 5.20, 'ex festività a luglio');
+  assert.equal(ccnlModule.calcolaRateiMaturati(4, 'exFestivita'), 10.40, 'ex festività a settembre');
+
+  // calcolaPagaBase
+  const pb121_0 = ccnlModule.calcolaPagaBase(121, 0);
+  assert.equal(pb121_0.totaleMensile, 1695.95);
+  const pb121_2 = ccnlModule.calcolaPagaBase(121, 2);
+  assert.equal(pb121_2.totaleScatti, 37.18);
+  assert.equal(pb121_2.totaleMensile, 1733.13);
+
+  // calcolaVoceAttesa
+  assert.equal(ccnlModule.calcolaVoceAttesa('002', 1, 121, 0), 1695.95);
+  assert.equal(ccnlModule.calcolaVoceAttesa('002', 1, 121, 2), 1733.13);
+  assert.equal(ccnlModule.calcolaVoceAttesa('03N', 1, 121, 0), 27.66);
+  assert.equal(ccnlModule.calcolaVoceAttesa('01P', 1, 121, 0), 6.00);
+  assert.equal(ccnlModule.calcolaVoceAttesa('10Z', 1, 121, 0), 40.00);
+  assert.equal(ccnlModule.calcolaVoceAttesa('334', 10, 121, 0), 109.26);
+  assert.equal(ccnlModule.calcolaVoceAttesa('013', 10, 121, 0), 121.41);
+  assert.equal(ccnlModule.calcolaVoceAttesa('43X', 15, 121, 0), 30.30);
+  assert.equal(ccnlModule.calcolaVoceAttesa('47X', 3, 121, 0), 36.00);
+  assert.equal(ccnlModule.calcolaVoceAttesa('49X', 5, 121, 0), 2.60);
+  assert.equal(ccnlModule.calcolaVoceAttesa('1TK', 12, 121, 0), 96.00);
+  assert.equal(ccnlModule.calcolaVoceAttesa('01Y', 10, 121, 0), 115.63);
+  assert.equal(ccnlModule.calcolaVoceAttesa('55Y', 10, 121, 0), 92.20);
+  assert.equal(ccnlModule.calcolaVoceAttesa('56Y', 10, 121, 0), -83.43);
+  assert.equal(ccnlModule.calcolaVoceAttesa('D.P.', 10, 121, 0), 8.78);
+  assert.equal(ccnlModule.calcolaVoceAttesa('DP', 10, 121, 0), 8.78);
+
+  // Integrazione compareModule con parametri
+  const busta121 = {
+    voci: [
+      { code: '334', description: 'Prest.straordinarie', quantity: 10, base: null, amount: 109.26 },
+      { code: '43X', description: 'Ind. imbarco', quantity: 15, base: null, amount: 30.30 }
+    ]
+  };
+  const cmp121 = compareModule.compare(busta121, { overtimeMinutes: 10 * 60, embark: 15 }, { parametro: 121, scatti: 0 });
+  assert.equal(cmp121.rows.find(r => r.id === 'overtime').status, 'ok');
+  assert.equal(cmp121.rows.find(r => r.id === 'overtime').importoDistinta, 109.26);
+  assert.equal(cmp121.rows.find(r => r.id === 'embark').status, 'ok');
+  assert.equal(cmp121.rows.find(r => r.id === 'embark').importoDistinta, 30.30);
+
+  // Controlli UI in verifica-busta.html
+  const html = read('verifica-busta.html');
+  assert.match(html, /<select\s+id="vbParametro"/, 'select vbParametro presente nel DOM');
+  assert.match(html, /<option\s+value="121">/, 'parametro 121 presente nelle opzioni');
+  assert.match(html, /<option\s+value="139"\s+selected>/, 'parametro 139 default');
+  assert.match(html, /<select\s+id="vbScatti"/, 'select vbScatti presente nel DOM');
+  assert.match(html, /<option\s+value="0"\s+selected>/, 'scatti 0 default');
+}
+console.log('CCNL e verifiche dinamiche: passed');

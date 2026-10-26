@@ -1,10 +1,13 @@
 // Confronto busta paga INAZ <-> Distinta. Tutta la mappatura voce -> riga
 // della Distinta sta nella tabella RULES qui sotto. Modulo puro (nessun DOM).
 (function (root, factory) {
-  const api = factory();
+  const ccnlModule = (typeof require !== 'undefined')
+    ? (function () { try { return require('./ccnl-config.js'); } catch (_) { return null; } })()
+    : null;
+  const api = factory(ccnlModule);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.NaviBustaCompare = api;
-})(typeof window !== 'undefined' ? window : globalThis, function () {
+})(typeof window !== 'undefined' ? window : globalThis, function (ccnlModule) {
   const HOURS_TOLERANCE = 0.02; // ~1 minuto
   const COUNT_TOLERANCE = 0.001;
   const EURO_TOLERANCE = 0.02;
@@ -13,6 +16,46 @@
   // la tolleranza si puo' scegliere (0, 5 o 10%): compare(busta, distinta, { tolleranza: 0.05 })
   let tolleranzaAttiva = RELATIVE_TOLERANCE;
   const entro = (diff, riferimento, assoluta) => Math.abs(diff) <= Math.max(assoluta, Math.abs(riferimento) * tolleranzaAttiva) + 1e-9;
+
+  const getCcnl = () => {
+    if (ccnlModule && typeof ccnlModule.calcolaVoceAttesa === 'function') return ccnlModule;
+    if (typeof window !== 'undefined' && window.NaviCCNLConfig) return window.NaviCCNLConfig;
+    if (typeof globalThis !== 'undefined' && globalThis.NaviCCNLConfig) return globalThis.NaviCCNLConfig;
+    return null;
+  };
+
+  const calcolaAttesa = (code, qty, param, scatti) => {
+    const mod = getCcnl();
+    if (mod && typeof mod.calcolaVoceAttesa === 'function') {
+      return mod.calcolaVoceAttesa(code, qty, param, scatti);
+    }
+    if (typeof calcolaVoceAttesa === 'function') {
+      return calcolaVoceAttesa(code, qty, param, scatti);
+    }
+    return null;
+  };
+
+  function leggiParametro(opzioni = {}) {
+    if (opzioni.parametro !== undefined && opzioni.parametro !== null && opzioni.parametro !== '') {
+      return Number(opzioni.parametro) || 139;
+    }
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('vbParametro');
+      if (el && el.value) return Number(el.value) || 139;
+    }
+    return 139;
+  }
+
+  function leggiScatti(opzioni = {}) {
+    if (opzioni.scatti !== undefined && opzioni.scatti !== null && opzioni.scatti !== '') {
+      return Number(opzioni.scatti) || 0;
+    }
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('vbScatti');
+      if (el && el.value !== undefined) return Number(el.value) || 0;
+    }
+    return 0;
+  }
 
   // certainty 'certa': una differenza e' un errore; 'confermare': da verificare
   // (puo' anche essere una funzione dei totali della Distinta).
@@ -43,10 +86,20 @@
   ];
 
   // 55Y paga le ore a parametro 139, 56Y toglie le stesse ore a parametro 121: il valore vero e' la differenza.
-  function differenzaPaga(voci, ore) {
+  function differenzaPaga(voci, ore, parametro = 139, scatti = 0) {
     const p139 = voci.filter(v => ['55Y', '56Y'].includes(v.code) && /139/.test(v.description || ''));
     const p121 = voci.filter(v => ['55Y', '56Y'].includes(v.code) && !/139/.test(v.description || ''));
-    if (!p139.length || !p121.length) return {};
+    if (!p139.length || !p121.length) {
+      const att55 = calcolaAttesa('55Y', 1, parametro, scatti);
+      const att56 = calcolaAttesa('56Y', 1, parametro, scatti);
+      if (att55 !== null && att56 !== null) {
+        const base = round2((9.22020 - 8.34262) * 100000) / 100000;
+        const matching = voci.filter(v => ['55Y', '56Y'].includes(v.code));
+        const importo = matching.length ? round2(sum(matching.map(v => Number(v.amount) || 0))) : undefined;
+        return { base, importo, importoDistinta: round2(ore * base) };
+      }
+      return {};
+    }
     const base = (p139[0].base || 0) - (p121[0].base || 0);
     return { base: round2(base * 100000) / 100000, importo: round2(sum([...p139, ...p121].map(v => Number(v.amount) || 0))), importoDistinta: round2(ore * base) };
   }
@@ -99,6 +152,8 @@
   // NaviDistintaTotals (compute().totals).
   function compare(busta, distinta, opzioni = {}) {
     tolleranzaAttiva = Number.isFinite(opzioni.tolleranza) ? opzioni.tolleranza : RELATIVE_TOLERANCE;
+    const parametro = leggiParametro(opzioni);
+    const scatti = leggiScatti(opzioni);
     const voci = Array.isArray(busta?.voci) ? busta.voci : [];
     const totals = distinta || {};
     const rows = [];
@@ -111,8 +166,17 @@
       const tolerance = rule.unit === 'ore' ? HOURS_TOLERANCE : COUNT_TOLERANCE;
       const diff = round2(distintaValue - bustaNumber);
       const exact = Math.abs(diff) <= tolerance + 1e-9;
-      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, distintaValue) : {};
-      const baseEuro = dp.base ?? fromBusta.base;
+      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, distintaValue, parametro, scatti) : {};
+      let baseEuro = dp.base ?? fromBusta.base;
+      if (rule.id !== 'ticket' && (baseEuro === null || baseEuro === undefined)) {
+        for (const code of rule.codes) {
+          const mod = getCcnl();
+          if (mod && typeof mod.calcolaBaseOraria === 'function') {
+            const b = mod.calcolaBaseOraria(code, parametro, scatti);
+            if (Number.isFinite(b)) { baseEuro = b; break; }
+          }
+        }
+      }
       const euroDiff = baseEuro !== null && baseEuro !== undefined ? round2(diff * baseEuro) : null;
       // Differenze trascurabili (sotto 1 ora o sotto 1 euro) non sono errori, con qualunque tolleranza
       const trascurabile = (rule.unit === 'ore' && Math.abs(diff) < 1) || (euroDiff !== null && Math.abs(euroDiff) < 1);
@@ -127,6 +191,56 @@
       if (equal && !exact) notes.push(trascurabile && !entro(diff, bustaNumber || distintaValue, tolerance) ? 'Differenza trascurabile (sotto 1 ora o sotto 1 €).' : `Differenza entro la tolleranza del ${Math.round(tolleranzaAttiva * 100)}%.`);
       if (fromBusta.baseNote) notes.push(fromBusta.baseNote);
       if (typeof rule.notes === 'function') notes.push(...rule.notes(totals, voci));
+
+      // Importo busta: somma degli importi delle voci; per ticket o voci figurative, interpola calcolaAttesa()
+      let importoBusta = null;
+      if (fromBusta.present) {
+        importoBusta = round2(sum(fromBusta.voci.map(voce => {
+          if (Number.isFinite(voce.amount) && voce.amount !== 0) return Number(voce.amount);
+          const q = voce.figurative ?? voce.quantity;
+          if (Number.isFinite(q)) {
+            const attesa = calcolaAttesa(voce.code, q, parametro, scatti);
+            if (attesa !== null && Number.isFinite(attesa)) return attesa;
+            if (Number.isFinite(voce.figurative)) return voce.figurative;
+          }
+          return 0;
+        })));
+      }
+
+      // Importo atteso dalla Distinta
+      let importoDistinta = null;
+      if (fromBusta.base !== null && fromBusta.base !== undefined) {
+        importoDistinta = round2(distintaValue * fromBusta.base);
+      } else if (distintaValue) {
+        for (const code of rule.codes) {
+          const att = calcolaAttesa(code, distintaValue, parametro, scatti);
+          if (att !== null && Number.isFinite(att)) {
+            importoDistinta = round2(att);
+            break;
+          }
+        }
+      }
+
+      // Verifica correttezza importo letto dal PDF tramite calcolaVoceAttesa
+      let importoAttesoBusta = null;
+      if (fromBusta.present && fromBusta.voci.length) {
+        let sommaAttesa = 0;
+        let haAttesa = false;
+        fromBusta.voci.forEach(voce => {
+          const q = voce.quantity ?? voce.figurative;
+          if (Number.isFinite(q)) {
+            const att = calcolaAttesa(voce.code, q, parametro, scatti);
+            if (att !== null && Number.isFinite(att)) {
+              haAttesa = true;
+              sommaAttesa += att;
+            }
+          }
+        });
+        if (haAttesa) {
+          importoAttesoBusta = round2(sommaAttesa);
+        }
+      }
+
       rows.push({
         id: rule.id,
         codes: rule.codes.slice(),
@@ -138,15 +252,13 @@
         distinta: distintaValue,
         diff,
         status,
-        base: fromBusta.base,
+        base: fromBusta.base ?? baseEuro,
         euro,
         euroText: euroText(euro),
         trascurabile,
-        // Valore in busta: importo delle voci; per il ticket elettronico (1TK) e' il dato figurativo (ticket x 8 euro)
-        importo: fromBusta.present ? round2(sum(fromBusta.voci.map(voce => Number(voce.amount) || (Number.isFinite(voce.figurative) ? voce.figurative : 0)))) : null,
-        // Valore atteso dalla Distinta: quantita' della Distinta x dato base della busta
-        importoDistinta: fromBusta.base !== null ? round2(distintaValue * fromBusta.base) : null,
-        ...(dp.importo !== undefined ? { importo: dp.importo, importoDistinta: dp.importoDistinta } : {}),
+        importo: dp.importo !== undefined ? dp.importo : importoBusta,
+        importoDistinta: dp.importoDistinta !== undefined ? dp.importoDistinta : importoDistinta,
+        importoAtteso: importoAttesoBusta,
         missing: !fromBusta.present ? 'busta' : (!distintaValue && bustaNumber ? 'distinta' : null),
         notes
       });
@@ -165,25 +277,36 @@
       check: rows.filter(row => row.status === 'check').length,
       notCompared: notCompared.length
     };
-    return { rows, notCompared, summary, coherence: coherence(voci) };
+    return { rows, notCompared, summary, coherence: coherence(voci, opzioni) };
   }
 
   // Coerenza interna: quantita' x dato base = importo (tolleranza 0,02 €).
-  function coherence(voci) {
+  function coherence(voci, opzioni = {}) {
+    const parametro = leggiParametro(opzioni);
+    const scatti = leggiScatti(opzioni);
     return (voci || [])
-      .filter(voce => Number.isFinite(voce.quantity) && Number.isFinite(voce.base) && Number.isFinite(voce.amount))
+      .filter(voce => (Number.isFinite(voce.quantity) || Number.isFinite(voce.figurative)) && Number.isFinite(voce.amount))
       .filter(voce => !COHERENCE_EXCLUDED.test(voce.description || ''))
       .map(voce => {
-        const expected = round2(voce.quantity * voce.base);
+        let expected = null;
+        if (Number.isFinite(voce.base)) {
+          expected = round2(voce.quantity * voce.base);
+        } else {
+          const q = Number.isFinite(voce.quantity) ? voce.quantity : voce.figurative;
+          const att = calcolaAttesa(voce.code, q, parametro, scatti);
+          if (att !== null && Number.isFinite(att)) expected = round2(Math.abs(att));
+        }
+        if (expected === null) return null;
         const actual = Math.abs(voce.amount);
         const difference = round2(actual - expected);
         return { code: voce.code, description: voce.description, quantity: voce.quantity, base: voce.base, amount: voce.amount, expected, difference, ok: entro(difference, expected, EURO_TOLERANCE) };
-      });
+      })
+      .filter(Boolean);
   }
 
   // Riepilogo piatto: una riga per voce con Match/Mismatch. busta: { voci } oppure l'array delle voci.
-  function confronta(distinta, busta) {
-    const result = compare(Array.isArray(busta) ? { voci: busta } : busta, distinta);
+  function confronta(distinta, busta, opzioni = {}) {
+    const result = compare(Array.isArray(busta) ? { voci: busta } : busta, distinta, opzioni);
     return result.rows.map(row => ({
       voce: row.label,
       codici: row.codes.join(' + '),
@@ -200,7 +323,9 @@
   // Stima di una busta: voci variabili = quantita' della Distinta x dato base della busta di riferimento;
   // il resto del lordo resta come nella busta di riferimento; ritenute nella stessa proporzione sul lordo.
   // ref: { voci, totals } di una busta salvata; distinta: totals di NaviDistintaTotals.
-  function stima(ref, distinta) {
+  function stima(ref, distinta, opzioni = {}) {
+    const parametro = leggiParametro(opzioni);
+    const scatti = leggiScatti(opzioni);
     const voci = Array.isArray(ref?.voci) ? ref.voci : [];
     const t = ref?.totals || {};
     const lordoRef = Number(t.competenze) || 0, ritenuteRef = Math.abs(Number(t.ritenute) || 0);
@@ -210,8 +335,17 @@
     RULES.forEach(rule => {
       const qta = round2(Number(rule.distinta(distinta || {})) || 0);
       const fromBusta = bustaValue(rule, voci);
-      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, qta) : {};
-      const base = dp.base ?? fromBusta.base;
+      const dp = rule.id === 'cashEmbark' ? differenzaPaga(voci, qta, parametro, scatti) : {};
+      let base = dp.base ?? fromBusta.base;
+      if (base === null || base === undefined) {
+        for (const code of rule.codes) {
+          const att = calcolaAttesa(code, 1, parametro, scatti);
+          if (att !== null && Number.isFinite(att)) {
+            base = att;
+            break;
+          }
+        }
+      }
       const importoRef = dp.importo ?? round2(sum(fromBusta.voci.map(v => Number(v.amount) || 0)));
       // ticket elettronico: figurativo, non entra nel netto
       if (rule.id === 'ticket') return;
@@ -233,5 +367,5 @@
     return new Set([...RULES.flatMap(rule => rule.codes), ...NOT_COMPARED.flatMap(item => item.codes)]);
   }
 
-  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, RELATIVE_TOLERANCE, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, stima, coherence, euroText, knownCodes };
+  return { RULES, NOT_COMPARED, NOT_COMPARED_REASON, RELATIVE_TOLERANCE, HOURS_TOLERANCE, COUNT_TOLERANCE, EURO_TOLERANCE, compare, confronta, stima, coherence, euroText, knownCodes, leggiParametro, leggiScatti, calcolaAttesa };
 });

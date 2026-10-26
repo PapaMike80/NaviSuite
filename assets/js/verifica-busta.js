@@ -212,7 +212,9 @@
     const p = window.NaviDistintaTotals.competencePeriod(item.month);
     if (!p.startIso) return null;
     const distinta = calculator.compute(data.entries, item.month);
-    return { p, distinta, result: window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza() }) };
+    const parametro = $('vbParametro')?.value || '139';
+    const scatti = $('vbScatti')?.value || '0';
+    return { p, distinta, result: window.NaviBustaCompare.compare(item.busta, distinta.totals, { tolleranza: tolleranza(), parametro, scatti }) };
   }
   // ---------------- Stime: busta attesa per ogni mese della Distinta con giornate inserite ----------------
   const meseDopo = m => { const d = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)), 1, 12); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
@@ -416,6 +418,12 @@
     $('vbBlur')?.addEventListener('click', () => blur(!document.body.classList.contains('vb-blur')));
     try { const salvata = localStorage.getItem(TOLL_KEY); if (salvata !== null && $('vbToll')) $('vbToll').value = salvata; } catch (_) {}
     $('vbToll')?.addEventListener('change', () => { try { localStorage.setItem(TOLL_KEY, $('vbToll').value); } catch (_) {} ridisegna(); });
+    const PARAM_KEY = 'navisuite.verificaBusta.parametro';
+    const SCATTI_KEY = 'navisuite.verificaBusta.scatti';
+    try { const salvato = localStorage.getItem(PARAM_KEY); if (salvato !== null && $('vbParametro')) $('vbParametro').value = salvato; } catch (_) {}
+    try { const salvato = localStorage.getItem(SCATTI_KEY); if (salvato !== null && $('vbScatti')) $('vbScatti').value = salvato; } catch (_) {}
+    $('vbParametro')?.addEventListener('change', () => { try { localStorage.setItem(PARAM_KEY, $('vbParametro').value); } catch (_) {} ridisegna(); });
+    $('vbScatti')?.addEventListener('change', () => { try { localStorage.setItem(SCATTI_KEY, $('vbScatti').value); } catch (_) {} ridisegna(); });
     $('vbTabConfronto').addEventListener('click', () => { state.tab = 'confronto'; ridisegna(); });
     $('vbTabAnno').addEventListener('click', () => { state.tab = 'anno'; ridisegna(); });
     els.confronto.addEventListener('click', e => {

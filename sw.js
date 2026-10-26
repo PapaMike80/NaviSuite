@@ -75,6 +75,7 @@ const CORE_ASSETS = [
   './assets/js/push-summary.js',
   './assets/js/busta-parser.js',
   './assets/js/distinta-totals.js',
+  './assets/js/ccnl-config.js',
   './assets/js/busta-compare.js',
   './assets/js/verifica-busta.js',
   './assets/js/backup-dati.js',
