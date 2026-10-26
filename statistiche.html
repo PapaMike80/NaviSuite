@@ -2,74 +2,98 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NaviSuite – Statistiche</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07131b">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Statistiche</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* Stile NaviSuite (stessa palette di oggi.html) */
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(900px 460px at 15% -10%,#123846 0,transparent 62%),#07131b;color:#edf6f7;min-height:100vh}
+    .st-shell{max-width:1000px;margin:0 auto;padding:7px 12px 60px}
+    .st-header{margin:0 0 16px;padding:23px 25px;border:1px solid #234452;border-radius:20px;background:linear-gradient(135deg,#0d2631,#0b1d27)}
+    .st-kicker{margin:0 0 6px;color:#52ddc8;font-size:11px;font-weight:800;letter-spacing:.14em}
+    .st-header h1{margin:0;font-size:clamp(27px,4vw,40px);line-height:1.05;letter-spacing:-.04em}
+    .st-header p{margin:8px 0 0;color:#9bb4bc}
+    .st-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+    .st-filters label{display:grid;gap:4px;color:#9bb4bc;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .st-filters select{min-height:44px;padding:0 12px;border:1px solid #2f5661;border-radius:12px;background:#0d202b;color:#cfe6e9;font:inherit;font-size:15px;font-weight:700;text-transform:none;letter-spacing:0}
+    .st-status{margin:0 0 10px;padding:10px 13px;border:1px solid #234452;border-radius:13px;background:#0d202b;color:#9bb4bc;font-size:.93rem}
+    .st-status.error{border-color:#a94f54;color:#fecaca;background:#2c171b}
+    .st-empty{padding:26px;border:1px dashed #365b65;border-radius:15px;color:#9bb4bc;text-align:center}
+    .st-spin{display:inline-block;width:18px;height:18px;margin-right:8px;vertical-align:middle;border:3px solid #234452;border-top-color:#52ddc8;border-radius:50%;animation:sp .8s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    .st-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px}
+    .st-card{overflow:hidden;border:1px solid #294b58;border-radius:13px;background:#0d202b;box-shadow:0 5px 15px rgba(0,0,0,.13)}
+    .st-kpi{padding:12px 14px;background:linear-gradient(135deg,rgba(44,214,191,.13),rgba(23,51,63,.35))}
+    .st-kpi small{display:block;color:#91adb6;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .st-kpi strong{display:block;margin-top:4px;color:#62e4d0;font-size:clamp(22px,4vw,30px);line-height:1.1;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .st-card h2{margin:0;padding:10px 14px;font-size:14px;letter-spacing:.04em;border-bottom:1px solid #234452;background:linear-gradient(135deg,rgba(44,214,191,.13),rgba(23,51,63,.35))}
+    .st-body{padding:14px}
+    .st-chart{max-width:340px;margin:0 auto}
+    .st-scroll{max-height:320px;overflow-y:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th{position:sticky;top:0;background:#0d202b;color:#91adb6;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 14px}
+    td{padding:7px 14px;border-top:1px solid #1b3a47}
+    .r{text-align:right;font-weight:800;color:#62e4d0}
+    .st-section{margin:0 0 10px}
+    [hidden]{display:none!important}
+    @media(max-width:600px){.st-kpis{grid-template-columns:1fr}.st-header{padding:19px 17px;border-radius:16px}}
+    /* tema chiaro NaviSuite */
+    html.navisuite-light body{background:#edf5f6;color:#17323a}
+    html.navisuite-light .st-header,html.navisuite-light .st-card,html.navisuite-light .st-status,html.navisuite-light .st-filters select,html.navisuite-light th{background:#fff;border-color:#c6dde0;color:#17323a}
+    html.navisuite-light td{border-color:#e1eef0}
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
-<div class="max-w-4xl mx-auto p-4 space-y-4">
-
-  <h1 class="text-2xl font-bold">📊 Statistiche turni</h1>
+<body>
+<main class="st-shell">
+  <header class="st-header">
+    <p class="st-kicker">NAVISUITE</p>
+    <h1>Statistiche</h1>
+    <p>Giornate, turni e straordinari del mese</p>
+  </header>
 
   <!-- FILTRI -->
-  <div class="grid grid-cols-2 gap-3">
-    <label class="block text-sm font-medium">Mese
-      <select id="selMese" class="mt-1 w-full rounded-lg border-slate-300 bg-white p-2 shadow-sm"></select>
-    </label>
-    <label class="block text-sm font-medium">Utente
-      <select id="selUtente" class="mt-1 w-full rounded-lg border-slate-300 bg-white p-2 shadow-sm">
-        <option value="__tutti__">Tutti</option>
-      </select>
-    </label>
+  <div class="st-filters">
+    <label>Mese <select id="selMese"></select></label>
+    <label>Utente <select id="selUtente"><option value="__tutti__">Tutti</option></select></label>
   </div>
 
   <!-- STATO: caricamento / errore / vuoto -->
-  <div id="loading" class="hidden text-center py-10 text-slate-500">
-    <div class="inline-block h-6 w-6 animate-spin rounded-full border-4 border-slate-300 border-t-blue-600 align-middle"></div>
-    <span class="ml-2">Caricamento dati...</span>
-  </div>
-  <div id="errore" class="hidden rounded-lg bg-red-100 text-red-800 p-3 text-sm"></div>
-  <div id="vuoto" class="hidden text-center py-10 text-slate-500">Nessun turno trovato per questa selezione.</div>
+  <p id="loading" class="st-status" hidden><span class="st-spin"></span>Caricamento dati...</p>
+  <p id="errore" class="st-status error" hidden></p>
+  <div id="vuoto" class="st-empty" hidden>Nessun turno trovato per questa selezione.</div>
 
-  <div id="contenuto" class="hidden space-y-4">
+  <div id="contenuto" hidden>
     <!-- KPI -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs uppercase text-slate-500">Giornate lavorate</div>
-        <div id="kpiGiornate" class="text-3xl font-bold">0</div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs uppercase text-slate-500">Ore straordinario</div>
-        <div id="kpiStraord" class="text-3xl font-bold">0</div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs uppercase text-slate-500">Turno più frequente</div>
-        <div id="kpiTurno" class="text-3xl font-bold">–</div>
-      </div>
+    <div class="st-kpis">
+      <div class="st-card st-kpi"><small>Giornate lavorate</small><strong id="kpiGiornate">0</strong></div>
+      <div class="st-card st-kpi"><small>Ore straordinario</small><strong id="kpiStraord">0</strong></div>
+      <div class="st-card st-kpi"><small>Turno più frequente</small><strong id="kpiTurno">–</strong></div>
     </div>
 
     <!-- GRAFICO -->
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-semibold mb-2">Distribuzione turni</h2>
-      <div class="mx-auto" style="max-width:340px"><canvas id="chartTurni"></canvas></div>
-    </div>
+    <section class="st-card st-section">
+      <h2>DISTRIBUZIONE TURNI</h2>
+      <div class="st-body"><div class="st-chart"><canvas id="chartTurni"></canvas></div></div>
+    </section>
 
     <!-- DETTAGLIO STRAORDINARI -->
-    <div class="bg-white rounded-xl shadow p-4">
-      <h2 class="font-semibold mb-2">Dettaglio straordinari</h2>
-      <div class="max-h-80 overflow-y-auto">
-        <table class="w-full text-sm">
-          <thead class="sticky top-0 bg-white text-left text-slate-500">
-            <tr><th class="py-1">Data</th><th>Utente</th><th class="text-right">Ore</th></tr>
-          </thead>
+    <section class="st-card st-section">
+      <h2>DETTAGLIO STRAORDINARI</h2>
+      <div class="st-scroll">
+        <table>
+          <thead><tr><th>Data</th><th>Utente</th><th style="text-align:right">Ore</th></tr></thead>
           <tbody id="tbodyStraord"></tbody>
         </table>
-        <p id="noStraord" class="hidden text-slate-500 text-sm py-3">Nessuno straordinario registrato.</p>
+        <p id="noStraord" class="st-body" style="margin:0;color:#9bb4bc" hidden>Nessuno straordinario registrato.</p>
       </div>
-    </div>
+    </section>
   </div>
-</div>
+</main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -120,7 +144,7 @@ const db = getDatabase(app);
 const $ = id => document.getElementById(id);
 let righeMese = [];   // dati del mese corrente, scaricati UNA volta
 let chart = null;
-const PALETTE = ["#2563eb","#16a34a","#f59e0b","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#475569"];
+const PALETTE = ["#2dd4bf","#38bdf8","#fbbf24","#f87171","#a78bfa","#4ade80","#f472b6","#fb923c","#94a3b8","#22d3ee"];
 
 /* ---------- Select mesi: ultimi 24 mesi ---------- */
 (function popolaMesi() {
@@ -134,10 +158,10 @@ const PALETTE = ["#2563eb","#16a34a","#f59e0b","#dc2626","#7c3aed","#0891b2","#d
 })();
 
 const mostra = stato => {
-  $("loading").classList.toggle("hidden", stato !== "loading");
-  $("vuoto").classList.toggle("hidden", stato !== "vuoto");
-  $("contenuto").classList.toggle("hidden", stato !== "ok");
-  if (stato !== "errore") $("errore").classList.add("hidden");
+  $("loading").hidden = stato !== "loading";
+  $("vuoto").hidden = stato !== "vuoto";
+  $("contenuto").hidden = stato !== "ok";
+  if (stato !== "errore") $("errore").hidden = true;
 };
 
 /* ---------- Download da Firebase (una volta per mese) ---------- */
@@ -171,7 +195,7 @@ async function caricaMese(mese) {
     console.error(e);
     mostra("errore");
     $("errore").textContent = "Errore nel caricamento dei dati: " + e.message;
-    $("errore").classList.remove("hidden");
+    $("errore").hidden = false;
   }
 }
 
@@ -203,17 +227,17 @@ function render() {
       labels: ordinati.map(([t, n]) => `${t} (${n} – ${Math.round(n / tot * 100)}%)`),
       datasets: [{ data: ordinati.map(([, n]) => n), backgroundColor: ordinati.map((_, i) => PALETTE[i % PALETTE.length]) }]
     },
-    options: { plugins: { legend: { position: "bottom" } } }
+    options: { borderColor: "#0d202b", plugins: { legend: { position: "bottom", labels: { color: "#cfe6e9" } } } }
   });
 
   // Tabella straordinari, data più recente prima
   const straord = righe.filter(r => r.straord > 0).sort((a, b) => b.data.localeCompare(a.data));
-  $("noStraord").classList.toggle("hidden", straord.length > 0);
+  $("noStraord").hidden = straord.length > 0;
   $("tbodyStraord").innerHTML = straord.map(r => `
-    <tr class="border-t border-slate-100">
-      <td class="py-1">${fmtData(r.data)}</td>
+    <tr>
+      <td>${fmtData(r.data)}</td>
       <td>${esc(r.utente)}</td>
-      <td class="text-right font-medium">${r.straord.toLocaleString("it-IT", { maximumFractionDigits: 2 })}</td>
+      <td class="r">${r.straord.toLocaleString("it-IT", { maximumFractionDigits: 2 })}</td>
     </tr>`).join("");
 
   mostra("ok");
