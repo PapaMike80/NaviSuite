@@ -8,6 +8,10 @@
   <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
   <title>NaviSuite Statistiche Annuali</title>
+  <link rel="stylesheet" href="assets/css/navi-shared.css">
+  <link rel="stylesheet" href="assets/css/navi-layout.css">
+  <link rel="stylesheet" href="assets/css/turni-common.css">
+  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     /* Stile NaviSuite (stessa palette di oggi.html) */
@@ -53,8 +57,10 @@
     html.navisuite-light td{border-color:#e1eef0}
   </style>
 </head>
-<body>
-<main class="st-shell">
+<body class="turni-page">
+<aside class="app-sidebar" aria-label="Navigazione principale"></aside>
+<main>
+<div class="st-shell">
   <header class="st-header">
     <p class="st-kicker">NAVISUITE</p>
     <h1>Statistiche annuali</h1>
@@ -100,70 +106,34 @@
       </div>
     </section>
   </div>
+</div>
 </main>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+<!-- Sessione, ruoli e dati: gli stessi script usati da mio-turno.html -->
+<script src="assets/js/shared-roles.js?v=16"></script>
+<script src="assets/js/admin-firebase-rest.js?v=96"></script>
+<script src="assets/js/shared-data.js?v=137"></script>
+<script src="assets/js/firebase-auth.js?v=2"></script>
+<script src="assets/js/shared-menu.js?v=1.99"></script>
+<script src="assets/js/overtime-components.js"></script>
+<script>
 /* ============================================================
- * 1) CONFIGURAZIONE FIREBASE – compila i placeholder
+ * Dati NaviSuite (stessa fonte di NaviDiaria)
+ *  - Sessione:  localStorage "navidiaria.activeAgent" -> { id, name, ... }
+ *    (shared-menu.js porta al login se la sessione manca)
+ *  - Ruolo:     NaviRoles.isAdminAgent(agente)
+ *  - Elenco:    NaviSharedData.directory()  (anagrafica agenti)
+ *  - Turni e straordinari: NaviAdminFirebase.loadDiaria(idAgente)
+ *      -> Firebase: private/adminUpdates/diaria/{idAgente}/entries
+ *      -> ogni riga: { date: "YYYY-MM-DD", shift: "D1", delay: minuti, overtimeComponents }
  * ============================================================ */
-const firebaseConfig = {
-  apiKey: "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE",
-  authDomain: "navisuite-f116f.firebaseapp.com",
-  databaseURL: "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "navisuite-f116f",
-  storageBucket: "INSERISCI_QUI_STORAGE_BUCKET",
-  messagingSenderId: "INSERISCI_QUI_SENDER_ID",
-  appId: "INSERISCI_QUI_APP_ID"
-};
-
-/* ============================================================
- * 2) RUOLI – modifica qui per i tuoi test
- * ============================================================ */
-let isAdmin = false;            // <-- metti true per provare la vista admin
-const LEGGI_RUOLO_DA_DB = false; // true = ignora la variabile sopra e legge users/{uid}/ruolo === "admin"
-                                 // (alternativa: custom claim -> (await user.getIdTokenResult()).claims.admin)
-
-/* ============================================================
- * 3) PERCORSI E CHIAVI DEL DATABASE – ADATTA ALLA TUA STRUTTURA
- *
- * Struttura assunta:
- *   users/{uid} = { nome: "Mario Rossi", ruolo: "admin" | "agente" }
- *   turni/{anno}/{uid}/{YYYY-MM-DD} = { codice: "d1", straordinario: 1.5 }
- *
- * Con questa forma l'agente scarica solo turni/{anno}/{suo uid}
- * (una sola lettura per anno/agente) e le regole di sicurezza
- * possono limitare la lettura al proprio uid.
- * ============================================================ */
-const DB = {
-  percorsoUtenti: "users",
-  campoNome: "nome",
-  campoRuolo: "ruolo",
-  percorsoTurni: (anno, uid) => `turni/${anno}/${uid}`,  // <-- cambia qui se i turni sono altrove
-  campoCodice: "codice",
-  campoStraord: "straordinario",
-  codiciRiposo: ["r", "riposo"]   // codici NON conteggiati come giornate lavorate (case-insensitive)
-};
+let isAdmin = false;   // sovrascrivi con true per test; altrimenti viene dal ruolo reale
+const FORZA_ADMIN = false;
+const NON_LAVORATIVI = ["RIPOSO", "RIP", "MALATTIA"];   // non contano come giornate lavorate
 
 const $ = id => document.getElementById(id);
-/* Anni: ultimi 6, il corrente preselezionato */
-const annoCorr = new Date().getFullYear();
-for (let a = annoCorr; a > annoCorr - 6; a--) $("selAnno").add(new Option(a, a));
-
-// Inizializzazione protetta: se la config è incompleta (es. databaseURL) l'errore
-// viene mostrato in pagina invece di bloccare tutto lo script.
-let auth, db;
-try {
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getDatabase(app);
-} catch (e) { console.error(e); setTimeout(() => errore("Configurazione Firebase non valida: " + e.message), 0); }
-
 const PALETTE = ["#2dd4bf","#38bdf8","#fbbf24","#f87171","#a78bfa","#4ade80","#f472b6","#fb923c","#94a3b8","#22d3ee"];
-let chart = null, utenteCorrente = null, agenteSel = null, nomi = {};
+let chart = null, sessione = null, agenteSel = null;
 
 const mostra = stato => {
   $("loading").hidden = stato !== "loading";
@@ -173,57 +143,44 @@ const mostra = stato => {
 };
 const errore = msg => { mostra("errore"); $("errore").textContent = msg; $("errore").hidden = false; };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const fmtData = iso => /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10).split("-").reverse().join("/") : esc(iso);
+const fmtData = iso => iso.slice(0, 10).split("-").reverse().join("/");
+const hhmm = min => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}`;
+const minutiStraord = e => Math.max(0, Math.round(window.NaviOvertimeComponents?.total?.(e) ?? Number(e.delay) ?? 0)) || 0;
 
+const annoCorr = new Date().getFullYear();
+for (let a = annoCorr; a > annoCorr - 6; a--) $("selAnno").add(new Option(a, a));
 
-/* ---------- Autenticazione ---------- */
-if (auth) {
-mostra("loading");
-onAuthStateChanged(auth, async user => {
-  if (!user) return errore("Accesso richiesto: effettua il login in NaviSuite.");
-  utenteCorrente = user;
-  try {
-    // Nome dell'utente e (opzionale) ruolo dal DB
-    const snap = await get(ref(db, `${DB.percorsoUtenti}/${user.uid}`));
-    const profilo = snap.val() || {};
-    nomi[user.uid] = profilo[DB.campoNome] || user.displayName || user.email || user.uid;
-    if (LEGGI_RUOLO_DA_DB) isAdmin = String(profilo[DB.campoRuolo] || "").toLowerCase() === "admin";
-
-    agenteSel = user.uid;
-    if (isAdmin) await popolaAgenti(); // l'agente standard NON vede alcun selettore
-    await carica();
-  } catch (e) { console.error(e); errore("Errore: " + e.message); }
-});
+async function avvia() {
+  mostra("loading");
+  try { sessione = JSON.parse(localStorage.getItem("navidiaria.activeAgent") || localStorage.getItem("naviturni_logged_agent") || "null"); } catch {}
+  if (!sessione?.id) return errore("Accesso richiesto: effettua il login in NaviSuite.");
+  agenteSel = String(sessione.id);
+  isAdmin = FORZA_ADMIN || !!window.NaviRoles?.isAdminAgent?.(sessione);
+  if (isAdmin) {
+    // Solo l'admin vede il selettore agente
+    try { await (window.NaviSharedData?.loadCacheFirst?.() ?? window.NaviSharedData?.load?.()); } catch {}
+    const lista = (window.NaviSharedData?.directory?.() || []).filter(a => a.id && a.name);
+    if (!lista.some(a => String(a.id) === agenteSel)) lista.push({ id: agenteSel, name: sessione.name || sessione.agente || agenteSel });
+    lista.sort((a, b) => a.name.localeCompare(b.name, "it"));
+    const sel = $("selAgente");
+    lista.forEach(a => sel.add(new Option(a.name, a.id)));
+    sel.value = agenteSel;
+    $("boxAgente").hidden = false;
+  }
+  await carica();
 }
 
-/* ---------- Admin: elenco agenti ---------- */
-async function popolaAgenti() {
-  const snap = await get(ref(db, DB.percorsoUtenti));
-  snap.forEach(c => { nomi[c.key] = (c.val() || {})[DB.campoNome] || c.key; });
-  const sel = $("selAgente");
-  Object.entries(nomi).sort((a, b) => a[1].localeCompare(b[1], "it"))
-    .forEach(([uid, n]) => sel.add(new Option(n, uid)));
-  sel.value = utenteCorrente.uid;
-  $("boxAgente").hidden = false;
-}
-
-/* ---------- Download turni dell'anno per l'agente scelto ---------- */
 async function carica() {
   mostra("loading");
   const anno = $("selAnno").value;
-  $("nomeAgente").textContent = nomi[agenteSel] || "–";
+  const nome = isAdmin ? $("selAgente").selectedOptions[0]?.text : (sessione.name || sessione.agente || "");
+  $("nomeAgente").textContent = nome || "–";
   try {
-    const snap = await get(ref(db, DB.percorsoTurni(anno, agenteSel)));
-    const righe = [];
-    snap.forEach(c => {
-      const v = c.val();
-      if (v && typeof v === "object")
-        righe.push({
-          data: c.key,                                  // chiave = data; se hai un campo "data" usa v.data
-          codice: String(v[DB.campoCodice] ?? "N/D"),
-          straord: parseFloat(String(v[DB.campoStraord] ?? 0).replace(",", ".")) || 0
-        });
-    });
+    await window.NaviAdminFirebase.ready;
+    const diaria = await window.NaviAdminFirebase.loadDiaria(agenteSel);
+    const righe = diaria.entries
+      .filter(e => String(e.date || "").startsWith(anno + "-") && e.shift)
+      .map(e => ({ data: e.date, codice: String(e.shift), straord: minutiStraord(e) }));
     render(righe, anno);
   } catch (e) { console.error(e); errore("Errore nel caricamento: " + e.message); }
 }
@@ -233,36 +190,35 @@ function render(righe, anno) {
     $("vuoto").textContent = `Nessun turno trovato per l'anno ${anno}`;
     return mostra("vuoto");
   }
-  const lavorati = righe.filter(r => !DB.codiciRiposo.includes(r.codice.trim().toLowerCase()));
-  const totStraord = righe.reduce((s, r) => s + r.straord, 0);
+  const lavorati = righe.filter(r => !NON_LAVORATIVI.includes(r.codice.trim().toUpperCase()));
+  const totMin = lavorati.reduce((s, r) => s + r.straord, 0);
   const conta = {};
-  righe.forEach(r => { const k = r.codice.toLowerCase(); conta[k] = (conta[k] || 0) + 1; });
+  righe.forEach(r => { const k = r.codice.trim().toUpperCase(); conta[k] = (conta[k] || 0) + 1; });
   const ordinati = Object.entries(conta).sort((a, b) => b[1] - a[1]);
 
   $("kpiGiornate").textContent = lavorati.length;
-  $("kpiStraord").textContent = totStraord.toLocaleString("it-IT", { maximumFractionDigits: 2 }) + " h";
-  $("badges").innerHTML = ordinati.map(([c, n]) =>
-    `<span class="st-badge">${esc(c.toUpperCase())} <b>${n}</b></span>`).join("");
+  $("kpiStraord").textContent = hhmm(totMin) + " h";
+  $("badges").innerHTML = ordinati.map(([c, n]) => `<span class="st-badge">${esc(c)} <b>${n}</b></span>`).join("");
 
   if (chart) chart.destroy();
   chart = new Chart($("chartTurni"), {
     type: "doughnut",
     data: {
-      labels: ordinati.map(([c, n]) => `${c.toUpperCase()} (${n})`),
+      labels: ordinati.map(([c, n]) => `${c} (${n})`),
       datasets: [{ data: ordinati.map(([, n]) => n), backgroundColor: ordinati.map((_, i) => PALETTE[i % PALETTE.length]) }]
     },
     options: { borderColor: "#0d202b", plugins: { legend: { position: "bottom", labels: { color: "#cfe6e9" } } } }
   });
 
-  const str = righe.filter(r => r.straord > 0).sort((a, b) => b.data.localeCompare(a.data));
+  const str = lavorati.filter(r => r.straord > 0).sort((a, b) => b.data.localeCompare(a.data));
   $("noStraord").hidden = str.length > 0;
-  $("tbodyStraord").innerHTML = str.map(r => `<tr><td>${fmtData(r.data)}</td><td>${esc(r.codice.toUpperCase())}</td>
-    <td class="r">${r.straord.toLocaleString("it-IT", { maximumFractionDigits: 2 })}</td></tr>`).join("");
+  $("tbodyStraord").innerHTML = str.map(r => `<tr><td>${fmtData(r.data)}</td><td>${esc(r.codice.toUpperCase())}</td><td class="r">${hhmm(r.straord)}</td></tr>`).join("");
   mostra("ok");
 }
 
-$("selAnno").addEventListener("change", () => utenteCorrente && carica());
+$("selAnno").addEventListener("change", () => sessione && carica());
 $("selAgente").addEventListener("change", e => { if (isAdmin) { agenteSel = e.target.value; carica(); } });
+avvia();
 </script>
 </body>
 </html>
