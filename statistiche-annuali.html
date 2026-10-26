@@ -111,9 +111,9 @@ import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.
  * 1) CONFIGURAZIONE FIREBASE – compila i placeholder
  * ============================================================ */
 const firebaseConfig = {
-  apiKey: "INSERISCI_QUI_API_KEY",
+  apiKey: "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE",
   authDomain: "navisuite-f116f.firebaseapp.com",
-  databaseURL: "INSERISCI_QUI_DATABASE_URL",
+  databaseURL: "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "navisuite-f116f",
   storageBucket: "INSERISCI_QUI_STORAGE_BUCKET",
   messagingSenderId: "INSERISCI_QUI_SENDER_ID",
@@ -148,11 +148,20 @@ const DB = {
   codiciRiposo: ["r", "riposo"]   // codici NON conteggiati come giornate lavorate (case-insensitive)
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
-
 const $ = id => document.getElementById(id);
+/* Anni: ultimi 6, il corrente preselezionato */
+const annoCorr = new Date().getFullYear();
+for (let a = annoCorr; a > annoCorr - 6; a--) $("selAnno").add(new Option(a, a));
+
+// Inizializzazione protetta: se la config è incompleta (es. databaseURL) l'errore
+// viene mostrato in pagina invece di bloccare tutto lo script.
+let auth, db;
+try {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getDatabase(app);
+} catch (e) { console.error(e); setTimeout(() => errore("Configurazione Firebase non valida: " + e.message), 0); }
+
 const PALETTE = ["#2dd4bf","#38bdf8","#fbbf24","#f87171","#a78bfa","#4ade80","#f472b6","#fb923c","#94a3b8","#22d3ee"];
 let chart = null, utenteCorrente = null, agenteSel = null, nomi = {};
 
@@ -166,11 +175,9 @@ const errore = msg => { mostra("errore"); $("errore").textContent = msg; $("erro
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtData = iso => /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10).split("-").reverse().join("/") : esc(iso);
 
-/* Anni: ultimi 6, il corrente preselezionato */
-const annoCorr = new Date().getFullYear();
-for (let a = annoCorr; a > annoCorr - 6; a--) $("selAnno").add(new Option(a, a));
 
 /* ---------- Autenticazione ---------- */
+if (auth) {
 mostra("loading");
 onAuthStateChanged(auth, async user => {
   if (!user) return errore("Accesso richiesto: effettua il login in NaviSuite.");
@@ -187,6 +194,7 @@ onAuthStateChanged(auth, async user => {
     await carica();
   } catch (e) { console.error(e); errore("Errore: " + e.message); }
 });
+}
 
 /* ---------- Admin: elenco agenti ---------- */
 async function popolaAgenti() {
