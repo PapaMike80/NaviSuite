@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07131b">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/icona_apple_180.png">
+  <title>NaviSuite Statistiche Annuali</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* Stile NaviSuite (stessa palette di oggi.html) */
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(900px 460px at 15% -10%,#123846 0,transparent 62%),#07131b;color:#edf6f7;min-height:100vh}
+    .st-shell{max-width:1000px;margin:0 auto;padding:7px 12px 60px}
+    .st-header{margin:0 0 16px;padding:23px 25px;border:1px solid #234452;border-radius:20px;background:linear-gradient(135deg,#0d2631,#0b1d27)}
+    .st-kicker{margin:0 0 6px;color:#52ddc8;font-size:11px;font-weight:800;letter-spacing:.14em}
+    .st-header h1{margin:0;font-size:clamp(27px,4vw,40px);line-height:1.05;letter-spacing:-.04em}
+    .st-header p{margin:8px 0 0;color:#9bb4bc}
+    .st-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+    .st-filters label{display:grid;gap:4px;color:#9bb4bc;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .st-filters select{min-height:44px;padding:0 12px;border:1px solid #2f5661;border-radius:12px;background:#0d202b;color:#cfe6e9;font:inherit;font-size:15px;font-weight:700;text-transform:none;letter-spacing:0}
+    .st-status{margin:0 0 10px;padding:10px 13px;border:1px solid #234452;border-radius:13px;background:#0d202b;color:#9bb4bc;font-size:.93rem}
+    .st-status.error{border-color:#a94f54;color:#fecaca;background:#2c171b}
+    .st-empty{padding:26px;border:1px dashed #365b65;border-radius:15px;color:#9bb4bc;text-align:center}
+    .st-spin{display:inline-block;width:18px;height:18px;margin-right:8px;vertical-align:middle;border:3px solid #234452;border-top-color:#52ddc8;border-radius:50%;animation:sp .8s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    .st-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px}
+    .st-card{overflow:hidden;border:1px solid #294b58;border-radius:13px;background:#0d202b;box-shadow:0 5px 15px rgba(0,0,0,.13)}
+    .st-kpi{padding:12px 14px;background:linear-gradient(135deg,rgba(44,214,191,.13),rgba(23,51,63,.35))}
+    .st-kpi small{display:block;color:#91adb6;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .st-kpi strong{display:block;margin-top:4px;color:#62e4d0;font-size:clamp(22px,4vw,30px);line-height:1.1;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .st-card h2{margin:0;padding:10px 14px;font-size:14px;letter-spacing:.04em;border-bottom:1px solid #234452;background:linear-gradient(135deg,rgba(44,214,191,.13),rgba(23,51,63,.35))}
+    .st-body{padding:14px}
+    .st-chart{max-width:420px;margin:0 auto}
+    .st-badges{display:flex;flex-wrap:wrap;gap:8px;padding:14px}
+    .st-badge{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid #2f5661;border-radius:999px;background:#0b1d27;font-weight:800}
+    .st-badge b{color:#62e4d0;font-size:16px}
+    .st-name{margin:10px 0 0;font-size:18px;font-weight:800;color:#62e4d0}
+    .st-login{max-width:420px;margin:0 auto 14px}
+    .st-scroll{max-height:320px;overflow-y:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th{position:sticky;top:0;background:#0d202b;color:#91adb6;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:6px 14px}
+    td{padding:7px 14px;border-top:1px solid #1b3a47}
+    .r{text-align:right;font-weight:800;color:#62e4d0}
+    .st-section{margin:0 0 10px}
+    [hidden]{display:none!important}
+    @media(max-width:600px){.st-kpis{grid-template-columns:1fr}.st-header{padding:19px 17px;border-radius:16px}}
+    /* tema chiaro NaviSuite */
+    html.navisuite-light body{background:#edf5f6;color:#17323a}
+    html.navisuite-light .st-header,html.navisuite-light .st-card,html.navisuite-light .st-status,html.navisuite-light .st-filters select,html.navisuite-light th{background:#fff;border-color:#c6dde0;color:#17323a}
+    html.navisuite-light td{border-color:#e1eef0}
+  </style>
+</head>
+<body>
+<main class="st-shell">
+  <header class="st-header">
+    <p class="st-kicker">NAVISUITE</p>
+    <h1>Statistiche annuali</h1>
+    <p class="st-name" id="nomeAgente">–</p>
+  </header>
+
+  <!-- FILTRI: Anno sempre visibile; Agente solo per admin -->
+  <div class="st-filters">
+    <label>Anno <select id="selAnno"></select></label>
+    <label id="boxAgente" hidden>Agente
+      <select id="selAgente"></select>
+    </label>
+  </div>
+
+  <p id="loading" class="st-status" hidden><span class="st-spin"></span>Caricamento dati in corso...</p>
+  <p id="errore" class="st-status error" hidden></p>
+  <div id="vuoto" class="st-empty" hidden></div>
+
+  <div id="contenuto" hidden>
+    <div class="st-kpis" style="grid-template-columns:1fr 1fr">
+      <div class="st-card st-kpi"><small>Giornate lavorate</small><strong id="kpiGiornate">0</strong></div>
+      <div class="st-card st-kpi"><small>Ore straordinario</small><strong id="kpiStraord">0</strong></div>
+    </div>
+
+    <section class="st-card st-section">
+      <h2>DETTAGLIO TURNI</h2>
+      <div id="badges" class="st-badges"></div>
+    </section>
+
+    <section class="st-card st-section">
+      <h2>DISTRIBUZIONE TURNI</h2>
+      <div class="st-body"><div class="st-chart"><canvas id="chartTurni"></canvas></div></div>
+    </section>
+
+    <section class="st-card st-section">
+      <h2>STRAORDINARI</h2>
+      <div class="st-scroll">
+        <table>
+          <thead><tr><th>Data</th><th>Turno</th><th style="text-align:right">Ore</th></tr></thead>
+          <tbody id="tbodyStraord"></tbody>
+        </table>
+        <p id="noStraord" class="st-body" style="margin:0;color:#9bb4bc" hidden>Nessuno straordinario registrato.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ============================================================
+ * 1) CONFIGURAZIONE FIREBASE – compila i placeholder
+ * ============================================================ */
+const firebaseConfig = {
+  apiKey: "INSERISCI_QUI_API_KEY",
+  authDomain: "navisuite-f116f.firebaseapp.com",
+  databaseURL: "INSERISCI_QUI_DATABASE_URL",
+  projectId: "navisuite-f116f",
+  storageBucket: "INSERISCI_QUI_STORAGE_BUCKET",
+  messagingSenderId: "INSERISCI_QUI_SENDER_ID",
+  appId: "INSERISCI_QUI_APP_ID"
+};
+
+/* ============================================================
+ * 2) RUOLI – modifica qui per i tuoi test
+ * ============================================================ */
+let isAdmin = false;            // <-- metti true per provare la vista admin
+const LEGGI_RUOLO_DA_DB = false; // true = ignora la variabile sopra e legge users/{uid}/ruolo === "admin"
+                                 // (alternativa: custom claim -> (await user.getIdTokenResult()).claims.admin)
+
+/* ============================================================
+ * 3) PERCORSI E CHIAVI DEL DATABASE – ADATTA ALLA TUA STRUTTURA
+ *
+ * Struttura assunta:
+ *   users/{uid} = { nome: "Mario Rossi", ruolo: "admin" | "agente" }
+ *   turni/{anno}/{uid}/{YYYY-MM-DD} = { codice: "d1", straordinario: 1.5 }
+ *
+ * Con questa forma l'agente scarica solo turni/{anno}/{suo uid}
+ * (una sola lettura per anno/agente) e le regole di sicurezza
+ * possono limitare la lettura al proprio uid.
+ * ============================================================ */
+const DB = {
+  percorsoUtenti: "users",
+  campoNome: "nome",
+  campoRuolo: "ruolo",
+  percorsoTurni: (anno, uid) => `turni/${anno}/${uid}`,  // <-- cambia qui se i turni sono altrove
+  campoCodice: "codice",
+  campoStraord: "straordinario",
+  codiciRiposo: ["r", "riposo"]   // codici NON conteggiati come giornate lavorate (case-insensitive)
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const $ = id => document.getElementById(id);
+const PALETTE = ["#2dd4bf","#38bdf8","#fbbf24","#f87171","#a78bfa","#4ade80","#f472b6","#fb923c","#94a3b8","#22d3ee"];
+let chart = null, utenteCorrente = null, agenteSel = null, nomi = {};
+
+const mostra = stato => {
+  $("loading").hidden = stato !== "loading";
+  $("vuoto").hidden = stato !== "vuoto";
+  $("contenuto").hidden = stato !== "ok";
+  if (stato !== "errore") $("errore").hidden = true;
+};
+const errore = msg => { mostra("errore"); $("errore").textContent = msg; $("errore").hidden = false; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtData = iso => /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10).split("-").reverse().join("/") : esc(iso);
+
+/* Anni: ultimi 6, il corrente preselezionato */
+const annoCorr = new Date().getFullYear();
+for (let a = annoCorr; a > annoCorr - 6; a--) $("selAnno").add(new Option(a, a));
+
+/* ---------- Autenticazione ---------- */
+mostra("loading");
+onAuthStateChanged(auth, async user => {
+  if (!user) return errore("Accesso richiesto: effettua il login in NaviSuite.");
+  utenteCorrente = user;
+  try {
+    // Nome dell'utente e (opzionale) ruolo dal DB
+    const snap = await get(ref(db, `${DB.percorsoUtenti}/${user.uid}`));
+    const profilo = snap.val() || {};
+    nomi[user.uid] = profilo[DB.campoNome] || user.displayName || user.email || user.uid;
+    if (LEGGI_RUOLO_DA_DB) isAdmin = String(profilo[DB.campoRuolo] || "").toLowerCase() === "admin";
+
+    agenteSel = user.uid;
+    if (isAdmin) await popolaAgenti(); // l'agente standard NON vede alcun selettore
+    await carica();
+  } catch (e) { console.error(e); errore("Errore: " + e.message); }
+});
+
+/* ---------- Admin: elenco agenti ---------- */
+async function popolaAgenti() {
+  const snap = await get(ref(db, DB.percorsoUtenti));
+  snap.forEach(c => { nomi[c.key] = (c.val() || {})[DB.campoNome] || c.key; });
+  const sel = $("selAgente");
+  Object.entries(nomi).sort((a, b) => a[1].localeCompare(b[1], "it"))
+    .forEach(([uid, n]) => sel.add(new Option(n, uid)));
+  sel.value = utenteCorrente.uid;
+  $("boxAgente").hidden = false;
+}
+
+/* ---------- Download turni dell'anno per l'agente scelto ---------- */
+async function carica() {
+  mostra("loading");
+  const anno = $("selAnno").value;
+  $("nomeAgente").textContent = nomi[agenteSel] || "–";
+  try {
+    const snap = await get(ref(db, DB.percorsoTurni(anno, agenteSel)));
+    const righe = [];
+    snap.forEach(c => {
+      const v = c.val();
+      if (v && typeof v === "object")
+        righe.push({
+          data: c.key,                                  // chiave = data; se hai un campo "data" usa v.data
+          codice: String(v[DB.campoCodice] ?? "N/D"),
+          straord: parseFloat(String(v[DB.campoStraord] ?? 0).replace(",", ".")) || 0
+        });
+    });
+    render(righe, anno);
+  } catch (e) { console.error(e); errore("Errore nel caricamento: " + e.message); }
+}
+
+function render(righe, anno) {
+  if (!righe.length) {
+    $("vuoto").textContent = `Nessun turno trovato per l'anno ${anno}`;
+    return mostra("vuoto");
+  }
+  const lavorati = righe.filter(r => !DB.codiciRiposo.includes(r.codice.trim().toLowerCase()));
+  const totStraord = righe.reduce((s, r) => s + r.straord, 0);
+  const conta = {};
+  righe.forEach(r => { const k = r.codice.toLowerCase(); conta[k] = (conta[k] || 0) + 1; });
+  const ordinati = Object.entries(conta).sort((a, b) => b[1] - a[1]);
+
+  $("kpiGiornate").textContent = lavorati.length;
+  $("kpiStraord").textContent = totStraord.toLocaleString("it-IT", { maximumFractionDigits: 2 }) + " h";
+  $("badges").innerHTML = ordinati.map(([c, n]) =>
+    `<span class="st-badge">${esc(c.toUpperCase())} <b>${n}</b></span>`).join("");
+
+  if (chart) chart.destroy();
+  chart = new Chart($("chartTurni"), {
+    type: "doughnut",
+    data: {
+      labels: ordinati.map(([c, n]) => `${c.toUpperCase()} (${n})`),
+      datasets: [{ data: ordinati.map(([, n]) => n), backgroundColor: ordinati.map((_, i) => PALETTE[i % PALETTE.length]) }]
+    },
+    options: { borderColor: "#0d202b", plugins: { legend: { position: "bottom", labels: { color: "#cfe6e9" } } } }
+  });
+
+  const str = righe.filter(r => r.straord > 0).sort((a, b) => b.data.localeCompare(a.data));
+  $("noStraord").hidden = str.length > 0;
+  $("tbodyStraord").innerHTML = str.map(r => `<tr><td>${fmtData(r.data)}</td><td>${esc(r.codice.toUpperCase())}</td>
+    <td class="r">${r.straord.toLocaleString("it-IT", { maximumFractionDigits: 2 })}</td></tr>`).join("");
+  mostra("ok");
+}
+
+$("selAnno").addEventListener("change", () => utenteCorrente && carica());
+$("selAgente").addEventListener("change", e => { if (isAdmin) { agenteSel = e.target.value; carica(); } });
+</script>
+</body>
+</html>
