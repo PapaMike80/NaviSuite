@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NaviSuite – Statistiche</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+<div class="max-w-4xl mx-auto p-4 space-y-4">
+
+  <h1 class="text-2xl font-bold">📊 Statistiche turni</h1>
+
+  <!-- FILTRI -->
+  <div class="grid grid-cols-2 gap-3">
+    <label class="block text-sm font-medium">Mese
+      <select id="selMese" class="mt-1 w-full rounded-lg border-slate-300 bg-white p-2 shadow-sm"></select>
+    </label>
+    <label class="block text-sm font-medium">Utente
+      <select id="selUtente" class="mt-1 w-full rounded-lg border-slate-300 bg-white p-2 shadow-sm">
+        <option value="__tutti__">Tutti</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- STATO: caricamento / errore / vuoto -->
+  <div id="loading" class="hidden text-center py-10 text-slate-500">
+    <div class="inline-block h-6 w-6 animate-spin rounded-full border-4 border-slate-300 border-t-blue-600 align-middle"></div>
+    <span class="ml-2">Caricamento dati...</span>
+  </div>
+  <div id="errore" class="hidden rounded-lg bg-red-100 text-red-800 p-3 text-sm"></div>
+  <div id="vuoto" class="hidden text-center py-10 text-slate-500">Nessun turno trovato per questa selezione.</div>
+
+  <div id="contenuto" class="hidden space-y-4">
+    <!-- KPI -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs uppercase text-slate-500">Giornate lavorate</div>
+        <div id="kpiGiornate" class="text-3xl font-bold">0</div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs uppercase text-slate-500">Ore straordinario</div>
+        <div id="kpiStraord" class="text-3xl font-bold">0</div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs uppercase text-slate-500">Turno più frequente</div>
+        <div id="kpiTurno" class="text-3xl font-bold">–</div>
+      </div>
+    </div>
+
+    <!-- GRAFICO -->
+    <div class="bg-white rounded-xl shadow p-4">
+      <h2 class="font-semibold mb-2">Distribuzione turni</h2>
+      <div class="mx-auto" style="max-width:340px"><canvas id="chartTurni"></canvas></div>
+    </div>
+
+    <!-- DETTAGLIO STRAORDINARI -->
+    <div class="bg-white rounded-xl shadow p-4">
+      <h2 class="font-semibold mb-2">Dettaglio straordinari</h2>
+      <div class="max-h-80 overflow-y-auto">
+        <table class="w-full text-sm">
+          <thead class="sticky top-0 bg-white text-left text-slate-500">
+            <tr><th class="py-1">Data</th><th>Utente</th><th class="text-right">Ore</th></tr>
+          </thead>
+          <tbody id="tbodyStraord"></tbody>
+        </table>
+        <p id="noStraord" class="hidden text-slate-500 text-sm py-3">Nessuno straordinario registrato.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* ============================================================
+ * 1) CONFIGURAZIONE FIREBASE – compila i placeholder
+ * ============================================================ */
+const firebaseConfig = {
+  apiKey: "INSERISCI_QUI_API_KEY",
+  authDomain: "navisuite-f116f.firebaseapp.com",
+  databaseURL: "INSERISCI_QUI_DATABASE_URL", // es. https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app
+  projectId: "navisuite-f116f",
+  storageBucket: "INSERISCI_QUI_STORAGE_BUCKET",
+  messagingSenderId: "INSERISCI_QUI_SENDER_ID",
+  appId: "INSERISCI_QUI_APP_ID"
+};
+
+/* ============================================================
+ * 2) MAPPATURA DATABASE – ADATTA QUI ai nomi reali delle tue chiavi
+ *
+ * Struttura assunta:
+ *   turni/
+ *     2026-10/                      <- un nodo per mese (YYYY-MM)
+ *       -Nxyz123: {                 <- una riga per turno (id push)
+ *         data: "2026-10-26",       <- data ISO
+ *         utente: "Mario Rossi",
+ *         tipo: "Mattina",          <- tipologia turno
+ *         straordinario: 1.5        <- ore di straordinario (numero)
+ *       }
+ *
+ * Se invece i dati sono turni/{utente}/{data} = {...}, modifica
+ * caricaMese() (vedi commento lì) senza toccare il resto.
+ * ============================================================ */
+const DB = {
+  nodoRoot: "turni",
+  campoData: "data",
+  campoUtente: "utente",
+  campoTipo: "tipo",
+  campoStraord: "straordinario",
+  tipiNonLavorativi: ["riposo"]   // confronto case-insensitive
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ---------- Stato e riferimenti DOM ---------- */
+const $ = id => document.getElementById(id);
+let righeMese = [];   // dati del mese corrente, scaricati UNA volta
+let chart = null;
+const PALETTE = ["#2563eb","#16a34a","#f59e0b","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#475569"];
+
+/* ---------- Select mesi: ultimi 24 mesi ---------- */
+(function popolaMesi() {
+  const mesi = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  const oggi = new Date();
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(oggi.getFullYear(), oggi.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    $("selMese").add(new Option(`${mesi[d.getMonth()]} ${d.getFullYear()}`, val));
+  }
+})();
+
+const mostra = stato => {
+  $("loading").classList.toggle("hidden", stato !== "loading");
+  $("vuoto").classList.toggle("hidden", stato !== "vuoto");
+  $("contenuto").classList.toggle("hidden", stato !== "ok");
+  if (stato !== "errore") $("errore").classList.add("hidden");
+};
+
+/* ---------- Download da Firebase (una volta per mese) ---------- */
+async function caricaMese(mese) {
+  mostra("loading");
+  try {
+    // Se la tua struttura è diversa, cambia il percorso qui sotto
+    const snap = await get(ref(db, `${DB.nodoRoot}/${mese}`));
+    righeMese = [];
+    if (snap.exists()) {
+      snap.forEach(child => {
+        const v = child.val();
+        if (v && typeof v === "object") {
+          righeMese.push({
+            data: String(v[DB.campoData] ?? ""),
+            utente: String(v[DB.campoUtente] ?? "Sconosciuto"),
+            tipo: String(v[DB.campoTipo] ?? "N/D"),
+            straord: parseFloat(String(v[DB.campoStraord] ?? 0).replace(",", ".")) || 0
+          });
+        }
+      });
+    }
+    // Popola select utenti dai dati scaricati
+    const utenti = [...new Set(righeMese.map(r => r.utente))].sort((a, b) => a.localeCompare(b, "it"));
+    const sel = $("selUtente");
+    sel.length = 1;                       // mantiene "Tutti"
+    utenti.forEach(u => sel.add(new Option(u, u)));
+    sel.value = "__tutti__";
+    render();
+  } catch (e) {
+    console.error(e);
+    mostra("errore");
+    $("errore").textContent = "Errore nel caricamento dei dati: " + e.message;
+    $("errore").classList.remove("hidden");
+  }
+}
+
+/* ---------- Filtro locale + rendering (nessuna nuova chiamata a Firebase) ---------- */
+function render() {
+  const u = $("selUtente").value;
+  const righe = righeMese.filter(r => u === "__tutti__" || r.utente === u);
+  if (!righe.length) return mostra("vuoto");
+
+  const lavorati = righe.filter(r => !DB.tipiNonLavorativi.includes(r.tipo.trim().toLowerCase()));
+  const totStraord = righe.reduce((s, r) => s + r.straord, 0);
+
+  // Conteggio per tipo (riposi inclusi nel grafico come distribuzione)
+  const conta = {};
+  righe.forEach(r => conta[r.tipo] = (conta[r.tipo] || 0) + 1);
+  const ordinati = Object.entries(conta).sort((a, b) => b[1] - a[1]);
+  const lavOrd = ordinati.filter(([t]) => !DB.tipiNonLavorativi.includes(t.trim().toLowerCase()));
+
+  $("kpiGiornate").textContent = lavorati.length;
+  $("kpiStraord").textContent = totStraord.toLocaleString("it-IT", { maximumFractionDigits: 2 }) + " h";
+  $("kpiTurno").textContent = lavOrd.length ? lavOrd[0][0] : "–";
+
+  // Doughnut
+  const tot = righe.length;
+  if (chart) chart.destroy();
+  chart = new Chart($("chartTurni"), {
+    type: "doughnut",
+    data: {
+      labels: ordinati.map(([t, n]) => `${t} (${n} – ${Math.round(n / tot * 100)}%)`),
+      datasets: [{ data: ordinati.map(([, n]) => n), backgroundColor: ordinati.map((_, i) => PALETTE[i % PALETTE.length]) }]
+    },
+    options: { plugins: { legend: { position: "bottom" } } }
+  });
+
+  // Tabella straordinari, data più recente prima
+  const straord = righe.filter(r => r.straord > 0).sort((a, b) => b.data.localeCompare(a.data));
+  $("noStraord").classList.toggle("hidden", straord.length > 0);
+  $("tbodyStraord").innerHTML = straord.map(r => `
+    <tr class="border-t border-slate-100">
+      <td class="py-1">${fmtData(r.data)}</td>
+      <td>${esc(r.utente)}</td>
+      <td class="text-right font-medium">${r.straord.toLocaleString("it-IT", { maximumFractionDigits: 2 })}</td>
+    </tr>`).join("");
+
+  mostra("ok");
+}
+
+const fmtData = iso => /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10).split("-").reverse().join("/") : esc(iso);
+const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+$("selMese").addEventListener("change", e => caricaMese(e.target.value));
+$("selUtente").addEventListener("change", render);   // solo filtro locale
+caricaMese($("selMese").value);
+</script>
+</body>
+</html>
