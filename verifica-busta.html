@@ -96,6 +96,16 @@
     .chip-stima{border-style:dashed;border-color:var(--amber);color:var(--amber)}.chip-stima.on{background:var(--amber);border-color:var(--amber);color:#2a1d00}
     .spark i.s{background:repeating-linear-gradient(135deg,var(--amber) 0 4px,color-mix(in srgb,var(--amber) 45%,transparent) 4px 8px)}.q-st{background:var(--amber);opacity:.6}
     body.vb-blur .eurv{filter:blur(7px);user-select:none}
+    .vb-profile-card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+    .vb-profile-card:empty{display:none}
+    .vb-profile-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+    .vb-profile-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .vb-profile-user{font-size:14px;font-weight:700;color:var(--ink)}
+    .vb-profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+    .vb-profile-item{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--card2)}
+    .vb-profile-item small{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .vb-profile-item b{font-size:14px;font-weight:700;color:var(--teal)}
+    .vb-profile-item span{font-size:11px;color:var(--muted)}
     @media(prefers-reduced-motion:no-preference){.voce,.chip{transition:background .15s,border-color .15s}}
   </style>
 </head>
@@ -108,10 +118,36 @@
 
     <div class="vb-bar" id="vbBar" hidden>
       <label class="chip up" id="vbFileLabel" for="vbFileInput">＋ Carica</label>
+      <label class="chip">Parametro <select id="vbParametro" aria-label="Parametro CCNL"><option value="121">121</option><option value="129">129</option><option value="139" selected>139</option><option value="140">140</option><option value="158">158</option></select></label>
+      <label class="chip">Scatti <select id="vbScatti" aria-label="Scatti di anzianità"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
       <label class="chip">Tolleranza <select id="vbToll" aria-label="Tolleranza"><option value="0">0%</option><option value="5">5%</option><option value="10" selected>10%</option></select></label>
       <button type="button" class="chip" id="vbBlur" aria-pressed="false" title="Nascondi cifre">🙈</button>
       <button type="button" class="chip" id="vbReload" title="Ricarica la Distinta">↻</button>
     </div>
+
+    <section class="vb-profile-card" id="vbUserData" aria-label="I miei dati" hidden>
+      <div class="vb-profile-header">
+        <span class="vb-profile-title">I miei dati</span>
+        <span class="vb-profile-user" id="vbProfileUser">—</span>
+      </div>
+      <div class="vb-profile-grid">
+        <div class="vb-profile-item">
+          <small>Grado</small>
+          <b id="vbProfileGrado">—</b>
+          <span id="vbProfileGradoSub">Ruolo di bordo</span>
+        </div>
+        <div class="vb-profile-item">
+          <small>Parametro</small>
+          <b id="vbProfileParametro">—</b>
+          <span id="vbProfileParametroSub">CCNL Autoferrotranvieri</span>
+        </div>
+        <div class="vb-profile-item">
+          <small>Ferie accumulate</small>
+          <b id="vbProfileFerie">—</b>
+          <span id="vbProfileFerieSub">Maturazione annua</span>
+        </div>
+      </div>
+    </section>
     <p class="vb-info" id="vbFileInfo" aria-live="polite"></p>
     <p class="vb-meta" id="vbSource"></p>
     <div id="vbAlerts" role="status" aria-live="polite"></div>
@@ -140,6 +176,7 @@
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="assets/js/busta-parser.js?v=2"></script>
   <script src="assets/js/distinta-totals.js?v=10"></script>
+  <script src="assets/js/ccnl-config.js"></script>
   <script src="assets/js/busta-compare.js?v=19"></script>
   <script src="assets/js/verifica-busta.js?v=24"></script>
 </body>
