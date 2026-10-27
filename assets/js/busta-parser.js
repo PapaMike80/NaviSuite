@@ -29,6 +29,11 @@
   const FLAG_RE = /^[ABC]$/;
   const NUMBER_RE = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?-?$/;
   const PERIOD_RE = /^(0[1-9]|1[0-4])\.(?:20)?(\d{2})$/;
+  const IT_MONTHS = {
+    GEN: 1, FEB: 2, MAR: 3, APR: 4, MAG: 5, GIU: 6,
+    LUG: 7, AGO: 8, SET: 9, OTT: 10, NOV: 11, DIC: 12,
+    TRED: 13, '13A': 13, '13MA': 13, QUATT: 14, '14A': 14, '14MA': 14
+  };
 
   // "1.695,95" -> 1695.95 ; "1021,19-" o "-16,50" -> negativo ; testo non numerico -> null
   function parseAmount(text) {
@@ -121,7 +126,7 @@
   function columnFor(xMax, bounds) {
     if (xMax <= bounds.quantityMaxX + 1) return 'quantity';
     if (xMax <= bounds.baseMaxX + 1) return 'base';
-    if (xMax <= bounds.figurativeMaxX + 1) return 'figurative';
+    if (xMax <= bounds.figurativeMaxX + 4) return 'figurative';
     return 'amount';
   }
 
@@ -210,6 +215,22 @@
           const prev = i > 0 ? row.words[i - 1] : null;
           const emissionMonth = prev && /^(0[1-9]|1[0-2])$/.test(prev.text) ? Number(prev.text) : (month === 14 ? 7 : month === 13 ? 12 : month);
           return { month, year, label: word.text, ...(emissionMonth !== month ? { emissionMonth } : {}) };
+        }
+        // Formato con mese testuale (es. "10 OTT. 2025" oppure "OTT.2025")
+        const mText = /^([A-Z0-9]{3,5})\.?(?:(20\d{2}|\d{2}))?$/i.exec(word.text);
+        const mKey = mText ? mText[1].toUpperCase() : '';
+        if (mKey && IT_MONTHS[mKey]) {
+          const next = !mText[2] && i + 1 < row.words.length ? /^(20\d{2}|\d{2})$/.exec(row.words[i + 1].text) : null;
+          const rawYear = mText[2] || (next ? next[1] : '');
+          if (rawYear) {
+            const year = rawYear.length === 4 ? Number(rawYear) : 2000 + Number(rawYear);
+            const prev = i > 0 ? row.words[i - 1] : null;
+            const prevNum = prev && /^(0?[1-9]|1[0-4])$/.test(prev.text) ? Number(prev.text) : null;
+            const month = prevNum === 13 || prevNum === 14 ? prevNum : IT_MONTHS[mKey];
+            const emissionMonth = prevNum && prevNum <= 12 ? prevNum : (month === 14 ? 7 : month === 13 ? 12 : month);
+            const label = `${String(month).padStart(2, '0')}.${String(year).slice(-2)}`;
+            return { month, year, label, ...(emissionMonth !== month ? { emissionMonth } : {}) };
+          }
         }
       }
     }

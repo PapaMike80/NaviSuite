@@ -176,6 +176,26 @@ assert.equal(parser.previousMonth('boh'), '');
   assert.deepEqual(busta14.period, { month: 14, year: 2026, label: '14.26', emissionMonth: 7 });
   assert.equal(busta14.intestazione.meseCompetenza, '07  14.2026');
   assert.equal(busta14.check.completa, true);
+  // Formato 2025 con mese testuale ("10 OTT. 2025") e ritenuta figurativa col meno finale (951: 0,69- a xMax 476.5)
+  const bustaOtt25 = parser.parseItems([{
+    items: [
+      item('AZIENDA ESEMPIO S.P.A.', 40, 810),
+      item('10', 321, 743), item('OTT.', 345, 743), item('2025', 375, 743),
+      ...header(640),
+      ...voceRow(620, { flag: 'A', code: '002', description: 'Retribuzione mensile', amount: '1.626,86' }),
+      { str: '951', transform: [8, 0, 0, 8, 50.5, 606], width: 18 },
+      { str: 'Contr. trasferta FAP', transform: [8, 0, 0, 8, 80.5, 606], width: 120 },
+      { str: '0,69-', transform: [8, 0, 0, 8, 446.5, 606], width: 25 },
+      item('Totale Ritenute', 400, 220), item('Totale Competenze', 480, 220),
+      right('0,00', 466, 208), right('1.626,86', 556, 208),
+      item('A PAGARE', 400, 178), right('1.626,86', 556, 178)
+    ]
+  }]);
+  assert.deepEqual(bustaOtt25.period, { month: 10, year: 2025, label: '10.25' });
+  assert.equal(parser.previousMonth(bustaOtt25.period), '2025-09');
+  assert.equal(bustaOtt25.voci.find(v => v.code === '951').figurative, -0.69);
+  assert.equal(bustaOtt25.voci.find(v => v.code === '951').amount, null);
+  assert.equal(bustaOtt25.check.completa, true);
 }
 
 // --- Distinta: periodo di competenza ---
