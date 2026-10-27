@@ -28,7 +28,7 @@
   const CODE_RE = /^[A-Z0-9]{3,5}$/;
   const FLAG_RE = /^[ABC]$/;
   const NUMBER_RE = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?-?$/;
-  const PERIOD_RE = /^(0[1-9]|1[0-2])\.(\d{2})$/;
+  const PERIOD_RE = /^(0[1-9]|1[0-2])\.((?:20)?\d{2})$/;
 
   // "1.695,95" -> 1695.95 ; "1021,19-" -> -1021.19 ; testo non numerico -> null
   function parseAmount(text) {
@@ -39,6 +39,9 @@
     if (!Number.isFinite(value)) return null;
     return negative ? -value : value;
   }
+
+  // "26" o "2026" -> 2026
+  const toYear = text => (String(text).length === 4 ? Number(text) : 2000 + Number(text));
 
   const round2 = value => Math.round(value * 100) / 100;
 
@@ -203,7 +206,7 @@
       if (row.y <= LAYOUT.periodMinY) continue;
       for (const word of row.words) {
         const match = PERIOD_RE.exec(word.text);
-        if (match) return { month: Number(match[1]), year: 2000 + Number(match[2]), label: word.text };
+        if (match) return { month: Number(match[1]), year: toYear(match[2]), label: word.text };
       }
     }
     return null;
@@ -266,7 +269,7 @@
       const match = PERIOD_RE.exec(period.trim()) || /^(\d{4})-(\d{2})$/.exec(period.trim());
       if (!match) return '';
       if (match[0].includes('-')) { year = Number(match[1]); month = Number(match[2]); }
-      else { month = Number(match[1]); year = 2000 + Number(match[2]); }
+      else { month = Number(match[1]); year = toYear(match[2]); }
     } else if (period && period.month && period.year) {
       month = Number(period.month);
       year = Number(period.year);
