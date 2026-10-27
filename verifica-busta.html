@@ -55,8 +55,13 @@
     .mtitle{margin:2px 0 0;font-size:20px;font-weight:800}.msub{margin:0;color:var(--muted);font-size:12px}
     .tot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card)}
     .tot small{display:block;font:800 10px Manrope,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .tot-main{display:flex;align-items:center;gap:8px}
     .tot-n{font-size:22px;font-weight:600;color:var(--teal)}
+    .vb-blur-btn{display:inline-grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:9px;background:var(--card2);color:var(--ink);font-size:15px;line-height:1;cursor:pointer;transition:border-color .15s,background .15s}
+    .vb-blur-btn:hover{border-color:var(--teal)}
+    body.vb-blur .vb-blur-btn{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 18%,var(--card2))}
     .tot-side{text-align:right;font-size:12px;color:var(--muted);line-height:1.6}.tot-side b{color:var(--ink);font-weight:500}
+    .vb-busta-sub{display:block;color:var(--muted);font:500 11.5px Manrope,system-ui,sans-serif;margin-top:1px}
     .tile{display:inline-flex;align-items:baseline;gap:4px;border-radius:999px;padding:3px 8px;color:#06231f;font-size:11px;font-weight:700;white-space:nowrap}
     .tile small{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
     .t-l{background:var(--cyan)}.t-r{background:var(--rose)}.t-n{background:var(--teal)}
@@ -96,16 +101,84 @@
     .chip-stima{border-style:dashed;border-color:var(--amber);color:var(--amber)}.chip-stima.on{background:var(--amber);border-color:var(--amber);color:#2a1d00}
     .spark i.s{background:repeating-linear-gradient(135deg,var(--amber) 0 4px,color-mix(in srgb,var(--amber) 45%,transparent) 4px 8px)}.q-st{background:var(--amber);opacity:.6}
     body.vb-blur .eurv{filter:blur(7px);user-select:none}
-    .vb-profile-card{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
-    .vb-profile-card:empty{display:none}
-    .vb-profile-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
-    .vb-profile-title{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    .vb-profile-user{font-size:14px;font-weight:700;color:var(--ink)}
-    .vb-profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-    .vb-profile-item{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--card2)}
-    .vb-profile-item small{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    .vb-profile-item b{font-size:14px;font-weight:700;color:var(--teal)}
-    .vb-profile-item span{font-size:11px;color:var(--muted)}
+    /* Barra stile "Il mio turno" (terra-day) + striscia chip centrata sul mese attivo */
+    .vb-datebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .terra-day{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1}
+    .terra-day-nav{position:relative;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent;flex:0 0 auto;width:36px;height:36px;display:grid;place-items:center;border:1px solid #2f5661;border-radius:10px;background:#0d202b;color:#8fd7cb;font-size:20px;font-weight:900;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
+    .terra-day-nav:hover:not(:disabled){border-color:var(--teal);background:#12303a}
+    .terra-day-nav:disabled{opacity:.32;cursor:default}
+    .terra-day-current{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:160px;min-height:36px;padding:0 14px;border:1px solid #2f5661;border-radius:10px;background:#0d202b;transition:border-color .15s}
+    .terra-day-current:hover{border-color:var(--teal)}
+    .terra-day-label{color:#e8f7f7;font-size:13.5px;font-weight:800;letter-spacing:.02em;white-space:nowrap;pointer-events:none}
+    .terra-day-chev{color:var(--teal);font-size:11px;pointer-events:none;opacity:.85}
+    .terra-day-input{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:15px;-webkit-appearance:none;appearance:none;cursor:pointer;background:#0d202b;color:#e8f7f7}
+    .terra-day-input option,.terra-day-input optgroup{background:#0d202b;color:#e8f7f7}
+    .terra-day-today{flex:0 0 auto;min-height:36px;padding:0 12px;border:1px solid #47cbb9;border-radius:10px;background:#123c3c;color:#a4fff1;font:800 12px Manrope,system-ui,sans-serif;cursor:pointer}
+    .terra-day-today:hover{background:#174d4d}
+    html.navisuite-light .terra-day-nav,html.navisuite-light .terra-day-current{background:#fff;border-color:#c6dde0;color:#0f9f8c}
+    html.navisuite-light .terra-day-label{color:#102631}
+    .sel{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;-ms-overflow-style:none}.sel::-webkit-scrollbar{display:none}.sel .chip{flex:0 0 auto;min-height:32px;padding:0 11px;font-size:12px}
+
+    /* Intestazione snella in stile NaviSuite */
+    .vb-head-card{border:1px solid #244653;border-radius:16px;background:linear-gradient(160deg,#0d2530,#0a1d26);box-shadow:0 10px 26px rgba(0,0,0,.18);padding:11px 13px;display:grid;gap:10px}
+    html.navisuite-light .vb-head-card{background:#fff;border-color:#cfe0e3;box-shadow:0 6px 18px rgba(16,38,49,.06)}
+    .vb-prof-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
+    .vb-prof-main{display:flex;flex-wrap:wrap;align-items:center;gap:7px 9px;min-width:0}
+    .vb-matr{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid color-mix(in srgb,var(--teal) 50%,transparent);border-radius:8px;background:color-mix(in srgb,var(--teal) 14%,transparent);color:var(--teal);font:800 11.5px/1 var(--mono)}
+    .vb-nome{font:800 15.5px/1.15 Manrope,system-ui,sans-serif;color:var(--ink);letter-spacing:-.01em}
+    .vb-meta-pills{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px}
+    .vb-mpill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--muted);font:700 11px/1.2 Manrope,system-ui,sans-serif}
+    .vb-mpill b{color:var(--ink);font-weight:800}
+    .vb-prof-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+    .vb-comp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:8px;background:color-mix(in srgb,var(--cyan) 13%,transparent);border:1px solid color-mix(in srgb,var(--cyan) 40%,transparent);color:var(--cyan);font:800 11px/1.2 var(--mono)}
+    .vb-more{grid-column:1/-1}
+    .vb-more>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:var(--muted);font:700 11.5px Manrope,system-ui,sans-serif;user-select:none}
+    .vb-more>summary::-webkit-details-marker{display:none}
+    .vb-more>summary:hover{color:var(--teal)}
+    .vb-more-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:6px 10px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px}
+    .vb-more-grid div{display:flex;flex-direction:column;gap:1px}
+    .vb-more-grid small{color:var(--muted);font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+    .vb-more-grid b{color:var(--ink);font-weight:700}
+    .vb-fp-single{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;padding:9px 12px;border:1px solid color-mix(in srgb,var(--teal) 48%,var(--line));border-radius:12px;background:linear-gradient(145deg,color-mix(in srgb,var(--teal) 15%,transparent),color-mix(in srgb,var(--cyan) 7%,transparent))}
+    html.navisuite-light .vb-fp-single{background:#eef9f6}
+    .vb-fp-main{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    .vb-fp-main small{font:800 10.5px Manrope,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+    .vb-fp-main b{font:800 18px/1 var(--mono);color:var(--ink)}
+    .vb-fp-main em{font:700 11.5px Manrope,system-ui,sans-serif;color:var(--cyan);font-style:normal}
+    .vb-fp-mini{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11px;color:var(--muted)}
+    .vb-fp-mini span b{color:var(--ink);font-family:var(--mono);font-weight:700}
+    #vbMeseNav{display:grid;gap:6px}
+    #vbMeseNav[hidden]{display:none!important}
+    @media(max-width:640px){
+      .vb-prof-right{margin-left:0}
+    }
+    .vb-corr-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .vb-corr-bar-btns{display:flex;flex-wrap:wrap;gap:6px}
+    .vb-btn-allinea{border-color:color-mix(in srgb,var(--teal) 55%,transparent);background:color-mix(in srgb,var(--teal) 16%,var(--card));color:var(--teal);font-weight:800}
+    .vb-btn-annulla{border-color:color-mix(in srgb,var(--amber) 55%,transparent);background:color-mix(in srgb,var(--amber) 14%,var(--card));color:var(--amber);font-weight:800}
+    .vb-corr-row{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+    .vb-corr-btns{display:flex;flex-wrap:wrap;gap:6px}
+    .vb-corr-action{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--teal) 50%,transparent);background:color-mix(in srgb,var(--teal) 15%,transparent);color:var(--teal);font-size:11.5px;font-weight:800;cursor:pointer}
+    .vb-corr-action:hover{background:color-mix(in srgb,var(--teal) 26%,transparent)}
+    .vb-corr-action.is-move{border-color:color-mix(in srgb,var(--cyan) 55%,transparent);background:color-mix(in srgb,var(--cyan) 16%,transparent);color:var(--cyan)}
+    .vb-corr-action.is-move:hover{background:color-mix(in srgb,var(--cyan) 28%,transparent)}
+    .vb-corr-action.is-note{border-color:color-mix(in srgb,var(--muted) 45%,transparent);background:color-mix(in srgb,var(--muted) 12%,transparent);color:var(--ink)}
+    .vb-corr-action.is-undo{border-color:color-mix(in srgb,var(--amber) 50%,transparent);background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber)}
+    .vb-corr-tag{display:inline-block;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--teal) 18%,transparent);color:var(--teal);font-size:11px;font-weight:800}
+    .vb-corr-tag.is-move{background:color-mix(in srgb,var(--cyan) 18%,transparent);color:var(--cyan)}
+    .vb-nota-box{grid-column:1/-1;margin-top:3px;padding:5px 9px;border-radius:8px;background:color-mix(in srgb,var(--cyan) 10%,var(--card2));border-left:3px solid var(--cyan);color:var(--ink);font:600 11.5px/1.35 Manrope,system-ui,sans-serif}
+    .vb-modal-overlay{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:16px;background:rgba(2,14,19,.75);backdrop-filter:blur(8px)}
+    .vb-modal-card{width:min(420px,100%);padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);display:grid;gap:12px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+    .vb-modal-card small{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    .vb-modal-card h3{margin:-6px 0 0;font-size:16px;font-weight:800}
+    .vb-modal-info{padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-size:12.5px;line-height:1.45;color:var(--muted)}
+    .vb-modal-info b{color:var(--ink)}
+    .vb-modal-card label{display:grid;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+    .vb-modal-card textarea{width:100%;min-height:68px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:600 13px/1.4 Manrope,system-ui,sans-serif;resize:vertical}
+    .vb-modal-card textarea:focus{outline:0;border-color:var(--teal)}
+    .vb-modal-actions{display:flex;justify-content:flex-end;gap:8px}
+    .vb-modal-actions button{min-height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font:800 12.5px Manrope,system-ui,sans-serif;cursor:pointer}
+    .vb-modal-actions .primary{border-color:var(--teal);background:var(--teal);color:#04241e}
     @media(prefers-reduced-motion:no-preference){.voce,.chip{transition:background .15s,border-color .15s}}
   </style>
 </head>
@@ -116,68 +189,35 @@
     <p class="vb-login" id="vbLogin" hidden>Accedi prima a NaviSuite: <a href="index.html">vai all’accesso</a>.</p>
     <input class="sr-only" type="file" id="vbFileInput" accept="application/pdf,.pdf" multiple>
 
-    <div class="vb-bar" id="vbBar" hidden>
-      <label class="chip up" id="vbFileLabel" for="vbFileInput">＋ Carica</label>
-      <label class="chip">Parametro <select id="vbParametro" aria-label="Parametro CCNL"><option value="121">121</option><option value="129">129</option><option value="139" selected>139</option><option value="140">140</option><option value="158">158</option></select></label>
-      <label class="chip">Scatti <select id="vbScatti" aria-label="Scatti di anzianità"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
-      <label class="chip">Tolleranza <select id="vbToll" aria-label="Tolleranza"><option value="0">0%</option><option value="5">5%</option><option value="10" selected>10%</option></select></label>
-      <button type="button" class="chip" id="vbBlur" aria-pressed="false" title="Nascondi cifre">🙈</button>
-      <button type="button" class="chip" id="vbReload" title="Ricarica la Distinta">↻</button>
-    </div>
-
-    <section class="vb-profile-card" id="vbUserData" aria-label="I miei dati" hidden>
-      <div class="vb-profile-header">
-        <span class="vb-profile-title">I miei dati</span>
-        <span class="vb-profile-user" id="vbProfileUser">—</span>
-      </div>
-      <div class="vb-profile-grid">
-        <div class="vb-profile-item">
-          <small>Grado</small>
-          <b id="vbProfileGrado">—</b>
-          <span id="vbProfileGradoSub">Ruolo di bordo</span>
-        </div>
-        <div class="vb-profile-item">
-          <small>Parametro</small>
-          <b id="vbProfileParametro">—</b>
-          <span id="vbProfileParametroSub">CCNL Autoferrotranvieri</span>
-        </div>
-        <div class="vb-profile-item">
-          <small>Ferie accumulate</small>
-          <b id="vbProfileFerie">—</b>
-          <span id="vbProfileFerieSub">Maturazione annua</span>
-        </div>
-      </div>
-    </section>
-    <p class="vb-info" id="vbFileInfo" aria-live="polite"></p>
-    <p class="vb-meta" id="vbSource"></p>
-    <div id="vbAlerts" role="status" aria-live="polite"></div>
-
-    <section id="vbVuoto" hidden>
-      <label class="drop" for="vbFileInput"><b>＋ Carica le buste paga</b>PDF INAZ, anche più di uno.<br>Ogni busta si confronta con la Distinta del mese prima.</label>
-    </section>
-
-    <div class="vb-tabs" role="tablist" id="vbTabs" hidden>
+    <div class="vb-tabs" role="tablist" id="vbTabs">
       <button type="button" role="tab" id="vbTabConfronto" aria-selected="true">Confronto</button>
       <button type="button" role="tab" id="vbTabAnno" aria-selected="false">Anno</button>
+      <button type="button" role="tab" id="vbTabBuste" aria-selected="false">Buste paga</button>
     </div>
+
+    <div id="vbMeseNav" hidden></div>
+
+    <div id="vbAlerts" role="status" aria-live="polite"></div>
+
+    <section id="vbIntestazione" hidden></section>
 
     <section id="vbConfronto" hidden></section>
     <section id="vbAnno" hidden></section>
+    <section id="vbBuste" hidden></section>
 
     <p class="vb-private">🔒 Il PDF resta sul telefono: si salvano solo i numeri letti, visibili a te e agli amministratori.</p>
-    <p class="vb-meta" id="vbAnnoStato"></p>
   </main>
-  <script src="assets/js/shared-roles.js?v=16"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=96"></script>
-  <script src="assets/js/shared-menu.js?v=1.99"></script>
+  <script src="assets/js/shared-roles.js?v=15"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=94"></script>
+  <script src="assets/js/shared-menu.js?v=1.92"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/overtime-components.js?v=11"></script>
   <script src="assets/js/shift-competence.js?v=4"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
-  <script src="assets/js/busta-parser.js?v=2"></script>
-  <script src="assets/js/distinta-totals.js?v=10"></script>
-  <script src="assets/js/ccnl-config.js"></script>
-  <script src="assets/js/busta-compare.js?v=19"></script>
-  <script src="assets/js/verifica-busta.js?v=24"></script>
+  <script src="assets/js/busta-parser.js?v=6"></script>
+  <script src="assets/js/distinta-totals.js?v=12"></script>
+  <script src="assets/js/ccnl-config.js?v=1"></script>
+  <script src="assets/js/busta-compare.js?v=25"></script>
+  <script src="assets/js/verifica-busta.js?v=40"></script>
 </body>
 </html>

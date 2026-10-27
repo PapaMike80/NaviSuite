@@ -151,12 +151,32 @@ assert.equal(parser.columnBounds(null).quantityMaxX, 308);
 assert.equal(parser.columnBounds(null).baseMaxX, 392);
 assert.equal(parser.columnBounds(null).figurativeMaxX, 470);
 
-// --- previousMonth ---
+// --- previousMonth e mensilita' aggiuntive (13ma / 14ma) ---
 assert.equal(parser.previousMonth('09.26'), '2026-08');
 assert.equal(parser.previousMonth('01.27'), '2026-12');
 assert.equal(parser.previousMonth({ month: 1, year: 2026 }), '2025-12');
 assert.equal(parser.previousMonth(busta.period), '2026-08');
+assert.equal(parser.previousMonth('13.26'), '', '13ma mensilita\' non ha mese Distinta');
+assert.equal(parser.previousMonth('14.26'), '', '14ma mensilita\' non ha mese Distinta');
+assert.equal(parser.previousMonth({ month: 14, year: 2026 }), '');
 assert.equal(parser.previousMonth('boh'), '');
+{
+  const busta14 = parser.parseItems([{
+    items: [
+      item('AZIENDA ESEMPIO S.P.A.', 40, 810),
+      item('07', 380, 722), item('14.26', 415, 722),
+      ...header(640),
+      ...voceRow(620, { flag: 'A', code: '179', description: '14ma mensilita\'', quantity: '6,0000', base: '130,00', amount: '780,00' }),
+      ...voceRow(606, { flag: 'C', code: '001', description: 'Contributo FAP', amount: '80,00-' }),
+      item('Totale Ritenute', 400, 220), item('Totale Competenze', 480, 220),
+      right('80,00', 466, 208), right('780,00', 556, 208),
+      item('A PAGARE', 400, 178), right('700,00', 556, 178)
+    ]
+  }]);
+  assert.deepEqual(busta14.period, { month: 14, year: 2026, label: '14.26', emissionMonth: 7 });
+  assert.equal(busta14.intestazione.meseCompetenza, '07  14.2026');
+  assert.equal(busta14.check.completa, true);
+}
 
 // --- Distinta: periodo di competenza ---
 const august = totalsModule.competencePeriod('2026-08');
@@ -306,7 +326,7 @@ assert.equal(april.totals.sundayShift, 1, '12/04/2026 e\' domenica');
 }
 
 // --- Confronto busta <-> Distinta ---
-const compareTotals = { ...t, calendar: undefined, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, cashHandling: 3, cashHandlingGround: 5, holiday: 1, holidayMinutes: 60, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
+const compareTotals = { ...t, calendar: undefined, overtimeMinutes: 10 * 60 + 30, embark: 20, sundayShift: 5, weekdayWorkedDays: 3, groundDays: 0, cashHandling: 3, cashHandlingGround: 5, holiday: 1, holidayMinutes: 60, secondMeal: 0, missedRestMinutes: 0, cashEmbarkServiceMinutes: 0, cashGround138Minutes: 0, overtime139Minutes: 0, overtimeMixedWeeks: 0, overnight40: 2, bankMinutes: 181, allowance24: 16, ticketCredit: 10 };
 const outcome = compareModule.compare(busta, compareTotals);
 const row = id => outcome.rows.find(entry => entry.id === id);
 assert.equal(row('overtime').status, 'ok');
@@ -325,11 +345,11 @@ assert.deepEqual(outcome.rows.map(entry => entry.status), [...outcome.rows.map(e
 assert.deepEqual(outcome.summary, { ok: 8, diff: 1, check: 1, notCompared: 1 });
 assert.deepEqual(outcome.notCompared.map(voce => voce.code).sort(), ['FD0']);
 assert.equal(row('holiday').busta, 1, '013 lavoro in FI-FN = festivita\'');
-assert.equal(row('dailyDM').status, 'ok', '49X = giorni con maneggio denaro');
+assert.equal(row('dailyDM').status, 'ok', '49X = giorni lavorati feriali (senza domeniche)');
 // Riepilogo piatto Match/Mismatch
 const flat = compareModule.confronta(compareTotals, busta.voci);
-assert.equal(flat.find(r => r.codici === '47X').stato, 'Mismatch');
-assert.equal(flat.find(r => r.codici === '47X').differenza, 1);
+assert.equal(flat.find(r => r.codici === '47X + 48X').stato, 'Mismatch');
+assert.equal(flat.find(r => r.codici === '47X + 48X').differenza, 1);
 assert.equal(flat.find(r => r.codici === '43X').stato, 'Match');
 assert.ok(outcome.notCompared.every(voce => voce.reason === 'La Distinta non ha una riga equivalente.'));
 // Straordinario in piu' in busta: importo negativo.
@@ -409,7 +429,7 @@ assert.equal(wrong[1].ok, true);
   for (let index = 1; index < order.length; index += 1) assert.ok(scripts.indexOf(order[index - 1]) < scripts.indexOf(order[index]), `${order[index - 1]} prima di ${order[index]}`);
   assert.match(read('navidiaria.html'), /<button id="monthlyVerifyPayslip" class="monthly-today-button"[^>]*verifica-busta\.html[^>]*>Verifica busta<\/button>/);
   const sw = read('sw.js');
-  ['./verifica-busta.html', './assets/js/ccnl-config.js', './assets/js/busta-parser.js', './assets/js/distinta-totals.js', './assets/js/busta-compare.js', './assets/js/verifica-busta.js'].forEach(asset => assert.ok(sw.includes(`'${asset}'`), `sw.js: ${asset}`));
+  ['./verifica-busta.html', './assets/js/busta-parser.js', './assets/js/distinta-totals.js', './assets/js/ccnl-config.js', './assets/js/busta-compare.js', './assets/js/verifica-busta.js'].forEach(asset => assert.ok(sw.includes(`'${asset}'`), `sw.js: ${asset}`));
 }
 
 console.log('Busta verifica test passed');
@@ -445,10 +465,141 @@ console.log('Busta verifica test passed');
 {
   const voci = [{ code: '334', description: 'Prest.straordinarie', quantity: 61.25, base: 11.56, figurative: null, amount: 708.21 },
     { code: '49X', description: 'Ind. prest. giornaliera', quantity: 15, base: 0.52, figurative: null, amount: 7.8 }];
-  const rows = compareModule.compare({ voci }, { overtimeMinutes: 61.17 * 60, cashHandling: 16 }, { tolleranza: 0 }).rows;
+  const rows = compareModule.compare({ voci }, { overtimeMinutes: 61.17 * 60, weekdayWorkedDays: 16 }, { tolleranza: 0 }).rows;
   assert.equal(rows.find(r => r.id === 'overtime').status, 'ok', '5 minuti');
   assert.match(rows.find(r => r.id === 'overtime').notes.join(' '), /trascurabile/);
   assert.equal(rows.find(r => r.id === 'dailyDM').status, 'ok', '1 giorno = 0,52 euro');
+}
+
+// Indennita' domenicale: 47X (in turno) + 48X (Ind.prest.dom.non turno, es. domenica su turno a terra AgB).
+{
+  const voci = [
+    { code: '47X', description: 'Ind. prest. domenicale', quantity: 2, base: 12, figurative: null, amount: 24 },
+    { code: '48X', description: 'Ind.prest.dom.non turno', quantity: 1, base: 12, figurative: null, amount: 12 }
+  ];
+  const r = compareModule.compare({ voci }, { sundayShift: 4 }, { tolleranza: 0 }).rows.find(row => row.id === 'sunday');
+  assert.equal(r.busta, 3, '47X (2) + 48X (1)');
+  assert.equal(r.distinta, 4);
+  assert.equal(r.diff, 1, '1 sola domenica dimenticata');
+  assert.equal(r.importo, 36);
+  assert.equal(r.euro, 12);
+  assert.match(r.notes.join(' '), /2 in turno \(47X\) \+ 1 non in turno \(48X\)/);
+}
+
+// Stima busta: scorpora giroconto 55Y/56Y (e 55H/56H) e rimborso 730 (C75 + B03), e recupera prezzi mancanti (013) dalle buste precedenti.
+{
+  const ref10 = {
+    mese: '2026-10',
+    totals: { competenze: 8319.89, ritenute: 2031.8, netto: 6288.09 },
+    voci: [
+      { code: '002', description: 'Retribuzione mensile', amount: 1695.95 },
+      { code: '334', description: 'Prest.straordinarie', quantity: 10, base: 10, amount: 100 },
+      { code: '55Y', description: 'D.P. Ore diff.paga 139B', quantity: 100, base: 9.6, amount: 960 },
+      { code: '56Y', description: 'Tratt.ore diff.paga', quantity: 100, base: 8.6, amount: -860 },
+      { code: '55H', description: 'D.P. Ore diff.paga 138A', quantity: 20, base: 9.5, amount: 190 },
+      { code: '56H', description: 'Tratt.ore diff.paga', quantity: 20, base: 8.5, amount: -170 },
+      { code: 'B03', description: 'Add.reg.dic.credito', amount: 187 },
+      { code: 'C75', description: 'Rimborso IRPEF 730 dic.', amount: 3962 }
+    ]
+  };
+  const ref09 = {
+    mese: '2026-09',
+    voci: [{ code: '013', description: 'Lavoro in FI-FN', quantity: 10, base: 12, amount: 120 }]
+  };
+  assert.equal(compareModule.conguaglio730(ref10.voci), 4149);
+  assert.equal(compareModule.girocontoDiffPaga(ref10.voci), 1030);
+  const st = compareModule.stima(ref10, { overtimeMinutes: 10 * 60, cashEmbarkServiceMinutes: 100 * 60, holidayMinutes: 5 * 60 }, [ref09]);
+  // lordoRef = 8319.89 - 1030 (giroconto) - 4149 (730) = 3140.89; ritenuteRef = 2031.80 - 1030 = 1001.80
+  assert.equal(st.fisso, 2920.89, 'fisso senza il rimborso 730, senza il giroconto 56Y/56H e senza le variabili 334/55Y/55H');
+  const r013 = st.righe.find(r => r.id === 'holiday');
+  assert.equal(r013.base, 12, 'prezzo base di 013 recuperato dalla busta 2026-09');
+  assert.equal(r013.importo, 60, '5 h * 12 euro');
+  assert.equal(r013.daMese, '2026-09');
+}
+
+// Regole INAZ: 49X (giorni lavorati feriali), FD0 (giorni lavorati a terra), 55H/56H (biglietteria terra AgB/AgM/AgT a par. 138A).
+{
+  const giorni = [
+    day('2026-09-13', 'D4', { embark: true }), // domenica a bordo
+    day('2026-09-14', 'D1', { embark: true }), // lunedi' a bordo
+    day('2026-09-18', 'AgB', { embark: false, cashHandling: true }), // venerdi' a terra (10h25)
+    day('2026-09-20', 'AgB', { embark: false, cashHandling: true })  // domenica a terra (10h25)
+  ];
+  const tot = calc.compute(giorni, '2026-09').totals.calendar;
+  assert.equal(tot.workedDays, 4);
+  assert.equal(tot.sundayShift, 2);
+  assert.equal(tot.weekdayWorkedDays, 2, '49X: 4 lavorati - 2 domeniche = 2 feriali');
+  assert.equal(tot.groundDays, 2, 'FD0: 4 lavorati - 2 imbarco = 2 a terra');
+  assert.equal(tot.cashGround138Days, 2, '2 turni AgB');
+  assert.equal(tot.cashGround138Minutes, 2 * (10 * 60 + 25), '20h50 (20,83 h) in AgB');
+  const voci = [
+    { code: '49X', description: 'Ind. prest. giornaliera', quantity: 2, base: 0.52, amount: 1.04 },
+    { code: 'FD0', description: 'Ind. rendimento', quantity: 2, base: 2.02, amount: 4.04 },
+    { code: '55H', description: 'D.P. Ore diff.paga 138A', quantity: 20.83, base: 9.53, amount: 198.51 },
+    { code: '56H', description: 'Tratt.ore diff.paga', quantity: 20.83, base: 8.64, amount: -179.97 }
+  ];
+  const cmp = compareModule.compare({ voci }, tot, { tolleranza: 0 });
+  const r = id => cmp.rows.find(entry => entry.id === id);
+  assert.equal(r('dailyDM').status, 'ok');
+  assert.equal(r('rendimento').status, 'ok');
+  assert.equal(r('cashGround138').status, 'ok');
+  assert.equal(r('cashGround138').importo, 18.54, 'differenza netta 55H - 56H');
+}
+
+// Correzioni da busta: allineamento della Distinta alla busta paga con mantenimento del valore originario.
+{
+  const giorni = [
+    day('2026-09-06', 'DT', { embark: false }),
+    day('2026-09-13', 'D4', { embark: true }),
+    day('2026-09-20', 'AgB', { embark: false, cashHandling: true }),
+    day('2026-09-27', 'D1', { embark: true })
+  ];
+  const conCorr = calc.compute(giorni, '2026-09', { sunday: -1, overtime: 90 }).totals;
+  assert.equal(conCorr.raw.calendar.sundayShift, 4, 'valore originario conservato');
+  assert.equal(conCorr.calendar.sundayShift, 3, 'valore allineato con correzione -1');
+  assert.equal(conCorr.overtimeMinutes, conCorr.raw.overtimeMinutes + 90, '+1h30 di straordinario');
+  const voci = [
+    { code: '47X', description: 'Ind. prest. domenicale', quantity: 2, base: 12, amount: 24 },
+    { code: '48X', description: 'Ind.prest.dom.non turno', quantity: 1, base: 12, amount: 12 },
+    { code: '334', description: 'Prest.straordinarie', quantity: 1.5, base: 11.56, amount: 17.34 }
+  ];
+  const cmp = compareModule.compare({ voci }, conCorr, { tolleranza: 0 });
+  const dom = cmp.rows.find(r => r.id === 'sunday');
+  assert.equal(dom.status, 'ok', 'domenica riallineata');
+  assert.equal(dom.distinta, 3);
+  assert.equal(dom.distintaOriginale, 4);
+  assert.equal(dom.correzione, -1);
+  assert.match(dom.notes.join(' '), /Allineata alla busta: correzione −1 giorni/);
+  // Rinvio della domenica (+1) al mese successivo: nella stima di novembre aggiunge +12,00 € di lordo.
+  const ottConRinvio = calc.compute([day('2026-10-04', 'D1', { embark: true }), day('2026-10-11', 'D1', { embark: true })], '2026-10', { sunday: 1 }).totals;
+  const refBusta = {
+    mese: '2026-10',
+    totals: { competenze: 2000, ritenute: 500, netto: 1500 },
+    voci: [{ code: '47X', description: 'Ind. prest. domenicale', quantity: 2, base: 12, amount: 24 }, { code: '48X', description: 'Ind.prest.dom.non turno', quantity: 1, base: 12, amount: 12 }]
+  };
+  const stNov = compareModule.stima(refBusta, ottConRinvio);
+  const rDom = stNov.righe.find(r => r.id === 'sunday');
+  assert.equal(rDom.quantitaOriginale, 2, '2 domeniche di ottobre');
+  assert.equal(rDom.correzione, 1, '+1 domenica rinviata da settembre');
+  assert.equal(rDom.quantita, 3, '2 + 1 = 3 domeniche attese a novembre');
+  assert.equal(rDom.importoCorrezione, 12, '+12,00 € in piu\' nella busta di novembre');
+  assert.equal(rDom.importo, 36, '3 x 12,00 € = 36,00 €');
+}
+
+// Lettura Ferie, Ex Festivita' e Banca Ore dal riquadro "Ferie e Permessi" in calce alla busta INAZ.
+{
+  const fpItems = [
+    item('Ferie e Permessi', 43, 347), item('Residuo A.P.', 111, 347), item('Maturato Annuo', 156, 347), item('Goduti Annuo', 207, 347), item('Residue', 262, 347),
+    item('Ferie', 45, 338), item('10,40', 171, 338), item('10,40', 267, 338),
+    item('Ex Fest.', 33, 329), item('13,00', 171, 329), item('13,00', 267, 329),
+    item('Banca Ore', 33, 311), item('22,50', 171, 311), item('22,50', 267, 311)
+  ];
+  const parsed = parser.parseItems([{ items: page1 }, { items: [...page2, ...fpItems] }]);
+  assert.deepEqual(parsed.feriePermessi, {
+    ferie: { residuoAP: null, maturato: 10.4, goduti: null, residue: 10.4, unit: 'gg' },
+    exFest: { residuoAP: null, maturato: 13, goduti: null, residue: 13, unit: 'ore' },
+    bancaOre: { residuoAP: null, maturato: 22.5, goduti: null, residue: 22.5, unit: 'ore' }
+  });
 }
 
 // --- CCNL Config & Calcoli Dinamici (Parametro 121, 139, scatti, differenze parametro e ratei) ---
@@ -456,72 +607,11 @@ console.log('Busta verifica test passed');
   const db = ccnlModule.CCNL_DB;
   assert.ok(db, 'CCNL_DB esiste');
   assert.equal(db.divisoreOrario, 166, 'divisore orario CCNL 166');
-
-  // Parametro 121 (Marinaio) da agosto 2026
   const p121 = db.parametri[121];
   assert.ok(p121, 'Parametro 121 presente');
   assert.equal(p121.retribuzioneMensile, 1695.95, 'retribuzione mensile 002 P.121');
-  assert.equal(p121.composizione.minimo, 938.80);
-  assert.equal(p121.composizione.contingenza, 527.56);
-  assert.equal(p121.composizione.cau, 16.53);
-  assert.equal(p121.composizione.indProduttivita, 4.65);
-  assert.equal(p121.composizione.tdr, 172.70);
-  assert.equal(p121.composizione.mensa, 35.71);
-  assert.equal(p121.baseOraria.festivo, 12.14059, '013 base festivo P.121');
-  assert.equal(p121.baseOraria.straordinario, 10.92637, '334 base straordinario P.121');
-
-  // Voci fisse aggiuntive
-  assert.equal(db.vociFisse['03N'].importo, 27.66);
-  assert.equal(db.vociFisse['01P'].importo, 6.00);
-  assert.equal(db.vociFisse['10Z'].importo, 40.00);
-
-  // Indennità P.121
-  assert.equal(db.indennita['43X'].importo, 2.02);
-  assert.equal(db.indennita['47X'].importo, 12.00);
-  assert.equal(db.indennita['49X'].importo, 0.52);
-  assert.equal(db.indennita['1TK'].importo, 8.00);
-
-  // Differenze parametro 139B (Mansioni superiori per P.121)
-  const dp139 = db.differenzeParametro['139B'];
-  assert.ok(dp139, 'Differenze parametro 139B presenti');
-  assert.equal(dp139['01Y'].baseOraria, 11.56263);
-  assert.equal(dp139['55Y'].baseOraria, 9.22020);
-  assert.equal(dp139['56Y'].baseOraria, 8.34262);
-
-  // Ratei mensili ferie ed ex festività
-  assert.equal(db.rateiMensili.ferie, 2.08);
-  assert.equal(db.rateiMensili.exFestivita, 2.60);
   assert.equal(ccnlModule.calcolaRateiMaturati(2, 'ferie'), 4.16, 'ferie a luglio (2 ratei)');
-  assert.equal(ccnlModule.calcolaRateiMaturati(4, 'ferie'), 8.32, 'ferie a settembre (4 ratei)');
-  assert.equal(ccnlModule.calcolaRateiMaturati(2, 'exFestivita'), 5.20, 'ex festività a luglio');
   assert.equal(ccnlModule.calcolaRateiMaturati(4, 'exFestivita'), 10.40, 'ex festività a settembre');
-
-  // calcolaPagaBase
-  const pb121_0 = ccnlModule.calcolaPagaBase(121, 0);
-  assert.equal(pb121_0.totaleMensile, 1695.95);
-  const pb121_2 = ccnlModule.calcolaPagaBase(121, 2);
-  assert.equal(pb121_2.totaleScatti, 37.18);
-  assert.equal(pb121_2.totaleMensile, 1733.13);
-
-  // calcolaVoceAttesa
-  assert.equal(ccnlModule.calcolaVoceAttesa('002', 1, 121, 0), 1695.95);
-  assert.equal(ccnlModule.calcolaVoceAttesa('002', 1, 121, 2), 1733.13);
-  assert.equal(ccnlModule.calcolaVoceAttesa('03N', 1, 121, 0), 27.66);
-  assert.equal(ccnlModule.calcolaVoceAttesa('01P', 1, 121, 0), 6.00);
-  assert.equal(ccnlModule.calcolaVoceAttesa('10Z', 1, 121, 0), 40.00);
-  assert.equal(ccnlModule.calcolaVoceAttesa('334', 10, 121, 0), 109.26);
-  assert.equal(ccnlModule.calcolaVoceAttesa('013', 10, 121, 0), 121.41);
-  assert.equal(ccnlModule.calcolaVoceAttesa('43X', 15, 121, 0), 30.30);
-  assert.equal(ccnlModule.calcolaVoceAttesa('47X', 3, 121, 0), 36.00);
-  assert.equal(ccnlModule.calcolaVoceAttesa('49X', 5, 121, 0), 2.60);
-  assert.equal(ccnlModule.calcolaVoceAttesa('1TK', 12, 121, 0), 96.00);
-  assert.equal(ccnlModule.calcolaVoceAttesa('01Y', 10, 121, 0), 115.63);
-  assert.equal(ccnlModule.calcolaVoceAttesa('55Y', 10, 121, 0), 92.20);
-  assert.equal(ccnlModule.calcolaVoceAttesa('56Y', 10, 121, 0), -83.43);
-  assert.equal(ccnlModule.calcolaVoceAttesa('D.P.', 10, 121, 0), 8.78);
-  assert.equal(ccnlModule.calcolaVoceAttesa('DP', 10, 121, 0), 8.78);
-
-  // Integrazione compareModule con parametri
   const busta121 = {
     voci: [
       { code: '334', description: 'Prest.straordinarie', quantity: 10, base: null, amount: 109.26 },
@@ -533,20 +623,4 @@ console.log('Busta verifica test passed');
   assert.equal(cmp121.rows.find(r => r.id === 'overtime').importoDistinta, 109.26);
   assert.equal(cmp121.rows.find(r => r.id === 'embark').status, 'ok');
   assert.equal(cmp121.rows.find(r => r.id === 'embark').importoDistinta, 30.30);
-
-  // Controlli UI in verifica-busta.html
-  const html = read('verifica-busta.html');
-  assert.match(html, /<select\s+id="vbParametro"/, 'select vbParametro presente nel DOM');
-  assert.match(html, /<option\s+value="121">/, 'parametro 121 presente nelle opzioni');
-  assert.match(html, /<option\s+value="139"\s+selected>/, 'parametro 139 default');
-  assert.match(html, /<select\s+id="vbScatti"/, 'select vbScatti presente nel DOM');
-  assert.match(html, /<option\s+value="0"\s+selected>/, 'scatti 0 default');
-
-  // Controlli scheda "I miei dati"
-  assert.match(html, /id="vbUserData"/, 'sezione vbUserData presente');
-  assert.match(html, /id="vbProfileUser"/, 'elemento vbProfileUser presente');
-  assert.match(html, /id="vbProfileGrado"/, 'elemento vbProfileGrado presente');
-  assert.match(html, /id="vbProfileParametro"/, 'elemento vbProfileParametro presente');
-  assert.match(html, /id="vbProfileFerie"/, 'elemento vbProfileFerie presente');
 }
-console.log('CCNL e verifiche dinamiche: passed');

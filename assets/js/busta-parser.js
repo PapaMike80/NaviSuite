@@ -27,21 +27,18 @@
   const COLUMNS = ['quantity', 'base', 'figurative', 'amount'];
   const CODE_RE = /^[A-Z0-9]{3,5}$/;
   const FLAG_RE = /^[ABC]$/;
-  const NUMBER_RE = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?-?$/;
-  const PERIOD_RE = /^(0[1-9]|1[0-2])\.((?:20)?\d{2})$/;
+  const NUMBER_RE = /^-?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d+)?-?$/;
+  const PERIOD_RE = /^(0[1-9]|1[0-4])\.(?:20)?(\d{2})$/;
 
-  // "1.695,95" -> 1695.95 ; "1021,19-" -> -1021.19 ; testo non numerico -> null
+  // "1.695,95" -> 1695.95 ; "1021,19-" o "-16,50" -> negativo ; testo non numerico -> null
   function parseAmount(text) {
     const raw = String(text ?? '').trim();
     if (!NUMBER_RE.test(raw)) return null;
-    const negative = raw.endsWith('-');
-    const value = Number(raw.replace(/-$/, '').replace(/\./g, '').replace(',', '.'));
+    const negative = raw.endsWith('-') || raw.startsWith('-');
+    const value = Number(raw.replace(/^-|-$/g, '').replace(/\./g, '').replace(',', '.'));
     if (!Number.isFinite(value)) return null;
     return negative ? -value : value;
   }
-
-  // "26" o "2026" -> 2026
-  const toYear = text => (String(text).length === 4 ? Number(text) : 2000 + Number(text));
 
   const round2 = value => Math.round(value * 100) / 100;
 
@@ -204,12 +201,150 @@
   function findPeriod(rows) {
     for (const row of rows) {
       if (row.y <= LAYOUT.periodMinY) continue;
-      for (const word of row.words) {
+      for (let i = 0; i < row.words.length; i += 1) {
+        const word = row.words[i];
         const match = PERIOD_RE.exec(word.text);
-        if (match) return { month: Number(match[1]), year: toYear(match[2]), label: word.text };
+        if (match) {
+          const month = Number(match[1]);
+          const year = 2000 + Number(match[2]);
+          const prev = i > 0 ? row.words[i - 1] : null;
+          const emissionMonth = prev && /^(0[1-9]|1[0-2])$/.test(prev.text) ? Number(prev.text) : (month === 14 ? 7 : month === 13 ? 12 : month);
+          return { month, year, label: word.text, ...(emissionMonth !== month ? { emissionMonth } : {}) };
+        }
       }
     }
     return null;
+  }
+
+  // Legge i dati dell'intestazione anagrafica/contrattuale (sopra la riga "Voce").
+  function findIntestazione(rows, period) {
+    const headerIndex = rows.findIndex(isHeaderRow);
+    const topRows = headerIndex >= 0 ? rows.slice(0, headerIndex) : rows.filter(r => r.y > 550);
+    const out = {};
+    const allWords = topRows.flatMap(r => r.words);
+
+    for (const row of topRows) {
+      const text = rowText(row).trim();
+      if (!out.azienda && /\bGEST\.?\s*GOV\.?\s*NAVIG|\bNAVIGAZIONE\s+LAGHI\b/i.test(text)) {
+        const m = /^(\d+\s+.+?)(?:\s+(?:Cod\.?\s*Fiscale|\d{10,11}|\d{7,9}-\d{2})\b|$)/i.exec(text);
+        out.azienda = (m ? m[1] : text).trim();
+      }
+      const mDip = /^(\d{3,6})\s+(?:\1\s+)?([A-ZÀ-Ú][A-ZÀ-Ú'\s]+)$/.exec(text);
+      if (!out.cognomeNome && mDip && !/GEST|INAIL|INPS|ELEMENTI|MINIMO/i.test(mDip[2])) {
+        out.codice = mDip[1];
+        out.cognomeNome = mDip[2].replace(/\s+/g, ' ').trim();
+      }
+      if (!out.qualifica && /\b(?:Autoferrotranvieri|tempo\s+(?:determinato|indeterminato)|MARINAIO|TIMONIERE|MOTORISTA|CAPITANO|BIGLIETTAIO)\b/i.test(text)) {
+        const scad = /(\d{2}-\d{2}-\d{4})\s*$/.exec(text);
+        if (scad) out.dataScadenzaContratto = scad[1];
+        const rapp = /(tempo\s+(?:determinato|indeterminato)|apprendistato)/i.exec(text);
+        if (rapp) out.tipoRapporto = rapp[1].toLowerCase();
+        const livContr = /\b(\d{3}[A-Z]?)\s*(\d{3}\s+Autoferrotranvieri(?:\s*AF)?)/i.exec(text);
+        if (livContr) {
+          out.livello = livContr[1];
+          out.contratto = livContr[2].replace(/\s+/g, ' ').trim();
+          const before = text.slice(0, livContr.index).trim();
+          if (before) out.qualifica = before;
+        }
+      }
+      if (!out.filiale && /Filiale\s*:/i.test(text)) {
+        const mFil = /^(.*?)\s*Filiale\s*:\s*(.+)$/i.exec(text);
+        if (mFil) {
+          const rep = mFil[1].replace(/^Sede\s+Lavoro\s*/i, '').trim();
+          if (rep) out.reparto = rep;
+          out.filiale = mFil[2].trim();
+        }
+      }
+      const dates = row.words.filter(w => /^\d{2}-\d{2}-\d{4}$/.test(w.text));
+      if (dates.length >= 2 && !out.dataNascita) {
+        dates.forEach(w => {
+          if (w.x < 95 && !out.dataNascita) out.dataNascita = w.text;
+          else if (w.x >= 95 && w.x < 175 && !out.dataAssunzione) out.dataAssunzione = w.text;
+          else if (w.x >= 175 && w.x < 255 && !out.dataAnzianita) out.dataAnzianita = w.text;
+          else if (w.x >= 255 && w.x < 330 && !out.dataCessazione) out.dataCessazione = w.text;
+          else if (w.x >= 350 && w.x < 450 && !out.dataProssimoScatto) out.dataProssimoScatto = w.text;
+        });
+        const anz = row.words.find(w => /^\d{2}\/\d{2}$/.test(w.text));
+        if (anz) out.anzianitaServizio = anz.text;
+        const par = row.words.find(w => w.x >= 470 && /^\d{3}[A-Z]?$/.test(w.text));
+        if (par) out.parametro = par.text;
+      }
+    }
+
+    for (const w of allWords) {
+      if (!out.codiceFiscale && /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/.test(w.text)) out.codiceFiscale = w.text;
+      if (!out.cfAzienda && w.x > 340 && /^\d{11}$/.test(w.text)) out.cfAzienda = w.text;
+      if (!out.posInps && w.x > 340 && /^\d{10}$/.test(w.text)) out.posInps = w.text;
+      if (!out.posInail && w.x > 340 && /^\d{7,9}-\d{2}$/.test(w.text)) out.posInail = w.text;
+      if (!out.sedeInail && w.x > 460 && /^\d{5}$/.test(w.text)) out.sedeInail = w.text;
+    }
+
+    if (period?.month && period?.year) {
+      const mm = String(period.month).padStart(2, '0');
+      const em = String(period.emissionMonth || (period.month === 14 ? 7 : period.month === 13 ? 12 : period.month)).padStart(2, '0');
+      out.meseCompetenza = `${em}  ${mm}.${period.year}`;
+    }
+    return Object.keys(out).length ? out : null;
+  }
+
+  // Legge il riquadro "Ferie e Permessi" in calce alla busta INAZ:
+  // Ferie (giorni), Ex Fest. (ore) e Banca Ore (ore), ciascuno con Residuo A.P., Maturato Annuo, Goduti Annuo, Residue.
+  function findFeriePermessi(rows) {
+    const out = {};
+    const parseRow = row => {
+      const entry = { residuoAP: null, maturato: null, goduti: null, residue: null };
+      row.words.forEach(w => {
+        if (w.x < 95 || w.x > 340) return;
+        const val = parseAmount(w.text);
+        if (val === null) return;
+        if (w.x < 150) entry.residuoAP = val;
+        else if (w.x < 203) entry.maturato = val;
+        else if (w.x < 252) entry.goduti = val;
+        else entry.residue = val;
+      });
+      return Object.values(entry).some(v => v !== null) ? entry : null;
+    };
+    for (const row of rows || []) {
+      if (row.y > 370 || row.y < 290) continue;
+      const leftText = row.words.filter(w => w.x < 95).map(w => w.text).join(' ').trim();
+      if (/\bFerie\b/i.test(leftText) && !/Permessi/i.test(leftText)) {
+        const parsed = parseRow(row);
+        if (parsed) out.ferie = { ...parsed, unit: 'gg' };
+      } else if (/\bEx\s*Fest/i.test(leftText)) {
+        const parsed = parseRow(row);
+        if (parsed) out.exFest = { ...parsed, unit: 'ore' };
+      } else if (/\bBanca\s*Ore\b/i.test(leftText)) {
+        const parsed = parseRow(row);
+        if (parsed) out.bancaOre = { ...parsed, unit: 'ore' };
+      }
+    }
+    return Object.keys(out).length ? out : null;
+  }
+
+  // Legge il riquadro TFR in calce a destra ("Ente/tes.", progressivo annuo e "F.DO TFR AP")
+  // e l'eventuale liquidazione TFR (voci 050, H51, H53, H54, H56, H69, I52).
+  function findTfr(rows, voci = []) {
+    const out = {};
+    for (const row of rows || []) {
+      if (row.y > 280 || row.y < 185) continue;
+      for (const w of row.words) {
+        if (w.x < 355 || w.x > 445) continue;
+        const val = parseAmount(w.text);
+        if (val === null || val <= 0) continue;
+        if (row.y >= 255 && row.y <= 274 && out.mese === undefined) out.mese = val;
+        else if (row.y >= 220 && row.y <= 242 && out.progressivo === undefined) out.progressivo = val;
+        else if (row.y >= 188 && row.y <= 205 && out.fondoAP === undefined) out.fondoAP = val;
+      }
+    }
+    const v050 = (voci || []).find(v => v.code === '050' || /\bTFR\s+liq/i.test(v.description || ''));
+    if (v050 && v050.amount) {
+      out.liquidato = v050.amount;
+      const h56 = voci.find(v => v.code === 'H56');
+      const i52 = voci.find(v => v.code === 'I52');
+      if (h56?.amount) out.ritenutaIrpef = Math.abs(h56.amount);
+      if (i52?.quantity) out.aliquota = i52.quantity;
+    }
+    return Object.keys(out).length ? out : null;
   }
 
   const isHeaderRow = row => row.words.some(word => /^Voce$/i.test(word.text));
@@ -221,12 +356,14 @@
     const voci = [];
     const allRows = [];
     let period = null;
+    let intestazione = null;
     let headerFound = false;
     (pages || []).forEach((page, pageIndex) => {
       const words = (page.items || []).map(normalizeItem).filter(Boolean).flatMap(splitWords);
       const rows = groupRows(words);
       allRows.push(...rows);
       if (!period) period = findPeriod(rows);
+      if (!intestazione) intestazione = findIntestazione(rows, period);
       const headerIndex = rows.findIndex(isHeaderRow);
       if (headerIndex < 0) return;
       headerFound = true;
@@ -239,6 +376,12 @@
       }
     });
     const totals = findTotals(allRows);
+    const feriePermessi = findFeriePermessi(allRows);
+    const tfr = findTfr(allRows, voci);
+    const isTfrOnly = Boolean(tfr?.liquidato && !voci.some(v => ['49X', '43X', 'FD0', '334', '01Y'].includes(v.code)));
+    if (isTfrOnly && period) period.isTfr = true;
+    if (feriePermessi && intestazione) intestazione.feriePermessi = feriePermessi;
+    if (tfr && intestazione) intestazione.tfr = tfr;
     const sumCompetenze = round2(voci.reduce((sum, voce) => sum + (voce.amount > 0 ? voce.amount : 0), 0));
     const sumRitenute = round2(voci.reduce((sum, voce) => sum + (voce.amount < 0 ? -voce.amount : 0), 0));
     const totalsFound = totals.competenze !== null && totals.ritenute !== null;
@@ -257,23 +400,25 @@
     if (!headerFound) check.message = 'Non trovo la tabella delle voci: il file non sembra una busta paga INAZ.';
     else if (!totalsFound) check.message = 'Non trovo i totali stampati (Totale Competenze / Totale Ritenute): non posso verificare che tutte le righe siano state lette.';
     else if (!check.completa) check.message = 'Le somme delle voci lette non coincidono con i totali stampati: qualche riga potrebbe non essere stata letta.';
-    return { period, voci, totals, check };
+    return { period, intestazione, feriePermessi, tfr, voci, totals, check };
   }
 
   // "09.26" o {month:9,year:2026} -> "2026-08" (i dati variabili della busta
   // si riferiscono al mese precedente).
   function previousMonth(period) {
+    if (period && typeof period === 'object' && period.isTfr) return '';
     let month;
     let year;
     if (typeof period === 'string') {
       const match = PERIOD_RE.exec(period.trim()) || /^(\d{4})-(\d{2})$/.exec(period.trim());
       if (!match) return '';
       if (match[0].includes('-')) { year = Number(match[1]); month = Number(match[2]); }
-      else { month = Number(match[1]); year = toYear(match[2]); }
+      else { month = Number(match[1]); year = 2000 + Number(match[2]); }
     } else if (period && period.month && period.year) {
       month = Number(period.month);
       year = Number(period.year);
     } else return '';
+    if (!Number.isFinite(month) || month > 12) return '';
     month -= 1;
     if (month < 1) { month = 12; year -= 1; }
     return `${year}-${String(month).padStart(2, '0')}`;
@@ -299,5 +444,5 @@
     return parseItems(await readPdf(data, pdfjs));
   }
 
-  return { LAYOUT, COLUMNS, parseAmount, splitWords, groupRows, columnBounds, parseVoceRow, findTotals, findPeriod, parseItems, previousMonth, readPdf, parsePdf };
+  return { LAYOUT, COLUMNS, parseAmount, splitWords, groupRows, columnBounds, parseVoceRow, findTotals, findPeriod, findIntestazione, findFeriePermessi, findTfr, parseItems, previousMonth, readPdf, parsePdf };
 });

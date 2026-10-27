@@ -77,10 +77,12 @@
       const dateOf = e => new Date(`${e.date}T12:00:00`);
       const due = worked.filter(ticketDue).length;
       // Maneggio denaro da imbarcato = parametro 139 (differenza paga sulle ore
-      // del turno e sullo straordinario); a terra = indennita' FC0. Lo
+      // del turno e sullo straordinario); biglietteria a terra (AgB/AgM/AgT) =
+      // parametro 138A (55H/56H); a terra = indennita' FC0. Lo
       // straordinario e' settimanale: e' a 139 solo nelle settimane in cui
       // tutte le giornate lavorate hanno maneggio e imbarco.
       const cash139 = e => !!(e.cashHandling && e.embark);
+      const cash138 = e => /^AG[BTM]\d*$/i.test(String(e.shift || '').trim());
       let overtime139Minutes = 0;
       let overtimeMixedWeeks = 0;
       weekGroups.forEach(group => {
@@ -110,6 +112,8 @@
         holidayMinutes: worked.filter(e => holidayValue(e, dateOf(e))).reduce((sum, e) => sum + workedMinutes(e), 0),
         missedRestMinutes: worked.reduce((sum, e) => sum + (Number(e.missedRest ?? e.missedRestMinutes ?? e.mancatoRiposo) || 0), 0),
         sundayShift: worked.filter(e => dateOf(e).getDay() === 0).length,
+        weekdayWorkedDays: worked.filter(e => dateOf(e).getDay() !== 0).length,
+        groundDays: worked.filter(e => !e.embark).length,
         secondMeal: worked.filter(e => e.secondMeal).length,
         embark: worked.filter(e => e.embark).length,
         cashHandling: worked.filter(e => e.cashHandling).length,
@@ -119,6 +123,10 @@
         cashEmbarkServiceMinutes: worked.filter(cash139).reduce((total, e) => total + workedMinutes(e), 0),
         cashEmbarkShiftMinutes: worked.filter(cash139).reduce((total, e) => total + serviceMinutes(e), 0),
         cashEmbarkDays: worked.filter(cash139).length,
+        // 55H/56H: ore lavorate nei servizi di biglietteria a terra (AgB, AgM, AgT) a parametro 138A
+        cashGround138Minutes: worked.filter(cash138).reduce((total, e) => total + workedMinutes(e), 0),
+        cashGround138ShiftMinutes: worked.filter(cash138).reduce((total, e) => total + serviceMinutes(e), 0),
+        cashGround138Days: worked.filter(cash138).length,
         overtime139Minutes,
         overtimeMixedWeeks,
         hydrofoil: worked.filter(e => (globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1')).length,
@@ -126,7 +134,45 @@
       };
     }
 
-    function compute(entries, monthValue) {
+    function applyCorrections(totals, correzioni) {
+      if (!totals || !correzioni || typeof correzioni !== 'object') return totals;
+      const entries = Object.entries(correzioni).filter(([, v]) => Number.isFinite(Number(v)) && Number(v) !== 0);
+      if (!entries.length) return totals;
+      if (!totals.raw) totals.raw = { ...totals, calendar: totals.calendar ? { ...totals.calendar } : undefined };
+      totals.correzioni = Object.fromEntries(entries.map(([k, v]) => [k, Number(v)]));
+      const cal = totals.calendar || totals;
+      const add = (field, delta, floorZero = true) => {
+        if (!delta) return;
+        totals[field] = floorZero ? Math.max(0, (Number(totals[field]) || 0) + delta) : (Number(totals[field]) || 0) + delta;
+        if (cal !== totals && field in cal) cal[field] = floorZero ? Math.max(0, (Number(cal[field]) || 0) + delta) : (Number(cal[field]) || 0) + delta;
+      };
+      const c = totals.correzioni;
+      if (c.overtime) totals.overtimeMinutes = Math.max(0, (Number(totals.overtimeMinutes) || 0) + c.overtime);
+      if (c.bank) totals.bankMinutes = (Number(totals.bankMinutes) || 0) + c.bank;
+      add('workedMinutes', c.hours || 0);
+      add('workedDays', c.service || 0);
+      add('cashEmbarkServiceMinutes', c.cashEmbark || 0);
+      add('cashGround138Minutes', c.cashGround138 || 0);
+      add('holidayMinutes', c.holidayMinutes || 0);
+      add('embark', c.embark || 0);
+      add('groundDays', c.rendimento || 0);
+      add('sundayShift', c.sunday ?? c.sundayShift ?? 0);
+      add('cashHandlingGround', c.cash ?? c.cashHandling ?? 0);
+      add('cashHandling', c.cash ?? c.cashHandling ?? 0);
+      add('overnight40', c.overnight40 || 0);
+      add('allowance9', c.allowance9 || 0);
+      add('allowance24', c.allowance24 || 0);
+      add('allowance50', c.allowance50 || 0);
+      add('holiday', c.holiday || 0);
+      add('weekdayWorkedDays', c.dailyDM || 0);
+      add('secondMeal', c.secondTicket ?? c['second-ticket'] ?? 0);
+      add('ticketCredit', c.ticket || 0);
+      add('hydrofoil', c.hydrofoil || 0);
+      add('rf', c.rf || 0);
+      return totals;
+    }
+
+    function compute(entries, monthValue, correzioni) {
       const period = competencePeriod(monthValue);
       const list = Array.isArray(entries) ? entries.filter(Boolean) : [];
       const groups = period.weeks.map(({ start, end }) => {
@@ -148,10 +194,11 @@
       totals.overtimeTailMinutes = coda.reduce((sum, e) => sum + overtimeTotal(e), 0);
       totals.overtimeMinutes += totals.overtimeTailMinutes;
       totals.calendar = calendar;
+      if (correzioni) applyCorrections(totals, correzioni);
       return { month: monthValue, period: { startIso: period.startIso, endIso: period.endIso, weeks }, entryCount: groups.flat().length, totals };
     }
 
-    return { compute, summarize, isWorking, serviceMinutes, workedMinutes, baseWorkedMinutes, ticketDue, ticketValue, holidayValue, shiftFor, shifts: SHIFTS };
+    return { compute, applyCorrections, summarize, isWorking, serviceMinutes, workedMinutes, baseWorkedMinutes, ticketDue, ticketValue, holidayValue, shiftFor, shifts: SHIFTS };
   }
 
   return { COMPETENCE_VERSION, SHIFTS_STORAGE, create, loadShifts, competencePeriod, isHoliday, easterMondayKey, iso };

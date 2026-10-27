@@ -76,31 +76,67 @@ try{(()=>{
     default:return '';
   }}
   function weeklyTotal(row,date){return summarizedTotal(row,[entriesInWeek(date)])}
+  const corrAgentId=()=>{try{return JSON.parse(localStorage.getItem('navidiaria.activeAgent')||'null')?.id||'guest'}catch{return 'guest'}};
+  const corrStorageKey=()=>`navidiaria.correzioniBusta.${corrAgentId()}`;
+  const readCorrState=()=>{try{const r=JSON.parse(localStorage.getItem(corrStorageKey())||'null');return {map:r?.map||{},notes:r?.notes||{},updatedAt:r?.updatedAt||''}}catch{return {map:{},notes:{},updatedAt:''}}};
+  const rowKeyToCorrKey=k=>({sundayShift:'sunday','second-ticket':'secondTicket',cashHandling:'cash'}[k]||k);
+  function getRowCorr(row,mese){const m=readCorrState().map?.[mese]||{};const k=rowKeyToCorrKey(row.key);return Number(m[k]??m[row.key])||0}
+  function getRowNote(row,mese){const m=readCorrState().notes?.[mese]||{};const k=rowKeyToCorrKey(row.key);const n=m[k]??m[row.key];return typeof n==='string'?{text:n}:(n&&typeof n==='object'?n:null)}
+  function formatRowCorr(row,val){if(!val||Math.abs(val)<1e-6)return '';const s=val>0?'+':'-';if(row.unit==='H')return `${s}${clock(Math.abs(val))}`;if(row.key==='service')return `${s}${Math.abs(val)} gg`;return `${s}${Math.abs(val)}`}
+  function saveRowCorr(mese,row,val,noteText){
+    const st=readCorrState(),map={...(st.map||{}), [mese]:{...(st.map?.[mese]||{})}},notes={...(st.notes||{}), [mese]:{...(st.notes?.[mese]||{})}};
+    const k=rowKeyToCorrKey(row.key);
+    delete map[mese][row.key]; delete map[mese][k];
+    if(val&&Math.abs(val)>=1e-6)map[mese][k]=val;
+    if(!Object.keys(map[mese]).length)delete map[mese];
+    if(noteText!==undefined){
+      const prev=getRowNote(row,mese)||{};
+      const cleanNote=String(noteText||'').trim();
+      delete notes[mese][row.key]; delete notes[mese][k];
+      if(cleanNote)notes[mese][k]={...prev,text:cleanNote};
+      if(!Object.keys(notes[mese]).length)delete notes[mese];
+    }
+    const next={map,notes,updatedAt:new Date().toISOString()};
+    try{localStorage.setItem(corrStorageKey(),JSON.stringify(next))}catch{}
+    const id=corrAgentId();
+    if(id&&id!=='guest'&&window.NaviAdminFirebase?.saveDiariaCorrezioni)window.NaviAdminFirebase.saveDiariaCorrezioni(String(id),next).catch(e=>console.warn('Correzioni non salvate su Firebase',e));
+    refreshMonthly();
+  }
+  async function syncCorrezioniFromCloud(){
+    try{
+      const id=corrAgentId();if(!id||id==='guest'||!window.NaviAdminFirebase?.getDiariaCorrezioni)return;
+      await window.NaviAdminFirebase.ready;
+      const rem=await window.NaviAdminFirebase.getDiariaCorrezioni(String(id)),loc=readCorrState();
+      if(rem?.updatedAt&&(!loc.updatedAt||rem.updatedAt>loc.updatedAt)){localStorage.setItem(corrStorageKey(),JSON.stringify({map:rem.map||{},notes:rem.notes||{},updatedAt:rem.updatedAt}));refreshMonthly()}
+      else if(loc.updatedAt&&(!rem||(rem.updatedAt||'')<loc.updatedAt))await window.NaviAdminFirebase.saveDiariaCorrezioni(String(id),loc);
+    }catch(e){console.warn('Sync correzioni da busta non riuscita',e)}
+  }
   // Totale del mese: con le ore trasformate in banca ore (riquadro sotto la tabella) gli straordinari calano e la
-  // banca ore cresce del 10% in piu'.
-  function monthlyTotal(row,sundays){
+  // banca ore cresce del 10% in piu'. Include anche eventuali correzioni approvate dalla Verifica busta.
+  function monthlyTotal(row,sundays,ignoreCorr=false){
     // Ore lavorate e straordinari: settimane del periodo (lun-dom). Tutte le altre competenze si liquidano sul
     // mese di calendario, dal primo all'ultimo giorno (senza i giorni del mese prima, con quelli dopo l'ultima domenica).
     const mese=document.getElementById('monthFilter').value;
+    const corr=ignoreCorr?0:getRowCorr(row,mese);
     const base=['service','hours','overtime'].includes(row.key)?summarizedTotal(row,sundays.map(entriesInWeek)):summarizedTotal(row,[entries.filter(e=>String(e?.date||'').slice(0,7)===mese)]);
-    if(row.key!=='overtime'&&row.key!=='bank')return base;
-    const conv=window.NaviDiariaConversione?.trasformati?.(document.getElementById('monthFilter').value)||0;
-    if(!conv&&row.key==='overtime'){const tot=straordinariMese(sundays).totale;return tot?clock(tot):''}
-    if(!conv)return base;
-    if(row.key==='overtime'){const rest=Math.max(0,straordinariMese(sundays).totale-conv);return rest?clock(rest):''}
-    const bank=entries.filter(e=>String(e?.date||'').slice(0,7)===mese).filter(isWorking).reduce((sum,e)=>sum+(Number(e.bank)||0),0)+Math.round(conv*1.1);
+    if(row.key==='service'){if(!corr)return base;const worked=sundays.map(entriesInWeek).flat().filter(isWorking),days=Math.max(0,worked.length+corr),srv=worked.reduce((sum,e)=>sum+serviceMinutes(e),0);return days||srv?`${days} gg\n${clock(srv)}`:''}
+    if(row.key==='hours'){if(!corr)return base;const worked=sundays.map(entriesInWeek).flat().filter(isWorking),actual=Math.max(0,worked.reduce((sum,e)=>sum+workedMinutes(e),0)+corr);return actual?clock(actual):''}
+    if(row.key!=='overtime'&&row.key!=='bank'){if(!corr)return base;const n=Math.max(0,(Number(base)||0)+corr);return n?String(n):''}
+    const conv=window.NaviDiariaConversione?.trasformati?.(mese)||0;
+    if(row.key==='overtime'){const tot=straordinariMese(sundays,ignoreCorr).totale,rest=Math.max(0,tot-conv);return rest?clock(rest):''}
+    const bank=entries.filter(e=>String(e?.date||'').slice(0,7)===mese).filter(isWorking).reduce((sum,e)=>sum+(Number(e.bank)||0),0)+Math.round(conv*1.1)+corr;
     return bank?signedClock(bank):'';
   }
   // Straordinari del mese come nella colonna TOT. MESE (settimane del periodo oltre 39 ore), per il riquadro della
   // trasformazione in banca ore: totale e parte delle settimane non ancora finite (prevista dai turni).
   // Straordinario giornaliero dei giorni del mese dopo l'ultima domenica: si liquida in questo mese (es. lunedi' 27 luglio).
   function straordinariCoda(sundays){const mese=document.getElementById('monthFilter').value,ultima=sundays.length?iso(sundays[sundays.length-1]):'';return entries.filter(e=>String(e?.date||'').slice(0,7)===mese&&e.date>ultima&&isWorking(e)).reduce((sum,e)=>sum+Math.max(0,Math.round(Number(overtime?.total?.(e))||0)),0)}
-  function straordinariMese(sundays){let totale=0,previsti=0;const oggi=todayIso();sundays.forEach(sunday=>{const m=Math.max(0,entriesInWeek(sunday).filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60);totale+=m;if(iso(sunday)>=oggi)previsti+=m});const coda=straordinariCoda(sundays);totale+=coda;previsti+=coda;return {totale,previsti}}
+  function straordinariMese(sundays,ignoreCorr=false){let totale=0,previsti=0;const oggi=todayIso(),mese=document.getElementById('monthFilter').value;sundays.forEach(sunday=>{const m=Math.max(0,entriesInWeek(sunday).filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60);totale+=m;if(iso(sunday)>=oggi)previsti+=m});const coda=straordinariCoda(sundays);totale+=coda;previsti+=coda;if(!ignoreCorr)totale=Math.max(0,totale+getRowCorr({key:'overtime',unit:'H'},mese));return {totale,previsti}}
   function displayValue(row,value){const text=String(value||'');if(row.key!=='service'||!text)return escapeHtml(text);const [main,...details]=text.split('\n');return `<strong>${escapeHtml(main)}</strong>${details.length?`<small>${escapeHtml(details.join(' '))}</small>`:''}`}
   // Colonne: tutti i giorni del mese di calendario (1–30/31). I conteggi restano per settimane intere
   // (totali settimanali e del mese sulle domeniche del periodo di competenza).
   function giorniDelMese(first){const out=[],last=new Date(first.getFullYear(),first.getMonth()+1,0,12);for(let d=new Date(first);d<=last;d=addDays(d,1))out.push(new Date(d));return out}
-  function renderMonthly(){const previousScrollLeft=grid.scrollLeft,first=monthDate(),period=competencePeriod(),dates=giorniDelMese(first),today=todayIso(),columns=[],sundays=period.weeks.map(week=>week.end);window.NaviDiariaMese={month:document.getElementById('monthFilter').value,...straordinariMese(sundays)};setTimeout(()=>window.NaviDiariaConversione?.aggiorna?.(),0);dates.forEach(date=>{columns.push({type:'day',date});if(date.getDay()===0)columns.push({type:'total',date})});columns.push({type:'month-total'});title.textContent=monthFmt.format(first).replace(/^./,c=>c.toUpperCase());const periodNode=document.getElementById('monthlyCompetencePeriod');if(periodNode)periodNode.textContent=`Periodo di competenza: ${formatCompetenceDate(period.start)} – ${formatCompetenceDate(period.end)}`;const head=`<thead><tr><th class="monthly-label">Voci</th>${columns.map(column=>{if(column.type==='month-total')return '<th class="monthly-total-head"><span>Totale</span><small>mese</small></th>';if(column.type==='total'){const bounds=weekBounds(column.date),range=`${bounds.start.getDate()}/${bounds.start.getMonth()+1}–${bounds.end.getDate()}/${bounds.end.getMonth()+1}`;return `<th class="weekly-total-head">Tot.<small>${range}</small></th>`}const d=column.date,e=entries.find(x=>x.date===iso(d)),p=dayPresentation(e);return `<th data-date="${iso(d)}"${p.style} class="${p.className}${d.getDay()===0||d.getDay()===6?'weekend ':''}${isHoliday(d)?'holiday ':''}${iso(d)===today?'today-column':''}">${weekFmt.format(d).slice(0,2)}<br><strong>${String(d.getDate()).padStart(2,'0')}</strong></th>`}).join('')}</tr></thead>`;const body=rows.map(row=>`<tr class="row-${row.key}"><th class="monthly-label"><span class="monthly-label-full">${row.label}</span><span class="monthly-label-mobile">${row.mobileLabel||row.label}</span><span class="monthly-unit">${row.unit||''}</span></th>${columns.map(column=>{if(column.type==='month-total')return `<td class="monthly-total-cell">${displayValue(row,monthlyTotal(row,sundays))}</td>`;if(column.type==='total')return `<td class="weekly-total-cell">${displayValue(row,weeklyTotal(row,column.date))}</td>`;const d=column.date,e=entries.find(x=>x.date===iso(d)),p=cellClass(row,e,d,today);return `<td${p.style} data-date="${iso(d)}" data-row="${row.key}" class="${p.className}">${displayValue(row,row.value(e,d))}</td>`}).join('')}</tr>`).join('');grid.innerHTML=`<table class="monthly-table">${head}<tbody>${body}</tbody></table>`;if(!monthlyInitialScrollDone){monthlyInitialScrollDone=true;requestAnimationFrame(()=>grid.querySelector('.today-column')?.scrollIntoView({inline:'center',block:'nearest'}))}else grid.scrollLeft=previousScrollLeft}
+  function renderMonthly(){const previousScrollLeft=grid.scrollLeft,first=monthDate(),period=competencePeriod(),dates=giorniDelMese(first),today=todayIso(),columns=[],sundays=period.weeks.map(week=>week.end),meseVal=document.getElementById('monthFilter').value;window.NaviDiariaMese={month:meseVal,...straordinariMese(sundays)};setTimeout(()=>window.NaviDiariaConversione?.aggiorna?.(),0);dates.forEach(date=>{columns.push({type:'day',date});if(date.getDay()===0)columns.push({type:'total',date})});columns.push({type:'busta-corr'});columns.push({type:'month-total'});title.textContent=monthFmt.format(first).replace(/^./,c=>c.toUpperCase());const periodNode=document.getElementById('monthlyCompetencePeriod');if(periodNode)periodNode.textContent=`Periodo di competenza: ${formatCompetenceDate(period.start)} – ${formatCompetenceDate(period.end)}`;const head=`<thead><tr><th class="monthly-label">Voci</th>${columns.map(column=>{if(column.type==='busta-corr')return '<th class="monthly-corr-head" title="Correzioni da verifica busta paga (tocca una cella per modificare)"><span>Corr.</span><small>busta</small></th>';if(column.type==='month-total')return '<th class="monthly-total-head"><span>Totale</span><small>mese</small></th>';if(column.type==='total'){const bounds=weekBounds(column.date),range=`${bounds.start.getDate()}/${bounds.start.getMonth()+1}–${bounds.end.getDate()}/${bounds.end.getMonth()+1}`;return `<th class="weekly-total-head">Tot.<small>${range}</small></th>`}const d=column.date,e=entries.find(x=>x.date===iso(d)),p=dayPresentation(e);return `<th data-date="${iso(d)}"${p.style} class="${p.className}${d.getDay()===0||d.getDay()===6?'weekend ':''}${isHoliday(d)?'holiday ':''}${iso(d)===today?'today-column':''}">${weekFmt.format(d).slice(0,2)}<br><strong>${String(d.getDate()).padStart(2,'0')}</strong></th>`}).join('')}</tr></thead>`;const body=rows.map(row=>`<tr class="row-${row.key}"><th class="monthly-label"><span class="monthly-label-full">${row.label}</span><span class="monthly-label-mobile">${row.mobileLabel||row.label}</span><span class="monthly-unit">${row.unit||''}</span></th>${columns.map(column=>{if(column.type==='busta-corr'){const cv=getRowCorr(row,meseVal),ct=formatRowCorr(row,cv),nt=getRowNote(row,meseVal),tip=nt?.text?`Nota: ${nt.text}`:'Tocca per aggiungere o modificare una correzione da busta';return `<td data-corr-row="${row.key}" class="monthly-corr-cell${cv>0?' is-pos':cv<0?' is-neg':''}" title="${escapeHtml(tip)}">${escapeHtml(ct)}${nt?.text?' <small>📝</small>':''}</td>`}if(column.type==='month-total')return `<td class="monthly-total-cell">${displayValue(row,monthlyTotal(row,sundays))}</td>`;if(column.type==='total')return `<td class="weekly-total-cell">${displayValue(row,weeklyTotal(row,column.date))}</td>`;const d=column.date,e=entries.find(x=>x.date===iso(d)),p=cellClass(row,e,d,today);return `<td${p.style} data-date="${iso(d)}" data-row="${row.key}" class="${p.className}">${displayValue(row,row.value(e,d))}</td>`}).join('')}</tr>`).join('');grid.innerHTML=`<table class="monthly-table">${head}<tbody>${body}</tbody></table>`;if(!monthlyInitialScrollDone){monthlyInitialScrollDone=true;requestAnimationFrame(()=>grid.querySelector('.today-column')?.scrollIntoView({inline:'center',block:'nearest'}))}else grid.scrollLeft=previousScrollLeft}
   function installPreviousMonthCarry(){}
   function installMobileSticky(){stickyCleanup();document.querySelector('.monthly-mobile-sticky')?.remove();if(!matchMedia('(max-width:760px)').matches)return;const source=grid.querySelector('.monthly-table'),head=source?.querySelector('thead'),service=source?.querySelector('tbody .row-service');if(!source||!head||!service)return;const holder=document.createElement('div'),clone=source.cloneNode(false),body=document.createElement('tbody');holder.className='monthly-mobile-sticky';clone.appendChild(head.cloneNode(true));body.appendChild(service.cloneNode(true));clone.appendChild(body);holder.appendChild(clone);document.body.appendChild(holder);const sync=()=>{const rect=grid.getBoundingClientRect(),safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--monthly-safe-top'))||0,visible=rect.top<=safeTop&&rect.bottom>safeTop+holder.offsetHeight;holder.classList.toggle('visible',visible);holder.style.left=`${Math.max(0,rect.left)}px`;holder.style.width=`${Math.min(innerWidth-Math.max(0,rect.left),rect.width)}px`;clone.style.width=`${source.scrollWidth}px`;holder.scrollLeft=grid.scrollLeft};grid.addEventListener('scroll',sync,{passive:true});addEventListener('scroll',sync,{passive:true});addEventListener('resize',sync,{passive:true});sync();stickyCleanup=()=>{grid.removeEventListener('scroll',sync);removeEventListener('scroll',sync);removeEventListener('resize',sync)}}
   new MutationObserver(()=>requestAnimationFrame(()=>{installPreviousMonthCarry();installMobileSticky()})).observe(grid,{childList:true});
@@ -121,11 +157,46 @@ try{(()=>{
       onClose:()=>document.dispatchEvent(new CustomEvent('navidiaria:render'))
     });
   }
+  function parseCorrInput(row,raw){
+    const s=String(raw||'').trim();if(!s||s==='0')return 0;
+    const sign=s.startsWith('-')||s.startsWith('−')?-1:1,clean=s.replace(/^[+−-]\s*/,'');
+    if(row.unit==='H'){
+      const hm=clean.match(/^(\d{1,3})\s*[:]\s*(\d{1,2})$/);
+      if(hm)return sign*(Number(hm[1])*60+Number(hm[2]));
+      const num=Number(clean.replace(',','.'));
+      return Number.isFinite(num)?sign*Math.round(num*60):NaN;
+    }
+    const num=Number(clean.replace(/\s*gg$/i,'').replace(',','.'));
+    return Number.isFinite(num)?sign*Math.round(num*100)/100:NaN;
+  }
+  function openCorrEditor(rowKey){
+    const row=rows.find(r=>r.key===rowKey);if(!row)return;
+    const mese=document.getElementById('monthFilter').value,sundays=competencePeriod().weeks.map(w=>w.end);
+    const rawVal=monthlyTotal(row,sundays,true)||'0',curCorr=getRowCorr(row,mese),curText=formatRowCorr(row,curCorr),curNote=getRowNote(row,mese)?.text||'';
+    document.querySelector('.monthly-corr-overlay')?.remove();
+    const overlay=document.createElement('div');overlay.className='monthly-value-overlay monthly-corr-overlay';
+    const placeholder=row.unit==='H'?'es. +1:30 oppure -0:05':'es. +1 oppure -1';
+    const hint=row.unit==='H'?'Ore e minuti (+/- H:MM oppure ore decimali, 0 per azzerare)':'Giorni o quantità (+/- numero, 0 per azzerare)';
+    overlay.innerHTML=`<div class="monthly-value-dialog"><button type="button" class="monthly-dialog-close" aria-label="Chiudi">✕</button><small>CORREZIONE DA BUSTA PAGA</small><h3>${escapeHtml(row.label)}</h3><div class="monthly-shift-preview">Dai turni: <b>${escapeHtml(String(rawVal).replace('\n',' · '))}</b>${curText?` · Correzione attuale: <b>${escapeHtml(curText)}</b>`:''}</div><label>${escapeHtml(hint)}<input type="text" data-corr-val="1" inputmode="text" value="${escapeHtml(curText)}" placeholder="${placeholder}"></label><label>Nota (opzionale)<input type="text" data-corr-note="1" value="${escapeHtml(curNote)}" placeholder="es. liquidata nella busta del mese successivo…"></label><div class="monthly-dialog-actions">${curCorr||curNote?`<button type="button" class="monthly-dialog-cancel" data-corr-zero="1">Azzera</button>`:`<button type="button" class="monthly-dialog-cancel" data-corr-close="1">Annulla</button>`}<button type="button" class="monthly-dialog-save">Salva correzione</button></div></div>`;
+    document.body.appendChild(overlay);
+    const input=overlay.querySelector('[data-corr-val]'),noteInput=overlay.querySelector('[data-corr-note]'),close=()=>overlay.remove();
+    const apply=(val,note)=>{saveRowCorr(mese,row,val,note);close()};
+    overlay.querySelector('.monthly-dialog-close').addEventListener('click',close);
+    overlay.querySelector('[data-corr-close]')?.addEventListener('click',close);
+    overlay.querySelector('[data-corr-zero]')?.addEventListener('click',()=>apply(0,''));
+    overlay.querySelector('.monthly-dialog-save').addEventListener('click',()=>{const v=parseCorrInput(row,input.value);if(Number.isFinite(v))apply(v,noteInput.value)});
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const v=parseCorrInput(row,input.value);if(Number.isFinite(v))apply(v,noteInput.value)}if(e.key==='Escape')close()});
+    noteInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const v=parseCorrInput(row,input.value);if(Number.isFinite(v))apply(v,noteInput.value)}if(e.key==='Escape')close()});
+    overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+    setTimeout(()=>{input.focus();input.select()},20);
+  }
   window.NaviDiariaDayEditor={open:openDayBubbleEditor};
-  grid.addEventListener('click',event=>{const head=event.target.closest('th[data-date]');if(head){openDayBubbleEditor(head.dataset.date);return}const cell=event.target.closest('td[data-date][data-row]');if(cell)editMonthlyCell(cell)});
+  grid.addEventListener('click',event=>{const head=event.target.closest('th[data-date]');if(head){openDayBubbleEditor(head.dataset.date);return}const corrCell=event.target.closest('td[data-corr-row]');if(corrCell){openCorrEditor(corrCell.dataset.corrRow);return}const cell=event.target.closest('td[data-date][data-row]');if(cell)editMonthlyCell(cell)});
   function refreshMonthly(){updateMonthButtons(monthDate());renderMonthly()}
   window.NaviDiariaRefreshMonthly=refreshMonthly;
   setTimeout(()=>loadMonthlyShipAssignments().catch(()=>{}),1500); // nomi delle navi pronti prima di aprire una giornata
+  syncCorrezioniFromCloud();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncCorrezioniFromCloud()});
   function printMonthlySheet(){
     const period=competencePeriod(),table=grid.querySelector('.monthly-table');if(!table||!period.start||!period.end)return;
     const agent=document.getElementById('sidebarAgentName')?.textContent?.trim()||'',label=title.textContent;

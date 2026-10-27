@@ -1198,8 +1198,18 @@
   }
   async function saveDiariaConversioni(agentId, value = {}) {
     await ensureAuth();
-    const item = { map:value.map || {}, updatedAt:String(value.updatedAt || new Date().toISOString()) };
+    const item = { map:value.map || {}, notes:value.notes || {}, updatedAt:String(value.updatedAt || new Date().toISOString()) };
     await databaseRequest(`private/adminUpdates/diariaConversioni/${safeUserKey(agentId)}`, { method:"PUT", body:JSON.stringify(item) });
+    return item;
+  }
+  async function getDiariaCorrezioni(agentId) {
+    const result = await databaseRequest(`private/adminUpdates/diariaCorrezioni/${safeUserKey(agentId)}`);
+    return result.data || null;
+  }
+  async function saveDiariaCorrezioni(agentId, value = {}) {
+    await ensureAuth();
+    const item = { map:value.map || {}, notes:value.notes || {}, updatedAt:String(value.updatedAt || new Date().toISOString()) };
+    await databaseRequest(`private/adminUpdates/diariaCorrezioni/${safeUserKey(agentId)}`, { method:"PUT", body:JSON.stringify(item) });
     return item;
   }
 
@@ -1471,6 +1481,8 @@
     getBackupCentrale,
     savePageAccess,
     saveDiariaConversioni,
+    getDiariaCorrezioni,
+    saveDiariaCorrezioni,
     provider:"Firebase REST"
   };
 })();
