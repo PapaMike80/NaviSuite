@@ -162,9 +162,25 @@ Puoi decidere tu quali pagine tenere in grande in alto e in quale ordine:
 3. **Trascinala** tra le pagine principali in alto o tra le *Altre pagine* in basso e rilascia il dito.
 4. Se in futuro vuoi tornare alla disposizione standard, ti basta premere **Ripristina il menu** in basso nel menu.
 
-### Scegliere la Prima Pagina all'apertura
-Preferisci che all'apertura di NaviSuite si apra subito *Il mio turno*, *Turni* o *Distinta*?
-Vai in **`☰` → Impostazioni (`⚙`) → Prima pagina** e scegli la pagina che vuoi vedere appena apri l'app.
+### Scegliere la Prima Pagina di apertura
+Quando apri NaviSuite dal telefono, l'app ti porta subito nella tua pagina preferita (senza passare ogni volta dalla schermata di scelta).
+
+Per cambiarla:
+1. Tocca il menu **`☰`** in alto a destra → **Impostazioni (`⚙`)**.
+2. Tocca il riquadro azzurro **Prima pagina di apertura** (quando è chiuso mostra a destra la pagina attualmente attiva).
+3. Tocca una delle pastiglie disponibili:
+   * **Automatica** *(predefinita)*: apre **Il mio turno**, anche nei giorni di servizio a terra.
+   * **Turni**: apre il calendario turni generale della residenza.
+   * **Distinta**: apre subito *NaviDiaria* (giornate e competenze).
+   * **Il mio turno**: nave, colleghi e scali di oggi.
+   * **Oggi**: il quadro completo di navi ed equipaggi della giornata.
+   * **Scali**: navi sul lago e allo scalo, pontili e ritardi.
+   * **Documenti**: gli O.d.S. e i turni in PDF.
+   * **Cambio**: le richieste di cambio turno.
+   * **Home**: la panoramica con tutte le tessere dell'app.
+4. La modifica viene **salvata automaticamente sul tuo profilo** (compare la scritta *"Salvato automaticamente sul tuo profilo"* in fondo alla pagina).
+
+> 💡 **Nota per gli Amministratori**: all'interno dello stesso riquadro *Prima pagina di apertura* è presente anche il comando **Prima pagina per tutti gli agenti** (*Reset per tutti*), che permette di impostare una pagina iniziale predefinita per tutti i profili (lasciando poi a ciascun collega la libertà di ricambiarla).
 
 ---
 

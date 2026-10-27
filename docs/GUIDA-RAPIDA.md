@@ -93,9 +93,29 @@ La tua giornata lavorativa viene già pre-compilata in base al tuo turno. Se dev
 
 ---
 
-## 7. Riordinare il menu a tuo piacimento (`☰`)
+## 7. Scegliere la Prima Pagina all'apertura e riordinare il Menu
 
-Vuoi mettere *Il mio turno* o *Orari* al primo posto? Puoi personalizzare l'ordine delle icone nel menu **`☰`**:
+### 🏠 Scegliere quale pagina aprire subito quando entri in NaviSuite
+Di base, quando apri NaviSuite si apre **Il mio turno**. Vuoi invece che si apra subito **Turni**, **Distinta**, **Scali** o **Oggi**?
+
+1. Tocca il pulsante menu **`☰`** in alto a destra.
+2. Tocca **Impostazioni** (`⚙`).
+3. Tocca il riquadro azzurro **Prima pagina di apertura** per aprirlo.
+4. **Tocca la pagina che preferisci** tra quelle proposte:
+   * **Automatica** *(predefinita)* → apre *Il mio turno* (anche nei giorni a terra)
+   * **Turni** → apre subito il tabellone turni della tua residenza
+   * **Distinta** → apre subito la tua *NaviDiaria* mensile
+   * **Il mio turno** → nave, corse, scali e colleghi di oggi
+   * **Oggi** → tutte le navi e gli equipaggi del giorno
+   * **Scali** → navi in arrivo allo scalo, pontili e mappa del lago
+   * **Documenti** / **Cambio** / **Home**
+5. **Fatto!** Non serve premere "Salva": la scelta si illumina ed è salvata automaticamente sul tuo profilo. Da qualsiasi pagina potrai comunque passare alle altre in ogni momento con il menu **`☰`**.
+
+---
+
+### ☰ Riordinare le icone del menu a tuo piacimento
+
+Vuoi mettere *Il mio turno* o *Orari* al primo posto nel menu? Puoi personalizzare l'ordine delle icone nel menu **`☰`**:
 
 <p align="center">
   <img src="guida-menu/guida-menu-passi.png" alt="Come spostare le pagine nel menu" width="100%">
