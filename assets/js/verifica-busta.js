@@ -478,7 +478,7 @@
     const corr = correzioniMese(month);
     const distinta = calculator.compute(data.entries, month, corr);
     if (!distinta.entryCount && !Object.keys(corr).length) return null;
-    const s = window.NaviBustaCompare.stima(ref, distinta.totals, altreBusteRiferimento(bustaMonth, ref.mese));
+    const s = window.NaviBustaCompare.stima(ref, distinta.totals, altreBusteRiferimento(bustaMonth, ref.mese), { bustaMonth, scadenzaContratto: ref?.intestazione?.dataScadenzaContratto });
     return s && { ...s, bustaMonth, month, p, ref: ref.mese, giornate: distinta.entryCount };
   }
   // Stime per i mesi senza busta: tutti i mesi coperti da giornate della Distinta o con competenze rinviate/corrette
@@ -513,10 +513,16 @@
         ? `<div class="voce st" style="--c:var(--amber)"><span class="n">${escapeHtml(r.label)}</span><span class="pill num">${unitValue(r.quantita, r.unit)}</span><span class="c">Nessun prezzo nella busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}: non calcolata${corrInfo}</span>${notaBox}</div>`
         : `<div class="voce st"><span class="n">${escapeHtml(r.label)} <span class="eur num eurv">${escapeHtml(euro(r.importo))}</span></span><span class="pill num">${unitValue(r.quantita, r.unit)}</span><span class="c num">${unitValue(r.quantita, r.unit)} × <span class="eurv">${escapeHtml(number(r.base, 2))} €</span>${r.daMese ? ` (${escapeHtml(meseCorto(r.daMese))})` : ''}${corrInfo}</span>${notaBox}</div>`;
     };
+    const parteFissaHtml = st.postScadenza
+      ? `<p class="grp">Parte fissa · <span class="eurv">0,00 €</span> (contratto in scadenza il ${escapeHtml(st.scadenzaContratto || '30-11')})</p><p class="msub">Lo stipendio base mensile è già corrisposto nelle buste fino a novembre: nella busta di ${escapeHtml(monthLabel(st.bustaMonth).toLowerCase())} entrano solo le competenze variabili di ${escapeHtml(monthLabel(st.month).toLowerCase())} (più eventuale 13ª mensilità e TFR liquidati a fine rapporto).</p>`
+      : `<p class="grp">Parte fissa · <span class="eurv">${escapeHtml(euro(st.fisso))}</span> come la busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p>`;
+    const dettaglioRit = st.contributi
+      ? `contributi FAP 9,36% (−${escapeHtml(euro(st.contributi))}) + IRPEF netta (−${escapeHtml(euro(st.irpefNetta))})${st.diarieEsenti ? `, con ${escapeHtml(euro(st.diarieEsenti))} di diarie esenti` : ''}`
+      : `ritenute al ${number(st.quotaRitenute * 100, 1)}% come la busta di riferimento`;
     return `<p class="msub">${st.giornate} giornate nella Distinta su ${giorni} del periodo${inCorso ? ' · periodo in corso: la stima cresce con le giornate inserite' : ''}</p>${testa}`
       + `<p class="grp">Voci dalla Distinta · prezzi della busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p><div class="voci">${st.righe.map(riga).join('') || '<p class="msub">Nessuna voce variabile.</p>'}</div>`
-      + `<p class="grp">Parte fissa · <span class="eurv">${escapeHtml(euro(st.fisso))}</span> come la busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p>`
-      + `<p class="msub">È una stima: ritenute al ${number(st.quotaRitenute * 100, 1)}% come la busta di riferimento. Non conta conguagli, arretrati, tredicesima e una tantum; il ticket elettronico non è nel netto.</p>`;
+      + parteFissaHtml
+      + `<p class="msub">Stima calcolata con ${dettaglioRit}. Non conta conguagli di fine anno, tredicesima e una tantum; il ticket elettronico non è nel netto.</p>`;
   }
 
   const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';

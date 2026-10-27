@@ -295,10 +295,12 @@
   const girocontoDiffPaga = voci => round2(sum((voci || []).filter(isGirocontoDiffPaga).map(v => Math.abs(Number(v.amount) || 0))));
 
   // Stima di una busta: voci variabili = quantita' della Distinta x dato base della busta di riferimento;
-  // il resto del lordo resta come nella busta di riferimento; ritenute nella stessa proporzione sul lordo.
-  // ref: { voci, totals } di una busta salvata; distinta: totals di NaviDistintaTotals;
+  // il resto del lordo resta come nella busta di riferimento (o zero nel mese successivo alla scadenza
+  // del contratto, es. dicembre dopo scadenza 30-11, dove si liquidano solo le variabili di novembre);
+  // ritenute calcolate con contributi INPS/FAP (9,3567% su imponibile senza diarie esenti) + scaglioni IRPEF.
+  // ref: { voci, totals, intestazione } di una busta salvata; distinta: totals di NaviDistintaTotals;
   // altreBuste: altre buste salvate da cui recuperare il prezzo base se una voce manca in ref.
-  function stima(ref, distinta, altreBuste = []) {
+  function stima(ref, distinta, altreBuste = [], opzioni = {}) {
     const voci = Array.isArray(ref?.voci) ? ref.voci : [];
     const t = ref?.totals || {};
     const giro = girocontoDiffPaga(voci);
@@ -306,6 +308,11 @@
     const lordoRef = round2((Number(t.competenze) || 0) - giro - (c730 > 0 ? c730 : 0));
     const ritenuteRef = round2(Math.max(0, Math.abs(Number(t.ritenute) || 0) - giro - (c730 < 0 ? -c730 : 0)));
     if (lordoRef <= 0) return null;
+    const scadRaw = String(opzioni.scadenzaContratto || ref?.intestazione?.dataScadenzaContratto || '').trim();
+    const mScad = /^(\d{2})-(\d{2})-(\d{4})$/.exec(scadRaw);
+    const scadenzaMese = mScad ? `${mScad[3]}-${mScad[2]}` : '';
+    const bustaMonth = String(opzioni.bustaMonth || '');
+    const postScadenza = Boolean(scadenzaMese && bustaMonth && bustaMonth > scadenzaMese);
     const righe = [];
     let variabileRef = 0, variabile = 0;
     RULES.forEach(rule => {
@@ -334,13 +341,42 @@
       variabileRef += importoRef; variabile += importo;
       if (qta || importoRef || corr) righe.push({ id: rule.id, label: rule.label, unit: rule.unit, quantita: qta, quantitaOriginale: qtaOrig, correzione: corr, importoCorrezione, base, importo, importoRef, ...(daMese ? { daMese } : {}) });
     });
-    const fisso = round2(lordoRef - variabileRef);
+    // Giorni di CON (congedo/ferie) nella Distinta: INAZ paga FZ0 Ind.retrib.ferie = 8,00 €/giorno
+    const congedoGg = round2(Number(mese(distinta || {}).congedoDays) || 0);
+    if (congedoGg > 0) {
+      const fz0Base = 8;
+      const fz0Imp = round2(congedoGg * fz0Base);
+      variabile = round2(variabile + fz0Imp);
+      righe.push({ id: 'congedoFZ0', label: 'Indennità retribuzione ferie (FZ0)', unit: 'giorni', quantita: congedoGg, quantitaOriginale: congedoGg, correzione: 0, importoCorrezione: 0, base: fz0Base, importo: fz0Imp, importoRef: 0 });
+    }
+    const fissoRiferimento = round2(lordoRef - variabileRef);
+    const fisso = postScadenza ? 0 : fissoRiferimento;
     const lordo = round2(fisso + variabile);
-    const quota = ritenuteRef / lordoRef;
-    const ritenute = round2(lordo * quota);
+    const diarieEsenti = round2(righe.find(r => r.id === 'allowance24')?.importo || 0);
+    const hasInazTax = voci.some(v => v.code === '001' || v.code === 'I11' || v.code === 'I21');
+    let ritenute = 0, contributi = 0, irpefNetta = 0;
+    if (hasInazTax) {
+      const imponibileInps = Math.max(0, round2(lordo - diarieEsenti));
+      contributi = round2(Math.round(imponibileInps) * 0.093567);
+      const imponibileFiscale = round2(imponibileInps - contributi);
+      const i11Ref = voci.find(v => v.code === 'I11');
+      const i16Ref = voci.find(v => v.code === 'I16');
+      const aliq2 = (Number(i11Ref?.quantity) >= 33 ? Number(i11Ref.quantity) : 33) / 100;
+      const soglia23 = 2333.33;
+      const irpefLorda = imponibileFiscale <= soglia23
+        ? round2(imponibileFiscale * 0.23)
+        : round2(soglia23 * 0.23 + (imponibileFiscale - soglia23) * aliq2);
+      const detrazioni = postScadenza ? 0 : (Number(i16Ref?.base) || 114.05);
+      irpefNetta = Math.max(0, round2(irpefLorda - detrazioni));
+      ritenute = round2(contributi + irpefNetta);
+    } else {
+      const quotaFallback = ritenuteRef / lordoRef;
+      ritenute = round2(lordo * quotaFallback);
+    }
+    const quota = lordo > 0 ? ritenute / lordo : (ritenuteRef / lordoRef);
     const netto = round2(lordo - ritenute);
     righe.sort((a, b) => (b.importo || 0) - (a.importo || 0));
-    return { righe, fisso, lordo, ritenute, netto, quotaRitenute: quota, margine: round2(Math.abs(netto) * 0.04) };
+    return { righe, fisso, fissoRiferimento, postScadenza, scadenzaContratto: scadRaw, diarieEsenti, contributi, irpefNetta, lordo, ritenute, netto, quotaRitenute: quota, margine: round2(Math.abs(netto) * 0.04) };
   }
 
   function knownCodes() {

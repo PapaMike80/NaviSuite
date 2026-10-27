@@ -643,4 +643,38 @@ console.log('Busta verifica test passed');
   assert.equal(cmp121.rows.find(r => r.id === 'overtime').importoDistinta, 109.26);
   assert.equal(cmp121.rows.find(r => r.id === 'embark').status, 'ok');
   assert.equal(cmp121.rows.find(r => r.id === 'embark').importoDistinta, 30.30);
+
+  // Stima mese successivo a scadenza contratto (es. dicembre 2026 dopo scadenza 30-11-2026):
+  // fisso = 0, CON conta come FZ0 (8 €/gg) e non come FD0/49X, F.P. non conta come domenica/festivita' lavorata.
+  const novGiorni = [
+    day('2026-11-01', 'F.P.', { embark: false }),
+    day('2026-11-02', 'LAV', { embark: false }),
+    day('2026-11-03', 'LAV', { embark: false }),
+    day('2026-11-09', 'CON', { embark: false }),
+    day('2026-11-10', 'CON', { embark: false })
+  ];
+  const novTot = calc.compute(novGiorni, '2026-11').totals;
+  assert.equal(novTot.calendar.groundDays, 2, 'solo i 2 LAV contano per FD0');
+  assert.equal(novTot.calendar.weekdayWorkedDays, 2, 'solo i 2 LAV contano per 49X');
+  assert.equal(novTot.calendar.congedoDays, 2, '2 giorni di CON per FZ0');
+  assert.equal(novTot.calendar.sundayShift, 0, 'F.P. di domenica non e\' domenica lavorata');
+  assert.equal(novTot.calendar.holiday, 0, 'F.P. dell\'1/11 non e\' festivita\' lavorata');
+  const refConScad = {
+    mese: '2026-10',
+    intestazione: { dataScadenzaContratto: '30-11-2026' },
+    totals: { competenze: 2000, ritenute: 500, netto: 1500 },
+    voci: [
+      { code: '002', description: 'Retribuzione mensile', amount: 1695.95 },
+      { code: 'FD0', description: 'Ind. rendimento', quantity: 5, base: 2.02, amount: 10.1 },
+      { code: '49X', description: 'Ind. prest. giornaliera', quantity: 5, base: 0.52, amount: 2.6 },
+      { code: '001', description: 'Contributo FAP', quantity: 9.19, base: 2000, amount: -183.8 },
+      { code: 'I11', description: 'Imposta lorda', quantity: 33, base: 400, amount: null },
+      { code: 'I16', description: 'Totale detrazioni', base: 114.05, amount: null }
+    ]
+  };
+  const stDic = compareModule.stima(refConScad, novTot, [], { bustaMonth: '2026-12' });
+  assert.equal(stDic.postScadenza, true);
+  assert.equal(stDic.fisso, 0, 'a dicembre dopo scadenza 30-11 non c\'e\' stipendio fisso mensile');
+  assert.equal(stDic.righe.find(r => r.id === 'congedoFZ0').importo, 16, '2 gg CON x 8 € = 16 €');
+  assert.equal(stDic.lordo, 21.08, '16 (FZ0) + 4.04 (FD0) + 1.04 (49X)');
 }

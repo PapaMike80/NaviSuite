@@ -83,6 +83,8 @@
       // tutte le giornate lavorate hanno maneggio e imbarco.
       const cash139 = e => !!(e.cashHandling && e.embark);
       const cash138 = e => /^AG[BTM]\d*$/i.test(String(e.shift || '').trim());
+      const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP'].includes(String(e?.shift || '').trim().toUpperCase());
+      const isCongedoShift = e => ['CON', 'FERIE'].includes(String(e?.shift || '').trim().toUpperCase());
       let overtime139Minutes = 0;
       let overtimeMixedWeeks = 0;
       weekGroups.forEach(group => {
@@ -108,12 +110,13 @@
         allowance50: worked.filter(e => Number(e.allowanceRate) === 50).length,
         travel50: worked.filter(e => Number(e.allowanceRate) === 50 || e.travel === true).length,
         overnight40: worked.filter(e => e.overnight40).length,
-        holiday: worked.filter(e => holidayValue(e, dateOf(e))).length,
-        holidayMinutes: worked.filter(e => holidayValue(e, dateOf(e))).reduce((sum, e) => sum + workedMinutes(e), 0),
+        holiday: worked.filter(e => !isAbsenceShift(e) && holidayValue(e, dateOf(e))).length,
+        holidayMinutes: worked.filter(e => !isAbsenceShift(e) && holidayValue(e, dateOf(e))).reduce((sum, e) => sum + workedMinutes(e), 0),
         missedRestMinutes: worked.reduce((sum, e) => sum + (Number(e.missedRest ?? e.missedRestMinutes ?? e.mancatoRiposo) || 0), 0),
-        sundayShift: worked.filter(e => dateOf(e).getDay() === 0).length,
-        weekdayWorkedDays: worked.filter(e => dateOf(e).getDay() !== 0).length,
-        groundDays: worked.filter(e => !e.embark).length,
+        sundayShift: worked.filter(e => !isAbsenceShift(e) && dateOf(e).getDay() === 0).length,
+        weekdayWorkedDays: worked.filter(e => !isAbsenceShift(e) && dateOf(e).getDay() !== 0).length,
+        groundDays: worked.filter(e => !isAbsenceShift(e) && !e.embark).length,
+        congedoDays: worked.filter(isCongedoShift).length,
         secondMeal: worked.filter(e => e.secondMeal).length,
         embark: worked.filter(e => e.embark).length,
         cashHandling: worked.filter(e => e.cashHandling).length,
