@@ -4,6 +4,10 @@
 
 Riunisce in un'unica interfaccia rapida, utilizzabile da smartphone, tablet e PC (anche **offline**), la consultazione dei turni, il registro della distinta personale, la situazione in tempo reale degli scali e della flotta, i cambi turno, la verifica della busta paga e gli strumenti operativi per gli uffici.
 
+> ### 📖 Guide per i Colleghi
+> * 🚀 **[Guida Rapida (2 minuti)](docs/GUIDA-RAPIDA.md)** — Primo accesso col PIN, installazione sul telefono e le 5 funzioni di tutti i giorni, con immagini passo-passo.
+> * 📘 **[Guida Avanzata illustrata](docs/GUIDA-AVANZATA.md)** — Distinta e ritardi d'equipaggio, Verifica busta paga, Notifiche a telefono bloccato (10 min prima di arrivi/scali), Calendario sincronizzato, Widget iPhone, Stampe A4 e Backup.
+
 ---
 
 ## ✨ Funzionalità Principali
@@ -153,7 +157,9 @@ Su Windows è possibile avviare direttamente con un doppio clic lo script [`tool
 
 ## 📖 Documentazione Utile
 
-* 📄 [**Guida Utente per i Colleghi (`GUIDA_UTENTE.txt`)**](GUIDA_UTENTE.txt) — Istruzioni passo-passo semplici per il primo accesso e l'utilizzo quotidiano.
+* 🚀 [**Guida Rapida per i Colleghi (`docs/GUIDA-RAPIDA.md`)**](docs/GUIDA-RAPIDA.md) — Guida illustrata veloce per entrare in NaviSuite e usare le funzioni principali.
+* 📘 [**Guida Avanzata per i Colleghi (`docs/GUIDA-AVANZATA.md`)**](docs/GUIDA-AVANZATA.md) — Manuale completo illustrato (Distinta, Verifica busta paga, Notifiche a schermo bloccato, Calendario `.ics`, Widget iPhone, Backup e allineamento).
+* 📄 [**Guida Testuale Semplice (`GUIDA_UTENTE.txt`)**](GUIDA_UTENTE.txt) — Istruzioni in formato solo testo per il primo accesso.
 * 🖨️ [**Guida Stampe da O.d.S. (`tools/stampe/README.md`)**](tools/stampe/README.md) — Dettagli sulla generazione dei PDF per scali, pontilisti e passeggeri.
 * 🔔 [**Worker Notifiche e Backup (`tools/push-arrivi-worker/README.md`)**](tools/push-arrivi-worker/README.md) — Configurazione degli avvisi a schermo bloccato e del backup automatico su TrueNAS.
 * 📅 [**Setup Calendario Personale (`tools/CALENDARIO_SETUP.md`)**](tools/CALENDARIO_SETUP.md) — Configurazione del feed `.ics` per iPhone e Google Calendar.
