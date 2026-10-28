@@ -208,6 +208,26 @@
     } catch (_) {}
     return '';
   }
+  function badgeHeaderMezzi(ct) {
+    if (!ct || ct.stessaResidenza) return '';
+    const C = window.NaviCollegamenti;
+    const oraA = ct.andata ? C.ora(ct.andata.parte) : '';
+    const oraR = ct.ritorno ? C.ora(ct.ritorno.parte) : '';
+    let testo = '', cls = 'mt-head-mezzo';
+    if (oraA && oraR) {
+      testo = '🚌 ' + oraA + ' · rientro ' + oraR;
+    } else if (oraA) {
+      testo = '🚌 ' + oraA + ' · ⚠ no rientro';
+      cls += ' warn';
+    } else if (oraR) {
+      testo = '⚠ No andata · rientro ' + oraR;
+      cls += ' warn';
+    } else {
+      testo = '⚠ No mezzi';
+      cls += ' warn';
+    }
+    return '<span class="' + cls + '" role="button" tabindex="0" title="Mezzi pubblici: tocca per vedere i dettagli">' + esc(testo) + '</span>';
+  }
   function residenzaDiNave(code) {
     const c = String(code || '').trim().toUpperCase();
     if (/^D[1-4]$/.test(c) || /^BIS$/.test(c)) return 'Desenzano';
@@ -655,6 +675,12 @@
   }, { passive: true });
   // tocco sul turno (titolo): apre la giornata mostrata nella Distinta, con il popup di modifica
   const apriDistinta = () => { location.href = `navidiaria.html?editDate=${encodeURIComponent(today())}`; };
+    $('turno-context')?.addEventListener('click', e => {
+    if (e.target.closest('.mt-head-mezzo')) {
+      const cardEl = document.querySelector('.mt-collegamenti-card');
+      if (cardEl) { cardEl.open = true; cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }
+  });
   $('turno-title').addEventListener('click', apriDistinta);
 
   document.addEventListener('click', async event => {
