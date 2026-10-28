@@ -401,15 +401,67 @@
     .fn-card {
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.82rem;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.84rem;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.55;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fn-card:hover {
+      border-color: var(--amber);
+      background: color-mix(in srgb, var(--amber) 9%, var(--surface));
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.12);
+    }
+    .fn-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
     }
     .fn-card b {
       color: var(--amber);
       font-family: 'DM Mono', monospace;
+      font-size: 0.95rem;
+    }
+    .fn-return-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--amber);
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 3px 9px;
+      border-radius: 999px;
+      transition: all 0.15s;
+    }
+    .fn-card:hover .fn-return-btn {
+      background: var(--amber);
+      color: var(--on);
+      border-color: var(--amber);
+    }
+    .fn-highlighted {
+      border-color: var(--teal) !important;
+      background: color-mix(in srgb, var(--teal) 16%, var(--surface)) !important;
+      box-shadow: 0 0 0 2px var(--teal), 0 8px 24px rgba(45, 212, 191, 0.25) !important;
+      transform: scale(1.02);
+    }
+    .ref-highlighted {
+      background: var(--amber) !important;
+      color: var(--on) !important;
+      box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5);
+      transform: scale(1.35);
+      display: inline-block;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .card-highlighted {
+      border-color: var(--amber) !important;
+      box-shadow: 0 0 0 2px var(--amber), 0 10px 30px rgba(251, 191, 36, 0.2) !important;
     }
 
     /* Footer */
@@ -507,9 +559,9 @@
         <div class="macro-header">
           <div class="macro-title">
             <span>🏛️</span>
-            <span>Regio Decreto 8 Gennaio 1931, n. 148 <sup class="fn-ref" onclick="jumpNote(1)">[1]</sup></span>
+            <span>Regio Decreto 8 Gennaio 1931, n. 148 <sup class="fn-ref" id="fn-ref-1" data-note="1" onclick="jumpNote(1, this)" title="Vai alla nota 1">[1]</sup></span>
           </div>
-          <span class="macro-tag">Artt. 1 – 15 · Norme Generali sui Rapporti Collettivi <sup class="fn-ref" onclick="jumpNote(2)">[2]</sup></span>
+          <span class="macro-tag">Artt. 1 – 15 · Norme Generali sui Rapporti Collettivi <sup class="fn-ref" id="fn-ref-2" data-note="2" onclick="jumpNote(2, this)" title="Vai alla nota 2">[2]</sup></span>
         </div>
 
         <div class="articles-grid">
@@ -522,7 +574,7 @@
             </div>
             <div class="art-body">
               <p>
-                Le condizioni di lavoro del personale dei pubblici servizi di trasporto su ferrovie, tranvie e linee di navigazione interna, esercitate dall'industria privata o da Comuni, Province e Consorzi secondo le vigenti disposizioni sull'assunzione diretta dei pubblici servizi, sono regolate nei modi previsti dalla legge 3 aprile 1926, numero 563 <sup class="fn-ref" onclick="jumpNote(3)">[3]</sup>, e successivi decreti di attuazione, salvo per quanto è espressamente disposto dal presente decreto e annesso regolamento (allegato A) e dalle vigenti disposizioni legislative sugli orari e turni di servizio <sup class="fn-ref" onclick="jumpNote(4)">[4]</sup>.
+                Le condizioni di lavoro del personale dei pubblici servizi di trasporto su ferrovie, tranvie e linee di navigazione interna, esercitate dall'industria privata o da Comuni, Province e Consorzi secondo le vigenti disposizioni sull'assunzione diretta dei pubblici servizi, sono regolate nei modi previsti dalla legge 3 aprile 1926, numero 563 <sup class="fn-ref" id="fn-ref-3" data-note="3" onclick="jumpNote(3, this)" title="Vai alla nota 3">[3]</sup>, e successivi decreti di attuazione, salvo per quanto è espressamente disposto dal presente decreto e annesso regolamento (allegato A) e dalle vigenti disposizioni legislative sugli orari e turni di servizio <sup class="fn-ref" id="fn-ref-4" data-note="4" onclick="jumpNote(4, this)" title="Vai alla nota 4">[4]</sup>.
               </p>
               <p>
                 Gli stipendi, le paghe, le competenze accessorie ed ogni altra indennità fissa o temporanea di qualsiasi natura spettanti al personale, sono sempre dalle competenti Associazioni sindacali stabiliti contrattualmente azienda per azienda.
@@ -541,7 +593,7 @@
                 La stipulazione dei contratti collettivi di lavoro e l'atto di constatazione del mancato accordo, debbono effettuarsi entro un mese dalla denuncia dei contratti in vigore e, per le Aziende di nuova costituzione, entro sei mesi dalla data della definitiva apertura all'esercizio della linea. Tale termine può essere prorogato di non oltre tre mesi, su richiesta di una delle Associazioni stipulanti, sentita l'altra Associazione interessata, dall'autorità presso cui deve essere depositato il contratto collettivo.
               </p>
               <p>
-                Nella prima applicazione del presente decreto i contratti collettivi di lavoro devono essere stipulati entro tre mesi dalla data della pubblicazione del decreto medesimo nella Gazzetta Ufficiale del Regno, ferma restando la facoltà di proroga indicata nel comma precedente <sup class="fn-ref" onclick="jumpNote(5)">[5]</sup>.
+                Nella prima applicazione del presente decreto i contratti collettivi di lavoro devono essere stipulati entro tre mesi dalla data della pubblicazione del decreto medesimo nella Gazzetta Ufficiale del Regno, ferma restando la facoltà di proroga indicata nel comma precedente <sup class="fn-ref" id="fn-ref-5" data-note="5" onclick="jumpNote(5, this)" title="Vai alla nota 5">[5]</sup>.
               </p>
             </div>
           </article>
@@ -566,7 +618,7 @@
                 Entro ugual termine debbono le Associazioni sindacali promuovere ricorso alla Magistratura del lavoro nei casi di ricusata pubblicazione del contratto collettivo ai sensi dell'art. 51 del regio decreto 1° luglio 1926, n. 1130, decorrendo il termine dal giorno in cui la comunicazione del rifiuto a cura dell'autorità competente sia loro pervenuta.
               </p>
               <p>
-                Fino a che non siano pubblicati i nuovi contratti collettivi o le norme assimilate, restano in vigore, a tutti gli effetti della legge 3 aprile 1926, n. 563, e successivi decreti di attuazione, i contratti e le norme scaduti <sup class="fn-ref" onclick="jumpNote(6)">[6]</sup>.
+                Fino a che non siano pubblicati i nuovi contratti collettivi o le norme assimilate, restano in vigore, a tutti gli effetti della legge 3 aprile 1926, n. 563, e successivi decreti di attuazione, i contratti e le norme scaduti <sup class="fn-ref" id="fn-ref-6" data-note="6" onclick="jumpNote(6, this)" title="Vai alla nota 6">[6]</sup>.
               </p>
             </div>
           </article>
@@ -592,7 +644,7 @@
             </div>
             <div class="art-body">
               <p>
-                Nei casi di inosservanza degli obblighi e dei termini stabiliti negli articoli 2 e 3 del presente decreto, per parte delle Associazioni sindacali competenti, è a queste applicabile il provvedimento più grave previsto dall'art. 8, comma 3, della legge 3 aprile 1926, n. 563, col quale si affida ad un commissario del Governo l'amministrazione straordinaria della Associazione <sup class="fn-ref" onclick="jumpNote(7)">[7]</sup>.
+                Nei casi di inosservanza degli obblighi e dei termini stabiliti negli articoli 2 e 3 del presente decreto, per parte delle Associazioni sindacali competenti, è a queste applicabile il provvedimento più grave previsto dall'art. 8, comma 3, della legge 3 aprile 1926, n. 563, col quale si affida ad un commissario del Governo l'amministrazione straordinaria della Associazione <sup class="fn-ref" id="fn-ref-7" data-note="7" onclick="jumpNote(7, this)" title="Vai alla nota 7">[7]</sup>.
               </p>
             </div>
           </article>
@@ -618,7 +670,7 @@
             </div>
             <div class="art-body">
               <p>
-                Le disposizioni del presente decreto, ferma restando l'applicazione di quelle contenute nella legge 3 aprile 1926, n. 563 <sup class="fn-ref" onclick="jumpNote(8)">[8]</sup>, e successivi decreti di attuazione, non si applicano:
+                Le disposizioni del presente decreto, ferma restando l'applicazione di quelle contenute nella legge 3 aprile 1926, n. 563 <sup class="fn-ref" id="fn-ref-8" data-note="8" onclick="jumpNote(8, this)" title="Vai alla nota 8">[8]</sup>, e successivi decreti di attuazione, non si applicano:
               </p>
               <ul>
                 <li><strong>a)</strong> alla categoria dei dirigenti di aziende contemplata nell'art. 34, comma 1, del regio decreto 1 luglio 1926, n. 1130;</li>
@@ -669,7 +721,7 @@
                 <li><strong>d)</strong> per la costruzione e ricostruzione del materiale mobile.</li>
               </ul>
               <div class="norm-callout">
-                [Il quantitativo del personale necessario per l'esercizio è determinato dal Ministro delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili) sentita l'azienda, in base alle necessità del servizio normale] <sup class="fn-ref" onclick="jumpNote(9)">[9]</sup>.
+                [Il quantitativo del personale necessario per l'esercizio è determinato dal Ministro delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili) sentita l'azienda, in base alle necessità del servizio normale] <sup class="fn-ref" id="fn-ref-9" data-note="9" onclick="jumpNote(9, this)" title="Vai alla nota 9">[9]</sup>.
               </div>
               <p>
                 Al personale di ruolo già adibito al servizio tranviario, che sia addetto agli autoservizi pubblici urbani di linea esercitati dalla stessa azienda tranviaria ed al personale di nuova assunzione adibito promiscuamente su linee tranviarie o in auto-servizi pubblici urbani di linea esercitati dalla stessa azienda, sono applicabili le disposizioni del presente decreto.
@@ -694,14 +746,14 @@
           <article class="art-card" id="art-rd-10" style="--c: var(--cyan);">
             <div class="art-card-head">
               <span class="art-num">Articolo 10</span>
-              <span class="art-badge">Controversie Individuali e Reclamo Gerarchico <sup class="fn-ref" onclick="jumpNote(10)">[10]</sup></span>
+              <span class="art-badge">Controversie Individuali e Reclamo Gerarchico <sup class="fn-ref" id="fn-ref-10" data-note="10" onclick="jumpNote(10, this)" title="Vai alla nota 10">[10]</sup></span>
             </div>
             <div class="art-body">
               <p>
                 Le controversie individuali relative a rapporti soggetti alle norme del R.D. 8 gennaio 1931, n. 148 sono di competenza dell'autorità giudiziaria.
               </p>
               <p>
-                L'agente che intenda adire l'autorità giudiziaria contro un provvedimento dell'azienda che lo riguarda deve, anzitutto, proporre il reclamo in via gerarchica, presentandolo, entro quindici giorni dalla data di comunicazione del provvedimento, al superiore immediato che è tenuto a rilasciarne ricevuta. L'omissione del reclamo nel termine suddetto importa l'improponibilità dell'azione giudiziaria <sup class="fn-ref" onclick="jumpNote(11)">[11]</sup>.
+                L'agente che intenda adire l'autorità giudiziaria contro un provvedimento dell'azienda che lo riguarda deve, anzitutto, proporre il reclamo in via gerarchica, presentandolo, entro quindici giorni dalla data di comunicazione del provvedimento, al superiore immediato che è tenuto a rilasciarne ricevuta. L'omissione del reclamo nel termine suddetto importa l'improponibilità dell'azione giudiziaria <sup class="fn-ref" id="fn-ref-11" data-note="11" onclick="jumpNote(11, this)" title="Vai alla nota 11">[11]</sup>.
               </p>
               <p>
                 L'azienda deve comunicare al reclamante le sue determinazioni entro quindici giorni dalla presentazione del reclamo, dopo di che, anche se l'azienda non abbia risposto, il reclamante può adire l'autorità giudiziaria, proponendo la relativa azione entro i successivi quaranta giorni.
@@ -991,10 +1043,10 @@
                 <li><strong>b)</strong> agenti ordinari o straordinari dopo sei mesi complessivi di ottimo servizio presso la stessa azienda;</li>
                 <li><strong>c)</strong> ex combattenti, invalidi ed orfani di guerra, giusta le disposizioni speciali concernenti il loro collocamento;</li>
                 <li><strong>d)</strong> figli di agenti deceduti per infortuni, o di agenti infortunati con invalidità permanente per causa di servizio;</li>
-                <li><strong>e)</strong> orfani di ex agenti, figli di agenti, purché il posto cui questi ultimi aspirano non sia moralmente o disciplinarmente incompatibile con la carica di cui è rivestito il padre <sup class="fn-ref" onclick="jumpNote(12)">[12]</sup>.</li>
+                <li><strong>e)</strong> orfani di ex agenti, figli di agenti, purché il posto cui questi ultimi aspirano non sia moralmente o disciplinarmente incompatibile con la carica di cui è rivestito il padre <sup class="fn-ref" id="fn-ref-12" data-note="12" onclick="jumpNote(12, this)" title="Vai alla nota 12">[12]</sup>.</li>
               </ul>
               <div class="norm-alert">
-                In ognuna delle anzidette categorie deve essere data la precedenza a coloro che appartengono al Partito Nazionale Fascista ed ai Sindacati fascisti, nonché le altre precedenze stabilite dalle disposizioni della legge 6 giugno 1929, n. 1024, portante provvedimenti sull'incremento demografico <sup class="fn-ref" onclick="jumpNote(13)">[13]</sup>.
+                In ognuna delle anzidette categorie deve essere data la precedenza a coloro che appartengono al Partito Nazionale Fascista ed ai Sindacati fascisti, nonché le altre precedenze stabilite dalle disposizioni della legge 6 giugno 1929, n. 1024, portante provvedimenti sull'incremento demografico <sup class="fn-ref" id="fn-ref-13" data-note="13" onclick="jumpNote(13, this)" title="Vai alla nota 13">[13]</sup>.
               </div>
             </div>
           </article>
@@ -1008,10 +1060,10 @@
             <div class="art-body">
               <p>Per l'ammissione al servizio in prova è necessario:</p>
               <ol>
-                <li><strong>1)</strong> di essere cittadino dello Stato italiano, o delle altre regioni italiane quando anche il richiedente manchi della naturalità, salvo il disposto dell'art. 113 del testo unico di leggi approvato col regio decreto 9 maggio 1912, n. 1447 <sup class="fn-ref" onclick="jumpNote(14)">[14]</sup>;</li>
-                <li><strong>2)</strong> di avere superato, al momento dell'assunzione in prova, il 18° anno di età e non oltrepassati i 30 anni di età per i servizi attivi ed i 35 per gli altri servizi salvo le eccezioni che, con l'approvazione dell'Ispettorato compartimentale o ufficio distaccato della motorizzazione civile e dei trasporti in concessione, la Direzione dell'azienda credesse di ammettere in casi speciali o per determinate specialità di personale <sup class="fn-ref" onclick="jumpNote(15)">[15]</sup>;</li>
+                <li><strong>1)</strong> di essere cittadino dello Stato italiano, o delle altre regioni italiane quando anche il richiedente manchi della naturalità, salvo il disposto dell'art. 113 del testo unico di leggi approvato col regio decreto 9 maggio 1912, n. 1447 <sup class="fn-ref" id="fn-ref-14" data-note="14" onclick="jumpNote(14, this)" title="Vai alla nota 14">[14]</sup>;</li>
+                <li><strong>2)</strong> di avere superato, al momento dell'assunzione in prova, il 18° anno di età e non oltrepassati i 30 anni di età per i servizi attivi ed i 35 per gli altri servizi salvo le eccezioni che, con l'approvazione dell'Ispettorato compartimentale o ufficio distaccato della motorizzazione civile e dei trasporti in concessione, la Direzione dell'azienda credesse di ammettere in casi speciali o per determinate specialità di personale <sup class="fn-ref" id="fn-ref-15" data-note="15" onclick="jumpNote(15, this)" title="Vai alla nota 15">[15]</sup>;</li>
                 <li><strong>3)</strong> di avere tenuto sempre buona condotta morale, civile, militare e politica;</li>
-                <li><strong>4)</strong> di essere dotato di sana e robusta costituzione fisica e di possedere l'attitudine ed i requisiti fisici stabiliti per le funzioni cui il richiedente aspira in relazione alle norme vigenti presso l'azienda <sup class="fn-ref" onclick="jumpNote(16)">[16]</sup>.</li>
+                <li><strong>4)</strong> di essere dotato di sana e robusta costituzione fisica e di possedere l'attitudine ed i requisiti fisici stabiliti per le funzioni cui il richiedente aspira in relazione alle norme vigenti presso l'azienda <sup class="fn-ref" id="fn-ref-16" data-note="16" onclick="jumpNote(16, this)" title="Vai alla nota 16">[16]</sup>.</li>
               </ol>
               <p>
                 Tutti i richiedenti sono tenuti a presentare il certificato di nascita ed occorrendo i documenti comprovanti la cittadinanza di cui al comma 1°, il certificato rilasciato dall'ufficio del casellario giudiziario, il certificato di buona condotta, il certificato degli studi fatti e degli impieghi eventualmente coperti; se hanno prestato servizio militare, il congedo da cui risulti la buona condotta sotto le armi, ovvero altro documento ufficiale comprovante la loro posizione di fronte alla legge sul reclutamento.
@@ -1108,7 +1160,7 @@
               <ul>
                 <li><strong>a)</strong> qualora non abbiano conseguita la voluta idoneità al posto cui sono assegnati;</li>
                 <li><strong>b)</strong> se, durante il periodo di prova, abbiano dimostrato, per la natura o la frequenza di mancanze anche lievi, di non possedere qualità soddisfacenti per un regolare disimpegno del servizio;</li>
-                <li><strong>c)</strong> per imperfezioni fisiche permanenti che, a giudizio dei sanitari dell'azienda <sup class="fn-ref" onclick="jumpNote(17)">[17]</sup>, li rendano non idonei al disimpegno del proprio servizio, salva all'agente la facoltà di chiedere un nuovo accertamento dell'inabilità, nei modi e termini stabiliti dall'art. 29;</li>
+                <li><strong>c)</strong> per imperfezioni fisiche permanenti che, a giudizio dei sanitari dell'azienda <sup class="fn-ref" id="fn-ref-17" data-note="17" onclick="jumpNote(17, this)" title="Vai alla nota 17">[17]</sup>, li rendano non idonei al disimpegno del proprio servizio, salva all'agente la facoltà di chiedere un nuovo accertamento dell'inabilità, nei modi e termini stabiliti dall'art. 29;</li>
                 <li><strong>d)</strong> nei casi in cui le mutate condizioni del servizio esigano una diminuzione di personale, quando non vi sia modo di conferire all'agente attribuzioni equivalenti in altri rami del servizio, o, consensualmente, anche di grado inferiore.</li>
               </ul>
               <p>
@@ -1187,7 +1239,7 @@
           <article class="art-card" id="art-all-18" style="--c: var(--green);">
             <div class="art-card-head">
               <span class="art-num">Articolo 18 (All. A)</span>
-              <span class="art-badge">Reggenza Mansioni Superiori <sup class="fn-ref" onclick="jumpNote(18)">[18]</sup></span>
+              <span class="art-badge">Reggenza Mansioni Superiori <sup class="fn-ref" id="fn-ref-18" data-note="18" onclick="jumpNote(18, this)" title="Vai alla nota 18">[18]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1246,7 +1298,7 @@
           <article class="art-card" id="art-all-20" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 20 (All. A)</span>
-              <span class="art-badge">Residenza, Traslochi e Missioni <sup class="fn-ref" onclick="jumpNote(19)">[19]</sup></span>
+              <span class="art-badge">Residenza, Traslochi e Missioni <sup class="fn-ref" id="fn-ref-19" data-note="19" onclick="jumpNote(19, this)" title="Vai alla nota 19">[19]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1301,7 +1353,7 @@
           <article class="art-card" id="art-all-22" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 22 (All. A)</span>
-              <span class="art-badge">Congedo Ordinario (Ferie) <sup class="fn-ref" onclick="jumpNote(20)">[20]</sup></span>
+              <span class="art-badge">Congedo Ordinario (Ferie) <sup class="fn-ref" id="fn-ref-20" data-note="20" onclick="jumpNote(20, this)" title="Vai alla nota 20">[20]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1330,7 +1382,7 @@
                 Gli agenti hanno perciò l'obbligo di indicare, prima di assentarsi, il luogo dove si possa comunicare loro, occorrendo, l'ordine di richiamo.
               </p>
               <p>
-                I congedi chiesti dall'agente durante l'annata, e non potuto usufruire per esigenze di servizio, vengono usufruiti entro il primo trimestre dell'anno successivo, e, qualora anche in questo periodo l'azienda non possa accordare il congedo, spetta di diritto all'agente il pagamento dello stipendio o paga e delle indennità fisse delle equivalenti giornate <sup class="fn-ref" onclick="jumpNote(21)">[21]</sup>.
+                I congedi chiesti dall'agente durante l'annata, e non potuto usufruire per esigenze di servizio, vengono usufruiti entro il primo trimestre dell'anno successivo, e, qualora anche in questo periodo l'azienda non possa accordare il congedo, spetta di diritto all'agente il pagamento dello stipendio o paga e delle indennità fisse delle equivalenti giornate <sup class="fn-ref" id="fn-ref-21" data-note="21" onclick="jumpNote(21, this)" title="Vai alla nota 21">[21]</sup>.
               </p>
               <p>
                 In casi speciali possono essere dal direttore accordati congedi straordinari con o senza retribuzione.
@@ -1342,7 +1394,7 @@
           <article class="art-card" id="art-all-23" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 23 (All. A)</span>
-              <span class="art-badge">Trattamento di Malattia Storico <sup class="fn-ref" onclick="jumpNote(22)">[22]</sup></span>
+              <span class="art-badge">Trattamento di Malattia Storico <sup class="fn-ref" id="fn-ref-22" data-note="22" onclick="jumpNote(22, this)" title="Vai alla nota 22">[22]</sup></span>
             </div>
             <div class="art-body">
               <div class="norm-callout">
@@ -1423,7 +1475,7 @@
           <article class="art-card" id="art-all-26" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 26 (All. A)</span>
-              <span class="art-badge">Cessioni di Linee e Indennità di Buonuscita <sup class="fn-ref" onclick="jumpNote(23)">[23]</sup></span>
+              <span class="art-badge">Cessioni di Linee e Indennità di Buonuscita <sup class="fn-ref" id="fn-ref-23" data-note="23" onclick="jumpNote(23, this)" title="Vai alla nota 23">[23]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1461,7 +1513,7 @@
                 Oltre ai casi di cui alle disposizioni speciali relative agli agenti in prova ed a quelli previsti nel precedente articolo, l'azienda può far luogo all'esonero definitivo dal servizio degli agenti stabili:
               </p>
               <ul>
-                <li><strong>a)</strong> per raggiungimento dei limiti di età di 55 anni per gli agenti addetti ai servizi attivi e di 60 anni per quelli addetti agli altri servizi, salvo il disposto dell'art. 12 del regio decreto 8 gennaio 1931, n. 148 <sup class="fn-ref" onclick="jumpNote(24)">[24]</sup>;</li>
+                <li><strong>a)</strong> per raggiungimento dei limiti di età di 55 anni per gli agenti addetti ai servizi attivi e di 60 anni per quelli addetti agli altri servizi, salvo il disposto dell'art. 12 del regio decreto 8 gennaio 1931, n. 148 <sup class="fn-ref" id="fn-ref-24" data-note="24" onclick="jumpNote(24, this)" title="Vai alla nota 24">[24]</sup>;</li>
                 <li><strong>b)</strong> per inabilità al servizio nelle funzioni proprie della qualifica di cui è rivestito l'agente, quando non accetti altre mansioni, compatibili con le sue attitudini o condizioni, in posti disponibili;</li>
                 <li><strong>c)</strong> per palese insufficienza nell'adempimento delle funzioni del proprio grado non imputabile a colpa dell'agente, quando questi non accetti il grado inferiore che gli può essere assegnato;</li>
                 <li><strong>d)</strong> per scarso rendimento o per palese insufficienza imputabile a colpa dell'agente nell'adempimento delle funzioni del proprio grado;</li>
@@ -1486,14 +1538,14 @@
           <article class="art-card" id="art-all-28" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 28 (All. A)</span>
-              <span class="art-badge">Infortunio sul Lavoro e Rendita <sup class="fn-ref" onclick="jumpNote(25)">[25]</sup></span>
+              <span class="art-badge">Infortunio sul Lavoro e Rendita <sup class="fn-ref" id="fn-ref-25" data-note="25" onclick="jumpNote(25, this)" title="Vai alla nota 25">[25]</sup></span>
             </div>
             <div class="art-body">
               <p>
                 Con effetto dal 1° luglio 1969, all'agente inabile permanentemente per infortunio sul lavoro occorso successivamente al 30 giugno 1969, che rimanga in servizio, anche se adibito ad altre mansioni, spetta lo stipendio o paga relativo alla qualifica che rivestiva prima dell'infortunio.
               </p>
               <p>
-                Dal 1° luglio 1969, la rendita di cui al regio decreto 17 agosto 1935, n. 1765 <sup class="fn-ref" onclick="jumpNote(26)">[26]</sup>, e successive modificazioni e integrazioni, liquidata all'agente inabile, gli è direttamente corrisposta anche se l'infortunio è avvenuto anteriormente a tale data.
+                Dal 1° luglio 1969, la rendita di cui al regio decreto 17 agosto 1935, n. 1765 <sup class="fn-ref" id="fn-ref-26" data-note="26" onclick="jumpNote(26, this)" title="Vai alla nota 26">[26]</sup>, e successive modificazioni e integrazioni, liquidata all'agente inabile, gli è direttamente corrisposta anche se l'infortunio è avvenuto anteriormente a tale data.
               </p>
               <p>
                 All'agente iscritto obbligatoriamente o volontariamente al Fondo alla data di entrata in vigore della presente legge è restituito - a domanda o, al più tardi, in occasione della liquidazione della pensione a carico del Fondo ovvero, qualora alla data dell'esonero non spetti la pensione, in occasione della liquidazione della posizione assicurativa - il capitale accumulato mediante le somme depositate dall'Istituto nazionale per l'assicurazione contro gli infortuni sul lavoro presso lo Istituto nazionale della previdenza sociale, aumentato degli interessi maturati durante il periodo in cui il deposito ha avuto luogo calcolato, al tasso annuo del 4,50 per cento.
@@ -1505,7 +1557,7 @@
           <article class="art-card" id="art-all-29" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 29 (All. A)</span>
-              <span class="art-badge">Visite Mediche e Collegio Sanitario <sup class="fn-ref" onclick="jumpNote(27)">[27]</sup></span>
+              <span class="art-badge">Visite Mediche e Collegio Sanitario <sup class="fn-ref" id="fn-ref-27" data-note="27" onclick="jumpNote(27, this)" title="Vai alla nota 27">[27]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1562,7 +1614,7 @@
                 Agli agenti richiamati sotto le armi per qualsiasi motivo viene corrisposto lo stipendio o la paga, sotto deduzione dello stipendio o sussidio corrisposto dallo Stato al richiamato od alla sua famiglia.
               </p>
               <div class="norm-alert">
-                [Le disposizioni del precedente comma si applicano anche, nel caso di richiamo obbligatorio, ai militari della Milizia volontaria per la sicurezza nazionale] <sup class="fn-ref" onclick="jumpNote(28)">[28]</sup> <sup class="fn-ref" onclick="jumpNote(29)">[29]</sup>.
+                [Le disposizioni del precedente comma si applicano anche, nel caso di richiamo obbligatorio, ai militari della Milizia volontaria per la sicurezza nazionale] <sup class="fn-ref" id="fn-ref-28" data-note="28" onclick="jumpNote(28, this)" title="Vai alla nota 28">[28]</sup> <sup class="fn-ref" id="fn-ref-29" data-note="29" onclick="jumpNote(29, this)" title="Vai alla nota 29">[29]</sup>.
               </div>
             </div>
           </article>
@@ -1649,7 +1701,7 @@
           <article class="art-card" id="art-all-35" style="--c: var(--orange);">
             <div class="art-card-head">
               <span class="art-num">Articolo 35 (All. A)</span>
-              <span class="art-badge">Orari di Servizio <sup class="fn-ref" onclick="jumpNote(30)">[30]</sup></span>
+              <span class="art-badge">Orari di Servizio <sup class="fn-ref" id="fn-ref-30" data-note="30" onclick="jumpNote(30, this)" title="Vai alla nota 30">[30]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1679,7 +1731,7 @@
         <div class="macro-header">
           <div class="macro-title">
             <span>⚖️</span>
-            <span>Allegato A) · Titolo VI · Disposizioni Disciplinari <sup class="fn-ref" onclick="jumpNote(31)">[31]</sup> <sup class="fn-ref" onclick="jumpNote(32)">[32]</sup></span>
+            <span>Allegato A) · Titolo VI · Disposizioni Disciplinari <sup class="fn-ref" id="fn-ref-31" data-note="31" onclick="jumpNote(31, this)" title="Vai alla nota 31">[31]</sup> <sup class="fn-ref" id="fn-ref-32" data-note="32" onclick="jumpNote(32, this)" title="Vai alla nota 32">[32]</sup></span>
           </div>
           <span class="macro-tag">Artt. 37 – 58 · Sanzioni, Mancanze, Consiglio di Disciplina e Ricorsi</span>
         </div>
@@ -1703,7 +1755,7 @@
                 <li><strong>6° la destituzione.</strong></li>
               </ol>
               <p>
-                La multa è applicabile anche agli agenti ordinari <sup class="fn-ref" onclick="jumpNote(33)">[33]</sup> e straordinari <sup class="fn-ref" onclick="jumpNote(34)">[34]</sup>.
+                La multa è applicabile anche agli agenti ordinari <sup class="fn-ref" id="fn-ref-33" data-note="33" onclick="jumpNote(33, this)" title="Vai alla nota 33">[33]</sup> e straordinari <sup class="fn-ref" id="fn-ref-34" data-note="34" onclick="jumpNote(34, this)" title="Vai alla nota 34">[34]</sup>.
               </p>
               <p>
                 Con deliberazione del Consiglio di disciplina di cui all'art. 54, agli agenti può essere inflitto, come punizione accessoria, quando vi siano ragioni di incompatibilità locali e nei casi previsti dal presente regolamento, <strong>il trasloco punitivo</strong>, che priva l'agente delle indennità regolamentari, salvo il rimborso delle spese vive.
@@ -1715,7 +1767,7 @@
           <article class="art-card" id="art-all-38" style="--c: var(--rose);">
             <div class="art-card-head">
               <span class="art-num">Articolo 38 (All. A)</span>
-              <span class="art-badge">Risarcimento Danni e Ritenute <sup class="fn-ref" onclick="jumpNote(35)">[35]</sup></span>
+              <span class="art-badge">Risarcimento Danni e Ritenute <sup class="fn-ref" id="fn-ref-35" data-note="35" onclick="jumpNote(35, this)" title="Vai alla nota 35">[35]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -1899,7 +1951,7 @@
           <article class="art-card" id="art-all-45" style="--c: var(--rose);">
             <div class="art-card-head">
               <span class="art-num">Articolo 45 (All. A)</span>
-              <span class="art-badge">Destituzione <sup class="fn-ref" onclick="jumpNote(36)">[36]</sup></span>
+              <span class="art-badge">Destituzione <sup class="fn-ref" id="fn-ref-36" data-note="36" onclick="jumpNote(36, this)" title="Vai alla nota 36">[36]</sup></span>
             </div>
             <div class="art-body">
               <p>Incorre nella <strong>destituzione</strong>:</p>
@@ -1932,7 +1984,7 @@
           <article class="art-card" id="art-all-46" style="--c: var(--rose);">
             <div class="art-card-head">
               <span class="art-num">Articolo 46 (All. A)</span>
-              <span class="art-badge">Sospensione Cautelare Preventiva <sup class="fn-ref" onclick="jumpNote(37)">[37]</sup></span>
+              <span class="art-badge">Sospensione Cautelare Preventiva <sup class="fn-ref" id="fn-ref-37" data-note="37" onclick="jumpNote(37, this)" title="Vai alla nota 37">[37]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -2093,7 +2145,7 @@
           <article class="art-card" id="art-all-54" style="--c: var(--rose);">
             <div class="art-card-head">
               <span class="art-num">Articolo 54 (All. A)</span>
-              <span class="art-badge">Consiglio di Disciplina <sup class="fn-ref" onclick="jumpNote(38)">[38]</sup> <sup class="fn-ref" onclick="jumpNote(39)">[39]</sup> <sup class="fn-ref" onclick="jumpNote(40)">[40]</sup></span>
+              <span class="art-badge">Consiglio di Disciplina <sup class="fn-ref" id="fn-ref-38" data-note="38" onclick="jumpNote(38, this)" title="Vai alla nota 38">[38]</sup> <sup class="fn-ref" id="fn-ref-39" data-note="39" onclick="jumpNote(39, this)" title="Vai alla nota 39">[39]</sup> <sup class="fn-ref" id="fn-ref-40" data-note="40" onclick="jumpNote(40, this)" title="Vai alla nota 40">[40]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -2177,7 +2229,7 @@
           <article class="art-card" id="art-all-58" style="--c: var(--rose);">
             <div class="art-card-head">
               <span class="art-num">Articolo 58 (All. A)</span>
-              <span class="art-badge">Esecutività, Ricorsi e Giurisdizione <sup class="fn-ref" onclick="jumpNote(41)">[41]</sup> <sup class="fn-ref" onclick="jumpNote(42)">[42]</sup> <sup class="fn-ref" onclick="jumpNote(43)">[43]</sup></span>
+              <span class="art-badge">Esecutività, Ricorsi e Giurisdizione <sup class="fn-ref" id="fn-ref-41" data-note="41" onclick="jumpNote(41, this)" title="Vai alla nota 41">[41]</sup> <sup class="fn-ref" id="fn-ref-42" data-note="42" onclick="jumpNote(42, this)" title="Vai alla nota 42">[42]</sup> <sup class="fn-ref" id="fn-ref-43" data-note="43" onclick="jumpNote(43, this)" title="Vai alla nota 43">[43]</sup></span>
             </div>
             <div class="art-body">
               <p>
@@ -2206,7 +2258,7 @@
         <div class="macro-header">
           <div class="macro-title">
             <span>🛡️</span>
-            <span>Allegato A) · Titolo VII · Previdenza <sup class="fn-ref" onclick="jumpNote(44)">[44]</sup></span>
+            <span>Allegato A) · Titolo VII · Previdenza <sup class="fn-ref" id="fn-ref-44" data-note="44" onclick="jumpNote(44, this)" title="Vai alla nota 44">[44]</sup></span>
           </div>
           <span class="macro-tag">Art. 59 · Iscrizione e Trasparenza Versamenti</span>
         </div>
@@ -2237,7 +2289,7 @@
         <div class="macro-header">
           <div class="macro-title">
             <span>📑</span>
-            <span>Allegato B) · Statuto-Tipo delle Casse di Soccorso per il Personale <sup class="fn-ref" onclick="jumpNote(45)">[45]</sup></span>
+            <span>Allegato B) · Statuto-Tipo delle Casse di Soccorso per il Personale <sup class="fn-ref" id="fn-ref-45" data-note="45" onclick="jumpNote(45, this)" title="Vai alla nota 45">[45]</sup></span>
           </div>
           <span class="macro-tag">Disposizioni di Attuazione</span>
         </div>
@@ -2267,184 +2319,454 @@
         <h3><span>📚</span> Note Integrative, Modifiche Legislative e Giurisprudenza Costituzionale</h3>
         <div class="footnotes-grid">
 
-          <div class="fn-card" id="fn-1">
-            <b>[1]</b> Pubblicato nella Gazz. Uff. 9 marzo 1931, n. 56. Le norme contenute nel testo in esame sono state estese per effetto del D.Lgs. 7 maggio 1948, n. 657 al personale effettivo di autofilovie esercitate da aziende tranviarie nello stesso centro urbano, della L. 24 maggio 1952, n. 628, al personale delle filovie urbane ed extraurbane e a quello delle autolinee urbane e al personale degli autoservizi extraurbani della L. 22 settembre 1960, n. 1054.
+          <div class="fn-card" id="fn-1" onclick="returnToText(1)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[1]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Pubblicato nella Gazz. Uff. 9 marzo 1931, n. 56. Le norme contenute nel testo in esame sono state estese per effetto del D.Lgs. 7 maggio 1948, n. 657 al personale effettivo di autofilovie esercitate da aziende tranviarie nello stesso centro urbano, della L. 24 maggio 1952, n. 628, al personale delle filovie urbane ed extraurbane e a quello delle autolinee urbane e al personale degli autoservizi extraurbani della L. 22 settembre 1960, n. 1054.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-2">
-            <b>[2]</b> Abrogato dall'art. 2, comma 9, L. 23 dicembre 1996, n. 662, nei limiti in cui le disposizioni contenute nel testo sono incompatibili con quelle previste dalla citata legge.
+          <div class="fn-card" id="fn-2" onclick="returnToText(2)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[2]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Abrogato dall'art. 2, comma 9, L. 23 dicembre 1996, n. 662, nei limiti in cui le disposizioni contenute nel testo sono incompatibili con quelle previste dalla citata legge.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-3">
-            <b>[3]</b> Recava la disciplina giuridica dei rapporti collettivi di lavoro. Detta legge deve ritenersi abrogata per effetto del D.Lgs.Lgt. 23 novembre 1944, n. 369, che ha soppresso le organizzazioni sindacali fasciste.
+          <div class="fn-card" id="fn-3" onclick="returnToText(3)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[3]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Recava la disciplina giuridica dei rapporti collettivi di lavoro. Detta legge deve ritenersi abrogata per effetto del D.Lgs.Lgt. 23 novembre 1944, n. 369, che ha soppresso le organizzazioni sindacali fasciste.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-4">
-            <b>[4]</b> Le norme sugli orari e sui turni di servizio sono contenute nel R.D.L. 19 ottobre 1923, n. 2328 e nella L. 14 febbraio 1958, n. 138.
+          <div class="fn-card" id="fn-4" onclick="returnToText(4)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[4]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Le norme sugli orari e sui turni di servizio sono contenute nel R.D.L. 19 ottobre 1923, n. 2328 e nella L. 14 febbraio 1958, n. 138.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-5">
-            <b>[5]</b> L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+          <div class="fn-card" id="fn-5" onclick="returnToText(5)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[5]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-6">
-            <b>[6]</b> L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+          <div class="fn-card" id="fn-6" onclick="returnToText(6)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[6]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-7">
-            <b>[7]</b> L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+          <div class="fn-card" id="fn-7" onclick="returnToText(7)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[7]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              L'articolo deve ritenersi superato per effetto del R.D.L. 9 agosto 1943, n. 721 e del D.Lgs.Lgt 23 novembre 1944, n. 369 che hanno soppresso, rispettivamente gli organi corporativi centrali e le associazioni sindacali fasciste.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-8">
-            <b>[8]</b> Recava la disciplina giuridica dei rapporti collettivi di lavoro. Detta legge deve ritenersi abrogata per effetto del D.Lgs.Lgt. 23 novembre 1944, n. 369, che ha soppresso le organizzazioni sindacali fasciste.
+          <div class="fn-card" id="fn-8" onclick="returnToText(8)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[8]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Recava la disciplina giuridica dei rapporti collettivi di lavoro. Detta legge deve ritenersi abrogata per effetto del D.Lgs.Lgt. 23 novembre 1944, n. 369, che ha soppresso le organizzazioni sindacali fasciste.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-9">
-            <b>[9]</b> Comma abrogato dall'art. 104, D.P.R. 11 luglio 1980, n. 753.
+          <div class="fn-card" id="fn-9" onclick="returnToText(9)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[9]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Comma abrogato dall'art. 104, D.P.R. 11 luglio 1980, n. 753.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-10">
-            <b>[10]</b> Così sostituito dalla L. 24 luglio 1957, n. 633.
+          <div class="fn-card" id="fn-10" onclick="returnToText(10)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[10]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Così sostituito dalla L. 24 luglio 1957, n. 633.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-11">
-            <b>[11]</b> La Corte costituzionale, con sentenza 12-26 luglio 1979, n. 93 (Gazz. Uff. 1° agosto 1979, n. 210), ha dichiarato: <em>a)</em> l'illegittimità costituzionale dell'art. 10, secondo e terzo comma, R.D. 8 gennaio 1931, n. 148, come modificato dalla legge n. 633 del 1957, nella parte in cui dispone l'improponibilità e la non improcedibilità dell'azione giudiziaria in caso di mancata o tardiva presentazione del reclamo gerarchico nelle controversie aventi ad oggetto il riconoscimento della qualifica; <em>b)</em> in applicazione dell'art. 27, L. 11 marzo 1953, n. 87, ha dichiarato, altresì, l'illegittimità costituzionale derivata dello stesso art. 10, nella parte in cui dispone l'improponibilità e non la improcedibilità dell'azione giudiziaria in caso di tardiva o di mancata presentazione del ricorso in via gerarchica nelle controversie aventi ad oggetto l'accertamento di ogni altro diritto "non esclusivamente patrimoniale", diverso da quello indicato sub a), inerente al rapporto di lavoro.
+          <div class="fn-card" id="fn-11" onclick="returnToText(11)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[11]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte costituzionale, con sentenza 12-26 luglio 1979, n. 93 (Gazz. Uff. 1° agosto 1979, n. 210), ha dichiarato: <em>a)</em> l'illegittimità costituzionale dell'art. 10, secondo e terzo comma, R.D. 8 gennaio 1931, n. 148, come modificato dalla legge n. 633 del 1957, nella parte in cui dispone l'improponibilità e la non improcedibilità dell'azione giudiziaria in caso di mancata o tardiva presentazione del reclamo gerarchico nelle controversie aventi ad oggetto il riconoscimento della qualifica; <em>b)</em> in applicazione dell'art. 27, L. 11 marzo 1953, n. 87, ha dichiarato, altresì, l'illegittimità costituzionale derivata dello stesso art. 10, nella parte in cui dispone l'improponibilità e non la improcedibilità dell'azione giudiziaria in caso di tardiva o di mancata presentazione del ricorso in via gerarchica nelle controversie aventi ad oggetto l'accertamento di ogni altro diritto "non esclusivamente patrimoniale", diverso da quello indicato sub a), inerente al rapporto di lavoro.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-12">
-            <b>[12]</b> La Corte costituzionale, con sentenza 30 giugno 1986, n. 188 (Gazz. Uff. 23 luglio 1977, n. 35 - Serie speciale), ha dichiarato l'illegittimità costituzionale della lettera e), nella parte in cui prevede che costituisce titolo preferenziale per l'assunzione in servizio l'appartenenza alla categoria dei «figli di agenti».
+          <div class="fn-card" id="fn-12" onclick="returnToText(12)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[12]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte costituzionale, con sentenza 30 giugno 1986, n. 188 (Gazz. Uff. 23 luglio 1977, n. 35 - Serie speciale), ha dichiarato l'illegittimità costituzionale della lettera e), nella parte in cui prevede che costituisce titolo preferenziale per l'assunzione in servizio l'appartenenza alla categoria dei «figli di agenti».
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-13">
-            <b>[13]</b> Il comma deve ritenersi abrogato per effetto del R.D.L. 2 agosto 1943, n. 704 che ha soppresso il Partito nazionale fascista e dell'art. 3, D.Lgs.Lgt. 19 ottobre 1944, n. 301 che, tra l'altro, ha tolto vigore alle norme relative alle precedenze in favore dei coniugati nelle carriere delle Amministrazioni dello Stato e degli enti pubblici e privati.
+          <div class="fn-card" id="fn-13" onclick="returnToText(13)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[13]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Il comma deve ritenersi abrogato per effetto del R.D.L. 2 agosto 1943, n. 704 che ha soppresso il Partito nazionale fascista e dell'art. 3, D.Lgs.Lgt. 19 ottobre 1944, n. 301 che, tra l'altro, ha tolto vigore alle norme relative alle precedenze in favore dei coniugati nelle carriere delle Amministrazioni dello Stato e degli enti pubblici e privati.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-14">
-            <b>[14]</b> Secondo quanto previsto dalla normativa comunitaria, i cittadini dei paesi dell’unione Europea sono equiparati ai cittadini italiani (art. 48 del trattato CEE, Reg. CEE n. 1612/68).
+          <div class="fn-card" id="fn-14" onclick="returnToText(14)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[14]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Secondo quanto previsto dalla normativa comunitaria, i cittadini dei paesi dell’unione Europea sono equiparati ai cittadini italiani (art. 48 del trattato CEE, Reg. CEE n. 1612/68).
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-15">
-            <b>[15]</b> Le parti sociali, come consentito dall’art.1 della legge n. 70/1988, con l’art. 12 dell’A.N. 25 luglio 1997 hanno sostituito il presente n. 2) come di seguito: "2) di aver superato, al momento dell’assunzione in prova, il 18° anno di età".
+          <div class="fn-card" id="fn-15" onclick="returnToText(15)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[15]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Le parti sociali, come consentito dall’art.1 della legge n. 70/1988, con l’art. 12 dell’A.N. 25 luglio 1997 hanno sostituito il presente n. 2) come di seguito: "2) di aver superato, al momento dell’assunzione in prova, il 18° anno di età".
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-16">
-            <b>[16]</b> Vedi art. 9 del DPR 11 luglio 1980, n. 753 e normativa da esso derivata.
+          <div class="fn-card" id="fn-16" onclick="returnToText(16)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[16]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi art. 9 del DPR 11 luglio 1980, n. 753 e normativa da esso derivata.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-17">
-            <b>[17]</b> In merito si veda l’art. 5 della legge n. 300/1970 (Statuto dei Lavoratori).
+          <div class="fn-card" id="fn-17" onclick="returnToText(17)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[17]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              In merito si veda l’art. 5 della legge n. 300/1970 (Statuto dei Lavoratori).
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-18">
-            <b>[18]</b> Con sent. N. 257/1984, la Corte Costituzionale ha dichiarato non fondata la questione di legittimità costituzionale del presente articolo per violazione dell’art. 3 Cost., ritenendo che la particolare natura del rapporto di lavoro degli autoferrotranvieri giustifichi la diversità di trattamento rilevata, rispetto alla disciplina prevista dall’art. 2103 c.c., pur negando che da ciò consegua il mancato adeguamento del livello retributivo alle mansioni superiori di fatto svolte dal lavoratore.
+          <div class="fn-card" id="fn-18" onclick="returnToText(18)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[18]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Con sent. N. 257/1984, la Corte Costituzionale ha dichiarato non fondata la questione di legittimità costituzionale del presente articolo per violazione dell’art. 3 Cost., ritenendo che la particolare natura del rapporto di lavoro degli autoferrotranvieri giustifichi la diversità di trattamento rilevata, rispetto alla disciplina prevista dall’art. 2103 c.c., pur negando che da ciò consegua il mancato adeguamento del livello retributivo alle mansioni superiori di fatto svolte dal lavoratore.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-19">
-            <b>[19]</b> Per il trasferimento dei dirigenti delle r.s.a. si veda l’art. 22 legge n. 300/70.
+          <div class="fn-card" id="fn-19" onclick="returnToText(19)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[19]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Per il trasferimento dei dirigenti delle r.s.a. si veda l’art. 22 legge n. 300/70.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-20">
-            <b>[20]</b> Con riferimento all’istituto delle ferie, si veda la contrattazione collettiva in materia (art. 5 CCNL 23.7.1976; art. 10 CCNL 12.3.1980; art. 5 AN 27.12.2000).
+          <div class="fn-card" id="fn-20" onclick="returnToText(20)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[20]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Con riferimento all’istituto delle ferie, si veda la contrattazione collettiva in materia (art. 5 CCNL 23.7.1976; art. 10 CCNL 12.3.1980; art. 5 AN 27.12.2000).
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-21">
-            <b>[21]</b> La Corte costituzionale, con sentenza 12-19 dicembre 1990, n. 543 (Gazz. Uff. 27 dicembre 1990, n. 51 - Serie speciale), ha dichiarato l'illegittimità del penultimo comma dell'art. 22, nella parte in cui prevede che l'agente possa non usufruire nel corso dell'anno lavorativo del periodo di congedo ordinario spettantigli e da esso richiesto - con conseguente rinvio della fruizione al primo trimestre dell'anno successivo - «per esigenze di servizio» anziché «per eccezionali, motivate esigenze di servizio».
+          <div class="fn-card" id="fn-21" onclick="returnToText(21)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[21]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte costituzionale, con sentenza 12-19 dicembre 1990, n. 543 (Gazz. Uff. 27 dicembre 1990, n. 51 - Serie speciale), ha dichiarato l'illegittimità del penultimo comma dell'art. 22, nella parte in cui prevede che l'agente possa non usufruire nel corso dell'anno lavorativo del periodo di congedo ordinario spettantigli e da esso richiesto - con conseguente rinvio della fruizione al primo trimestre dell'anno successivo - «per esigenze di servizio» anziché «per eccezionali, motivate esigenze di servizio».
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-22">
-            <b>[22]</b> A seguito dell’entrata in vigore di quanto previsto all’art. 1, co. 48, legge n. 311/2004, sono state abrogate le norme contenute nell’Allegato B) del R.D. n. 148/1931. A partire dal 1° gennaio 2005 il trattamento di malattia del personale delle aziende esercenti trasporto pubblico locale è pertanto disciplinato dall’A.N. 19 settembre 2005.
+          <div class="fn-card" id="fn-22" onclick="returnToText(22)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[22]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              A seguito dell’entrata in vigore di quanto previsto all’art. 1, co. 48, legge n. 311/2004, sono state abrogate le norme contenute nell’Allegato B) del R.D. n. 148/1931. A partire dal 1° gennaio 2005 il trattamento di malattia del personale delle aziende esercenti trasporto pubblico locale è pertanto disciplinato dall’A.N. 19 settembre 2005.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-23">
-            <b>[23]</b> La Corte Costituzionale, con sentenza 16-22 giugno 1971, n. 140 (Gazz. Uff. 30 giugno 1971, n. 163) ha dichiarato l'illegittimità costituzionale degli artt. 26, commi quinto, sesto e settimo, e 27 del presente allegato A nella parte in cui escludono l'indennità di buonuscita per i dipendenti delle imprese autoferrotranviarie in caso di destituzione o di dimissioni volontarie.
+          <div class="fn-card" id="fn-23" onclick="returnToText(23)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[23]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte Costituzionale, con sentenza 16-22 giugno 1971, n. 140 (Gazz. Uff. 30 giugno 1971, n. 163) ha dichiarato l'illegittimità costituzionale degli artt. 26, commi quinto, sesto e settimo, e 27 del presente allegato A nella parte in cui escludono l'indennità di buonuscita per i dipendenti delle imprese autoferrotranviarie in caso di destituzione o di dimissioni volontarie.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-24">
-            <b>[24]</b> Limite elevato fino al compimento del 65° anno dall’art. 1 D.Lgs. 30-12-1992 n. 503.
+          <div class="fn-card" id="fn-24" onclick="returnToText(24)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[24]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Limite elevato fino al compimento del 65° anno dall’art. 1 D.Lgs. 30-12-1992 n. 503.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-25">
-            <b>[25]</b> Articolo così sostituito dal primo comma dell'art. 7, L. 28 marzo 1968, n. 376. Il secondo comma del citato art. 7 ha disposto, inoltre, che la nuova norma sopra riportata ha affetto dal 1° luglio 1969. Successivamente, il predetto art. 28 è stato abrogato dall'art. 43, L. 29 ottobre 1971, n. 889, con effetto dal 1° luglio 1969, ed è stato sostituito dall'art. 37 della stessa legge che ha così sostituito l'articolo 7, L. 28 marzo 1968, n. 376.
+          <div class="fn-card" id="fn-25" onclick="returnToText(25)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[25]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Articolo così sostituito dal primo comma dell'art. 7, L. 28 marzo 1968, n. 376. Il secondo comma del citato art. 7 ha disposto, inoltre, che la nuova norma sopra riportata ha affetto dal 1° luglio 1969. Successivamente, il predetto art. 28 è stato abrogato dall'art. 43, L. 29 ottobre 1971, n. 889, con effetto dal 1° luglio 1969, ed è stato sostituito dall'art. 37 della stessa legge che ha così sostituito l'articolo 7, L. 28 marzo 1968, n. 376.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-26">
-            <b>[26]</b> Recante norme sull'assicurazione obbligatoria contro gli infortuni sul lavoro e le malattie professionali. Vedi, ora, il relativo testo unico emanato con D.P.R. 30 giugno 1965, n. 1124.
+          <div class="fn-card" id="fn-26" onclick="returnToText(26)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[26]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Recante norme sull'assicurazione obbligatoria contro gli infortuni sul lavoro e le malattie professionali. Vedi, ora, il relativo testo unico emanato con D.P.R. 30 giugno 1965, n. 1124.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-27">
-            <b>[27]</b> Vedi anche art. 2 L. 270/88.
+          <div class="fn-card" id="fn-27" onclick="returnToText(27)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[27]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi anche art. 2 L. 270/88.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-28">
-            <b>[28]</b> Le disposizioni di quest’ultimo comma si intendono implicitamente abrogate.
+          <div class="fn-card" id="fn-28" onclick="returnToText(28)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[28]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Le disposizioni di quest’ultimo comma si intendono implicitamente abrogate.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-29">
-            <b>[29]</b> Vedi, anche, la L. 3 maggio 1955, n. 370.
+          <div class="fn-card" id="fn-29" onclick="returnToText(29)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[29]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi, anche, la L. 3 maggio 1955, n. 370.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-30">
-            <b>[30]</b> Vedi, anche, sugli orari e sui turni di servizio, il R.D.L. 19 ottobre 1923, n. 2328, e la L. 14 febbraio 1958, n. 138.
+          <div class="fn-card" id="fn-30" onclick="returnToText(30)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[30]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi, anche, sugli orari e sui turni di servizio, il R.D.L. 19 ottobre 1923, n. 2328, e la L. 14 febbraio 1958, n. 138.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-31">
-            <b>[31]</b> Vedi anche l’art. 4 L. n. 146/90 che prevede l’applicazione di sanzioni disciplinari in caso di sciopero illegittimo.
+          <div class="fn-card" id="fn-31" onclick="returnToText(31)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[31]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi anche l’art. 4 L. n. 146/90 che prevede l’applicazione di sanzioni disciplinari in caso di sciopero illegittimo.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-32">
-            <b>[32]</b> Vedi l’art. 7 della legge n. 300/70 che ha modificato parzialmente il presente Titolo VI come segue: la multa, con riferimento a ciascuna infrazione, non può superare l’importo di quattro ore di retribuzione; la sospensione è stata fissata nella misura massima di 10 giorni.
+          <div class="fn-card" id="fn-32" onclick="returnToText(32)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[32]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Vedi l’art. 7 della legge n. 300/70 che ha modificato parzialmente il presente Titolo VI come segue: la multa, con riferimento a ciascuna infrazione, non può superare l’importo di quattro ore di retribuzione; la sospensione è stata fissata nella misura massima di 10 giorni.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-33">
-            <b>[33]</b> La categoria del personale ordinario è stata soppressa.
+          <div class="fn-card" id="fn-33" onclick="returnToText(33)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[33]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La categoria del personale ordinario è stata soppressa.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-34">
-            <b>[34]</b> Ora personale avventizio.
+          <div class="fn-card" id="fn-34" onclick="returnToText(34)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[34]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Ora personale avventizio.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-35">
-            <b>[35]</b> Articolo così modificato dall'art. 1, L. 3 novembre 1952, n. 1982.
+          <div class="fn-card" id="fn-35" onclick="returnToText(35)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[35]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Articolo così modificato dall'art. 1, L. 3 novembre 1952, n. 1982.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-36">
-            <b>[36]</b> Ora, art. 430 c.p. del 1930.
+          <div class="fn-card" id="fn-36" onclick="returnToText(36)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[36]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Ora, art. 430 c.p. del 1930.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-37">
-            <b>[37]</b> La Corte Costituzionale, con sentenza 22-28 novembre 1973, n. 168 (Gazz. Uff. 1973, n. 314) ha dichiarato l'illegittimità costituzionale del presente comma nella parte in cui esclude in ogni caso dal diritto all'«indennizzo» in esso l'agente sospeso in via preventiva e successivamente assolto in sede di procedimento penale per insufficienza di prove. La stessa Corte, con sentenza 14-27 giugno 1989, n. 356 (Gazz. Uff. 5 luglio 1989, n. 27 - Serie speciale), ha dichiarato la illegittimità dell'ultimo comma dell'art. 46, nella parte in cui esclude, in ogni caso, dal diritto all'indennizzo in esso previsto l'agente sospeso in via preventiva e successivamente prosciolto in sede di procedimento penale per amnistia.
+          <div class="fn-card" id="fn-37" onclick="returnToText(37)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[37]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte Costituzionale, con sentenza 22-28 novembre 1973, n. 168 (Gazz. Uff. 1973, n. 314) ha dichiarato l'illegittimità costituzionale del presente comma nella parte in cui esclude in ogni caso dal diritto all'«indennizzo» in esso l'agente sospeso in via preventiva e successivamente assolto in sede di procedimento penale per insufficienza di prove. La stessa Corte, con sentenza 14-27 giugno 1989, n. 356 (Gazz. Uff. 5 luglio 1989, n. 27 - Serie speciale), ha dichiarato la illegittimità dell'ultimo comma dell'art. 46, nella parte in cui esclude, in ogni caso, dal diritto all'indennizzo in esso previsto l'agente sospeso in via preventiva e successivamente prosciolto in sede di procedimento penale per amnistia.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-38">
-            <b>[38]</b> Gli attuali commi primo, secondo e terzo - che hanno sostituito l'originario comma primo per effetto dell'art. 2, L. 3 novembre 1952, n. 1982 - sono stati così modificati dalla L. 5 marzo 1963, n. 390.
+          <div class="fn-card" id="fn-38" onclick="returnToText(38)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[38]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Gli attuali commi primo, secondo e terzo - che hanno sostituito l'originario comma primo per effetto dell'art. 2, L. 3 novembre 1952, n. 1982 - sono stati così modificati dalla L. 5 marzo 1963, n. 390.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-39">
-            <b>[39]</b> Comma aggiunto dall'art. 3, L. 1 agosto 1941, n. 1063.
+          <div class="fn-card" id="fn-39" onclick="returnToText(39)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[39]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Comma aggiunto dall'art. 3, L. 1 agosto 1941, n. 1063.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-40">
-            <b>[40]</b> Comma aggiunto dall'art. 3, L. 1 agosto 1941, n. 1063.
+          <div class="fn-card" id="fn-40" onclick="returnToText(40)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[40]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Comma aggiunto dall'art. 3, L. 1 agosto 1941, n. 1063.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-41">
-            <b>[41]</b> Le Sezioni Unite della Cassazione hanno affermato con due sentenze innovative per il settore (S.U. n. 460/05 e 9939/05) la giurisdizione del giudice ordinario per le controversie disciplinari del personale autoferrotranviario. Massima Cass. Civ. Sez. U., sent. n. 460 del 13 Gennaio 2005: <em>«Le controversie in materia di sanzioni disciplinari per gli addetti al servizio pubblico di trasporto in concessione, attribuite al Giudice amministrativo dall'art. 58 del R.D. 8 gennaio 1931, n. 148, Allegato A), appartengono alla cognizione del Giudice ordinario, stante l'implicita abrogazione per incompatibilità, sin dall'operatività della disposizione originaria dell'art. 68 del D.Lgs. 3 febbraio 1993, n. 29, della persistente giurisdizione del Giudice amministrativo prefigurata dal citato art. 58 R.D. 8 gennaio 1931, n. 148»</em>.
+          <div class="fn-card" id="fn-41" onclick="returnToText(41)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[41]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Le Sezioni Unite della Cassazione hanno affermato con due sentenze innovative per il settore (S.U. n. 460/05 e 9939/05) la giurisdizione del giudice ordinario per le controversie disciplinari del personale autoferrotranviario. Massima Cass. Civ. Sez. U., sent. n. 460 del 13 Gennaio 2005: <em>«Le controversie in materia di sanzioni disciplinari per gli addetti al servizio pubblico di trasporto in concessione, attribuite al Giudice amministrativo dall'art. 58 del R.D. 8 gennaio 1931, n. 148, Allegato A), appartengono alla cognizione del Giudice ordinario, stante l'implicita abrogazione per incompatibilità, sin dall'operatività della disposizione originaria dell'art. 68 del D.Lgs. 3 febbraio 1993, n. 29, della persistente giurisdizione del Giudice amministrativo prefigurata dal citato art. 58 R.D. 8 gennaio 1931, n. 148»</em>.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-42">
-            <b>[42]</b> La Corte costituzionale, con sentenza 4-8 marzo 1996, n. 62 (Gazz. Uff. 13 marzo 1996, n. 11, Serie speciale), ha dichiarato non fondata la questione di legittimità costituzionale dell'art. 58, secondo comma dell'allegato A, sollevata in riferimento agli artt. 3 e 24 Cost. La stessa Corte, con successiva ordinanza 27-29 settembre 2004, n. 301 (Gazz. Uff. 6 ottobre 2004, n. 39, 1ª Serie speciale), ha dichiarato la manifesta infondatezza della questione di legittimità costituzionale dell'art. 58, allegato A) sollevata in riferimento agli articoli 3 e 24 Cost.
+          <div class="fn-card" id="fn-42" onclick="returnToText(42)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[42]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte costituzionale, con sentenza 4-8 marzo 1996, n. 62 (Gazz. Uff. 13 marzo 1996, n. 11, Serie speciale), ha dichiarato non fondata la questione di legittimità costituzionale dell'art. 58, secondo comma dell'allegato A, sollevata in riferimento agli artt. 3 e 24 Cost. La stessa Corte, con successiva ordinanza 27-29 settembre 2004, n. 301 (Gazz. Uff. 6 ottobre 2004, n. 39, 1ª Serie speciale), ha dichiarato la manifesta infondatezza della questione di legittimità costituzionale dell'art. 58, allegato A) sollevata in riferimento agli articoli 3 e 24 Cost.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-43">
-            <b>[43]</b> La Corte costituzionale, con ordinanza 24 aprile-7 maggio 2002, n. 161 (Gazz. Uff. 15 maggio 2002, n. 19, serie speciale), ha dichiarato la manifesta infondatezza della questione di legittimità costituzionale del combinato disposto dell'art. 1, della L. 24 maggio 1952, n. 628, degli articoli 1, 3 e 4 della L. 22 settembre 1960, n. 1054 e dell'art. 58, allegato A, al R.D. 8 gennaio 1931, n. 148 sollevata in riferimento agli artt. 3 e 24 Cost. La stessa Corte, con successiva ordinanza 24 ottobre - 7 novembre 2002, n. 439 (Gazz. Uff. 13 novembre 2002, n. 45, serie speciale), ha dichiarato manifesta infondatezza della questione di legittimità costituzionale del combinato disposto dell'art. 1 della legge 24 maggio 1952, n. 628, degli articoli 1, 3 e 4 della legge 22 settembre 1960, n. 1054 e dell'art. 58 dell'allegato A al regio decreto 8 gennaio 1931, n. 148 sollevata in riferimento all'art. 3 Cost.
+          <div class="fn-card" id="fn-43" onclick="returnToText(43)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[43]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              La Corte costituzionale, con ordinanza 24 aprile-7 maggio 2002, n. 161 (Gazz. Uff. 15 maggio 2002, n. 19, serie speciale), ha dichiarato la manifesta infondatezza della questione di legittimità costituzionale del combinato disposto dell'art. 1, della L. 24 maggio 1952, n. 628, degli articoli 1, 3 e 4 della L. 22 settembre 1960, n. 1054 e dell'art. 58, allegato A, al R.D. 8 gennaio 1931, n. 148 sollevata in riferimento agli artt. 3 e 24 Cost. La stessa Corte, con successiva ordinanza 24 ottobre - 7 novembre 2002, n. 439 (Gazz. Uff. 13 novembre 2002, n. 45, serie speciale), ha dichiarato manifesta infondatezza della questione di legittimità costituzionale del combinato disposto dell'art. 1 della legge 24 maggio 1952, n. 628, degli articoli 1, 3 e 4 della legge 22 settembre 1960, n. 1054 e dell'art. 58 dell'allegato A al regio decreto 8 gennaio 1931, n. 148 sollevata in riferimento all'art. 3 Cost.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-44">
-            <b>[44]</b> Sul trattamento di previdenza del personale addetto ai pubblici servizi di trasporto in concessione si vedano i seguenti provvedimenti: R.D. 30.9.1920 n. 1538; R.D.L. 19.10.1923 n. 2311; R.D. 7.8.1936 n. 1750; D.L.L. 28.5.1945 n. 402; D.L. 16.9.1947 n. 1083; L. 14.5.1949 n. 269; L. 28.12.1961 n. 830; L. 28.3.1968 n. 376; L. 29.10.1971 n. 889; D.Lgs. 29.6.1996 n. 414.
+          <div class="fn-card" id="fn-44" onclick="returnToText(44)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[44]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              Sul trattamento di previdenza del personale addetto ai pubblici servizi di trasporto in concessione si vedano i seguenti provvedimenti: R.D. 30.9.1920 n. 1538; R.D.L. 19.10.1923 n. 2311; R.D. 7.8.1936 n. 1750; D.L.L. 28.5.1945 n. 402; D.L. 16.9.1947 n. 1083; L. 14.5.1949 n. 269; L. 28.12.1961 n. 830; L. 28.3.1968 n. 376; L. 29.10.1971 n. 889; D.Lgs. 29.6.1996 n. 414.
+            </div>
           </div>
 
-          <div class="fn-card" id="fn-45">
-            <b>[45]</b> L'Allegato B al presente decreto, comprendente gli articoli da 1 a 21, è stato abrogato dal comma 148 dell'art. 1, L. 30 dicembre 2004, n. 311.
+          <div class="fn-card" id="fn-45" onclick="returnToText(45)" title="Clicca sulla nota per tornare all'articolo su">
+            <div class="fn-card-head">
+              <b>[45]</b>
+              <span class="fn-return-btn">↩ Torna al testo</span>
+            </div>
+            <div class="fn-card-body">
+              L'Allegato B al presente decreto, comprendente gli articoli da 1 a 21, è stato abrogato dal comma 148 dell'art. 1, L. 30 dicembre 2004, n. 311.
+            </div>
           </div>
 
         </div>
@@ -2461,15 +2783,43 @@
   </div>
 
   <script>
-    function jumpNote(num) {
-      const el = document.getElementById('fn-' + num);
+    // Mappa per salvare l'origine esatta dell'ultimo click sulla nota
+    const noteOrigins = {};
+
+    function jumpNote(num, el) {
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.style.borderColor = 'var(--teal)';
-        el.style.background = 'color-mix(in srgb, var(--teal) 15%, var(--surface))';
+        noteOrigins[num] = el;
+      }
+      const targetNote = document.getElementById('fn-' + num);
+      if (targetNote) {
+        targetNote.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetNote.classList.add('fn-highlighted');
         setTimeout(() => {
-          el.style.borderColor = 'var(--line)';
-          el.style.background = 'var(--surface)';
+          targetNote.classList.remove('fn-highlighted');
+        }, 2200);
+      }
+    }
+
+    function returnToText(num) {
+      // Trova l'elemento di origine (o l'ancora salvata o il primo sup collegato)
+      const origin = noteOrigins[num] || document.getElementById('fn-ref-' + num) || document.querySelector('[data-note="' + num + '"]');
+      if (origin) {
+        origin.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Evidenzia il numeretto della nota nel testo
+        origin.classList.add('ref-highlighted');
+        
+        // Evidenzia anche l'articolo padre per chiarezza visiva
+        const parentCard = origin.closest('.art-card');
+        if (parentCard) {
+          parentCard.classList.add('card-highlighted');
+        }
+        
+        setTimeout(() => {
+          origin.classList.remove('ref-highlighted');
+          if (parentCard) {
+            parentCard.classList.remove('card-highlighted');
+          }
         }, 2200);
       }
     }
