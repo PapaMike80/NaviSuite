@@ -61,4 +61,26 @@ assert.strictEqual(tSera.mancaRitorno, true);
 assert.strictEqual(tSera.competenze.pernottoSera, true);
 assert.strictEqual(tSera.competenze.secondoTicket, true);
 
+// Test salvataggio competenze nella distinta (PonD a Desenzano da Maderno)
+const entries = [];
+const comp = tTurno.competenze;
+const day = '2026-10-28';
+let entry = { id: 'naviturni-' + day, date: day, shift: 'PonD', mealUsed: true, ticketPresence: true };
+entry.travel = true;
+entry.allowanceRate = comp.diariaRate;
+if (comp.secondoTicket) entry.secondMeal = 1;
+if (comp.pernottoSera) entry.overnight40 = true;
+entries.push(entry);
+
+assert.strictEqual(entry.allowanceRate, 50);
+assert.strictEqual(entry.travel, true);
+assert.strictEqual(entry.secondMeal, 1);
+assert.strictEqual(entry.overnight40, undefined);
+
+// Se pernotto la sera prima (tPrima), la giornata prima riceve overnight40
+const ieriIso = '2026-10-27';
+let entryIeri = { id: 'naviturni-' + ieriIso, date: ieriIso, shift: 'Riposo' };
+if (tPrima.competenze.pernottoPrima) entryIeri.overnight40 = true;
+assert.strictEqual(entryIeri.overnight40, true);
+
 console.log('collegamenti turno ok');
