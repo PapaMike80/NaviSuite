@@ -655,11 +655,19 @@
     if (state.embed?.modo === 'nave') {
       // Il mio turno, corsa di linea: solo la mappa con la mia nave, la sua rotta e il tratto fatto
       // in Il mio turno: solo il cursore del tempo e la mappa, senza intestazione «Lago»
-      $('orario-content').innerHTML = `<section class="terra-card or-mia"><div class="terra-card-body"><div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div></div></section>`;
+      if ($('orario-scalo')) { $('orario-scalo').innerHTML = ''; $('orario-scalo').hidden = true; }
+      $('orario-content').innerHTML = `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`;
       return;
     }
+    if (state.embed?.modo === 'terra') {
+      // Il mio turno, a terra: la sezione Allo scalo e' fuori dalla mappa; dentro Mappa solo il tempo e il lago
+      if ($('orario-scalo')) { $('orario-scalo').innerHTML = side; $('orario-scalo').hidden = false; }
+      $('orario-content').innerHTML = `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`;
+      return;
+    }
+    if ($('orario-scalo')) { $('orario-scalo').innerHTML = ''; $('orario-scalo').hidden = true; }
     $('orario-content').innerHTML = `<div class="terra-grid or-lago"><div class="terra-col">` +
-      card('Lago', 'posizione delle navi all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`) +
+      card('Mappa', 'posizione delle navi all\'ora scelta', `<div class="or-time" id="or-time">${controlliTempo(t)}</div><div id="or-map-wrap">${svg}</div>`) +
       `</div><div class="terra-col" id="or-side">${side}</div></div>`;
   }
   // Durante il trascinamento del cursore: solo mappa, elenco e ora (il cursore resta).
@@ -667,6 +675,7 @@
     const { t, svg, side } = lagoParti();
     $('or-map-wrap').innerHTML = svg;
     if ($('or-side')) $('or-side').innerHTML = side;
+    if ($('orario-scalo') && !$('orario-scalo').hidden) $('orario-scalo').innerHTML = side;
     $('or-clock').textContent = hhmm(t);
     const adesso = document.querySelector('#or-time .or-adesso');
     if (adesso && state.time != null) { adesso.classList.remove('on'); adesso.textContent = 'Adesso'; }
@@ -1035,19 +1044,21 @@
   });
 
   const content = $('orario-content');
+  const eventRoots = [$('orario-content'), $('orario-scalo')].filter(Boolean);
+  const onContent = (type, fn, capture = false) => eventRoots.forEach(el => el.addEventListener(type, fn, capture));
   // riquadri richiudibili (navi in linea, note): restano come li ho lasciati quando la pagina si ridisegna
-  content.addEventListener('toggle', event => {
+  onContent('toggle', event => {
     const key = event.target?.dataset?.dettaglio;
     if (key) { if (event.target.open) state.dettagli.add(key); else state.dettagli.delete(key); }
   }, true);
-  content.addEventListener('input', event => {
+  onContent('input', event => {
     if (event.target.id === 'or-slider') {
       stopPlay();
       state.time = Number(event.target.value);
       aggiornaLago();
     }
   });
-  content.addEventListener('change', event => {
+  onContent('change', event => {
     if (event.target.id === 'or-from') { state.from = event.target.value; state.fromScelto = true; state.viaggioScelto = 0; state.sceltaArrivo = false; }
     else if (event.target.id === 'or-to') { state.to = event.target.value; state.viaggioScelto = 0; state.sceltaArrivo = false; }
     else if (event.target.matches('[data-pontile]')) { salvaPontile(event.target.dataset.pontile.split(' '), event.target.value); return; }
@@ -1068,13 +1079,13 @@
     render();
   });
   // bolla della comitiva: apre il riquadro comitive sulla comitiva di quella nave
-  content.addEventListener('click', event => {
+  onContent('click', event => {
     const go = event.target.closest('[data-com-go]');
     if (!go) return;
     event.stopPropagation(); event.preventDefault();
-    vaiAllaComitiva(content, go.dataset.comGo);
+    vaiAllaComitiva(document, go.dataset.comGo);
   }, true);
-  content.addEventListener('click', event => {
+  onContent('click', event => {
     const port = event.target.closest('[data-port]');
     if (port) {
       state.scalo = port.dataset.port; state.scaloScelto = true; state.open = ''; nuovoScalo();
@@ -1142,7 +1153,7 @@
     const row = event.target.closest('[data-open]');
     if (row) { state.open = state.open === row.dataset.open ? '' : row.dataset.open; render(); }
   });
-  content.addEventListener('keydown', event => {
+  onContent('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     if (event.target.closest('select')) return;
     const target = event.target.closest('[data-ship],[data-open],[data-port],.or-detail .terra-card-head');
@@ -1157,7 +1168,7 @@
         const giorno = day && day !== iso(new Date()) ? day : '';
         const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || (state.embed.inizio || '') !== inizio || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
         // mentre si sceglie un pontile o si usa il cursore non si ridisegna
-        if (!cambia && (document.activeElement?.closest?.('#orario-content select') || state.playing)) return;
+        if (!cambia && (document.activeElement?.closest?.('#orario-content select, #orario-scalo select') || state.playing)) return;
         state.embed = { modo, turno, inizio };
         state.view = 'lago';
         if (cambia) {
@@ -1167,7 +1178,7 @@
         }
         render();
       },
-      hide() { state.embed = null; stopPlay(); $('orario-content').innerHTML = ''; $('orario-notice').hidden = true; }
+      hide() { state.embed = null; stopPlay(); $('orario-content').innerHTML = ''; if ($('orario-scalo')) { $('orario-scalo').innerHTML = ''; $('orario-scalo').hidden = true; } $('orario-notice').hidden = true; }
     };
   }
   render();

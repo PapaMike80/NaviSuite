@@ -228,6 +228,13 @@
     }
     return '<span class="' + cls + '" role="button" tabindex="0" title="Mezzi pubblici: tocca per vedere i dettagli">' + esc(testo) + '</span>';
   }
+  function impostaContesto(testoBase, ct) {
+    const el = $('turno-context');
+    if (!el) return;
+    const badge = badgeHeaderMezzi(ct);
+    const base = String(testoBase || '').trim();
+    el.innerHTML = `${esc(base)}${badge ? (base ? ' · ' : '') + badge : ''}`;
+  }
   function residenzaDiNave(code) {
     const c = String(code || '').trim().toUpperCase();
     if (/^D[1-4]$/.test(c) || /^BIS$/.test(c)) return 'Desenzano';
@@ -352,7 +359,15 @@
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
     const sedeNave = residenzaDiNave(code);
     const casa = residenzaAgente(me, found, state.schedule) || (sedeNave === 'Maderno' ? 'Desenzano' : 'Maderno');
-    const coll = cardCollegamenti(day, code, sedeNave, casa, info.presentation, info.lastArrival);
+    let coll = '', ct = null;
+    try {
+      ct = window.NaviCollegamenti?.cercaTurno?.({ casa, turnoResidenza: sedeNave, iso: day, inizio: info.presentation, fine: info.lastArrival });
+      coll = cardCollegamenti(day, code, sedeNave, casa, info.presentation, info.lastArrival);
+    } catch (e) {
+      console.warn('Collegamenti nave non calcolati', e);
+    }
+    const baseContext = [G.comandante(crew), info.trips ? `corse ${info.trips}` : ''].filter(Boolean).join(' · ');
+    impostaContesto(baseContext, ct);
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
     $('turno-content').innerHTML = `<div class="terra-col">${riquadroComitive(rows, com, day, code)}${right}</div>`;
     $('turno-after').innerHTML = `<div class="terra-col">${coll}${left}</div>`;
@@ -360,16 +375,23 @@
 
   function renderTerra(code, residenza, day, me, found) {
     $('turno-title').innerHTML = `${chip(code)} A terra`;
-    $('turno-context').textContent = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
-    const inizio = servizio ? servizio[1].split(' – ')[0] : '';
-    const fine = servizio ? (servizio[2] || servizio[1]).split(' – ').pop() : '';
+    const inizioClean = servizio ? String(servizio[1] || '').split(/[-–]/)[0].trim() : '';
+    const fineClean = servizio ? String(servizio[2] || servizio[1] || '').split(/[-–]/).pop().trim() : '';
     // A terra: la pagina Scali del mio scalo (mappa, navi allo scalo con pontili, ormeggi, agenti), poi la scheda Turno.
     $('turno-content').innerHTML = '';
-    if (servizio) servizioHeader(servizio[1].split(' – ')[0], servizio[2].split(' – ')[1], day, code);
-    const casa = residenzaAgente(me, found, state.schedule) || (residenza === 'MADERNO' ? 'Desenzano' : 'Maderno');
-    const coll = cardCollegamenti(day, code, residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', casa, inizio, fine);
-    $('turno-after').innerHTML = `<div class="terra-col">${coll}${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
+    if (servizio) servizioHeader(inizioClean, fineClean, day, code);
+    const sedeTerra = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
+    const casa = residenzaAgente(me, found, state.schedule) || (sedeTerra === 'Maderno' ? 'Desenzano' : 'Maderno');
+    let coll = '', ct = null;
+    try {
+      ct = window.NaviCollegamenti?.cercaTurno?.({ casa, turnoResidenza: sedeTerra, iso: day, inizio: inizioClean, fine: fineClean });
+      coll = cardCollegamenti(day, code, sedeTerra, casa, inizioClean, fineClean);
+    } catch (e) {
+      console.warn('Collegamenti terra non calcolati', e);
+    }
+    impostaContesto(sedeTerra, ct);
+    $('turno-after').innerHTML = `<div class="terra-col">${coll}${turnoCard(code, day, servizio ? { inizio: inizioClean, fine: fineClean } : {})}</div>`;
     $('turno-scali').hidden = false;
     window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
   }
@@ -540,6 +562,7 @@
     $('turno-day-today').hidden = false;
     $('turno-day-today').classList.toggle('on', realToday);
     $('turno-scali').hidden = true;
+    if ($('orario-scalo')) { $('orario-scalo').innerHTML = ''; $('orario-scalo').hidden = true; }
     $('turno-map').open = state.sections.mappa;
     $('turno-after').innerHTML = '';
     servizioHeader('', '', day);
