@@ -152,6 +152,28 @@
     if (s.startsWith('riv')) return 'Riva';
     return null;
   }
+  const ORA_SECONDO_TICKET = 20 * 60 + 45; // 20:45 = 1245 minuti
+
+  function competenzeTrasferta({ casa, lavoro, inizioMin, fineMin, andata, ritorno }) {
+    if (!casa || !lavoro || casa === lavoro) return null;
+    const mancaAndata = Boolean(inizioMin != null && !andata);
+    const mancaRitorno = Boolean(fineMin != null && !ritorno);
+    const rientroMin = ritorno?.arriva ?? null;
+    const pernottoPrima = mancaAndata; // 40% la sera prima se non c'e' l'andata
+    const pernottoSera = mancaRitorno; // 40% la sera del turno se non c'e' il ritorno
+    // Secondo ticket dopo le 20.45 se torno in residenza, oppure se pernotto fuori (la sera del turno)
+    const secondoTicket = pernottoSera || (rientroMin != null && rientroMin > ORA_SECONDO_TICKET);
+    return {
+      trasferta: true,
+      diariaRate: 50, // Diaria 50% in trasferta
+      pernottoPrima,
+      pernottoSera,
+      secondoTicket,
+      rientroMin,
+      rientroOltre2045: rientroMin != null && rientroMin > ORA_SECONDO_TICKET
+    };
+  }
+
   function cercaTurno({ casa, turnoResidenza, iso, inizio, fine }) {
     const daCasa = normalizzaResidenza(casa);
     const alLavoro = normalizzaResidenza(turnoResidenza);
@@ -161,6 +183,20 @@
     const fineMin = minuti(fine);
     const andata = inizioMin != null ? cerca(daCasa, alLavoro, iso, inizioMin) : null;
     const ritorno = fineMin != null ? cercaDopo(alLavoro, daCasa, iso, fineMin) : null;
+    const primoAndata = andata?.validi?.[0] || null;
+    const primoRitorno = ritorno?.validi?.[0] || null;
+    const mancaAndata = Boolean(inizioMin != null && !primoAndata);
+    const mancaRitorno = Boolean(fineMin != null && !primoRitorno);
+    const fattibile = Boolean(primoAndata && primoRitorno);
+    const competenze = competenzeTrasferta({
+      casa: daCasa,
+      lavoro: alLavoro,
+      inizioMin,
+      fineMin,
+      andata: primoAndata,
+      ritorno: primoRitorno
+    });
+
     return {
       stessaResidenza: false,
       casa: daCasa,
@@ -168,14 +204,15 @@
       data: iso,
       inizio: inizioMin,
       fine: fineMin,
-      andata: andata?.validi?.[0] || null,
+      andata: primoAndata,
       andataAlternativa: andata?.validi?.[1] || null,
       andataPrimoDopo: andata?.primoDopo || null,
-      ritorno: ritorno?.validi?.[0] || null,
+      ritorno: primoRitorno,
       ritornoAlternativa: ritorno?.validi?.[1] || null,
-      fattibile: Boolean(andata?.validi?.[0] && ritorno?.validi?.[0]),
-      mancaAndata: Boolean(inizioMin != null && !andata?.validi?.[0]),
-      mancaRitorno: Boolean(fineMin != null && !ritorno?.validi?.[0])
+      fattibile,
+      mancaAndata,
+      mancaRitorno,
+      competenze
     };
   }
 
@@ -339,6 +376,6 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scarica(); });
   }
 
-  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
+  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, competenzeTrasferta, ORA_SECONDO_TICKET, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
   if (typeof document !== 'undefined' && document.getElementById('col-linee')) avvia();
 })();

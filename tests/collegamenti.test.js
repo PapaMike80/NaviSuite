@@ -42,4 +42,23 @@ assert.strictEqual(C.ora(tTurno.andata.parte), '07:37');
 assert.strictEqual(C.ora(tTurno.andata.arriva), '08:59');
 assert.strictEqual(C.ora(tTurno.ritorno.parte), '20:00');
 assert.strictEqual(C.ora(tTurno.ritorno.arriva), '21:28');
+assert.strictEqual(tTurno.competenze.trasferta, true);
+assert.strictEqual(tTurno.competenze.diariaRate, 50);
+assert.strictEqual(tTurno.competenze.pernottoPrima, false);
+assert.strictEqual(tTurno.competenze.pernottoSera, false);
+assert.strictEqual(tTurno.competenze.secondoTicket, true); // rientro 21:28 > 20:45
+
+// Test competenze trasferta con pernotto la sera prima (inizio ore 05:00)
+const tPrima = C.cercaTurno({ casa: 'Maderno', turnoResidenza: 'Desenzano', iso: '2026-10-28', inizio: '05:00', fine: '13:00' });
+assert.strictEqual(tPrima.mancaAndata, true);
+assert.strictEqual(tPrima.competenze.pernottoPrima, true);
+assert.strictEqual(tPrima.competenze.pernottoSera, false);
+assert.strictEqual(tPrima.competenze.secondoTicket, false);
+
+// Test competenze trasferta con pernotto la sera del turno (fine ore 23:30, no rientro)
+const tSera = C.cercaTurno({ casa: 'Maderno', turnoResidenza: 'Desenzano', iso: '2026-10-28', inizio: '09:30', fine: '23:30' });
+assert.strictEqual(tSera.mancaRitorno, true);
+assert.strictEqual(tSera.competenze.pernottoSera, true);
+assert.strictEqual(tSera.competenze.secondoTicket, true);
+
 console.log('collegamenti turno ok');
