@@ -50,15 +50,21 @@ Appena entrato (oppure toccando il pulsante menu **`☰`** in alto a destra da q
 
 ## 4. Vedere il tuo turno e con chi navighi (`Turni` e `Il mio turno`)
 
-Aprendo **Turni** o **Il mio turno**, NaviSuite riconosce automaticamente il tuo nome:
+La pagina **Turni** ha una grafica moderna e rapida pensata per smartphone e PC:
 
 <p align="center">
-  <img src="../tools/mockup-naviturni-7gg.png" alt="Vista Turni ed Equipaggio" width="340">
+  <img src="../tools/mockup-naviturni-equipaggio.png" alt="Nuova grafica Turni su Telefono e PC" width="100%">
 </p>
 
-* In alto vedi **il tuo turno di oggi**, gli **orari di inizio e fine**, la **nave** e l'elenco completo dei **colleghi a bordo** con la loro qualifica (`Cap`, `CT`, `Tim`, `Mot`, `AM`, `Mar`, `App`).
-* Sotto trovi il **tabellone settimanale** della tua residenza (*Desenzano*, *Maderno*, *Riva*, *Peschiera*): la tua riga è evidenziata.
-* **Tocca qualsiasi casella** del tabellone per aprire i dettagli di quel turno, vedere l'equipaggio di quel giorno o eventuali variazioni da O.d.S.
+<p align="center">
+  <img src="../tools/mockup-naviturni-7gg.png" alt="Dettaglio Turni ed Equipaggio da Telefono" width="340">
+</p>
+
+* **Scheda in alto «Con chi navighi»**: riconosce automaticamente il tuo nome e mostra il tuo turno di oggi (`D1 7.10 – 18.30`), la nave assegnata (`nave Zanardelli`) e tutti i colleghi a bordo con i **distintivi di grado** (`Cap` Capitano, `CT` Capo timoniere, `Mot` Motorista, `Tim` Timoniere, `AM` Aiuto motorista, `Mar` Marinaio, `App` Bigliettaio di bordo).
+* **Nuova tabella a bolle colorate**: ogni turno ha il suo colore dedicato (`D1` blu, `D2` verde, `D3` arancione, `D4` viola, `P1`, `P2`, ecc.), mentre i riposi sono trattini neutri `—` per una lettura pulita. Le trasferte hanno bordo arancione (`D1C`), gli imbarcati bordo blu (`#`) e i servizi speciali bordo viola (`S.S.`).
+* **La tua riga resta sempre visibile**: la riga col tuo nominativo è evidenziata in verde acqua ed è fissata in cima alla tabella per non perderla mai di vista mentre scorri l'elenco.
+* **Navigazione veloce**: puoi cambiare residenza (*Desenzano*, *Maderno*, *Riva*, *Peschiera*) con le pastiglie in alto e scorrere le settimane con `‹ 7 – 13 set ›` o tornare subito a oggi con il tasto verde acqua **Oggi**.
+* **Tocca qualsiasi casella del tabellone**: toccando un turno di un collega o di un altro giorno, la scheda in alto (o la colonna destra su PC) carica all'istante orari, nave ed equipaggio di quel turno!
 
 ---
 

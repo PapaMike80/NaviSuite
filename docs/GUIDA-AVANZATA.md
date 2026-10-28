@@ -8,19 +8,47 @@ Questa guida approfondisce tutte le funzioni avanzate di **NaviSuite**: dal calc
 
 ## Indice
 
-1. [Distinta (`NaviDiaria`): Funzioni Avanzate e Calcolo Ore](#1-distinta-navidiaria-funzioni-avanzate-e-calcolo-ore)
-2. [Verifica Busta Paga e Statistiche Annuali](#2-verifica-busta-paga-e-statistiche-annuali)
-3. [Notifiche Push a Telefono Bloccato](#3-notifiche-push-a-telefono-bloccato)
-4. [Scali in Tempo Reale, Mappa del Lago e Stampe A4](#4-scali-in-tempo-reale-mappa-del-lago-e-stampe-a4)
-5. [Sincronizzazione automatica col Calendario (iPhone e Android)](#5-sincronizzazione-automatica-col-calendario-iphone-e-android)
-6. [Widget per iPhone (Schermata Home e Blocco Schermo)](#6-widget-per-iphone-schermata-home-e-blocco-schermo)
-7. [Personalizzazione del Menu e Pagina Iniziale](#7-personalizzazione-del-menu-e-pagina-iniziale)
-8. [Controllo Cassa, Comitive e Documenti O.d.S.](#8-controllo-cassa-comitive-e-documenti-ods)
-9. [Backup, Allineamento Archivi e Uso Offline](#9-backup-allineamento-archivi-e-uso-offline)
+1. [La Nuova Pagina Turni (`NaviTurni`): Tabellone, Bolle ed Equipaggi](#1-la-nuova-pagina-turni-naviturni-tabellone-bolle-ed-equipaggi)
+2. [Distinta (`NaviDiaria`): Funzioni Avanzate e Calcolo Ore](#2-distinta-navidiaria-funzioni-avanzate-e-calcolo-ore)
+3. [Verifica Busta Paga e Statistiche Annuali](#3-verifica-busta-paga-e-statistiche-annuali)
+4. [Notifiche Push a Telefono Bloccato](#4-notifiche-push-a-telefono-bloccato)
+5. [Scali in Tempo Reale, Mappa del Lago e Stampe A4](#5-scali-in-tempo-reale-mappa-del-lago-e-stampe-a4)
+6. [Sincronizzazione automatica col Calendario (iPhone e Android)](#6-sincronizzazione-automatica-col-calendario-iphone-e-android)
+7. [Widget per iPhone (Schermata Home e Blocco Schermo)](#7-widget-per-iphone-schermata-home-e-blocco-schermo)
+8. [Personalizzazione del Menu e Pagina Iniziale](#8-personalizzazione-del-menu-e-pagina-iniziale)
+9. [Controllo Cassa, Comitive e Documenti O.d.S.](#9-controllo-cassa-comitive-e-documenti-ods)
+10. [Backup, Allineamento Archivi e Uso Offline](#10-backup-allineamento-archivi-e-uso-offline)
 
 ---
 
-## 1. Distinta (`NaviDiaria`): Funzioni Avanzate e Calcolo Ore
+## 1. La Nuova Pagina Turni (`NaviTurni`): Tabellone, Bolle ed Equipaggi
+
+La pagina **Turni** è stata completamente rinnovata con una nuova interfaccia reattiva, adatta sia alla consultazione veloce dal telefono sia alla visione d'insieme su tablet e PC:
+
+<p align="center">
+  <img src="../tools/mockup-naviturni-equipaggio.png" alt="Nuova interfaccia Turni da Telefono e da PC" width="100%">
+</p>
+
+### Caratteristiche principali della nuova grafica
+
+* **Scheda «Con chi navighi» sempre in primo piano**:
+  * All'apertura riconosce il tuo profilo e mostra in alto il **tuo turno di oggi**, gli orari previsti di inizio e termine (`7.10 – 18.30`), la **nave assegnata** (`nave Zanardelli`) e il numero di colleghi a bordo.
+  * L'elenco dell'equipaggio è ordinato gerarchicamente per grado contrattuale (`Cap`, `CT`, `Mot`, `Tim`, `AM`, `Mar`, `App`) e anzianità, con la propria riga evidenziata con l'indicazione `tu`.
+* **Tabellone a bolle con codice colore contrattuale**:
+  * Ogni turno di servizio ha un colore caratteristico e uniforme (`D1` blu, `D2` verde smeraldo, `D3` arancione, `D4` magenta/viola, `D5` giallo tenue, `P1`/`P2`, ecc.).
+  * I **riposi** sono indicati con un trattino neutro `—` per lasciare pulita la visuale e far risaltare subito le giornate di navigazione o servizio.
+  * Le **trasferte** (`D1C`) sono evidenziate con un contorno arancione, gli **imbarcati** con contorno blu (`#`) e i servizi speciali con contorno viola (`S.S.`).
+* **Riga dell'agente fissata in cima**:
+  * Scorrendo la tabella dei colleghi verso il basso, la **tua riga personale** (evidenziata con sfondo verde acqua e nome verde brillante) rimane ancorata in alto, permettendoti di confrontare il tuo turno con quello di qualsiasi collega senza perdere il riferimento.
+* **Tocco rapido per esplorare qualsiasi turno**:
+  * Toccando una casella di un collega o un giorno diverso, la scheda superiore su telefono (o la colonna laterale dedicata su PC) si aggiorna all'istante caricando la nave, la durata in ore e la composizione dell'equipaggio di quel giorno.
+* **Barra periodo e selezione residenza**:
+  * Pastiglie rapide per passare tra *Desenzano*, *Maderno*, *Riva* e *Peschiera*.
+  * Selettore di settimana con frecce `‹ 7 – 13 set ›` e pulsante **Oggi** che ti riporta all'istante al giorno corrente.
+
+---
+
+## 10. Distinta (`NaviDiaria`): Funzioni Avanzate e Calcolo Ore
 
 La sezione **Distinta** non è un semplice foglio di appunti: applica automaticamente le regole del CCNL e degli accordi aziendali per calcolare ore, straordinari e indennità del periodo di competenza.
 
@@ -47,7 +75,7 @@ In alto a destra sopra la tabella mensile puoi premere **Stampa / PDF** per gene
 
 ---
 
-## 2. Verifica Busta Paga e Statistiche Annuali
+## 10. Verifica Busta Paga e Statistiche Annuali
 
 Dalla **Distinta** (pulsante **Verifica busta**) oppure dal menu **`☰` → Verifica busta (`✔`)** puoi controllare in pochi secondi se il cedolino paga corrisponde a quanto hai segnato nella tua distinta.
 
@@ -77,7 +105,7 @@ Passando alla scheda **Anno**, hai un quadro completo di tutti i cedolini carica
 
 ---
 
-## 3. Notifiche Push a Telefono Bloccato
+## 10. Notifiche Push a Telefono Bloccato
 
 NaviSuite può inviarti avvisi automatici sul telefono anche quando l'app è chiusa.
 Per attivarli vai in **`☰` → Impostazioni (`⚙`) → Notifiche**:
@@ -98,7 +126,7 @@ Per attivarli vai in **`☰` → Impostazioni (`⚙`) → Notifiche**:
 
 ---
 
-## 4. Scali in Tempo Reale, Mappa del Lago e Stampe A4
+## 10. Scali in Tempo Reale, Mappa del Lago e Stampe A4
 
 Aprendo **`☰` → Scali (`⚓`)** hai sotto controllo l'intera rete del Lago di Garda:
 
@@ -112,7 +140,7 @@ Aprendo **`☰` → Scali (`⚓`)** hai sotto controllo l'intera rete del Lago d
 
 ---
 
-## 5. Sincronizzazione automatica col Calendario (iPhone e Android)
+## 10. Sincronizzazione automatica col Calendario (iPhone e Android)
 
 Vuoi vedere i tuoi turni direttamente nell'app **Calendario** dell'iPhone o in **Google Calendar** insieme ai tuoi impegni personali?
 
@@ -130,7 +158,7 @@ Quando un tuo turno cambia per un O.d.S. o un cambio turno approvato, il calenda
 
 ---
 
-## 6. Widget per iPhone (Schermata Home e Blocco Schermo)
+## 10. Widget per iPhone (Schermata Home e Blocco Schermo)
 
 Su iPhone puoi aggiungere un **widget gratuito** che mostra a colpo d'occhio la **prossima nave in arrivo al tuo scalo** (se sei a terra) oppure il **prossimo scalo** (se stai navigando), senza nemmeno sbloccare il telefono o aprire l'app.
 
@@ -148,7 +176,7 @@ Su iPhone puoi aggiungere un **widget gratuito** che mostra a colpo d'occhio la 
 
 ---
 
-## 7. Personalizzazione del Menu e Pagina Iniziale
+## 10. Personalizzazione del Menu e Pagina Iniziale
 
 ### Riordinare le icone del menu `☰`
 Puoi decidere tu quali pagine tenere in grande in alto e in quale ordine:
@@ -184,7 +212,7 @@ Per cambiarla:
 
 ---
 
-## 8. Controllo Cassa, Comitive e Documenti O.d.S.
+## 10. Controllo Cassa, Comitive e Documenti O.d.S.
 
 * **¤ Cassa (`controllo_cassa.html`)**: inserisci il numero di banconote e monete per ciascun taglio per ottenere all'istante il totale contato, la differenza rispetto al fondo cassa previsto e il riepilogo del versamento.
 * **⛴ Comitive (`comitive.html`)**: consulta l'elenco dei gruppi turistici e delle comitive previste sulle corse del giorno (estratti dagli O.d.S. e dagli avvisi operativi), con indicazione di corsa, scalo di imbarco, scalo di sbarco e numero di passeggeri.
@@ -192,7 +220,7 @@ Per cambiarla:
 
 ---
 
-## 9. Backup, Allineamento Archivi e Uso Offline
+## 10. Backup, Allineamento Archivi e Uso Offline
 
 ### Come funziona quando non c'è campo sul lago
 NaviSuite salva sul telefono una copia degli ultimi turni e delle tue modifiche alla distinta:
