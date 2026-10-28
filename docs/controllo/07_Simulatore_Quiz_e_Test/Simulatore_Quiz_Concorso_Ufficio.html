@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulatore Quiz Concorso - Operatore di Ufficio GGNL</title>
+<style>
+  :root {
+    --primary: #0d47a1;
+    --primary-hover: #1565c0;
+    --primary-light: #e3f2fd;
+    --accent: #00897b;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --border: #dee2e6;
+    --success: #2e7d32;
+    --success-bg: #e8f5e9;
+    --danger: #c62828;
+    --danger-bg: #ffebee;
+    --radius: 10px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .header-content {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .header-titles h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .header-titles p {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+  .badge-ente {
+    background: rgba(255,255,255,0.18);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  main {
+    flex: 1;
+    max-width: 900px;
+    width: 100%;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+  }
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 1rem;
+  }
+  .btn-mod {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .btn-mod:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    transform: translateY(-2px);
+  }
+  .btn-mod-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .btn-mod-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .btn-simulazione {
+    background: linear-gradient(135deg, #00897b 0%, #00695c 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 137, 123, 0.3);
+    transition: all 0.2s;
+    margin-top: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-simulazione:hover {
+    background: linear-gradient(135deg, #00796b 0%, #004d40 100%);
+    transform: translateY(-2px);
+  }
+  #screen-quiz, #screen-result {
+    display: none;
+  }
+  .quiz-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn-back {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .btn-back:hover {
+    background: var(--border);
+  }
+  .timer-pill {
+    background: #fff3e0;
+    color: #e65100;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 1px solid #ffe0b2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .progress-container {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .question-badge {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin-bottom: 1.25rem;
+  }
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option-btn {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: all 0.15s ease;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .option-btn.selected-correct {
+    background: var(--success-bg) !important;
+    border-color: var(--success) !important;
+    color: var(--success);
+    font-weight: 600;
+  }
+  .option-btn.selected-wrong {
+    background: var(--danger-bg) !important;
+    border-color: var(--danger) !important;
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .option-btn.show-correct {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+    font-weight: 600;
+  }
+  .feedback-box {
+    margin-top: 1rem;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    display: none;
+  }
+  .feedback-box.correct {
+    display: block;
+    background: var(--success-bg);
+    color: var(--success);
+    border-left: 4px solid var(--success);
+  }
+  .feedback-box.wrong {
+    display: block;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-left: 4px solid var(--danger);
+  }
+  .quiz-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .btn-next {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+  }
+  .btn-next:hover {
+    background: var(--primary-hover);
+  }
+  .score-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    margin: 1.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 6px solid var(--primary);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+  .score-val {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .score-max {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .outcome-title {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .outcome-desc {
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+  .stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .stat-box {
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .stat-lbl {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  footer {
+    text-align: center;
+    padding: 1.25rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <div class="header-titles">
+      <h1>Simulatore Quiz Concorso</h1>
+      <p>Operatore di Ufficio (par. 130) · Gestione Governativa Navigazione Laghi</p>
+    </div>
+    <div class="badge-ente">Bando Prot. C163 · Esami 2026</div>
+  </div>
+</header>
+
+<main>
+  <section id="screen-menu">
+    <div class="card">
+      <h2 style="font-size:1.15rem; margin-bottom:4px;">Modalità di Studio e Autovalutazione</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted);">Seleziona un singolo modulo per studiare con correzione immediata, oppure avvia la simulazione d'esame ufficiale con calcolo del punteggio in trentesimi.</p>
+      
+      <button class="btn-simulazione" onclick="startOfficialExam()">
+        <span>🎯 Avvia Simulazione d'Esame Ufficiale (30 quesiti · 30 min)</span>
+      </button>
+
+      <h3 style="font-size:0.95rem; margin-top:1.5rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Studio per Modulo Tematico</h3>
+      <div class="menu-grid" id="mod-buttons"></div>
+    </div>
+  </section>
+
+  <section id="screen-quiz">
+    <div class="card">
+      <div class="quiz-top-bar">
+        <button class="btn-back" onclick="backToMenu()">← Torna al Menu</button>
+        <span id="q-counter" style="font-size:0.9rem; font-weight:600; color:var(--text-muted);">Domanda 1 di 30</span>
+        <div class="timer-pill" id="timer-box">⏱ <span id="timer-val">30:00</span></div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+
+      <span class="question-badge" id="mod-badge">Modulo</span>
+      <h3 class="question-text" id="q-text">Testo della domanda...</h3>
+      
+      <div class="options-list" id="options-container"></div>
+      
+      <div class="feedback-box" id="feedback-container"></div>
+
+      <div class="quiz-actions">
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">Prossima Domanda →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-result">
+    <div class="card">
+      <div class="score-circle" id="res-circle">
+        <div class="score-val" id="res-score">0</div>
+        <div class="score-max">su 30</div>
+      </div>
+      <h2 class="outcome-title" id="res-title">Risultato</h2>
+      <p class="outcome-desc" id="res-desc">Descrizione esito</p>
+
+      <div class="stats-summary">
+        <div class="stat-box"><div class="stat-num" id="stat-correct" style="color:var(--success);">0</div><div class="stat-lbl">Esatte</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-wrong" style="color:var(--danger);">0</div><div class="stat-lbl">Errate</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Totale</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-pct">0%</div><div class="stat-lbl">Accuratezza</div></div>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="btn-next" style="display:inline-block;" onclick="retryCurrent()">Ripeti Prova</button>
+        <button class="btn-back" style="padding:10px 18px; font-weight:600;" onclick="backToMenu()">Torna al Menu</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Ufficio Controllo GGNL · Materiale di preparazione concorsuale Operatore di Ufficio (par. 130)
+</footer>
+
+<script>
+const ALL_QUESTIONS = [{"mod": "Normativa GGNL e Trasporti", "q": "In base alla Legge 18 luglio 1957, n. 614, la Gestione Governativa della Navigazione sui Laghi Maggiore, di Garda e di Como è posta sotto la vigilanza di quale Ministero?", "opts": ["Ministero delle Infrastrutture e dei Trasporti", "Ministero dell'Economia e delle Finanze", "Ministero dell'Ambiente e della Sicurezza Energetica", "Ministero del Turismo"], "ans": 0, "exp": "La Gestione Governativa Navigazione Laghi è un organo istituito dalla Legge 614/1957, operante sotto la diretta vigilanza del Ministero delle Infrastrutture e dei Trasporti."}, {"mod": "Normativa GGNL e Trasporti", "q": "Chi è l'organo al vertice della Gestione Governativa Navigazione Laghi incaricato della gestione?", "opts": ["Il Gestore Governativo, nominato con decreto ministeriale", "Il Consiglio di Amministrazione eletto dai dipendenti", "Il Prefetto di Milano", "L'Autorità di Bacino Laghi"], "ans": 0, "exp": "L'Amministrazione è affidata a un Gestore Governativo nominato dal Ministero vigilante (MIT)."}, {"mod": "Normativa GGNL e Trasporti", "q": "Ai sensi del Regolamento di esercizio GGNL, quali passeggeri hanno diritto di precedenza nell'imbarco?", "opts": ["Le persone a mobilità ridotta, le donne in stato di gravidanza e i viaggiatori con bambini piccoli", "I passeggeri in possesso di biglietto di prima classe", "Coloro che hanno acquistato il biglietto online", "I residenti nei comuni rivieraschi"], "ans": 0, "exp": "Il Regolamento di esercizio e la normativa europea garantiscono priorità di imbarco alle persone a mobilità ridotta, invalidi e donne in gravidanza."}, {"mod": "Normativa GGNL e Trasporti", "q": "Secondo il Regolamento di Esercizio, cosa accade se un passeggero viene trovato a bordo sprovvisto di biglietto?", "opts": ["È tenuto al pagamento del biglietto a tariffa ordinaria maggiorato della sanzione amministrativa prevista", "Viene immediatamente fatto sbarcare al primo scalo senza ulteriori conseguenze", "Viene denunciato all'Autorità Giudiziaria per truffa aggravata", "Paga il doppio del biglietto solo se dichiara di essere salito per errore"], "ans": 0, "exp": "Il passeggero privo di titolo di viaggio valido è tenuto a pagare il prezzo del biglietto più la soprattassa/sanzione amministrativa prevista dai regolamenti aziendali e dal DPR 753/1980."}, {"mod": "Normativa GGNL e Trasporti", "q": "In base al D.P.R. 753/1980, il personale di vigilanza e controllo durante l'espletamento delle proprie funzioni riveste la qualifica di:", "opts": ["Pubblico Ufficiale o Incaricato di Pubblico Servizio con funzioni di polizia amministrativa", "Semplice impiegato privato privo di facoltà sanzionatoria", "Ufficiale di Polizia Giudiziaria per qualsiasi reato", "Magistrato onorario dei trasporti"], "ans": 0, "exp": "Il personale addetto all'accertamento delle infrazioni nel trasporto pubblico è investito di funzioni di polizia amministrativa e assume la qualifica di incaricato di pubblico servizio / pubblico ufficiale nell'esercizio delle funzioni."}, {"mod": "Normativa GGNL e Trasporti", "q": "La Legge 14 del 3 febbraio 1965 disciplina specificamente:", "opts": ["Le assuntorie nelle ferrovie in concessione, tramvie e servizi di navigazione interna", "L'inquadramento del personale marittimo mercantile", "L'istituzione del Registro Navale Italiano", "Le tariffe doganali per i trasporti internazionali"], "ans": 0, "exp": "La Legge 14/1965 regola il rapporto contrattuale delle assuntorie, ovvero l'affidamento a terzi della gestione di fermate/scali, biglietterie e custodia impianti."}, {"mod": "Normativa GGNL e Trasporti", "q": "In base al Regolamento Europeo 1177/2010, con quale preavviso minimo il passeggero a mobilità ridotta (PMR) deve notificare la propria richiesta di assistenza?", "opts": ["Almeno 48 ore prima della partenza prevista", "Almeno 12 ore prima", "Almeno 7 giorni prima", "Non è richiesto alcun preavviso in nessun caso"], "ans": 0, "exp": "L'art. 10 del Regolamento UE 1177/2010 stabilisce che per garantire l'assistenza necessaria il viaggiatore PMR deve comunicare le sue esigenze almeno 48 ore prima dell'inizio del viaggio."}, {"mod": "Normativa GGNL e Trasporti", "q": "Quale autorità italiana è designata come organismo nazionale responsabile dell'applicazione del Regolamento UE 1177/2010?", "opts": ["L'Autorità di Regolazione dei Trasporti (ART)", "L'Agenzia delle Entrate", "La Guardia di Finanza", "L'Ente Nazionale per l'Aviazione Civile"], "ans": 0, "exp": "L'ART (Autorità di Regolazione dei Trasporti) è l'organismo nazionale di vigilanza per i diritti dei passeggeri nel trasporto marittimo e per vie d'acqua interne."}, {"mod": "Normativa GGNL e Trasporti", "q": "Ai sensi del Regolamento UE 1177/2010, in caso di cancellazione o ritardo alla partenza superiore a 90 minuti, il passeggero ha diritto:", "opts": ["A pasti e bevande a titolo gratuito in congrua relazione alla durata dell'attesa, se disponibili", "Al rimborso immediato del triplo del valore del biglietto", "A un risarcimento forfettario di 500 euro", "Esclusivamente a una lettera di scuse"], "ans": 0, "exp": "Per ritardi superiori a 90 minuti o cancellazioni, il vettore offre gratuitamente spuntini, pasti o bevande in quantità ragionevole, oltre al diritto di trasporto alternativo o rimborso."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Qual è l'aliquota IVA ordinariamente applicabile al trasporto pubblico di persone su acque interne?", "opts": ["10%", "22%", "4%", "5%"], "ans": 0, "exp": "Ai sensi della Tabella A, Parte III del DPR 633/1972, al trasporto passeggeri e relativi bagagli al seguito si applica l'aliquota ridotta del 10%."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In base all'art. 22 del D.P.R. 633/1972, l'emissione della fattura nel trasporto pubblico di persone:", "opts": ["Non è obbligatoria, salvo espressa richiesta del cliente non oltre il momento dell'operazione", "È sempre obbligatoria per qualsiasi importo", "È vietata dalla legge", "È obbligatoria solo per viaggiatori stranieri"], "ans": 0, "exp": "L'art. 22 comma 1 n. 3 del DPR 633/1972 esonera dal rilascio della fattura per i trasporti di persone e bagagli, fatto salvo il caso di richiesta preventiva da parte dell'utente."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In base all'art. 24 del D.P.R. 633/1972, entro quale termine devono essere annotati i corrispettivi giornalieri sul registro?", "opts": ["Entro il giorno non festivo successivo a quello di effettuazione delle operazioni", "Entro 30 giorni dalla fine del mese", "Entro 12 ore dall'incasso", "Alla fine dell'anno solare"], "ans": 0, "exp": "L'art. 24 DPR 633/1972 prevede che i commercianti e assimilati annotino i corrispettivi complessivi giornalieri entro il giorno non festivo successivo."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Se un biglietto di linea GGNL ha un costo lordo al pubblico di 22,00 euro (IVA 10% inclusa), a quanto ammonta l'imponibile netto?", "opts": ["20,00 euro", "19,80 euro", "17,60 euro", "20,20 euro"], "ans": 0, "exp": "Imponibile = Totale Lordo / 1,10. Dunque 22,00 / 1,10 = 20,00 euro (e IVA pari a 2,00 euro)."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Ai sensi del D.M. Finanze 30/06/1992, il biglietto di trasporto pubblico sostituisce lo scontrino fiscale purché contenga tra l'altro:", "opts": ["Denominazione impresa, partita IVA, numero progressivo, data, tratta/zona e prezzo con IVA compresa", "Il codice fiscale del viaggiatore e la sua firma", "Il timbro della Camera di Commercio", "Il nome del capitano della nave"], "ans": 0, "exp": "Il decreto stabilisce gli elementi essenziali obbligatori affinché il biglietto assuma valenza di certificazione fiscale dei corrispettivi."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Cosa stabilisce il D.M. MIT n. 255 del 27/10/2016 in tema di bigliettazione elettronica?", "opts": ["Le regole tecniche e i requisiti di interoperabilità per i sistemi di bigliettazione elettronica nel TPL", "L'abolizione totale dei pagamenti in moneta cartacea", "L'obbligo del documento d'identità per ogni biglietto di corsa semplice", "L'esenzione dal pagamento del biglietto per i giovani sotto i 30 anni"], "ans": 0, "exp": "Il D.M. 255/2016 definisce i parametri tecnologici, l'interoperabilità e gli standard dei titoli di viaggio elettronici e contactless nel trasporto pubblico locale."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Cosa rappresenta la procedura di 'chiusura giornaliera' (o batch close) di un terminale POS?", "opts": ["La trasmissione telematica cumulativa delle transazioni eseguite nella giornata per l'accredito sul conto corrente", "L'azzeramento della memoria senza invio alla banca", "Il blocco della linea telefonica per motivi di sicurezza", "Il cambio di intestatario del conto aziendale"], "ans": 0, "exp": "La chiusura contabile POS consolida il totale delle operazioni effettuate, invia il riepilogo al circuito bancario e fornisce il report contabile per la quadratura di cassa."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In caso di versamento di una banconota sospetta di falsità da parte di un cliente, l'addetto deve:", "opts": ["Ritirare la banconota, redigere apposito verbale di inoltro alla Banca d'Italia e non rimborsare il cliente", "Restituire la banconota al cliente invitandolo a usarla altrove", "Distruggere immediatamente la banconota tagliandola a metà", "Trattenerla e consegnare il biglietto normalmente"], "ans": 0, "exp": "La legge impone agli intermediari e agli incaricati di pubblico servizio di ritirare la banconota sospetta rilasciando copia del verbale di ritiro per gli accertamenti del Nucleo Antifalsificazione della Banca d'Italia."}, {"mod": "Personale e Codice di Comportamento", "q": "Quale Regio Decreto costituisce lo statuto fondamentale e la disciplina dello stato giuridico del personale autoferrotranviario?", "opts": ["R.D. 8 gennaio 1931, n. 148", "R.D. 16 marzo 1942, n. 262", "D.P.R. 10 gennaio 1957, n. 3", "D.Lgs. 30 marzo 2001, n. 165"], "ans": 0, "exp": "Il R.D. 148/1931 detta lo stato giuridico del personale delle ferrovie, tramvie e linee di navigazione interna in regime di concessione."}, {"mod": "Personale e Codice di Comportamento", "q": "Nel R.D. 148/1931, quale delle seguenti rappresenta una sanzione disciplinare espulsiva?", "opts": ["Destituzione", "Sospensione dal servizio e dalla paga", "Censura scritta", "Multa fino a un massimo di 4 ore di retribuzione"], "ans": 0, "exp": "La destituzione costituisce la massima sanzione disciplinare ed estingue il rapporto di lavoro (può essere con o senza preavviso a seconda della gravità del fatto)."}, {"mod": "Personale e Codice di Comportamento", "q": "Il D.P.R. 13 giugno 2023, n. 81 contiene:", "opts": ["Il regolamento recante modifiche al codice di comportamento dei dipendenti pubblici", "Il testo unico sulla sicurezza sul lavoro", "La legge quadro sulle aree marine protette", "La riforma dell'ordinamento doganale"], "ans": 0, "exp": "Il DPR 81/2023 ha aggiornato il Codice di comportamento dei dipendenti pubblici (già DPR 62/2013), introducendo norme puntuali sull'uso dei social e delle tecnologie."}, {"mod": "Personale e Codice di Comportamento", "q": "Ai sensi del Codice di comportamento (D.P.R. 62/2013 e DPR 81/2023), qual è la regola generale sui regali o altre utilità per il dipendente?", "opts": ["È vietato accettare regali, salvo quelli d'uso di modico valore (orientativamente non superiore a 100 euro)", "È sempre consentito accettare regali purché dichiarati all'Agenzia delle Entrate", "I regali sono permessi fino al limite massimo di 1.000 euro", "È vietato ricevere qualsiasi cosa di valore superiore a 5 euro"], "ans": 0, "exp": "Il dipendente non accetta regali o compensi correlati alle proprie mansioni, salve le regalie d'uso di modico valore (indicato per prassi e codici fino a un massimo di 100 euro)."}, {"mod": "Personale e Codice di Comportamento", "q": "In merito all'utilizzo dei social media personali, il D.P.R. 81/2023 dispone che il dipendente pubblico:", "opts": ["Deve astenersi da interventi o dichiarazioni che possano nuocere all'immagine, al prestigio o alla credibilità dell'Amministrazione", "Non può possedere alcun account sui social media", "Può divulgare informazioni di servizio purché su profili privati", "È obbligato a condividere tutti i post ufficiali dell'ente"], "ans": 0, "exp": "L'art. 11-ter introdotto dal DPR 81/2023 vieta dichiarazioni pubbliche sui social network lesive dell'amministrazione e impone l'obbligo di riservatezza."}, {"mod": "Gestione Documentale e Privacy", "q": "Il D.P.C.M. 3 dicembre 2013 reca le regole tecniche in materia di:", "opts": ["Sistema di conservazione dei documenti informatici e protocollo informatico", "Reclutamento del personale delle pubbliche amministrazioni", "Spid e identità digitale unica europea", "Sicurezza antincendio a bordo delle navi traghetto"], "ans": 0, "exp": "Il DPCM 3/12/2013 disciplina la produzione, gestione, fascicolazione e conservazione a norma del documento informatico nella PA."}, {"mod": "Gestione Documentale e Privacy", "q": "Quali elementi costituiscono la segnatura di protocollo di un documento informatico in entrata o uscita?", "opts": ["Progressivo numerico, data di registrazione, mittente/destinatario e oggetto del documento", "Solo il nome dell'operatore e l'ora di ricezione", "La firma autenticata dal notaio", "L'importo del bollo telematico"], "ans": 0, "exp": "La segnatura di protocollo associa in modo univoco e immodificabile: numero progressivo, data/ora, oggetto, mittente e destinatario."}, {"mod": "Gestione Documentale e Privacy", "q": "Nel Regolamento Europeo 2016/679 (GDPR), chi è il 'Titolare del trattamento'?", "opts": ["La persona fisica o giuridica che determina le finalità e i mezzi del trattamento dei dati personali", "La persona a cui i dati si riferiscono", "Il fornitore della linea internet", "Il Garante per la Privacy"], "ans": 0, "exp": "Il Titolare del trattamento (nel nostro caso la GGNL) è l'ente che stabilisce fini e modalità operative del trattamento."}, {"mod": "Gestione Documentale e Privacy", "q": "In base al GDPR, il diritto dell'interessato di ottenere la cancellazione dei propri dati personali è noto come:", "opts": ["Diritto all'oblio (Art. 17 GDPR)", "Diritto di revoca contrattuale", "Diritto di recesso dal servizio", "Diritto di rettifica d'ufficio"], "ans": 0, "exp": "L'art. 17 del GDPR sancisce il diritto alla cancellazione dei dati (diritto all'oblio) al ricorrere delle condizioni di legge."}, {"mod": "Geografia dei Laghi", "q": "Qual è l'unico emissario naturale del Lago di Garda e presso quale località ha origine?", "opts": ["Il fiume Mincio, a Peschiera del Garda", "Il fiume Sarca, a Riva del Garda", "Il fiume Adda, a Lecco", "Il fiume Ticino, a Sesto Calende"], "ans": 0, "exp": "Il Mincio è l'unico emissario del Benaco ed esce a sud presso Peschiera del Garda."}, {"mod": "Geografia dei Laghi", "q": "Sul Lago di Garda, quale linea di traghetto trasporto autoveicoli è attiva tutto l'anno?", "opts": ["Maderno (BS) - Torri del Benaco (VR)", "Limone sul Garda - Malcesine", "Desenzano - Riva del Garda", "Sirmione - Lazise"], "ans": 0, "exp": "Il collegamento traghetto autoveicoli Maderno - Torri del Benaco unisce la sponda bresciana a quella veronese durante tutto l'arco dell'anno."}, {"mod": "Geografia dei Laghi", "q": "Quale vento del Lago di Garda soffia tipicamente da nord dalla notte fino al primo mattino?", "opts": ["Il Pelèr (o Sover)", "L'Ora", "La Breva", "Il Tivano"], "ans": 0, "exp": "Il Pelèr (o Sover) è il tipico vento mattutino da nord, seguito nel pomeriggio dall'Ora che soffia da sud."}, {"mod": "Geografia dei Laghi", "q": "Quale tra i seguenti laghi italiani detiene il record di massima profondità (circa 418 metri)?", "opts": ["Lago di Como (Lario)", "Lago di Garda (Benaco)", "Lago Maggiore (Verbano)", "Lago d'Iseo (Sebino)"], "ans": 0, "exp": "Il Lago di Como è il più profondo d'Italia, raggiungendo una depressione massima di circa 418 metri tra Argegno e Nesso."}, {"mod": "Geografia dei Laghi", "q": "Su quali regioni italiane (oltre al Canton Ticino in Svizzera) si estende il Lago Maggiore?", "opts": ["Piemonte e Lombardia", "Lombardia e Veneto", "Piemonte e Liguria", "Lombardia e Trentino-Alto Adige"], "ans": 0, "exp": "La sponda occidentale è in Piemonte (province di Novara e VCO), la sponda orientale in Lombardia (provincia di Varese)."}, {"mod": "Geografia dei Laghi", "q": "Dove si trova la Direzione Generale della Gestione Governativa Navigazione Laghi?", "opts": ["A Milano, in Via Ludovico Ariosto 21", "A Roma, presso il MIT", "A Como, in Piazza Cavour", "A Desenzano del Garda"], "ans": 0, "exp": "Come chiaramente indicato nell'intestazione del bando, la Direzione Generale di GGNL ha sede a Milano in Via L. Ariosto 21."}, {"mod": "Informatica e Inglese", "q": "In Microsoft Excel, quale formula permette di bloccare il riferimento a una cella (es. cella A1) in modo che rimanga invariato durante il trascinamento?", "opts": ["$A$1", "#A#1", "&A&1", "[A1]"], "ans": 0, "exp": "Il carattere dollaro ($) anteposto a colonna e riga definisce un riferimento assoluto."}, {"mod": "Informatica e Inglese", "q": "Quale funzione di Excel cerca un valore nella prima colonna di una matrice e restituisce un valore corrispondente in un'altra colonna?", "opts": ["CERCA.VERT", "CONTA.SE", "TROVA.RIGA", "COLLEGA.VALORE"], "ans": 0, "exp": "La funzione CERCA.VERT (VLOOKUP) è usata per cercare un valore nella prima colonna a sinistra ed estrarre il valore sulla riga indicata."}, {"mod": "Informatica e Inglese", "q": "In un messaggio di posta elettronica ordinaria, il campo CCN (BCC) ha la funzione di:", "opts": ["Inviare copia del messaggio senza mostrare l'indirizzo agli altri destinatari", "Richiedere la notifica di lettura obbligatoria", "Crittografare il testo con chiave asimmetrica", "Inviare l'email con priorità alta automatica"], "ans": 0, "exp": "CCN significa Copia Conoscenza Nascosta ed è essenziale per la privacy nelle spedizioni a più destinatari indipendenti."}, {"mod": "Informatica e Inglese", "q": "Nella Posta Elettronica Certificata (PEC), quale ricevuta attesta che il messaggio è entrato nella disponibilità della casella del destinatario?", "opts": ["La Ricevuta di Avvenuta Consegna", "La Ricevuta di Accettazione", "La Ricevuta di Lettura Video", "La Ricevuta di Presa in Carico"], "ans": 0, "exp": "La ricevuta di avvenuta consegna è generata dal gestore del destinatario e certifica il perfezionamento legale della notifica."}, {"mod": "Informatica e Inglese", "q": "Come si traduce in lingua inglese 'biglietto di andata e ritorno'?", "opts": ["Round-trip ticket (o Return ticket)", "One-way ticket", "Single fare pass", "Double season ticket"], "ans": 0, "exp": "'Round-trip ticket' (inglese americano) o 'Return ticket' (inglese britannico) indica il titolo di andata e ritorno."}, {"mod": "Informatica e Inglese", "q": "Qual è la traduzione corretta di 'traghetto trasporto autoveicoli'?", "opts": ["Car ferry (oppure Vehicle ferry)", "Cruise ship", "Speed speedboat", "Rowing boat"], "ans": 0, "exp": "Car ferry o vehicle ferry individua specificamente la nave traghetto adibita al trasporto automezzi."}];
+
+let currentQuizList = [];
+let currentIndex = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let isExamMode = false;
+let timerInterval = null;
+let secondsRemaining = 1800;
+
+function initMenu() {
+  const container = document.getElementById('mod-buttons');
+  const modules = [...new Set(ALL_QUESTIONS.map(q => q.mod))];
+  
+  container.innerHTML = modules.map(m => {
+    const count = ALL_QUESTIONS.filter(q => q.mod === m).length;
+    return `
+      <button class="btn-mod" onclick="startModuleQuiz('${m.replace(/'/g, "\\'")}')">
+        <div>
+          <div class="btn-mod-title">${m}</div>
+          <div class="btn-mod-sub">Esercitati sulle domande specifiche</div>
+        </div>
+        <div style="font-size:0.75rem; font-weight:600; color:var(--text-muted); margin-top:8px;">${count} quesiti disponibili</div>
+      </button>
+    `;
+  }).join('');
+}
+
+function startModuleQuiz(modName) {
+  isExamMode = false;
+  currentQuizList = ALL_QUESTIONS.filter(q => q.mod === modName);
+  currentQuizList = shuffle([...currentQuizList]);
+  startQuiz();
+}
+
+function startOfficialExam() {
+  isExamMode = true;
+  currentQuizList = shuffle([...ALL_QUESTIONS]).slice(0, 30);
+  startQuiz();
+}
+
+function startQuiz() {
+  currentIndex = 0;
+  correctCount = 0;
+  wrongCount = 0;
+
+  // Rimescola le opzioni in modo totalmente dinamico e casuale per ogni domanda
+  currentQuizList = currentQuizList.map(q => {
+    const copy = { ...q };
+    const optsWithFlags = copy.opts.map((text, originalIdx) => ({
+      text: text,
+      isCorrect: (originalIdx === copy.ans)
+    }));
+    copy.shuffledOptions = shuffle([...optsWithFlags]);
+    return copy;
+  });
+
+  document.getElementById('screen-menu').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'block';
+
+  const timerBox = document.getElementById('timer-box');
+  if (isExamMode) {
+    timerBox.style.display = 'flex';
+    secondsRemaining = 1800;
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      secondsRemaining--;
+      updateTimerDisplay();
+      if (secondsRemaining <= 0) {
+        clearInterval(timerInterval);
+        finishQuiz();
+      }
+    }, 1000);
+  } else {
+    timerBox.style.display = 'none';
+    clearInterval(timerInterval);
+  }
+
+  renderQuestion();
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(secondsRemaining / 60);
+  const sec = secondsRemaining % 60;
+  document.getElementById('timer-val').textContent = 
+    `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function renderQuestion() {
+  const q = currentQuizList[currentIndex];
+  document.getElementById('mod-badge').textContent = q.mod;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-counter').textContent = `Domanda ${currentIndex + 1} di ${currentQuizList.length}`;
+  
+  const pct = ((currentIndex) / currentQuizList.length) * 100;
+  document.getElementById('progress-bar').style.width = `${pct}%`;
+
+  const feedback = document.getElementById('feedback-container');
+  feedback.className = 'feedback-box';
+  feedback.style.display = 'none';
+  feedback.innerHTML = '';
+  document.getElementById('btn-next').style.display = 'none';
+
+  const optsContainer = document.getElementById('options-container');
+  optsContainer.innerHTML = '';
+
+  // Rendering delle opzioni rimescolate casualmente
+  q.shuffledOptions.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => selectOption(idx, opt.isCorrect);
+    optsContainer.appendChild(btn);
+  });
+}
+
+function selectOption(selectedIdx, isCorrect) {
+  const q = currentQuizList[currentIndex];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+
+  if (isCorrect) {
+    correctCount++;
+    buttons[selectedIdx].classList.add('selected-correct');
+  } else {
+    wrongCount++;
+    buttons[selectedIdx].classList.add('selected-wrong');
+    // Mostra in verde l'opzione corretta ovunque sia posizionata
+    q.shuffledOptions.forEach((opt, idx) => {
+      if (opt.isCorrect) {
+        buttons[idx].classList.add('show-correct');
+      }
+    });
+  }
+
+  const feedback = document.getElementById('feedback-container');
+  if (isCorrect) {
+    feedback.className = 'feedback-box correct';
+    feedback.innerHTML = `<strong>Corretto!</strong> ${q.exp}`;
+  } else {
+    feedback.className = 'feedback-box wrong';
+    feedback.innerHTML = `<strong>Risposta errata.</strong> ${q.exp}`;
+  }
+  feedback.style.display = 'block';
+  document.getElementById('btn-next').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex < currentQuizList.length) {
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+}
+
+function finishQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+
+  const scoreIn30 = Math.round((correctCount / currentQuizList.length) * 30 * 10) / 10;
+  document.getElementById('res-score').textContent = scoreIn30;
+  
+  const circle = document.getElementById('res-circle');
+  const title = document.getElementById('res-title');
+  const desc = document.getElementById('res-desc');
+
+  if (scoreIn30 >= 18) {
+    circle.style.borderColor = 'var(--success)';
+    document.getElementById('res-score').style.color = 'var(--success)';
+    title.textContent = 'PROVA SUPERATA! 🎉';
+    title.style.color = 'var(--success)';
+    desc.textContent = `Hai superato la soglia minima di idoneità (18/30) con una votazione di ${scoreIn30}/30.`;
+  } else {
+    circle.style.borderColor = 'var(--danger)';
+    document.getElementById('res-score').style.color = 'var(--danger)';
+    title.textContent = 'NON IDONEO ⚠️';
+    title.style.color = 'var(--danger)';
+    desc.textContent = `Il punteggio ottenuto (${scoreIn30}/30) è inferiore alla soglia minima di 18/30 richiesta dal bando. Ti consigliamo di ripassare le dispense.`;
+  }
+
+  document.getElementById('stat-correct').textContent = correctCount;
+  document.getElementById('stat-wrong').textContent = wrongCount;
+  document.getElementById('stat-total').textContent = currentQuizList.length;
+  const pct = Math.round((correctCount / currentQuizList.length) * 100);
+  document.getElementById('stat-pct').textContent = `${pct}%`;
+}
+
+function retryCurrent() {
+  if (isExamMode) {
+    startOfficialExam();
+  } else {
+    currentQuizList = shuffle([...currentQuizList]);
+    startQuiz();
+  }
+}
+
+function backToMenu() {
+  clearInterval(timerInterval);
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-menu').style.display = 'block';
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+window.onload = initMenu;
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Regolamento di Esercizio GGNL (Edizione 2004) · Dispensa NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="../../../assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --blue: #54a7ff;
+      --c: var(--cyan);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+
+    .top-bar {
+      background: rgba(7, 25, 35, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.doc-header {
+      padding: 34px 0 20px;
+    }
+    .badge-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c);
+      margin-bottom: 8px;
+    }
+    h1.doc-title {
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    p.doc-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .key-facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .sez {
+      background: color-mix(in srgb, var(--c) 8%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .traps-box {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      border-left: 4px solid var(--rose);
+      border-radius: 0 14px 14px 0;
+      padding: 16px 20px;
+      margin: 28px 0;
+    }
+    .traps-box h3 {
+      color: var(--rose);
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .traps-box ul {
+      list-style: square;
+      padding-left: 20px;
+      color: #ffd9df;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .quiz-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 40px;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid var(--line);
+    }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .top-bar, footer { display: none; }
+      .sez, .traps-box, .quiz-box { break-inside: avoid; border-color: #ccc; background: #fafafa; color: #000 !important; }
+      h1, h2, h3, strong { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-bar">
+    <div class="wrap top-bar-inner">
+      <a href="../../../concorso-controllo.html" class="back-btn">
+        <span>←</span>
+        <span>Torna al Concorso Controllo</span>
+      </a>
+      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+        <span>🖨️</span>
+        <span>Stampa / Salva in PDF</span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="wrap doc-header">
+    <span class="badge-tag">DISPENSA 02 · MATERIALE DIDATTICO UFFICIALE</span>
+    <h1 class="doc-title">⚓ Regolamento di Esercizio GGNL (Edizione 2004)</h1>
+    <p class="doc-subtitle">Doveri del personale, gerarchia di bordo, sicurezza della navigazione, imbarco navi affiancate, trasporto bagagli e animali</p>
+
+    <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
+    <div class="key-facts-grid">
+      
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Approvazione</span>
+        <strong style="font-size:0.95rem; color:#fff;">Ministero Infrastrutture e Trasporti nota NI/1716 del 09/11/2004</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Pubblicità</span>
+        <strong style="font-size:0.95rem; color:#fff;">Reso pubblico mediante affissione a bordo delle navi della flotta</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Gerarchia di bordo</span>
+        <strong style="font-size:0.95rem; color:#fff;">1° Comandante · 2° Timoniere · 3° Motorista/Macchinista · 4° Marinaio</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Rapporto di corsa</span>
+        <strong style="font-size:0.95rem; color:#fff;">Invio obbligatorio entro le 24 ore successive al servizio</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Navi affiancate</span>
+        <strong style="font-size:0.95rem; color:#fff;">Ammesso solo eccezionalmente con passerella metallica a 2 sponde vigilata</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Telefoni personali</span>
+        <strong style="font-size:0.95rem; color:#fff;">Uso vietato o ridotto al minimo indispensabile, mai in presenza di pubblico</strong>
+      </div>
+    
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- SEZIONI PRINCIPALI -->
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>1. Struttura del Regolamento e Pubblicità</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Il <strong>Regolamento di Esercizio (Edizione 2004)</strong> disciplina in maniera vincolante lo svolgimento del servizio pubblico di linea lacustre. È stato approvato dal MIT con nota NI/1716 del 9 novembre 2004.<br><br>
+                <strong>Obbligo di Pubblicità:</strong> il regolamento è portato a conoscenza dell'utenza e dell'equipaggio mediante affissione di estratti ben visibili <strong>a bordo di tutte le unità navali</strong> della flotta e presso le biglietterie di scalo.
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>2. La Gerarchia e i Ruoli di Bordo</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                A bordo di ciascuna nave, l'equipaggio opera secondo una precisa subordinazione gerarchica codificata dall'art. 8:
+                <ol>
+                  <li><strong>Comandante:</strong> massima autorità a bordo; responsabile della sicurezza della nave, dell'equipaggio, dei passeggeri e del carico. Decide sulla navigabilità in caso di maltempo e dirige ogni manovra;</li>
+                  <li><strong>Timoniere:</strong> collabora col Comandante alla condotta della navigazione e lo sostituisce in caso di impedimento temporaneo;</li>
+                  <li><strong>Motorista o Macchinista:</strong> responsabile della propulsione, dei motori termici, degli impianti idraulici, elettrici e dei livelli carburante/olio;</li>
+                  <li><strong>Marinaio:</strong> provvede all'ormeggio, al disormeggio, alla manovra delle passerelle di imbarco/sbarco passeggeri e veicoli, alla guardia di coperta e al decoro dell'unità.</li>
+                </ol>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>3. Condizioni Speciali di Manovra e Rapporto di Corsa</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                <ul>
+                  <li><strong>Imbarco e Sbarco con Navi Affiancate:</strong> di norma è vietato; è consentito solo in via <em>eccezionale</em> previa autorizzazione, utilizzando un'apposita passerella metallica munita di doppie sponde laterali protette, vigilata costantemente da almeno un componente di ciascun equipaggio;</li>
+                  <li><strong>Rapporto di Corsa:</strong> documento compilato dal personale di bordo al termine di ogni turno; deve pervenire agli uffici di esercizio entro il termine tassativo di <strong>24 ore</strong> dal completamento della corsa, segnalando orari effettivi, ritardi, passeggeri trasportati ed eventuali avarie;</li>
+                  <li><strong>Uso dei Telefoni Cellulari:</strong> i telefoni aziendali possono essere usati esclusivamente per comunicazioni di servizio; i cellulari personali sono vietati durante le manovre e devono essere limitati allo stretto indispensabile, mai in vista del pubblico.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>4. Esercitazioni Periodiche di Sicurezza</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                L'equipaggio deve sottoporsi ad addestramenti periodici obbligatori sulle seguenti emergenze:
+                <ul>
+                  <li>Recupero uomo in mare;</li>
+                  <li>Incendio grave a bordo (impiego estintori CO2, polvere, schiuma e manichette);</li>
+                  <li>Falla o via d'acqua e manovra delle pompe di esaurimento;</li>
+                  <li>Abbandono nave con calo dei mezzi collettivi di salvataggio (zattere autogonfiabili);</li>
+                  <li>Avaria al timone e sbandamento.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+
+    <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
+    <div class="traps-box">
+      <h3><span>⚠️</span><span>Attenzione alle Trappole nei Quiz su Questa Materia</span></h3>
+      <ul>
+        <li>Nella gerarchia di bordo il Timoniere precede il Motorista/Macchinista.</li><li>Il rapporto di corsa scade dopo 24 ore (non 48 ore né a fine mese).</li><li>L'imbarco su navi affiancate non è ordinario ma rigorosamente eccezionale.</li>
+      </ul>
+    </div>
+
+    <!-- QUESITI D'ESAME REALI TRATTI DALLE PROVE -->
+    <div class="quiz-box">
+      <h3 style="font-size:1.1rem; color:var(--teal); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
+      </h3>
+      
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale CE Movimento 130</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Come è regolata la gerarchia a bordo secondo il Regolamento di Esercizio 2004?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Comandante, Timoniere, Motorista o Macchinista, Marinaio</p>
+      </div>
+    
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale CE Movimento 130</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">In che modo è reso pubblico il Regolamento di Esercizio?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: A bordo delle navi della flotta</p>
+      </div>
+    
+    </div>
+  </main>
+
+  <footer>
+    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+  </footer>
+
+</body>
+</html>

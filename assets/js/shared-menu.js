@@ -79,7 +79,7 @@
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'orari.html':['🕒','Orari'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['✎','Quiz'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
+    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'orari.html':['🕒','Orari'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['🏆','Concorsi'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
       // pagine principali: Il mio turno e Scali
       ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['orari.html','🕒','Orari'],['oggi.html','☀','Oggi']]),
@@ -89,7 +89,7 @@
       ['cambi_turno.html','⇄','Cambio'],
       ['battaglia-garda.html','⛴','Battaglia sul Garda'],
       ['controllo_cassa.html','$','Cassa'],
-      ...(isAdmin?[['quiz.html','✎','Quiz']]:[]),
+      ...(isAdmin?[['quiz.html','🏆','Concorsi']]:[]),
       ['backup-dati.html','⤓','Backup'],
       ['impostazioni.html','⚙','Impostazioni'],
       ...(roles.puoAprire?.('comitive.html',agent)?[['comitive.html','⛴','Comitive']]:[]),

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Geografia dei Tre Laghi (Garda, Como, Maggiore) · Dispensa NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="../../../assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --blue: #54a7ff;
+      --c: var(--cyan);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+
+    .top-bar {
+      background: rgba(7, 25, 35, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.doc-header {
+      padding: 34px 0 20px;
+    }
+    .badge-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c);
+      margin-bottom: 8px;
+    }
+    h1.doc-title {
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    p.doc-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .key-facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .sez {
+      background: color-mix(in srgb, var(--c) 8%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .traps-box {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      border-left: 4px solid var(--rose);
+      border-radius: 0 14px 14px 0;
+      padding: 16px 20px;
+      margin: 28px 0;
+    }
+    .traps-box h3 {
+      color: var(--rose);
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .traps-box ul {
+      list-style: square;
+      padding-left: 20px;
+      color: #ffd9df;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .quiz-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 40px;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid var(--line);
+    }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .top-bar, footer { display: none; }
+      .sez, .traps-box, .quiz-box { break-inside: avoid; border-color: #ccc; background: #fafafa; color: #000 !important; }
+      h1, h2, h3, strong { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-bar">
+    <div class="wrap top-bar-inner">
+      <a href="../../../concorso-controllo.html" class="back-btn">
+        <span>←</span>
+        <span>Torna al Concorso Controllo</span>
+      </a>
+      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+        <span>🖨️</span>
+        <span>Stampa / Salva in PDF</span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="wrap doc-header">
+    <span class="badge-tag">DISPENSA 10 · MATERIALE DIDATTICO UFFICIALE</span>
+    <h1 class="doc-title">🗺️ Geografia dei Tre Laghi (Garda, Como, Maggiore)</h1>
+    <p class="doc-subtitle">Bacini, morfologia, province, immissari ed emissari, linee traghetto autoveicoli e venti termici caratteristici</p>
+
+    <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
+    <div class="key-facts-grid">
+      
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Lago più esteso</span>
+        <strong style="font-size:0.95rem; color:#fff;">Lago di Garda (Benaco, circa 370 km²)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Lago più profondo</span>
+        <strong style="font-size:0.95rem; color:#fff;">Lago di Como (Lario, circa 418 metri, record italiano)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Secondo lago d'Italia</span>
+        <strong style="font-size:0.95rem; color:#fff;">Lago Maggiore (Verbano, circa 212 km²)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Emissario del Garda</span>
+        <strong style="font-size:0.95rem; color:#fff;">Fiume Mincio (esce a Peschiera del Garda) · Immissario: Sarca</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Traghetto auto Garda</span>
+        <strong style="font-size:0.95rem; color:#fff;">Maderno (BS) - Torri del Benaco (VR) operativo tutto l'anno</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Venti tipici Garda</span>
+        <strong style="font-size:0.95rem; color:#fff;">Pelèr / Sover (da Nord al mattino) · Ora (da Sud al pomeriggio) · Ander (SO)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Venti tipici Como</span>
+        <strong style="font-size:0.95rem; color:#fff;">Tivano (da Nord-Est al mattino) · Breva (da Sud al pomeriggio)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Traghetto auto Maggiore</span>
+        <strong style="font-size:0.95rem; color:#fff;">Intra (VB) - Laveno (VA) operativo tutto l'anno</strong>
+      </div>
+    
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- SEZIONI PRINCIPALI -->
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>1. Lago di Garda (Benaco) - Direzione Desenzano del Garda</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                <ul>
+                  <li><strong>Primato e Morfologia:</strong> il più grande lago d'Italia per superficie (<strong>370 km²</strong>). A nord è stretto e incassato tra alte montagne (Monte Baldo a est, prealpi bresciane a ovest); a sud è ampio e morenico con la suggestiva penisola di Sirmione;</li>
+                  <li><strong>Confini Territoriali:</strong> diviso tra 3 Regioni: <em>Lombardia</em> (provincia di Brescia a ovest: Desenzano, Sirmione, Salò, Maderno, Limone), <em>Veneto</em> (provincia di Verona a est: Peschiera, Lazise, Bardolino, Garda, Torri, Malcesine) e <em>Trentino-Alto Adige</em> (provincia di Trento a nord: Riva del Garda, Torbole);</li>
+                  <li><strong>Idrografia:</strong> immissario principale è il <strong>fiume Sarca</strong> (entra a nord presso Torbole); unico emissario è il <strong>fiume Mincio</strong> (esce a sud a <strong>Peschiera del Garda</strong>);</li>
+                  <li><strong>Traghetto Autoveicoli:</strong> la linea <strong>Maderno (BS) - Torri del Benaco (VR)</strong> unisce la sponda lombarda a quella veneta tutto l'anno; la linea Limone - Malcesine è attiva nella stagione estiva;</li>
+                  <li><strong>Venti:</strong> il <strong>Pelèr (o Sover)</strong> spira da Nord dalla notte fino a mezzogiorno; l'<strong>Ora</strong> subentra da Sud nel primo pomeriggio fino al tramonto; l'<em>Ander</em> proviene da Sud-Ovest.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>2. Lago di Como (Lario) - Direzione Como</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                <ul>
+                  <li><strong>Primato di Profondità:</strong> è il lago più profondo d'Italia (<strong>418 metri</strong> registrati tra Argegno e Nesso). Superficie circa 145 km²;</li>
+                  <li><strong>Forma e Bacini:</strong> caratteristica forma a <strong>'Y' rovesciata</strong> con i tre rami: ramo di Como (sud-ovest), ramo di Lecco (sud-est) e ramo di Colico (nord). Il punto di convergenza centrale è lo spettacolare promontorio di <strong>Bellagio</strong>;</li>
+                  <li><strong>Idrografia:</strong> immissario ed emissario principale è il <strong>fiume Adda</strong>, che esce dal ramo di <strong>Lecco</strong>. Il ramo di Como è a fondo cieco;</li>
+                  <li><strong>Isole:</strong> l'unica isola è l'<strong>Isola Comacina</strong> (nel comune di Tremezzina / Ossuccio);</li>
+                  <li><strong>Traghetto Automezzi Centro Lago:</strong> servizio continuativo tra <strong>Bellagio, Varenna, Menaggio e Cadenabbia</strong>;</li>
+                  <li><strong>Venti:</strong> il <strong>Tivano</strong> spira da Nord-Est al mattino; la <strong>Breva</strong> spira da Sud al pomeriggio.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--cyan); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>3. Lago Maggiore (Verbano) - Direzione Arona</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                <ul>
+                  <li><strong>Dimensioni:</strong> secondo lago italiano per estensione (<strong>212 km²</strong>), lungo ben 65 km;</li>
+                  <li><strong>Confini:</strong> sponda occidentale in <em>Piemonte</em> (province di Novara e VCO: Arona, Stresa, Verbania Intra/Pallanza, Cannobio), sponda orientale in <em>Lombardia</em> (provincia di Varese: Angera, Santa Caterina del Sasso, Laveno, Luino), parte settentrionale in <em>Svizzera</em> (Canton Ticino: Brissago, Ascona, Locarno);</li>
+                  <li><strong>Idrografia:</strong> immissario principale ed emissario è il <strong>fiume Ticino</strong> (esce a sud a Sesto Calende);</li>
+                  <li><strong>Isole:</strong> nel Golfo Borromeo sorgono le famose <strong>Isole Borromee</strong> (Isola Bella con il Palazzo Borromeo, Isola Madre, Isola dei Pescatori);</li>
+                  <li><strong>Traghetto Veicoli:</strong> linea annuale continuativa <strong>Intra (VB) - Laveno (VA)</strong> che collega Piemonte e Lombardia;</li>
+                  <li><strong>Venti:</strong> la <em>Tramontana</em> (da nord al mattino) e l'<em>Inverna</em> (da sud al pomeriggio).</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+
+    <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
+    <div class="traps-box">
+      <h3><span>⚠️</span><span>Attenzione alle Trappole nei Quiz su Questa Materia</span></h3>
+      <ul>
+        <li>Il lago più profondo d'Italia è Como (418 m), non Garda né Maggiore.</li><li>L'emissario del Garda è il Mincio che esce a Peschiera (non il Sarca, che è l'immissario!).</li><li>Il traghetto auto annuale del Garda è Maderno-Torri (non Desenzano-Riva).</li><li>L'Adda esce dal ramo di Lecco, non dal ramo di Como.</li>
+      </ul>
+    </div>
+
+    <!-- QUESITI D'ESAME REALI TRATTI DALLE PROVE -->
+    <div class="quiz-box">
+      <h3 style="font-size:1.1rem; color:var(--teal); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
+      </h3>
+      
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prove GGNL</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale tra i grandi laghi ha la profondità maggiore?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Lago di Como (circa 418 metri)</p>
+      </div>
+    
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prova 33/2025</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Su quale lago si trovano l'Isola Bella e l'Isola Madre?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Lago Maggiore</p>
+      </div>
+    
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prova CE 130</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale vento caratteristico soffia da Sud-Ovest sul Lago di Garda?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: L'Ander</p>
+      </div>
+    
+    </div>
+  </main>
+
+  <footer>
+    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+  </footer>
+
+</body>
+</html>

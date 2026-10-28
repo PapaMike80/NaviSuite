@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tariffe, Biglietto Fiscale, IVA 10% e Registri dei Corrispettivi · Dispensa NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="../../../assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --blue: #54a7ff;
+      --c: var(--violet);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+
+    .top-bar {
+      background: rgba(7, 25, 35, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.doc-header {
+      padding: 34px 0 20px;
+    }
+    .badge-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c);
+      margin-bottom: 8px;
+    }
+    h1.doc-title {
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    p.doc-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .key-facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .sez {
+      background: color-mix(in srgb, var(--c) 8%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .traps-box {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      border-left: 4px solid var(--rose);
+      border-radius: 0 14px 14px 0;
+      padding: 16px 20px;
+      margin: 28px 0;
+    }
+    .traps-box h3 {
+      color: var(--rose);
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .traps-box ul {
+      list-style: square;
+      padding-left: 20px;
+      color: #ffd9df;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .quiz-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 40px;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid var(--line);
+    }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .top-bar, footer { display: none; }
+      .sez, .traps-box, .quiz-box { break-inside: avoid; border-color: #ccc; background: #fafafa; color: #000 !important; }
+      h1, h2, h3, strong { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-bar">
+    <div class="wrap top-bar-inner">
+      <a href="../../../concorso-controllo.html" class="back-btn">
+        <span>←</span>
+        <span>Torna al Concorso Controllo</span>
+      </a>
+      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+        <span>🖨️</span>
+        <span>Stampa / Salva in PDF</span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="wrap doc-header">
+    <span class="badge-tag">DISPENSA 05 · MATERIALE DIDATTICO UFFICIALE</span>
+    <h1 class="doc-title">💶 Tariffe, Biglietto Fiscale, IVA 10% e Registri dei Corrispettivi</h1>
+    <p class="doc-subtitle">D.M. Finanze 30/06/1992, D.M. MIT 255/2016, formula di scorporo IVA, art. 22 e 24 DPR 633/1972, chiusure POS e quadratura cassa</p>
+
+    <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
+    <div class="key-facts-grid">
+      
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Aliquota IVA trasporto</span>
+        <strong style="font-size:0.95rem; color:#fff;">10% (aliquota ridotta Tabella A, parte III, DPR 633/1972)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Formula di scorporo</span>
+        <strong style="font-size:0.95rem; color:#fff;">Imponibile = Prezzo Lordo / 1,10 · Imposta IVA = Prezzo Lordo - Imponibile</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Valenza fiscale biglietto</span>
+        <strong style="font-size:0.95rem; color:#fff;">Sostituisce lo scontrino fiscale ai sensi del D.M. Finanze 30/06/1992</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Esonero fattura (art. 22)</span>
+        <strong style="font-size:0.95rem; color:#fff;">Non obbligatoria per trasporto persone salvo richiesta del cliente all'atto dell'acquisto</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Termine registro corrispettivi</span>
+        <strong style="font-size:0.95rem; color:#fff;">Entro il primo giorno non festivo successivo a quello di incasso (art. 24)</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Scontrino POS</span>
+        <strong style="font-size:0.95rem; color:#fff;">Certifica solo il pagamento bancario, non sostituisce il biglietto né vale fiscalmente</strong>
+      </div>
+    
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- SEZIONI PRINCIPALI -->
+    
+      <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>1. L'I.V.A. nel Trasporto Passeggeri su Vie d'Acqua Interne</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Ai sensi del <strong>D.P.R. 26 ottobre 1972, n. 633</strong> (Legge IVA):
+                <ul>
+                  <li>Le prestazioni di trasporto pubblico di persone e dei relativi bagagli al seguito effettuate su laghi e fiumi sono assoggettate ad <strong>aliquota IVA ridotta del 10%</strong> (Tabella A, Parte III, punto 127-novies);</li>
+                  <li>Il prezzo del biglietto esposto al pubblico o emesso dai terminali di cassa è <strong>sempre comprensivo di IVA</strong>;</li>
+                  <li><strong>Calcolo Matematico dello Scorporo IVA:</strong><br>
+                  Poiché $P_{lordo} = 	ext{Imponibile} 	imes 1,10$, si ottiene:<br>
+                  $$	ext{Imponibile} = rac{P_{lordo}}{1,10} \qquad 	ext{IVA} = P_{lordo} - 	ext{Imponibile} = P_{lordo} 	imes rac{10}{110}$$
+                  <em>Esempio numerico:</em> Biglietto da 33,00 €:<br>
+                  $	ext{Imponibile} = 33,00 / 1,10 = 30,00\ 	ext{€}$ · $	ext{IVA 10\%} = 3,00\ 	ext{€}$.
+                  </li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>2. Natura Fiscale del Biglietto di Trasporto (D.M. 30/06/1992)</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Il Decreto del Ministero delle Finanze del 30 giugno 1992 disciplina i titoli di viaggio nel trasporto pubblico locale:
+                <ul>
+                  <li>Il biglietto di trasporto (sia cartaceo emesso da cassa/emettitrice, sia dematerializzato via app/QR-code) <strong>assolve a tutti gli effetti la funzione di scontrino fiscale / documento commerciale</strong>;</li>
+                  <li><strong>Elementi obbligatori stampati sul titolo:</strong>
+                    <ol>
+                      <li>Denominazione dell'esercente (Gestione Governativa Navigazione Laghi);</li>
+                      <li>Numero di Partita IVA dell'Ente (00802050153);</li>
+                      <li>Numero progressivo univoco del biglietto o transazione;</li>
+                      <li>Data e orario di emissione o di convalida;</li>
+                      <li>Prezzo totale con indicazione dell'IVA compresa (o aliquota 10%);</li>
+                      <li>Tratta di percorso, zona tariffaria o tipologia di servizio (corsa semplice, A/R, supplemento rapido, veicolo).</li>
+                    </ol>
+                  </li>
+                  <li><strong>Esonero dall'obbligo di fattura (Art. 22 comma 1 n. 3 DPR 633/72):</strong> per il trasporto passeggeri la fattura non è obbligatoria, tranne nel caso in cui il cliente la richieda espressamente non oltre il momento dell'emissione del titolo di viaggio.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>3. Tenuta e Compilazione del Registro dei Corrispettivi (Art. 24 DPR 633/72)</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                I soggetti che emettono biglietti/scontrini in luogo delle fatture sono obbligati a tenere il <strong>Registro dei Corrispettivi</strong>:
+                <ul>
+                  <li>Sul registro vanno annotate giornalmente, distintamente per aliquota IVA applicata, le somme complessivamente incassate per ciascuna giornata;</li>
+                  <li><strong>Termine di annotazione:</strong> entro il <strong>primo giorno non festivo successivo</strong> a quello di effettuazione delle operazioni;</li>
+                  <li>Nel settore Ufficio Controllo GGNL, l'operatore verifica quotidianamente la perfetta quadratura tra:
+                    <ul>
+                      <li>Il riepilogo telematico delle vendite inviato dai software di bigliettazione delle biglietterie e degli assuntori;</li>
+                      <li>Le distinte di cassa e versamenti bancari effettuati dagli agenti;</li>
+                      <li>Il registro dei corrispettivi aziendale.</li>
+                    </ul>
+                  </li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>4. Metodi di Pagamento, Chiusure POS e Riconciliazione</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                <ul>
+                  <li><strong>Contanti:</strong> moneta legale entro i limiti antiriciclaggio vigenti (5.000 €). A inizio turno viene erogato il fondo cassa fisso, a fine turno si effettua il versamento dell'incasso netto eccedente;</li>
+                  <li><strong>POS (Point of Sale):</strong> per pagamenti contactless e carte. A fine turno o a fine giornata l'agente esegue la <em>chiusura contabile (batch close)</em> che invia il riepilogo al circuito bancario interbancario. <strong>Attenzione:</strong> la ricevuta POS certifica solo l'addebito sul conto del viaggiatore, ma non è un biglietto né un documento fiscale;</li>
+                  <li><strong>PagoPA:</strong> utilizzato principalmente per pagamenti differiti, canoni di concessione pontili, abbonamenti annuali o sanzioni amministrative;</li>
+                  <li><strong>Bigliettazione Elettronica (D.M. MIT 255/2016):</strong> definisce le norme di interoperabilità tra smart card contactless (standard Calypso/Mifare) e barcode/QR-code su smartphone.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+
+    <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
+    <div class="traps-box">
+      <h3><span>⚠️</span><span>Attenzione alle Trappole nei Quiz su Questa Materia</span></h3>
+      <ul>
+        <li>Per scorporare l'IVA al 10% non si calcola il 10% del totale lordo! Si divide per 1,10.</li><li>La fattura non è mai obbligatoria per il passeggero, a meno che non la richieda prima o al momento dell'acquisto.</li><li>La ricevuta POS non è il biglietto: viaggiare con il solo scontrino del POS senza il biglietto GGNL costituisce evasione tariffaria.</li>
+      </ul>
+    </div>
+
+    <!-- QUESITI D'ESAME REALI TRATTI DALLE PROVE -->
+    <div class="quiz-box">
+      <h3 style="font-size:1.1rem; color:var(--teal); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
+      </h3>
+      
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Qual è l'aliquota IVA ordinariamente applicata al trasporto passeggeri sui laghi?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: 10% (aliquota ridotta)</p>
+      </div>
+    
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Entro quale termine devono essere annotati i corrispettivi giornalieri sul registro ex art. 24 DPR 633/72?</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Entro il primo giorno non festivo successivo</p>
+      </div>
+    
+    </div>
+  </main>
+
+  <footer>
+    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+  </footer>
+
+</body>
+</html>
