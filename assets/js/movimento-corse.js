@@ -123,7 +123,7 @@
     crew.forEach(m => { const r = tutti.find(a => String(a.agent.id) === String(m.id))?.residenza; if (r) conta[r] = (conta[r] || 0) + 1; });
     const top = Object.entries(conta).sort((a, b) => b[1] - a[1])[0]?.[0];
     if (top) return top;
-    const lettera = G.terraResidenza?.(code) || (code[0] === 'D' ? 'DESENZANO' : /^[MT]/.test(code) ? 'MADERNO' : '');
+    const lettera = G.terraResidenza?.(code) || (code[0] === 'D' ? 'DESENZANO' : /^[MT]/.test(code) ? 'MADERNO' : /^P/.test(code) || /^S\.?S\.?$/i.test(code) ? 'PESCHIERA' : code[0] === 'R' ? 'RIVA' : '');
     return Object.keys(state.schedule?.residenze || {}).find(r => r.toUpperCase() === lettera) || '';
   }
   const titoloRes = text => String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
@@ -190,12 +190,12 @@
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
     // dove va chi sbarca: di solito riposo; si cambia dal valore nella bolla (assenze, a terra, altre corse)
-    const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori' };
+    const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
     const nomeDest = v => NOMI[v] || `sulla ${v}`;
     const per = ui.destAperto;
     const attuale = per === 'togli' ? ui.togliDest : ui.sbarco;
     // stessa griglia di pastiglie colorate del turno del giorno nel tab Agenti
-    const chip = v => `<button type="button" class="chip ag-dest-chip${attuale === v ? ' on' : ''}" data-code="${esc(v)}" data-act="dest-scegli" data-per="${per}" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
+    const chip = v => `<button type="button" class="chip ag-dest-chip${attuale === v || (/^S\.?S\.?$/.test(attuale) && /^S\.?S\.?$/.test(v)) ? ' on' : ''}" data-code="${esc(v)}" data-act="dest-scegli" data-per="${per}" data-v="${esc(v)}">${esc(NOMI[v] ? NOMI[v] : v)}</button>`;
     const terraSigle = [...new Set(Object.values(G.SIGLE_TERRA))];
     const corseDest = [...new Set([...O.TURNI, 'BIS', ...NM.TUTTI_I_TURNI])].filter(cd => cd !== code);
     const destinazioni = per ? `<div class="pop-dest">

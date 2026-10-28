@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const COURSES={DESENZANO:['D1','D2','D3','D4','BIS'],MADERNO:['T1','T2','M1'],RIVA:['R1','R2','R3','R4','CAR'],PESCHIERA:['P1','P2','P3','SR1','SR2','CAP']};
-  const COURSE_COLORS={D1:'#58d8c5',D2:'#44b8f1',D3:'#b78cff',D4:'#f1a960',BIS:'#f1ce62',T1:'#75d992',T2:'#b0df64',M1:'#48c7ba',R1:'#e988b2',R2:'#efac73',R3:'#d782ef',R4:'#e67e7e',CAR:'#80b5ff',P1:'#80b5ff',P2:'#82d8ea',P3:'#71cdae',CAP:'#b8a2ff',SR1:'#e6cc75',SR2:'#f0b36b'};
+  const COURSE_COLORS={D1:'#58d8c5',D2:'#44b8f1',D3:'#b78cff',D4:'#f1a960',BIS:'#f1ce62',T1:'#75d992',T2:'#b0df64',M1:'#48c7ba',R1:'#e988b2',R2:'#efac73',R3:'#d782ef',R4:'#e67e7e',CAR:'#80b5ff',P1:'#80b5ff',P2:'#82d8ea',P3:'#71cdae',CAP:'#b8a2ff',SR1:'#e6cc75',SR2:'#f0b36b','S.S.':'#0ea5e9','S.S':'#0ea5e9',SS:'#0ea5e9'};
   // Numeri corsa e orari: assets/js/course-info.js (fonte unica).
   const ROLE_INFO=[
     [/capitano|comandante/i,'Capitano','#facc15',1],

@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v732-documenti-tutorial';
+const CACHE_VERSION = 'navisuite-v734-collegamenti-mio-turno';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -35,6 +35,10 @@ const CORE_ASSETS = [
   // pagine principali: Scali e Il mio turno (e Documenti), disponibili anche senza rete
   './orario.html',
   './mio-turno.html',
+  './collegamenti.html',
+  './assets/css/collegamenti.css',
+  './assets/js/collegamenti-dati.js',
+  './assets/js/collegamenti.js',
   './battaglia-garda.html',
   './assets/js/battaglia-garda.js',
   './documenti.html',

@@ -126,13 +126,78 @@
     return { stagione, festivo: festivo(d), validi: migliori.slice(0, 4), primoDopo: dopo[0] || null };
   }
 
+  function cercaDopo(daRes, aRes, iso, dopoMinuti) {
+    const d = new Date(`${iso}T12:00:00`), stagione = stagioneDel(iso);
+    const conn = connessioni(stagione, d), da = RESIDENZE[daRes] || daRes, a = RESIDENZE[aRes] || aRes;
+    if (!da || !a) return { stagione, festivo: festivo(d), validi: [], prima: null };
+    const partenze = [...new Set(conn.filter(c => c.da === da && (dopoMinuti == null || c.parte >= dopoMinuti)).map(c => c.parte))].sort((x, y) => x - y);
+    const visti = new Set(), validi = [];
+    for (const p of partenze) {
+      const v = viaggio(conn, da, a, p);
+      if (!v) continue;
+      const chiave = `${v.parte}-${v.arriva}`;
+      if (visti.has(chiave)) continue;
+      visti.add(chiave);
+      validi.push(v);
+    }
+    const migliori = validi.filter(v => !validi.some(w => w !== v && w.parte >= v.parte && w.arriva <= v.arriva));
+    migliori.sort((x, y) => x.arriva - y.arriva || x.parte - y.parte);
+    return { stagione, festivo: festivo(d), validi: migliori.slice(0, 4), prima: migliori[0] || null };
+  }
+  function normalizzaResidenza(r) {
+    const s = String(r || '').trim().toLowerCase();
+    if (s.startsWith('des')) return 'Desenzano';
+    if (s.startsWith('mad')) return 'Maderno';
+    if (s.startsWith('pes')) return 'Peschiera';
+    if (s.startsWith('riv')) return 'Riva';
+    return null;
+  }
+  function cercaTurno({ casa, turnoResidenza, iso, inizio, fine }) {
+    const daCasa = normalizzaResidenza(casa);
+    const alLavoro = normalizzaResidenza(turnoResidenza);
+    if (!daCasa || !alLavoro) return null;
+    if (daCasa === alLavoro) return { stessaResidenza: true, casa: daCasa, lavoro: alLavoro };
+    const inizioMin = minuti(inizio);
+    const fineMin = minuti(fine);
+    const andata = inizioMin != null ? cerca(daCasa, alLavoro, iso, inizioMin) : null;
+    const ritorno = fineMin != null ? cercaDopo(alLavoro, daCasa, iso, fineMin) : null;
+    return {
+      stessaResidenza: false,
+      casa: daCasa,
+      lavoro: alLavoro,
+      data: iso,
+      inizio: inizioMin,
+      fine: fineMin,
+      andata: andata?.validi?.[0] || null,
+      andataAlternativa: andata?.validi?.[1] || null,
+      andataPrimoDopo: andata?.primoDopo || null,
+      ritorno: ritorno?.validi?.[0] || null,
+      ritornoAlternativa: ritorno?.validi?.[1] || null,
+      fattibile: Boolean(andata?.validi?.[0] && ritorno?.validi?.[0]),
+      mancaAndata: Boolean(inizioMin != null && !andata?.validi?.[0]),
+      mancaRitorno: Boolean(fineMin != null && !ritorno?.validi?.[0])
+    };
+  }
+
   // ---------- disegno ----------
-  function disegnaViaggio(v, entro) {
+  function disegnaViaggio(v, riferimento, tipo = 'arrivo') {
     const scuola = v.tratte.some(t => t.sale.scuola);
     const cambi = v.tratte.length - 1;
-    const margine = entro != null ? entro - v.arriva : null;
-    return `<article class="col-viaggio${margine != null && margine < 0 ? ' tardi' : ''}">
-      <header><b>${ora(v.parte)} → ${ora(v.arriva)}</b><span>${cambi ? `${cambi} cambio${cambi > 1 ? 'i' : ''}` : 'diretto'} · ${ora(v.arriva - v.parte)} h${margine != null ? ` · ${margine >= 0 ? `${margine} min di margine` : `${-margine} min in ritardo`}` : ''}</span></header>
+    let notaTempo = '';
+    let tardi = false;
+    if (riferimento != null) {
+      if (tipo === 'ritorno') {
+        const attesa = v.parte - riferimento;
+        notaTempo = attesa >= 0 ? ` · parte ${attesa} min dopo fine turno` : ` · anticipa di ${-attesa} min`;
+        tardi = attesa < 0;
+      } else {
+        const margine = riferimento - v.arriva;
+        notaTempo = margine >= 0 ? ` · ${margine} min di margine` : ` · ${-margine} min in ritardo`;
+        tardi = margine < 0;
+      }
+    }
+    return `<article class="col-viaggio${tardi ? ' tardi' : ''}">
+      <header><b>${ora(v.parte)} → ${ora(v.arriva)}</b><span>${cambi ? `${cambi} cambio${cambi > 1 ? 'i' : ''}` : 'diretto'} · ${ora(v.arriva - v.parte)} h${notaTempo}</span></header>
       <ol>${v.tratte.map(t => `<li><span class="col-tipo">${TIPI[t.sale.linea.tipo] || '•'}</span><div><b>${esc(t.sale.linea.nome)}</b><small>${esc(t.sale.da)} ${ora(t.sale.parte)} → ${esc(t.scende.a)} ${ora(t.scende.arriva)}${t.sale.scuola ? ' · solo giorni di scuola' : ''}</small></div></li>`).join('')}</ol>
       ${scuola ? '<p class="col-nota">⚠ Una corsa vale solo nei giorni di scuola.</p>' : ''}
     </article>`;
@@ -274,6 +339,6 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scarica(); });
   }
 
-  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
+  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
   if (typeof document !== 'undefined' && document.getElementById('col-linee')) avvia();
 })();

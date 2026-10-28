@@ -17,13 +17,13 @@
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Capitano: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
     'Aiuto motorista': ['AM', '#3b82f6'], Marinaio: ['Mar', '#e8f3f6'], Applicato: ['App', '#a3e635'] };
-  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra' };
+  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
   const nomeTurno = t => NOMI[t] || t || '—';
 
   // Anzianita' del prospetto dei turni (posizione, 1 = la piu' anziana); chi non c'e' va in fondo.
   const anz = r => window.NaviSharedData?.seniorityRank?.(r.agent.agente) ?? Number.POSITIVE_INFINITY;
   const anzTesto = r => (Number.isFinite(anz(r)) ? String(anz(r) + 1) : '—');
-  const stesso = (a, b) => String(a || '').trim().toUpperCase() === String(b || '').trim().toUpperCase();
+  const stesso = (a, b) => { const ua = String(a || '').trim().toUpperCase(), ub = String(b || '').trim().toUpperCase(); return ua === ub || (/^S\.?S\.?$/.test(ua) && /^S\.?S\.?$/.test(ub)); };
 
   // Destinazioni: come nel menu dello sbarco delle Corse, piu' i servizi a terra e il turno attuale se insolito.
   function destinazioni(rows, r) {

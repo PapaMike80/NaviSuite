@@ -36,14 +36,15 @@
     return [...base, ...state.turniNavi];
   }
   // Turni nave in servizio nel giorno / fermi (D3, D4... nell'orario invernale).
-  const TUTTI_I_TURNI = ['D1', 'D2', 'D3', 'D4', 'P1', 'P2', 'P3', 'R1', 'R2', 'R3', 'R4', 'M1', 'T1', 'T2', 'SR1', 'SR2'];
+  const TUTTI_I_TURNI = ['D1', 'D2', 'D3', 'D4', 'P1', 'P2', 'P3', 'R1', 'R2', 'R3', 'R4', 'M1', 'T1', 'T2', 'SR1', 'SR2', 'S.S.'];
   // I turni dell'orario in vigore, piu' quelli ripresi dal Movimento (es. D3 o D4 estivi); fermi: tutti gli altri, anche quelli dell'orario estivo.
   const turniCodici = day => {
     const riprese = Object.keys(window.NaviStagione || {}).filter(code => !O.TURNI.includes(code) && code !== 'BIS' && O.inServizio(code, day));
-    return [...O.TURNI.slice(0, 2), 'BIS', ...O.TURNI.slice(2), ...riprese].filter(code => O.inServizio(code, day));
+    const assegnate = Object.keys(T.turniDelGiorno(righeNavi(), day) || {}).filter(code => !O.TURNI.includes(code) && code !== 'BIS');
+    return [...new Set([...O.TURNI.slice(0, 2), 'BIS', ...O.TURNI.slice(2), ...riprese, ...assegnate])].filter(code => O.inServizio(code, day) || assegnate.includes(code));
   };
   const turniFermi = day => [...new Set([...TUTTI_I_TURNI, ...Object.keys(window.NaviCourseInfo?.COURSE_TRIPS || {}), ...Object.keys(window.NaviStagione || {})])]
-    .filter(code => code !== 'BIS' && !turniCodici(day).includes(code));
+    .filter(code => code !== 'BIS' && !/^S\.?S\.?$/.test(code) && !turniCodici(day).includes(code));
 
   // Variazione del Movimento di un agente nel giorno (per "annulla").
   const variazioneMovimento = (day, id) => (state.schedule?.variazioni_ods || [])

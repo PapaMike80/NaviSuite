@@ -77,3 +77,11 @@
 .mt-ora-prova input{flex:1;accent-color:#2dd4bf}
 .mt-ora-prova b{min-width:48px;color:#fbbf24;font-variant-numeric:tabular-nums}
 .mt-ora-prova button{border:1px solid #1f4250;background:#102733;color:#eaf2f4;border-radius:999px;padding:3px 10px;font:700 11px inherit}
+
+/* Card collegamenti mezzi pubblici (Il mio turno) */
+.mt-collegamenti-card { border-color: #1f505c; }
+.mt-col-sezione { margin-bottom: 8px; }
+.mt-col-titolo { font-size: 12px; font-weight: 700; color: #9fb8c2; margin-bottom: 4px; }
+.mt-col-titolo b { color: #eaf2f4; }
+.mt-col-titolo small { font-weight: 500; color: #799ea8; }
+.mt-col-foot { font-size: 11.5px; }

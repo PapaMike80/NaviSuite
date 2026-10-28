@@ -1,7 +1,7 @@
 // Collegamenti pubblici tra le residenze: orari di partenza (si modificano dalla pagina Collegamenti).
 // Ogni linea e' una tabella di testo: prima riga i giorni di ogni corsa, poi una riga per fermata.
 // Giorni: FER lun-sab, LV lun-ven, SAB sabato, FEST domenica e festivi, SCO solo giorni di scuola (lun-sab), TUTTI ogni giorno.
-window.NaviCollegamentiDefault = {
+(typeof window !== 'undefined' ? window : globalThis).NaviCollegamentiDefault = {
  "versione": 2,
  "stagioni": {
   "invernale": {

@@ -27,7 +27,7 @@
     ['Desenzano', ['D1', 'D2', 'BIS', 'AgB', 'PonD']],
     ['Maderno', ['T1', 'T2', 'M1', 'AgM', 'AgT']],
     ['Riva', ['R1', 'R2', 'R3']],
-    ['Peschiera', ['P1', 'P2', 'SR1', 'SR2', 'IE']],
+    ['Peschiera', ['P1', 'P2', 'SR1', 'SR2', 'IE', 'S.S.']],
     ['Altro', ['RIP']]
   ];
 
@@ -41,7 +41,7 @@
   const params = new URLSearchParams(location.search);
   // «Prova turno» (provare la pagina con un altro turno) solo per gli admin
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
-  const state = { comitive: [], day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
+  const state = { comitive: [], day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false, collegamenti: true }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
   if (!admin) document.querySelector('.mt-test')?.remove();
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
   const today = () => state.day || iso(new Date());
@@ -185,6 +185,71 @@
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></div>`).join('') + '</details>';
   }
+  function residenzaAgente(me, found, schedule) {
+    const direct = me?.residence || me?.residenza || found?.residenza;
+    if (direct) return direct;
+    if (schedule?.residenze && me?.id) {
+      for (const [res, list] of Object.entries(schedule.residenze)) {
+        if ((list || []).some(a => String(a.id || '') === String(me.id))) return res;
+      }
+    }
+    try {
+      const turni = Object.values(found?.agent?.turni || {});
+      const count = { Maderno: 0, Desenzano: 0, Riva: 0, Peschiera: 0 };
+      turni.forEach(t => {
+        const u = String(t || '').toUpperCase();
+        if (/^(T[12]|M1|AGM|AGT[12]?|PONM)$/.test(u)) count.Maderno++;
+        else if (/^(D[1-4]|AGB|POND)$/.test(u)) count.Desenzano++;
+        else if (/^R[1-4]$/.test(u)) count.Riva++;
+        else if (/^(P[1-3]|SR[12]|S\.?S\.?|IE)$/.test(u)) count.Peschiera++;
+      });
+      const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
+      if (top && top[1] > 0) return top[0];
+    } catch (_) {}
+    return '';
+  }
+  function residenzaDiNave(code) {
+    const c = String(code || '').trim().toUpperCase();
+    if (/^D[1-4]$/.test(c) || /^BIS$/.test(c)) return 'Desenzano';
+    if (/^(T[12]|M1)$/.test(c)) return 'Maderno';
+    if (/^R[1-4]$/.test(c)) return 'Riva';
+    if (/^(P[1-3]|SR[12]|S\.?S\.?)$/.test(c)) return 'Peschiera';
+    return '';
+  }
+
+  function cardCollegamenti(day, turnoCode, sedeTurno, casaAgente, inizio, fine) {
+    const C = window.NaviCollegamenti;
+    if (!C?.cercaTurno) return '';
+    const casa = C.normalizzaResidenza(casaAgente);
+    const sede = C.normalizzaResidenza(sedeTurno);
+    if (!casa || !sede || casa === sede) return '';
+    const ct = C.cercaTurno({ casa, turnoResidenza: sede, iso: day, inizio, fine });
+    if (!ct || ct.stessaResidenza) return '';
+    const badge = ct.fattibile
+      ? '<b class="count" style="background:#064e3b;color:#a7f3d0">Fattibile coi mezzi</b>'
+      : '<b class="count" style="background:#4c0519;color:#fecdd3">⚠ Serve auto o pernotto</b>';
+    let htmlAndata = '';
+    if (ct.andata) {
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizio)) + ')</small></div>' +
+        C.disegnaViaggio(ct.andata, ct.inizio, 'arrivo') + '</div>';
+    } else if (ct.inizio != null) {
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizio)) + ')</small></div>' +
+        '<p class="col-no">✕ Nessun mezzo pubblico arriva a ' + esc(ct.lavoro) + ' entro le ' + esc(ora(inizio)) + ': serve auto o pernotto.</p>' +
+        (ct.andataPrimoDopo ? '<p class="col-info">Primo arrivo possibile:</p>' + C.disegnaViaggio(ct.andataPrimoDopo, ct.inizio, 'arrivo') : '') + '</div>';
+    }
+    let htmlRitorno = '';
+    if (ct.ritorno) {
+      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fine)) + ')</small></div>' +
+        C.disegnaViaggio(ct.ritorno, ct.fine, 'ritorno') + '</div>';
+    } else if (ct.fine != null) {
+      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fine)) + ')</small></div>' +
+        '<p class="col-no">✕ Nessun mezzo pubblico parte da ' + esc(ct.lavoro) + ' dopo le ' + esc(ora(fine)) + ': serve auto o pernotto.</p></div>';
+    }
+    const note = '<div class="mt-col-foot" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px dashed #1f4250">' +
+      '<small style="color:#9fb8c2">Residenza: <b>' + esc(ct.casa) + '</b> · Sede turno: <b>' + esc(ct.lavoro) + '</b></small>' +
+      '<a href="collegamenti.html" style="color:#2dd4bf;font-size:11.5px;font-weight:700;text-decoration:none">Collegamenti completi ↗</a></div>';
+    return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + note, 'mt-collegamenti-card', 'collegamenti');
+  }
   function renderNave(code, day, me) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
     const oggi = T.turniDelGiorno(turniNavi, day)[code] || {};
@@ -265,19 +330,26 @@
     servizioHeader(info.presentation, info.lastArrival, day, code);
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
+    const sedeNave = residenzaDiNave(code);
+    const casa = residenzaAgente(me, found, state.schedule) || (sedeNave === 'Maderno' ? 'Desenzano' : 'Maderno');
+    const coll = cardCollegamenti(day, code, sedeNave, casa, info.presentation, info.lastArrival);
     // Prima corse e scali, poi la mappa del lago (sezione Scali), poi la scheda Turno.
     $('turno-content').innerHTML = `<div class="terra-col">${riquadroComitive(rows, com, day, code)}${right}</div>`;
-    $('turno-after').innerHTML = `<div class="terra-col">${left}</div>`;
+    $('turno-after').innerHTML = `<div class="terra-col">${coll}${left}</div>`;
   }
 
-  function renderTerra(code, residenza, day) {
+  function renderTerra(code, residenza, day, me, found) {
     $('turno-title').innerHTML = `${chip(code)} A terra`;
     $('turno-context').textContent = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
     const servizio = (T.DATA.SERVIZI[residenza] || []).find(row => row[0] === code);
+    const inizio = servizio ? servizio[1].split(' – ')[0] : '';
+    const fine = servizio ? (servizio[2] || servizio[1]).split(' – ').pop() : '';
     // A terra: la pagina Scali del mio scalo (mappa, navi allo scalo con pontili, ormeggi, agenti), poi la scheda Turno.
     $('turno-content').innerHTML = '';
     if (servizio) servizioHeader(servizio[1].split(' – ')[0], servizio[2].split(' – ')[1], day, code);
-    $('turno-after').innerHTML = `<div class="terra-col">${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
+    const casa = residenzaAgente(me, found, state.schedule) || (residenza === 'MADERNO' ? 'Desenzano' : 'Maderno');
+    const coll = cardCollegamenti(day, code, residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', casa, inizio, fine);
+    $('turno-after').innerHTML = `<div class="terra-col">${coll}${turnoCard(code, day, servizio ? { inizio: servizio[1].split(' – ')[0], fine: servizio[2].split(' – ')[1] } : {})}</div>`;
     $('turno-scali').hidden = false;
     window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
   }
@@ -497,7 +569,7 @@
       $('turno-scali').hidden = false;
       window.NaviOrarioPage?.show({ modo: 'nave', turno: nave, day });
     }
-    else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day);
+    else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day, me, found);
     else renderAltro(turno, day, String(found?.residenza || '').toUpperCase());
     const url = new URL(location.href);
     url.searchParams.delete('auto');

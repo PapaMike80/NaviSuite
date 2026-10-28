@@ -34,3 +34,12 @@ const vecchi = { versione: 1, stagioni: { invernale: { nome: 'Invernale', dal: '
 const nuovi = C.aggiorna(vecchi);
 assert.ok(nuovi.stagioni.invernale.linee.some(l => l.id === 'mia') && nuovi.stagioni.invernale.linee.some(l => l.id === 'rl202-a'));
 console.log('collegamenti 2 ok');
+
+// Test cercaTurno Maderno -> Desenzano (PonD 09:30 - 19:50)
+const tTurno = C.cercaTurno({ casa: 'Maderno', turnoResidenza: 'Desenzano', iso: '2026-10-28', inizio: '09:30', fine: '19:50' });
+assert.ok(tTurno && tTurno.fattibile);
+assert.strictEqual(C.ora(tTurno.andata.parte), '07:37');
+assert.strictEqual(C.ora(tTurno.andata.arriva), '08:59');
+assert.strictEqual(C.ora(tTurno.ritorno.parte), '20:00');
+assert.strictEqual(C.ora(tTurno.ritorno.arriva), '21:28');
+console.log('collegamenti turno ok');

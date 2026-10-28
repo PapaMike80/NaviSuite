@@ -111,4 +111,12 @@ assert.strictEqual(O.inServizio('D3', '2026-09-01'), true);
 assert.deepStrictEqual(T.turniDelGiorno([{ data: '2026-11-11', corsa: 'SR1', stagione: 'ferma', fonte: 'movimento', attiva: true }], '2026-11-11'), {});
 assert.match(rest, /saveStagioneTurno/);
 O.stagioneDaRighe([]);
+// Supporto corsa e turno speciale S.S.
+const G = globalThis.NaviTurniGiorno;
+['S.S.', 'S.S', 'CS.S.C', 'S.S.*', 's.s.'].forEach(raw => {
+  assert.strictEqual(G.naveCode(raw), 'S.S.', `naveCode per ${raw}`);
+  assert.strictEqual(G.coloreTurno(raw), '#0ea5e9', `coloreTurno per ${raw}`);
+});
+assert.ok(css.includes('data-code="S.S."'));
+
 console.log('movimento ok');

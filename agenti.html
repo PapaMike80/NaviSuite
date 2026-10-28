@@ -284,7 +284,7 @@
       return t&&!RIPOSO.test(t)?t:'';
     }
     // colori dei turni: navi come in Orari/Comitive/Scali, servizi a terra come nella Distinta
-    const COLORI_TURNO={DT:'#d4a900',AGB:'#60a5fa',AGB2:'#60a5fa',POND:'#f87171',AGM:'#60a5fa',AGT:'#d4a900',AGT1:'#d4a900',AGT2:'#d4a900',PONM:'#f87171',IE:'#94a3b8',PT:'#94a3b8',BIS2:'#f1ce62',CAR1:'#80b5ff',CAP1:'#b8a2ff',D1:'#58d8c5',D2:'#44b8f1',D3:'#b78cff',D4:'#f1a960',BIS:'#f1ce62',T1:'#75d992',T2:'#b0df64',M1:'#48c7ba',R1:'#e988b2',R2:'#efac73',R3:'#d782ef',R4:'#e67e7e',CAR:'#80b5ff',P1:'#80b5ff',P2:'#82d8ea',P3:'#71cdae',CAP:'#b8a2ff',SR1:'#e6cc75',SR2:'#f0b36b'};
+    const COLORI_TURNO={DT:'#d4a900',AGB:'#60a5fa',AGB2:'#60a5fa',POND:'#f87171',AGM:'#60a5fa',AGT:'#d4a900',AGT1:'#d4a900',AGT2:'#d4a900',PONM:'#f87171',IE:'#94a3b8',PT:'#94a3b8',BIS2:'#f1ce62',CAR1:'#80b5ff',CAP1:'#b8a2ff',D1:'#58d8c5',D2:'#44b8f1',D3:'#b78cff',D4:'#f1a960',BIS:'#f1ce62',T1:'#75d992',T2:'#b0df64',M1:'#48c7ba',R1:'#e988b2',R2:'#efac73',R3:'#d782ef',R4:'#e67e7e',CAR:'#80b5ff',P1:'#80b5ff',P2:'#82d8ea',P3:'#71cdae',CAP:'#b8a2ff',SR1:'#e6cc75',SR2:'#f0b36b','S.S.':'#0ea5e9','S.S':'#0ea5e9',SS:'#0ea5e9'};
     const coloreTurno=t=>window.NaviTurniGiorno?.coloreTurno?.(t)||COLORI_TURNO[String(t).toUpperCase().replace(/\s+/g,'')]||'#9fb8c2';
     const categoriaTesto=sv=>{const c=sv?.categoria||'stabili';if(c==='stabili')return 'Stabile';return `${c==='esterni'?'Esterno':'Stagionale'}${sv.fine?` · fino al ${itDate(sv.fine).slice(0,5)}`:''}`;};
     // Sezioni richiudibili con il riassunto a destra (Residenza, FF, Ultimi accessi, PIN e registrazione)

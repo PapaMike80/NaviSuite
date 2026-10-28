@@ -159,4 +159,19 @@ toggle(map, false, 'turno-scali');
 listeners['turno-content']({ target: { ...corse, open: true, isConnected: false } });
 listeners['turno-scali']({ target: { dataset: {}, open: true, isConnected: true } });
 assert.deepStrictEqual(states(), [true, false, false]);
+
+// Verifica collegamenti mezzi pubblici per agente fuori residenza (es. Maderno -> Desenzano PonD)
+if (typeof window === 'undefined') global.window = globalThis;
+if (typeof localStorage === 'undefined') global.localStorage = { getItem: () => null, setItem: () => {} };
+require('../assets/js/collegamenti-dati.js');
+require('../assets/js/collegamenti.js');
+const C_test = globalThis.NaviCollegamenti;
+assert.ok(C_test && typeof C_test.cercaTurno === 'function');
+const rTurno = C_test.cercaTurno({ casa: 'Maderno', turnoResidenza: 'Desenzano', iso: '2026-10-28', inizio: '9.30', fine: '19.50' });
+assert.ok(rTurno.fattibile);
+assert.strictEqual(C_test.ora(rTurno.andata.parte), '07:37');
+assert.strictEqual(C_test.ora(rTurno.andata.arriva), '08:59');
+assert.strictEqual(C_test.ora(rTurno.ritorno.parte), '20:00');
+assert.strictEqual(C_test.ora(rTurno.ritorno.arriva), '21:28');
+
 console.log('mio-turno ok');

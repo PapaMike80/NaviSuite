@@ -75,6 +75,7 @@ html.navisuite-light .fleet-table tr.current td:not(.ship-name){background:#e6f7
 .chip[data-code="D4"]{--c:#dc74d2}
 .chip[data-code="BIS"]{--c:#67d7e6}
 .chip[data-code="SR1"],.chip[data-code="SR2"]{--c:#a78bfa}
+.chip[data-code="S.S."],.chip[data-code="S.S"],.chip[data-code="SS"]{--c:#0ea5e9}
 .mov-toolbar{align-items:center}
 .mov-day{display:flex;align-items:center;gap:6px}
 .mov-day .btn{min-width:38px}
