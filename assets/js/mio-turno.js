@@ -226,8 +226,8 @@
     const ct = C.cercaTurno({ casa, turnoResidenza: sede, iso: day, inizio, fine });
     if (!ct || ct.stessaResidenza) return '';
     const badge = ct.fattibile
-      ? '<b class="count" style="background:#064e3b;color:#a7f3d0">Fattibile coi mezzi</b>'
-      : '<b class="count" style="background:#4c0519;color:#fecdd3">⚠ Serve auto o pernotto</b>';
+      ? 'Fattibile coi mezzi'
+      : 'Serve auto o pernotto';
     let htmlAndata = '';
     if (ct.andata) {
       htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizio)) + ')</small></div>' +
@@ -248,7 +248,7 @@
     const note = '<div class="mt-col-foot" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px dashed #1f4250">' +
       '<small style="color:#9fb8c2">Residenza: <b>' + esc(ct.casa) + '</b> · Sede turno: <b>' + esc(ct.lavoro) + '</b></small>' +
       '<a href="collegamenti.html" style="color:#2dd4bf;font-size:11.5px;font-weight:700;text-decoration:none">Collegamenti completi ↗</a></div>';
-    return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + note, 'mt-collegamenti-card', 'collegamenti');
+    return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + note, 'mt-collegamenti-card ' + (ct.fattibile ? 'mt-col-ok' : 'mt-col-warn'), 'collegamenti');
   }
   function renderNave(code, day, me, found) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
