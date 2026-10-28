@@ -213,20 +213,24 @@
     const C = window.NaviCollegamenti;
     const oraA = ct.andata ? C.ora(ct.andata.parte) : '';
     const oraR = ct.ritorno ? C.ora(ct.ritorno.parte) : '';
+    const haPernotto = ct.competenze?.pernottoPrima || ct.competenze?.pernottoSera;
+    const ha2Ticket = ct.competenze?.secondoTicket;
+
     let testo = '', cls = 'mt-head-mezzo';
     if (oraA && oraR) {
-      testo = '🚌 ' + oraA + ' · rientro ' + oraR;
+      testo = '🚌 ' + oraA + ' · rientro ' + oraR + (ha2Ticket ? ' · 2° ticket' : '');
     } else if (oraA) {
-      testo = '🚌 ' + oraA + ' · ⚠ no rientro';
+      testo = '🚌 ' + oraA + ' · 🏨 pernotto' + (ha2Ticket ? ' · 2° ticket' : '');
       cls += ' warn';
     } else if (oraR) {
-      testo = '⚠ No andata · rientro ' + oraR;
+      testo = '🏨 pernotto prima · rientro ' + oraR + (ha2Ticket ? ' · 2° ticket' : '');
       cls += ' warn';
     } else {
-      testo = '⚠ No mezzi';
+      testo = '🏨 pernotto · ⚠ no mezzi';
       cls += ' warn';
     }
-    return '<span class="' + cls + '" role="button" tabindex="0" title="Mezzi pubblici: tocca per vedere i dettagli">' + esc(testo) + '</span>';
+    const tooltip = 'Trasferta: Diaria 50%' + (haPernotto ? ', Pernotto 40%' : '') + (ha2Ticket ? ', 2° Ticket' : '') + ' (tocca per dettagli)';
+    return '<span class="' + cls + '" role="button" tabindex="0" title="' + esc(tooltip) + '">' + esc(testo) + '</span>';
   }
   function impostaContesto(testoBase, ct) {
     const el = $('turno-context');
@@ -250,32 +254,55 @@
     const casa = C.normalizzaResidenza(casaAgente);
     const sede = C.normalizzaResidenza(sedeTurno);
     if (!casa || !sede || casa === sede) return '';
-    const ct = C.cercaTurno({ casa, turnoResidenza: sede, iso: day, inizio, fine });
+    const inizioClean = String(inizio || '').split(/[-–]/)[0].trim();
+    const fineClean = String(fine || '').split(/[-–]/).pop().trim();
+    const ct = C.cercaTurno({ casa, turnoResidenza: sede, iso: day, inizio: inizioClean, fine: fineClean });
     if (!ct || ct.stessaResidenza) return '';
     const badge = ct.fattibile
       ? 'Fattibile coi mezzi'
       : 'Serve auto o pernotto';
     let htmlAndata = '';
     if (ct.andata) {
-      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizio)) + ')</small></div>' +
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizioClean)) + ')</small></div>' +
         C.disegnaViaggio(ct.andata, ct.inizio, 'arrivo') + '</div>';
     } else if (ct.inizio != null) {
-      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizio)) + ')</small></div>' +
-        '<p class="col-no">✕ Nessun mezzo pubblico arriva a ' + esc(ct.lavoro) + ' entro le ' + esc(ora(inizio)) + ': serve auto o pernotto.</p>' +
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizioClean)) + ')</small></div>' +
+        '<p class="col-no">✕ Nessun mezzo pubblico arriva a ' + esc(ct.lavoro) + ' entro le ' + esc(ora(inizioClean)) + ': serve pernotto la sera prima (40%).</p>' +
         (ct.andataPrimoDopo ? '<p class="col-info">Primo arrivo possibile:</p>' + C.disegnaViaggio(ct.andataPrimoDopo, ct.inizio, 'arrivo') : '') + '</div>';
     }
     let htmlRitorno = '';
     if (ct.ritorno) {
-      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fine)) + ')</small></div>' +
+      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fineClean)) + ')</small></div>' +
         C.disegnaViaggio(ct.ritorno, ct.fine, 'ritorno') + '</div>';
     } else if (ct.fine != null) {
-      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fine)) + ')</small></div>' +
-        '<p class="col-no">✕ Nessun mezzo pubblico parte da ' + esc(ct.lavoro) + ' dopo le ' + esc(ora(fine)) + ': serve auto o pernotto.</p></div>';
+      htmlRitorno = '<div class="mt-col-sezione" style="margin-top:10px"><div class="mt-col-titolo">▼ Rientro: <b>' + esc(ct.lavoro) + ' → ' + esc(ct.casa) + '</b> <small>(fine turno ore ' + esc(ora(fineClean)) + ')</small></div>' +
+        '<p class="col-no">✕ Nessun mezzo pubblico parte da ' + esc(ct.lavoro) + ' dopo le ' + esc(ora(fineClean)) + ': serve pernotto la sera del turno (40%).</p></div>';
     }
+
+    // Sezione Competenze Trasferta (Diaria 50%, Pernotto 40%, 2° Ticket dopo 20:45 o con pernotto)
+    const comp = ct.competenze || {};
+    let chipsHtml = '<span class="mt-comp-chip ok" title="Trasferta fuori residenza: diaria al 50%">💰 Diaria 50%</span>';
+    if (comp.pernottoPrima) {
+      chipsHtml += '<span class="mt-comp-chip warn" title="Manca mezzo di andata: pernotto la sera prima del turno">🏨 Pernotto 40% (sera prima)</span>';
+    }
+    if (comp.pernottoSera) {
+      chipsHtml += '<span class="mt-comp-chip warn" title="Manca mezzo di rientro: pernotto la sera del turno">🏨 Pernotto 40% (sera turno)</span>';
+    }
+    if (comp.secondoTicket) {
+      const causaleTicket = comp.pernottoSera ? 'pernotto fuori' : ('rientro ore ' + C.ora(comp.rientroMin) + ' > 20:45');
+      chipsHtml += '<span class="mt-comp-chip ok" title="Secondo ticket pasto spettante: ' + causaleTicket + '">🍽️ 2° Ticket (' + causaleTicket + ')</span>';
+    }
+    if (!comp.pernottoPrima && !comp.pernottoSera) {
+      chipsHtml += '<span class="mt-comp-chip ghost" title="Orari coperti da mezzi pubblici: nessun pernotto necessario">🏨 Pernotto: no</span>';
+    }
+
+    const htmlCompetenze = '<div class="mt-col-competenze"><div class="mt-col-titolo">💼 Competenze trasferta</div><div class="mt-comp-chips">' + chipsHtml + '</div></div>';
+
     const note = '<div class="mt-col-foot" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px dashed #1f4250">' +
       '<small style="color:#9fb8c2">Residenza: <b>' + esc(ct.casa) + '</b> · Sede turno: <b>' + esc(ct.lavoro) + '</b></small>' +
       '<a href="collegamenti.html" style="color:#2dd4bf;font-size:11.5px;font-weight:700;text-decoration:none">Collegamenti completi ↗</a></div>';
-    return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + note, 'mt-collegamenti-card ' + (ct.fattibile ? 'mt-col-ok' : 'mt-col-warn'), 'collegamenti');
+
+    return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + htmlCompetenze + note, 'mt-collegamenti-card ' + (ct.fattibile ? 'mt-col-ok' : 'mt-col-warn'), 'collegamenti');
   }
   function renderNave(code, day, me, found) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
