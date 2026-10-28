@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Polizia, Sicurezza e Regolarità dei Trasporti (D.P.R. 753/1980) · Dispensa NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="../../../assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --blue: #54a7ff;
+      --c: var(--amber);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+
+    .top-bar {
+      background: rgba(7, 25, 35, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.doc-header {
+      padding: 34px 0 20px;
+    }
+    .badge-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--c);
+      margin-bottom: 8px;
+    }
+    h1.doc-title {
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    p.doc-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .key-facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .sez {
+      background: color-mix(in srgb, var(--c) 8%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    .traps-box {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      border-left: 4px solid var(--rose);
+      border-radius: 0 14px 14px 0;
+      padding: 16px 20px;
+      margin: 28px 0;
+    }
+    .traps-box h3 {
+      color: var(--rose);
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .traps-box ul {
+      list-style: square;
+      padding-left: 20px;
+      color: #ffd9df;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .quiz-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 40px;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid var(--line);
+    }
+
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .top-bar, footer { display: none; }
+      .sez, .traps-box, .quiz-box { break-inside: avoid; border-color: #ccc; background: #fafafa; color: #000 !important; }
+      h1, h2, h3, strong { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-bar">
+    <div class="wrap top-bar-inner">
+      <a href="../../../concorso-controllo.html" class="back-btn">
+        <span>←</span>
+        <span>Torna al Concorso Controllo</span>
+      </a>
+      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+        <span>🖨️</span>
+        <span>Stampa / Salva in PDF</span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="wrap doc-header">
+    <span class="badge-tag">DISPENSA 03 · MATERIALE DIDATTICO UFFICIALE</span>
+    <h1 class="doc-title">🛡️ Polizia, Sicurezza e Regolarità dei Trasporti (D.P.R. 753/1980)</h1>
+    <p class="doc-subtitle">Poteri del personale ispettivo, qualifica di pubblico ufficiale, sanzioni amministrative e doveri dei viaggiatori</p>
+
+    <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
+    <div class="key-facts-grid">
+      
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Fonte normativa</span>
+        <strong style="font-size:0.95rem; color:#fff;">D.P.R. 11 luglio 1980, n. 753</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Ambito applicativo</span>
+        <strong style="font-size:0.95rem; color:#fff;">Ferrovie, tranvie, funivie e linee di navigazione interna</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Qualifica controllori</span>
+        <strong style="font-size:0.95rem; color:#fff;">Pubblico ufficiale o incaricato di pubblico servizio con polizia amministrativa</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Poteri accertamento</span>
+        <strong style="font-size:0.95rem; color:#fff;">Richiesta documenti, contestazione immediata, redazione processo verbale</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Valore dei verbali</span>
+        <strong style="font-size:0.95rem; color:#fff;">Fede privilegiata fino a querela di falso per i fatti attestati</strong>
+      </div>
+    
+      <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
+        <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Utente senza biglietto</span>
+        <strong style="font-size:0.95rem; color:#fff;">Pagamento tariffa ordinaria + sanzione amministrativa / soprattassa</strong>
+      </div>
+    
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- SEZIONI PRINCIPALI -->
+    
+      <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>1. Oggetto e Ambito del D.P.R. 753/1980</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Il <strong>Decreto del Presidente della Repubblica 11 luglio 1980, n. 753</strong> reca le <em>«Nuove norme in materia di polizia, sicurezza e regolarità dell'esercizio delle ferrovie e di altri servizi di trasporto»</em>.<br><br>
+                Si applica integralmente ai servizi pubblici di trasporto per vie navigabili interne svolti dalla Gestione Governativa Navigazione Laghi. Ha il duplice obiettivo di:
+                <ul>
+                  <li>Tutelare l'incolumità dei viaggiatori e del personale di bordo;</li>
+                  <li>Assicurare il regolare svolgimento delle corse e l'esazione corretta dei proventi tariffari.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>2. La Qualifica Giuridica del Personale di Controllo</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Il personale addetto al controllo dei titoli di viaggio e alla vigilanza degli impianti durante il servizio:
+                <ul>
+                  <li>Riveste la qualifica di <strong>pubblico ufficiale</strong> o di <strong>incaricato di pubblico servizio investito di funzioni di polizia amministrativa</strong> (art. 71);</li>
+                  <li>Ha il potere di chiedere l'esibizione del biglietto di viaggio e del documento di riconoscimento;</li>
+                  <li>In caso di rifiuto di declinare le generalità, l'agente può richiedere l'intervento della forza pubblica (Carabinieri, Polizia di Stato, Guardia di Finanza);</li>
+                  <li>I verbali di accertamento redatti dal personale fanno piena prova fino a querela di falso per le constatazioni materiali compiute dall'agente.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>3. Irregolarità dei Titoli di Viaggio e Sanzioni</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                Ai sensi degli artt. 20-25 del DPR 753/1980 e dei regolamenti tariffari GGNL:
+                <ul>
+                  <li><strong>Mancanza di titolo di viaggio:</strong> chiunque venga trovato sprovvisto di biglietto o munito di biglietto non convalidato o non valido per la corsa è tenuto al pagamento del biglietto a tariffa ordinaria maggiorato della sanzione amministrativa stabilita;</li>
+                  <li><strong>Regolarizzazione a bordo:</strong> se il passeggero si presenta spontaneamente al capobordo/controllore subito dopo l'imbarco segnalando l'impossibilità di acquisto a terra, viene applicata la tariffa ordinaria con un eventuale modesto diritto fisso di bordo, senza sanzione punitiva;</li>
+                  <li><strong>Titoli contraffatti o alterati:</strong> comportano il sequestro immediato del documento e la segnalazione all'Autorità Giudiziaria per il reato di truffa o uso di atto falso.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+      <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
+        <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>4. Norme di Comportamento e Divieti per i Passeggeri</span>
+        </h3>
+        <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
+          
+                È espressamente vietato agli utenti:
+                <ul>
+                  <li>Salire o scendere dal natante quando è in movimento o prima che siano state posizionate le passerelle e le catenelle di sicurezza;</li>
+                  <li>Accedere nelle aree riservate all'equipaggio (plancia di comando, sala macchine, gavoni di prua/poppa);</li>
+                  <li>Gettare oggetti, rifiuti o mozziconi nelle acque del lago;</li>
+                  <li>Fumare all'interno dei saloni chiusi e sui ponti dove vige apposito divieto;</li>
+                  <li>Accedere con armi cariche o materie esplosive/infiammabili non autorizzate.</li>
+                </ul>
+                
+        </div>
+      </div>
+    
+
+    <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
+    <div class="traps-box">
+      <h3><span>⚠️</span><span>Attenzione alle Trappole nei Quiz su Questa Materia</span></h3>
+      <ul>
+        <li>Il controllore GGNL non è un cittadino qualunque: è un incaricato di pubblico servizio con funzioni di polizia amministrativa.</li><li>Chi non ha biglietto non viene semplicemente 'fatto scendere': deve pagare biglietto + sanzione pecuniaria.</li>
+      </ul>
+    </div>
+
+    <!-- QUESITI D'ESAME REALI TRATTI DALLE PROVE -->
+    <div class="quiz-box">
+      <h3 style="font-size:1.1rem; color:var(--teal); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
+      </h3>
+      
+      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Simulazione Esame Ufficiale</span>
+        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Ai sensi del DPR 753/1980, gli agenti di controllo durante il servizio assumono la qualifica di:</p>
+        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Pubblico ufficiale o incaricato di pubblico servizio con compiti di polizia amministrativa</p>
+      </div>
+    
+    </div>
+  </main>
+
+  <footer>
+    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+  </footer>
+
+</body>
+</html>

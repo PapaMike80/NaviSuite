@@ -1,0 +1,1562 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Concorso Controllo · Operatore di Ufficio | NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --pink: #f472b6;
+      --blue: #54a7ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: 'DM Mono', monospace; font-variant-numeric: tabular-nums; }
+    .wrap { width: min(1060px, calc(100% - 32px)); margin: auto; }
+
+    .top-nav {
+      background: rgba(7, 25, 35, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-link:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.hero { padding: 34px 0 20px; }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 6px;
+    }
+    h1.title {
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle {
+      color: var(--muted);
+      max-width: 78ch;
+      font-size: 0.98rem;
+      margin-bottom: 20px;
+    }
+    .meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .pill strong { color: var(--ink); }
+    .pill.highlight { border-color: color-mix(in srgb, var(--teal) 50%, transparent); color: var(--teal); background: color-mix(in srgb, var(--teal) 10%, var(--card)); }
+
+    .tabs-wrapper {
+      margin: 24px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 12px 12px 0 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: var(--ink);
+      background: rgba(255,255,255,0.04);
+    }
+    .tab-btn.active {
+      color: var(--teal);
+      border-bottom-color: var(--teal);
+      background: color-mix(in srgb, var(--teal) 8%, var(--card));
+    }
+
+    .tab-view { display: none; padding-bottom: 60px; }
+    .tab-view.active { display: block; }
+
+    .material-grid { display: grid; gap: 20px; }
+    .material-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      gap: 16px;
+    }
+    .material-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--c, var(--teal));
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .mod-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--c, var(--teal));
+    }
+    .ref-badge {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon { font-size: 1.4rem; }
+
+    .key-points-box {
+      background: color-mix(in srgb, var(--c, var(--teal)) 8%, #091724);
+      border: 1px solid color-mix(in srgb, var(--c, var(--teal)) 35%, transparent);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .box-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--c, var(--teal));
+      margin-bottom: 12px;
+    }
+    .key-list {
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+    .key-list li {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      padding-left: 20px;
+      position: relative;
+      color: #e2edfa;
+    }
+    .key-list li::before {
+      content: "▪";
+      position: absolute;
+      left: 4px;
+      color: var(--c, var(--teal));
+      font-size: 1.2rem;
+      line-height: 1;
+      top: -1px;
+    }
+    .key-list strong {
+      color: #ffffff;
+      font-weight: 750;
+    }
+
+    .explanation-text {
+      color: #c9d8e8;
+      font-size: 0.94rem;
+      line-height: 1.6;
+    }
+
+    .traps-box {
+      background: rgba(251, 113, 133, 0.08);
+      border: 1px solid rgba(251, 113, 133, 0.3);
+      border-left: 4px solid var(--rose);
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+    }
+    .traps-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--rose);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .traps-list {
+      list-style: square;
+      padding-left: 18px;
+      color: #ffdce1;
+      font-size: 0.88rem;
+      display: grid;
+      gap: 4px;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .btn-file {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      transition: all 0.15s ease;
+    }
+    .btn-file:hover {
+      border-color: var(--teal);
+      background: color-mix(in srgb, var(--teal) 15%, var(--card2));
+      text-decoration: none;
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    .docs-table th, .docs-table td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.92rem;
+    }
+    .docs-table th {
+      background: #0d212d;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .docs-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .past-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .past-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .past-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .sim-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.3);
+    }
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .sim-timer {
+      background: #2a1b0c;
+      border: 1px solid #7c4412;
+      color: #ffb74d;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      display: none;
+    }
+    .sim-progress-bar {
+      height: 8px;
+      background: var(--line);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .sim-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), var(--cyan));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .sim-q-badge {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--teal);
+      background: color-mix(in srgb, var(--teal) 12%, var(--card));
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .sim-q-text {
+      font-size: 1.18rem;
+      font-weight: 750;
+      line-height: 1.45;
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+    .sim-options {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .sim-opt-btn {
+      background: var(--card2);
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.96rem;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.4;
+      transition: all 0.15s ease;
+    }
+    .sim-opt-btn:hover:not(:disabled) {
+      border-color: var(--teal);
+      background: color-mix(in srgb, var(--teal) 10%, var(--card2));
+    }
+    .sim-opt-btn.correct {
+      background: rgba(82, 200, 121, 0.15) !important;
+      border-color: var(--green) !important;
+      color: #a4f2bf !important;
+      font-weight: 700;
+    }
+    .sim-opt-btn.wrong {
+      background: rgba(251, 113, 133, 0.15) !important;
+      border-color: var(--rose) !important;
+      color: #ffb4be !important;
+      font-weight: 700;
+    }
+    .sim-feedback {
+      display: none;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 0.94rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .sim-feedback.ok {
+      display: block;
+      background: rgba(82, 200, 121, 0.12);
+      border-left: 4px solid var(--green);
+      color: #c3f7d4;
+    }
+    .sim-feedback.bad {
+      display: block;
+      background: rgba(251, 113, 133, 0.12);
+      border-left: 4px solid var(--rose);
+      color: #ffd2d8;
+    }
+
+    @media (max-width: 768px) {
+      .tabs { gap: 4px; }
+      .tab-btn { padding: 8px 12px; font-size: 0.88rem; }
+      .material-card { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="wrap top-nav-inner">
+      <a href="quiz.html" class="back-link">
+        <span>←</span>
+        <span>Torna a Concorsi GGNL</span>
+      </a>
+      <span class="mono" style="font-size:0.8rem; color:var(--muted);">GGNL · Ufficio Controllo</span>
+    </div>
+  </nav>
+
+  <header class="wrap hero">
+    <span class="eyebrow">MINISTERO DELLE INFRASTRUTTURE E DEI TRASPORTI · G.G.N.L.</span>
+    <h1 class="title">Concorso Operatore di Ufficio</h1>
+    <p class="subtitle">Settore Amministrativo – Ufficio Controllo (par. 130) · Bando Prot. C163/2026.<br>Materiale di studio ad impaginazione standardizzata, testi normativi integrali, prove scritte ufficiali passate e simulatore d'esame interattivo.</p>
+    
+    <div class="meta-pills">
+      <div class="pill highlight"><strong>3 Posti</strong> (Arona, Como, Desenzano)</div>
+      <div class="pill">Tempo Determinato <strong>12 Mesi Full-time</strong></div>
+      <div class="pill">CCNL Autoferrotranviari <strong>(RAL ~23.000 €)</strong></div>
+      <div class="pill">Soglia Idoneità <strong>18/30</strong></div>
+    </div>
+
+    <div class="tabs-wrapper">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" onclick="openTab('materiali')" id="btn-tab-materiali">
+          <span>📚</span><span>Materiali & Dispense</span>
+        </button>
+        <button class="tab-btn" onclick="openTab('documenti')" id="btn-tab-documenti">
+          <span>🏛️</span><span>Documenti & Normativa PDF</span>
+        </button>
+        <button class="tab-btn" onclick="openTab('prove')" id="btn-tab-prove">
+          <span>📜</span><span>Prove Passate & Quesiti Storici</span>
+        </button>
+        <button class="tab-btn" onclick="openTab('quiz')" id="btn-tab-quiz">
+          <span>🎯</span><span>Simulatore Quiz Ufficiale</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- TAB 1: MATERIALI DI STUDIO -->
+    <section id="tab-materiali" class="tab-view active">
+      <div style="margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <p style="color:var(--muted); font-size:0.92rem;">Tutti i moduli del programma d'esame strutturati secondo lo standard: <strong>Punti Chiave</strong>, <strong>Sintesi Ragionata</strong>, <strong>Trappole dei Quiz</strong> e <strong>Dispensa Completa NaviSuite</strong>.</p>
+        <a href="docs/controllo/00_GUIDA_STUDIO_E_INDICE_MATERIE.md" class="btn-file" target="_blank">📄 Apri Guida Completa (Markdown)</a>
+      </div>
+
+      <div class="material-grid">
+
+        <article class="material-card" id="ggnl" style="--c:var(--teal);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 1</span>
+                <span class="ref-badge">Legge 18 luglio 1957, n. 614</span>
+              </div>
+              <h2 class="card-title"><span class="icon">🏛️</span><span>Gestione Governativa Navigazione Laghi & Legge 614/1957</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Anno di Istituzione:</strong> <strong>1957</strong> con Legge n. 614 del 18 luglio 1957.</li><li><strong>Vigilanza e Competenza:</strong> Posta sotto la diretta vigilanza del <strong>Ministero delle Infrastrutture e dei Trasporti (MIT)</strong>.</li><li><strong>Organo di Vertice:</strong> <strong>Gestore Governativo</strong>, nominato con Decreto del Ministro dei Trasporti.</li><li><strong>Durata dell'incarico:</strong> Il Gestore Governativo resta in carica a <strong>tempo indeterminato</strong> (cessa solo per dimissioni, morte o revoca del Ministro).</li><li><strong>I 3 Bacini di Esercizio:</strong> Lago Maggiore (sede Arona), Lago di Garda (sede Desenzano del Garda), Lago di Como (sede Como).</li><li><strong>Sede della Direzione Generale:</strong> <strong>Milano, Via Ludovico Ariosto n. 21</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            La Gestione Governativa Navigazione Laghi (GGNL) è un organo dello Stato dipendente dal MIT, preposto alla gestione in concessione dei servizi di linea lacustri sui tre maggiori laghi subalpini italiani. La legge 614/1957 ne disciplina la contabilità di Stato, il bilancio annuale sottoposto ad approvazione ministeriale e il regime patrimoniale dei beni della navigazione.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Attenzione ai quiz: l'ente NON dipende dal Ministero del Turismo o dalle Regioni, ma dal MIT.</li><li>Il Gestore NON scade ogni 3 o 5 anni: la legge 614 prevede incarico a tempo indeterminato con revoca ad nutum del Ministro.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/LEGGE 18 luglio 1957, n. 614.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Testo Ufficiale Legge 614/1957</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="regolamento" style="--c:var(--cyan);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 2</span>
+                <span class="ref-badge">Approvato dal MIT nota NI/1716 del 09/11/2004</span>
+              </div>
+              <h2 class="card-title"><span class="icon">⚓</span><span>Regolamento di Esercizio GGNL (Edizione 2004)</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Pubblicità del Regolamento:</strong> È reso pubblico mediante affissione <strong>a bordo delle navi</strong> della flotta.</li><li><strong>Gerarchia di Bordo:</strong> 1° <strong>Comandante</strong>, 2° <strong>Timoniere</strong>, 3° <strong>Motorista o Macchinista</strong>, 4° <strong>Marinaio</strong>.</li><li><strong>Imbarco navi affiancate:</strong> Ammesso solo <strong>in via eccezionale</strong> con passerella metallica a due sponde vigilata da un componente di ciascun equipaggio.</li><li><strong>Rapporto di Corsa:</strong> Deve pervenire agli uffici di esercizio entro le <strong>24 ore successive</strong> al servizio.</li><li><strong>Telefoni personali:</strong> I telefoni aziendali sono solo per servizio; i cellulari personali vanno usati al minimo indispensabile, mai davanti al pubblico.</li><li><strong>Prove di addestramento:</strong> Recupero uomo in mare, incendio a bordo, falla o via d'acqua, abbandono nave, avaria grave al timone e sbandamento.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            Il Regolamento di Esercizio 2004 definisce le condizioni generali di trasporto e le norme comportamentali per l'equipaggio, il personale di terra e i viaggiatori. Regola l'ammissione dei passeggeri, il trasporto di animali (cani con guinzaglio e museruola, tariffe 1.50/3.50 con gratuità per cani guida e piccola taglia), le merci e le precedenze di imbarco.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Nella gerarchia di bordo il Timoniere precede il Motorista.</li><li>Il termine di trasmissione del rapporto di corsa è di 24 ore (non 48 ore né fine mese).</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/02_Regolamento_Esercizio_2004.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Regolamento_di_Esercizio_2004.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Regolamento di Esercizio 2004</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="polizia" style="--c:var(--amber);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 3</span>
+                <span class="ref-badge">D.P.R. 11 luglio 1980, n. 753</span>
+              </div>
+              <h2 class="card-title"><span class="icon">🛡️</span><span>Polizia, Sicurezza e Regolarità dei Trasporti (D.P.R. 753/1980)</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Qualifica Giuridica Controllori:</strong> Il personale ispettivo e di vigilanza nell'esercizio delle funzioni riveste la qualifica di <strong>pubblico ufficiale o incaricato di pubblico servizio con funzioni di polizia amministrativa</strong>.</li><li><strong>Poteri di Accertamento:</strong> Facoltà di richiedere le generalità e i documenti, redigere verbali di contestazione a carico degli utenti inadempienti.</li><li><strong>Mancanza Titolo di Viaggio:</strong> Il viaggiatore non munito di biglietto è tenuto al pagamento del costo del biglietto a tariffa ordinaria + <strong>sanzione/soprattassa amministrativa</strong>.</li><li><strong>Divieti a Bordo:</strong> Divieto di salire o scendere con battello in movimento, divieto di oltrepassare i parapetti o sporgersi oltre le paratie, rispetto dei segnali di sicurezza.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            Il D.P.R. 753/1980 detta le norme di sicurezza e regolarità applicabili ai trasporti ferroviari e assimilati, inclusa la navigazione interna di linea. Conferisce agli agenti aziendali preposti poteri autoritativi di verbalizzazione e disciplina gli obblighi a tutela dell'incolumità pubblica e della regolarità delle corse.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>I controllori nei trasporti pubblici NON sono 'semplici impiegati': le loro dichiarazioni e verbali hanno fede privilegiata fino a querela di falso.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/03_Polizia_e_Sicurezza_DPR_753.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/DPR_753_1980_Polizia_Sicurezza_Trasporti.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Testo D.P.R. 753/1980</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="diritti" style="--c:var(--green);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 4</span>
+                <span class="ref-badge">Regolamento (UE) n. 1177/2010 · D.P.C.M. 30/12/1998 (Carta Servizi)</span>
+              </div>
+              <h2 class="card-title"><span class="icon">♿</span><span>Diritti dei Passeggeri e PMR (Regolamento UE 1177/2010)</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Preavviso Passeggeri a Mobilità Ridotta (PMR):</strong> La richiesta di assistenza va inoltrata almeno <strong>48 ore prima</strong> della partenza.</li><li><strong>Gratuità dell'Assistenza:</strong> L'assistenza nei porti, pontili e a bordo nave è <strong>completamente gratuita</strong> per il passeggero disabile o PMR.</li><li><strong>Ritardo superiore a 90 minuti o Cancellazione:</strong> Obbligo di offrire <strong>bevande e spuntini/pasti gratuiti</strong> in misura ragionevole all'attesa; diritto a percorso alternativo o rimborso del biglietto.</li><li><strong>Organismo Nazionale di Vigilanza in Italia:</strong> <strong>ART (Autorità di Regolazione dei Trasporti)</strong>.</li><li><strong>Principi della Carta dei Servizi:</strong> Eguaglianza, imparzialità, continuità, diritto di scelta, partecipazione, efficienza ed efficacia.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            Il Regolamento UE 1177/2010 tutela i passeggeri che viaggiano via mare e su vie d'acqua interne. Riconosce diritti inderogabili di informazione, indennizzo per ritardi prolungati e massima accessibilità per persone con disabilità o ridotta mobilità. La Carta dei Servizi (DPCM 30/12/1998) fissa gli standard qualitativi aziendali.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Il preavviso PMR standard è 48 ore (non 24 ore e non 7 giorni).</li><li>La soglia per l'assistenza pasti e bevande in caso di ritardo alla partenza è 90 minuti.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/04_Carta_Servizi_e_Diritti_PMR_Reg_1177.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Regolamento_UE_1177_2010_Diritti_Passeggeri.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Regolamento UE 1177/2010</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="iva_tariffe" style="--c:var(--violet);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 5</span>
+                <span class="ref-badge">D.P.R. 633/1972 · D.M. Finanze 30/06/1992 · D.M. MIT 255/2016 · Legge 14/1965</span>
+              </div>
+              <h2 class="card-title"><span class="icon">💶</span><span>Tariffe, Bigliettazione, Disciplina IVA 10% e Registri Corrispettivi</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Aliquota IVA Trasporto Passeggeri:</strong> <strong>10%</strong> (aliquota ridotta Tabella A, parte III, DPR 633/72).</li><li><strong>Formula di Scorporo IVA 10%:</strong> <code>Imponibile = Totale Lordo / 1,10</code> · <code>IVA = Totale Lordo - Imponibile</code>.</li><li><strong>Valenza Fiscale del Biglietto:</strong> Ai sensi del D.M. 30/06/1992, il biglietto di trasporto sostituisce lo scontrino fiscale.</li><li><strong>Esonero Obbligo Fattura (Art. 22 DPR 633/72):</strong> Per il trasporto persone non è obbligatorio emettere fattura, salvo richiesta preventiva espressa del cliente.</li><li><strong>Registro Corrispettivi (Art. 24 DPR 633/72):</strong> Le somme giornaliere vanno annotate <strong>entro il primo giorno non festivo successivo</strong>.</li><li><strong>Assuntorie (Legge 14/1965):</strong> Gestione affidata a terzi per scali/fermate, vendita titoli di viaggio con rendiconto periodico.</li><li><strong>Scontrino POS:</strong> Certifica il pagamento bancario, ma NON sostituisce il biglietto di viaggio né il documento fiscale.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            L'Operatore dell'Ufficio Controllo verifica la corretta concordanza tra i biglietti staccati dalle biglietterie/emettitrici automatiche/assuntori e gli incassi versati (contanti e pagamenti POS/elettronici). Gestisce la tenuta dei registri corrispettivi ex art. 24 del DPR 633/1972 distinguendo per aliquota e sede di servizio.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Il biglietto al pubblico include già l'IVA al 10%: su 22 € l'imponibile è 20 € e l'IVA è 2 € (non il 10% sottratto a ritroso!).</li><li>Il POS non è il biglietto: senza il titolo di viaggio emesso dal sistema di bigliettazione il viaggiatore è irregolare.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/05_Tariffe_Biglietti_IVA_Registri_Corrispettivi.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/02_Tariffe_Biglietti_IVA_Pagamenti/DISPENSA_IVA_REGISTRI_E_PAGAMENTI.md" target="_blank" class="btn-file">
+              <span>📥</span><span>Dispensa IVA e Registri MD</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="assuntorie" style="--c:var(--orange);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 6</span>
+                <span class="ref-badge">Legge 3 febbraio 1965, n. 14</span>
+              </div>
+              <h2 class="card-title"><span class="icon">🏪</span><span>Regolamentazione delle Assuntorie (Legge 14/1965)</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Regime delle Assuntorie:</strong> Gestione convenzionata a terzi (assuntori) per scali o fermate secondarie e stagionali.</li><li><strong>Compiti dell'Assuntore:</strong> Vendita titoli di viaggio, custodia del pontile, esposizione orari e ormeggio battelli.</li><li><strong>Rendicontazione all'Ufficio Controllo:</strong> Compilazione della distinta periodica con numerazione iniziale e finale dei biglietti staccati.</li><li><strong>Aggio e Versamenti:</strong> Riconoscimento dell'aggio contrattuale pattuito e versamento del netto sul c/c della GGNL.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            La Legge 14/1965 regola il rapporto contrattuale delle assuntorie. L'Ufficio Controllo effettua il carico delle matricole di biglietti, il controllo dei bollettari e la verifica della puntualità dei versamenti periodici da parte di ciascun assuntore convenzionato.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>L'assuntore non è un dipendente di ruolo GGNL ma un gestore convenzionato ex L. 14/1965.</li><li>L'assuntore deve applicare rigorosamente le tariffe ufficiali GGNL senza alcuna discrezionalità.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/06_Assuntorie_Legge_14_1965.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Legge_14_1965_Assuntorie.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Testo Legge 14/1965</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="personale" style="--c:var(--rose);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 7</span>
+                <span class="ref-badge">R.D. 8 gennaio 1931, n. 148 · CCNL · D.P.R. 81/2023 · Codice Etico GGNL</span>
+              </div>
+              <h2 class="card-title"><span class="icon">⚖️</span><span>Stato Giuridico Autoferrotranviari (R.D. 148/1931) & Codice Etico</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Statuto di Categoria:</strong> R.D. 8 gennaio 1931, n. 148 (Allegato A) e CCNL Autoferrotranviari.</li><li><strong>Periodo di Prova:</strong> Massimo <strong>1 anno di servizio effettivo</strong> per tramvie e navigazione interna (art. 13 R.D. 148/31).</li><li><strong>Sanzione di Richiamo:</strong> La <strong>Censura</strong> è una punizione scritta che ha specifica funzione di richiamo preliminare per mancanze lievi.</li><li><strong>Pena Accessoria:</strong> Il <strong>trasloco punitivo</strong> è previsto espressamente come punizione accessoria (art. 37).</li><li><strong>Dimissioni Volontarie:</strong> Hanno effetto <strong>solo dopo essere state accettate per iscritto dall'azienda</strong> (art. 30).</li><li><strong>Concorso di Mancanze (Art. 48):</strong> Si applica la sanzione prevista per la <strong>mancanza più grave</strong>.</li><li><strong>Regalie e Regali (DPR 81/2023):</strong> Divieto generale; ammessi solo quelli d'uso di modico valore (indicativamente <strong>non oltre 100 euro</strong>).</li><li><strong>Social Media:</strong> Divieto di post o dichiarazioni che ledano l'immagine, la reputazione o la credibilità della GGNL.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            Il R.D. 148/1931 costituisce la legge speciale che disciplina il personale della navigazione interna. Comprende la classificazione del personale, i doveri verso l'azienda e l'utenza, e le garanzie procedimentali in caso di sanzioni disciplinari (censura, multa, sospensione, retrocessione, destituzione). Il D.P.R. 81/2023 integra le regole di integrità e condotta.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Nel R.D. 148/1931 la prova non può superare 1 anno per la navigazione (mentre nelle ferrovie è 2 anni).</li><li>Le dimissioni non sono immediate: richiedono l'accettazione formale dell'amministrazione.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/07_Stato_Giuridico_Autoferrotranviari_RD_148.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/Codice_Etico_GGNL_Allegato_A.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>Codice Etico GGNL Allegato A</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="privacy" style="--c:var(--teal);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 8</span>
+                <span class="ref-badge">D.P.C.M. 3 dicembre 2013 · Regolamento (UE) 2016/679 (GDPR)</span>
+              </div>
+              <h2 class="card-title"><span class="icon">📂</span><span>Gestione Elettronica Documentale (DPCM 3/12/2013) & Privacy GDPR</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Segnatura di Protocollo:</strong> Associazione univoca e immodificabile di: <strong>numero progressivo, data/ora, mittente, destinatario, oggetto</strong> e impronta hash.</li><li><strong>Registro Giornaliero:</strong> Il registro di protocollo informatico è bloccato e non modificabile retroattivamente a tutela della pubblica fede.</li><li><strong>Titolare del Trattamento:</strong> <strong>Gestione Governativa Navigazione Laghi</strong> (rappresentata dal Gestore Governativo).</li><li><strong>DPO / RPD:</strong> Responsabile della Protezione dei Dati, collocato presso la Direzione Generale a Milano.</li><li><strong>Diritti dell'Interessato:</strong> Accesso (art. 15), rettifica (art. 16), cancellazione / <strong>diritto all'oblio</strong> (art. 17), limitazione e opposizione.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            Il DPCM 3/12/2013 fissa le regole tecniche del Codice dell'Amministrazione Digitale (CAD) per formare, protocollare, fascicolare e conservare nel tempo i documenti informatici senza perdita di autenticità. Il GDPR garantisce la protezione dei dati dei passeggeri (bigliettazione nominativa, abbonamenti) e dei dipendenti.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>Il Titolare del trattamento non è il singolo impiegato o direttore, ma l'ente GGNL.</li><li>La segnatura di protocollo non può mai essere riutilizzata o azzerata arbitrariamente durante l'anno.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/09_Protocollo_Informatico_DPCM_2013_e_Privacy_GDPR.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/04_Gestione_Documentale_e_Privacy/DPCM_3_12_2013_Gestione_Documentale.pdf" target="_blank" class="btn-file">
+              <span>📥</span><span>D.P.C.M. 3/12/2013 Protocollo</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="geografia" style="--c:var(--cyan);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 9</span>
+                <span class="ref-badge">Morfologia, bacini, scali, traghetti autoveicoli e venti termici</span>
+              </div>
+              <h2 class="card-title"><span class="icon">🗺️</span><span>Aspetti Geografici dei Laghi (Garda, Como, Maggiore)</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Lago di Garda (Benaco):</strong> Il più esteso d'Italia (~370 km²). Immissario: <strong>fiume Sarca</strong> (a nord); Unico Emissario: <strong>fiume Mincio</strong> (esce a Peschiera del Garda). Traghetti auto: <strong>Maderno - Torri del Benaco</strong> (tutto l'anno), Limone - Malcesine (estivo). Venti: <strong>Pelèr</strong> (nord, mattino), <strong>Ora</strong> (sud, pomeriggio), <strong>Ander</strong> (sud-ovest).</li><li><strong>Lago di Como (Lario):</strong> Più profondo d'Italia (<strong>418 metri</strong> tra Argegno e Nesso). Forma a 'Y' rovesciata con centro a <strong>Bellagio</strong>. Emissario: <strong>fiume Adda</strong> (ramo di Lecco). Traghetto centro lago: Bellagio, Varenna, Menaggio, Cadenabbia. Venti: <strong>Tivano</strong> (nord-est mattino), <strong>Breva</strong> (sud pomeriggio).</li><li><strong>Lago Maggiore (Verbano):</strong> Secondo per superficie (~212 km²). Immissario ed emissario: <strong>fiume Ticino</strong> (esce a Sesto Calende). Isole Borromee (Bella, Madre, Pescatori). Traghetto auto annuale: <strong>Intra (VB) - Laveno (VA)</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            La conoscenza degli approdi, dei collegamenti traghetto veicoli e dei confini amministrativi dei tre laghi (Garda: Lombardia, Veneto, Trentino; Maggiore: Piemonte, Lombardia, Svizzera; Como: Lombardia) è fondamentale per l'Operatore di Ufficio per la gestione delle tariffe a zone, delle relazioni di traffico e delle statistiche.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>L'emissario del Garda è il Mincio (il Sarca è l'immissario!).</li><li>Il lago più profondo d'Italia è Como (418 m), non il Garda e non il Maggiore.</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/10_Geografia_dei_Tre_Laghi.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/05_Geografia_dei_Laghi/DISPENSA_GEOGRAFIA_LAGHI.md" target="_blank" class="btn-file">
+              <span>📥</span><span>Dispensa Geografia dei Laghi</span>
+            </a>
+          </div>
+        </article>
+    
+
+        <article class="material-card" id="informatica_inglese" style="--c:var(--amber);">
+          <div class="card-top">
+            <div>
+              <div class="card-badge-row">
+                <span class="mod-tag">MODULO 10</span>
+                <span class="ref-badge">Pacchetto Office · AgID PEC · Glossario dei Trasporti</span>
+              </div>
+              <h2 class="card-title"><span class="icon">💻</span><span>Informatica d'Ufficio (Excel, PEC) & Lingua Inglese</span></h2>
+            </div>
+          </div>
+
+          <div class="key-points-box">
+            <div class="box-header"><span>📌</span><span>Punti Chiave & Numeri da Ricordare per l'Esame</span></div>
+            <ul class="key-list">
+              <li><strong>Excel - Riferimento Assoluto:</strong> Blocco cella col dollaro (es. <code>$A$1</code>).</li><li><strong>Excel - Formule Chiave:</strong> <code>=CERCA.VERT()</code> per estrazione dati da matrici; <code>=SOMMA.SE()</code>; <code>=SE()</code>; tabelle pivot per aggregazione incassi.</li><li><strong>PEC - Ricevuta di Consegna:</strong> È emessa dal <strong>gestore del destinatario</strong> ed è l'unica che certifica con valore legale l'avvenuto recapito.</li><li><strong>Email - CCN:</strong> Copia Conoscenza Nascosta per non mostrare gli indirizzi ai destinatari (obbligo GDPR).</li><li><strong>Inglese - Titoli di Viaggio:</strong> <em>One-way ticket</em> (corsa semplice), <em>Round-trip / Return ticket</em> (andata e ritorno), <em>Daily pass</em> (libera circolazione giornaliera), <em>Car ferry</em> (traghetto autoveicoli), <em>PRM</em> (Persone a Mobilità Ridotta).</li>
+            </ul>
+          </div>
+
+          <div class="explanation-text">
+            L'Operatore di Ufficio Controllo utilizza quotidianamente fogli di calcolo Excel per la quadratura delle casse, la verifica delle matricole dei biglietti e l'elaborazione di report statistici, interfacciandosi via PEC con enti esterni e fornendo assistenza in lingua inglese ai viaggiatori stranieri.
+          </div>
+
+          <div class="traps-box">
+            <div class="traps-title"><span>⚠️</span><span>Attenzione alle Trappole e ai Distrattori nei Quiz</span></div>
+            <ul class="traps-list">
+              <li>La ricevuta di accettazione prova solo l'invio: il perfezionamento della notifica PEC richiede la ricevuta di avvenuta consegna.</li><li>Nel campo CCN gli indirizzi rimangono segreti (mentre in CC sono visibili a tutti).</li>
+            </ul>
+          </div>
+
+          <div class="card-actions">
+            
+          <a href="docs/controllo/dispense_navisuite/11_Informatica_Excel_PEC_e_Inglese.html" target="_blank" class="btn-file" style="background:var(--c); color:var(--on); border:none; font-weight:800;">
+            <span>📖</span><span>Leggi Dispensa NaviSuite</span>
+          </a>
+        
+            <a href="docs/controllo/06_Informatica_e_Inglese/DISPENSA_INFORMATICA_E_INGLESE.md" target="_blank" class="btn-file">
+              <span>📥</span><span>Dispensa Informatica & Inglese</span>
+            </a>
+          </div>
+        </article>
+    
+      </div>
+    </section>
+
+    <!-- TAB 2: DOCUMENTI UFFICIALI & NORMATIVA PDF -->
+    <section id="tab-documenti" class="tab-view">
+      <div style="margin-bottom:18px;">
+        <h2 style="font-size:1.3rem; margin-bottom:6px;">Archivio Normativo e Documentale Completo</h2>
+        <p style="color:var(--muted); font-size:0.92rem;">Testi integrali ufficiali delle leggi, decreti, regolamenti aziendali e dispense scaricabili con un clic.</p>
+      </div>
+
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Documento / Titolo</th>
+            <th>Tipologia</th>
+            <th>Descrizione</th>
+            <th>Azione</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><strong>Bando Ufficiale Concorso Operatore Ufficio</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">PDF Ufficiale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Bando C163 e determina DG</td>
+            <td><a href="docs/controllo/Bando162026_DE.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Guida Generale allo Studio & Indice</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Markdown Guida</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Mappa concettuale 18 materie e piano 4 settimane</td>
+            <td><a href="docs/controllo/00_GUIDA_STUDIO_E_INDICE_MATERIE.md" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Legge 18 luglio 1957, n. 614</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Normativa</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Legge istitutiva Gestione Governativa</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/LEGGE 18 luglio 1957, n. 614.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Regolamento di Esercizio 2004</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Regolamento Aziendale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Regolamento approvato dal MIT nota NI/1716</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Regolamento_di_Esercizio_2004.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.P.R. 11 luglio 1980, n. 753</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">DPR Nazionale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Polizia, sicurezza e regolarità trasporti</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/DPR_753_1980_Polizia_Sicurezza_Trasporti.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.P.C.M. 30 dicembre 1998</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">DPCM</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Carta dei servizi pubblici settore trasporti</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/DPCM_30_12_1998_Carta_Servizi_Mobilita.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Regolamento (UE) n. 1177/2010</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Regolamento UE</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Diritti passeggeri navigazione interna e PMR</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Regolamento_UE_1177_2010_Diritti_Passeggeri.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Legge 3 febbraio 1965, n. 14</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Legge</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Regolamentazione delle assuntorie di scalo</td>
+            <td><a href="docs/controllo/01_Normativa_GGNL_e_Trasporti/Legge_14_1965_Assuntorie.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Dispensa IVA 10%, Registri art. 24 & POS</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Dispensa Studio</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Sintesi mirata per Operatore di Ufficio</td>
+            <td><a href="docs/controllo/02_Tariffe_Biglietti_IVA_Pagamenti/DISPENSA_IVA_REGISTRI_E_PAGAMENTI.md" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Tariffario Ufficiale GGNL A4</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Tariffario</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Tariffe vigenti e condizioni generali di viaggio</td>
+            <td><a href="docs/controllo/02_Tariffe_Biglietti_IVA_Pagamenti/Tariffario 2023 A4.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.M. Finanze 30 giugno 1992</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Decreto Fiscale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Valenza fiscale biglietti di pubblico trasporto</td>
+            <td><a href="docs/controllo/02_Tariffe_Biglietti_IVA_Pagamenti/DM_30_06_1992_Min_Finanze_Biglietti.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.M. MIT 27 ottobre 2016 n. 255</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Decreto MIT</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Regole e interoperabilità bigliettazione elettronica</td>
+            <td><a href="docs/controllo/02_Tariffe_Biglietti_IVA_Pagamenti/DM_MIT_255_2016_Bigliettazione_Elettronica.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>R.D. 8 gennaio 1931, n. 148</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Regio Decreto</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Stato giuridico e disciplina autoferrotranviari</td>
+            <td><a href="docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/RD_148_1931_Stato_Giuridico_Autoferrotranviari.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>CCNL Autoferrotranviari</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">CCNL</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Contratto Collettivo Nazionale di Lavoro</td>
+            <td><a href="docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/CCNL_AUTOFERROTRANVIERI_0.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.P.R. 13 giugno 2023, n. 81</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">DPR Nazionale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Nuovo codice di comportamento dipendenti pubblici</td>
+            <td><a href="docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/DPR_81_2023_Codice_Comportamento.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Codice Etico GGNL (Allegato A)</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Codice Aziendale</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Codice etico aziendale della Navigazione Laghi</td>
+            <td><a href="docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/Codice_Etico_GGNL_Allegato_A.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>D.P.C.M. 3 dicembre 2013</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">DPCM Tecnico</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Regole tecniche protocollo e conservazione a norma</td>
+            <td><a href="docs/controllo/04_Gestione_Documentale_e_Privacy/DPCM_3_12_2013_Gestione_Documentale.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Regolamento (UE) 2016/679 (GDPR)</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Regolamento UE</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Protezione persone fisiche e dati personali</td>
+            <td><a href="docs/controllo/04_Gestione_Documentale_e_Privacy/Regolamento_UE_2016_679_GDPR.pdf" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Dispensa Geografia dei 3 Laghi</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Dispensa Studio</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Bacini, porti, traghetti auto e venti (Garda, Como, Maggiore)</td>
+            <td><a href="docs/controllo/05_Geografia_dei_Laghi/DISPENSA_GEOGRAFIA_LAGHI.md" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+
+          <tr>
+            <td><strong>Dispensa Informatica (Excel, PEC) & Inglese</strong></td>
+            <td><span class="pill" style="font-size:0.75rem;">Dispensa Studio</span></td>
+            <td style="color:var(--muted); font-size:0.86rem;">Excel avanzato, ricevute PEC, glossario trasporti</td>
+            <td><a href="docs/controllo/06_Informatica_e_Inglese/DISPENSA_INFORMATICA_E_INGLESE.md" target="_blank" class="btn-file" style="padding:5px 10px; font-size:0.8rem;">Apri ↗</a></td>
+          </tr>
+    
+        </tbody>
+      </table>
+    </section>
+
+    <!-- TAB 3: PROVE PASSATE & QUESITI STORICI -->
+    <section id="tab-prove" class="tab-view">
+      <div style="margin-bottom:20px;">
+        <h2 style="font-size:1.3rem; margin-bottom:6px;">Prove Scritte Ufficiali Passate della Gestione Governativa</h2>
+        <p style="color:var(--muted); font-size:0.92rem;">Fascicoli originali delle prove scritte svolte nei concorsi precedenti di Navigazione Laghi (2025 Lago di Garda e Lago di Como).</p>
+      </div>
+
+      <div class="past-grid">
+
+        <div class="past-card">
+          <div>
+            <span class="eyebrow" style="color:var(--cyan);">Anno 2025 · Esercizio Lago di Garda</span>
+            <h3 style="font-size:1.05rem; margin:4px 0 8px; color:#fff;">Prova Scritta Ufficiale 12/2025 (Desenzano)</h3>
+            <p style="color:var(--muted); font-size:0.88rem; margin-bottom:14px;">30 quesiti a risposta multipla su Legge 614/1957, R.D. 148/1931, D.Lgs. 81/2008, Regolamento di Navigazione Interna, nomenclatura navale e sicurezza.</p>
+          </div>
+          <a href="docs/controllo/08_Prove_Passate_Ufficiali/Domande_Prova_Scritta_12_2025_DE.pdf" target="_blank" class="btn-file" style="justify-content:center;">📥 Scarica Prova Ufficiale PDF</a>
+        </div>
+    
+
+        <div class="past-card">
+          <div>
+            <span class="eyebrow" style="color:var(--cyan);">Anno 2025 · Esercizio Lago di Garda</span>
+            <h3 style="font-size:1.05rem; margin:4px 0 8px; color:#fff;">Prova Scritta Ufficiale 33/2025 (Desenzano)</h3>
+            <p style="color:var(--muted); font-size:0.88rem; margin-bottom:14px;">30 quesiti su geografia dei laghi (Garda, Como, Maggiore), Grotte di Catullo, Isole Borromee, R.D. 148/1931 e sicurezza sul lavoro.</p>
+          </div>
+          <a href="docs/controllo/08_Prove_Passate_Ufficiali/Domande-Prova-Scritta_33_2025_DE.pdf" target="_blank" class="btn-file" style="justify-content:center;">📥 Scarica Prova Ufficiale PDF</a>
+        </div>
+    
+
+        <div class="past-card">
+          <div>
+            <span class="eyebrow" style="color:var(--cyan);">Anno 2025 · Esercizio Lago di Como</span>
+            <h3 style="font-size:1.05rem; margin:4px 0 8px; color:#fff;">Prova Scritta Ufficiale 04/2025 (Como)</h3>
+            <p style="color:var(--muted); font-size:0.88rem; margin-bottom:14px;">30 quesiti su istituzione GGNL, terminologia marinara, classi di incendio A/B/C, tonneggio, primo soccorso e regolamenti.</p>
+          </div>
+          <a href="docs/controllo/08_Prove_Passate_Ufficiali/Domande-Prova-Scritta-04_2025_C.pdf" target="_blank" class="btn-file" style="justify-content:center;">📥 Scarica Prova Ufficiale PDF</a>
+        </div>
+    
+
+        <div class="past-card">
+          <div>
+            <span class="eyebrow" style="color:var(--cyan);">Anno 2025 · Esercizio Lago di Como</span>
+            <h3 style="font-size:1.05rem; margin:4px 0 8px; color:#fff;">Prova Scritta Ufficiale 18/2025 (Como)</h3>
+            <p style="color:var(--muted); font-size:0.88rem; margin-bottom:14px;">30 quesiti con quesiti su sicurezza, antincendio, precedenze tra battelli di linea e unità da diporto, codice del personale.</p>
+          </div>
+          <a href="docs/controllo/08_Prove_Passate_Ufficiali/Domande-Prova-Scritta-18_2025_C.pdf" target="_blank" class="btn-file" style="justify-content:center;">📥 Scarica Prova Ufficiale PDF</a>
+        </div>
+    
+      </div>
+
+      <div style="margin-top:28px;">
+        <h3 style="font-size:1.15rem; margin-bottom:12px; color:var(--amber);">💡 Domande Reali Più Frequenti tratte dalle Prove Precedenti</h3>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Quesito Ufficiale</th>
+              <th style="width:30%;">Risposta Esatta</th>
+              <th>Fonte / Note Didattiche</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr>
+              <td><strong>In base alla Legge n. 614/1957, quale durata ha l'incarico del Gestore Governativo?</strong></td>
+              <td style="color:var(--green); font-weight:700;">A tempo indeterminato; cessa per dimissioni, morte o revoca del Ministro</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale DE 12/2025</em><br>Art. 1 L. 614/1957. Non ha una scadenza fissa di 3 o 5 anni.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Quale sanzione del R.D. 148/1931 ha funzione di richiamo preliminare?</strong></td>
+              <td style="color:var(--green); font-weight:700;">La Censura (rimprovero scritto per mancanze lievi)</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE Movimento & 12/2025</em><br>Allegato A al R.D. 148/1931, artt. 37 e 40.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Quale sanzione del R.D. 148/1931 è considerata pena accessoria?</strong></td>
+              <td style="color:var(--green); font-weight:700;">Il trasloco punitivo</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE Movimento</em><br>Art. 37: applicabile in caso di incompatibilità ambientale o di servizio.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Quali elementi determinano la gerarchia tra gli agenti secondo il R.D. 148/1931?</strong></td>
+              <td style="color:var(--green); font-weight:700;">Grado, anzianità nel grado, anzianità nel grado precedente, anzianità di servizio, maggiore età</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE 130 & DE 12/2025</em><br>Art. 19 Allegato A R.D. 148/1931. Il titolo di studio non rientra tra i criteri primari.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Qual è il lago italiano con la maggiore estensione superficiale?</strong></td>
+              <td style="color:var(--green); font-weight:700;">Lago di Garda (Benaco, circa 370 km²)</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale DE 33/2025</em><br>Il lago più profondo è invece Como (418 metri).</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>In quale lago si trovano le famose Isole Borromee (Bella, Madre, Pescatori)?</strong></td>
+              <td style="color:var(--green); font-weight:700;">Lago Maggiore (Golfo Borromeo, tra Stresa e Baveno/Verbania)</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale DE 33/2025</em><br>L'Isola Comacina si trova invece sul Lago di Como; l'Isola del Garda sul Benaco.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>In un orario grafico di trasporto lacustre, cosa rappresenta la pendenza della traccia?</strong></td>
+              <td style="color:var(--green); font-weight:700;">La velocità media del mezzo (più la traccia tende alla verticale, maggiore è la velocità)</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE 130</em><br>Diagramma spazio-tempo: asse orizzontale = tempo, asse verticale = distanza scali.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Quale vento caratteristico soffia da Sud-Ovest sul Lago di Garda?</strong></td>
+              <td style="color:var(--green); font-weight:700;">L'Ander</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE 130</em><br>Il Pelèr è da Nord al mattino; l'Ora è da Sud al pomeriggio; la Vinessa da Est/Sud-Est.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Nei viaggi in comitiva scolastica, a chi viene riconosciuta la gratuità secondo le condizioni GGNL?</strong></td>
+              <td style="color:var(--green); font-weight:700;">A un insegnante/accompagnatore ogni 10 studenti paganti</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE 130</em><br>Condizioni generali tariffarie vigenti.</td>
+            </tr>
+    
+
+            <tr>
+              <td><strong>Entro quale termine deve essere inviato il rapporto di corsa del personale navigante?</strong></td>
+              <td style="color:var(--green); font-weight:700;">Entro le 24 ore successive all'effettuazione del servizio</td>
+              <td style="font-size:0.85rem; color:var(--muted);"><em>Prova Ufficiale CE 130</em><br>Regolamento di Esercizio 2004.</td>
+            </tr>
+    
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: SIMULATORE QUIZ -->
+    <section id="tab-quiz" class="tab-view">
+      <div class="sim-card">
+        <div id="sim-screen-menu">
+          <div style="margin-bottom:20px;">
+            <h2 style="font-size:1.35rem; margin-bottom:6px; color:#fff;">Simulatore Quiz Concorso Controllo</h2>
+            <p style="color:var(--muted); font-size:0.92rem;">Ogni volta che avvii una prova, <strong>le opzioni di risposta vengono rimescolate in modo casuale</strong> per un allenamento reale senza posizioni fisse. Punteggio in trentesimi e soglia di idoneità a <strong>18/30</strong>.</p>
+          </div>
+
+          <button onclick="startExam(true)" class="btn-file" style="background:linear-gradient(135deg,#00897b,#00695c); color:#fff; padding:16px 20px; font-size:1.05rem; font-weight:800; border:none; width:100%; justify-content:center; margin-bottom:20px; cursor:pointer;">
+            <span>🎯 Avvia Simulazione d'Esame Completa (30 quesiti · 30 min)</span>
+          </button>
+
+          <h3 style="font-size:0.88rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:12px;">Oppure allenati per singolo modulo tematico:</h3>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px;" id="sim-module-buttons"></div>
+        </div>
+
+        <div id="sim-screen-active" style="display:none;">
+          <div class="sim-header">
+            <button onclick="exitSim()" class="back-link" style="cursor:pointer;">← Interrompi e torna al menu</button>
+            <span id="sim-counter" class="mono" style="font-size:0.9rem; font-weight:700; color:var(--muted);">Domanda 1 di 30</span>
+            <div id="sim-timer-pill" class="sim-timer">⏱ <span id="sim-timer-val">30:00</span></div>
+          </div>
+
+          <div class="sim-progress-bar">
+            <div id="sim-progress-fill" class="sim-progress-fill"></div>
+          </div>
+
+          <span class="sim-q-badge" id="sim-q-badge">Modulo</span>
+          <h3 class="sim-q-text" id="sim-q-text">Testo della domanda...</h3>
+
+          <div class="sim-options" id="sim-opts-container"></div>
+
+          <div class="sim-feedback" id="sim-feedback"></div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+            <button id="sim-btn-next" onclick="nextQuestion()" class="btn-file" style="background:var(--teal); color:var(--on); border:none; display:none; cursor:pointer;">Prossima Domanda →</button>
+          </div>
+        </div>
+
+        <div id="sim-screen-result" style="display:none; text-align:center; padding:20px 0;">
+          <div style="width:130px; height:130px; border-radius:50%; margin:0 auto 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#071822; border:6px solid var(--teal);" id="res-circle">
+            <span class="mono" id="res-score-val" style="font-size:2.4rem; font-weight:800; color:var(--teal); line-height:1;">0</span>
+            <span style="font-size:0.8rem; color:var(--muted);">su 30</span>
+          </div>
+
+          <h2 id="res-verdict-title" style="font-size:1.4rem; font-weight:800; margin-bottom:6px;">Esito Prova</h2>
+          <p id="res-verdict-desc" style="color:var(--muted); max-width:55ch; margin:0 auto 20px; font-size:0.94rem;">Descrizione del risultato.</p>
+
+          <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+            <div class="pill">Esatte: <strong id="res-correct-count" style="color:var(--green);">0</strong></div>
+            <div class="pill">Errate: <strong id="res-wrong-count" style="color:var(--rose);">0</strong></div>
+            <div class="pill">Accuratezza: <strong id="res-accuracy-pct">0%</strong></div>
+          </div>
+
+          <div style="display:flex; justify-content:center; gap:12px;">
+            <button onclick="startExam(isSimExamMode)" class="btn-file" style="background:var(--teal); color:var(--on); border:none; cursor:pointer;">Ripeti Prova</button>
+            <button onclick="exitSim()" class="back-link" style="cursor:pointer;">Torna al Menu Quiz</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align:center; padding:30px 0; border-top:1px solid var(--line); margin-top:60px; color:var(--muted); font-size:0.84rem;">
+    NaviSuite · Preparazione Concorso Operatore di Ufficio GGNL (par. 130)
+  </footer>
+
+  <script>
+    function openTab(tabName) {
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      const target = document.getElementById('tab-' + tabName);
+      const btn = document.getElementById('btn-tab-' + tabName);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    const CONTROL_QUESTIONS = [{"mod": "Normativa GGNL e Trasporti", "q": "In base alla Legge 18 luglio 1957, n. 614, la Gestione Governativa della Navigazione sui Laghi Maggiore, di Garda e di Como è posta sotto la vigilanza di quale Ministero?", "opts": ["Ministero delle Infrastrutture e dei Trasporti", "Ministero dell'Economia e delle Finanze", "Ministero dell'Ambiente e della Sicurezza Energetica", "Ministero del Turismo"], "ans": 0, "exp": "La Gestione Governativa Navigazione Laghi è un organo istituito dalla Legge 614/1957, operante sotto la diretta vigilanza del Ministero delle Infrastrutture e dei Trasporti."}, {"mod": "Normativa GGNL e Trasporti", "q": "Chi è l'organo al vertice della Gestione Governativa Navigazione Laghi incaricato della gestione?", "opts": ["Il Gestore Governativo, nominato con decreto ministeriale", "Il Consiglio di Amministrazione eletto dai dipendenti", "Il Prefetto di Milano", "L'Autorità di Bacino Laghi"], "ans": 0, "exp": "L'Amministrazione è affidata a un Gestore Governativo nominato dal Ministero vigilante (MIT)."}, {"mod": "Normativa GGNL e Trasporti", "q": "Ai sensi del Regolamento di esercizio GGNL, quali passeggeri hanno diritto di precedenza nell'imbarco?", "opts": ["Le persone a mobilità ridotta, le donne in stato di gravidanza e i viaggiatori con bambini piccoli", "I passeggeri in possesso di biglietto di prima classe", "Coloro che hanno acquistato il biglietto online", "I residenti nei comuni rivieraschi"], "ans": 0, "exp": "Il Regolamento di esercizio e la normativa europea garantiscono priorità di imbarco alle persone a mobilità ridotta, invalidi e donne in gravidanza."}, {"mod": "Normativa GGNL e Trasporti", "q": "Secondo il Regolamento di Esercizio, cosa accade se un passeggero viene trovato a bordo sprovvisto di biglietto?", "opts": ["È tenuto al pagamento del biglietto a tariffa ordinaria maggiorato della sanzione amministrativa prevista", "Viene immediatamente fatto sbarcare al primo scalo senza ulteriori conseguenze", "Viene denunciato all'Autorità Giudiziaria per truffa aggravata", "Paga il doppio del biglietto solo se dichiara di essere salito per errore"], "ans": 0, "exp": "Il passeggero privo di titolo di viaggio valido è tenuto a pagare il prezzo del biglietto più la soprattassa/sanzione amministrativa prevista dai regolamenti aziendali e dal DPR 753/1980."}, {"mod": "Normativa GGNL e Trasporti", "q": "In base al D.P.R. 753/1980, il personale di vigilanza e controllo durante l'espletamento delle proprie funzioni riveste la qualifica di:", "opts": ["Pubblico Ufficiale o Incaricato di Pubblico Servizio con funzioni di polizia amministrativa", "Semplice impiegato privato privo di facoltà sanzionatoria", "Ufficiale di Polizia Giudiziaria per qualsiasi reato", "Magistrato onorario dei trasporti"], "ans": 0, "exp": "Il personale addetto all'accertamento delle infrazioni nel trasporto pubblico è investito di funzioni di polizia amministrativa e assume la qualifica di incaricato di pubblico servizio / pubblico ufficiale nell'esercizio delle funzioni."}, {"mod": "Normativa GGNL e Trasporti", "q": "La Legge 14 del 3 febbraio 1965 disciplina specificamente:", "opts": ["Le assuntorie nelle ferrovie in concessione, tramvie e servizi di navigazione interna", "L'inquadramento del personale marittimo mercantile", "L'istituzione del Registro Navale Italiano", "Le tariffe doganali per i trasporti internazionali"], "ans": 0, "exp": "La Legge 14/1965 regola il rapporto contrattuale delle assuntorie, ovvero l'affidamento a terzi della gestione di fermate/scali, biglietterie e custodia impianti."}, {"mod": "Normativa GGNL e Trasporti", "q": "In base al Regolamento Europeo 1177/2010, con quale preavviso minimo il passeggero a mobilità ridotta (PMR) deve notificare la propria richiesta di assistenza?", "opts": ["Almeno 48 ore prima della partenza prevista", "Almeno 12 ore prima", "Almeno 7 giorni prima", "Non è richiesto alcun preavviso in nessun caso"], "ans": 0, "exp": "L'art. 10 del Regolamento UE 1177/2010 stabilisce che per garantire l'assistenza necessaria il viaggiatore PMR deve comunicare le sue esigenze almeno 48 ore prima dell'inizio del viaggio."}, {"mod": "Normativa GGNL e Trasporti", "q": "Quale autorità italiana è designata come organismo nazionale responsabile dell'applicazione del Regolamento UE 1177/2010?", "opts": ["L'Autorità di Regolazione dei Trasporti (ART)", "L'Agenzia delle Entrate", "La Guardia di Finanza", "L'Ente Nazionale per l'Aviazione Civile"], "ans": 0, "exp": "L'ART (Autorità di Regolazione dei Trasporti) è l'organismo nazionale di vigilanza per i diritti dei passeggeri nel trasporto marittimo e per vie d'acqua interne."}, {"mod": "Normativa GGNL e Trasporti", "q": "Ai sensi del Regolamento UE 1177/2010, in caso di cancellazione o ritardo alla partenza superiore a 90 minuti, il passeggero ha diritto:", "opts": ["A pasti e bevande a titolo gratuito in congrua relazione alla durata dell'attesa, se disponibili", "Al rimborso immediato del triplo del valore del biglietto", "A un risarcimento forfettario di 500 euro", "Esclusivamente a una lettera di scuse"], "ans": 0, "exp": "Per ritardi superiori a 90 minuti o cancellazioni, il vettore offre gratuitamente spuntini, pasti o bevande in quantità ragionevole, oltre al diritto di trasporto alternativo o rimborso."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Qual è l'aliquota IVA ordinariamente applicabile al trasporto pubblico di persone su acque interne?", "opts": ["10%", "22%", "4%", "5%"], "ans": 0, "exp": "Ai sensi della Tabella A, Parte III del DPR 633/1972, al trasporto passeggeri e relativi bagagli al seguito si applica l'aliquota ridotta del 10%."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In base all'art. 22 del D.P.R. 633/1972, l'emissione della fattura nel trasporto pubblico di persone:", "opts": ["Non è obbligatoria, salvo espressa richiesta del cliente non oltre il momento dell'operazione", "È sempre obbligatoria per qualsiasi importo", "È vietata dalla legge", "È obbligatoria solo per viaggiatori stranieri"], "ans": 0, "exp": "L'art. 22 comma 1 n. 3 del DPR 633/1972 esonera dal rilascio della fattura per i trasporti di persone e bagagli, fatto salvo il caso di richiesta preventiva da parte dell'utente."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In base all'art. 24 del D.P.R. 633/1972, entro quale termine devono essere annotati i corrispettivi giornalieri sul registro?", "opts": ["Entro il giorno non festivo successivo a quello di effettuazione delle operazioni", "Entro 30 giorni dalla fine del mese", "Entro 12 ore dall'incasso", "Alla fine dell'anno solare"], "ans": 0, "exp": "L'art. 24 DPR 633/1972 prevede che i commercianti e assimilati annotino i corrispettivi complessivi giornalieri entro il giorno non festivo successivo."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Se un biglietto di linea GGNL ha un costo lordo al pubblico di 22,00 euro (IVA 10% inclusa), a quanto ammonta l'imponibile netto?", "opts": ["20,00 euro", "19,80 euro", "17,60 euro", "20,20 euro"], "ans": 0, "exp": "Imponibile = Totale Lordo / 1,10. Dunque 22,00 / 1,10 = 20,00 euro (e IVA pari a 2,00 euro)."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Ai sensi del D.M. Finanze 30/06/1992, il biglietto di trasporto pubblico sostituisce lo scontrino fiscale purché contenga tra l'altro:", "opts": ["Denominazione impresa, partita IVA, numero progressivo, data, tratta/zona e prezzo con IVA compresa", "Il codice fiscale del viaggiatore e la sua firma", "Il timbro della Camera di Commercio", "Il nome del capitano della nave"], "ans": 0, "exp": "Il decreto stabilisce gli elementi essenziali obbligatori affinché il biglietto assuma valenza di certificazione fiscale dei corrispettivi."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Cosa stabilisce il D.M. MIT n. 255 del 27/10/2016 in tema di bigliettazione elettronica?", "opts": ["Le regole tecniche e i requisiti di interoperabilità per i sistemi di bigliettazione elettronica nel TPL", "L'abolizione totale dei pagamenti in moneta cartacea", "L'obbligo del documento d'identità per ogni biglietto di corsa semplice", "L'esenzione dal pagamento del biglietto per i giovani sotto i 30 anni"], "ans": 0, "exp": "Il D.M. 255/2016 definisce i parametri tecnologici, l'interoperabilità e gli standard dei titoli di viaggio elettronici e contactless nel trasporto pubblico locale."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "Cosa rappresenta la procedura di 'chiusura giornaliera' (o batch close) di un terminale POS?", "opts": ["La trasmissione telematica cumulativa delle transazioni eseguite nella giornata per l'accredito sul conto corrente", "L'azzeramento della memoria senza invio alla banca", "Il blocco della linea telefonica per motivi di sicurezza", "Il cambio di intestatario del conto aziendale"], "ans": 0, "exp": "La chiusura contabile POS consolida il totale delle operazioni effettuate, invia il riepilogo al circuito bancario e fornisce il report contabile per la quadratura di cassa."}, {"mod": "Tariffe, Biglietti, IVA e Pagamenti", "q": "In caso di versamento di una banconota sospetta di falsità da parte di un cliente, l'addetto deve:", "opts": ["Ritirare la banconota, redigere apposito verbale di inoltro alla Banca d'Italia e non rimborsare il cliente", "Restituire la banconota al cliente invitandolo a usarla altrove", "Distruggere immediatamente la banconota tagliandola a metà", "Trattenerla e consegnare il biglietto normalmente"], "ans": 0, "exp": "La legge impone agli intermediari e agli incaricati di pubblico servizio di ritirare la banconota sospetta rilasciando copia del verbale di ritiro per gli accertamenti del Nucleo Antifalsificazione della Banca d'Italia."}, {"mod": "Personale e Codice di Comportamento", "q": "Quale Regio Decreto costituisce lo statuto fondamentale e la disciplina dello stato giuridico del personale autoferrotranviario?", "opts": ["R.D. 8 gennaio 1931, n. 148", "R.D. 16 marzo 1942, n. 262", "D.P.R. 10 gennaio 1957, n. 3", "D.Lgs. 30 marzo 2001, n. 165"], "ans": 0, "exp": "Il R.D. 148/1931 detta lo stato giuridico del personale delle ferrovie, tramvie e linee di navigazione interna in regime di concessione."}, {"mod": "Personale e Codice di Comportamento", "q": "Nel R.D. 148/1931, quale delle seguenti rappresenta una sanzione disciplinare espulsiva?", "opts": ["Destituzione", "Sospensione dal servizio e dalla paga", "Censura scritta", "Multa fino a un massimo di 4 ore di retribuzione"], "ans": 0, "exp": "La destituzione costituisce la massima sanzione disciplinare ed estingue il rapporto di lavoro (può essere con o senza preavviso a seconda della gravità del fatto)."}, {"mod": "Personale e Codice di Comportamento", "q": "Il D.P.R. 13 giugno 2023, n. 81 contiene:", "opts": ["Il regolamento recante modifiche al codice di comportamento dei dipendenti pubblici", "Il testo unico sulla sicurezza sul lavoro", "La legge quadro sulle aree marine protette", "La riforma dell'ordinamento doganale"], "ans": 0, "exp": "Il DPR 81/2023 ha aggiornato il Codice di comportamento dei dipendenti pubblici (già DPR 62/2013), introducendo norme puntuali sull'uso dei social e delle tecnologie."}, {"mod": "Personale e Codice di Comportamento", "q": "Ai sensi del Codice di comportamento (D.P.R. 62/2013 e DPR 81/2023), qual è la regola generale sui regali o altre utilità per il dipendente?", "opts": ["È vietato accettare regali, salvo quelli d'uso di modico valore (orientativamente non superiore a 100 euro)", "È sempre consentito accettare regali purché dichiarati all'Agenzia delle Entrate", "I regali sono permessi fino al limite massimo di 1.000 euro", "È vietato ricevere qualsiasi cosa di valore superiore a 5 euro"], "ans": 0, "exp": "Il dipendente non accetta regali o compensi correlati alle proprie mansioni, salve le regalie d'uso di modico valore (indicato per prassi e codici fino a un massimo di 100 euro)."}, {"mod": "Personale e Codice di Comportamento", "q": "In merito all'utilizzo dei social media personali, il D.P.R. 81/2023 dispone che il dipendente pubblico:", "opts": ["Deve astenersi da interventi o dichiarazioni che possano nuocere all'immagine, al prestigio o alla credibilità dell'Amministrazione", "Non può possedere alcun account sui social media", "Può divulgare informazioni di servizio purché su profili privati", "È obbligato a condividere tutti i post ufficiali dell'ente"], "ans": 0, "exp": "L'art. 11-ter introdotto dal DPR 81/2023 vieta dichiarazioni pubbliche sui social network lesive dell'amministrazione e impone l'obbligo di riservatezza."}, {"mod": "Gestione Documentale e Privacy", "q": "Il D.P.C.M. 3 dicembre 2013 reca le regole tecniche in materia di:", "opts": ["Sistema di conservazione dei documenti informatici e protocollo informatico", "Reclutamento del personale delle pubbliche amministrazioni", "Spid e identità digitale unica europea", "Sicurezza antincendio a bordo delle navi traghetto"], "ans": 0, "exp": "Il DPCM 3/12/2013 disciplina la produzione, gestione, fascicolazione e conservazione a norma del documento informatico nella PA."}, {"mod": "Gestione Documentale e Privacy", "q": "Quali elementi costituiscono la segnatura di protocollo di un documento informatico in entrata o uscita?", "opts": ["Progressivo numerico, data di registrazione, mittente/destinatario e oggetto del documento", "Solo il nome dell'operatore e l'ora di ricezione", "La firma autenticata dal notaio", "L'importo del bollo telematico"], "ans": 0, "exp": "La segnatura di protocollo associa in modo univoco e immodificabile: numero progressivo, data/ora, oggetto, mittente e destinatario."}, {"mod": "Gestione Documentale e Privacy", "q": "Nel Regolamento Europeo 2016/679 (GDPR), chi è il 'Titolare del trattamento'?", "opts": ["La persona fisica o giuridica che determina le finalità e i mezzi del trattamento dei dati personali", "La persona a cui i dati si riferiscono", "Il fornitore della linea internet", "Il Garante per la Privacy"], "ans": 0, "exp": "Il Titolare del trattamento (nel nostro caso la GGNL) è l'ente che stabilisce fini e modalità operative del trattamento."}, {"mod": "Gestione Documentale e Privacy", "q": "In base al GDPR, il diritto dell'interessato di ottenere la cancellazione dei propri dati personali è noto come:", "opts": ["Diritto all'oblio (Art. 17 GDPR)", "Diritto di revoca contrattuale", "Diritto di recesso dal servizio", "Diritto di rettifica d'ufficio"], "ans": 0, "exp": "L'art. 17 del GDPR sancisce il diritto alla cancellazione dei dati (diritto all'oblio) al ricorrere delle condizioni di legge."}, {"mod": "Geografia dei Laghi", "q": "Qual è l'unico emissario naturale del Lago di Garda e presso quale località ha origine?", "opts": ["Il fiume Mincio, a Peschiera del Garda", "Il fiume Sarca, a Riva del Garda", "Il fiume Adda, a Lecco", "Il fiume Ticino, a Sesto Calende"], "ans": 0, "exp": "Il Mincio è l'unico emissario del Benaco ed esce a sud presso Peschiera del Garda."}, {"mod": "Geografia dei Laghi", "q": "Sul Lago di Garda, quale linea di traghetto trasporto autoveicoli è attiva tutto l'anno?", "opts": ["Maderno (BS) - Torri del Benaco (VR)", "Limone sul Garda - Malcesine", "Desenzano - Riva del Garda", "Sirmione - Lazise"], "ans": 0, "exp": "Il collegamento traghetto autoveicoli Maderno - Torri del Benaco unisce la sponda bresciana a quella veronese durante tutto l'arco dell'anno."}, {"mod": "Geografia dei Laghi", "q": "Quale vento del Lago di Garda soffia tipicamente da nord dalla notte fino al primo mattino?", "opts": ["Il Pelèr (o Sover)", "L'Ora", "La Breva", "Il Tivano"], "ans": 0, "exp": "Il Pelèr (o Sover) è il tipico vento mattutino da nord, seguito nel pomeriggio dall'Ora che soffia da sud."}, {"mod": "Geografia dei Laghi", "q": "Quale tra i seguenti laghi italiani detiene il record di massima profondità (circa 418 metri)?", "opts": ["Lago di Como (Lario)", "Lago di Garda (Benaco)", "Lago Maggiore (Verbano)", "Lago d'Iseo (Sebino)"], "ans": 0, "exp": "Il Lago di Como è il più profondo d'Italia, raggiungendo una depressione massima di circa 418 metri tra Argegno e Nesso."}, {"mod": "Geografia dei Laghi", "q": "Su quali regioni italiane (oltre al Canton Ticino in Svizzera) si estende il Lago Maggiore?", "opts": ["Piemonte e Lombardia", "Lombardia e Veneto", "Piemonte e Liguria", "Lombardia e Trentino-Alto Adige"], "ans": 0, "exp": "La sponda occidentale è in Piemonte (province di Novara e VCO), la sponda orientale in Lombardia (provincia di Varese)."}, {"mod": "Geografia dei Laghi", "q": "Dove si trova la Direzione Generale della Gestione Governativa Navigazione Laghi?", "opts": ["A Milano, in Via Ludovico Ariosto 21", "A Roma, presso il MIT", "A Como, in Piazza Cavour", "A Desenzano del Garda"], "ans": 0, "exp": "Come chiaramente indicato nell'intestazione del bando, la Direzione Generale di GGNL ha sede a Milano in Via L. Ariosto 21."}, {"mod": "Informatica e Inglese", "q": "In Microsoft Excel, quale formula permette di bloccare il riferimento a una cella (es. cella A1) in modo che rimanga invariato durante il trascinamento?", "opts": ["$A$1", "#A#1", "&A&1", "[A1]"], "ans": 0, "exp": "Il carattere dollaro ($) anteposto a colonna e riga definisce un riferimento assoluto."}, {"mod": "Informatica e Inglese", "q": "Quale funzione di Excel cerca un valore nella prima colonna di una matrice e restituisce un valore corrispondente in un'altra colonna?", "opts": ["CERCA.VERT", "CONTA.SE", "TROVA.RIGA", "COLLEGA.VALORE"], "ans": 0, "exp": "La funzione CERCA.VERT (VLOOKUP) è usata per cercare un valore nella prima colonna a sinistra ed estrarre il valore sulla riga indicata."}, {"mod": "Informatica e Inglese", "q": "In un messaggio di posta elettronica ordinaria, il campo CCN (BCC) ha la funzione di:", "opts": ["Inviare copia del messaggio senza mostrare l'indirizzo agli altri destinatari", "Richiedere la notifica di lettura obbligatoria", "Crittografare il testo con chiave asimmetrica", "Inviare l'email con priorità alta automatica"], "ans": 0, "exp": "CCN significa Copia Conoscenza Nascosta ed è essenziale per la privacy nelle spedizioni a più destinatari indipendenti."}, {"mod": "Informatica e Inglese", "q": "Nella Posta Elettronica Certificata (PEC), quale ricevuta attesta che il messaggio è entrato nella disponibilità della casella del destinatario?", "opts": ["La Ricevuta di Avvenuta Consegna", "La Ricevuta di Accettazione", "La Ricevuta di Lettura Video", "La Ricevuta di Presa in Carico"], "ans": 0, "exp": "La ricevuta di avvenuta consegna è generata dal gestore del destinatario e certifica il perfezionamento legale della notifica."}, {"mod": "Informatica e Inglese", "q": "Come si traduce in lingua inglese 'biglietto di andata e ritorno'?", "opts": ["Round-trip ticket (o Return ticket)", "One-way ticket", "Single fare pass", "Double season ticket"], "ans": 0, "exp": "'Round-trip ticket' (inglese americano) o 'Return ticket' (inglese britannico) indica il titolo di andata e ritorno."}, {"mod": "Informatica e Inglese", "q": "Qual è la traduzione corretta di 'traghetto trasporto autoveicoli'?", "opts": ["Car ferry (oppure Vehicle ferry)", "Cruise ship", "Speed speedboat", "Rowing boat"], "ans": 0, "exp": "Car ferry o vehicle ferry individua specificamente la nave traghetto adibita al trasporto automezzi."}];
+
+    let currentQuestions = [];
+    let qIdx = 0;
+    let scoreCorrect = 0;
+    let scoreWrong = 0;
+    let isSimExamMode = false;
+    let simTimerInterval = null;
+    let simSecondsRemaining = 1800;
+
+    function initQuizMenu() {
+      const container = document.getElementById('sim-module-buttons');
+      const mods = [...new Set(CONTROL_QUESTIONS.map(q => q.mod))];
+      
+      container.innerHTML = mods.map(m => {
+        const count = CONTROL_QUESTIONS.filter(q => q.mod === m).length;
+        const escMod = m.replace(/'/g, "\\'");
+        return `
+          <button class="btn-file" onclick="startModule('${escMod}')" style="justify-content:space-between; padding:12px 14px; text-align:left; cursor:pointer;">
+            <span>${m}</span>
+            <span class="mono" style="font-size:0.75rem; color:var(--muted);">${count} quesiti</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function startModule(modName) {
+      isSimExamMode = false;
+      const filtered = CONTROL_QUESTIONS.filter(q => q.mod === modName);
+      currentQuestions = prepareQuestions(filtered);
+      beginSim();
+    }
+
+    function startExam(fullExam) {
+      isSimExamMode = fullExam;
+      const picked = shuffle(CONTROL_QUESTIONS).slice(0, 30);
+      currentQuestions = prepareQuestions(picked);
+      beginSim();
+    }
+
+    function prepareQuestions(list) {
+      return shuffle(list).map(q => {
+        const copy = { ...q };
+        const optsWithFlags = copy.opts.map((optText, originalIndex) => ({
+          text: optText,
+          isCorrect: (originalIndex === copy.ans)
+        }));
+        copy.shuffledOptions = shuffle(optsWithFlags);
+        return copy;
+      });
+    }
+
+    function beginSim() {
+      qIdx = 0;
+      scoreCorrect = 0;
+      scoreWrong = 0;
+
+      document.getElementById('sim-screen-menu').style.display = 'none';
+      document.getElementById('sim-screen-result').style.display = 'none';
+      document.getElementById('sim-screen-active').style.display = 'block';
+
+      const timerBox = document.getElementById('sim-timer-pill');
+      if (isSimExamMode) {
+        timerBox.style.display = 'block';
+        simSecondsRemaining = 1800;
+        clearInterval(simTimerInterval);
+        updateSimTimer();
+        simTimerInterval = setInterval(() => {
+          simSecondsRemaining--;
+          updateSimTimer();
+          if (simSecondsRemaining <= 0) {
+            clearInterval(simTimerInterval);
+            finishSim();
+          }
+        }, 1000);
+      } else {
+        timerBox.style.display = 'none';
+        clearInterval(simTimerInterval);
+      }
+
+      renderCurrentQuestion();
+    }
+
+    function updateSimTimer() {
+      const min = Math.floor(simSecondsRemaining / 60);
+      const sec = simSecondsRemaining % 60;
+      document.getElementById('sim-timer-val').textContent = 
+        `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function renderCurrentQuestion() {
+      const q = currentQuestions[qIdx];
+      document.getElementById('sim-q-badge').textContent = q.mod;
+      document.getElementById('sim-q-text').textContent = q.q;
+      document.getElementById('sim-counter').textContent = `Domanda ${qIdx + 1} di ${currentQuestions.length}`;
+
+      const pct = (qIdx / currentQuestions.length) * 100;
+      document.getElementById('sim-progress-fill').style.width = `${pct}%`;
+
+      const feedback = document.getElementById('sim-feedback');
+      feedback.style.display = 'none';
+      document.getElementById('sim-btn-next').style.display = 'none';
+
+      const container = document.getElementById('sim-opts-container');
+      container.innerHTML = '';
+
+      q.shuffledOptions.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'sim-opt-btn';
+        btn.textContent = opt.text;
+        btn.onclick = () => selectSimAnswer(idx, opt.isCorrect);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectSimAnswer(selectedIdx, isCorrect) {
+      const q = currentQuestions[qIdx];
+      const buttons = document.querySelectorAll('.sim-opt-btn');
+      buttons.forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        scoreCorrect++;
+        buttons[selectedIdx].classList.add('correct');
+      } else {
+        scoreWrong++;
+        buttons[selectedIdx].classList.add('wrong');
+        q.shuffledOptions.forEach((opt, idx) => {
+          if (opt.isCorrect) buttons[idx].classList.add('correct');
+        });
+      }
+
+      const feedback = document.getElementById('sim-feedback');
+      if (isCorrect) {
+        feedback.className = 'sim-feedback ok';
+        feedback.innerHTML = `<strong>Risposta Esatta!</strong> ${q.exp}`;
+      } else {
+        feedback.className = 'sim-feedback bad';
+        feedback.innerHTML = `<strong>Risposta Errata.</strong> ${q.exp}`;
+      }
+      feedback.style.display = 'block';
+      document.getElementById('sim-btn-next').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+      qIdx++;
+      if (qIdx < currentQuestions.length) {
+        renderCurrentQuestion();
+      } else {
+        finishSim();
+      }
+    }
+
+    function finishSim() {
+      clearInterval(simTimerInterval);
+      document.getElementById('sim-screen-active').style.display = 'none';
+      document.getElementById('sim-screen-result').style.display = 'block';
+
+      const scoreIn30 = Math.round((scoreCorrect / currentQuestions.length) * 30 * 10) / 10;
+      document.getElementById('res-score-val').textContent = scoreIn30;
+
+      const circle = document.getElementById('res-circle');
+      const title = document.getElementById('res-verdict-title');
+      const desc = document.getElementById('res-verdict-desc');
+
+      if (scoreIn30 >= 18) {
+        circle.style.borderColor = 'var(--green)';
+        document.getElementById('res-score-val').style.color = 'var(--green)';
+        title.textContent = 'PROVA SUPERATA! 🎉';
+        title.style.color = 'var(--green)';
+        desc.textContent = `Punteggio conseguito: ${scoreIn30}/30. Hai superato la soglia minima di idoneità (18/30) richiesta dal bando.`;
+      } else {
+        circle.style.borderColor = 'var(--rose)';
+        document.getElementById('res-score-val').style.color = 'var(--rose)';
+        title.textContent = 'NON IDONEO ⚠️';
+        title.style.color = 'var(--rose)';
+        desc.textContent = `Punteggio conseguito: ${scoreIn30}/30. Inferiore alla soglia di 18/30. Ti consigliamo di ripassare le dispense nella scheda Materiali.`;
+      }
+
+      document.getElementById('res-correct-count').textContent = scoreCorrect;
+      document.getElementById('res-wrong-count').textContent = scoreWrong;
+      const pct = Math.round((scoreCorrect / currentQuestions.length) * 100);
+      document.getElementById('res-accuracy-pct').textContent = `${pct}%`;
+    }
+
+    function exitSim() {
+      clearInterval(simTimerInterval);
+      document.getElementById('sim-screen-active').style.display = 'none';
+      document.getElementById('sim-screen-result').style.display = 'none';
+      document.getElementById('sim-screen-menu').style.display = 'block';
+    }
+
+    window.addEventListener('DOMContentLoaded', initQuizMenu);
+  </script>
+</body>
+</html>

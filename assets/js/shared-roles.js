@@ -57,7 +57,7 @@
   // (gli admin sempre). Senza scelta valgono quelli di sempre: tutti tranne gli scali, che hanno solo Scali.
   // L'ultima scelta nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
   const PAGINE = [['oggi.html', 'Oggi'], ['naviturni.html', 'NaviTurni'], ['navidiaria.html', 'Distinta'], ['documenti.html', 'Documenti'],
-    ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['orari.html', 'Orari'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Quiz'],
+    ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['orari.html', 'Orari'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Concorsi'],
     ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta'], ['comitive.html', 'Comitive'], ['agenti.html', 'Agenti'], ['movimento.html', 'Movimento'], ['collegamenti.html', 'Collegamenti'], ['backup-dati.html', 'Backup e fonti'], ['controllo_cassa.html', 'Controllo cassa']];
   const RUOLI = [['agenti', 'Agenti'], ['uffici', 'Uffici'], ['scali', 'Scali'], ['bariste', 'Bariste']];
   const ruoloDi = agent => (isScaloAgent(agent) ? 'scali' : isBaristaAgent(agent) ? 'bariste'
