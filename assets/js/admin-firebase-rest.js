@@ -670,9 +670,9 @@
         inizio: variations[0]?.data || meta.data || new Date().toISOString().slice(0, 10),
         fine: variations[variations.length - 1]?.data || meta.data || new Date().toISOString().slice(0, 10),
         descrizione: meta.note || meta.titolo || 'Variazione turno Ufficio Movimento',
-        filename: meta.filename || ((meta.protocollo || 'disposizione') + '.pdf'),
+        filename: meta.filename || ((meta.protocollo || 'disposizione') + (meta.mimeType?.startsWith('image/') ? '.png' : '.pdf')),
         size: meta.size || 0,
-        mimeType: 'application/pdf',
+        mimeType: meta.mimeType || 'application/pdf',
         tags: ['movimento', 'disposizione', 'variazione']
       };
       await databaseRequest('private/adminUpdates', {

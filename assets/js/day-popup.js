@@ -311,6 +311,38 @@
 
   async function handleDisposizionePdf(file) {
     if (!file) return;
+
+    let agents = [];
+    try {
+      agents = await getScheduleAgents();
+    } catch (e) {
+      console.warn('Impossibile caricare agenti', e);
+    }
+
+    const defaultData = {
+      protocollo: 'T./2°',
+      dataDoc: new Date().toISOString().slice(0, 10),
+      motivo: 'variazione al turno stabilito per sostituzione Sambero, Cefariello, Carletti e Polloni.',
+      file,
+      pdf: null,
+      imageUrl: null,
+      agents,
+      variations: [],
+      needsOcr: true
+    };
+
+    const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|heic)$/i.test(file.name || '');
+
+    if (isImage) {
+      try {
+        defaultData.imageUrl = URL.createObjectURL(file);
+      } catch (e) {}
+      openDisposizioneModal(defaultData);
+      return;
+    }
+
+    // Try reading as PDF with PDF.js
+    let extractedText = '';
     try {
       if (!window.pdfjsLib) {
         await new Promise((resolve, reject) => {
@@ -326,9 +358,22 @@
       }
 
       const buffer = await file.arrayBuffer();
-      const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(buffer), isEvalSupported: false }).promise;
+      // Inspect header
+      const headerBytes = new Uint8Array(buffer.slice(0, 5));
+      const isPdfHeader = headerBytes[0] === 0x25 && headerBytes[1] === 0x50 && headerBytes[2] === 0x44 && headerBytes[3] === 0x46; // %PDF
 
-      let extractedText = '';
+      if (!isPdfHeader) {
+        // Not a PDF, try displaying as image
+        try {
+          defaultData.imageUrl = URL.createObjectURL(file);
+        } catch (e) {}
+        openDisposizioneModal(defaultData);
+        return;
+      }
+
+      const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(buffer), isEvalSupported: false }).promise;
+      defaultData.pdf = pdf;
+
       for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
         const page = await pdf.getPage(pageNo);
         const content = await page.getTextContent();
@@ -348,44 +393,36 @@
         if (lineText) extractedText += lineText + '\n';
         extractedText += '\n';
       }
+    } catch (pdfErr) {
+      console.warn('PDF.js parsing non riuscito (potrebbe essere immagine o scansione):', pdfErr);
+      try {
+        defaultData.imageUrl = URL.createObjectURL(file);
+      } catch (e) {}
+    }
 
-      const agents = await getScheduleAgents();
-
-      // Extract protocol
+    if (extractedText) {
       const protoMatch = extractedText.match(/(?:N\.?T\.?\/|T\.?\/)\s*([0-9]+[°a-zA-Z0-9]*)/i);
-      const protocollo = protoMatch ? ('T./' + protoMatch[1]) : 'T./2°';
+      if (protoMatch) defaultData.protocollo = 'T./' + protoMatch[1];
 
-      // Extract date of document
       const dataDocMatch = extractedText.match(/(?:Desenzano|Sal[oò]|Riva|Peschiera|Maderno)?[,\s]*(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i);
-      let dataDoc = '';
       if (dataDocMatch) {
         const d = dataDocMatch[1].padStart(2, '0');
         const m = MESI_IT[dataDocMatch[2].toLowerCase()] || '01';
         const y = dataDocMatch[3];
-        dataDoc = `${y}-${m}-${d}`;
-      } else {
-        dataDoc = new Date().toISOString().slice(0, 10);
+        defaultData.dataDoc = `${y}-${m}-${d}`;
       }
 
-      // Extract reason/motive
       const motivoMatch = extractedText.match(/(?:variazione\s+al\s+turno[^\n\r]+)/i);
-      const motivo = motivoMatch ? motivoMatch[0].trim() : 'variazione al turno stabilito per sostituzione Sambero, Cefariello, Carletti e Polloni.';
+      if (motivoMatch) defaultData.motivo = motivoMatch[0].trim();
 
-      let variations = parseTextLines(extractedText, agents);
-
-      openDisposizioneModal({
-        protocollo,
-        dataDoc,
-        motivo,
-        file,
-        pdf,
-        agents,
-        variations,
-        needsOcr: variations.length === 0
-      });
-    } catch (err) {
-      alert('Errore lettura PDF: ' + err.message);
+      const variations = parseTextLines(extractedText, agents);
+      if (variations.length > 0) {
+        defaultData.variations = variations;
+        defaultData.needsOcr = false;
+      }
     }
+
+    openDisposizioneModal(defaultData);
   }
 
   function openDisposizioneModal(data) {
@@ -414,11 +451,14 @@
 
         <details class="disp-pdf-details" open style="background:#061720;border:1px solid #1f4250;border-radius:10px;padding:8px">
           <summary style="font:800 .78rem Manrope,sans-serif;color:#2dd4bf;cursor:pointer;list-style:none;display:flex;justify-content:space-between">
-            <span>📄 Anteprima Documento PDF</span>
+            <span>📄 Anteprima Documento</span>
             <small style="color:#9fb8c2">(tocca per chiudere/aprire)</small>
           </summary>
-          <div style="margin-top:8px;max-height:220px;overflow-y:auto;border-radius:6px;border:1px solid #1f4250;background:#030d12;display:flex;justify-content:center">
+          <div style="margin-top:8px;max-height:220px;overflow-y:auto;border-radius:6px;border:1px solid #1f4250;background:#030d12;display:flex;justify-content:center;align-items:center;min-height:90px">
             <canvas id="dispPreviewCanvas" style="max-width:100%;height:auto;"></canvas>
+            <div id="dispFallbackBox" style="display:none;padding:12px;color:#9fb8c2;font:700 .8rem Manrope,sans-serif;text-align:center">
+              📄 Documento allegato: <strong style="color:#2dd4bf">${data.file?.name || 'disposizione'}</strong> (${Math.round((data.file?.size || 0)/1024)} KB)
+            </div>
           </div>
         </details>
 
@@ -492,17 +532,41 @@
     const close = () => overlay.remove();
     overlay.querySelectorAll('[data-disp-close]').forEach(b => b.onclick = close);
 
-    // Render PDF page 1 to canvas preview
-    if (data.pdf) {
+    const canvas = overlay.querySelector('#dispPreviewCanvas');
+    const fallbackBox = overlay.querySelector('#dispFallbackBox');
+
+    // Render PDF page 1 or image to canvas preview
+    if (data.pdf && canvas) {
       data.pdf.getPage(1).then(page => {
-        const canvas = overlay.querySelector('#dispPreviewCanvas');
-        if (canvas) {
-          const viewport = page.getViewport({ scale: 1.2 });
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          page.render({ canvasContext: canvas.getContext('2d'), viewport });
+        const viewport = page.getViewport({ scale: 1.2 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        page.render({ canvasContext: canvas.getContext('2d'), viewport });
+      }).catch(err => {
+        console.warn('Anteprima PDF non renderizzata', err);
+        if (fallbackBox) {
+          fallbackBox.style.display = 'block';
+          canvas.style.display = 'none';
         }
-      }).catch(err => console.warn('Anteprima PDF non renderizzata', err));
+      });
+    } else if (data.imageUrl && canvas) {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+      };
+      img.onerror = () => {
+        if (fallbackBox) {
+          fallbackBox.style.display = 'block';
+          canvas.style.display = 'none';
+        }
+      };
+      img.src = data.imageUrl;
+    } else if (fallbackBox) {
+      fallbackBox.style.display = 'block';
+      if (canvas) canvas.style.display = 'none';
     }
 
     const tbody = overlay.querySelector('#disp-table-body');
