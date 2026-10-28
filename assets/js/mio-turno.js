@@ -456,15 +456,21 @@
     });
     // la striscia si ricostruisce quando cambiano i giorni o i turni (anche un cambio turno arrivato dopo):
     // cambiando solo giorno le tessere restano e scorrono
-    const chiave = `${oggi}|${me?.id || ''}|${giorni[0]}|${giorni.length}|${turni.join(',')}`;
+    const variazioniGiorno = new Set(
+      (state.schedule?.variazioni_ods || [])
+        .filter(v => v?.attiva !== false && (String(v?.id_agente) === String(me?.id) || norm(v?.agente) === norm(me?.agente || me?.name)))
+        .map(v => String(v.data).slice(0, 10))
+    );
+    const chiave = `${oggi}|${me?.id || ''}|${giorni[0]}|${giorni.length}|${turni.join(',')}|${[...variazioniGiorno].sort().join(';')}`;
     if (box.dataset.chiave !== chiave) {
       box.dataset.chiave = chiave;
       box.innerHTML = giorni.map((d, k) => {
         const t = turni[k];
         const rip = RIPOSO.test(t), c = G.coloreTurno(t);
+        const hasDisp = variazioniGiorno.has(d);
         // settimane separate: prima di ogni lunedi' uno spazio con il numero della settimana; domenica in rosso
         const wd = parseIso(d).getDay(), sett = wd === 1 ? `<span class="mt-sett" aria-hidden="true"><em>sett. ${settimanaIso(d)}</em></span>` : '';
-        return `${sett}<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}${wd === 0 ? ' dom' : ''}${d === giornoPaga(d) ? ' paga' : ''}" data-giorno="${d}">${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
+        return `${sett}<button type="button" class="mt-g${d === oggi ? ' oggi' : ''}${wd === 0 ? ' dom' : ''}${d === giornoPaga(d) ? ' paga' : ''}${hasDisp ? ' has-disp' : ''}" data-giorno="${d}"${hasDisp ? ' title="Variazione da disposizione Ufficio Movimento"' : ''}>${d === oggi ? '<i class="mt-oggi">oggi</i>' : ''}<small>${GIORNI[parseIso(d).getDay()].slice(0, 3)}</small><b>${parseIso(d).getDate()}</b>` +
           `<span class="t${rip ? ' rip' : ''}" style="--c:${c};color:${G.testoSu(c)}">${rip ? (t ? 'rip' : '—') : esc(t)}</span></button>`;
       }).join('');
     }
@@ -562,6 +568,26 @@
     if (nave && !inServizio(nave, day)) messages.push(`Il turno ${nave} non è in servizio in questo giorno secondo l'orario in vigore.`);
     // Le corse sospese dall'Ufficio Movimento non hanno un avviso in alto: restano segnate «SOSPESA» nell'elenco delle corse
     notice(messages.join(' · '));
+    const dispEl = $('turno-disposizione');
+    const vInfo = found?.variazioneInfo;
+    if (dispEl) {
+      if (vInfo && (vInfo.note || vInfo.ods || vInfo.protocollo)) {
+        dispEl.hidden = false;
+        dispEl.innerHTML = `
+          <div class="mt-disp-header">
+            <span class="mt-disp-badge"><span class="mt-disp-badge-icon">📋</span> Variazione ${esc(vInfo.ods || 'Ufficio Movimento')}${vInfo.protocollo ? ` (${esc(vInfo.protocollo)})` : ''}</span>
+            ${vInfo.docId ? `<button type="button" class="mt-disp-open-pdf" data-doc-id="${esc(vInfo.docId)}">📄 Vedi PDF Disposizione</button>` : ''}
+          </div>
+          ${vInfo.note ? `<div class="mt-disp-note">${esc(vInfo.note)}</div>` : ''}
+          <div class="mt-disp-meta">
+            Turno assegnato: <strong>${esc(turno)}</strong>
+            ${found.originalShift?.turno && found.originalShift.turno !== turno ? `<span>(turno originale: <s>${esc(found.originalShift.turno)}</s>)</span>` : ''}
+          </div>`;
+      } else {
+        dispEl.hidden = true;
+        dispEl.innerHTML = '';
+      }
+    }
     if (!nave && !terra) window.NaviOrarioPage?.hide();
     if (nave) {
       renderNave(nave, day, me, found);
@@ -630,6 +656,41 @@
   // tocco sul turno (titolo): apre la giornata mostrata nella Distinta, con il popup di modifica
   const apriDistinta = () => { location.href = `navidiaria.html?editDate=${encodeURIComponent(today())}`; };
   $('turno-title').addEventListener('click', apriDistinta);
+
+  document.addEventListener('click', async event => {
+    const btn = event.target.closest('[data-doc-id]');
+    if (!btn) return;
+    const docId = btn.dataset.docId;
+    if (!docId) return;
+    const originalText = btn.innerHTML;
+    try {
+      btn.textContent = 'Caricamento PDF…';
+      btn.disabled = true;
+      const fileData = await window.NaviAdminFirebase?.getAdminDocumentFile?.(docId);
+      if (fileData) {
+        if (fileData.startsWith('data:application/pdf') || fileData.startsWith('data:image')) {
+          const byteCharacters = atob(fileData.split(',')[1] || '');
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' });
+          const fileUrl = URL.createObjectURL(blob);
+          window.open(fileUrl, '_blank');
+        } else {
+          window.open(fileData, '_blank');
+        }
+      } else {
+        alert('Documento PDF non trovato nell\'archivio.');
+      }
+    } catch (err) {
+      alert('Errore apertura PDF: ' + err.message);
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  });
   $('turno-title').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apriDistinta(); } });
   $('turno-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   $('turno-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));

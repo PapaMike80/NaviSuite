@@ -47,8 +47,8 @@
       if (String(item?.data || '').slice(0, 10) !== day) return;
       const shift = item?.turno_nuovo ?? item?.turno;
       if (shift === undefined) return;
-      if (item?.ods === 'MOVIMENTO') {
-        const decisione = { shift, sovrascrive: item.sovrascrive };
+      if (item?.ods === 'MOVIMENTO' || item?.tipo === 'DISPOSIZIONE' || item?.docId || item?.protocollo || String(item?.tipo || '').toUpperCase() === 'MANUALE') {
+        const decisione = { shift, sovrascrive: item.sovrascrive, item };
         if (item?.id_agente) map.movimento.set(`id:${item.id_agente}`, decisione);
         if (item?.agente) map.movimento.set(`name:${norm(item.agente)}`, decisione);
       }
@@ -175,11 +175,13 @@
         let currentTurno = original;
         let isModified = false;
         let modifiedBy = null;
+        let variazioneInfo = null;
 
         if (decisione && (manual === undefined || String(manual).trim().toUpperCase() === String(decisione.sovrascrive ?? '').trim().toUpperCase())) {
           currentTurno = String(decisione.shift ?? '').trim();
           isModified = true;
-          modifiedBy = 'Movimento';
+          modifiedBy = decisione.item?.ods || 'Movimento';
+          variazioneInfo = decisione.item || null;
         } else if (manual !== undefined) {
           currentTurno = String(manual).trim();
           isModified = true;
@@ -188,6 +190,7 @@
           currentTurno = String(variation).trim();
           isModified = true;
           modifiedBy = 'ODs';
+          variazioneInfo = (data?.variazioni_ods || []).find(v => String(v?.data || '').slice(0, 10) === day && (String(v?.id_agente) === String(agent?.id) || norm(v?.agente) === norm(agent?.agente))) || null;
         }
 
         const originalShiftBackup = {
@@ -202,7 +205,8 @@
           turno: currentTurno,
           originalShift: originalShiftBackup,
           isModified,
-          modifiedBy
+          modifiedBy,
+          variazioneInfo
         };
 
         shiftObj.updateShift = function(newData, source) {

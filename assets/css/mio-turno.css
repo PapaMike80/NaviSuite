@@ -85,3 +85,85 @@
 .mt-col-titolo b { color: #eaf2f4; }
 .mt-col-titolo small { font-weight: 500; color: #799ea8; }
 .mt-col-foot { font-size: 11.5px; }
+
+
+/* Banner Disposizione Variazione Turno */
+.mt-disp-card {
+  margin: 12px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #f59e0b;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(16, 39, 51, 0.95));
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mt-disp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mt-disp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 800 13px Manrope, sans-serif;
+  color: #fbbf24;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mt-disp-badge-icon {
+  font-size: 16px;
+}
+.mt-disp-open-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.6);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.18);
+  color: #fef08a;
+  font: 700 12px Manrope, sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.mt-disp-open-pdf:hover {
+  background: rgba(251, 191, 36, 0.35);
+  border-color: #fbbf24;
+}
+.mt-disp-note {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #eaf2f4;
+}
+.mt-disp-meta {
+  font-size: 12px;
+  color: #9fb8c2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mt-disp-meta strong {
+  color: #2dd4bf;
+  font-weight: 800;
+}
+.mt-disp-meta s {
+  color: #fb7185;
+}
+.mt-g.has-disp::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}

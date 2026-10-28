@@ -137,6 +137,7 @@
                 <h2 id="monthlySheetTitle">—</h2>
                 <button id="monthlyNext" class="monthly-month-button" type="button" aria-label="Mese successivo">›</button>
                 <button id="monthlyToday" class="monthly-today-button" type="button">Oggi</button>
+                <button id="monthlyUploadDisp" class="monthly-today-button" type="button" onclick="window.NaviCaricaDisposizione?.()">📄 Disposizione</button>
                 <button id="monthlyPrint" class="monthly-today-button" type="button">Stampa / PDF</button>
                 <button id="monthlyVerifyPayslip" class="monthly-today-button" type="button" onclick="location.href='verifica-busta.html'">Verifica busta</button>
               </div>
@@ -274,7 +275,7 @@
   </div>
   <div id="toast" class="toast" role="status"></div>
   <script src="assets/js/shared-roles.js?v=16"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=96"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=97"></script>
   <script src="assets/js/shared-data.js?v=137"></script>
   <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/shared-menu.js?v=1.99"></script>
@@ -289,7 +290,8 @@
   <script src="assets/js/navidiaria-backup-ui.js?v=6"></script>
   <script src="assets/js/navidiaria-anno.js?v=5"></script>
   <script src="assets/js/navidiaria-weekly.js?v=125"></script>
-  <script src="assets/js/day-popup.js?v=33"></script>
+  <script src="vendor/pdfjs/pdf.min.js"></script>
+  <script src="assets/js/day-popup.js?v=36"></script>
   <script src="assets/js/navidiaria-monthly.js?v=142"></script>
   <script src="assets/js/navidiaria-reset-hours.js?v=9"></script>
   <script>

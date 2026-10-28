@@ -655,6 +655,78 @@
     return id;
   }
 
+
+  async function saveDisposizioneConVariazioni(meta, dataUrl, variations = []) {
+    const auth = await ensureAuth();
+    const docId = String(meta?.id || ('DOC_DISP_' + Date.now() + '_' + String(meta?.protocollo || 'MOV').replace(/[^a-zA-Z0-9]/g, '_'))).replace(/[.#$\[\]/]/g, '_');
+
+    if (dataUrl) {
+      const docMetadata = {
+        id: docId,
+        tipo: 'ods',
+        titolo: meta.titolo || ('Disposizione ' + (meta.protocollo || 'Movimento')),
+        protocollo: meta.protocollo || '',
+        data: meta.data || new Date().toISOString().slice(0, 10),
+        inizio: variations[0]?.data || meta.data || new Date().toISOString().slice(0, 10),
+        fine: variations[variations.length - 1]?.data || meta.data || new Date().toISOString().slice(0, 10),
+        descrizione: meta.note || meta.titolo || 'Variazione turno Ufficio Movimento',
+        filename: meta.filename || ((meta.protocollo || 'disposizione') + '.pdf'),
+        size: meta.size || 0,
+        mimeType: 'application/pdf',
+        tags: ['movimento', 'disposizione', 'variazione']
+      };
+      await databaseRequest('private/adminUpdates', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ownerUid: auth.uid,
+          updatedAt: new Date().toISOString(),
+          ['documentsMeta/' + docId]: { ...docMetadata, ownerUid: auth.uid, uploadedAt: new Date().toISOString() },
+          ['documentsFiles/' + docId]: { dataUrl: String(dataUrl || '') }
+        })
+      });
+    }
+
+    if (variations && variations.length > 0) {
+      const currentRes = await databaseRequest('private/adminUpdates/manualVariations');
+      const currentRows = (Array.isArray(currentRes.data) ? currentRes.data.filter(Boolean) : Object.values(currentRes.data || {})).filter(Boolean);
+
+      const newVarKeys = new Set(variations.map(v => String(v.data).slice(0, 10) + '|' + String(v.id_agente || '')));
+      const filtered = currentRows.filter(r => !newVarKeys.has(String(r?.data || '').slice(0, 10) + '|' + String(r?.id_agente || '')));
+
+      const toAdd = variations.map(v => ({
+        attiva: true,
+        data: String(v.data).slice(0, 10),
+        id_agente: String(v.id_agente || ''),
+        agente: String(v.agente || ''),
+        turno_originale: String(v.turno_originale || '').toUpperCase(),
+        turno_nuovo: String(v.turno_nuovo || '').toUpperCase(),
+        ods: String(v.ods || meta.protocollo || 'DISPOSIZIONE').trim(),
+        tipo: 'MANUALE',
+        note: String(v.note || meta.note || 'Disposizione Ufficio Movimento').trim(),
+        docId: docId,
+        protocollo: meta.protocollo || '',
+        inserita_il: new Date().toISOString()
+      }));
+
+      const merged = [...filtered, ...toAdd];
+      await databaseRequest('private/adminUpdates/manualVariations', {
+        method: 'PUT',
+        body: JSON.stringify(merged)
+      });
+      await databaseRequest('private/adminUpdates/updatedAt', {
+        method: 'PUT',
+        body: JSON.stringify(new Date().toISOString())
+      });
+      try {
+        await databaseRequest('private/adminUpdates/versione', {
+          method: 'PATCH',
+          body: JSON.stringify({ manualVariations: Date.now() })
+        });
+      } catch (_) {}
+    }
+    return { docId, variationsCount: variations.length };
+  }
+
   async function deleteAdminDocument(documentId) {
     const id = String(documentId).replace(/[.#$\[\]/]/g, "_");
     await databaseRequest("private/adminUpdates", {
@@ -1428,6 +1500,7 @@
     getAdminDocumentFile,
     saveAdminDocument,
     deleteAdminDocument,
+    saveDisposizioneConVariazioni,
     recordUserAccess,
     listRegisteredUsers,
     deleteRegisteredUser,
