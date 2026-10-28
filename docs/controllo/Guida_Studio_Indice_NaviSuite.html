@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guida allo Studio & Mappa Concettuale - Operatore di Ufficio | NaviSuite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070d18;
+      --card: #0c1527;
+      --card2: #101c36;
+      --card-border: #1a2a4c;
+      --teal: #14b8a6;
+      --gold: #f59e0b;
+      --accent: #38bdf8;
+      --rose: #f43f5e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #1e293b;
+      --border-rgb: 30, 41, 59;
+      --c: var(--teal);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding-bottom: 80px;
+    }
+    header.ns-header {
+      background: linear-gradient(180deg, rgba(12,21,39,0.98) 0%, rgba(7,13,24,0.95) 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 24px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--teal), #0284c7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 14px rgba(20,184,166,0.35);
+    }
+    .brand-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+    .brand-sub { font-size: 0.75rem; color: var(--teal); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-back {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+    .btn-back:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-accent {
+      background: rgba(20,184,166,0.12);
+      color: var(--teal);
+      border: 1px solid rgba(20,184,166,0.3);
+    }
+    .btn-accent:hover { background: rgba(20,184,166,0.22); }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(16,28,54,0.9), rgba(12,21,39,0.95));
+      border: 1px solid var(--card-border);
+      border-left: 4px solid var(--gold);
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: rgba(245,158,11,0.15);
+      color: var(--gold);
+      border: 1px solid rgba(245,158,11,0.3);
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .hero-meta span strong { color: var(--text); }
+
+    .quick-jump {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 25px;
+      scrollbar-width: thin;
+    }
+    .jump-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .jump-pill:hover, .jump-pill.active {
+      background: var(--card2);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .doc-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s;
+    }
+    .doc-card:hover { border-color: rgba(245,158,11,0.4); }
+    
+    .article-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 10px;
+    }
+    .article-num {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--gold);
+      font-family: 'DM Mono', monospace;
+    }
+    .article-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .summary-box {
+      background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(12,21,39,0.5));
+      border: 1px solid rgba(245,158,11,0.3);
+      border-left: 4px solid var(--gold);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: #fef3c7;
+    }
+    .summary-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .article-body {
+      color: #cbd5e1;
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+    .article-body p { margin-bottom: 12px; }
+    .article-body ul { margin-left: 20px; margin-bottom: 12px; }
+    .article-body li { margin-bottom: 8px; }
+
+    mark.kw {
+      background: rgba(20,184,166,0.18);
+      color: #5eead4;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(20,184,166,0.4);
+    }
+    mark.gold {
+      background: rgba(245,158,11,0.18);
+      color: #fde68a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(245,158,11,0.4);
+    }
+
+    .disp-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-disp {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card2);
+      color: var(--teal);
+      border: 1px solid var(--teal);
+      transition: all 0.2s;
+    }
+    .btn-disp:hover { background: var(--teal); color: #042f2e; }
+
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .sched-card {
+      background: var(--card2);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .sched-week {
+      font-family: 'DM Mono', monospace;
+      color: var(--gold);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .sched-title {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+    .sched-desc {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--teal);
+      color: #042f2e;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(20,184,166,0.4);
+      transition: all 0.2s;
+      z-index: 99;
+    }
+    .back-to-top:hover { transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+
+  <header class="ns-header">
+    <div class="header-inner">
+      <a href="../../concorso-controllo.html" class="brand">
+        <div class="brand-logo">🧭</div>
+        <div>
+          <div class="brand-title">NaviSuite Concorso</div>
+          <div class="brand-sub">Guida allo Studio & Indice Generale</div>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a href="../../concorso-controllo.html" class="btn btn-back">← Torna al Concorso</a>
+        <a href="Bando_Concorso_NaviSuite.html" class="btn btn-accent">📜 Bando & Ammessi</a>
+        <a href="../../simulatore.html" class="btn btn-accent">⚡ Simulatore Quiz</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="hero-banner">
+      <span class="hero-badge">Piano Didattico Ufficiale</span>
+      <h1 class="hero-title">Guida allo Studio e Mappa dei Materiali Didattici</h1>
+      <p style="color:var(--muted); font-size:0.95rem;">
+        Concorso Pubblico per n. 3 Posti di <strong style="color:#fff;">"Operatore di Ufficio" (par. 130)</strong> – Settore Amministrativo / Ufficio Controllo della Gestione Governativa Navigazione Laghi. Guida integrata alle 11 materie concorsuali di cui all'art. 7 del bando con piano di studio in 4 settimane.
+      </p>
+      <div class="hero-meta">
+        <span>Ente: <strong>Gestione Governativa Navigazione Laghi</strong></span>
+        <span>Moduli Didattici: <strong>7 Aree Tematiche (11 Dispense)</strong></span>
+        <span>Durata Consigliata: <strong>4 Settimane</strong></span>
+      </div>
+    </div>
+
+    <!-- Quick pills -->
+    <div class="quick-jump">
+      <a href="#mod1" class="jump-pill">Mod. 1 Ordinamento & GGNL</a>
+      <a href="#mod2" class="jump-pill">Mod. 2 Polizia & Sicurezza</a>
+      <a href="#mod3" class="jump-pill">Mod. 3 Fisco, Biglietti & IVA</a>
+      <a href="#mod4" class="jump-pill">Mod. 4 Stato Giuridico & Etica</a>
+      <a href="#mod5" class="jump-pill">Mod. 5 Protocollo & Privacy</a>
+      <a href="#mod6" class="jump-pill">Mod. 6 Geografia 3 Laghi</a>
+      <a href="#mod7" class="jump-pill">Mod. 7 Informatica & Inglese</a>
+      <a href="#piano" class="jump-pill" style="border-color:var(--gold); color:var(--gold);">📅 Piano 4 Settimane</a>
+      <a href="#quiz" class="jump-pill" style="border-color:var(--teal); color:var(--teal);">🎯 Strategia Quiz</a>
+    </div>
+
+    <!-- MODULO 1 -->
+    <article class="doc-card" id="mod1">
+      <div class="article-header">
+        <span class="article-num">MODULO 1</span>
+        <span class="article-title">Ente GGNL e Regolamentazione del Trasporto Lacustre</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Inquadramento istituzionale della Gestione Governativa come organo dello Stato dipendente dal MIT (L. 614/1957), organizzazione periferica delle 3 Direzioni di Esercizio, disciplina del servizio di linea e di noleggio (Regolamento 2004) e gestione delle assuntorie periferiche (L. 14/1965).</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Legge 18 luglio 1957, n. 614:</mark> Istituzione della Gestione Governativa per l'esercizio della navigazione sui laghi Maggiore, di Garda e di Como; natura giuridica di organo privo di personalità giuridica autonoma operante sotto la diretta vigilanza del Ministero delle Infrastrutture e dei Trasporti; figura del <mark class="gold">Gestore Governativo</mark> nominato con decreto ministeriale; autonomia contabile e bilancio separato.</li>
+          <li><mark class="kw">Regolamento di Esercizio (Ed. 2004):</mark> Approvato dal MIT con nota NI/1716 del 13 maggio 2004; disciplina tecnica e regolamentare del servizio passeggeri e veicoli; obblighi del personale di bordo (Comandanti, Macchinisti, Marinai) e del personale di terra (Biglietterie, Pontilieri); regole di trasporto per merci pericolose, bagagli, biciclette e animali domestici; gestione delle irregolarità di viaggio.</li>
+          <li><mark class="kw">Legge 3 febbraio 1965, n. 14 (Assuntorie):</mark> Regolamentazione degli scali minori affidati ad "assuntori" terzi; mansioni di custodia, ormeggio/disormeggio, emissione dei titoli di viaggio e rendicontazione contabile periodica all'Ufficio Controllo.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html" target="_blank" class="btn-disp">Dispensa 01: Legge 614/1957 📜</a>
+          <a href="Legge_614_1957_Testo_Integrale_NaviSuite.html" target="_blank" class="btn-disp">Legge 614 Testo Integrale 📜</a>
+          <a href="dispense_navisuite/02_Regolamento_Esercizio_2004.html" target="_blank" class="btn-disp">Dispensa 02: Regolamento Esercizio 📜</a>
+          <a href="dispense_navisuite/06_Assuntorie_Legge_14_1965.html" target="_blank" class="btn-disp">Dispensa 06: Assuntorie Legge 14 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 2 -->
+    <article class="doc-card" id="mod2">
+      <div class="article-header">
+        <span class="article-num">MODULO 2</span>
+        <span class="article-title">Sicurezza, Polizia dei Trasporti e Diritti degli Utenti</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Poteri di polizia amministrativa e sanzionatoria del personale GGNL (D.P.R. 753/1980), Carta della Mobilità e standard qualitativi (D.P.C.M. 30/12/1998) e diritti dei passeggeri del trasporto per vie d'acqua con particolare tutela per i passeggeri con disabilità e PMR (Reg. UE 1177/2010).</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">D.P.R. 11 luglio 1980, n. 753:</mark> Norme in materia di polizia, sicurezza e regolarità dell'esercizio delle ferrovie e di altri servizi di trasporto; qualifica di <mark class="gold">pubblico ufficiale o incaricato di pubblico servizio</mark> per gli agenti addetti al controllo; verbalizzazione delle infrazioni e contestazione dei titoli di viaggio non validi.</li>
+          <li><mark class="kw">Carta dei Servizi e Mobilità (D.P.C.M. 30/12/1998):</mark> Principi di eguaglianza, imparzialità, continuità, partecipazione ed efficienza; definizione degli standard di puntualità, regolarità e sicurezza della flotta; gestione dei reclami e rimborsi agli utenti.</li>
+          <li><mark class="kw">Regolamento (UE) n. 1177/2010:</mark> Diritti dei passeggeri nel trasporto effettuato via mare e per vie navigabili interne; assistenza gratuita alle <mark class="gold">Persone con Disabilità e Persone a Mobilità Ridotta (PMR)</mark>; indennizzi in caso di cancellazione o ritardo superiore ai limiti regolamentari (25% o 50% del prezzo del biglietto).</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/03_Polizia_e_Sicurezza_DPR_753.html" target="_blank" class="btn-disp">Dispensa 03: Polizia DPR 753/1980 📜</a>
+          <a href="dispense_navisuite/04_Carta_Servizi_e_Diritti_PMR_Reg_1177.html" target="_blank" class="btn-disp">Dispensa 04: Carta Servizi & PMR Reg. 1177 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 3 -->
+    <article class="doc-card" id="mod3">
+      <div class="article-header">
+        <span class="article-num">MODULO 3</span>
+        <span class="article-title">Bigliettazione, Fisco, Contabilità e Metodi di Pagamento</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Normativa fiscale applicabile al trasporto pubblico di persone: applicazione dell'aliquota IVA ridotta al 10%, tenuta e compilazione del Registro dei Corrispettivi (art. 24 D.P.R. 633/1972), bigliettazione elettronica certificata (D.M. 30/06/1992 e D.M. MIT 255/2016) e incassi POS/PagoPA.</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Aliquota IVA 10%:</mark> Applicabile ai trasporti urbani e lacuali di persone e relativi bagagli al seguito; scorporo IVA con formula <code>Imponibile = Totale / 1,10</code>; differenze con aliquota ordinaria al 22% (merci/noleggi speciali).</li>
+          <li><mark class="kw">Registro dei Corrispettivi (Art. 24 D.P.R. 633/1972):</mark> Registrazione globale giornaliera degli incassi lordi suddivisi per aliquota entro il giorno non festivo successivo; quadratura di cassa e conciliazione con i report delle biglietterie automatiche e dei POS.</li>
+          <li><mark class="kw">Bigliettazione Elettronica:</mark> Caratteristiche del titolo di viaggio ai sensi del D.M. Finanze 30/06/1992 (natura di scontrino fiscale/ricevuta) e D.M. MIT 27/10/2016 n. 255 per l'interoperabilità dei sistemi di tariffazione elettronica e dematerializzazione.</li>
+          <li><mark class="kw">Pagamenti Elettronici e PagoPA:</mark> Obbligo POS per transazioni commerciali, gestione delle commissioni bancarie, incassi da canali digitali e rendicontazione contabile verso l'Ufficio Controllo.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/05_Tariffe_Biglietti_IVA_Registri_Corrispettivi.html" target="_blank" class="btn-disp">Dispensa 05: Fisco, Biglietti, IVA & Registri 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 4 -->
+    <article class="doc-card" id="mod4">
+      <div class="article-header">
+        <span class="article-num">MODULO 4</span>
+        <span class="article-title">Personale, Etica e Stato Giuridico</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Stato giuridico e disciplina del personale dei pubblici servizi di trasporto (R.D. 148/1931), CCNL Autoferrotranviari (classificazione e parametro 130), Codice di Comportamento dei dipendenti pubblici (D.P.R. 81/2023) e Codice Etico aziendale GGNL.</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Regio Decreto 8 gennaio 1931, n. 148:</mark> Testo cardine recante lo stato giuridico e disciplinare degli autoferrotranviari; doveri di fedeltà, segreto d'ufficio e diligenza; scala sanzionatoria (richiamo verbale, ammonizione, multa, sospensione dal servizio e dalla paga, retrocessione, destituzione con o senza preavviso); composizione e funzionamento del <mark class="gold">Consiglio di Disciplina</mark>; garanzie procedimentali e termini di difesa.</li>
+          <li><mark class="kw">CCNL Autoferrotranviari:</mark> Struttura delle aree professionali, orario di lavoro contrattuale (39 ore settimanali), riposi, straordinari, retribuzione tabellare del parametro 130 e trattamento economico per malattia e infortunio.</li>
+          <li><mark class="kw">D.P.R. 13 giugno 2023, n. 81 e Codice Etico GGNL:</mark> Regole di condotta, prevenzione del conflitto di interessi, divieto di regali di valore non modico, utilizzo responsabile dei social network e degli strumenti informatici aziendali; dovere di imparzialità verso gli utenti.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/07_Stato_Giuridico_Autoferrotranviari_RD_148.html" target="_blank" class="btn-disp">Dispensa 07: Stato Giuridico RD 148 & CCNL 📜</a>
+          <a href="RD_148_1931_Testo_Integrale_NaviSuite.html" target="_blank" class="btn-disp">R.D. 148/1931 Testo Integrale 📜</a>
+          <a href="dispense_navisuite/08_Codice_Comportamento_DPR_81_e_Codice_Etico.html" target="_blank" class="btn-disp">Dispensa 08: Codice Comportamento & Etico 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 5 -->
+    <article class="doc-card" id="mod5">
+      <div class="article-header">
+        <span class="article-num">MODULO 5</span>
+        <span class="article-title">Gestione Documentale, Protocollo e Privacy</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Regole tecniche per la tenuta del protocollo informatico, formazione del fascicolo elettronico e conservazione a norma (D.P.C.M. 3/12/2013) unite alla disciplina del trattamento dei dati personali e diritti degli interessati (Regolamento UE 2016/679 - GDPR).</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Protocollo Informatico (D.P.C.M. 3 dicembre 2013):</mark> Registrazione obbligatoria e immutabile dei documenti in entrata e in uscita (numero progressivo annuale, data di registrazione, mittente/destinatario, oggetto, impronta informatica); fascicolazione automatica e piano di conservazione documentale.</li>
+          <li><mark class="kw">Regolamento (UE) 2016/679 (GDPR):</mark> Principi di liceità, correttezza, trasparenza e minimizzazione; basi giuridiche del trattamento; ruoli del <mark class="gold">Titolare del trattamento, Responsabile (DPO) e Incaricato/Autorizzato</mark>; informativa agli interessati e diritti di accesso, rettifica, cancellazione e opposizione.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/09_Protocollo_Informatico_DPCM_2013_e_Privacy_GDPR.html" target="_blank" class="btn-disp">Dispensa 09: Protocollo DPCM 2013 & Privacy GDPR 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 6 -->
+    <article class="doc-card" id="mod6">
+      <div class="article-header">
+        <span class="article-num">MODULO 6</span>
+        <span class="article-title">Geografia dei Tre Laghi e Rete di Navigazione</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Morfologia, confini regionali e internazionali, principali porti e scali di battello e traghetto per automobili, cantieri navali e tipologie di flotta (motonavi, aliscafi, catamarani, traghetti bidirezionali) sui laghi Maggiore, di Garda e di Como.</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Lago Maggiore (Verbano):</mark> Condiviso tra Piemonte, Lombardia e Svizzera (Canton Ticino); scali principali: Arona, Stresa, Isole Borromee (Bella, Madre, Pescatori), Verbania/Intra, Laveno (traghetti auto), Luino, Locarno; cantiere centrale di Arona.</li>
+          <li><mark class="kw">Lago di Como (Lario):</mark> Interamente in Lombardia (province di Como e Lecco), caratteristica forma a "Y" rovesciata; bacino di Como, bacino di Lecco e Alto Lago (Colico); Centro Lago nevralgico con Bellagio, Varenna, Menaggio, Cadenabbia (servizio traghetto auto); cantiere di Dervio.</li>
+          <li><mark class="kw">Lago di Garda (Benaco):</mark> Il lago più esteso d'Italia, diviso tra Lombardia (Brescia), Veneto (Verona) e Trentino-Alto Adige (Trento); scali principali: Desenzano, Sirmione, Salò, Gargnano, Limone, Riva del Garda, Malcesine, Torri del Benaco, Maderno (collegamento traghetto Torri-Maderno), Peschiera; cantiere di Peschiera del Garda.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/10_Geografia_dei_Tre_Laghi.html" target="_blank" class="btn-disp">Dispensa 10: Geografia dei Tre Laghi 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- MODULO 7 -->
+    <article class="doc-card" id="mod7">
+      <div class="article-header">
+        <span class="article-num">MODULO 7</span>
+        <span class="article-title">Competenze Informatiche e Lingua Inglese</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Competenze operative richieste per il profilo di Operatore di Ufficio: utilizzo avanzato di Excel per la rendicontazione contabile e il controllo biglietterie, posta elettronica certificata (PEC), videoscrittura e lingua inglese per l'assistenza all'utenza internazionale.</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><mark class="kw">Fogli di Calcolo (Microsoft Excel / Fogli Google):</mark> Formule matematico-statistiche (<code>SOMMA</code>, <code>MEDIA</code>, <code>CONTA.SE</code>, <code>SE</code> condizionale), funzioni di ricerca (<code>CERCA.VERT</code> / <code>XLOOKUP</code>), formattazione condizionale, tabelle pivot per la quadratura degli incassi e grafici di rendicontazione.</li>
+          <li><mark class="kw">Posta Elettronica Certificata (PEC) & Sicurezza:</mark> Valore legale della ricevuta di accettazione e di avvenuta consegna, firma digitale, conservazione dei messaggi e buone pratiche di cybersecurity (phishing, protezione password, backup).</li>
+          <li><mark class="kw">Lingua Inglese per il Front-Office:</mark> Vocabolario marittimo e turistico (orari, imbarchi, tariffe, riduzioni, ritardi, rimborsi, direzioni degli scali, assistenza PMR) e formulazione di risposte formali scritte alle richieste degli utenti stranieri.</li>
+        </ul>
+        <div class="disp-links">
+          <a href="dispense_navisuite/11_Informatica_Excel_PEC_e_Inglese.html" target="_blank" class="btn-disp">Dispensa 11: Excel, PEC & Lingua Inglese 📜</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- SEZIONE PIANO DI STUDIO -->
+    <article class="doc-card" id="piano" style="border-left: 4px solid var(--gold); margin-top: 35px;">
+      <div class="article-header">
+        <span class="article-num" style="color:var(--gold);">PROGRAMMAZIONE DIDATTICA</span>
+        <span class="article-title">Piano di Studio Consigliato in 4 Settimane</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Tabella di marcia intensiva strutturata in 4 macro-fasi per coprire in modo organico l'intero programma dell'art. 7 con alternanza di teoria e simulazioni di quiz a tempo.</div>
+      </div>
+      <div class="article-body">
+        <div class="schedule-grid">
+          <div class="sched-card">
+            <div class="sched-week">Settimana 1</div>
+            <div class="sched-title">Fondamenti GGNL & Sicurezza</div>
+            <div class="sched-desc">
+              Studio approfondito di <strong>Legge 614/1957</strong>, <strong>Regolamento Esercizio 2004</strong>, <strong>D.P.R. 753/1980</strong> e Regolamento UE 1177/2010. Prima batteria di 50 quiz normativi.
+            </div>
+          </div>
+          <div class="sched-card">
+            <div class="sched-week">Settimana 2</div>
+            <div class="sched-title">Fisco, Biglietti & Assuntorie</div>
+            <div class="sched-desc">
+              Focus su <strong>IVA 10%</strong>, <strong>Registro Corrispettivi art. 24</strong>, <strong>Legge 14/1965</strong> e quadratura di cassa. Esercizi pratici di scorporo e contabilità.
+            </div>
+          </div>
+          <div class="sched-card">
+            <div class="sched-week">Settimana 3</div>
+            <div class="sched-title">R.D. 148, Personale & Privacy</div>
+            <div class="sched-desc">
+              Studio di <strong>R.D. 148/1931</strong>, <strong>CCNL Autoferrotranviari</strong>, Codice Comportamento DPR 81/2023, DPCM 2013 e GDPR. Simulazioni quiz interdisciplinari.
+            </div>
+          </div>
+          <div class="sched-card">
+            <div class="sched-week">Settimana 4</div>
+            <div class="sched-title">Geografia, Excel, Inglese & Ripasso</div>
+            <div class="sched-desc">
+              Memorizzazione scali e porti dei 3 laghi, formule Excel essenziali, glossario inglese e simulazioni a tempo reale con il simulatore NaviSuite.
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- SEZIONE SIMULATORE QUIZ -->
+    <article class="doc-card" id="quiz" style="border-left: 4px solid var(--teal); margin-top: 25px;">
+      <div class="article-header">
+        <span class="article-num" style="color:var(--teal);">METODO DI STUDIO</span>
+        <span class="article-title">Come Esercitarsi Efficacemente con il Simulatore Quiz</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title" style="color:var(--teal);">💡 In sintesi</div>
+        <div>Consigli pratici per massimizzare il punteggio alla prova scritta: gestione del tempo (circa 45-60 secondi per domanda), strategia di risposta sui quesiti incerti ed analisi puntuale degli errori.</div>
+      </div>
+      <div class="article-body">
+        <ul>
+          <li><strong>Esercitazione per argomento:</strong> inizia testando i singoli moduli subito dopo aver letto la relativa dispensa per fissare i concetti cardine;</li>
+          <li><strong>Simulazione d'esame completa:</strong> affronta le simulazioni con tempo bloccato (es. 40 o 60 domande in 45 minuti) per allenare il ritmo di lettura e concentrazione;</li>
+          <li><strong>Quaderno degli errori:</strong> annota ogni quesito sbagliato e riapri la dispensa corrispondente per rileggere la norma di riferimento prima di ripetere la prova.</li>
+        </ul>
+        <div style="margin-top:16px;">
+          <a href="../../simulatore.html" class="btn" style="background:var(--teal); color:#042f2e; font-weight:700; padding:10px 18px;">Avvia il Simulatore Quiz NaviSuite ⚡</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <button class="back-to-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+</body>
+</html>

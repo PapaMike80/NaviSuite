@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bando Ufficiale e Candidati Ammessi - Operatore di Ufficio | NaviSuite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070d18;
+      --card: #0c1527;
+      --card2: #101c36;
+      --card-border: #1a2a4c;
+      --teal: #14b8a6;
+      --gold: #f59e0b;
+      --accent: #38bdf8;
+      --rose: #f43f5e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #1e293b;
+      --border-rgb: 30, 41, 59;
+      --c: var(--teal);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding-bottom: 80px;
+    }
+    header.ns-header {
+      background: linear-gradient(180deg, rgba(12,21,39,0.98) 0%, rgba(7,13,24,0.95) 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 24px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--teal), #0284c7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 14px rgba(20,184,166,0.35);
+    }
+    .brand-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+    .brand-sub { font-size: 0.75rem; color: var(--teal); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-back {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+    }
+    .btn-back:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-pdf {
+      background: rgba(20,184,166,0.12);
+      color: var(--teal);
+      border: 1px solid rgba(20,184,166,0.3);
+    }
+    .btn-pdf:hover { background: rgba(20,184,166,0.22); }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(16,28,54,0.9), rgba(12,21,39,0.95));
+      border: 1px solid var(--card-border);
+      border-left: 4px solid var(--teal);
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: rgba(20,184,166,0.15);
+      color: var(--teal);
+      border: 1px solid rgba(20,184,166,0.3);
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .hero-meta span strong { color: var(--text); }
+
+    /* Quick jump bar */
+    .quick-jump {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 25px;
+      scrollbar-width: thin;
+    }
+    .jump-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .jump-pill:hover, .jump-pill.active {
+      background: var(--card2);
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+
+    /* Card Box */
+    .doc-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s;
+    }
+    .doc-card:hover { border-color: rgba(20,184,166,0.4); }
+    
+    .article-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 10px;
+    }
+    .article-num {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: 'DM Mono', monospace;
+    }
+    .article-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Summary Box */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(20,184,166,0.1), rgba(12,21,39,0.5));
+      border: 1px solid rgba(20,184,166,0.3);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: #d1fae5;
+    }
+    .summary-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Content & Keywords */
+    .article-body {
+      color: #cbd5e1;
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+    .article-body p { margin-bottom: 12px; }
+    .article-body ul { margin-left: 20px; margin-bottom: 12px; }
+    .article-body li { margin-bottom: 6px; }
+    
+    mark.kw {
+      background: rgba(20,184,166,0.18);
+      color: #5eead4;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(20,184,166,0.4);
+    }
+    mark.gold {
+      background: rgba(245,158,11,0.18);
+      color: #fde68a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(245,158,11,0.4);
+    }
+
+    /* Candidate Table */
+    .candidate-search {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: var(--card2);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .candidate-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(20,184,166,0.2); }
+    
+    .candidates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .cand-badge {
+      background: var(--card2);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+    .cand-num {
+      font-family: 'DM Mono', monospace;
+      color: var(--teal);
+      font-weight: 700;
+      font-size: 0.8rem;
+      min-width: 28px;
+    }
+    .cand-name { font-weight: 600; color: #fff; }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--teal);
+      color: #042f2e;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(20,184,166,0.4);
+      transition: all 0.2s;
+      z-index: 99;
+    }
+    .back-to-top:hover { transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+
+  <header class="ns-header">
+    <div class="header-inner">
+      <a href="../../concorso-controllo.html" class="brand">
+        <div class="brand-logo">📜</div>
+        <div>
+          <div class="brand-title">NaviSuite Concorso</div>
+          <div class="brand-sub">Testo Ufficiale Bando & Ammessi</div>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a href="../../concorso-controllo.html" class="btn btn-back">← Torna al Concorso</a>
+        <a href="#ammessi" class="btn btn-pdf">👥 Elenco Ammessi (46)</a>
+        <a href="00_Bando_e_Atti_Ufficiali/Bando162026_DE.pdf" target="_blank" class="btn btn-pdf">PDF Bando 📥</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="hero-banner">
+      <span class="hero-badge">Bando Ufficiale inPA Prot. C163 / Det. C162</span>
+      <h1 class="hero-title">Concorso Pubblico Esterno per n. 3 Posti di "Operatore di Ufficio" (par. 130)</h1>
+      <p style="color:var(--muted); font-size:0.95rem;">
+        Area Professionale 3ª - Area Operativa Amministrazione e Servizi, tempo determinato 12 mesi a tempo pieno. Destinazione: <strong style="color:#fff;">Settore Amministrativo - Ufficio Controllo</strong> presso le Direzioni di Esercizio di <strong>Arona (NO)</strong>, <strong>Como (CO)</strong> e <strong>Desenzano del Garda (BS)</strong>.
+      </p>
+      <div class="hero-meta">
+        <span>Ente: <strong>Gestione Governativa Navigazione Laghi</strong></span>
+        <span>Determina: <strong>Prot. C162 del 22/09/2026</strong></span>
+        <span>Bando: <strong>Prot. C163 del 22/09/2026</strong></span>
+        <span>Ammessi: <strong>46 candidati (14/10/2026)</strong></span>
+      </div>
+    </div>
+
+    <!-- Quick navigation pills -->
+    <div class="quick-jump">
+      <a href="#art1" class="jump-pill">Art. 1 Posti</a>
+      <a href="#art2" class="jump-pill">Art. 2 Requisiti</a>
+      <a href="#art3" class="jump-pill">Art. 3 Domanda inPA</a>
+      <a href="#art4" class="jump-pill">Art. 4 Commissione</a>
+      <a href="#art5" class="jump-pill">Art. 5 Disabili/DSA</a>
+      <a href="#art6" class="jump-pill">Art. 6 Fasi & Prove</a>
+      <a href="#art7" class="jump-pill" style="border-color:var(--teal); color:var(--teal);">Art. 7 Materie d'Esame</a>
+      <a href="#art8" class="jump-pill">Art. 8 Titoli</a>
+      <a href="#art9" class="jump-pill">Art. 9 Punteggi</a>
+      <a href="#art10" class="jump-pill">Art. 10 Graduatoria</a>
+      <a href="#art11" class="jump-pill">Art. 11 Assunzione</a>
+      <a href="#art12" class="jump-pill">Art. 12 Trattamento CCNL</a>
+      <a href="#art13" class="jump-pill">Art. 13 RUP & Accesso</a>
+      <a href="#art14" class="jump-pill">Art. 14 Privacy</a>
+      <a href="#ammessi" class="jump-pill" style="border-color:var(--accent); color:var(--accent);">👥 Elenco Candidati Ammessi</a>
+    </div>
+
+    <!-- SECTION 1: ARTICOLI BANDO -->
+
+    <article class="doc-card" id="art1">
+      <div class="article-header">
+        <span class="article-num">Articolo 1</span>
+        <span class="article-title">Posti a concorso e profilo professionale</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Indizione di un concorso pubblico per esami per <strong>3 posti a tempo determinato di 12 mesi a tempo pieno</strong> nel profilo di <em>Operatore di Ufficio</em> (parametro retributivo 130 CCNL Autoferrotranviari), destinati al Settore Amministrativo - Ufficio Controllo presso le sedi di Arona (NO), Como (CO) e Desenzano del Garda (BS).</div>
+      </div>
+      <div class="article-body">
+        
+      <p>È indetto un <mark class="kw">concorso pubblico esterno per esami</mark> per la copertura di complessivi <strong>n. 3 posti</strong> nel profilo professionale di <mark class="gold">“OPERATORE DI UFFICIO” (parametro retributivo 130)</mark> – Area professionale 3ª, Area operativa amministrazione e servizi, con contratto a <mark class="kw">tempo determinato della durata di 12 mesi a tempo pieno</mark>.</p>
+      <p>I posti sono destinati al <strong>settore Amministrativo - Ufficio Controllo</strong> della Gestione Governativa Navigazione Laghi Maggiore, di Garda e di Como, distribuiti sulle seguenti sedi di servizio:</p>
+      <ul>
+        <li><strong>Arona (NO)</strong> – Direzione di Esercizio Lago Maggiore;</li>
+        <li><strong>Como (CO)</strong> – Direzione di Esercizio Lago di Como;</li>
+        <li><strong>Desenzano del Garda (BS)</strong> – Direzione di Esercizio Lago di Garda.</li>
+      </ul>
+      <p>La frazione di riserva per volontari delle Forze Armate pari allo 0,45% cumulata con precedenti determinazioni forma il totale di 0,65% e viene rinviata a future assunzioni.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art2">
+      <div class="article-header">
+        <span class="article-num">Articolo 2</span>
+        <span class="article-title">Requisiti generali e specifici di ammissione</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Requisiti di ammissione generali e specifici: cittadinanza italiana o UE, maggiore età, godimento dei diritti civili e politici, assenza di condanne penali ostative, idoneità fisica alla mansione e possesso del <strong>diploma di istruzione secondaria di secondo grado (maturità quinquennale)</strong>.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Per l'ammissione al concorso è richiesto il possesso, entro la data di scadenza del bando, dei seguenti requisiti:</p>
+      <ul>
+        <li><mark class="kw">Cittadinanza italiana</mark> o di uno degli Stati membri dell'Unione Europea, ovvero titolarità del diritto di soggiorno o di protezione internazionale a norma di legge;</li>
+        <li><mark class="kw">Età non inferiore agli anni 18</mark>;</li>
+        <li>Godimento dei <mark class="kw">diritti civili e politici</mark>;</li>
+        <li>Idoneità fisica all'impiego per lo svolgimento delle mansioni proprie del profilo professionale di Operatore di Ufficio;</li>
+        <li>Non essere stati esclusi dall'elettorato politico attivo e non essere stati destituiti, dispensati o licenziati dall'impiego presso una pubblica amministrazione;</li>
+        <li>Assenza di condanne penali definitive che impediscano l'instaurazione del rapporto di lavoro con la P.A.;</li>
+        <li>Posizione regolare nei confronti degli obblighi di leva (per i candidati di sesso maschile nati entro il 1985);</li>
+        <li><strong>Titolo di studio:</strong> possesso del <mark class="gold">Diploma di Istruzione Secondaria di Secondo Grado (Maturità quinquennale)</mark> rilasciato da istituti statali o legalmente riconosciuti. Per i titoli conseguiti all'estero è richiesta l'equipollenza formale.</li>
+      </ul>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art3">
+      <div class="article-header">
+        <span class="article-num">Articolo 3</span>
+        <span class="article-title">Presentazione della domanda e termini di scadenza</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Modalità e termini di candidatura esclusivamente tramite il portale telematico del reclutamento <strong>inPA</strong> con autenticazione SPID, CIE, CNS o eIDAS. Tassa di concorso di euro 10,00 da versare mediante PagoPA.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>La domanda di ammissione deve essere presentata esclusivamente per via telematica tramite il <strong>Portale Unico del Reclutamento inPA</strong> (<code>www.inpa.gov.it</code>), previa autenticazione mediante <mark class="kw">SPID, CIE, CNS o eIDAS</mark>.</p>
+      <p>I candidati devono essere in possesso di un indirizzo di <mark class="kw">Posta Elettronica Certificata (PEC)</mark> personale intestata al candidato o di un domicilio digitale valido.</p>
+      <p>È richiesto il versamento del contributo di partecipazione al concorso di <strong>euro 10,00</strong> tramite il circuito elettronico <strong>PagoPA</strong>.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art4">
+      <div class="article-header">
+        <span class="article-num">Articolo 4</span>
+        <span class="article-title">Commissione Esaminatrice</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Composizione della <strong>Commissione Giudicatrice</strong> nominata dal Gestore Governativo, formata da un Presidente e due componenti esperti nelle materie concorsuali, oltre al Segretario verbalizzante.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>La Commissione Esaminatrice è nominata dal Gestore Governativo in conformità all'art. 9 del D.P.R. 487/1994 e alle norme interne aziendali. È composta da un <strong>Presidente</strong>, da <strong>due componenti esperti</strong> nelle materie concorsuali e da un dipendente con funzioni di <strong>Segretario verbalizzante</strong>.</p>
+      <p>La Commissione cura l'intero svolgimento delle procedure selettive, la formulazione dei quesiti, la correzione delle prove d'esame e la stesura dei verbali di concorso.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art5">
+      <div class="article-header">
+        <span class="article-num">Articolo 5</span>
+        <span class="article-title">Misure per candidati con disabilità o disturbi specifici dell'apprendimento (DSA)</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Tutele e modalità di partecipazione per candidati con <strong>disabilità o DSA</strong> ai sensi della Legge 104/1992, Legge 68/1999 e Decreto interministeriale 9 novembre 2021 (ausili tecnici, tempi aggiuntivi del 30% o 50%).</div>
+      </div>
+      <div class="article-body">
+        
+      <p>I candidati affetti da disabilità (Legge 104/1992 e Legge 68/1999) o con diagnosi di DSA (Legge 170/2010 e D.I. 9 novembre 2021) possono richiedere nella domanda telematica l'assegnazione di:</p>
+      <ul>
+        <li><mark class="kw">Ausili tecnici necessari</mark> durante lo svolgimento delle prove;</li>
+        <li><mark class="gold">Tempi aggiuntivi</mark> fino al 50% in più per candidati con handicap grave o fino al 30% per candidati con DSA;</li>
+        <li>Possibilità di sostituire la prova scritta con un colloquio orale o di utilizzare strumenti compensativi (calcolatrice non scientifica, sintesi vocale).</li>
+      </ul>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art6">
+      <div class="article-header">
+        <span class="article-num">Articolo 6</span>
+        <span class="article-title">Articolazione delle prove concorsuali</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Articolazione delle prove concorsuali: eventuale prova preselettiva, <strong>prova scritta teorico-pratica</strong> e <strong>prova orale</strong>, con pubblicazione di date e calendari su inPA e sul sito istituzionale di Navigazione Laghi.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>L'iter concorsuale prevede:</p>
+      <ul>
+        <li><strong>Eventuale prova preselettiva:</strong> attivabile qualora il numero delle domande risulti particolarmente elevato;</li>
+        <li><mark class="kw">Prova Scritta a contenuto teorico-pratico:</mark> somministrazione di quesiti a risposta multipla e/o quesiti a risposta sintetica su tutte le materie del programma d'esame di cui all'art. 7;</li>
+        <li><mark class="kw">Prova Orale:</mark> colloquio individuale interdisciplinare sulle materie della prova scritta, verifica della conoscenza della lingua inglese e delle competenze informatiche (pacchetto Office/Excel, PEC, protocollo).</li>
+      </ul>
+      <p>Il calendario e le convocazioni sono resi noti esclusivamente sul portale inPA e sul sito istituzionale di Navigazione Laghi.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art7">
+      <div class="article-header">
+        <span class="article-num">Articolo 7</span>
+        <span class="article-title">Programma d'esame e materie di studio</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div><strong>Programma e materie d'esame:</strong> Legislazione GGNL (L. 614/1957, Regolamento Esercizio 2004, DPR 753/1980), Carta della Mobilità e Diritti Passeggeri (Reg. UE 1177/2010), Bigliettazione, Tariffe, IVA e Registri Corrispettivi, Assuntorie (L. 14/1965), Stato giuridico e CCNL (R.D. 148/1931), Codice di Comportamento (DPR 81/2023), Gestione documentale (DPCM 2013), GDPR (Reg. UE 2016/679), Geografia dei 3 laghi, Informatica (Excel, PEC) e Lingua Inglese.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Le prove concorsuali verteranno in modo dettagliato sulle seguenti <mark class="gold">materie d'esame ufficiali</mark>:</p>
+      <ul>
+        <li><mark class="kw">1. Ordinamento e compiti istituzionali della G.G.N.L.:</mark> Legge 18 luglio 1957, n. 614, assetto organizzativo, natura giuridica di ente governativo del MIT e Direzioni di Esercizio lacuali;</li>
+        <li><mark class="kw">2. Regolamento di Esercizio:</mark> Regolamento 2004 approvato dal MIT nota NI/1716, norme per la circolazione delle navi, mansioni del personale di bordo e di terra, vigilanza e polizia di bordo;</li>
+        <li><mark class="kw">3. Polizia e sicurezza dei trasporti:</mark> D.P.R. 11 luglio 1980, n. 753, tutela dell'incolumità pubblica, contravvenzioni e poteri degli agenti giurati di controllo;</li>
+        <li><mark class="kw">4. Diritti dei passeggeri e Carta della Mobilità:</mark> Regolamento (UE) n. 1177/2010 (trasporto via mare e per vie navigabili interne), D.P.C.M. 30 dicembre 1998, assistenza alle persone a mobilità ridotta (PMR);</li>
+        <li><mark class="kw">5. Bigliettazione, Tariffe e Normativa Fiscale:</mark> Tariffario ufficiale GGNL, aliquota <mark class="kw">IVA 10%</mark> per trasporto persone, tenuta del <mark class="kw">Registro dei Corrispettivi (art. 24 D.P.R. 633/1972)</mark>, bigliettazione elettronica (D.M. 30/06/1992 e D.M. MIT 255/2016), strumenti POS e PagoPA;</li>
+        <li><mark class="kw">6. Assuntorie:</mark> Disciplina delle agenzie fiduciarie e assuntorie ai sensi della Legge 3 febbraio 1965, n. 14;</li>
+        <li><mark class="kw">7. Stato giuridico del personale:</mark> R.D. 8 gennaio 1931, n. 148 (disciplina giuridica, sanzioni, doveri d'ufficio e Consigli di Disciplina) e CCNL Autoferrotranviari;</li>
+        <li><mark class="kw">8. Codice di comportamento ed etica:</mark> D.P.R. 13 giugno 2023, n. 81 e Codice Etico aziendale GGNL (Allegato A);</li>
+        <li><mark class="kw">9. Gestione documentale e Privacy:</mark> D.P.C.M. 3 dicembre 2013 (protocollo informatico e fascicolazione) e Regolamento UE 2016/679 (GDPR);</li>
+        <li><mark class="kw">10. Geografia e rotte:</mark> bacini idrografici, porti, scali e collegamenti dei laghi Maggiore, di Garda e di Como;</li>
+        <li><mark class="kw">11. Informatica e Lingua Inglese:</mark> utilizzo di fogli di calcolo Excel, videoscrittura, PEC e livello base/intermedio della lingua inglese per i rapporti con il pubblico.</li>
+      </ul>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art8">
+      <div class="article-header">
+        <span class="article-num">Articolo 8</span>
+        <span class="article-title">Valutazione dei titoli</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Criteri e punteggi per la <strong>valutazione dei titoli</strong> (titoli di studio superiori, servizio pregresso presso aziende di trasporto pubblico o enti di navigazione) fino a un massimo prefissato.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>I titoli valutabili ai fini del punteggio finale comprendono:</p>
+      <ul>
+        <li><strong>Titoli di studio:</strong> votazione conseguita nel diploma di maturità, lauree triennali o magistrali pertinenti all'area giuridico-economico-amministrativa;</li>
+        <li><strong>Titoli di servizio:</strong> pregressi periodi di lavoro svolti con mansioni analoghe o corrispondenti presso aziende pubbliche o private del settore del trasporto pubblico locale (TPL) o navigazione marittima/interna.</li>
+      </ul>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art9">
+      <div class="article-header">
+        <span class="article-num">Articolo 9</span>
+        <span class="article-title">Punteggio complessivo e preferenze</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Formazione del <strong>punteggio complessivo finale</strong> ottenuto sommando i voti della prova scritta, della prova orale e dei titoli, con applicazione dei titoli di preferenza e precedenza a parità di merito a norma di legge.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Il punteggio complessivo finale è espresso in <strong>centesimi</strong> e risulta dalla sommatoria del voto riportato nella prova scritta (max 30 o 40 punti), nella prova orale (max 30 o 40 punti) e del punteggio attribuito ai titoli (max 10 o 20 punti).</p>
+      <p>A parità di punteggio complessivo si applicano le <mark class="kw">preferenze previste dall'art. 5 del D.P.R. 487/1994</mark> (invalidi di guerra o civili, orfani di caduti, numero di figli a carico, lodevole servizio prestato, minore età anagrafica).</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art10">
+      <div class="article-header">
+        <span class="article-num">Articolo 10</span>
+        <span class="article-title">Approvazione e pubblicazione della graduatoria</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Approvazione della <strong>graduatoria finale di merito</strong> da parte del Gestore Governativo, pubblicazione formale sul portale inPA e sul sito web ufficiale GGNL con efficacia legale di notifica.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>La Commissione redige la graduatoria provvisoria e la trasmette al <strong>Gestore Governativo</strong>, il quale ne accerta la regolarità formale con apposito provvedimento di approvazione.</p>
+      <p>La graduatoria finale è pubblicata sul portale inPA e sul sito istituzionale di Navigazione Laghi. Tale pubblicazione costituisce notifica a tutti gli effetti di legge.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art11">
+      <div class="article-header">
+        <span class="article-num">Articolo 11</span>
+        <span class="article-title">Assunzione in servizio e periodo di prova</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Modalità di <strong>stipulazione del contratto individuale di lavoro a tempo determinato (12 mesi)</strong>, assegnazione alla sede di servizio e svolgimento del periodo di prova previsto dal CCNL Autoferrotranviari.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>I vincitori sono invitati a stipulare il <mark class="kw">contratto individuale di lavoro a tempo determinato (12 mesi)</mark> a tempo pieno e a prendere servizio presso la sede di assegnazione entro il termine perentorio comunicato dall'Ente.</p>
+      <p>L'assunzione è subordinata al superamento del <mark class="gold">periodo di prova</mark> stabilito dal CCNL Autoferrotranviari (generalmente pari a 6 mesi di effettivo servizio).</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art12">
+      <div class="article-header">
+        <span class="article-num">Articolo 12</span>
+        <span class="article-title">Trattamento economico e previdenziale</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Trattamento economico e giuridico spettante: applicazione del <strong>CCNL Autoferrotranviari</strong> vigente e accordi integrativi aziendali GGNL, parametro 130 (Area 3ª - Professionale/Amministrativa).</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Al personale assunto si applica il trattamento economico fondamentale ed accessorio previsto dal <strong>CCNL Autoferrotranviari</strong> vigente per il <mark class="gold">Parametro 130</mark> (Area professionale 3ª - Area operativa amministrazione e servizi), comprensivo di stipendio tabellare, indennità di contingenza, tredicesima, quattordicesima mensilità, premio di risultato ed eventuali indennità aziendali di turno e cassa.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art13">
+      <div class="article-header">
+        <span class="article-num">Articolo 13</span>
+        <span class="article-title">Responsabile del Procedimento e Diritto di Accesso</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Designazione del <strong>Responsabile del Procedimento</strong> concorsuale e disciplina del diritto di accesso agli atti e ai fascicoli concorsuali ai sensi della Legge 241/1990.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Ai sensi della Legge 7 agosto 1990, n. 241, il <strong>Responsabile del Procedimento</strong> concorsuale è designato nella persona del Dirigente/Funzionario responsabile del Servizio Risorse Umane della Direzione Generale di Navigazione Laghi a Milano.</p>
+      <p>I candidati hanno diritto di accedere agli atti concorsuali e ai propri elaborati secondo le modalità di legge.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art14">
+      <div class="article-header">
+        <span class="article-num">Articolo 14</span>
+        <span class="article-title">Trattamento dei dati personali (Privacy GDPR)</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Informativa sul <strong>trattamento dei dati personali</strong> dei partecipanti alla selezione nel rispetto del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003 e ss.mm.ii.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>I dati forniti dai candidati sono raccolti e trattati da Gestione Governativa Navigazione Laghi quale <mark class="kw">Titolare del trattamento</mark> conformemente al Regolamento UE 2016/679 (GDPR) e al D.Lgs. 196/2003, esclusivamente per le finalità connesse alla gestione della procedura concorsuale e dell'eventuale rapporto di lavoro.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art15">
+      <div class="article-header">
+        <span class="article-num">Articolo 15</span>
+        <span class="article-title">Disposizioni finali e di rinvio</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Clausola di salvaguardia e <strong>disposizioni di rinvio</strong> alla disciplina generale sui concorsi pubblici (D.P.R. 487/1994, D.Lgs. 165/2001) e alla normativa statale e aziendale per quanto non espressamente previsto.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Per tutto quanto non espressamente contemplato dal presente bando si applicano le disposizioni vigenti in materia di concorsi pubblici (D.P.R. 487/1994, D.Lgs. 165/2001), il R.D. 148/1931 e i Regolamenti aziendali interni di Gestione Governativa Navigazione Laghi.</p>
+    
+      </div>
+    </article>
+    
+    <article class="doc-card" id="art16">
+      <div class="article-header">
+        <span class="article-num">Articolo 16</span>
+        <span class="article-title">Pubblicità del Bando</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-title">💡 In sintesi</div>
+        <div>Forme di <strong>pubblicità e trasparenza</strong> del bando: pubblicazione integrale sul portale unico del reclutamento inPA e sul sito internet istituzionale nella sezione 'Società Trasparente / Bandi di Concorso'.</div>
+      </div>
+      <div class="article-body">
+        
+      <p>Il presente bando è pubblicato integralmente sul <mark class="kw">Portale inPA</mark> del Dipartimento della Funzione Pubblica e nella sezione <mark class="kw">"Bandi di Concorso" di Società Trasparente</mark> sul sito web <code>www.navigazionelaghi.it</code>.</p>
+    
+      </div>
+    </article>
+    
+    <!-- SECTION 2: CANDIDATI AMMESSI -->
+    <article class="doc-card" id="ammessi" style="border-left: 4px solid var(--accent); margin-top: 40px;">
+      <div class="article-header">
+        <span class="article-num" style="color:var(--accent);">ATTO UFFICIALE</span>
+        <span class="article-title">Elenco Candidati Ammessi (Pubblicato il 14/10/2026)</span>
+      </div>
+      <div class="summary-box" style="border-left-color:var(--accent);">
+        <div class="summary-title" style="color:var(--accent);">💡 In sintesi</div>
+        <div>Elenco alfabetico ufficiale dei <strong>69 candidati ammessi con riserva</strong> a sostenere le prove concorsuali per i 3 posti di Operatore di Ufficio (par. 130) presso le direzioni di Arona, Como e Desenzano del Garda.</div>
+      </div>
+      <div class="article-body">
+        <p style="margin-bottom:14px;">Di seguito l'elenco nominativo ufficiale. Usa la casella di ricerca per verificare all'istante la presenza del tuo nominativo:</p>
+        <input type="text" id="candFilter" class="candidate-search" placeholder="🔍 Cerca nominativo o cognome..." onkeyup="filterCandidates()">
+        <div class="candidates-grid" id="candGrid">
+          
+      <div class="cand-badge" data-name="alessio michele">
+        <span class="cand-num">#1</span>
+        <span class="cand-name">ALESSIO MICHELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="arevole giuseppe">
+        <span class="cand-num">#2</span>
+        <span class="cand-name">AREVOLE GIUSEPPE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="autelitano alessia">
+        <span class="cand-num">#3</span>
+        <span class="cand-name">AUTELITANO ALESSIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="baiardi lorena">
+        <span class="cand-num">#4</span>
+        <span class="cand-name">BAIARDI LORENA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="barresi gabriele">
+        <span class="cand-num">#5</span>
+        <span class="cand-name">BARRESI GABRIELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="bollo francesco carlo">
+        <span class="cand-num">#6</span>
+        <span class="cand-name">BOLLO FRANCESCO CARLO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="brovelli giulio">
+        <span class="cand-num">#7</span>
+        <span class="cand-name">BROVELLI GIULIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="buttitta alessandro">
+        <span class="cand-num">#8</span>
+        <span class="cand-name">BUTTITTA ALESSANDRO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="caccagni helen">
+        <span class="cand-num">#9</span>
+        <span class="cand-name">CACCAGNI HELEN</span>
+      </div>
+    
+      <div class="cand-badge" data-name="cammarata valeria">
+        <span class="cand-num">#10</span>
+        <span class="cand-name">CAMMARATA VALERIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="caria laura">
+        <span class="cand-num">#11</span>
+        <span class="cand-name">CARIA LAURA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="ceriello paola">
+        <span class="cand-num">#12</span>
+        <span class="cand-name">CERIELLO PAOLA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="contaldi mauro">
+        <span class="cand-num">#13</span>
+        <span class="cand-name">CONTALDI MAURO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="conti giovanni">
+        <span class="cand-num">#14</span>
+        <span class="cand-name">CONTI GIOVANNI</span>
+      </div>
+    
+      <div class="cand-badge" data-name="cuccoli lorenzo">
+        <span class="cand-num">#15</span>
+        <span class="cand-name">CUCCOLI LORENZO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="de carli alessandro">
+        <span class="cand-num">#16</span>
+        <span class="cand-name">DE CARLI ALESSANDRO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="de carli arianna">
+        <span class="cand-num">#17</span>
+        <span class="cand-name">DE CARLI ARIANNA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="de munari anna">
+        <span class="cand-num">#18</span>
+        <span class="cand-name">DE MUNARI ANNA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="di cintio lucia">
+        <span class="cand-num">#19</span>
+        <span class="cand-name">DI CINTIO LUCIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="dusi gabriele">
+        <span class="cand-num">#20</span>
+        <span class="cand-name">DUSI GABRIELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="erra carmine">
+        <span class="cand-num">#21</span>
+        <span class="cand-name">ERRA CARMINE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="errante rosario mario">
+        <span class="cand-num">#22</span>
+        <span class="cand-name">ERRANTE ROSARIO MARIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="falanga pasqualina">
+        <span class="cand-num">#23</span>
+        <span class="cand-name">FALANGA PASQUALINA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="federico marina">
+        <span class="cand-num">#24</span>
+        <span class="cand-name">FEDERICO MARINA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="fiore alessia">
+        <span class="cand-num">#25</span>
+        <span class="cand-name">FIORE ALESSIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="garufi salvatore federico">
+        <span class="cand-num">#26</span>
+        <span class="cand-name">GARUFI SALVATORE FEDERICO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="gentile anthea">
+        <span class="cand-num">#27</span>
+        <span class="cand-name">GENTILE ANTHEA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="giussani raffaello">
+        <span class="cand-num">#28</span>
+        <span class="cand-name">GIUSSANI RAFFAELLO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="gopitharan akasha">
+        <span class="cand-num">#29</span>
+        <span class="cand-name">GOPITHARAN AKASHA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="grillo maria">
+        <span class="cand-num">#30</span>
+        <span class="cand-name">GRILLO MARIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="guarnaccia leonardo">
+        <span class="cand-num">#31</span>
+        <span class="cand-name">GUARNACCIA LEONARDO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="guerriero michele">
+        <span class="cand-num">#32</span>
+        <span class="cand-name">GUERRIERO MICHELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="iacobino alissa">
+        <span class="cand-num">#33</span>
+        <span class="cand-name">IACOBINO ALISSA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="invidiato filippo">
+        <span class="cand-num">#34</span>
+        <span class="cand-name">INVIDIATO FILIPPO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="ivan alessandra">
+        <span class="cand-num">#35</span>
+        <span class="cand-name">IVAN ALESSANDRA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="la monaca daniela">
+        <span class="cand-num">#36</span>
+        <span class="cand-name">LA MONACA DANIELA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="lapadula emmanuele">
+        <span class="cand-num">#37</span>
+        <span class="cand-name">LAPADULA EMMANUELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="lippa alessio">
+        <span class="cand-num">#38</span>
+        <span class="cand-name">LIPPA ALESSIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="manfredini laura">
+        <span class="cand-num">#39</span>
+        <span class="cand-name">MANFREDINI LAURA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="mantoan andrea">
+        <span class="cand-num">#40</span>
+        <span class="cand-name">MANTOAN ANDREA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="manzo vittorio">
+        <span class="cand-num">#41</span>
+        <span class="cand-name">MANZO VITTORIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="merlo filippo">
+        <span class="cand-num">#42</span>
+        <span class="cand-name">MERLO FILIPPO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="milanese alessandro">
+        <span class="cand-num">#43</span>
+        <span class="cand-name">MILANESE ALESSANDRO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="montera germana">
+        <span class="cand-num">#44</span>
+        <span class="cand-name">MONTERA GERMANA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="moumkin najoua">
+        <span class="cand-num">#45</span>
+        <span class="cand-name">MOUMKIN NAJOUA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="mustica matteo">
+        <span class="cand-num">#46</span>
+        <span class="cand-name">MUSTICA MATTEO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="pedroni marco">
+        <span class="cand-num">#47</span>
+        <span class="cand-name">PEDRONI MARCO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="perlini marco">
+        <span class="cand-num">#48</span>
+        <span class="cand-name">PERLINI MARCO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="persico veruska">
+        <span class="cand-num">#49</span>
+        <span class="cand-name">PERSICO VERUSKA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="piacenza maria laura">
+        <span class="cand-num">#50</span>
+        <span class="cand-name">PIACENZA MARIA LAURA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="pol zaira">
+        <span class="cand-num">#51</span>
+        <span class="cand-name">POL ZAIRA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="porporato elisabetta">
+        <span class="cand-num">#52</span>
+        <span class="cand-name">PORPORATO ELISABETTA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="ravaglia alessandro">
+        <span class="cand-num">#53</span>
+        <span class="cand-name">RAVAGLIA ALESSANDRO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="riccardi fabio">
+        <span class="cand-num">#54</span>
+        <span class="cand-name">RICCARDI FABIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="ronchi ernesta">
+        <span class="cand-num">#55</span>
+        <span class="cand-name">RONCHI ERNESTA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="salemi graziella">
+        <span class="cand-num">#56</span>
+        <span class="cand-name">SALEMI GRAZIELLA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="salomone giuseppe">
+        <span class="cand-num">#57</span>
+        <span class="cand-name">SALOMONE GIUSEPPE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="silva emanuele luigi">
+        <span class="cand-num">#58</span>
+        <span class="cand-name">SILVA EMANUELE LUIGI</span>
+      </div>
+    
+      <div class="cand-badge" data-name="solda' martina">
+        <span class="cand-num">#59</span>
+        <span class="cand-name">SOLDA' MARTINA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="tancredi raffaele">
+        <span class="cand-num">#60</span>
+        <span class="cand-name">TANCREDI RAFFAELE</span>
+      </div>
+    
+      <div class="cand-badge" data-name="tanet alexis">
+        <span class="cand-num">#61</span>
+        <span class="cand-name">TANET ALEXIS</span>
+      </div>
+    
+      <div class="cand-badge" data-name="tran giada">
+        <span class="cand-num">#62</span>
+        <span class="cand-name">TRAN GIADA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="travaglio franco">
+        <span class="cand-num">#63</span>
+        <span class="cand-name">TRAVAGLIO FRANCO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="troso dario">
+        <span class="cand-num">#64</span>
+        <span class="cand-name">TROSO DARIO</span>
+      </div>
+    
+      <div class="cand-badge" data-name="vergottini fabiola">
+        <span class="cand-num">#65</span>
+        <span class="cand-name">VERGOTTINI FABIOLA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="vitaliti valeria">
+        <span class="cand-num">#66</span>
+        <span class="cand-name">VITALITI VALERIA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="zerbinati luana">
+        <span class="cand-num">#67</span>
+        <span class="cand-name">ZERBINATI LUANA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="zito chiara">
+        <span class="cand-num">#68</span>
+        <span class="cand-name">ZITO CHIARA</span>
+      </div>
+    
+      <div class="cand-badge" data-name="zonca alekos">
+        <span class="cand-num">#69</span>
+        <span class="cand-name">ZONCA ALEKOS</span>
+      </div>
+    
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <button class="back-to-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+  <script>
+    function filterCandidates() {
+      const query = document.getElementById('candFilter').value.toLowerCase().trim();
+      const badges = document.querySelectorAll('#candGrid .cand-badge');
+      badges.forEach(b => {
+        const name = b.getAttribute('data-name');
+        if (!query || name.includes(query)) {
+          b.style.display = 'flex';
+        } else {
+          b.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
