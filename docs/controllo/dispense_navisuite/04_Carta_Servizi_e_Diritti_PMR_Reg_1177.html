@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 04 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 04 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">♿ Carta dei Servizi e Diritti dei Passeggeri e PMR (Reg. UE 1177/2010)</h1>
     <p class="doc-subtitle">Standard di qualità del DPCM 30/12/1998, preavviso 48 ore PMR, assistenza gratuita, rimborsi per ritardi e vigilanza ART</p>
+    
 
     <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
     <div class="key-facts-grid">
@@ -195,42 +245,51 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Normativa europea</span>
         <strong style="font-size:0.95rem; color:#fff;">Regolamento (UE) n. 1177/2010 del Parlamento europeo e del Consiglio</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Carta della mobilità</span>
         <strong style="font-size:0.95rem; color:#fff;">D.P.C.M. 30 dicembre 1998 e s.m.i.</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Preavviso PMR</span>
         <strong style="font-size:0.95rem; color:#fff;">Almeno 48 ore prima della partenza prevista</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Costo assistenza PMR</span>
         <strong style="font-size:0.95rem; color:#fff;">Completamente gratuita a terra, sui pontili e a bordo nave</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Soglia ritardo pasti</span>
         <strong style="font-size:0.95rem; color:#fff;">Ritardo alla partenza superiore a 90 minuti o cancellazione</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Autorità di vigilanza</span>
         <strong style="font-size:0.95rem; color:#fff;">ART (Autorità di Regolazione dei Trasporti)</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--green); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. I Principi Fondamentali della Carta dei Servizi (DPCM 30/12/1998)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">La Carta dei Servizi sancisce eguaglianza, continuità, diritto di scelta, partecipazione dell'utente, trasparenza ed efficienza nei servizi pubblici di trasporto lacustre.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 La <strong>Carta dei Servizi Pubblici del Settore Trasporti</strong> (detta anche Carta della Mobilità) fissa i principi inderogabili che regolano il rapporto tra GGNL e viaggiatori:
@@ -244,43 +303,58 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--green); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Il Regolamento Europeo n. 1177/2010</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il Regolamento Europeo 1177/2010 protegge i viaggiatori sulle vie navigabili interne per navi autorizzate al trasporto di oltre 12 passeggeri.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Il Regolamento UE 1177/2010 tutela i passeggeri che viaggiano su navi che effettuano servizi regolari via mare e su <strong>vie navigabili interne</strong> (laghi, fiumi, canali).<br><br>
+                Il <mark class="kw">Regolamento UE 1177/2010</mark> tutela i passeggeri che viaggiano su navi che effettuano servizi regolari via mare e su <strong>vie navigabili interne</strong> (laghi, fiumi, canali).<br><br>
                 <strong>Ambito di applicazione:</strong> si applica alle unità con equipaggio autorizzate al trasporto di più di 12 passeggeri (tutti i battelli e traghetti GGNL).
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--green); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Tutela delle Persone a Mobilità Ridotta (PMR)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Tutela PMR: divieto di rifiuto imbarco, assistenza gratuita a terra e a bordo con preavviso minimo di 48 ore (presentazione 60 min prima) e trasporto gratuito dei cani guida.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Ai sensi degli articoli 6-15 del Regolamento UE 1177/2010:
+                Ai sensi degli articoli 6-15 del <mark class="kw">Regolamento UE 1177/2010</mark>:
                 <ul>
                   <li><strong>Divieto di Rifiuto di Imbarco:</strong> i vettori non possono rifiutarsi di accettare una prenotazione o di imbarcare una persona a motivo della disabilità o ridotta mobilità, salvo motivi imperativi di sicurezza marittima stabiliti dalla legge;</li>
                   <li><strong>Assistenza Gratuita:</strong> il passeggero ha diritto all'assistenza gratuita sia negli scali/pontili sia a bordo del traghetto (imbarco, sbarco, allocazione carrozzine, sistemazione bagagli);</li>
-                  <li><strong>Termine di Preavviso (48 ore):</strong> per usufruire dell'assistenza il passeggero deve notificare le proprie esigenze al vettore con almeno <strong>48 ore di anticipo</strong> rispetto all'orario di partenza, presentandosi al punto di ritrovo dello scalo almeno 60 minuti prima (o entro l'orario concordato);</li>
+                  <li><strong>Termine di Preavviso (<mark class="kw">48 ore</mark>):</strong> per usufruire dell'assistenza il passeggero deve notificare le proprie esigenze al vettore con almeno <strong><mark class="kw">48 ore</mark> di anticipo</strong> rispetto all'orario di partenza, presentandosi al punto di ritrovo dello scalo almeno 60 minuti prima (o entro l'orario concordato);</li>
                   <li><strong>Cani Guida:</strong> i cani da assistenza viaggiano gratuitamente al fianco dell'utente non vedente su tutte le navi senza obbligo di museruola costante, purché idoneamente identificati.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--green); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>4. Diritti in Caso di Cancellazione o Ritardo Prolungato</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Ritardi superiori a 90 minuti o soppressioni: offerta gratuita di pasti/bevande, diritto a scelta tra trasporto alternativo o rimborso integrale entro 7 giorni, e alloggio per pernottamenti forzati.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                In caso di cancellazione o partenza ritardata di <strong>oltre 90 minuti</strong> rispetto all'orario pubblicato:
+                In caso di cancellazione o partenza ritardata di <strong>oltre <mark class="kw">90 minuti</mark></strong> rispetto all'orario pubblicato:
                 <ul>
                   <li><strong>Assistenza Immediata:</strong> distribuzione gratuita di bevande, snack o pasti adeguati al tempo di attesa, ove disponibili o ragionevolmente reperibili;</li>
                   <li><strong>Diritto di Scelta:</strong> il passeggero può scegliere tra il <em>trasporto alternativo</em> verso la destinazione finale non appena possibile senza sovrapprezzo, oppure il <em>rimborso integrale del biglietto</em> entro 7 giorni per la parte di viaggio non effettuata;</li>
@@ -289,18 +363,23 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--green); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>5. L'Autorità di Vigilanza in Italia: ART</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">L'Autorità di Regolazione dei Trasporti (ART) a Torino è l'organismo nazionale indipendente incaricato di vigilare sull'applicazione del Regolamento UE 1177/2010 e comminare le sanzioni.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                L'<strong>Autorità di Regolazione dei Trasporti (ART)</strong> con sede a Torino è designata dallo Stato italiano come Organismo Nazionale Indipendente responsabile dell'applicazione del Regolamento UE 1177/2010. Raccoglie i reclami di seconda istanza e applica le sanzioni pecuniarie ai vettori inadempienti.
+                L'<strong><mark class="kw">Autorità di Regolazione dei Trasporti</mark> (<mark class="kw">ART</mark>)</strong> con sede a Torino è designata dallo Stato italiano come Organismo Nazionale Indipendente responsabile dell'applicazione del <mark class="kw">Regolamento UE 1177/2010</mark>. Raccoglie i reclami di seconda istanza e applica le sanzioni pecuniarie ai vettori inadempienti.
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -316,23 +395,28 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Con quale preavviso minimo il passeggero PMR deve richiedere l'assistenza al vettore?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Almeno 48 ore prima della partenza</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Simulazione Esame</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Con quale preavviso minimo il passeggero PMR deve richiedere l'assistenza al vettore?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Almeno 48 ore prima della partenza
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale autorità nazionale è competente per la vigilanza sul Regolamento UE 1177/2010?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: L'Autorità di Regolazione dei Trasporti (ART)</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Simulazione Esame</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Quale autorità nazionale è competente per la vigilanza sul Regolamento UE 1177/2010?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: L'Autorità di Regolazione dei Trasporti (ART)
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>

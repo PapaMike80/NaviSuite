@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 07 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 07 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">⚖️ Stato Giuridico del Personale (R.D. 148/1931 e CCNL)</h1>
     <p class="doc-subtitle">Periodo di prova, gerarchia tra agenti, tipologia delle sanzioni disciplinari, Consiglio di Disciplina e dimissioni</p>
+    
     <div style="margin-bottom: 22px;">
       <a href="../RD_148_1931_Testo_Integrale_NaviSuite.html" target="_blank" style="display:inline-flex; align-items:center; gap:8px; background:var(--card2); border:1px solid var(--teal); color:var(--teal); font-weight:800; font-size:0.9rem; padding:8px 18px; border-radius:999px; text-decoration:none; transition:all 0.15s ease;">
         <span>📜</span><span>Consulta il Testo Integrale Coordinato R.D. 148/1931 in Stile NaviSuite</span>
@@ -200,104 +250,129 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Legge fondamentale</span>
         <strong style="font-size:0.95rem; color:#fff;">Regio Decreto 8 gennaio 1931, n. 148 (Allegato A)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Periodo di prova</span>
         <strong style="font-size:0.95rem; color:#fff;">Non superiore a 1 anno di effettivo servizio nella navigazione</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Censura</span>
         <strong style="font-size:0.95rem; color:#fff;">Rimprovero scritto con funzione di richiamo preliminare per mancanze lievi</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Pena accessoria</span>
         <strong style="font-size:0.95rem; color:#fff;">Il trasloco punitivo</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Criteri di gerarchia</span>
         <strong style="font-size:0.95rem; color:#fff;">1° Grado · 2° Anzianità grado · 3° Anzianità grado prec. · 4° Anzianità servizio · 5° Età</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Dimissioni volontarie</span>
         <strong style="font-size:0.95rem; color:#fff;">Scritte; hanno valore solo dopo accettazione formale dell'azienda</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Concorso di mancanze</span>
         <strong style="font-size:0.95rem; color:#fff;">Si applica la sanzione prevista per la mancanza più grave (art. 48)</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--rose); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. Il R.D. 148/1931 come Statuto Speciale di Categoria</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il R.D. 148/1931 (Allegato A) è la legge speciale dello stato giuridico del personale, regolante assunzioni, carriere, doveri e il procedimento disciplinare a garanzia del lavoratore.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 Il <strong>Regio Decreto 8 gennaio 1931, n. 148</strong> (in particolare l'<em>Allegato A</em>) costituisce lo statuto giuridico fondamentale del personale delle ferrovie, tramvie e linee di navigazione interna in concessione.<br><br>
                 Nonostante l'anzianità della norma, è tuttora vigente per le parti non derogate dai contratti collettivi nazionali (CCNL Autoferrotranviari), in particolare per quanto attiene a:
                 <ul>
-                  <li>Inquadramento e periodo di prova;</li>
+                  <li>Inquadramento e <mark class="kw">periodo di prova</mark>;</li>
                   <li>Doveri verso l'azienda e verso il pubblico;</li>
                   <li>Procedimento disciplinare e garanzie difensive del lavoratore.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--rose); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Periodo di Prova e Dimissioni</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Servizio di prova massimo 1 anno effettivo nella navigazione interna (silenzio-assenso dopo 1 mese dalla scadenza); dimissioni scritte prive di valore finché non sono formalmente accettate dall'azienda.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 <ul>
-                  <li><strong>Periodo di Prova (Art. 13):</strong> per i servizi di navigazione e tramvie il periodo complessivo di prova non può superare <strong>un anno di effettivo servizio</strong> (nel bando attuale di Operatore di Ufficio è fissato contrattualmente in 6 mesi);</li>
-                  <li><strong>Dimissioni Volontarie (Art. 30):</strong> le dimissioni del lavoratore devono essere presentate per iscritto. Esse <strong>non hanno valore né efficacia finché non siano state formalmente accettate dall'azienda</strong>. Fino a tale accettazione, l'agente è tenuto a proseguire regolarmente il servizio.</li>
+                  <li><strong><mark class="kw">Periodo di Prova</mark> (<mark class="kw">Art</mark>. 13):</strong> per i servizi di navigazione e tramvie il periodo complessivo di prova non può superare <strong><mark class="kw">un anno di effettivo servizio</mark></strong> (nel bando attuale di Operatore di Ufficio è fissato contrattualmente in 6 mesi);</li>
+                  <li><strong><mark class="kw">Dimissioni Volontarie</mark> (<mark class="kw">Art</mark>. 30):</strong> le dimissioni del lavoratore devono essere presentate per iscritto. Esse <strong>non hanno valore né efficacia finché non siano state formalmente accettate dall'azienda</strong>. Fino a tale accettazione, l'agente è tenuto a proseguire regolarmente il servizio.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--rose); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Le Punizioni Disciplinari (Artt. 37 - 52)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Graduazione delle 6 punizioni: censura (richiamo scritto preliminare), multa (max 4 ore), sospensione (max 10 gg), proroga aumento, retrocessione e destituzione; trasloco punitivo come pena accessoria.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Il R.D. 148/1931 prevede una scala graduata e tassativa di sanzioni:
+                Il <mark class="kw">R.D. 148/1931</mark> prevede una scala graduata e tassativa di sanzioni:
                 <ol>
-                  <li><strong>Censura:</strong> è una dichiarazione formale di biasimo scritta, con funzione di <em>richiamo preliminare</em> per mancanze lievi;</li>
-                  <li><strong>Multa:</strong> trattenuta sullo stipendio da 1 a 4 ore di retribuzione;</li>
-                  <li><strong>Sospensione dal servizio e dalla paga:</strong> privazione temporanea del lavoro e della retribuzione da 1 a 30 giorni (applicabile per es. per stato di ebbrezza non interessante la sicurezza o insubordinazione);</li>
-                  <li><strong>Retrocessione:</strong> passaggio a qualifica inferiore per demerito o gravi mancanze;</li>
-                  <li><strong>Destituzione:</strong> sanzione espulsiva massima che risolve il rapporto di lavoro; può essere <em>con preavviso</em> o <em>senza preavviso</em> per fatti di estrema gravità (reati penali, furto, sabotaggio, abbandono del posto di manovra).</li>
+                  <li><strong><mark class="kw">Censura</mark>:</strong> è una dichiarazione formale di biasimo scritta, con funzione di <em>richiamo preliminare</em> per mancanze lievi;</li>
+                  <li><strong><mark class="kw">Multa</mark>:</strong> trattenuta sullo stipendio da 1 a 4 ore di retribuzione;</li>
+                  <li><strong><mark class="kw">Sospensione</mark> dal servizio e dalla paga:</strong> privazione temporanea del lavoro e della retribuzione da 1 a 30 giorni (applicabile per es. per stato di ebbrezza non interessante la sicurezza o insubordinazione);</li>
+                  <li><strong><mark class="kw">Retrocessione</mark>:</strong> passaggio a qualifica inferiore per demerito o gravi mancanze;</li>
+                  <li><strong><mark class="kw">Destituzione</mark>:</strong> sanzione espulsiva massima che risolve il rapporto di lavoro; può essere <em>con preavviso</em> o <em>senza preavviso</em> per fatti di estrema gravità (reati penali, furto, sabotaggio, abbandono del posto di manovra).</li>
                 </ol>
-                <strong>Pena Accessoria:</strong> il <strong>trasloco punitivo</strong> è la specifica misura accessoria che può essere aggiunta dal Consiglio di Disciplina in caso di incompatibilità locale.
+                <strong>Pena Accessoria:</strong> il <strong><mark class="kw">trasloco punitivo</mark></strong> è la specifica misura accessoria che può essere aggiunta dal <mark class="kw">Consiglio di Disciplina</mark> in caso di incompatibilità locale.
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--rose); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>4. Procedimento Disciplinare e Consiglio di Disciplina</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Procedimento disciplinare: contestazione scritta, 5 giorni per difese, parere del Consiglio di Disciplina paritetico per sanzioni gravi; concorso di mancanze: si applica la pena della mancanza più grave (art. 48).</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Nessuna sanzione superiore alla censura può essere irrogata senza la preventiva contestazione scritta d'addebito e la concessione di un termine a difesa (almeno 5 giorni per presentare memorie o farsi assistere da un rappresentante sindacale). Le sanzioni gravi sono deliberate dal <em>Consiglio di Disciplina</em>, organo paritetico composto da rappresentanti dell'azienda e dei lavoratori presieduto da un magistrato o funzionario designato.
+                Nessuna sanzione superiore alla <mark class="kw">censura</mark> può essere irrogata senza la preventiva contestazione scritta d'addebito e la concessione di un termine a difesa (almeno 5 giorni per presentare memorie o farsi assistere da un rappresentante sindacale). Le sanzioni gravi sono deliberate dal <em><mark class="kw">Consiglio di Disciplina</mark></em>, organo paritetico composto da rappresentanti dell'azienda e dei lavoratori presieduto da un magistrato o funzionario designato.
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -313,29 +388,37 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale CE Movimento</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale sanzione del R.D. 148/1931 ha funzione di richiamo?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: La censura</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale CE Movimento</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Quale sanzione del R.D. 148/1931 ha funzione di richiamo?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: La censura
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale CE Movimento</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale sanzione ha funzione di pena accessoria nel R.D. 148/1931?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Il trasloco punitivo</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale CE Movimento</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Quale sanzione ha funzione di pena accessoria nel R.D. 148/1931?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Il trasloco punitivo
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale CE Movimento</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">In caso di più mancanze contemporanee quale sanzione si applica?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Quella prevista per la mancanza più grave</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale CE Movimento</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ In caso di più mancanze contemporanee quale sanzione si applica?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Quella prevista per la mancanza più grave
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>

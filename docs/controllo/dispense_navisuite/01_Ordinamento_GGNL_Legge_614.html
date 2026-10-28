@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 01 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 01 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">🏛️ Ordinamento della GGNL e Legge 18 luglio 1957, n. 614</h1>
     <p class="doc-subtitle">Natura giuridica, vigilanza del MIT, Gestore Governativo, bilancio e articolazione dei tre laghi</p>
+    
 
     <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
     <div class="key-facts-grid">
@@ -195,78 +245,97 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Anno istitutivo</span>
         <strong style="font-size:0.95rem; color:#fff;">1957 (Legge 18 luglio 1957, n. 614)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Ministero vigilante</span>
         <strong style="font-size:0.95rem; color:#fff;">Ministero delle Infrastrutture e dei Trasporti (MIT)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Organo di vertice</span>
         <strong style="font-size:0.95rem; color:#fff;">Gestore Governativo (nominato con Decreto MIT)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Durata incarico</span>
         <strong style="font-size:0.95rem; color:#fff;">5 anni, rinnovabile per una sola volta (Art. 1 c. 1 L. 614/57 modif. L. 14/2023)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Sede Direzione Generale</span>
         <strong style="font-size:0.95rem; color:#fff;">Milano, Via Ludovico Ariosto n. 21</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Direzioni di Esercizio</span>
         <strong style="font-size:0.95rem; color:#fff;">Arona (NO), Como (CO), Desenzano del Garda (BS)</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--teal); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. Inquadramento Giuridico e Finalità</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">La GGNL è un organo statale operante in gestione ministeriale diretta sotto l'alta vigilanza del Ministero delle Infrastrutture e dei Trasporti (MIT), istituito per la continuità territoriale e il turismo sui 3 laghi.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                La <strong>Gestione Governativa dei Servizi Pubblici di Navigazione di Linea sui Laghi Maggiore, di Garda e di Como (G.G.N.L.)</strong> è un organo dello Stato operante in regime di gestione diretta ministeriale ai sensi della <strong>Legge 18 luglio 1957, n. 614</strong>.<br><br>
-                L'ente è stato istituito per garantire la continuità territoriale, la mobilità dei residenti, il trasporto scolastico e pendolare, nonché per valorizzare lo sviluppo turistico ed economico dei tre maggiori bacini lacustri del Nord Italia. L'amministrazione opera sotto l'alta vigilanza del <strong>Ministero delle Infrastrutture e dei Trasporti (MIT)</strong>.
+                La <strong>Gestione Governativa dei Servizi Pubblici di Navigazione di Linea sui Laghi Maggiore, di Garda e di Como (G.G.N.L.)</strong> è un organo dello Stato operante in regime di gestione diretta ministeriale ai sensi della <strong><mark class="kw">Legge 18 luglio 1957, n. 614</mark></strong>.<br><br>
+                L'ente è stato istituito per garantire la continuità territoriale, la mobilità dei residenti, il trasporto scolastico e pendolare, nonché per valorizzare lo sviluppo turistico ed economico dei tre maggiori bacini lacustri del Nord Italia. L'amministrazione opera sotto l'alta vigilanza del <strong><mark class="kw">Ministero delle Infrastrutture e dei Trasporti</mark> (<mark class="kw">MIT</mark>)</strong>.
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--teal); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Il Gestore Governativo e le sue Competenze</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il Gestore Governativo ha la rappresentanza legale dell'ente ed è nominato con Decreto MIT per una durata tassativa di 5 anni rinnovabile per una sola volta (riforma L. 14/2023).</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Al vertice dell'ente è posto il <strong>Gestore Governativo</strong>, nominato con apposito Decreto del Ministro delle Infrastrutture e dei Trasporti.<br>
-                Ai sensi dell'art. 1 della L. 614/1957 (come aggiornato dal D.L. 198/2022 convertito con L. 14/2023):
+                Al vertice dell'ente è posto il <strong><mark class="kw">Gestore Governativo</mark></strong>, nominato con apposito Decreto del Ministro delle Infrastrutture e dei Trasporti.<br>
+                Ai sensi dell'<mark class="kw">art</mark>. 1 della <mark class="kw">L. 614/1957</mark> (come aggiornato dal D.L. 198/2022 convertito con L. 14/2023):
                 <ul>
-                  <li>Il Gestore Governativo ha la rappresentanza legale dell'ente ed esercita i poteri di amministrazione ordinaria e straordinaria;</li>
+                  <li>Il <mark class="kw">Gestore Governativo</mark> ha la rappresentanza legale dell'ente ed esercita i poteri di amministrazione ordinaria e straordinaria;</li>
                   <li><strong>Durata dell'incarico:</strong> la nomina è espressamente <strong>per un periodo di cinque anni rinnovabile per una sola volta</strong> (nel testo storico del 1957 non c'era scadenza e la nomina era a tempo indeterminato; la riforma del 2023 ha introdotto il limite quinquennale con un solo rinnovo);</li>
-                  <li><strong>Trattamento economico:</strong> al Gestore si applica il tetto stipendiale pubblico fissato dall'art. 23-ter, comma 1, del D.L. 201/2011;</li>
+                  <li><strong>Trattamento economico:</strong> al Gestore si applica il tetto stipendiale pubblico fissato dall'<mark class="kw">art</mark>. 23-ter, comma 1, del D.L. 201/2011;</li>
                   <li>Il Gestore adotta i regolamenti interni, approva le delibere a contrarre, delibera l'indizione dei concorsi pubblici (come la Determina DG n. C162 per Operatore di Ufficio) e stipula i contratti di lavoro del personale.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--teal); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Struttura Organizzativa e Direzioni di Esercizio</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Articolazione GGNL: Direzione Generale a Milano (Via L. Ariosto 21) e tre Direzioni di Esercizio periferiche ad Arona (Maggiore), Como (Como) e Desenzano del Garda (Garda), ciascuna con cantiere navale.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 L'articolazione della Navigazione Laghi si suddivide in una sede centrale e tre direzioni territoriali periferiche:
                 <ul>
                   <li><strong>Direzione Generale:</strong> situata a <strong>Milano, Via Ludovico Ariosto 21</strong>. Coordina le Risorse Umane, gli Affari Legali, i Sistemi Informativi, gli Acquisti e la Programmazione Finanziaria;</li>
-                  <li><strong>Direzione di Esercizio Lago Maggiore:</strong> sede a <strong>Arona (NO)</strong> (Piemonte/Lombardia/Canton Ticino);</li>
+                  <li><strong>Direzione di Esercizio Lago Maggiore:</strong> sede a <strong>Arona (NO)</strong> (Piemonte/Lombardia/Canton <mark class="kw">Ticino</mark>);</li>
                   <li><strong>Direzione di Esercizio Lago di Como:</strong> sede a <strong>Como (CO)</strong> (Lombardia);</li>
                   <li><strong>Direzione di Esercizio Lago di Garda:</strong> sede a <strong>Desenzano del Garda (BS)</strong> (Lombardia/Veneto/Trentino).</li>
                 </ul>
@@ -274,23 +343,28 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--teal); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>4. Bilancio, Contabilità e Rendicontazione</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">La gestione finanziaria segue la contabilità pubblica: bilanci deliberati dal Gestore e approvati da MIT e MEF, con controllo di un Collegio dei Revisori dei Conti.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 La gestione finanziaria della GGNL segue le regole della <strong>contabilità pubblica</strong>:
                 <ul>
-                  <li>Il bilancio di previsione e il conto consuntivo sono deliberati dal Gestore Governativo e sottoposti all'approvazione formale del Ministero delle Infrastrutture e dei Trasporti di concerto con il Ministero dell'Economia e delle Finanze (MEF);</li>
+                  <li>Il bilancio di previsione e il conto consuntivo sono deliberati dal <mark class="kw">Gestore Governativo</mark> e sottoposti all'approvazione formale del <mark class="kw">Ministero delle Infrastrutture e dei Trasporti</mark> di concerto con il Ministero dell'Economia e delle Finanze (<mark class="kw">MEF</mark>);</li>
                   <li>Il controllo della gestione economica e patrimoniale è affidato a un <em>Collegio dei Revisori dei Conti</em> nominato con decreto ministeriale;</li>
                   <li>I ricavi derivanti dal traffico (bigliettazione, abbonamenti, noleggi) concorrono al pareggio di bilancio insieme ai contributi d'esercizio erogati dallo Stato per gli obblighi di servizio pubblico (OSP).</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -306,23 +380,28 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">L. 614/1957 Art. 1 c. 1 (modificato da L. 14/2023)</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">In base all'Art. 1 della Legge 18 luglio 1957 n. 614 (testo vigente), per quale periodo è nominato il Gestore Governativo?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Per un periodo di 5 anni, rinnovabile per una sola volta</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">L. 614/1957 Art. 1 c. 1 (modificato da L. 14/2023)</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ In base all'Art. 1 della Legge 18 luglio 1957 n. 614 (testo vigente), per quale periodo è nominato il Gestore Governativo?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Per un periodo di 5 anni, rinnovabile per una sola volta
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prova Concorso CE 130</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale Ministero esercita la vigilanza sulla Gestione Governativa Navigazione Laghi?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Ministero delle Infrastrutture e dei Trasporti (MIT)</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Prova Concorso CE 130</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Quale Ministero esercita la vigilanza sulla Gestione Governativa Navigazione Laghi?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Ministero delle Infrastrutture e dei Trasporti (MIT)
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>

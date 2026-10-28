@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 08 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 08 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">📜 Codice di Comportamento dei Dipendenti Pubblici e Codice Etico GGNL</h1>
     <p class="doc-subtitle">D.P.R. 81/2023, D.P.R. 62/2013, Codice Etico (Allegato A al bando), regali, social media, conflitto di interessi e whistleblowing</p>
+    
 
     <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
     <div class="key-facts-grid">
@@ -195,72 +245,91 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Riforma recente</span>
         <strong style="font-size:0.95rem; color:#fff;">D.P.R. 13 giugno 2023, n. 81 (modifiche al D.P.R. 62/2013)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Regola sui regali</span>
         <strong style="font-size:0.95rem; color:#fff;">Divieto assoluto di accettare regali o utilità collegate alle mansioni</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Modico valore</span>
         <strong style="font-size:0.95rem; color:#fff;">Ammessi solo omaggi d'uso di modico valore non superiore indicativamente a 100 euro</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Social Media (art. 11-ter)</span>
         <strong style="font-size:0.95rem; color:#fff;">Divieto di commenti/post che ledano immagine, reputazione o credibilità dell'ente</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Conflitto di interessi</span>
         <strong style="font-size:0.95rem; color:#fff;">Obbligo di astensione immediata in caso di interesse personale o di parenti entro il 4° grado</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Whistleblowing</span>
         <strong style="font-size:0.95rem; color:#fff;">Tutela assoluta dell'identità del dipendente che segnala illeciti aziendali (D.Lgs. 24/2023)</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. Il Nuovo Codice di Comportamento (D.P.R. 81/2023)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il D.P.R. 81/2023 aggiorna il codice di comportamento dei pubblici dipendenti, sancendo principi di integrità, trasparenza, legalità ed esclusività del servizio pubblico.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Il <strong>D.P.R. 13 giugno 2023, n. 81</strong> ha aggiornato il Codice di comportamento dei dipendenti pubblici in attuazione dell'art. 54 del D.Lgs. 165/2001 (Testo Unico sul Pubblico Impiego).<br><br>
+                Il <strong><mark class="kw">D.P.R. 13 giugno 2023, n. 81</mark></strong> ha aggiornato il Codice di comportamento dei dipendenti pubblici in attuazione dell'<mark class="kw">art</mark>. 54 del D.Lgs. 165/2001 (Testo Unico sul Pubblico Impiego).<br><br>
                 I principi guida sono: <em>integrità, imparzialità, buona fede, proporzionalità, trasparenza ed esclusività</em> nel servizio alla Nazione.
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Regali, Compensi e Altre Utilità (Art. 4)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Divieto generale di regali o utilità connesse all'incarico; ammessi solo omaggi d'uso di modico valore non superiore indicativamente a 100 euro; restituzione o devoluzione per gli altri.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 <ul>
                   <li>Il dipendente <strong>non chiede né accetta</strong>, per sé o per altri, regali o altre utilità come corrispettivo o ringraziamento per compiere o aver compiuto un atto del proprio ufficio;</li>
-                  <li><strong>Deroga del Modico Valore:</strong> sono consentiti esclusivamente regali d'uso di modico valore effettuati occasionalmente nell'ambito delle normali relazioni di cortesia (es. calendario, penna o agenda a Natale), con valore orientativamente non superiore a <strong>100 euro</strong> (o inferiore se previsto dal Codice Etico aziendale GGNL);</li>
+                  <li><strong>Deroga del Modico Valore:</strong> sono consentiti esclusivamente regali d'uso di modico valore effettuati occasionalmente nell'ambito delle normali relazioni di cortesia (es. calendario, penna o agenda a Natale), con valore orientativamente non superiore a <strong><mark class="kw">100 euro</mark></strong> (o inferiore se previsto dal <mark class="kw">Codice Etico</mark> aziendale GGNL);</li>
                   <li>I regali ricevuti al di fuori dei casi consentiti devono essere immediatamente messi a disposizione dell'amministrazione per essere restituiti o devoluti a fini istituzionali/benefici.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Utilizzo delle Tecnologie Informatiche e Social Media (Art. 11-ter)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Art. 11-ter DPR 81/2023: divieto sui profili social personali di pubblicare commenti o post che possano ledere l'immagine, la reputazione o la credibilità dell'amministrazione.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                È una delle novità più rilevanti introdotte dal D.P.R. 81/2023:
+                È una delle novità più rilevanti introdotte dal <mark class="kw">D.P.R. 81/2023</mark>:
                 <ul>
                   <li>Il dipendente nell'utilizzo dei propri profili social personali deve <strong>astenersi da qualsiasi intervento o dichiarazione che possa nuocere al prestigio, al decoro o all'immagine dell'amministrazione</strong>;</li>
                   <li>È vietato divulgare informazioni di servizio non ufficiali o anticipare atti interni dell'ente;</li>
@@ -269,22 +338,27 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--amber); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>4. Codice Etico GGNL e Whistleblowing</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il Codice Etico GGNL (Allegato A al bando) impone rettitudine e contrasto alla corruzione; tutela assoluta dell'identità del whistleblower che segnala illeciti aziendali (D.Lgs. 24/2023).</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                L'<strong>Allegato A al bando</strong> contiene il Codice Etico approvato dal Gestore Governativo:
+                L'<strong>Allegato A al bando</strong> contiene il <mark class="kw">Codice Etico</mark> approvato dal <mark class="kw">Gestore Governativo</mark>:
                 <ul>
                   <li>Impegna tutti i dipendenti al rifiuto di favoritismi, al contrasto alla corruzione e alla massima cortesia nei confronti dei viaggiatori;</li>
-                  <li><strong>Tutela del Segnalante (Whistleblowing ex D.Lgs. 24/2023):</strong> chi segnala violazioni, frodi o condotte illecite apprese nell'ambito lavorativo non può essere sanzionato, demansionato, trasferito o discriminato, e la sua identità rimane rigorosamente protetta e segreta.</li>
+                  <li><strong>Tutela del Segnalante (<mark class="kw">Whistleblowing</mark> ex <mark class="kw">D.Lgs. 24/2023</mark>):</strong> chi segnala violazioni, frodi o condotte illecite apprese nell'ambito lavorativo non può essere sanzionato, demansionato, trasferito o discriminato, e la sua identità rimane rigorosamente protetta e segreta.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -300,23 +374,28 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Quale regolamento recente ha aggiornato il Codice di comportamento dei dipendenti pubblici?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: D.P.R. 13 giugno 2023, n. 81</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Simulazione Esame</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Quale regolamento recente ha aggiornato il Codice di comportamento dei dipendenti pubblici?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: D.P.R. 13 giugno 2023, n. 81
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Cosa prevede l'art. 11-ter del DPR 81/2023 in merito ai social media personali?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Il dovere di astenersi da interventi che possano nuocere all'immagine o credibilità dell'amministrazione</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Simulazione Esame</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Cosa prevede l'art. 11-ter del DPR 81/2023 in merito ai social media personali?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Il dovere di astenersi da interventi che possano nuocere all'immagine o credibilità dell'amministrazione
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>

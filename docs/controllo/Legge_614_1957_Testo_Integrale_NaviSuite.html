@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Legge 18 luglio 1957, n. 614 · Testo Integrale Coordinato · NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="../../assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --blue: #54a7ff;
+      --c: var(--teal);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--teal) 8%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--violet) 8%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      background: rgba(7, 25, 35, 0.95);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 10px 0;
+    }
+    .top-bar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.doc-header {
+      padding: 36px 0 24px;
+      border-bottom: 1px solid color-mix(in srgb, var(--teal) 20%, var(--line));
+      margin-bottom: 24px;
+    }
+    .badge-tag {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+    }
+    h1.doc-title {
+      font-size: clamp(1.6rem, 3.8vw, 2.4rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #ffffff, var(--cyan), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.doc-subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .doc-meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--cyan);
+    }
+
+    .articles-grid {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 40px;
+    }
+    .art-card {
+      background: color-mix(in srgb, var(--c) 8%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+      border-radius: 16px;
+      padding: 22px;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .art-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      border-bottom: 1px solid color-mix(in srgb, var(--c) 20%, transparent);
+      padding-bottom: 8px;
+    }
+    .art-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--c);
+    }
+    .art-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--c) 20%, transparent);
+      color: var(--c);
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    }
+
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
+    }
+
+    .art-body {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+    .art-body p { margin-bottom: 10px; }
+    .art-body p:last-child { margin-bottom: 0; }
+    .art-body ul, .art-body ol { margin: 8px 0 12px 24px; }
+    .art-body li { margin-bottom: 6px; }
+
+    sup.fn-ref {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--amber);
+      margin-left: 2px;
+      cursor: pointer;
+      padding: 0 4px;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      vertical-align: super;
+      transition: all 0.15s;
+    }
+    sup.fn-ref:hover {
+      background: var(--amber);
+      color: var(--on);
+      text-decoration: none;
+    }
+
+    .footnotes-section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-top: 30px;
+      margin-bottom: 50px;
+    }
+    .footnotes-section h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--amber);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fn-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.55;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fn-card:hover {
+      border-color: var(--amber);
+      background: color-mix(in srgb, var(--amber) 9%, var(--surface));
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.12);
+    }
+    .fn-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .fn-card b {
+      color: var(--amber);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.95rem;
+    }
+    .fn-return-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--amber);
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .fn-highlighted {
+      border-color: var(--teal) !important;
+      background: color-mix(in srgb, var(--teal) 16%, var(--surface)) !important;
+      box-shadow: 0 0 0 2px var(--teal) !important;
+    }
+    .ref-highlighted {
+      background: var(--amber) !important;
+      color: var(--on) !important;
+      transform: scale(1.3);
+    }
+    .card-highlighted {
+      border-color: var(--amber) !important;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0 40px;
+      margin-top: auto;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="wrap top-bar-inner">
+      <a href="dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html" class="back-btn">
+        <span>←</span>
+        <span>Dispensa 01 Ordinamento GGNL</span>
+      </a>
+      <div style="display:flex; gap:10px;">
+        <a href="../../concorso-controllo.html" class="back-btn">Portale Concorsi</a>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">🖨️ Stampa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="doc-header">
+      <span class="badge-tag">Legge Fondamentale Istitutiva · Testo Integrale Coordinato NaviSuite</span>
+      <h1 class="doc-title">Legge 18 luglio 1957, n. 614</h1>
+      <p class="doc-subtitle">
+        Sistemazione dei servizi pubblici di linea di navigazione sui laghi Maggiore, di Garda e di Como. (G.U. 1 agosto 1957, n. 191)
+      </p>
+      <div class="doc-meta-pills">
+        <span class="meta-pill">🏛️ Ente GGNL</span>
+        <span class="meta-pill">⚖️ Artt. 1 – 7 Integrali</span>
+        <span class="meta-pill">⏱️ Aggiornato ex L. 14/2023 (Durata quinquennale)</span>
+      </div>
+    </header>
+
+    <main class="articles-grid">
+
+      <!-- Art. 1 -->
+      <article class="art-card" id="art-l614-1">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 1</span>
+          <span class="art-badge">Gestore Governativo & Durata</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il MIT è autorizzato a gestire direttamente i servizi pubblici di navigazione sui laghi di Garda, Maggiore e Como tramite un Gestore Governativo nominato dal Ministro per un periodo di 5 anni rinnovabile per una sola volta (riforma L. 14/2023).</span>
+        </div>
+        <div class="art-body">
+          <p>
+            Il <mark class="kw">Ministero dei trasporti</mark> - Ispettorato generale della motorizzazione civile e dei trasporti in concessione - è autorizzato a gestire direttamente i servizi pubblici di navigazione sui laghi di Garda, Maggiore e di Como a mezzo di apposito <mark class="kw">Gestore Governativo</mark>, nominato dal Ministro delle infrastrutture e della mobilità sostenibili fatto salvo quanto previsto dal secondo comma, <strong>per un periodo di <mark class="kw">cinque anni rinnovabile per una sola volta</mark></strong>. <sup class="fn-ref" id="fn-ref-614-1" data-note="1" onclick="jumpNote(1, this)">[1]</sup>
+          </p>
+          <p>
+            Ai fini della determinazione del trattamento economico riconosciuto al gestore si applicano le disposizioni dell'articolo 23-ter, comma 1, del decreto-legge 6 dicembre 2011, n. 201, convertito, con modificazioni, dalla legge 22 dicembre 2011, n. 214.
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 2 -->
+      <article class="art-card" id="art-l614-2">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 2</span>
+          <span class="art-badge">Amministrazione Autonoma & Disavanzi</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Al Gestore è affidato l'esercizio con amministrazione autonoma in nome e per conto dello Stato. Alle linee lacustri si applicano le norme sui trasporti in concessione. L'eventuale disavanzo di gestione è coperto dallo Stato.</span>
+        </div>
+        <div class="art-body">
+          <p>
+            Al gestore, nominato a termini dell'art. 1 è affidato l'esercizio con amministrazione autonoma, in nome e per conto dello Stato, delle linee di navigazione in servizio pubblico sui laghi di Garda, Maggiore e di Como, alle quali vengono estese, in quanto applicabili, le disposizioni vigenti per i trasporti in concessione all'industria privata concernenti soprattutto le tariffe, gli orari, l'opportuno coordinamento con altri pubblici servizi di trasporto limitrofi od affluenti, nonché l'obbligo del trasporto degli effetti personali.
+          </p>
+          <p>
+            Alla copertura dell'eventuale disavanzo di gestione dei servizi pubblici di navigazione di cui alla presente legge sarà provveduto con i fondi stanziati annualmente allo stato di previsione del Ministero dei trasporti per sussidi straordinari di esercizio.
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 3 -->
+      <article class="art-card" id="art-l614-3">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 3</span>
+          <span class="art-badge">Vigilanza Ministeriale</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">L'amministrazione del Gestore è sottoposta all'alta vigilanza del MIT. Le spese straordinarie o pluriennali richiedono la preventiva approvazione ministeriale.</span>
+        </div>
+        <div class="art-body">
+          <p>
+            L'amministrazione del gestore è sottoposta alla vigilanza del <mark class="kw">Ministero dei trasporti</mark>, Ispettorato generale della motorizzazione civile e dei trasporti in concessione.
+          </p>
+          <p>
+            Gli atti concernenti spese di carattere straordinario o che, comunque, impegnino la gestione oltre l'esercizio finanziario, per essere validi, devono essere sottoposti alla preventiva approvazione del Ministro per i trasporti.
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 4 -->
+      <article class="art-card" id="art-l614-4">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 4</span>
+          <span class="art-badge">Esercizio Finanziario & Bilanci</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">L'esercizio finanziario decorre dal 1° luglio al 30 giugno. Entro novembre è comunicato il bilancio di previsione ed entro ottobre il conto consuntivo con la relazione dei revisori. I documenti sono comunicati al Parlamento.</span>
+        </div>
+        <div class="art-body">
+          <p>
+            L'esercizio finanziario ha inizio con il 1 luglio di ogni anno e termina col 30 giugno dell'anno successivo.
+          </p>
+          <p>Sono comunicati al Ministero dei trasporti per l'approvazione:</p>
+          <ul>
+            <li><strong>a)</strong> entro il mese di novembre, il bilancio di previsione e, appena adottate, le variazioni al bilancio medesimo rese necessarie nel corso della gestione;</li>
+            <li><strong>b)</strong> entro il mese di ottobre il consuntivo dell'esercizio scaduto corredato dal conto patrimoniale, dal conto economico e dalla relazione dei revisori.</li>
+          </ul>
+          <p>
+            Il bilancio di previsione ed il conto consuntivo sono comunicati al Parlamento e vengono allegati rispettivamente allo stato di previsione della spesa del Ministero dei trasporti ed al conto consuntivo del Ministero predetto.
+          </p>
+          <p>
+            Gli utili di gestione risultanti dal conto economico sono versati allo stato di previsione dell'entrata dello Stato. <sup class="fn-ref" id="fn-ref-614-2" data-note="2" onclick="jumpNote(2, this)">[2]</sup>
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 5 -->
+      <article class="art-card" id="art-l614-5">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 5</span>
+          <span class="art-badge">Comitato Consultivo Storico</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Originaria istituzione del Comitato ministeriale di vigilanza finanziaria (disposizione cessata di avere applicazione ai sensi della Legge 662/1996).</span>
+        </div>
+        <div class="art-body">
+          <p>
+            È istituito presso il Ministero dei trasporti un Comitato consultivo sulle questioni finanziarie e contabili della gestione. <sup class="fn-ref" id="fn-ref-614-3" data-note="3" onclick="jumpNote(3, this)">[3]</sup>
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 6 -->
+      <article class="art-card" id="art-l614-6">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 6</span>
+          <span class="art-badge">Composizione Storica del Comitato</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Norma storica sulla composizione del Comitato consultivo (cessata di avere efficacia ex L. 662/1996; oggi le funzioni di controllo sono del Collegio dei Revisori dei Conti).</span>
+        </div>
+        <div class="art-body">
+          <p>
+            Composizione dell'originario Comitato di controllo con magistrati, avvocati dello Stato ed esperti contabili. <sup class="fn-ref" id="fn-ref-614-4" data-note="4" onclick="jumpNote(4, this)">[4]</sup>
+          </p>
+        </div>
+      </article>
+
+      <!-- Art. 7 -->
+      <article class="art-card" id="art-l614-7">
+        <div class="art-card-head">
+          <span class="art-num">Articolo 7</span>
+          <span class="art-badge">Stato Giuridico del Personale</span>
+        </div>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Il trattamento del personale della Gestione Governativa Navigazione Laghi è regolato dalle norme del Regio Decreto 8 gennaio 1931, n. 148 e dai contratti collettivi nazionali (CCNL Autoferrotranvieri).</span>
+        </div>
+        <div class="art-body">
+          <p>
+            Il trattamento del personale delle tre navigazioni rimane regolato dalle norme per l'equo trattamento previsto dal <mark class="kw">regio decreto 8 gennaio 1931, n. 148</mark>, e successive modificazioni, nonché dai patti nazionali di lavoro relativi al personale di ferrovie, tramvie e linee di navigazione interna esercitate dalla industria privata in regime di concessione (<mark class="kw">CCNL Autoferrotranvieri</mark>).
+          </p>
+        </div>
+      </article>
+
+    </main>
+
+    <!-- NOTE LEGALI BIDIREZIONALI -->
+    <section class="footnotes-section">
+      <h3><span>📚</span> Note e Riferimenti Normativi Aggiornati</h3>
+      
+      <div class="fn-card" id="fn-1" onclick="returnToText(1)" title="Clicca per tornare al testo">
+        <div class="fn-card-head">
+          <b>[1]</b>
+          <span class="fn-return-btn">↩ Torna al testo</span>
+        </div>
+        <div class="fn-card-body">
+          <strong>Riforma della durata del Gestore Governativo (L. 14/2023):</strong> Il D.L. 29 dicembre 2022, n. 198, convertito con modificazioni dalla Legge 24 febbraio 2023, n. 14 (art. 10 commi 11-sexies e 11-septies) ha modificato l'art. 1 della L. 614/1957 introducendo espressamente la durata dell'incarico <strong>«per un periodo di cinque anni rinnovabile per una sola volta»</strong>. Si applica anche agli incarichi in corso.
+        </div>
+      </div>
+
+      <div class="fn-card" id="fn-2" onclick="returnToText(2)" title="Clicca per tornare al testo">
+        <div class="fn-card-head">
+          <b>[2]</b>
+          <span class="fn-return-btn">↩ Torna al testo</span>
+        </div>
+        <div class="fn-card-body">
+          L'obbligo di versamento all'entrata statale è stato temporaneamente sospeso e rimodulato dalle disposizioni del D.L. 198/2022 per esigenze di reinvestimento nella flotta navale sostenibile.
+        </div>
+      </div>
+
+      <div class="fn-card" id="fn-3" onclick="returnToText(3)" title="Clicca per tornare al testo">
+        <div class="fn-card-head">
+          <b>[3]</b>
+          <span class="fn-return-btn">↩ Torna al testo</span>
+        </div>
+        <div class="fn-card-body">
+          La Legge 23 dicembre 1996, n. 662 (art. 2, comma 6) ha disposto che cessano di applicarsi le disposizioni contenute negli articoli 5 e 6 della legge 18 luglio 1957, n. 614.
+        </div>
+      </div>
+
+      <div class="fn-card" id="fn-4" onclick="returnToText(4)" title="Clicca per tornare al testo">
+        <div class="fn-card-head">
+          <b>[4]</b>
+          <span class="fn-return-btn">↩ Torna al testo</span>
+        </div>
+        <div class="fn-card-body">
+          Le funzioni di controllo sulla regolarità contabile e patrimoniale sono oggi esercitate dal Collegio dei Revisori dei Conti dell'Ente, composto da rappresentanti designati dal MIT e dal MEF.
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+      NaviSuite © 2026 · Edizione Normativa Integrale Legge 18 luglio 1957, n. 614 · Ordinamento GGNL
+    </footer>
+  </div>
+
+  <script>
+    const noteOrigins = {};
+
+    function jumpNote(num, el) {
+      if (el) {
+        noteOrigins[num] = el;
+      }
+      const targetNote = document.getElementById('fn-' + num);
+      if (targetNote) {
+        targetNote.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetNote.classList.add('fn-highlighted');
+        setTimeout(() => {
+          targetNote.classList.remove('fn-highlighted');
+        }, 2200);
+      }
+    }
+
+    function returnToText(num) {
+      const origin = noteOrigins[num] || document.getElementById('fn-ref-614-' + num) || document.querySelector('[data-note="' + num + '"]');
+      if (origin) {
+        origin.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        origin.classList.add('ref-highlighted');
+        const parentCard = origin.closest('.art-card');
+        if (parentCard) {
+          parentCard.classList.add('card-highlighted');
+        }
+        setTimeout(() => {
+          origin.classList.remove('ref-highlighted');
+          if (parentCard) {
+            parentCard.classList.remove('card-highlighted');
+          }
+        }, 2200);
+      }
+    }
+  </script>
+</body>
+</html>

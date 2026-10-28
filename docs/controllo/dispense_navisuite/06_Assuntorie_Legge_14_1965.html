@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 06 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 06 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">🏢 Regolamentazione delle Assuntorie (Legge 14/1965)</h1>
     <p class="doc-subtitle">Gestione in convenzione di scali, fermate e biglietterie, compiti contabili dell'assuntore e vigilanza GGNL</p>
+    
 
     <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
     <div class="key-facts-grid">
@@ -195,57 +245,71 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Legge fondamentale</span>
         <strong style="font-size:0.95rem; color:#fff;">Legge 3 febbraio 1965, n. 14</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Ambito di applicazione</span>
         <strong style="font-size:0.95rem; color:#fff;">Ferrovie e tramvie in concessione, servizi di navigazione interna</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Definizione di Assuntore</span>
         <strong style="font-size:0.95rem; color:#fff;">Soggetto terzo (privato o ente) convenzionato per la gestione dello scalo/fermata</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Compiti principali</span>
         <strong style="font-size:0.95rem; color:#fff;">Emissione biglietti, custodia impianti d'approdo, ormeggio, rendicontazione</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Regime contabile</span>
         <strong style="font-size:0.95rem; color:#fff;">Versamento periodico degli incassi dedotto l'aggio contrattuale pattuito</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Rapporto con l'Ufficio Controllo</span>
         <strong style="font-size:0.95rem; color:#fff;">Verifica mensile delle matricole biglietti, giacenze e quadratura contabile</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--orange); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. Cosa sono le Assuntorie (Legge 14/1965)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">La Legge 14/1965 disciplina le assuntorie: convenzioni con soggetti terzi privati per la gestione e presidio di biglietterie e scali minori dove non è presente personale dipendente fisso GGNL.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                La <strong>Legge 3 febbraio 1965, n. 14</strong> disciplina il regime delle <em>assuntorie</em> nelle linee di trasporto in concessione e nella navigazione interna.<br><br>
-                Nelle località minori o a traffico stagionale dove non è economicamente giustificata la presenza di personale dipendente stabile GGNL (agente di scalo fisso), l'amministrazione stipula un contratto di <strong>assuntoria</strong> con un soggetto terzo (detto <em>Assuntore</em>), che può essere un privato cittadino, un esercente o una cooperativa locale.
+                La <strong><mark class="kw">Legge 3 febbraio 1965, n. 14</mark></strong> disciplina il regime delle <em>assuntorie</em> nelle linee di trasporto in concessione e nella navigazione interna.<br><br>
+                Nelle località minori o a traffico stagionale dove non è economicamente giustificata la presenza di personale dipendente stabile GGNL (agente di scalo fisso), l'amministrazione stipula un contratto di <strong>assuntoria</strong> con un soggetto terzo (detto <em><mark class="kw">Assuntore</mark></em>), che può essere un privato cittadino, un esercente o una cooperativa locale.
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--orange); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Obblighi e Mansioni dell'Assuntore di Scalo</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">L'assuntore è tenuto ad aprire la biglietteria in orario, emettere titoli di viaggio a tariffa ufficiale, custodire e pulire il pontile, e assistere all'ormeggio delle navi.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                L'assuntore si impegna contrattualmente a svolgere le seguenti prestazioni:
+                L'<mark class="kw">assuntore</mark> si impegna contrattualmente a svolgere le seguenti prestazioni:
                 <ul>
                   <li><strong>Vendita Titoli di Viaggio:</strong> apertura dello sportello di biglietteria in coincidenza con gli orari dei battelli di linea, rilascio dei biglietti ordinari, supplementi e abbonamenti secondo il tariffario ufficiale GGNL;</li>
                   <li><strong>Custodia e Manutenzione Ordinaria:</strong> apertura e chiusura dei cancelli del pontile, pulizia della sala d'attesa e banchina, esposizione e aggiornamento dei quadri orari;</li>
@@ -255,24 +319,29 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--orange); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Rendicontazione e Competenze dell'Ufficio Controllo</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Vigilanza dell'Ufficio Controllo: carico matricolare dei biglietti all'assuntore, rendiconto periodico delle vendite, trattenuta dell'aggio contrattuale e versamento bancario degli incassi netti.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                L'Ufficio Controllo della Gestione Governativa vigila costantemente sull'attività degli assuntori:
+                L'<mark class="kw">Ufficio Controllo</mark> della Gestione Governativa vigila costantemente sull'attività degli assuntori:
                 <ul>
-                  <li><strong>Consegna delle Matricole:</strong> i blocchetti di biglietti manuali o i rotoli di carta termica numerata vengono caricati a debito dell'assuntore con apposito verbale di consegna matricole;</li>
-                  <li><strong>Rendiconto Periodico:</strong> a scadenze prefissate (di norma mensili o quindicinali), l'assuntore compila la <em>distinta riepilogativa delle vendite</em>, indicando la numerazione iniziale e finale dei biglietti venduti;</li>
-                  <li><strong>Compenso dell'Assuntore (Aggio):</strong> l'assuntore riceve un compenso forfettario o una percentuale d'aggio sugli incassi realizzati;</li>
-                  <li><strong>Versamento:</strong> l'importo netto incassato deve essere versato sul conto corrente postale o bancario della Gestione Governativa, trasmettendo la ricevuta di versamento all'Ufficio Controllo per la riconciliazione contabile.</li>
+                  <li><strong>Consegna delle Matricole:</strong> i blocchetti di biglietti manuali o i rotoli di carta termica numerata vengono caricati a debito dell'<mark class="kw">assuntore</mark> con apposito verbale di consegna matricole;</li>
+                  <li><strong>Rendiconto Periodico:</strong> a scadenze prefissate (di norma mensili o quindicinali), l'<mark class="kw">assuntore</mark> compila la <em>distinta riepilogativa delle vendite</em>, indicando la numerazione iniziale e finale dei biglietti venduti;</li>
+                  <li><strong>Compenso dell'<mark class="kw">Assuntore</mark> (Aggio):</strong> l'<mark class="kw">assuntore</mark> riceve un compenso forfettario o una percentuale d'aggio sugli incassi realizzati;</li>
+                  <li><strong>Versamento:</strong> l'importo netto incassato deve essere versato sul conto corrente postale o bancario della Gestione Governativa, trasmettendo la ricevuta di versamento all'<mark class="kw">Ufficio Controllo</mark> per la riconciliazione contabile.</li>
                 </ul>
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -288,17 +357,19 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Simulazione Esame</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">La Legge 14 del 3 febbraio 1965 regola specificamente:</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Le assuntorie nelle ferrovie in concessione, tranvie e navigazione interna</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Simulazione Esame</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ La Legge 14 del 3 febbraio 1965 regola specificamente:</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Le assuntorie nelle ferrovie in concessione, tranvie e navigazione interna
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>

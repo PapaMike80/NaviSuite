@@ -38,7 +38,7 @@
     }
     a { color: var(--teal); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { width: min(920px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(940px, calc(100% - 32px)); margin: auto; }
 
     .top-bar {
       background: rgba(7, 25, 35, 0.94);
@@ -54,6 +54,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .back-btn {
       display: inline-flex;
@@ -86,12 +87,13 @@
       text-transform: uppercase;
       color: var(--c);
       margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
     }
     h1.doc-title {
       font-size: clamp(1.6rem, 4vw, 2.3rem);
       font-weight: 800;
       color: #fff;
-      line-height: 1.2;
+      line-height: 1.25;
       margin-bottom: 8px;
     }
     p.doc-subtitle {
@@ -114,6 +116,47 @@
       border-radius: 18px;
       padding: 22px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    /* Box Riassunto in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c) 14%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+      border-left: 4px solid var(--c);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c);
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c) 22%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c) 25%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c);
     }
 
     .traps-box {
@@ -176,17 +219,24 @@
         <span>←</span>
         <span>Torna al Concorso Controllo</span>
       </a>
-      <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
-        <span>🖨️</span>
-        <span>Stampa / Salva in PDF</span>
-      </button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+          <span>⬆</span>
+          <span>Inizio</span>
+        </button>
+        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">
+          <span>🖨️</span>
+          <span>Stampa / PDF</span>
+        </button>
+      </div>
     </div>
   </nav>
 
   <header class="wrap doc-header">
-    <span class="badge-tag">DISPENSA 11 · MATERIALE DIDATTICO UFFICIALE</span>
+    <span class="badge-tag">DISPENSA 11 · MATERIALE DIDATTICO UFFICIALE NAVISUITE</span>
     <h1 class="doc-title">💻 Informatica d'Ufficio (Excel, Word, PEC) e Lingua Inglese</h1>
     <p class="doc-subtitle">Formule assolute, CERCA.VERT, tabelle pivot, ricevute di accettazione e consegna PEC, glossario biglietteria e trasporti in inglese</p>
+    
 
     <!-- PUNTI FONDAMENTALI A COLPO D'OCCHIO -->
     <div class="key-facts-grid">
@@ -195,50 +245,60 @@
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Riferimento assoluto Excel</span>
         <strong style="font-size:0.95rem; color:#fff;">Blocco riga/colonna col dollaro (es. $A$1) per evitare scostamenti nel trascinamento</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Funzione CERCA.VERT</span>
         <strong style="font-size:0.95rem; color:#fff;">Cerca un valore nella 1ª colonna ed estrae il dato sulla stessa riga</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Tabella Pivot</span>
         <strong style="font-size:0.95rem; color:#fff;">Strumento di aggregazione e quadratura rapida di grandi elenchi contabili</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">PEC: Ricevuta Accettazione</span>
         <strong style="font-size:0.95rem; color:#fff;">Emessa dal gestore mittente: prova solo la spedizione del messaggio</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">PEC: Ricevuta Consegna</span>
         <strong style="font-size:0.95rem; color:#fff;">Emessa dal gestore destinatario: è l'UNICA che prova la consegna con valore legale</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Email: Campo CCN</span>
         <strong style="font-size:0.95rem; color:#fff;">Copia Conoscenza Nascosta per privacy (non rivela gli indirizzi agli altri destinatari)</strong>
       </div>
-    
+        
+
       <div style="background:var(--card2); border:1px solid var(--line); padding:10px 14px; border-radius:12px;">
         <span style="font-size:0.75rem; text-transform:uppercase; color:var(--c); font-weight:800; display:block; letter-spacing:0.06em;">Inglese trasporti</span>
         <strong style="font-size:0.95rem; color:#fff;">One-way ticket (corsa semplice) · Return ticket (A/R) · Timetable (orario) · Refund (rimborso)</strong>
       </div>
-    
+        
     </div>
   </header>
 
   <main class="wrap">
-    <!-- SEZIONI PRINCIPALI -->
+    <!-- SEZIONI PRINCIPALI CON RIASSUNTO E PAROLE CHIAVE EVIDENZIATE -->
     
       <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>1. Microsoft Excel per l'Ufficio Controllo</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Excel per il Controllo: riferimenti assoluti col dollaro ($A$1) per bloccare formule durante il trascinamento, funzioni CERCA.VERT (ricerca nella 1ª colonna), SOMMA.SE e tabelle pivot per quadratura cassa.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
-                Excel è lo strumento software più utilizzato nell'Ufficio Controllo per verificare le distinte cassa, riconciliare i POS ed elaborare statistiche:
+                Excel è lo strumento software più utilizzato nell'<mark class="kw">Ufficio Controllo</mark> per verificare le distinte cassa, riconciliare i <mark class="kw">POS</mark> ed elaborare statistiche:
                 <ul>
                   <li><strong>Riferimenti di cella:</strong>
                     <ul>
@@ -249,8 +309,8 @@
                   </li>
                   <li><strong>Funzioni Fondamentali:</strong>
                     <ul>
-                      <li><code>=CERCA.VERT(valore_cercato; matrice_tabella; indice_colonna; FALSO)</code>: ricerca un codice (es. matricola biglietto o scalo) nella prima colonna a sinistra e restituisce il corrispondente valore (es. importo o nome scalo);</li>
-                      <li><code>=SOMMA.SE(intervallo; criterio; [int_somma])</code>: calcola il totale degli incassi filtrando per singola cassa o per specifico operatore;</li>
+                      <li><code>=<mark class="kw">CERCA.VERT</mark>(valore_cercato; matrice_tabella; indice_colonna; FALSO)</code>: ricerca un codice (es. matricola biglietto o scalo) nella prima colonna a sinistra e restituisce il corrispondente valore (es. importo o nome scalo);</li>
+                      <li><code>=<mark class="kw">SOMMA.SE</mark>(intervallo; criterio; [int_somma])</code>: calcola il totale degli incassi filtrando per singola cassa o per specifico operatore;</li>
                       <li><code>=SE(test_logico; se_vero; se_falso)</code>: inserisce valori condizionali (es. <code>=SE(C2=D2; "QUADRATO"; "DIFFERENZA")</code>).</li>
                     </ul>
                   </li>
@@ -259,11 +319,16 @@
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>2. Posta Elettronica Ordinaria e P.E.C. (Posta Elettronica Certificata)</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Posta elettronica e PEC: campo CCN (BCC) obbligatorio per privacy su invii multipli; la Ricevuta di Avvenuta Consegna rilasciata dal gestore destinatario è l'unica con valore legale certo opponibile a terzi.</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 <ul>
@@ -271,24 +336,29 @@
                     <ul>
                       <li><em>A (To):</em> destinatario principale tenuto all'azione;</li>
                       <li><em>CC (Copia Conoscenza):</em> destinatari informati per conoscenza; visibili a tutti;</li>
-                      <li><em>CCN (Copia Conoscenza Nascosta / BCC):</em> indirizzi invisibili a tutti gli altri. Obbligatorio ai sensi del GDPR quando si invia una circolare a più candidati o utenti esterni per non rivelare i loro dati personali.</li>
+                      <li><em><mark class="kw">CCN</mark> (Copia Conoscenza Nascosta / <mark class="kw">BCC</mark>):</em> indirizzi invisibili a tutti gli altri. Obbligatorio ai sensi del <mark class="kw">GDPR</mark> quando si invia una circolare a più candidati o utenti esterni per non rivelare i loro dati personali.</li>
                     </ul>
                   </li>
-                  <li><strong>P.E.C. e Ricevute Legali (D.P.R. 68/2005 e CAD):</strong> la PEC ha valore legale equivalente a una raccomandata postale con ricevuta di ritorno (A/R). Il sistema rilascia due distinte ricevute:
+                  <li><strong>P.E.C. e Ricevute Legali (D.P.R. 68/2005 e <mark class="kw">CAD</mark>):</strong> la PEC ha valore legale equivalente a una raccomandata postale con ricevuta di ritorno (A/R). Il sistema rilascia due distinte ricevute:
                     <ol>
-                      <li><strong>Ricevuta di Accettazione:</strong> rilasciata dal gestore PEC del <em>mittente</em>. Attesta che il messaggio è stato preso in carico per la trasmissione (data e ora di invio);</li>
-                      <li><strong>Ricevuta di Avvenuta Consegna:</strong> rilasciata dal gestore PEC del <em>destinatario</em>. <strong>È l'unica ricevuta che certifica che il messaggio è entrato nella disponibilità della casella del destinatario</strong> con pieno valore legale opponibile a terzi.</li>
+                      <li><strong><mark class="kw">Ricevuta di Accettazione</mark>:</strong> rilasciata dal gestore PEC del <em>mittente</em>. Attesta che il messaggio è stato preso in carico per la trasmissione (data e <mark class="kw">ora</mark> di invio);</li>
+                      <li><strong><mark class="kw">Ricevuta di Avvenuta Consegna</mark>:</strong> rilasciata dal gestore PEC del <em>destinatario</em>. <strong>È l'unica ricevuta che certifica che il messaggio è entrato nella disponibilità della casella del destinatario</strong> con pieno valore legale opponibile a terzi.</li>
                     </ol>
                   </li>
                 </ul>
                 
         </div>
       </div>
-    
+        
+
       <div class="sez" style="--c:var(--violet); margin-bottom:20px;">
         <h3 style="font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
           <span>3. Glossario di Lingua Inglese per i Servizi Lacustri</span>
         </h3>
+        <div class="art-summary-box">
+          <span class="summary-tag">💡 In sintesi</span>
+          <span class="summary-text">Glossario inglese essenziale per biglietteria e controlli: one-way ticket (corsa semplice), return ticket (A/R), car ferry (traghetto autoveicoli), timetable (orario), delay (ritardo), refund (rimborso).</span>
+        </div>
         <div style="color:#d4e3f2; font-size:0.96rem; line-height:1.65; margin-top:8px;">
           
                 Termini essenziali richiesti nei colloqui e nelle prove d'esame per biglietteria e controllo passeggeri:
@@ -310,7 +380,7 @@
                 
         </div>
       </div>
-    
+        
 
     <!-- TRAPPOLE E DISTRATTORI DA ESAME -->
     <div class="traps-box">
@@ -326,23 +396,28 @@
         <span>🎯</span><span>Quesiti Reali Estratti dalle Prove d'Esame Precedenti</span>
       </h3>
       
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prove GGNL</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">In Microsoft Excel, quale simbolo fissa una cella come riferimento assoluto?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: Il carattere dollaro ($)</p>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Prove GGNL</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ In Microsoft Excel, quale simbolo fissa una cella come riferimento assoluto?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: Il carattere dollaro ($)
+        </p>
       </div>
-    
-      <div style="background:#081723; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:0 12px 12px 0; padding:12px 16px; margin-bottom:10px;">
-        <span style="font-size:0.75rem; font-weight:800; color:var(--muted); text-transform:uppercase;">Quesito Ufficiale Prove GGNL</span>
-        <p style="font-weight:700; color:#fff; font-size:0.95rem; margin:4px 0 6px;">Nella PEC, quale ricevuta attesta che il messaggio è giunto nella casella del destinatario?</p>
-        <p style="color:var(--green); font-weight:800; font-size:0.92rem; margin:0;">✔ Risposta esatta: La Ricevuta di Avvenuta Consegna</p>
+        
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:12px;">
+        <div style="font-size:0.78rem; text-transform:uppercase; color:var(--cyan); font-weight:800; margin-bottom:4px; font-family:'DM Mono',monospace;">Quesito Ufficiale Prove GGNL</div>
+        <p style="font-size:0.96rem; font-weight:700; color:#fff; margin-bottom:8px;">❓ Nella PEC, quale ricevuta attesta che il messaggio è giunto nella casella del destinatario?</p>
+        <p style="font-size:0.92rem; color:var(--green); font-weight:700; background:rgba(82,200,121,0.1); border-left:3px solid var(--green); padding:6px 12px; border-radius:0 8px 8px 0;">
+          Risposta Esatta: La Ricevuta di Avvenuta Consegna
+        </p>
       </div>
-    
+        
     </div>
   </main>
 
   <footer>
-    NaviSuite · Concorso Operatore di Ufficio GGNL (par. 130) · Direzione Esercizio Navigarda
+    NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
 </body>
