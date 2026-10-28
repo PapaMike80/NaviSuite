@@ -292,6 +292,48 @@
       color: var(--c, var(--cyan));
       border: 1px solid color-mix(in srgb, var(--c, var(--cyan)) 40%, transparent);
     }
+    
+    /* Riassunto e Parole Chiave in stile NaviSuite */
+    .art-summary-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--c, var(--cyan)) 10%, var(--card2));
+      border: 1px solid color-mix(in srgb, var(--c, var(--cyan)) 38%, transparent);
+      border-left: 4px solid var(--c, var(--cyan));
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .summary-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--c, var(--cyan));
+      letter-spacing: 0.08em;
+      background: color-mix(in srgb, var(--c, var(--cyan)) 20%, transparent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .summary-text {
+      color: #fff;
+      font-weight: 600;
+    }
+    mark.kw {
+      background: color-mix(in srgb, var(--c, var(--cyan)) 24%, rgba(45, 212, 191, 0.22));
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--c, var(--cyan));
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
     .art-body {
       font-size: 0.95rem;
       line-height: 1.7;
@@ -572,7 +614,10 @@
               <span class="art-num">Articolo 1</span>
               <span class="art-badge">Contrattazione Collettiva</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Le condizioni di lavoro di ferrovie, tranvie e navigazione interna sono regolate da norme collettive; stipendi e indennità sono stabiliti contrattualmente dalle associazioni sindacali azienda per azienda.</span>
+              </div>
               <p>
                 Le condizioni di lavoro del personale dei pubblici servizi di trasporto su ferrovie, tranvie e linee di navigazione interna, esercitate dall'industria privata o da Comuni, Province e Consorzi secondo le vigenti disposizioni sull'assunzione diretta dei pubblici servizi, sono regolate nei modi previsti dalla legge 3 aprile 1926, numero 563 <sup class="fn-ref" id="fn-ref-3" data-note="3" onclick="jumpNote(3, this)" title="Vai alla nota 3">[3]</sup>, e successivi decreti di attuazione, salvo per quanto è espressamente disposto dal presente decreto e annesso regolamento (allegato A) e dalle vigenti disposizioni legislative sugli orari e turni di servizio <sup class="fn-ref" id="fn-ref-4" data-note="4" onclick="jumpNote(4, this)" title="Vai alla nota 4">[4]</sup>.
               </p>
@@ -588,12 +633,15 @@
               <span class="art-num">Articolo 2</span>
               <span class="art-badge">Termini di Stipulazione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">I contratti collettivi vanno stipulati entro un mese dalla disdetta (o entro 6 mesi per nuove aperture), con eventuale proroga massima di 3 mesi.</span>
+              </div>
               <p>
-                La stipulazione dei contratti collettivi di lavoro e l'atto di constatazione del mancato accordo, debbono effettuarsi entro un mese dalla denuncia dei contratti in vigore e, per le Aziende di nuova costituzione, entro sei mesi dalla data della definitiva apertura all'esercizio della linea. Tale termine può essere prorogato di non oltre tre mesi, su richiesta di una delle Associazioni stipulanti, sentita l'altra Associazione interessata, dall'autorità presso cui deve essere depositato il contratto collettivo.
+                La stipulazione dei contratti collettivi di lavoro e l'atto di constatazione del mancato accordo, debbono effettuarsi <mark class="kw">entro un mese</mark> dalla denuncia dei contratti in vigore e, per le Aziende di nuova costituzione, <mark class="kw">entro sei mesi</mark> dalla data della definitiva apertura all'esercizio della linea. Tale termine può essere prorogato di <mark class="kw">non oltre tre mesi</mark>, su richiesta di una delle Associazioni stipulanti, sentita l'altra Associazione interessata, dall'autorità presso cui deve essere depositato il contratto collettivo.
               </p>
               <p>
-                Nella prima applicazione del presente decreto i contratti collettivi di lavoro devono essere stipulati entro tre mesi dalla data della pubblicazione del decreto medesimo nella Gazzetta Ufficiale del Regno, ferma restando la facoltà di proroga indicata nel comma precedente <sup class="fn-ref" id="fn-ref-5" data-note="5" onclick="jumpNote(5, this)" title="Vai alla nota 5">[5]</sup>.
+                Nella prima applicazione del presente decreto i contratti collettivi di lavoro devono essere stipulati <mark class="kw">entro tre mesi</mark> dalla data della pubblicazione del decreto medesimo nella Gazzetta Ufficiale del Regno, ferma restando la facoltà di proroga indicata nel comma precedente <sup class="fn-ref" id="fn-ref-5" data-note="5" onclick="jumpNote(5, this)" title="Vai alla nota 5">[5]</sup>.
               </p>
             </div>
           </article>
@@ -604,18 +652,21 @@
               <span class="art-num">Articolo 3</span>
               <span class="art-badge">Mancato Accordo e Deferimento</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">In caso di mancato accordo, vertenza rimessa entro 10 giorni all'organo ministeriale per conciliazione amichevole; se fallisce, ricorso alla Magistratura del lavoro entro 15 giorni.</span>
+              </div>
               <p>
-                In caso di mancato accordo nella stipulazione dei contratti collettivi di lavoro, le Associazioni sindacali interessate hanno l'obbligo di deferire le vertenze, non oltre il decimo giorno dalla data del verbale che dà atto del mancato accordo, all'organo corporativo centrale competente e, in difetto, al Ministero delle corporazioni, pel tentativo di risoluzione amichevole previsto dall'art. 17, 1° capoverso, della legge 3 aprile 1926, n. 563.
+                In caso di mancato accordo nella stipulazione dei contratti collettivi di lavoro, le Associazioni sindacali interessate hanno l'obbligo di deferire le vertenze, non oltre il <mark class="kw">decimo giorno</mark> dalla data del verbale che dà atto del mancato accordo, all'organo corporativo centrale competente e, in difetto, al Ministero delle corporazioni, pel tentativo di risoluzione amichevole previsto dall'art. 17, 1° capoverso, della legge 3 aprile 1926, n. 563.
               </p>
               <p>
                 Il tentativo presso il Ministero delle corporazioni è effettuato con l'intervento di rappresentanti del Ministero delle comunicazioni (Ispettorato generale ferrovie tranvie ed automobili).
               </p>
               <p>
-                Fallito il tentativo ed ove le parti non abbiano contestualmente alla contestazione della mancata composizione amichevole della controversia, deferito all'organo corporativo competente la facoltà di emanare le norme indicate nell'art. 10 della legge 3 aprile 1926, n. 563, le Associazioni sindacali hanno l'obbligo di proporre domanda per la decisione della controversia, alla competente Magistratura del lavoro, entro il termine di giorni 15 dalla data del verbale di mancata composizione amichevole.
+                Fallito il tentativo ed ove le parti non abbiano contestualmente alla contestazione della mancata composizione amichevole della controversia, deferito all'organo corporativo competente la facoltà di emanare le norme indicate nell'art. 10 della legge 3 aprile 1926, n. 563, le Associazioni sindacali hanno l'obbligo di proporre domanda per la decisione della controversia, alla competente <mark class="kw">Magistratura del lavoro</mark>, entro il termine di giorni 15 dalla data del verbale di mancata composizione amichevole.
               </p>
               <p>
-                Entro ugual termine debbono le Associazioni sindacali promuovere ricorso alla Magistratura del lavoro nei casi di ricusata pubblicazione del contratto collettivo ai sensi dell'art. 51 del regio decreto 1° luglio 1926, n. 1130, decorrendo il termine dal giorno in cui la comunicazione del rifiuto a cura dell'autorità competente sia loro pervenuta.
+                Entro ugual termine debbono le Associazioni sindacali promuovere ricorso alla <mark class="kw">Magistratura del lavoro</mark> nei casi di ricusata pubblicazione del contratto collettivo ai sensi dell'art. 51 del regio decreto 1° luglio 1926, n. 1130, decorrendo il termine dal giorno in cui la comunicazione del rifiuto a cura dell'autorità competente sia loro pervenuta.
               </p>
               <p>
                 Fino a che non siano pubblicati i nuovi contratti collettivi o le norme assimilate, restano in vigore, a tutti gli effetti della legge 3 aprile 1926, n. 563, e successivi decreti di attuazione, i contratti e le norme scaduti <sup class="fn-ref" id="fn-ref-6" data-note="6" onclick="jumpNote(6, this)" title="Vai alla nota 6">[6]</sup>.
@@ -629,7 +680,10 @@
               <span class="art-num">Articolo 4</span>
               <span class="art-badge">Trattamento Economico Iniziale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Il trattamento economico iniziale tiene conto dei salari in atto, delle condizioni economiche locali, aziendali e degli obblighi di legge.</span>
+              </div>
               <p>
                 Nella prima applicazione del presente decreto il trattamento economico del personale dovrà essere determinato sulla base di quello attuale tenendo conto delle condizioni economiche locali, e di quelle dell'azienda, comprese fra queste gli oneri all'azienda derivanti per disposizioni di legge o di regolamento.
               </p>
@@ -642,7 +696,10 @@
               <span class="art-num">Articolo 5</span>
               <span class="art-badge">Inosservanza dei Termini</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">In caso di mancato rispetto dei termini di stipulazione da parte sindacale, scatta la sanzione straordinaria della nomina di un commissario governativo.</span>
+              </div>
               <p>
                 Nei casi di inosservanza degli obblighi e dei termini stabiliti negli articoli 2 e 3 del presente decreto, per parte delle Associazioni sindacali competenti, è a queste applicabile il provvedimento più grave previsto dall'art. 8, comma 3, della legge 3 aprile 1926, n. 563, col quale si affida ad un commissario del Governo l'amministrazione straordinaria della Associazione <sup class="fn-ref" id="fn-ref-7" data-note="7" onclick="jumpNote(7, this)" title="Vai alla nota 7">[7]</sup>.
               </p>
@@ -655,7 +712,10 @@
               <span class="art-num">Articolo 6</span>
               <span class="art-badge">Poteri Amministrazione Statale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Nelle more del ripristino del servizio o rinnovo concessione, il Ministero può congelare temporaneamente l'aggiornamento delle condizioni contrattuali.</span>
+              </div>
               <p>
                 Nell'esercizio delle facoltà concesse all'Amministrazione dello Stato dall'art. 184 del testo unico approvato con regio decreto 9 maggio 1912, n. 1447, il Ministero delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili), di concerto con quello delle corporazioni, può stabilire, con provvedimento da notificarsi alle Associazioni interessate, che, durante il termine prescritto al concessionario per l'esecuzione di quanto è necessario al ristabilimento del servizio definitivo o fino alla deliberazione di una nuova concessione nei casi previsti dal 1° capoverso dell'articolo succitato, non si proceda a determinazioni di nuove condizioni di lavoro.
               </p>
@@ -668,7 +728,10 @@
               <span class="art-num">Articolo 7</span>
               <span class="art-badge">Esclusioni dal Campo di Applicazione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Esclusi dal decreto i dirigenti d'azienda (che mantengono la stabilità già goduta) e il personale di appalti terzi o servizi sussidiari.</span>
+              </div>
               <p>
                 Le disposizioni del presente decreto, ferma restando l'applicazione di quelle contenute nella legge 3 aprile 1926, n. 563 <sup class="fn-ref" id="fn-ref-8" data-note="8" onclick="jumpNote(8, this)" title="Vai alla nota 8">[8]</sup>, e successivi decreti di attuazione, non si applicano:
               </p>
@@ -677,7 +740,7 @@
                 <li><strong>b)</strong> al personale addetto ai servizi che secondo l'ordinamento dell'azienda e con l'approvazione del Governo siano affidati a privati appaltatori, o addetto a servizi che siano soltanto sussidiari del servizio dei trasporti.</li>
               </ul>
               <p>
-                Ai dirigenti sopraindicati che, al momento dell'entrata in vigore del presente decreto, godessero del trattamento di stabilità previsto dal regio decreto-legge 19 ottobre 1932, n. 2311, è data facoltà di conservarlo con le forme previste dal regolamento annesso (allegato A).
+                Ai dirigenti sopraindicati che, al momento dell'entrata in vigore del presente decreto, godessero del <mark class="kw">trattamento di stabilità</mark> previsto dal regio decreto-legge 19 ottobre 1932, n. 2311, è data facoltà di conservarlo con le forme previste dal regolamento annesso (allegato A).
               </p>
             </div>
           </article>
@@ -688,17 +751,20 @@
               <span class="art-num">Articolo 8</span>
               <span class="art-badge">Classificazione del Personale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Classificazione in tre categorie: 1° Ruolo (con stabilità d'impiego), 2° Ordinario (servizi continuativi operativi) e 3° Straordinario (stagionali, cantieri temporanei o sostituzioni).</span>
+              </div>
               <p>
                 Il Personale delle aziende, escluso quello indicato nell'articolo Precedente, si distingue in tre categorie:
               </p>
               <ol>
-                <li><strong>1° personale di ruolo;</strong></li>
-                <li><strong>2° personale ordinario;</strong></li>
-                <li><strong>3° personale straordinario.</strong></li>
+                <li><strong>1° <mark class="kw">personale di ruolo</mark>;</strong></li>
+                <li><strong>2° <mark class="kw">personale ordinario</mark>;</strong></li>
+                <li><strong>3° <mark class="kw">personale straordinario</mark>.</strong></li>
               </ol>
               <p>
-                Fa parte della prima categoria il personale che gode il trattamento di stabilità secondo le norme del regolamento annesso (allegato A).
+                Fa parte della prima categoria il personale che gode il <mark class="kw">trattamento di stabilità</mark> secondo le norme del regolamento annesso (allegato A).
               </p>
               <p>
                 Appartengono alla seconda categoria:
@@ -709,7 +775,7 @@
                 <li><strong>c)</strong> il personale di aziende esercenti linee per le quali, a giudizio del Ministero delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili), sia sufficiente un numero di agenti non superiore a 25, per assicurare la regolarità e la sicurezza dell'esercizio.</li>
               </ul>
               <p>
-                Sono ammessi a far parte del personale ordinario gli agenti che al momento dell'entrata in vigore del presente decreto prestino servizio in qualità di avventizi per bisogni continuativi dell'azienda, nelle qualifiche indicate alla lettera a).
+                Sono ammessi a far parte del <mark class="kw">personale ordinario</mark> gli agenti che al momento dell'entrata in vigore del presente decreto prestino servizio in qualità di avventizi per bisogni continuativi dell'azienda, nelle qualifiche indicate alla lettera a).
               </p>
               <p>
                 Fa parte della terza categoria il personale dipendente da aziende esercenti linee soltanto in alcune stagioni dell'anno, e quello assunto per bisogni saltuari ed eccezionali:
@@ -724,7 +790,7 @@
                 [Il quantitativo del personale necessario per l'esercizio è determinato dal Ministro delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili) sentita l'azienda, in base alle necessità del servizio normale] <sup class="fn-ref" id="fn-ref-9" data-note="9" onclick="jumpNote(9, this)" title="Vai alla nota 9">[9]</sup>.
               </div>
               <p>
-                Al personale di ruolo già adibito al servizio tranviario, che sia addetto agli autoservizi pubblici urbani di linea esercitati dalla stessa azienda tranviaria ed al personale di nuova assunzione adibito promiscuamente su linee tranviarie o in auto-servizi pubblici urbani di linea esercitati dalla stessa azienda, sono applicabili le disposizioni del presente decreto.
+                Al <mark class="kw">personale di ruolo</mark> già adibito al servizio tranviario, che sia addetto agli autoservizi pubblici urbani di linea esercitati dalla stessa azienda tranviaria ed al personale di nuova assunzione adibito promiscuamente su linee tranviarie o in auto-servizi pubblici urbani di linea esercitati dalla stessa azienda, sono applicabili le disposizioni del presente decreto.
               </p>
             </div>
           </article>
@@ -735,9 +801,12 @@
               <span class="art-num">Articolo 9</span>
               <span class="art-badge">Mantenimento della Stabilità Personale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Salvaguardia ad personam del trattamento di stabilità per il personale ordinario che già ne beneficiava o che supera il periodo di prova.</span>
+              </div>
               <p>
-                Gli agenti che, pur appartenendo alla 2ª categoria indicata nell'articolo precedente, godano, all'entrata in vigore del presente decreto, il trattamento di stabilità, conservano tale trattamento a titolo personale secondo le disposizioni del regolamento annesso (allegato A). Il trattamento di stabilità a titolo personale spetterà parimenti agli agenti della predetta categoria che alla data medesima si trovino in periodo di prova e alla fine di tale periodo siano riconosciuti idonei alle funzioni cui aspirano.
+                Gli agenti che, pur appartenendo alla 2ª categoria indicata nell'articolo precedente, godano, all'entrata in vigore del presente decreto, il <mark class="kw">trattamento di stabilità</mark>, conservano tale trattamento a titolo personale secondo le disposizioni del regolamento annesso (allegato A). Il <mark class="kw">trattamento di stabilità</mark> a titolo personale spetterà parimenti agli agenti della predetta categoria che alla data medesima si trovino in periodo di prova e alla fine di tale periodo siano riconosciuti idonei alle funzioni cui aspirano.
               </p>
             </div>
           </article>
@@ -748,18 +817,21 @@
               <span class="art-num">Articolo 10</span>
               <span class="art-badge">Controversie Individuali e Reclamo Gerarchico <sup class="fn-ref" id="fn-ref-10" data-note="10" onclick="jumpNote(10, this)" title="Vai alla nota 10">[10]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Competenza dell'autorità giudiziaria (Giudice del Lavoro); obbligo del previo reclamo gerarchico entro 15 giorni e successiva azione entro 40 giorni.</span>
+              </div>
               <p>
-                Le controversie individuali relative a rapporti soggetti alle norme del R.D. 8 gennaio 1931, n. 148 sono di competenza dell'autorità giudiziaria.
+                Le controversie individuali relative a rapporti soggetti alle norme del R.D. 8 gennaio 1931, n. 148 sono di competenza dell'<mark class="kw">autorità giudiziaria</mark>.
               </p>
               <p>
-                L'agente che intenda adire l'autorità giudiziaria contro un provvedimento dell'azienda che lo riguarda deve, anzitutto, proporre il reclamo in via gerarchica, presentandolo, entro quindici giorni dalla data di comunicazione del provvedimento, al superiore immediato che è tenuto a rilasciarne ricevuta. L'omissione del reclamo nel termine suddetto importa l'improponibilità dell'azione giudiziaria <sup class="fn-ref" id="fn-ref-11" data-note="11" onclick="jumpNote(11, this)" title="Vai alla nota 11">[11]</sup>.
+                L'agente che intenda adire l'<mark class="kw">autorità giudiziaria</mark> contro un provvedimento dell'azienda che lo riguarda deve, anzitutto, proporre il <mark class="kw">reclamo in via gerarchica</mark>, presentandolo, entro <mark class="kw">quindici giorni</mark> dalla data di comunicazione del provvedimento, al superiore immediato che è tenuto a rilasciarne ricevuta. L'omissione del reclamo nel termine suddetto importa l'improponibilità dell'azione giudiziaria <sup class="fn-ref" id="fn-ref-11" data-note="11" onclick="jumpNote(11, this)" title="Vai alla nota 11">[11]</sup>.
               </p>
               <p>
-                L'azienda deve comunicare al reclamante le sue determinazioni entro quindici giorni dalla presentazione del reclamo, dopo di che, anche se l'azienda non abbia risposto, il reclamante può adire l'autorità giudiziaria, proponendo la relativa azione entro i successivi quaranta giorni.
+                L'azienda deve comunicare al reclamante le sue determinazioni entro <mark class="kw">quindici giorni</mark> dalla presentazione del reclamo, dopo di che, anche se l'azienda non abbia risposto, il reclamante può adire l'<mark class="kw">autorità giudiziaria</mark>, proponendo la relativa azione entro i successivi <mark class="kw">quaranta giorni</mark>.
               </p>
               <p>
-                Resta fermo l'obbligo della denuncia all'Associazione sindacale competente - che potrà essere fatta anche in pendenza del reclamo in via gerarchica - nonché il termine stabilito dall'art. 4 del regio decreto 26 febbraio 1928, n. 471, per l'intervento conciliativo della detta Associazione.
+                Resta fermo l'obbligo della denuncia all'Associazione sindacale competente - che potrà essere fatta anche in pendenza del <mark class="kw">reclamo in via gerarchica</mark> - nonché il termine stabilito dall'art. 4 del regio decreto 26 febbraio 1928, n. 471, per l'intervento conciliativo della detta Associazione.
               </p>
             </div>
           </article>
@@ -770,7 +842,10 @@
               <span class="art-num">Articolo 11</span>
               <span class="art-badge">Previdenza e Quiescenza</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Mantenimento transitorio delle norme speciali di previdenza e quiescenza (R.D. 2311/1923) con diritto a revisione economica in caso di maggiori oneri.</span>
+              </div>
               <p>
                 Con Regio decreto da emanarsi su proposta dei Ministri per le comunicazioni e per le corporazioni, di concerto con il Ministro per le finanze, sarà provveduto al coordinamento previsto dall'art. 12 del regio decreto 19 ottobre 1923, n. 2311.
               </p>
@@ -789,28 +864,31 @@
               <span class="art-num">Articolo 12</span>
               <span class="art-badge">Quiescenza Anticipata e Oneri Aziendali</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Collocamento a riposo anticipato a 55 anni di età con almeno 15 anni di versamenti utili, previo pagamento in unica soluzione da parte dell'azienda degli oneri al Fondo entro 60 giorni.</span>
+              </div>
               <p>
-                Le aziende possono collocare anticipatamente in quiescenza gli agenti che abbiano compiuto almeno 55 anni di età e contribuito al Fondo per un periodo che, sommato a quello ancora mancante al raggiungimento del 60° anno di età, formi un totale non inferiore ai 15 anni.
+                Le aziende possono collocare anticipatamente in quiescenza gli agenti che abbiano compiuto almeno <mark class="kw">55 anni di età</mark> e contribuito al Fondo per un periodo che, sommato a quello ancora mancante al raggiungimento del <mark class="kw">60° anno di età</mark>, formi un totale non inferiore ai <mark class="kw">15 anni</mark>.
               </p>
               <p>
                 Per avvalersi della facoltà di cui al comma precedente, le aziende debbono versare al Fondo in unica soluzione:
               </p>
               <ul>
-                <li><strong>a)</strong> i contributi relativi al periodo mancante al raggiungimento del 60° anno di età degli agenti, da calcolarsi in base alla aliquota ed alla retribuzione in atto alla data dell'esonero;</li>
-                <li><strong>b)</strong> il valore tecnico di copertura delle mensilità di pensione corrispondenti al periodo intercorrente fra la data di collocamento in quiescenza e quella in cui l'agente compirà il 60° anno di età.</li>
+                <li><strong>a)</strong> i contributi relativi al periodo mancante al raggiungimento del <mark class="kw">60° anno di età</mark> degli agenti, da calcolarsi in base alla aliquota ed alla retribuzione in atto alla data dell'esonero;</li>
+                <li><strong>b)</strong> il valore tecnico di copertura delle mensilità di pensione corrispondenti al periodo intercorrente fra la data di collocamento in quiescenza e quella in cui l'agente compirà il <mark class="kw">60° anno di età</mark>.</li>
               </ul>
               <p>
                 Il provvedimento di esonero per il collocamento anticipato in quiescenza deve essere comunicato dalle aziende al Fondo non oltre un mese dalla data di decorrenza del provvedimento stesso.
               </p>
               <p>
-                Il versamento delle somme corrispondenti agli oneri di cui alle precedenti lettere a) e b) deve essere eseguito entro 60 giorni dalla data in cui l'Istituto nazionale della previdenza sociale ne ha fatto richiesta. L'inosservanza dei termini previsti dal comma precedente comporta l'inefficacia del provvedimento di esonero.
+                Il versamento delle somme corrispondenti agli oneri di cui alle precedenti lettere a) e b) deve essere eseguito entro <mark class="kw">60 giorni</mark> dalla data in cui l'Istituto nazionale della previdenza sociale ne ha fatto richiesta. L'inosservanza dei termini previsti dal comma precedente comporta l'inefficacia del provvedimento di esonero.
               </p>
               <p>
                 La retribuzione da prendere a base per il calcolo della pensione da liquidare ai sensi del presente articolo è quella goduta dall'interessato negli ultimi 12 mesi di effettivo servizio antecedenti l'anticipato collocamento in quiescenza, nei limiti e con le esclusioni previste dal successivo articolo 21 per i normali casi di collocamento in quiescenza.
               </p>
               <p>
-                Il periodo mancante al raggiungimento del 60° anno di età è considerato utile in conformità delle disposizioni vigenti in materia, ai soli fini della determinazione del numero degli anni da computare per la misura della pensione spettante agli agenti collocati anticipatamente in quiescenza.
+                Il periodo mancante al raggiungimento del <mark class="kw">60° anno di età</mark> è considerato utile in conformità delle disposizioni vigenti in materia, ai soli fini della determinazione del numero degli anni da computare per la misura della pensione spettante agli agenti collocati anticipatamente in quiescenza.
               </p>
             </div>
           </article>
@@ -821,7 +899,10 @@
               <span class="art-num">Articolo 13</span>
               <span class="art-badge">Statuto per le Casse di Soccorso</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Approvazione dello schema di Statuto-tipo per le Casse di soccorso (Allegato B) a tutela del personale di ruolo.</span>
+              </div>
               <p>
                 È approvato, secondo lo schema annesso (allegato B) al presente decreto lo statuto per le Casse di soccorso a favore del personale indicato all'articolo 8, n. 1, visto, d'ordine Nostro, dai Ministri per le comunicazioni e per le corporazioni.
               </p>
@@ -834,9 +915,12 @@
               <span class="art-num">Articolo 14</span>
               <span class="art-badge">Coordinamento Statuti Esistenti</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Termine perentorio di 6 mesi per l'adeguamento degli statuti esistenti delle Casse di soccorso alle direttive ministeriali.</span>
+              </div>
               <p>
-                Gli statuti attuali della Cassa di soccorso debbono essere coordinati al presente statuto tipo entro sei mesi dalla sua entrata in vigore.
+                Gli statuti attuali della Cassa di soccorso debbono essere coordinati al presente statuto tipo <mark class="kw">entro sei mesi</mark> dalla sua entrata in vigore.
               </p>
               <p>
                 I nuovi statuti e le aggiunte e modificazioni che in prosieguo si rendessero necessarie debbono essere approvate con decreto del Ministro per le corporazioni di concerto con il Ministro per le comunicazioni.
@@ -850,7 +934,10 @@
               <span class="art-num">Articolo 15</span>
               <span class="art-badge">Abrogazioni Precedenti</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Abrogazione espressa del R.D.L. 2311/1923 e regolamenti annessi, fatti salvi gli articoli 16, 19 e la previdenza.</span>
+              </div>
               <p>
                 Sono abrogate le norme del regio decreto-legge 19 ottobre 1923, n. 2311, e annesso regolamento, relative al trattamento del personale addetto alle ferrovie, tranvie e linee di navigazione interna esercitate dall'industria privata, da Province e da Comuni, fatta eccezione degli articoli 16 e 19 e di quanto è disposto all'articolo 11 del presente decreto.
               </p>
@@ -882,12 +969,15 @@
               <span class="art-num">Articolo 1 (All. A)</span>
               <span class="art-badge">Matricola e Comunicazioni</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Istituzione del ruolo matricolare con dati di carriera, provvedimenti e note disciplinari; pubblicità tramite ordini di servizio; estratto matricola rilasciato senza sanzioni lievi.</span>
+              </div>
               <p>
-                Il presente regolamento provvede per il personale di ruolo e si applica al personale ordinario e straordinario solo in quanto è per essi esplicitamente stabilito.
+                Il presente regolamento provvede per il <mark class="kw">personale di ruolo</mark> e si applica al <mark class="kw">personale ordinario</mark> e straordinario solo in quanto è per essi esplicitamente stabilito.
               </p>
               <p>
-                Il personale di ruolo (stabile ed in prova) è inscritto nell'apposita matricola, dove per ciascun agente sono registrati il cognome, il nome, la paternità, il luogo di nascita, gli studi fatti, l'eventuale servizio militare, la data, la qualifica, lo stipendio o paga ed ogni altra indicazione riguardante l'assunzione, l'inscrizione all'Istituto di previdenza, gli avanzamenti, le onorificenze, gli encomi, le gratificazioni, i traslochi, le malattie, le aspettative e le assenze costituenti interruzioni di servizio, le punizioni, le indicazioni che concernono lo stato di servizio e quelle relative alla cessazione dal servizio.
+                Il <mark class="kw">personale di ruolo</mark> (stabile ed in prova) è inscritto nell'apposita matricola, dove per ciascun agente sono registrati il cognome, il nome, la paternità, il luogo di nascita, gli studi fatti, l'eventuale servizio militare, la data, la qualifica, lo stipendio o paga ed ogni altra indicazione riguardante l'assunzione, l'inscrizione all'Istituto di previdenza, gli avanzamenti, le onorificenze, gli encomi, le gratificazioni, i traslochi, le malattie, le aspettative e le assenze costituenti interruzioni di servizio, le punizioni, le indicazioni che concernono lo stato di servizio e quelle relative alla cessazione dal servizio.
               </p>
               <p>
                 Con ordini di servizio sono portati a conoscenza del personale tutti i provvedimenti in materia di nomine, promozioni, esoneri, punizioni degli ultimi tre gradi, encomi, traslochi, ecc.
@@ -907,7 +997,10 @@
               <span class="art-num">Articolo 2 (All. A)</span>
               <span class="art-badge">Uniforme e Matricola Visibile</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Obbligo per gli agenti a contatto con i viaggiatori (stazioni, treni e navi) di portare visibile il numero di matricola e vestire la divisa d'ordinanza.</span>
+              </div>
               <p>
                 Gli agenti in servizio nelle stazioni, sui treni e sui natanti delle linee di navigazione interna, debbono portare in maniera visibile il numero di matricola ed indossare il vestiario uniforme prescritto dal Ministero delle comunicazioni (Ispettorato generale ferrovie, tranvie ed automobili) od, in mancanza, dalle aziende esercenti.
               </p>
@@ -920,7 +1013,10 @@
               <span class="art-num">Articolo 3 (All. A)</span>
               <span class="art-badge">Cambiamenti di Qualifica</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Cambi di mansione o qualifica deliberati dal Direttore con conservazione dello stipendio superiore mediante assegno personale pensionabile; visita medica per mansioni di sicurezza.</span>
+              </div>
               <p>
                 L'azienda ha facoltà di passare gli agenti di ruolo da uno ad altro servizio o ramo di servizio con la stessa qualifica o con altra dello stesso grado, come dalle tabelle graduatorie che saranno stabilite dall'azienda.
               </p>
@@ -945,7 +1041,10 @@
               <span class="art-num">Articolo 4 (All. A)</span>
               <span class="art-badge">Obbligo di Rispetto degli Ordini</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Dovere contrattuale per l'agente di rispettare ordini di servizio, orari e regolamenti aziendali conformi allo statuto.</span>
+              </div>
               <p>
                 Gli agenti, assumendo servizio, contraggono l'obbligo di osservare tutti i regolamenti gli ordini di servizio e le disposizioni vigenti o che l'azienda mettesse in vigore, purché non contrarie a quelle del presente regolamento.
               </p>
@@ -958,7 +1057,10 @@
               <span class="art-num">Articolo 5 (All. A)</span>
               <span class="art-badge">Incompatibilità e Doppio Lavoro</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Divieto di svolgere altri impieghi, commerci, professioni o uffici senza formale autorizzazione scritta del Direttore.</span>
+              </div>
               <p>
                 Gli agenti non possono esercitare altri uffici, impieghi, commerci, professioni o mestieri, senza averne avuto esplicita autorizzazione scritta dal direttore dell'azienda.
               </p>
@@ -971,7 +1073,10 @@
               <span class="art-num">Articolo 6 (All. A)</span>
               <span class="art-badge">Divieto di Raccomandazioni</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Divieto tassativo di raccomandazioni per ottenere avanzamenti, nomine o trasferimenti di sede.</span>
+              </div>
               <p>
                 È vietato di ricorrere a raccomandazioni per ottenere avanzamenti, miglioramenti di posizione, traslochi od altro.
               </p>
@@ -984,7 +1089,10 @@
               <span class="art-num">Articolo 7 (All. A)</span>
               <span class="art-badge">Domicilio Aziendale e Igiene</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Obbligo di domicilio aziendale per specifiche mansioni e rispetto scrupoloso delle prescrizioni igienico-sanitarie.</span>
+              </div>
               <p>
                 L'azienda può obbligare agenti di alcune categorie a prendere domicilio nei locali dell'azienda.
               </p>
@@ -1000,7 +1108,10 @@
               <span class="art-num">Articolo 8 (All. A)</span>
               <span class="art-badge">Zone Malariche e Chinino</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Misure di profilassi antimalarica e somministrazione gratuita di chinino ai dipendenti e conviventi assegnati a zone endemiche.</span>
+              </div>
               <p>
                 Nelle località designate come malariche dalla Direzione generale di sanità, l'azienda somministra gratuitamente a tutti gli agenti ed alle persone di famiglia, conviventi ed a carico, i chinacei ed adotta tutte le altre misure e difese prescritte dalla legge per la prevenzione e per la cura delle febbri palustri.
               </p>
@@ -1028,12 +1139,15 @@
               <span class="art-num">Articolo 9 (All. A)</span>
               <span class="art-badge">Titoli Preferenziali</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">L'assunzione avviene in prova; la nomina in prova può essere delegata, mentre la conferma in ruolo spetta solo al Direttore. Ordine progressivo dei titoli preferenziali.</span>
+              </div>
               <p>
-                Le assunzioni del personale di ruolo vengono disposte, di regola, per il servizio di prova di cui al titolo III.
+                Le assunzioni del <mark class="kw">personale di ruolo</mark> vengono disposte, di regola, per il <mark class="kw">servizio di prova</mark> di cui al titolo III.
               </p>
               <p>
-                La nomina del personale in prova è di competenza del direttore dell'azienda, il quale può anche delegarla a funzionari da lui designati. La nomina del personale stabile è pure di competenza del direttore, ma non può essere delegata ad altri.
+                La nomina del personale in prova è di <mark class="kw">competenza del direttore</mark> dell'azienda, il quale può anche delegarla a funzionari da lui designati. La nomina del personale stabile è pure di <mark class="kw">competenza del direttore</mark>, ma non può essere delegata ad altri.
               </p>
               <p>
                 Costituisce progressivamente titolo preferenziale per l'assunzione ad agenti di ruolo l'appartenenza ad una delle seguenti categorie:
@@ -1057,11 +1171,14 @@
               <span class="art-num">Articolo 10 (All. A)</span>
               <span class="art-badge">Requisiti Generali di Assunzione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Requisiti d'accesso: cittadinanza italiana/UE, maggiore età (18 anni), idoneità psico-fisica, incensuratezza e accertamento attitudinale tramite esami/prove selettive.</span>
+              </div>
               <p>Per l'ammissione al servizio in prova è necessario:</p>
               <ol>
                 <li><strong>1)</strong> di essere cittadino dello Stato italiano, o delle altre regioni italiane quando anche il richiedente manchi della naturalità, salvo il disposto dell'art. 113 del testo unico di leggi approvato col regio decreto 9 maggio 1912, n. 1447 <sup class="fn-ref" id="fn-ref-14" data-note="14" onclick="jumpNote(14, this)" title="Vai alla nota 14">[14]</sup>;</li>
-                <li><strong>2)</strong> di avere superato, al momento dell'assunzione in prova, il 18° anno di età e non oltrepassati i 30 anni di età per i servizi attivi ed i 35 per gli altri servizi salvo le eccezioni che, con l'approvazione dell'Ispettorato compartimentale o ufficio distaccato della motorizzazione civile e dei trasporti in concessione, la Direzione dell'azienda credesse di ammettere in casi speciali o per determinate specialità di personale <sup class="fn-ref" id="fn-ref-15" data-note="15" onclick="jumpNote(15, this)" title="Vai alla nota 15">[15]</sup>;</li>
+                <li><strong>2)</strong> di avere superato, al momento dell'assunzione in prova, il <mark class="kw">18° anno di età</mark> e non oltrepassati i 30 anni di età per i servizi attivi ed i 35 per gli altri servizi salvo le eccezioni che, con l'approvazione dell'Ispettorato compartimentale o ufficio distaccato della motorizzazione civile e dei trasporti in concessione, la Direzione dell'azienda credesse di ammettere in casi speciali o per determinate specialità di personale <sup class="fn-ref" id="fn-ref-15" data-note="15" onclick="jumpNote(15, this)" title="Vai alla nota 15">[15]</sup>;</li>
                 <li><strong>3)</strong> di avere tenuto sempre buona condotta morale, civile, militare e politica;</li>
                 <li><strong>4)</strong> di essere dotato di sana e robusta costituzione fisica e di possedere l'attitudine ed i requisiti fisici stabiliti per le funzioni cui il richiedente aspira in relazione alle norme vigenti presso l'azienda <sup class="fn-ref" id="fn-ref-16" data-note="16" onclick="jumpNote(16, this)" title="Vai alla nota 16">[16]</sup>.</li>
               </ol>
@@ -1080,7 +1197,10 @@
               <span class="art-num">Articolo 11 (All. A)</span>
               <span class="art-badge">Inquadramento Iniziale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Inquadramento iniziale al grado e classe stipendiale d'ingresso previsti dai ruoli organici.</span>
+              </div>
               <p>
                 Le assunzioni del personale vengono, di regola, fatte nei gradi e classi di stipendio iniziale dei singoli ruoli, secondo gli ordinamenti delle aziende.
               </p>
@@ -1093,7 +1213,10 @@
               <span class="art-num">Articolo 12 (All. A)</span>
               <span class="art-badge">Consegna Regolamenti</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Consegna obbligatoria all'atto dell'assunzione di copia dello stato giuridico e dei regolamenti di servizio.</span>
+              </div>
               <p>
                 Ogni agente all'atto della assunzione deve essere provveduto di una copia del presente regolamento e dei regolamenti di servizio, che contengano le norme inerenti alle mansioni che esso deve esercitare.
               </p>
@@ -1121,7 +1244,10 @@
               <span class="art-num">Articolo 13 (All. A)</span>
               <span class="art-badge">Durata Massima del Periodo di Prova</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Durata prova: max 2 anni per ferrovie, max 1 anno per tranvie e navigazione interna. Proroga eccezionale fino alla metà. Silenzio-assenso: conferma automatica dopo 1 mese dalla scadenza.</span>
+              </div>
               <p>
                 Gli agenti in prova sono obbligati ad acquistare la idoneità alle funzioni cui sono assegnati ed a soddisfare lodevolmente agli esperimenti prescritti, entro un conveniente periodo di tempo.
               </p>
@@ -1129,8 +1255,8 @@
                 Tale periodo di tempo è computato anche se prestato anteriormente al presente regolamento e non può essere superiore nel complesso:
               </p>
               <ul>
-                <li><strong>a) per le ferrovie:</strong> a due anni di effettivo servizio;</li>
-                <li><strong>b) per le tranvie e per i servizi di navigazione:</strong> ad un anno di effettivo servizio.</li>
+                <li><strong>a) per le ferrovie:</strong> a <mark class="kw">due anni di effettivo servizio</mark>;</li>
+                <li><strong>b) per le tranvie e per i servizi di navigazione:</strong> ad <mark class="kw">un anno di effettivo servizio</mark>.</li>
               </ul>
               <p>
                 Il periodo di prova nei limiti suindicati va compiuto anche quando nel periodo stesso intervenga una assegnazione a mansioni di grado superiore a quello precedentemente affidato all'agente.
@@ -1139,7 +1265,7 @@
                 L'azienda ha facoltà, in casi eccezionali, di prolungare, a richiesta dell'agente, la durata della prova per un ulteriore periodo che in ogni caso non deve superare la metà dei termini di cui alle lettere a) e b).
               </p>
               <p>
-                Superato il prescritto periodo di prova, il personale viene nominato in pianta stabile con deliberazione del direttore dell'azienda, da comunicarsi, entro un mese dalla scadenza del periodo stesso, agli interessati con regolare partecipazione scritta. Analoga partecipazione, entro lo stesso termine, deve essere fatta agli agenti che, per deliberazione del direttore, siano giudicati non idonei al passaggio in pianta stabile.
+                Superato il prescritto periodo di prova, il personale viene nominato in <mark class="kw">pianta stabile</mark> con deliberazione del direttore dell'azienda, da comunicarsi, <mark class="kw">entro un mese</mark> dalla scadenza del periodo stesso, agli interessati con regolare partecipazione scritta. Analoga partecipazione, entro lo stesso termine, deve essere fatta agli agenti che, per deliberazione del direttore, siano giudicati non idonei al passaggio in <mark class="kw">pianta stabile</mark>.
               </p>
               <p>
                 Trascorso il termine di cui al comma precedente senza che sia intervenuta alcuna comunicazione da parte del direttore, l'agente s'intende nominato stabile con decorrenza dalla data di scadenza del periodo di prova.
@@ -1153,9 +1279,12 @@
               <span class="art-num">Articolo 14 (All. A)</span>
               <span class="art-badge">Esonero dal Servizio di Prova</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Esonero motivato durante la prova per mancata idoneità, recidiva di mancanze o esubero; indennità pari a 1 mese di retribuzione per ogni anno di servizio prestato.</span>
+              </div>
               <p>
-                Gli agenti in prova possono venire esonerati dal servizio, con deliberazione motivata del direttore, da comunicarsi al Circolo ferroviario di ispezione competente:
+                Gli agenti in prova possono venire esonerati dal servizio, con <mark class="kw">deliberazione motivata del direttore</mark>, da comunicarsi al Circolo ferroviario di ispezione competente:
               </p>
               <ul>
                 <li><strong>a)</strong> qualora non abbiano conseguita la voluta idoneità al posto cui sono assegnati;</li>
@@ -1190,7 +1319,10 @@
               <span class="art-num">Articolo 15 (All. A)</span>
               <span class="art-badge">Regolamenti Aziendali Avanzamenti</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Criteri e modalità per passaggi di carriera e avanzamenti stabiliti nei singoli regolamenti speciali aziendali.</span>
+              </div>
               <p>
                 Gli speciali regolamenti di ciascuna azienda stabiliscono le norme per le promozioni e per gli avanzamenti.
               </p>
@@ -1203,7 +1335,10 @@
               <span class="art-num">Articolo 16 (All. A)</span>
               <span class="art-badge">Assorbimento Assegni Personali</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Assorbimento automatico degli assegni personali negli aumenti retributivi conseguiti per promozione.</span>
+              </div>
               <p>
                 In ogni caso di avanzamento, gli assegni personali di qualunque natura sono compenetrati nell'aumento di stipendio o paga fino a concorrenza dell'aumento medesimo.
               </p>
@@ -1216,7 +1351,10 @@
               <span class="art-num">Articolo 17 (All. A)</span>
               <span class="art-badge">Corresponsione Retribuzioni</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Cadenza mensile dello stipendio; pagamento dell'intera mesata nel mese di cessazione (salvo dimissioni/destituzione); quota di mensilità ai familiari a carico in caso di decesso.</span>
+              </div>
               <p>
                 Sono corrisposti: lo stipendio a mensilità maturate e la paga a periodi non superiori a quindicine maturate.
               </p>
@@ -1241,18 +1379,21 @@
               <span class="art-num">Articolo 18 (All. A)</span>
               <span class="art-badge">Reggenza Mansioni Superiori <sup class="fn-ref" id="fn-ref-18" data-note="18" onclick="jumpNote(18, this)" title="Vai alla nota 18">[18]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Mansioni superiori retribuite con indennità differenziale; promozione automatica sul posto vacante dopo 6 mesi di reggenza continuativa o frazionata in un anno.</span>
+              </div>
               <p>
-                Il direttore dell'azienda può adibire temporaneamente gli agenti stabili a funzioni di grado superiore a quello di cui sono provvisti, ma è tenuto, dopo trascorsi sei mesi di reggenza in un anno, a deliberare la promozione effettiva, sempre che vi sia la vacanza del posto.
+                Il direttore dell'azienda può adibire temporaneamente gli agenti stabili a funzioni di grado superiore a quello di cui sono provvisti, ma è tenuto, dopo trascorsi <mark class="kw">sei mesi di <mark class="kw">reggenza</mark></mark> in un anno, a deliberare la promozione effettiva, sempre che vi sia la vacanza del posto.
               </p>
               <p>
-                Durante la reggenza è dovuta un'indennità pari alla differenza tra la paga o stipendio inerente alla qualifica del grado superiore e la paga o stipendio effettivamente percepito dall'agente.
+                Durante la <mark class="kw">reggenza</mark> è dovuta un'indennità pari alla differenza tra la paga o stipendio inerente alla qualifica del grado superiore e la paga o stipendio effettivamente percepito dall'agente.
               </p>
               <p>
-                Non è considerata reggenza, agli effetti del presente articolo, la sostituzione di agenti di grado superiore assenti per malattia od in aspettativa.
+                Non è considerata <mark class="kw">reggenza</mark>, agli effetti del presente articolo, la sostituzione di agenti di grado superiore assenti per malattia od in <mark class="kw">aspettativa</mark>.
               </p>
               <p>
-                Per i posti da coprirsi mediante esame, la reggenza non dà diritto alla nomina e deve essere limitata al periodo strettamente necessario per l'espletamento del concorso.
+                Per i posti da coprirsi mediante esame, la <mark class="kw">reggenza</mark> non dà diritto alla nomina e deve essere limitata al periodo strettamente necessario per l'espletamento del concorso.
               </p>
             </div>
           </article>
@@ -1263,7 +1404,10 @@
               <span class="art-num">Articolo 19 (All. A)</span>
               <span class="art-badge">Gerarchia e Anzianità</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Scala gerarchica: 1° Grado · 2° Anzianità di grado · 3° Anzianità nel grado precedente · 4° Anzianità di servizio complessiva · 5° Maggiore età anagrafica.</span>
+              </div>
               <p>
                 La gerarchia fra agenti è costituita dal grado; a pari grado dalla anzianità nel grado. La anzianità risulta dalla data dell'ultimo provvedimento di nomina o di promozione. A pari anzianità di nomina prevale l'anzianità nel grado precedente; a pari anzianità nel grado precedente prevale l'anzianità di servizio; a pari anzianità di servizio la maggiore età.
               </p>
@@ -1300,7 +1444,10 @@
               <span class="art-num">Articolo 20 (All. A)</span>
               <span class="art-badge">Residenza, Traslochi e Missioni <sup class="fn-ref" id="fn-ref-19" data-note="19" onclick="jumpNote(19, this)" title="Vai alla nota 19">[19]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Obbligo di residenza nella sede assegnata; trasferimenti d'ufficio o per scambio consensuale con congedo straordinario retribuito e indennità di trasferta per missioni.</span>
+              </div>
               <p>
                 Gli agenti sono obbligati a tenere o trasferire la propria residenza dovunque sia stabilito dall'azienda, limitatamente però alle località ove hanno sede servizi od uffici dell'azienda stessa.
               </p>
@@ -1333,7 +1480,10 @@
               <span class="art-num">Articolo 21 (All. A)</span>
               <span class="art-badge">Assenze e Avviso di Malattia</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Assenze ingiustificate comportano trattenuta stipendiale; obbligo di avvisare immediatamente in caso di malattia, pena la qualifica di assenza arbitraria.</span>
+              </div>
               <p>
                 Nessun agente può rimanere assente dal servizio senza regolare autorizzazione dei superiori.
               </p>
@@ -1355,9 +1505,12 @@
               <span class="art-num">Articolo 22 (All. A)</span>
               <span class="art-badge">Congedo Ordinario (Ferie) <sup class="fn-ref" id="fn-ref-20" data-note="20" onclick="jumpNote(20, this)" title="Vai alla nota 20">[20]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Congedo ordinario retribuito (da 8 a 25 giorni in base ad anzianità e qualifica); fruizione programmata con riporto al 1° trimestre dell'anno dopo per esigenze comprovate o monetizzazione.</span>
+              </div>
               <p>
-                Gli agenti dopo compiuto un anno di servizio, hanno diritto a fruire un congedo ordinario con stipendio o paga ed indennità fisse senza che, nel richiederne l'autorizzazione, debbano indicarne il motivo.
+                Gli agenti dopo compiuto un anno di servizio, hanno diritto a fruire un <mark class="kw">congedo ordinario</mark> con stipendio o paga ed indennità fisse senza che, nel richiederne l'autorizzazione, debbano indicarne il motivo.
               </p>
               <p>
                 Detto congedo ha, salvo le eccezioni di cui appresso, in ciascun anno solare, la durata seguente:
@@ -1396,7 +1549,10 @@
               <span class="art-num">Articolo 23 (All. A)</span>
               <span class="art-badge">Trattamento di Malattia Storico <sup class="fn-ref" id="fn-ref-22" data-note="22" onclick="jumpNote(22, this)" title="Vai alla nota 22">[22]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Sussidio di malattia storico per 180 giorni a carico Cassa Soccorso (oggi disciplinato dall'Accordo Nazionale TPL e CCNL).</span>
+              </div>
               <div class="norm-callout">
                 [Art. 23 - Durante le assenze per malattia, accertata dai sanitari della Cassa di soccorso, agli agenti viene corrisposto un sussidio pari allo stipendio o paga e competenze accessorie, sulle quali si effettua la ritenuta di cui appresso, per 180 giorni in un anno esclusi i primi tre.
                 <br><br>
@@ -1415,45 +1571,48 @@
               <span class="art-num">Articolo 24 (All. A)</span>
               <span class="art-badge">Aspettativa e Trattamento Economico</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Aspettativa non retribuita (o parzialmente sussidiata per salute fino a max 18 mesi con quote per carichi familiari); valida ai fini dell'anzianità di servizio eccetto motivi privati.</span>
+              </div>
               <p>
-                L'aspettativa è l'esenzione temporanea dal servizio degli agenti stabili, che si concede in seguito a domanda dell'interessato per motivi di salute, per servizio militare obbligatorio, anche nella M. V. S. N., per cariche sindacali che comportino l'allontanamento temporaneo dall'azienda, per bisogni privati od in seguito a provvedimenti preventivi giudiziari dipendenti da cause di servizio. Anche se disposta di ufficio, l'aspettativa deve sempre essere notificata per iscritto all'interessato.
+                L'<mark class="kw">aspettativa</mark> è l'esenzione temporanea dal servizio degli agenti stabili, che si concede in seguito a domanda dell'interessato per motivi di salute, per servizio militare obbligatorio, anche nella M. V. S. N., per cariche sindacali che comportino l'allontanamento temporaneo dall'azienda, per bisogni privati od in seguito a provvedimenti preventivi giudiziari dipendenti da cause di servizio. Anche se disposta di ufficio, l'<mark class="kw">aspettativa</mark> deve sempre essere notificata per iscritto all'interessato.
               </p>
               <p>
                 Essa viene anche disposta d'ufficio nei casi di prolungata infermità o di sopraggiunto impedimento all'ulteriore esercizio delle funzioni proprie di ciascuna qualifica, quando l'azienda giudichi conveniente esperimentare l'esenzione stessa, prima di deliberare l'esonero definitivo dal servizio.
               </p>
               <p>
-                L'aspettativa non può essere negata quando sia domandata per motivi di salute, ed a giudizio dei sanitari dell'azienda, salvo all'agente la facoltà di ricorrere al collegio sanitario di cui all'art. 29, sia accertato che l'agente è affetto da malattia, la cura della quale è incompatibile con la prestazione del servizio, e che lascia fondata speranza di guarigione, entro il tempo per cui l'aspettativa stessa è richiesta.
+                L'<mark class="kw">aspettativa</mark> non può essere negata quando sia domandata per motivi di salute, ed a giudizio dei sanitari dell'azienda, salvo all'agente la facoltà di ricorrere al collegio sanitario di cui all'art. 29, sia accertato che l'agente è affetto da malattia, la cura della quale è incompatibile con la prestazione del servizio, e che lascia fondata speranza di guarigione, entro il tempo per cui l'<mark class="kw">aspettativa</mark> stessa è richiesta.
               </p>
               <p>
-                L'aspettativa è deliberata dal direttore, il quale ne determina la durata; questa può essere prorogata, ma non mai eccedere in complesso i diciotto mesi, quando si tratti di aspettativa concessa per motivi di salute.
+                L'<mark class="kw">aspettativa</mark> è deliberata dal direttore, il quale ne determina la durata; questa può essere prorogata, ma non mai eccedere in complesso i <mark class="kw">diciotto mesi</mark>, quando si tratti di <mark class="kw">aspettativa</mark> concessa per motivi di salute.
               </p>
               <p>
-                L'aspettativa per motivi di salute può in ogni momento essere revocata, e si può far luogo all'esonero, ove un giudizio medico, reso con le forme dell'art. 29, stabilisca l'inutilità di continuare l'aspettativa medesima.
+                L'<mark class="kw">aspettativa</mark> per motivi di salute può in ogni momento essere revocata, e si può far luogo all'esonero, ove un giudizio medico, reso con le forme dell'art. 29, stabilisca l'inutilità di continuare l'<mark class="kw">aspettativa</mark> medesima.
               </p>
               <p>
-                L'aspettativa è revocata quando siano venute a cessare le cause per cui fu disposta.
+                L'<mark class="kw">aspettativa</mark> è revocata quando siano venute a cessare le cause per cui fu disposta.
               </p>
               <p>
-                Durante il periodo di aspettativa per motivi di salute l'agente ha diritto, per la durata di un anno, sui fondi della Cassa soccorso e dopo il trattamento di malattia, di cui all'art. 23, alla metà dello stipendio o della paga, se solo o con una o due persone di famiglia a carico, e a due terzi se le persone di famiglia a carico superano le due.
+                Durante il periodo di <mark class="kw">aspettativa</mark> per motivi di salute l'agente ha diritto, per la durata di un anno, sui fondi della Cassa soccorso e dopo il trattamento di malattia, di cui all'art. 23, alla metà dello stipendio o della paga, se solo o con una o due persone di famiglia a carico, e a due terzi se le persone di famiglia a carico superano le due.
               </p>
               <p>
                 Per gli agenti che hanno meno di cinque anni di servizio, il trattamento è ridotto di un quarto.
               </p>
               <p>
-                In caso di aspettativa per provvedimenti preventivi giudiziari dipendenti da cause di servizio, il trattamento è a carico dell'azienda e, qualunque sia l'anzianità di servizio dell'agente, viene commisurato alla metà dello stipendio o della paga, per gli agenti soli o con meno di tre persone di famiglia a carico ed ai due terzi quando le persone di famiglia a carico siano tre o più.
+                In caso di <mark class="kw">aspettativa</mark> per provvedimenti preventivi giudiziari dipendenti da cause di servizio, il trattamento è a carico dell'azienda e, qualunque sia l'anzianità di servizio dell'agente, viene commisurato alla metà dello stipendio o della paga, per gli agenti soli o con meno di tre persone di famiglia a carico ed ai due terzi quando le persone di famiglia a carico siano tre o più.
               </p>
               <p>
-                Il tempo trascorso in aspettativa è computato per intero agli effetti dell'anzianità quando si tratti di aspettativa per motivi di salute, per servizio militare obbligatorio, anche nella M. V. S. N., per cariche sindacali che comportino l'allontanamento temporaneo dall'azienda o quando si tratti di aspettativa in dipendenza di provvedimenti preventivi giudiziari dipendenti da cause di servizio. L'aspettativa costituisce invece interruzione di servizio quando è accordata per motivi privati.
+                Il tempo trascorso in <mark class="kw">aspettativa</mark> è computato per intero agli effetti dell'anzianità quando si tratti di <mark class="kw">aspettativa</mark> per motivi di salute, per servizio militare obbligatorio, anche nella M. V. S. N., per cariche sindacali che comportino l'allontanamento temporaneo dall'azienda o quando si tratti di <mark class="kw">aspettativa</mark> in dipendenza di provvedimenti preventivi giudiziari dipendenti da cause di servizio. L'<mark class="kw">aspettativa</mark> costituisce invece interruzione di servizio quando è accordata per motivi privati.
               </p>
               <p>
-                Allo scadere dell'aspettativa, ove perdurino le cause che la motivarono, si fa luogo all'esonero definitivo dal servizio, salvo disposizioni eccezionali di competenza del direttore.
+                Allo scadere dell'<mark class="kw">aspettativa</mark>, ove perdurino le cause che la motivarono, si fa luogo all'esonero definitivo dal servizio, salvo disposizioni eccezionali di <mark class="kw">competenza del direttore</mark>.
               </p>
               <p>
-                È vietato all'agente in aspettativa per motivi di salute di occuparsi in altri impieghi lucrosi, senza il consenso scritto del direttore dell'azienda.
+                È vietato all'agente in <mark class="kw">aspettativa</mark> per motivi di salute di occuparsi in altri impieghi lucrosi, senza il consenso scritto del direttore dell'azienda.
               </p>
               <p>
-                L'agente in aspettativa per motivi di salute non può cambiare di residenza, se prima non abbia resa avvertita l'azienda, sotto pena della perdita del sussidio di cui al presente articolo.
+                L'agente in <mark class="kw">aspettativa</mark> per motivi di salute non può cambiare di residenza, se prima non abbia resa avvertita l'azienda, sotto pena della perdita del sussidio di cui al presente articolo.
               </p>
             </div>
           </article>
@@ -1464,9 +1623,12 @@
               <span class="art-num">Articolo 25 (All. A)</span>
               <span class="art-badge">Servizio Militare Personale in Prova</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">L'aspettativa per leva militare si applica anche agli agenti in prova senza pregiudizio della durata effettiva richiesta per il periodo di prova.</span>
+              </div>
               <p>
-                Le disposizioni dell'art. 24 relative all'aspettativa per servizio militare obbligatorio sono applicabili anche al personale in prova, senza pregiudizio però della durata complessiva dell'effettivo periodo di prova, come è stabilito all'articolo 13.
+                Le disposizioni dell'art. 24 relative all'<mark class="kw">aspettativa</mark> per servizio militare obbligatorio sono applicabili anche al personale in prova, senza pregiudizio però della durata complessiva dell'effettivo periodo di prova, come è stabilito all'articolo 13.
               </p>
             </div>
           </article>
@@ -1477,9 +1639,12 @@
               <span class="art-num">Articolo 26 (All. A)</span>
               <span class="art-badge">Cessioni di Linee e Indennità di Buonuscita <sup class="fn-ref" id="fn-ref-23" data-note="23" onclick="jumpNote(23, this)" title="Vai alla nota 23">[23]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Tutela dell'anzianità e diritti acquisiti nelle cessioni di linea; indennità di buonuscita per esonero senza pensione (1 mese per i primi 5 anni, 15 gg per i successivi) e prelazione per 5 anni.</span>
+              </div>
               <p>
-                In caso di cessione di linee ad altra azienda, o fusione di aziende, devono essere osservate le disposizioni stabilite dall'autorità governativa all'atto dell'approvazione della cessione o della fusione pel passaggio del personale di ruolo alla nuova azienda, mantenendo, per quanto è possibile, al personale un trattamento non inferiore a quello precedentemente goduto e assicurando i diritti acquisiti.
+                In caso di cessione di linee ad altra azienda, o fusione di aziende, devono essere osservate le disposizioni stabilite dall'autorità governativa all'atto dell'approvazione della cessione o della fusione pel passaggio del <mark class="kw">personale di ruolo</mark> alla nuova azienda, mantenendo, per quanto è possibile, al personale un trattamento non inferiore a quello precedentemente goduto e assicurando i diritti acquisiti.
               </p>
               <p>
                 In caso di mutamento nei sistemi di esercizio, l'azienda deve utilizzare, in quanto sia dichiarato idoneo dall'autorità governativa, e nei limiti dei posti da questa riconosciuti necessari, il personale addetto ai vari servizi, rispettandone, per quanto è possibile, i diritti acquisiti.
@@ -1491,10 +1656,10 @@
                 L'azienda è tenuta a riprendere di preferenza gli agenti esonerati, che ne facciano domanda, a misura che si rendono vacanti i posti, cui essi sono idonei, purché durante il servizio precedentemente prestato non siano incorsi in una delle mancanze previste dagli articoli 43 e 45. Il diritto alla preferenza si estingue dopo il quinto anno dall'esonero.
               </p>
               <p>
-                Nei casi considerati dal presente articolo ed in quello di cessazione definitiva dell'esercizio è accordata al personale esonerato, che non abbia maturato diritto a pensione, una indennità di buonuscita nella misura di un mese di stipendio o paga ultimi raggiunti per i primi cinque anni, e di 15 giorni per i successivi anni di servizio esclusi quelli prestati in condizione di ordinario o di straordinario.
+                Nei casi considerati dal presente articolo ed in quello di cessazione definitiva dell'esercizio è accordata al personale esonerato, che non abbia maturato diritto a pensione, una <mark class="kw">indennità di buonuscita</mark> nella misura di un mese di stipendio o paga ultimi raggiunti per i primi cinque anni, e di 15 giorni per i successivi anni di servizio esclusi quelli prestati in condizione di ordinario o di straordinario.
               </p>
               <p>
-                In ogni caso l'indennità non può essere minore di due mesi, né maggiore di dodici mesi dello stipendio o paga ultimi raggiunti.
+                In ogni caso l'indennità non può essere minore di due mesi, né maggiore di <mark class="kw">dodici mesi</mark> dello stipendio o paga ultimi raggiunti.
               </p>
               <p>
                 Nei casi di riduzione di posti per limitazione, semplificazione o soppressione di servizi, l'agente esonerato conserva il diritto di preferenza qualora rifiuti l'indennità entro due mesi dalla notifica fattagli.
@@ -1508,7 +1673,10 @@
               <span class="art-num">Articolo 27 (All. A)</span>
               <span class="art-badge">Esonero Definitivo dal Servizio</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Cause di esonero definitivo del personale stabile: limiti di età pensionabile, inidoneità fisica, insufficienza non colposa, scarso rendimento o demerito fiduciario post-processo penale.</span>
+              </div>
               <p>
                 Oltre ai casi di cui alle disposizioni speciali relative agli agenti in prova ed a quelli previsti nel precedente articolo, l'azienda può far luogo all'esonero definitivo dal servizio degli agenti stabili:
               </p>
@@ -1517,16 +1685,16 @@
                 <li><strong>b)</strong> per inabilità al servizio nelle funzioni proprie della qualifica di cui è rivestito l'agente, quando non accetti altre mansioni, compatibili con le sue attitudini o condizioni, in posti disponibili;</li>
                 <li><strong>c)</strong> per palese insufficienza nell'adempimento delle funzioni del proprio grado non imputabile a colpa dell'agente, quando questi non accetti il grado inferiore che gli può essere assegnato;</li>
                 <li><strong>d)</strong> per scarso rendimento o per palese insufficienza imputabile a colpa dell'agente nell'adempimento delle funzioni del proprio grado;</li>
-                <li><strong>e)</strong> quando gli agenti prosciolti od assolti da imputazioni previste dall'art. 45 n. 7 del presente regolamento, in seguito a verdetto negativo dei giurati, oppure con ordinanza o sentenza dell'autorità giudiziaria per insufficienza di indizi, per non provata reità o con altra formula equipollente, non siano giudicati meritevoli della fiducia necessaria per essere conservati in servizio.</li>
+                <li><strong>e)</strong> quando gli agenti prosciolti od assolti da imputazioni previste dall'art. 45 n. 7 del presente regolamento, in seguito a verdetto negativo dei giurati, oppure con ordinanza o sentenza dell'<mark class="kw">autorità giudiziaria</mark> per insufficienza di indizi, per non provata reità o con altra formula equipollente, non siano giudicati meritevoli della fiducia necessaria per essere conservati in servizio.</li>
               </ul>
               <p>
                 Nei casi di cui alla lettera b), l'esonero è disposto in seguito a giudizio medico, reso nelle forme e nei modi stabiliti dall'art. 29.
               </p>
               <p>
-                Nei casi di cui alle lettere c), d) ed e) l'esonero è invece disposto sentito il parere del Consiglio di disciplina di cui all'art. 54, al quale spetta pure di fare le proposte circa il grado inferiore, che può essere assegnato nei casi di cui alla lettera c). Il parere del Consiglio di disciplina è reso in seguito a rapporto dell'azienda e sentito personalmente l'agente interessato qualora questi ne faccia richiesta.
+                Nei casi di cui alle lettere c), d) ed e) l'esonero è invece disposto sentito il parere del <mark class="kw">Consiglio di disciplina</mark> di cui all'art. 54, al quale spetta pure di fare le proposte circa il grado inferiore, che può essere assegnato nei casi di cui alla lettera c). Il parere del <mark class="kw">Consiglio di disciplina</mark> è reso in seguito a rapporto dell'azienda e sentito personalmente l'agente interessato qualora questi ne faccia richiesta.
               </p>
               <p>
-                Agli agenti esonerati a norma del presente articolo prima che abbiano maturato il diritto a pensione, è corrisposta l'indennità di buonuscita di cui al quinto e sesto comma del precedente articolo 26.
+                Agli agenti esonerati a norma del presente articolo prima che abbiano maturato il diritto a pensione, è corrisposta l'<mark class="kw">indennità di buonuscita</mark> di cui al quinto e sesto comma del precedente articolo 26.
               </p>
               <p>
                 Tale indennità spetta parimenti in caso di morte dell'agente, alle norme indicate agli articoli 15 e 16 del regolamento 30 settembre 1920, n. 1538, qualora non abbiano diritto a pensione.
@@ -1540,7 +1708,10 @@
               <span class="art-num">Articolo 28 (All. A)</span>
               <span class="art-badge">Infortunio sul Lavoro e Rendita <sup class="fn-ref" id="fn-ref-25" data-note="25" onclick="jumpNote(25, this)" title="Vai alla nota 25">[25]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Infortunio sul lavoro: conservazione dello stipendio d'origine anche se assegnato a mansioni inferiori, rendita INAIL diretta e liquidazione quote accantonate.</span>
+              </div>
               <p>
                 Con effetto dal 1° luglio 1969, all'agente inabile permanentemente per infortunio sul lavoro occorso successivamente al 30 giugno 1969, che rimanga in servizio, anche se adibito ad altre mansioni, spetta lo stipendio o paga relativo alla qualifica che rivestiva prima dell'infortunio.
               </p>
@@ -1559,12 +1730,15 @@
               <span class="art-num">Articolo 29 (All. A)</span>
               <span class="art-badge">Visite Mediche e Collegio Sanitario <sup class="fn-ref" id="fn-ref-27" data-note="27" onclick="jumpNote(27, this)" title="Vai alla nota 27">[27]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Accertamenti sanitari dei medici aziendali; ricorso entro 10 giorni con medico di parte e collegio presieduto da medico provinciale; stipendio conservato durante l'iter.</span>
+              </div>
               <p>
                 L'accertamento dei requisiti fisici degli agenti è eseguito da medici di fiducia della azienda.
               </p>
               <p>
-                L'agente o chi abbia titolo di preferenza, a termini dell'art. 9, può ottenere un nuovo accertamento della inabilità, purché ne presenti domanda corredata da certificato medico motivato, entro 10 giorni dalla partecipazione del primo giudizio. Nel nuovo accertamento, da eseguirsi entro dieci giorni dalla richiesta, l'agente ha facoltà di farsi assistere, a sue spese, da medici di sua fiducia, in numero pari a quelli dell'azienda.
+                L'agente o chi abbia titolo di preferenza, a termini dell'art. 9, può ottenere un nuovo accertamento della inabilità, purché ne presenti domanda corredata da certificato medico motivato, entro 10 giorni dalla partecipazione del primo giudizio. Nel nuovo accertamento, da eseguirsi entro <mark class="kw">dieci giorni</mark> dalla richiesta, l'agente ha facoltà di farsi assistere, a sue spese, da medici di sua fiducia, in numero pari a quelli dell'azienda.
               </p>
               <p>
                 In caso di mancato accordo il giudizio è deferito al collegio composto dai sanitari predetti, presieduto da un medico scelto dell'Ufficio sanitario provinciale.
@@ -1587,9 +1761,12 @@
               <span class="art-num">Articolo 30 (All. A)</span>
               <span class="art-badge">Dimissioni Volontarie</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Le dimissioni volontarie devono essere scritte e hanno effetto solo dopo formale accettazione aziendale (entro 1 mese); obbligo di servizio fino alla risposta.</span>
+              </div>
               <p>
-                Le dimissioni volontarie devono essere presentate per iscritto; esse non hanno valore finché non sono accertate dall'azienda; l'accettazione è deliberata entro un mese dalla presentazione salvo che il richiedente sia incorso in mancanze per cui sia passibile della destituzione nel qual caso l'azienda ha la facoltà di sospenderle o di respingerle.
+                Le <mark class="kw">dimissioni volontarie</mark> devono essere presentate per iscritto; esse non hanno valore finché non sono accertate dall'azienda; l'accettazione è deliberata <mark class="kw">entro un mese</mark> dalla presentazione salvo che il richiedente sia incorso in mancanze per cui sia passibile della destituzione nel qual caso l'azienda ha la facoltà di sospenderle o di respingerle.
               </p>
               <p>
                 L'agente dimissionario, fino a quando le sue dimissioni non siano state accettate ha l'obbligo di continuare a prestare regolare servizio.
@@ -1606,9 +1783,12 @@
               <span class="art-num">Articolo 31 (All. A)</span>
               <span class="art-badge">Riammissione da Leva o Cariche</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Riammissione in organico entro 1 mese dal congedo militare o mandato sindacale con pari grado e stipendio differenziale durante il richiamo alle armi.</span>
+              </div>
               <p>
-                Gli agenti collocati in aspettativa per ragioni di servizio militare, anche nella M.V.S.N. e per cariche sindacali, a norma degli artt. 24 e 25, sono riammessi, dopo ottenuto il congedo, nella posizione che avevano in precedenza o in altra equivalente, sempreché ne facciano domanda entro un mese dal congedo o dalla cessazione della carica, conservino la idoneità fisica richiesta dal regolamento e nel caso di servizio militare abbiano riportata la dichiarazione di buona condotta ed esibiscano il foglio matricolare.
+                Gli agenti collocati in <mark class="kw">aspettativa</mark> per ragioni di servizio militare, anche nella M.V.S.N. e per cariche sindacali, a norma degli artt. 24 e 25, sono riammessi, dopo ottenuto il congedo, nella posizione che avevano in precedenza o in altra equivalente, sempreché ne facciano domanda <mark class="kw">entro un mese</mark> dal congedo o dalla cessazione della carica, conservino la idoneità fisica richiesta dal regolamento e nel caso di servizio militare abbiano riportata la dichiarazione di buona condotta ed esibiscano il foglio matricolare.
               </p>
               <p>
                 Agli agenti richiamati sotto le armi per qualsiasi motivo viene corrisposto lo stipendio o la paga, sotto deduzione dello stipendio o sussidio corrisposto dallo Stato al richiamato od alla sua famiglia.
@@ -1625,7 +1805,10 @@
               <span class="art-num">Articolo 32 (All. A)</span>
               <span class="art-badge">Assenze per Testimonianze e Giustizia</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Permessi retribuiti e stipendio garantito per doveri di giustizia, testimonianze e inchieste infortuni connesse al servizio, non computabili come ferie.</span>
+              </div>
               <p>
                 È corrisposto lo stipendio o paga, per tutta la necessaria durata dell'assenza, dedotte le indennità spettanti a sensi di legge, agli agenti che siano chiamati a prestare servizio come giurati ed a quelli che siano citati come testimoni:
               </p>
@@ -1638,7 +1821,7 @@
               <p>È pure corrisposto l'intero stipendio o paga per tutta la durata necessaria dell'assenza:</p>
               <ol>
                 <li><strong>1°</strong> all'agente leso in un infortunio sul lavoro, ove già come infortunato non riceva l'intero stipendio o paga od a quelli scelti dal pretore per rappresentarlo, quando siano citati per l'inchiesta sull'infortunio;</li>
-                <li><strong>2°</strong> agli agenti sottoposti a giudizio penale siccome imputati di infortunio sul lavoro in danno di altri agenti, quando siano citati a comparire davanti all'autorità giudiziaria e sempre quando risultino irresponsabili dei fatti;</li>
+                <li><strong>2°</strong> agli agenti sottoposti a giudizio penale siccome imputati di infortunio sul lavoro in danno di altri agenti, quando siano citati a comparire davanti all'<mark class="kw">autorità giudiziaria</mark> e sempre quando risultino irresponsabili dei fatti;</li>
                 <li><strong>3°</strong> agli agenti che si recano alla pretura per asseverare verbali di contravvenzione o per rendere testimonianza nel relativo procedimento.</li>
               </ol>
               <p>
@@ -1659,7 +1842,10 @@
               <span class="art-num">Articolo 33 (All. A)</span>
               <span class="art-badge">Cauzione Dipendenti Maneggio Denaro</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Cauzione vincolata obbligatoria per dipendenti addetti a maneggio denaro o materiali di magazzino, con interessi al dipendente e rivalsa per ammanchi.</span>
+              </div>
               <p>
                 Il personale che ha gestione di danaro o di materiali può essere obbligato al deposito di una cauzione, il cui importo e le cui modalità di versamento sono stabilite dalla azienda, secondo l'importanza della gestione affidata all'agente.
               </p>
@@ -1678,7 +1864,10 @@
               <span class="art-num">Articolo 34 (All. A)</span>
               <span class="art-badge">Biglietti di Viaggio e Libera Circolazione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Concessione annuale di titoli di viaggio e buoni bagaglio gratuiti o scontati per gli agenti e i familiari conviventi a carico.</span>
+              </div>
               <p>
                 Agli agenti e loro famiglie vengono concessi annualmente, sulle linee esercitate dall'azienda, biglietti di viaggio e buoni per trasporto di bagaglio gratuito od a prezzo ridotto.
               </p>
@@ -1703,7 +1892,10 @@
               <span class="art-num">Articolo 35 (All. A)</span>
               <span class="art-badge">Orari di Servizio <sup class="fn-ref" id="fn-ref-30" data-note="30" onclick="jumpNote(30, this)" title="Vai alla nota 30">[30]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Gli orari e turni di servizio del personale sono soggetti all'approvazione formale dell'autorità competente.</span>
+              </div>
               <p>
                 Gli orari di servizio sono approvati dalle competenti autorità a norma delle disposizioni vigenti.
               </p>
@@ -1716,7 +1908,10 @@
               <span class="art-num">Articolo 36 (All. A)</span>
               <span class="art-badge">Assorbimento Riposi Pagati</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">I giorni di riposo settimanale retribuito si intendono assorbiti durante le assenze prolungate per malattia, aspettativa o assenza arbitraria.</span>
+              </div>
               <p>
                 Durante le assenze dal servizio disciplinate dagli artt. 22, 23, 24, 25, 28, 31, 32, 42, 46 del presente regolamento e durante le assenze arbitrarie, si intendono assorbiti i giorni di riposo pagato, che cadono nei predetti periodi di assenza.
               </p>
@@ -1744,21 +1939,24 @@
               <span class="art-num">Articolo 37 (All. A)</span>
               <span class="art-badge">Graduazione delle Sanzioni</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Graduazione delle 6 sanzioni disciplinari: censura, multa, sospensione, proroga aumento, retrocessione e destituzione; trasloco punitivo come pena accessoria.</span>
+              </div>
               <p>Le punizioni che si possono infliggere agli agenti sono le seguenti:</p>
               <ol>
-                <li><strong>1° la censura:</strong> che è una riprensione per iscritto;</li>
-                <li><strong>2° la multa:</strong> che è una ritenuta dello stipendio o della paga; può elevarsi fino all'importo di una giornata di mercede ed è devoluta al fondo di riserva della Cassa soccorso;</li>
-                <li><strong>3° la sospensione dal servizio:</strong> che ha per effetto di privare dello stipendio o paga l'agente che ne è colpito, per una durata che può estendersi a 15 giorni od, in caso di recidiva entro due mesi, fino a 20 giorni;</li>
-                <li><strong>4° la proroga del termine normale per l'aumento dello stipendio o della paga:</strong> per la durata di tre o sei mesi od un anno per le aziende presso le quali siano stabiliti aumenti periodici dello stesso stipendio o paga;</li>
-                <li><strong>5° la retrocessione;</strong></li>
-                <li><strong>6° la destituzione.</strong></li>
+                <li><strong>1° <mark class="kw">la censura</mark>:</strong> che è una riprensione per iscritto;</li>
+                <li><strong>2° <mark class="kw">la multa</mark>:</strong> che è una ritenuta dello stipendio o della paga; può elevarsi fino all'importo di una giornata di mercede ed è devoluta al fondo di riserva della Cassa soccorso;</li>
+                <li><strong>3° <mark class="kw"><mark class="kw">la sospensione</mark> dal servizio</mark>:</strong> che ha per effetto di privare dello stipendio o paga l'agente che ne è colpito, per una durata che può estendersi a 15 giorni od, in caso di recidiva entro due mesi, fino a 20 giorni;</li>
+                <li><strong>4° la <mark class="kw">proroga del termine normale per l'aumento</mark> dello stipendio o della paga:</strong> per la durata di tre o sei mesi od un anno per le aziende presso le quali siano stabiliti aumenti periodici dello stesso stipendio o paga;</li>
+                <li><strong>5° <mark class="kw">la retrocessione</mark>;</strong></li>
+                <li><strong>6° <mark class="kw">la destituzione</mark>.</strong></li>
               </ol>
               <p>
-                La multa è applicabile anche agli agenti ordinari <sup class="fn-ref" id="fn-ref-33" data-note="33" onclick="jumpNote(33, this)" title="Vai alla nota 33">[33]</sup> e straordinari <sup class="fn-ref" id="fn-ref-34" data-note="34" onclick="jumpNote(34, this)" title="Vai alla nota 34">[34]</sup>.
+                <mark class="kw">La multa</mark> è applicabile anche agli agenti ordinari <sup class="fn-ref" id="fn-ref-33" data-note="33" onclick="jumpNote(33, this)" title="Vai alla nota 33">[33]</sup> e straordinari <sup class="fn-ref" id="fn-ref-34" data-note="34" onclick="jumpNote(34, this)" title="Vai alla nota 34">[34]</sup>.
               </p>
               <p>
-                Con deliberazione del Consiglio di disciplina di cui all'art. 54, agli agenti può essere inflitto, come punizione accessoria, quando vi siano ragioni di incompatibilità locali e nei casi previsti dal presente regolamento, <strong>il trasloco punitivo</strong>, che priva l'agente delle indennità regolamentari, salvo il rimborso delle spese vive.
+                Con deliberazione del <mark class="kw">Consiglio di disciplina</mark> di cui all'art. 54, agli agenti può essere inflitto, come punizione accessoria, quando vi siano ragioni di incompatibilità locali e nei casi previsti dal presente regolamento, <strong>il <mark class="kw">trasloco punitivo</mark></strong>, che priva l'agente delle indennità regolamentari, salvo il rimborso delle spese vive.
               </p>
             </div>
           </article>
@@ -1769,7 +1967,10 @@
               <span class="art-num">Articolo 38 (All. A)</span>
               <span class="art-badge">Risarcimento Danni e Ritenute <sup class="fn-ref" id="fn-ref-35" data-note="35" onclick="jumpNote(35, this)" title="Vai alla nota 35">[35]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Diritto aziendale di rivalsa e trattenuta sulla retribuzione per danni colposi, mancate esazioni e differenze contabili (con autorizzazione Ispettorato oltre 5.000 lire).</span>
+              </div>
               <p>
                 L'Azienda ha diritto di ottenere il risarcimento dei danni subiti per colpa dei suoi dipendenti, sia praticando ritenute sui loro stipendi o paghe, nei limiti consentiti dalle leggi vigenti, sia esercitando le azioni che le competono secondo il diritto comune, dopo aver accertato chi abbia causato il danno e l'entità dello stesso.
               </p>
@@ -1788,12 +1989,15 @@
               <span class="art-num">Articolo 39 (All. A)</span>
               <span class="art-badge">Personale Scorta e Sottrazioni Merci</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Cambio d'incarico per il personale addetto alla scorta treni/merci dopo 3 sottrazioni o manomissioni registrate in un triennio sul carico affidato.</span>
+              </div>
               <p>
                 Indipendentemente dalle punizioni di cui all'art. 37 e dal disposto dell'art. 3, gli agenti addetti alla scorta dei treni, nei quali siano state segnalate per tre volte sottrazioni o manomissioni di bagagli o merci, vengono adibiti ad altre attribuzioni, quando anche non siano imputabili che di poca diligenza nell'esercizio delle loro funzioni.
               </p>
               <p>
-                Per l'applicazione di tali disposizioni è tenuto conto delle sottrazioni o manomissioni verificatesi solo nel periodo di tre anni, precedente al tempo in cui si è constata l'ultima sottrazione o manomissione.
+                Per l'applicazione di tali disposizioni è tenuto conto delle sottrazioni o manomissioni verificatesi solo nel periodo di <mark class="kw">tre anni</mark>, precedente al tempo in cui si è constata l'ultima sottrazione o manomissione.
               </p>
               <p>A tal fine è fatta speciale annotazione:</p>
               <ul>
@@ -1812,7 +2016,10 @@
               <span class="art-num">Articolo 40 (All. A)</span>
               <span class="art-badge">Censura (Richiamo Preliminare)</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">La censura consiste in una riprensione scritta preliminare per disattenzioni e lievi negligenze prive di intenzionalità offensiva.</span>
+              </div>
               <p>
                 La <strong>censura</strong>, che ha un carattere di preliminare richiamo, si infligge all'agente che commette in servizio mancanze lievi non specificate negli articoli successivi, e nei casi di inadempienze agli ordini superiori o alle disposizioni regolamentari, commesse senza l'intenzione di offendere persone o cose dell'azienda.
               </p>
@@ -1825,7 +2032,10 @@
               <span class="art-num">Articolo 41 (All. A)</span>
               <span class="art-badge">Multa</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Multa (fino a 4 ore di paga ex L. 300/70) per ritardi orari, lievi disordini, assenze arbitrarie di 1 giorno e inosservanza norme prevenzione senza danno.</span>
+              </div>
               <p>Si incorre nella <strong>multa</strong>:</p>
               <ol>
                 <li><strong>1)</strong> per la inosservanza dell'orario di servizio o per la mancanza di diligenza nel proprio ufficio che non abbiano recato danno al servizio;</li>
@@ -1845,7 +2055,10 @@
               <span class="art-num">Articolo 42 (All. A)</span>
               <span class="art-badge">Sospensione dal Servizio</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Sospensione dal servizio (fino a 10 gg ex L. 300/70) per 20 ipotesi di gravità intermedia: scorrettezza verso il pubblico, ingiurie, assenze arbitrarie da 2 a 5 giorni, mance o ubriachezza.</span>
+              </div>
               <p>Si incorre nella <strong>sospensione</strong>:</p>
               <ol>
                 <li><strong>1)</strong> per la inosservanza dell'orario di servizio o per la mancanza di diligenza nel proprio ufficio quando abbia recato danno al servizio;</li>
@@ -1870,10 +2083,10 @@
                 <li><strong>20)</strong> per avere domandato mance o regali in qualsiasi caso, oppure per averne accettati allo scopo di procurare vantaggi ad estranei in ogni ramo di servizio, quando la mancanza non assuma figura più grave.</li>
               </ol>
               <p>
-                Può essere inflitto come punizione accessoria, a norma dell'art. 37, il <strong>trasloco punitivo</strong>, quando siasi prodotta incompatibilità di permanenza nel luogo di residenza.
+                Può essere inflitto come punizione accessoria, a norma dell'art. 37, il <strong><mark class="kw">trasloco punitivo</mark></strong>, quando siasi prodotta incompatibilità di permanenza nel luogo di residenza.
               </p>
               <p>
-                Nei casi previsti ai paragrafi dal 1° al 12° compreso, la sospensione può estendersi fino a 5 giorni e negli altri casi fino a 15 giorni. Verificandosi recidiva entro sei mesi, la durata della sospensione può essere aumentata di un terzo rispettivamente sino a 8 e 20 giorni.
+                Nei casi previsti ai paragrafi dal 1° al 12° compreso, <mark class="kw">la sospensione</mark> può estendersi fino a 5 giorni e negli altri casi fino a 15 giorni. Verificandosi recidiva <mark class="kw">entro sei mesi</mark>, la durata della sospensione può essere aumentata di un terzo rispettivamente sino a 8 e 20 giorni.
               </p>
               <p>
                 Nei casi previsti dai paragrafi 5° ed 8°, la punizione si applica indipendentemente dalla perdita dello stipendio o dalla paga per le giornate di assenza.
@@ -1887,11 +2100,14 @@
               <span class="art-num">Articolo 43 (All. A)</span>
               <span class="art-badge">Proroga del Termine per l'Aumento di Stipendio</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Proroga dell'aumento periodico (da 3 mesi a 1 anno) per falsa testimonianza a favore di colleghi, assenza arbitraria vietata, insubordinazione grave, diffamazione o doppio lavoro.</span>
+              </div>
               <p>Si incorre nella <strong>proroga del termine per l'aumento dello stipendio o della paga</strong>:</p>
               <ol>
                 <li><strong>1)</strong> per falso deposto o calcolata reticenza nelle risposte, in caso d'inchiesta su irregolarità di servizio allo scopo di occultare la verità per giovare ad altri agenti;</li>
-                <li><strong>2)</strong> per assenze arbitrarie fino a cinque giorni, avvenute nonostante divieto da parte dei superiori;</li>
+                <li><strong>2)</strong> per assenze arbitrarie fino a <mark class="kw">cinque giorni</mark>, avvenute nonostante divieto da parte dei superiori;</li>
                 <li><strong>3)</strong> per rifiuto di obbedienza ad ordini attinenti al servizio, minacce od ingiurie gravi verso i superiori od altre mancanze congeneri;</li>
                 <li><strong>4)</strong> per calunnie o diffamazioni verso l'azienda o verso altri agenti, benché non superiori di grado ed in quest'ultimo caso quando possa derivarne qualsiasi danno al servizio;</li>
                 <li><strong>5)</strong> per contravvenzioni alle disposizioni dell'art. 5 o per occupazioni che possano risultare in contrasto coi doveri d'ufficio.</li>
@@ -1912,7 +2128,7 @@
                 Nei casi previsti dal paragrafo 2°, la punizione si applica indipendentemente dalla perdita dello stipendio o della paga per le giornate di assenza.
               </p>
               <p>
-                Al personale dipendente da aziende presso le quali non siano stabiliti aumenti periodici di stipendio o paga sarà applicata, per le mancanze previste dal presente articolo, la sospensione, la cui durata potrà essere aumentata fino a un terzo. Nel caso previsto al n. 2 del presente articolo si applica altresì la disposizione dell'ultimo comma dell'art. 42.
+                Al personale dipendente da aziende presso le quali non siano stabiliti aumenti periodici di stipendio o paga sarà applicata, per le mancanze previste dal presente articolo, <mark class="kw">la sospensione</mark>, la cui durata potrà essere aumentata fino a un terzo. Nel caso previsto al n. 2 del presente articolo si applica altresì la disposizione dell'ultimo comma dell'art. 42.
               </p>
             </div>
           </article>
@@ -1923,7 +2139,10 @@
               <span class="art-num">Articolo 44 (All. A)</span>
               <span class="art-badge">Retrocessione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Retrocessione di grado per falso mirato a danneggiare colleghi, incidenti per colpa, disaffezione abituale grave o illeciti doganali/sanitari d'ufficio (reintegro dopo 1 anno se meritevole).</span>
+              </div>
               <p>Si incorre nella <strong>retrocessione</strong>:</p>
               <ol>
                 <li><strong>1)</strong> per falso deposto o calcolata reticenza nelle risposte ai superiori, allo scopo di occultare la verità per nuocere ad altri agenti;</li>
@@ -1936,10 +2155,10 @@
                 Per effetto della retrocessione gli agenti vengono trasferiti al grado immediatamente inferiore; però quando il provvedimento stesso viene applicato, a norma dell'art. 55, in sostituzione della destituzione può farsi luogo eccezionalmente alla retrocessione di due gradi; e quando trattisi di togliere o non ridare le funzioni nelle quali fu commessa la mancanza da punirsi, oppure di rimettere gli agenti nelle funzioni esercitate prima che siano stati promossi al grado da cui debbano essere retrocessi, viene assegnato quel grado che risulta necessario secondo la tabella graduatoria.
               </p>
               <p>
-                Per gli agenti, per i quali la retrocessione non è possibile, si fa luogo alla sospensione estensibile fino a 30 giorni con o senza trasloco punitivo cogli stessi effetti della retrocessione per quanto riguarda il disposto dell'art. 50 e dell'alinea seguente.
+                Per gli agenti, per i quali <mark class="kw">la retrocessione</mark> non è possibile, si fa luogo alla sospensione estensibile fino a 30 giorni con o senza <mark class="kw">trasloco punitivo</mark> cogli stessi effetti della retrocessione per quanto riguarda il disposto dell'art. 50 e dell'alinea seguente.
               </p>
               <p>
-                Alla retrocessione va sempre aggiunta la proroga del termine normale per l'aumento dello stipendio o paga, per la durata di tre o di sei mesi.
+                Alla retrocessione va sempre aggiunta la <mark class="kw">proroga del termine normale per l'aumento</mark> dello stipendio o paga, per la durata di tre o di sei mesi.
               </p>
               <p>
                 Dopo trascorso almeno un anno dalla retrocessione, gli agenti che ne siano ritenuti meritevoli possono ottenere la reintegrazione, per effetto della quale è restituita a ciascuno la qualifica che prima rivestiva, fermi restando gli effetti della pena accessoria della proroga, e salva la facoltà nell'azienda di farne cessare la ripercussione, ai sensi del terzo e quarto comma dell'art. 43.
@@ -1953,7 +2172,10 @@
               <span class="art-num">Articolo 45 (All. A)</span>
               <span class="art-badge">Destituzione <sup class="fn-ref" id="fn-ref-36" data-note="36" onclick="jumpNote(36, this)" title="Vai alla nota 36">[36]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Destituzione (licenziamento per giusta causa) per 20 gravissime condotte: appropriazione indebita, furto merci, truffa biglietti, condanne penali, ubriachezza alla guida, assenza >5 giorni.</span>
+              </div>
               <p>Incorre nella <strong>destituzione</strong>:</p>
               <ol>
                 <li><strong>1)</strong> chi si rende colpevole di offesa contro la persona del Re, dei Principi della Real Casa, del Capo del Governo e contro il Regime;</li>
@@ -1971,7 +2193,7 @@
                 <li><strong>13)</strong> chi trasgredisce scientemente le istruzioni e le cautele prescritte nel trasporto delle materie infiammabili od esplodenti, benché non ne sia derivato alcun danno;</li>
                 <li><strong>14)</strong> chi per mancanza di diligenza è causa di incendi a danno dell'azienda;</li>
                 <li><strong>15)</strong> chi altera dolosamente i piombi;</li>
-                <li><strong>16)</strong> chi sta arbitrariamente assente dal servizio oltre cinque giorni, nel qual caso la destituzione decorre dal primo giorno dell'assenza arbitraria;</li>
+                <li><strong>16)</strong> chi sta arbitrariamente assente dal servizio oltre <mark class="kw">cinque giorni</mark>, nel qual caso <mark class="kw">la destituzione</mark> decorre dal primo giorno dell'<mark class="kw">assenza arbitraria</mark>;</li>
                 <li><strong>17)</strong> chi, senza giustificazione di una causa di forza maggiore, non restituisce o restituisce manomessi i gruppi, i bagagli, le merci o i materiali in genere avuti in consegna, custodia o sorveglianza;</li>
                 <li><strong>18)</strong> chi, facendo parte del personale viaggiante oppure essendo addetto al ricevimento, alla manipolazione o custodia di bagagli, merci, valori o generi di magazzino, o anche alla lavorazione o manipolazione di materiali, ricusi di assoggettarsi o tenti di sottrarsi alle visite personali da eseguirsi sia da ufficiali od agenti di pubblica sicurezza, sia, in qualunque luogo pertinente all'azienda, anche da agenti di questa a ciò incaricati;</li>
                 <li><strong>19)</strong> gli agenti indicati nel paragrafo precedente, che siano trovati muniti di ordigni od oggetti atti a perpetrare o mascherare manomissioni, i quali non siano fra quelli di cui possa essere giustificato il possesso;</li>
@@ -1986,21 +2208,24 @@
               <span class="art-num">Articolo 46 (All. A)</span>
               <span class="art-badge">Sospensione Cautelare Preventiva <sup class="fn-ref" id="fn-ref-37" data-note="37" onclick="jumpNote(37, this)" title="Vai alla nota 37">[37]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Sospensione cautelare preventiva con assegno alimentare a metà stipendio per cause penali o destituzione; risarcimento integrale degli stipendi persi in caso di assoluzione.</span>
+              </div>
               <p>
                 Gli agenti sottoposti a procedimento penale per uno dei reati che danno luogo alla destituzione o che comunque trovansi in stato d'arresto, o siano implicati in fatti che possano dar luogo alla retrocessione od alla destituzione, possono, a giudizio insindacabile di chi ne ha la facoltà a termini dell'alinea seguente, essere sospesi in via preventiva dal soldo e dal servizio.
               </p>
               <p>
-                La sospensione preventiva è di massima disposta dal direttore.
+                <mark class="kw">La sospensione</mark> preventiva è di massima disposta dal direttore.
               </p>
               <p>
-                La sospensione preventiva dura, di regola, finché sia cessata o risolta la causa che la motivò.
+                <mark class="kw">La sospensione</mark> preventiva dura, di regola, finché sia cessata o risolta la causa che la motivò.
               </p>
               <p>
                 Però gli agenti sospesi in via preventiva possono in ogni tempo e a giudizio dell'azienda essere destinati temporaneamente, dietro loro domanda o consenso, finché dura il relativo procedimento disciplinare, ad attribuzioni diverse od anche inferiori a quelle inerenti al proprio grado, conservando in tal caso lo stipendio o paga, sempre che l'agente non risulti tassativamente e scientemente colpevole.
               </p>
               <p>
-                Alla famiglia dell'agente sospeso dallo stipendio o paga in via preventiva spetta un assegno alimentare corrispondente alla metà dello stipendio o della paga per la durata della sospensione, comprese le indennità fisse. La concessione dell'assegno alimentare è facoltativa per l'azienda, in caso di arresto non dovuto a causa di servizio.
+                Alla famiglia dell'agente sospeso dallo stipendio o paga in via preventiva spetta un <mark class="kw">assegno alimentare</mark> corrispondente alla metà dello stipendio o della paga per la durata della sospensione, comprese le indennità fisse. La concessione dell'<mark class="kw">assegno alimentare</mark> è facoltativa per l'azienda, in caso di arresto non dovuto a causa di servizio.
               </p>
               <p>
                 Nel caso di sospensione disposta per procedimento disciplinare o per arresto dovuto a cause di servizio, l'agente ha diritto all'indennizzo di quanto ha perduto per effetto della sospensione, sempreché sia assolto per non aver commesso il fatto, per inesistenza di reato o perché il fatto non costituisce reato.
@@ -2014,12 +2239,15 @@
               <span class="art-num">Articolo 47 (All. A)</span>
               <span class="art-badge">Mancanze del Personale in Prova</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Licenziamento immediato in tronco del personale in prova autore di mancanze da sospensione o destituzione, deliberato dal Direttore senza Consiglio di disciplina.</span>
+              </div>
               <p>
                 Gli agenti in prova, che incorrano in una delle mancanze indicate negli artt. 42 a 45 del presente regolamento, possono essere licenziati in qualunque momento senza compenso alcuno.
               </p>
               <p>
-                La deliberazione del licenziamento è di competenza del direttore e deve essere preceduta dalla constatazione delle mancanze e loro contestazioni agli incolpati, senza che sia necessaria l'effettuazione di una formale inchiesta né il giudizio consultivo del Consiglio di disciplina.
+                La deliberazione del licenziamento è di <mark class="kw">competenza del direttore</mark> e deve essere preceduta dalla constatazione delle mancanze e loro contestazioni agli incolpati, senza che sia necessaria l'effettuazione di una formale inchiesta né il giudizio consultivo del <mark class="kw">Consiglio di disciplina</mark>.
               </p>
               <p>
                 Gli agenti in prova licenziati non possono essere riammessi in servizio.
@@ -2033,7 +2261,10 @@
               <span class="art-num">Articolo 48 (All. A)</span>
               <span class="art-badge">Concorso di Mancanze e Tentativo</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Concorso di mancanze: si applica la pena della mancanza più grave; punizione aumentata di un grado per accordo fraudolento di gruppo; attenuazione per semplice tentativo.</span>
+              </div>
               <p>
                 Al colpevole di più mancanze che vengono giudicate contemporaneamente, si applica la sanzione disciplinare comminata per la mancanza più grave.
               </p>
@@ -2052,7 +2283,10 @@
               <span class="art-num">Articolo 49 (All. A)</span>
               <span class="art-badge">Complicità ed Omessa Denuncia</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Responsabilità disciplinare estesa a mandanti, complici, istigatori e a chi omette deliberatamente di segnalare gravi infrazioni conosciute.</span>
+              </div>
               <p>
                 I mandanti, gli istigatori ed i complici, in mancanze previste dal presente regolamento, sono puniti alla pari degli autori principali.
               </p>
@@ -2068,7 +2302,10 @@
               <span class="art-num">Articolo 50 (All. A)</span>
               <span class="art-badge">Recidiva Infra-Annuale</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Recidiva infra-annuale per infrazioni da sospensione, proroga o retrocessione: applicazione della sanzione di grado immediatamente superiore.</span>
+              </div>
               <p>
                 La recidiva entro un anno di mancanze previste negli artt. 42, 43 e 44 può dar luogo all'applicazione della pena di grado immediatamente superiore a quella precedentemente inflitta.
               </p>
@@ -2081,7 +2318,10 @@
               <span class="art-num">Articolo 51 (All. A)</span>
               <span class="art-badge">Procedura per Censura e Multa</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Censura e multa irrogate dai superiori locali delegati in modo rapido e senza formalità, sentite a verbale le difese del dipendente.</span>
+              </div>
               <p>
                 Le punizioni per le mancanze di cui agli artt. 40 e 41 sono inflitte dai superiori locali all'uopo delegati dal direttore, secondo gli ordinamenti in vigore, senza speciali formalità di procedura, ma sentite le giustificazioni degli incolpati.
               </p>
@@ -2094,7 +2334,10 @@
               <span class="art-num">Articolo 52 (All. A)</span>
               <span class="art-badge">Procedura per la Sospensione</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Sospensione dal servizio irrogata dal Direttore aziendale previa formale contestazione degli addebiti contestati all'agente.</span>
+              </div>
               <p>
                 Le punizioni per le mancanze di cui all'art. 42 sono inflitte, previo accertamento dei fatti costituenti la mancanza e loro contestazione all'incolpato, dal direttore o da chi ne esercita le funzioni.
               </p>
@@ -2107,12 +2350,15 @@
               <span class="art-num">Articolo 53 (All. A)</span>
               <span class="art-badge">Istruttoria e Opinamento del Direttore</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Istruttoria per sanzioni maggiori con opinamento scritto del Direttore; 5 giorni per difese scritte e 10 giorni perentori per chiedere il giudizio del Consiglio di Disciplina con effetto sospensivo.</span>
+              </div>
               <p>
                 In base ai rapporti che pervengono alla Direzione od agli uffici incaricati del servizio disciplinare, il direttore, o chi da esso delegato, fa eseguire, per mezzo di uno o più funzionari, le indagini e le constatazioni necessarie per l'accertamento di fatti costituenti le mancanze.
               </p>
               <p>
-                Nel caso in cui l'agente sia accusato di mancanza, per la quale sia prevista la retrocessione o la destituzione, i suddetti funzionari debbono contestare all'agente i fatti di cui è imputato, invitandolo a giustificarsi.
+                Nel caso in cui l'agente sia accusato di mancanza, per la quale sia prevista <mark class="kw">la retrocessione</mark> o <mark class="kw">la destituzione</mark>, i suddetti funzionari debbono contestare all'agente i fatti di cui è imputato, invitandolo a giustificarsi.
               </p>
               <p>
                 I funzionari, eseguite le indagini, debbono presentare una relazione scritta nella quale riassumono i fatti emersi, espongono su di essi gli apprezzamenti e le considerazioni concernenti tutte quelle speciali circostanze che possono influire sia a vantaggio, sia ad aggravio dell'incolpato e quindi espongono le conclusioni intese a determinare, secondo il proprio convincimento morale, le mancanze accertate ed i responsabili di esse.
@@ -2121,22 +2367,22 @@
                 Alla relazione saranno allegati tutti gli atti concernenti il fatto, comprese le deposizioni firmate dai rispettivi deponenti od interrogati. Se questi non possono o non vogliono firmare, dovranno indicarne il motivo.
               </p>
               <p>
-                In base alla relazione presentata, il direttore, o chi da esso delegato, esprime per le punizioni, di cui agli artt. 43 a 45, l'opinamento circa la punizione da infliggere.
+                In base alla relazione presentata, il direttore, o chi da esso delegato, esprime per le punizioni, di cui agli artt. 43 a 45, l'<mark class="kw">opinamento</mark> circa la punizione da infliggere.
               </p>
               <p>
-                Quante volte il direttore ritenga incompatibile, a termini dell'art. 46, la permanenza dell'agente in servizio, può ad esso applicare la sospensione preventiva fino a che sia intervenuto il provvedimento disciplinare definitivo.
+                Quante volte il direttore ritenga incompatibile, a termini dell'art. 46, la permanenza dell'agente in servizio, può ad esso applicare <mark class="kw">la sospensione</mark> preventiva fino a che sia intervenuto il provvedimento disciplinare definitivo.
               </p>
               <p>
-                L'opinamento è reso noto agli interessati con comunicazione scritta personale.
+                L'<mark class="kw">opinamento</mark> è reso noto agli interessati con comunicazione scritta personale.
               </p>
               <p>
-                Gli agenti interessati hanno diritto, entro cinque giorni dalla detta notifica, di presentare a voce o per iscritto eventuali nuove giustificazioni, in mancanza delle quali, entro il detto termine, il provvedimento disciplinare proposto diviene definitivo ed esecutivo.
+                Gli agenti interessati hanno diritto, entro <mark class="kw">cinque giorni</mark> dalla detta notifica, di presentare a voce o per iscritto eventuali nuove giustificazioni, in mancanza delle quali, entro il detto termine, il provvedimento disciplinare proposto diviene definitivo ed esecutivo.
               </p>
               <p>
-                Nel caso in cui l'agente abbia presentate le sue giustificazioni nel termine prescritto, ma queste non siano state accolte, l'agente ha diritto, ove lo creda, di chiedere che per le punizioni, sulle quali, ai sensi del seguente articolo, deve giudicare il Consiglio di disciplina, si pronunci il Consiglio stesso.
+                Nel caso in cui l'agente abbia presentate le sue giustificazioni nel termine prescritto, ma queste non siano state accolte, l'agente ha diritto, ove lo creda, di chiedere che per le punizioni, sulle quali, ai sensi del seguente articolo, deve giudicare il <mark class="kw">Consiglio di disciplina</mark>, si pronunci il Consiglio stesso.
               </p>
               <p>
-                Tale richiesta, che deve essere fatta nel termine perentorio di dieci giorni da quello in cui gli è stata confermata dal direttore la punizione opinata, sospende l'applicazione della punizione fino a che non sia intervenuta la decisione del Consiglio stesso.
+                Tale richiesta, che deve essere fatta nel termine perentorio di <mark class="kw">dieci giorni</mark> da quello in cui gli è stata confermata dal direttore la punizione opinata, sospende l'applicazione della punizione fino a che non sia intervenuta la decisione del Consiglio stesso.
               </p>
             </div>
           </article>
@@ -2147,9 +2393,12 @@
               <span class="art-num">Articolo 54 (All. A)</span>
               <span class="art-badge">Consiglio di Disciplina <sup class="fn-ref" id="fn-ref-38" data-note="38" onclick="jumpNote(38, this)" title="Vai alla nota 38">[38]</sup> <sup class="fn-ref" id="fn-ref-39" data-note="39" onclick="jumpNote(39, this)" title="Vai alla nota 39">[39]</sup> <sup class="fn-ref" id="fn-ref-40" data-note="40" onclick="jumpNote(40, this)" title="Vai alla nota 40">[40]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Composizione e nomina del Consiglio di Disciplina: 1 Magistrato Presidente, 3 membri aziendali e 3 rappresentanti sindacali dei lavoratori; durata quinquennale.</span>
+              </div>
               <p>
-                Le punizioni per le mancanze di cui agli artt. 43, 44 e 45 sono inflitte con deliberazione del Consiglio di disciplina costituito presso ciascuna azienda o ciascuna dipendenza da azienda con direzione autonoma:
+                Le punizioni per le mancanze di cui agli artt. 43, 44 e 45 sono inflitte con deliberazione del <mark class="kw">Consiglio di disciplina</mark> costituito presso ciascuna azienda o ciascuna dipendenza da azienda con direzione autonoma:
               </p>
               <ol>
                 <li><strong>1) da un presidente:</strong> nominato dal direttore dell'Ispettorato compartimentale della motorizzazione civile e trasporti in concessione e scelto preferibilmente tra i magistrati;</li>
@@ -2163,16 +2412,16 @@
                 Alla nomina dei rappresentanti aziendali e del personale provvede il Ministro per il lavoro e la previdenza sociale, di concerto con il Ministro per i trasporti, nonché con il Ministro per l'interno quando trattasi di personale di pubblici trasporti in concessione od in esercizio ad aziende municipalizzate a Comuni, Province, Regioni e relativi Consorzi.
               </p>
               <p>
-                Il Consiglio di disciplina è convocato dal presidente entro 15 giorni dalla domanda della parte interessata; ove alla prima convocazione non si presentino tutti i suoi componenti, il presidente indice una nuova riunione entro i successivi quindici giorni.
+                Il <mark class="kw">Consiglio di disciplina</mark> è convocato dal presidente entro 15 giorni dalla domanda della parte interessata; ove alla prima convocazione non si presentino tutti i suoi componenti, il presidente indice una nuova riunione entro i successivi <mark class="kw">quindici giorni</mark>.
               </p>
               <p>
-                L'azienda è tenuta a rimborsare le spese di viaggio e di soggiorno al presidente quando questi risieda in località diversa da quella ove si riunisce il Consiglio di disciplina.
+                L'azienda è tenuta a rimborsare le spese di viaggio e di soggiorno al presidente quando questi risieda in località diversa da quella ove si riunisce il <mark class="kw">Consiglio di disciplina</mark>.
               </p>
               <p>
-                I componenti il Consiglio di disciplina, costituito presso ciascuna azienda ferroviaria, tramviaria e di navigazione interna, salvo che non siano revocati, durano in carica un quinquennio e possono essere riconfermati.
+                I componenti il <mark class="kw">Consiglio di disciplina</mark>, costituito presso ciascuna azienda ferroviaria, tramviaria e di navigazione interna, salvo che non siano revocati, durano in carica un <mark class="kw">quinquennio</mark> e possono essere riconfermati.
               </p>
               <p>
-                I componenti il Consiglio predetto che siano nominati entro il quinquennio scadono con lo scadere di questo.
+                I componenti il Consiglio predetto che siano nominati entro il <mark class="kw">quinquennio</mark> scadono con lo scadere di questo.
               </p>
             </div>
           </article>
@@ -2183,12 +2432,15 @@
               <span class="art-num">Articolo 55 (All. A)</span>
               <span class="art-badge">Potere di Attenuazione e Condono</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Potere discrezionale di clemenza delle autorità giudicanti: applicazione di sanzioni ridotte, commutazione (es. retrocessione al posto della destituzione) o condono.</span>
+              </div>
               <p>
                 Le autorità competenti a giudicare delle singole mancanze possono, a seconda delle circostanze e nel loro prudente criterio, applicare una punizione di grado inferiore a quella stabilita per le mancanze stesse.
               </p>
               <p>
-                Quando, per effetto di questo articolo, in luogo della destituzione si infligge la retrocessione, la proroga del termine normale per l'aumento dello stipendio o della paga o la sospensione dal servizio, a tali provvedimenti può essere aggiunto, come punizione accessoria e con le norme dell'art. 37, il trasloco punitivo.
+                Quando, per effetto di questo articolo, in luogo della destituzione si infligge <mark class="kw">la retrocessione</mark>, la <mark class="kw">proroga del termine normale per l'aumento</mark> dello stipendio o della paga o <mark class="kw"><mark class="kw">la sospensione</mark> dal servizio</mark>, a tali provvedimenti può essere aggiunto, come punizione accessoria e con le norme dell'art. 37, il <mark class="kw">trasloco punitivo</mark>.
               </p>
               <p>
                 Le punizioni inflitte possono essere condonate, commutate o diminuite per deliberazione delle stesse autorità competenti a giudicare delle mancanze relative.
@@ -2202,12 +2454,15 @@
               <span class="art-num">Articolo 56 (All. A)</span>
               <span class="art-badge">Atti per il Consiglio e Accesso Fascicolo</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Accesso tempestivo al fascicolo e copie atti garantito all'incolpato nei casi da destituzione, con termine di almeno 5 giorni per depositare memorie prima del Consiglio.</span>
+              </div>
               <p>
-                Per mettere il Consiglio di disciplina in grado di deliberare, il direttore trasmette al presidente la relazione e gli atti indicati all'articolo 53.
+                Per mettere il <mark class="kw">Consiglio di disciplina</mark> in grado di deliberare, il direttore trasmette al presidente la relazione e gli atti indicati all'articolo 53.
               </p>
               <p>
-                Quando la relazione abbia concluso per l'accertamento di una mancanza passibile della destituzione il direttore provvede preventivamente perché l'incolpato possa prendere personalmente visione degli allegati alla relazione stessa e stabilisce all'uopo, secondo le circostanze, il modo e i termini. Contemporaneamente assegna all'incolpato il termine utile, non maggiore di cinque giorni, per presentare le sue ulteriori osservazioni.
+                Quando la relazione abbia concluso per l'accertamento di una mancanza passibile della destituzione il direttore provvede preventivamente perché l'incolpato possa prendere personalmente visione degli allegati alla relazione stessa e stabilisce all'uopo, secondo le circostanze, il modo e i termini. Contemporaneamente assegna all'incolpato il termine utile, non maggiore di <mark class="kw">cinque giorni</mark>, per presentare le sue ulteriori osservazioni.
               </p>
             </div>
           </article>
@@ -2218,9 +2473,12 @@
               <span class="art-num">Articolo 57 (All. A)</span>
               <span class="art-badge">Poteri Istruttori del Consiglio</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Poteri istruttori del Consiglio di Disciplina: supplementi d'indagine, perizie, sopralluoghi, audizione diretta di testimoni e dell'incolpato.</span>
+              </div>
               <p>
-                Il Consiglio di disciplina, pel migliore adempimento del suo mandato, può in qualunque stadio del procedimento ordinare od eseguire direttamente supplementi d'indagini, interrogare gli incolpati od ammetterli a presentare per iscritto ulteriori loro difese.
+                Il <mark class="kw">Consiglio di disciplina</mark>, pel migliore adempimento del suo mandato, può in qualunque stadio del procedimento ordinare od eseguire direttamente supplementi d'indagini, interrogare gli incolpati od ammetterli a presentare per iscritto ulteriori loro difese.
               </p>
             </div>
           </article>
@@ -2231,15 +2489,18 @@
               <span class="art-num">Articolo 58 (All. A)</span>
               <span class="art-badge">Esecutività, Ricorsi e Giurisdizione <sup class="fn-ref" id="fn-ref-41" data-note="41" onclick="jumpNote(41, this)" title="Vai alla nota 41">[41]</sup> <sup class="fn-ref" id="fn-ref-42" data-note="42" onclick="jumpNote(42, this)" title="Vai alla nota 42">[42]</sup> <sup class="fn-ref" id="fn-ref-43" data-note="43" onclick="jumpNote(43, this)" title="Vai alla nota 43">[43]</sup></span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Esecutività delle decisioni disciplinari decorsi 10 giorni dalla notifica aziendale; competenza giurisdizionale ordinaria del Giudice del Lavoro.</span>
+              </div>
               <p>
-                Le decisioni del Consiglio di disciplina sono definitive, e divengono esecutive dopo che l'azienda le ha notificate all'agente. La notifica deve essere fatta entro dieci giorni dalla data di comunicazione della decisione all'azienda.
+                Le decisioni del <mark class="kw">Consiglio di disciplina</mark> sono definitive, e divengono esecutive dopo che l'azienda le ha notificate all'agente. La notifica deve essere fatta entro <mark class="kw">dieci giorni</mark> dalla data di comunicazione della decisione all'azienda.
               </p>
               <p>
-                Contro le decisioni del Consiglio di disciplina è ammesso ricorso al Consiglio di Stato in sede giurisdizionale per i motivi indicati all'art. 26 del testo unico 26 giugno 1924, n. 1045.
+                Contro le decisioni del <mark class="kw">Consiglio di disciplina</mark> è ammesso ricorso al Consiglio di Stato in sede giurisdizionale per i motivi indicati all'art. 26 del testo unico 26 giugno 1924, n. 1045.
               </p>
               <p>
-                Contro le punizioni la cui decisione è di competenza del direttore o del capo servizio, l'agente punito può ricorrere rispettivamente al Consiglio di amministrazione dell'azienda od al direttore, purché presenti il ricorso per la via gerarchica entro 15 giorni da quello in cui gli fu data partecipazione per iscritto del provvedimento relativo. Nei casi previsti nei punti 5 e da 13 a 20 dell'art. 42 l'agente punito può ricorrere con le modalità di cui sopra al Consiglio di disciplina.
+                Contro le punizioni la cui decisione è di <mark class="kw">competenza del direttore</mark> o del capo servizio, l'agente punito può ricorrere rispettivamente al Consiglio di amministrazione dell'azienda od al direttore, purché presenti il ricorso per la via gerarchica entro 15 giorni da quello in cui gli fu data partecipazione per iscritto del provvedimento relativo. Nei casi previsti nei punti 5 e da 13 a 20 dell'art. 42 l'agente punito può ricorrere con le modalità di cui sopra al <mark class="kw">Consiglio di disciplina</mark>.
               </p>
               <p>
                 L'autorità competente stabilisce caso per caso se e quali nuove indagini siano necessarie per poter decidere con piena cognizione di causa.
@@ -2271,12 +2532,15 @@
               <span class="art-num">Articolo 59 (All. A)</span>
               <span class="art-badge">Iscrizione agli Istituti di Previdenza</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Iscrizione obbligatoria al Fondo di Previdenza e trasparenza contabile: pubblicazione annuale entro il 31 marzo dell'elenco delle trattenute e versamenti previdenziali.</span>
+              </div>
               <p>
                 L'azienda provvede alla previdenza del personale con la iscrizione degli agenti alla Cassa nazionale per le assicurazioni sociali o alla Cassa speciale di previdenza, purché regolarmente approvata.
               </p>
               <p>
-                La Direzione è tenuta a pubblicare ogni principio di anno e non oltre il 31 marzo il prospetto delle trattenute e dei versamenti fatti per ciascun agente all'Istituto di previdenza. I versamenti debbono essere in regola al 31 dicembre dell'anno precedente.
+                La Direzione è tenuta a pubblicare ogni principio di anno e non oltre il <mark class="kw">31 marzo</mark> il prospetto delle trattenute e dei versamenti fatti per ciascun agente all'Istituto di previdenza. I versamenti debbono essere in regola al <mark class="kw">31 dicembre</mark> dell'anno precedente.
               </p>
             </div>
           </article>
@@ -2300,7 +2564,10 @@
               <span class="art-num">Allegato B)</span>
               <span class="art-badge">Stato Normativo</span>
             </div>
-            <div class="art-body">
+            <div class="art-body"><div class="art-summary-box">
+                <span class="summary-tag">💡 In sintesi</span>
+                <span class="summary-text">Statuto-tipo delle Casse di soccorso (artt. 1-21) formalmente abrogato dalla Legge 311/2004; materia trasferita alla contrattazione collettiva nazionale TPL.</span>
+              </div>
               <p>
                 <strong>STATUTO – TIPO DELLE CASSE DI SOCCORSO PER IL PERSONALE</strong>
               </p>
