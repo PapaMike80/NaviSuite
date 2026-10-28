@@ -216,6 +216,114 @@
     };
   }
 
+  const SERVICE_RESIDENCES = {
+    D1: 'Desenzano', D2: 'Desenzano', D3: 'Desenzano', D4: 'Desenzano', BIS: 'Desenzano',
+    AGB: 'Desenzano', DT: 'Desenzano', POND: 'Desenzano', PT: 'Desenzano',
+    T1: 'Maderno', T2: 'Maderno', M1: 'Maderno', AGM: 'Maderno', AGT: 'Maderno',
+    AGT1: 'Maderno', AGT2: 'Maderno', PONM: 'Maderno',
+    R1: 'Riva', R2: 'Riva', R3: 'Riva', R4: 'Riva', CAR1: 'Riva',
+    P1: 'Peschiera', P2: 'Peschiera', P3: 'Peschiera', CAP: 'Peschiera', CAP1: 'Peschiera',
+    SR1: 'Peschiera', SR2: 'Peschiera', IE: 'Peschiera', 'S.S.': 'Peschiera', SS: 'Peschiera'
+  };
+
+  function residenzaDelServizio(code) {
+    if (!code) return null;
+    const clean = String(code).trim().toUpperCase().replace(/^C/, '').replace(/C$/, '').replace(/\*$/, '');
+    return SERVICE_RESIDENCES[clean] || null;
+  }
+
+  function orariTurno(code, iso) {
+    if (!code) return null;
+    const clean = String(code).trim().toUpperCase().replace(/^C/, '').replace(/C$/, '').replace(/\*$/, '');
+    const T = typeof window !== 'undefined' ? window.NaviServiziTerra : (typeof globalThis !== 'undefined' ? globalThis.NaviServiziTerra : null);
+    if (T?.DATA?.SERVIZI) {
+      for (const res of Object.keys(T.DATA.SERVIZI)) {
+        const s = (T.DATA.SERVIZI[res] || []).find(r => String(r[0]).toUpperCase() === clean);
+        if (s) {
+          const inizioClean = String(s[1] || '').split(/[-–]/)[0].trim().replace('.', ':');
+          const fineClean = String(s[2] || s[1] || '').split(/[-–]/).pop().trim().replace('.', ':');
+          return {
+            inizio: inizioClean,
+            fine: fineClean,
+            sede: res === 'MADERNO' ? 'Maderno' : 'Desenzano'
+          };
+        }
+      }
+    }
+    const TABELLA = {
+      POND: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
+      AGB: { inizio: '08:00', fine: '17:30', sede: 'Desenzano' },
+      DT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
+      PT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
+      AGM: { inizio: '09:00', fine: '19:30', sede: 'Maderno' },
+      AGT: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
+      AGT1: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
+      AGT2: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
+      PONM: { inizio: '09:30', fine: '19:55', sede: 'Maderno' },
+      D1: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
+      D2: { inizio: '07:50', fine: '19:15', sede: 'Desenzano' },
+      D3: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
+      D4: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
+      BIS: { inizio: '08:00', fine: '20:15', sede: 'Desenzano' },
+      T1: { inizio: '06:10', fine: '19:45', sede: 'Maderno' },
+      T2: { inizio: '07:05', fine: '19:38', sede: 'Maderno' },
+      M1: { inizio: '07:05', fine: '19:38', sede: 'Maderno' },
+      R1: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
+      R2: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
+      R3: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
+      R4: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
+      CAR1: { inizio: '09:00', fine: '21:10', sede: 'Riva' },
+      P1: { inizio: '08:45', fine: '21:30', sede: 'Peschiera' },
+      P2: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
+      P3: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
+      CAP: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
+      CAP1: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
+      SR1: { inizio: '08:00', fine: '20:15', sede: 'Peschiera' },
+      SR2: { inizio: '08:00', fine: '19:15', sede: 'Peschiera' }
+    };
+    const row = TABELLA[clean];
+    if (row) return { ...row };
+    const sede = residenzaDelServizio(clean);
+    return sede ? { inizio: null, fine: null, sede } : null;
+  }
+
+  function calcolaCompetenzeTurno({ casa, shift, iso, travel }) {
+    if (!shift || ['RIP', 'RIPOSO', 'MALATTIA', 'MAL'].includes(String(shift).toUpperCase())) return null;
+    const daCasa = normalizzaResidenza(casa);
+    const info = orariTurno(shift, iso);
+    const aSede = normalizzaResidenza(info?.sede || residenzaDelServizio(shift));
+    const isTrasferta = Boolean(travel || (daCasa && aSede && daCasa !== aSede));
+    if (!isTrasferta) return null;
+
+    const ct = (daCasa && aSede && daCasa !== aSede)
+      ? cercaTurno({
+          casa: daCasa,
+          turnoResidenza: aSede,
+          iso,
+          inizio: info?.inizio,
+          fine: info?.fine
+        })
+      : null;
+
+    const comp = ct?.competenze || {
+      trasferta: true,
+      diariaRate: 50,
+      pernottoPrima: false,
+      pernottoSera: false,
+      secondoTicket: false
+    };
+
+    return {
+      isTrasferta: true,
+      casa: daCasa,
+      sede: aSede,
+      shift,
+      info,
+      ct,
+      competenze: comp
+    };
+  }
+
   // ---------- disegno ----------
   function disegnaViaggio(v, riferimento, tipo = 'arrivo') {
     const scuola = v.tratte.some(t => t.sale.scuola);
@@ -376,6 +484,6 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scarica(); });
   }
 
-  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, competenzeTrasferta, ORA_SECONDO_TICKET, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
+  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, competenzeTrasferta, calcolaCompetenzeTurno, orariTurno, residenzaDelServizio, ORA_SECONDO_TICKET, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
   if (typeof document !== 'undefined' && document.getElementById('col-linee')) avvia();
 })();
