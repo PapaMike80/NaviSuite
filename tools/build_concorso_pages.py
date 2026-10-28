@@ -16,14 +16,14 @@ modules_data = [
             "<strong>Anno di Istituzione:</strong> <strong>1957</strong> con Legge n. 614 del 18 luglio 1957.",
             "<strong>Vigilanza e Competenza:</strong> Posta sotto la diretta vigilanza del <strong>Ministero delle Infrastrutture e dei Trasporti (MIT)</strong>.",
             "<strong>Organo di Vertice:</strong> <strong>Gestore Governativo</strong>, nominato con Decreto del Ministro dei Trasporti.",
-            "<strong>Durata dell'incarico:</strong> Il Gestore Governativo resta in carica a <strong>tempo indeterminato</strong> (cessa solo per dimissioni, morte o revoca del Ministro).",
+            "<strong>Durata dell'incarico (Art. 1 vigente, modif. L. 14/2023):</strong> Nominato con Decreto del Ministro per un periodo di <strong>5 anni, rinnovabile per una sola volta</strong>.",
             "<strong>I 3 Bacini di Esercizio:</strong> Lago Maggiore (sede Arona), Lago di Garda (sede Desenzano del Garda), Lago di Como (sede Como).",
             "<strong>Sede della Direzione Generale:</strong> <strong>Milano, Via Ludovico Ariosto n. 21</strong>."
         ],
-        "body_text": "La Gestione Governativa Navigazione Laghi (GGNL) è un organo dello Stato dipendente dal MIT, preposto alla gestione in concessione dei servizi di linea lacustri sui tre maggiori laghi subalpini italiani. La legge 614/1957 ne disciplina la contabilità di Stato, il bilancio annuale sottoposto ad approvazione ministeriale e il regime patrimoniale dei beni della navigazione.",
+        "body_text": "La Gestione Governativa Navigazione Laghi (GGNL) è un organo dello Stato dipendente dal MIT, preposto alla gestione in concessione dei servizi di linea lacustri sui tre maggiori laghi subalpini italiani. La legge 614/1957 ne disciplina l'ordinamento, la nomina del Gestore Governativo per 5 anni (rinnovabile una volta), la contabilità di Stato, il bilancio annuale sottoposto ad approvazione ministeriale e il regime patrimoniale dei beni della navigazione.",
         "traps": [
             "Attenzione ai quiz: l'ente NON dipende dal Ministero del Turismo o dalle Regioni, ma dal MIT.",
-            "Il Gestore NON scade ogni 3 o 5 anni: la legge 614 prevede incarico a tempo indeterminato con revoca ad nutum del Ministro."
+            "TRAPPOLA CRITICA SULLA DURATA DEL GESTORE: Nel testo storico originario non c'era scadenza (era a tempo indeterminato), MA con la modifica introdotta dal D.L. 198/2022 convertito con L. 14/2023 (nota 6 Normattiva), la durata è espressamente di <strong>5 ANNI RINNOVABILE PER UNA SOLA VOLTA</strong>. Nei quiz attuali la risposta corretta è 5 anni rinnovabile una sola volta!"
         ],
         "dispensa_html": "docs/controllo/dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html",
         "pdf_link": "docs/controllo/01_Normativa_GGNL_e_Trasporti/LEGGE 18 luglio 1957, n. 614.pdf",

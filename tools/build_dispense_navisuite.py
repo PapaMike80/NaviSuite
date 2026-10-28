@@ -19,7 +19,7 @@ dispense_data = [
             ("Anno istitutivo", "1957 (Legge 18 luglio 1957, n. 614)"),
             ("Ministero vigilante", "Ministero delle Infrastrutture e dei Trasporti (MIT)"),
             ("Organo di vertice", "Gestore Governativo (nominato con Decreto MIT)"),
-            ("Durata incarico", "A tempo indeterminato (cessa per dimissioni, morte o revoca)"),
+            ("Durata incarico", "5 anni, rinnovabile per una sola volta (Art. 1 c. 1 L. 614/57 modif. L. 14/2023)"),
             ("Sede Direzione Generale", "Milano, Via Ludovico Ariosto n. 21"),
             ("Direzioni di Esercizio", "Arona (NO), Como (CO), Desenzano del Garda (BS)")
         ],
@@ -35,10 +35,11 @@ dispense_data = [
                 "title": "2. Il Gestore Governativo e le sue Competenze",
                 "content": """
                 Al vertice dell'ente è posto il <strong>Gestore Governativo</strong>, nominato con apposito Decreto del Ministro delle Infrastrutture e dei Trasporti.<br>
-                Ai sensi dell'art. 1 della L. 614/1957:
+                Ai sensi dell'art. 1 della L. 614/1957 (come aggiornato dal D.L. 198/2022 convertito con L. 14/2023):
                 <ul>
                   <li>Il Gestore Governativo ha la rappresentanza legale dell'ente ed esercita i poteri di amministrazione ordinaria e straordinaria;</li>
-                  <li><strong>Durata dell'incarico:</strong> la nomina è a <em>tempo indeterminato</em>; l'incarico cessa esclusivamente per dimissioni volontarie, morte o per revoca disposta dal Ministro con proprio decreto (non vi sono scadenze triennali o quinquennali fisse);</li>
+                  <li><strong>Durata dell'incarico:</strong> la nomina è espressamente <strong>per un periodo di cinque anni rinnovabile per una sola volta</strong> (nel testo storico del 1957 non c'era scadenza e la nomina era a tempo indeterminato; la riforma del 2023 ha introdotto il limite quinquennale con un solo rinnovo);</li>
+                  <li><strong>Trattamento economico:</strong> al Gestore si applica il tetto stipendiale pubblico fissato dall'art. 23-ter, comma 1, del D.L. 201/2011;</li>
                   <li>Il Gestore adotta i regolamenti interni, approva le delibere a contrarre, delibera l'indizione dei concorsi pubblici (come la Determina DG n. C162 per Operatore di Ufficio) e stipula i contratti di lavoro del personale.</li>
                 </ul>
                 """
@@ -70,14 +71,14 @@ dispense_data = [
         ],
         "traps": [
             "La GGNL NON è una società privata né una municipalizzata: è un organo statale in gestione governativa.",
-            "Il Gestore NON è eletto dal Consiglio Regionale né dura 3 anni: è nominato dal Ministro MIT a tempo indeterminato.",
+            "TRAPPOLA CRITICA: Il Gestore Governativo dura 5 ANNI RINNOVABILE PER UNA SOLA VOLTA (Art. 1 L. 614/1957 aggiornato con L. 14/2023). Nei quiz non scegliere 'a tempo indeterminato'!",
             "La sede legale della Direzione Generale è a Milano, non a Roma né a Desenzano."
         ],
         "quiz_samples": [
             {
-                "q": "In base alla Legge 18 luglio 1957 n. 614, il Gestore Governativo resta in carica:",
-                "a": "A tempo indeterminato e cessa per dimissioni, morte o revoca dell'incarico",
-                "source": "Quesito Ufficiale Prova 12/2025"
+                "q": "In base all'Art. 1 della Legge 18 luglio 1957 n. 614 (testo vigente), per quale periodo è nominato il Gestore Governativo?",
+                "a": "Per un periodo di 5 anni, rinnovabile per una sola volta",
+                "source": "L. 614/1957 Art. 1 c. 1 (modificato da L. 14/2023)"
             },
             {
                 "q": "Quale Ministero esercita la vigilanza sulla Gestione Governativa Navigazione Laghi?",
