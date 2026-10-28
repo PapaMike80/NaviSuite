@@ -56,6 +56,16 @@ assert.equal(conShift.embark, false);
   assert.equal(NaviShiftCompetence.shiftForCode(raw, '2026-10-09').code, code, `${raw} -> ${code}`);
   assert.equal(minutesOf(raw, '2026-10-09'), 7 * 60, `${raw} il venerdi' vale 7 ore`);
 });
+// Servizi speciali (S.S. / SS): riconosciuto da canonicalCode, 8h 30' di base, meal ed imbarco true.
+['S.S.', 'S.S', 'SS', 'ss', 's.s.'].forEach(raw => {
+  assert.equal(NaviShiftCompetence.canonicalCode(raw), 'S.S.', raw);
+  const sc = NaviShiftCompetence.shiftForCode(raw, '2026-10-19');
+  assert.equal(sc.code, 'S.S.');
+  assert.equal(Math.round(sc.hours * 60), 8 * 60 + 30, 'S.S. vale 8h 30');
+  assert.equal(sc.meal, true, 'S.S. prevede ticket di base');
+  assert.equal(sc.embark, true, 'S.S. prevede imbarco');
+});
+
 assert.equal(NaviShiftCompetence.canonicalCode('D1'), 'D1', 'gli altri codici restano invariati');
 
 // Un valore personalizzato dall'utente (localStorage SHIFTS) resta la base:

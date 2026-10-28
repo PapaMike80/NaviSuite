@@ -162,6 +162,7 @@
   };
   const ticketDue = entry => {
     if (!isWorking(entry)) return false;
+    if (entry?.ticketDue !== undefined) return !!entry.ticketDue;
     try { return !!shiftFor(entry.shift, entry.date).meal; } catch (_) { return false; }
   };
   const ticketUsed = entry => !!entry && (entry.ticketPresence === undefined ? !!entry.mealUsed : !!entry.ticketPresence);

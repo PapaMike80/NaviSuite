@@ -29,6 +29,9 @@
     { code: 'SR2', hours: hm(11, 15), allowance: true, allowanceRate: 24, meal: true },
     { code: 'IE', hours: 0, allowance: false, allowanceRate: 24, meal: true },
     { code: 'BIS', hours: hm(12, 15), allowance: true, allowanceRate: 24, meal: true },
+    // Servizi speciali (S.S. / SS): corse ed eventi speciali da O.d.S. (es. Andromeda 19/10/2026).
+    // Di base 8h 30' / 1 BP / imbarco (il ticket puo' essere dovuto o meno a seconda dell'O.d.S.).
+    { code: 'S.S.', hours: hm(8, 30), allowance: false, allowanceRate: 24, meal: true, embark: true },
     { code: 'AgB', hours: hm(10, 25), allowance: false, allowanceRate: 24, meal: false },
     { code: 'PonD', hours: hm(9, 25), allowance: false, allowanceRate: 24, meal: false },
     { code: 'DT', hours: hm(9, 25), allowance: false, allowanceRate: 24, meal: false },
@@ -160,6 +163,7 @@
     if (/^(?:LAV[.;]?|TERRA)$/.test(upper)) return 'LAV';
     if (/^L\.?D[.;]?$/.test(upper)) return 'LD';
     if (/^(?:CONG?\.?|CON[;/]|CONC\.?|CONGEDO)$/.test(upper)) return 'CON';
+    if (/^S\.?S\.?$/.test(upper)) return 'S.S.';
     return raw;
   }
 

@@ -100,7 +100,8 @@
       });
     };
 
-    const dueForShift = code => {
+    const dueForShift = (code, entry) => {
+      if (entry?.ticketDue !== undefined) return !!entry.ticketDue;
       try { return !!shiftFor(code)?.meal && !['RIP','RIPOSO','MALATTIA'].includes(String(code || '').trim().toUpperCase()); } // meal non cambia per decorrenza: nessuna data disponibile qui
       catch (_) { return false; }
     };
@@ -111,7 +112,8 @@
       let changed = false;
       entries.forEach(entry => {
         if (!entry || entry.imported !== true) return;
-        const next = dueForShift(entry.shift) ? wanted : false;
+        if (entry.ticketDue !== undefined) return;
+        const next = dueForShift(entry.shift, entry) ? wanted : false;
         if (!!entry.mealUsed !== next) { entry.mealUsed = next; changed = true; }
         if (entry.ticketPresence !== undefined && !!entry.ticketPresence !== next) { entry.ticketPresence = next; changed = true; }
       });

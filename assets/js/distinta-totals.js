@@ -68,7 +68,7 @@
     function baseWorkedMinutes(e) { const manual = Number(e?.workedMinutes), manualWorked = overtime?.isWorkedManual?.(e); if (manualWorked && Number.isFinite(manual) && manual >= 0) return manual; if (overtime?.structured(e)) return serviceMinutes(e) + overtimeTotal(e); return Number.isFinite(manual) && manual >= 0 ? manual : serviceMinutes(e) + ordinaryOvertime(e); }
     function workedMinutes(e) { return baseWorkedMinutes(e) + (overtime?.structured(e) ? 0 : changeMinutes(e)); }
     function holidayValue(e, d) { return e.holidayWorked === undefined ? isHoliday(d) : !!e.holidayWorked; }
-    function ticketDue(e) { return isWorking(e) && !!shiftFor(e.shift, e.date).meal; }
+    function ticketDue(e) { return isWorking(e) && (e?.ticketDue !== undefined ? !!e.ticketDue : !!shiftFor(e.shift, e.date).meal); }
     function ticketValue(e) { return e.ticketPresence === undefined ? !!e.mealUsed : !!e.ticketPresence; }
 
     // Come summarizedTotal(), ma con i numeri invece del testo della cella.
