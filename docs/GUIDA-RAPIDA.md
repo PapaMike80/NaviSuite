@@ -50,21 +50,26 @@ Appena entrato (oppure toccando il pulsante menu **`☰`** in alto a destra da q
 
 ## 4. Vedere il tuo turno e con chi navighi (`Turni` e `Il mio turno`)
 
-La pagina **Turni** ha una grafica moderna e rapida pensata per smartphone e PC:
+Aprendo **Turni**, NaviSuite riconosce automaticamente il tuo profilo e mostra il quadro operativo in tempo reale con la nuova grafica a gettoni:
 
 <p align="center">
-  <img src="../tools/mockup-naviturni-equipaggio.png" alt="Nuova grafica Turni su Telefono e PC" width="100%">
+  <img src="../assets/images/naviturni-reale.png" alt="Nuova interfaccia NaviTurni reale" width="310">
 </p>
 
-<p align="center">
-  <img src="../tools/mockup-naviturni-7gg.png" alt="Dettaglio Turni ed Equipaggio da Telefono" width="340">
-</p>
-
-* **Scheda in alto «Con chi navighi»**: riconosce automaticamente il tuo nome e mostra il tuo turno di oggi (`D1 7.10 – 18.30`), la nave assegnata (`nave Zanardelli`) e tutti i colleghi a bordo con i **distintivi di grado** (`Cap` Capitano, `CT` Capo timoniere, `Mot` Motorista, `Tim` Timoniere, `AM` Aiuto motorista, `Mar` Marinaio, `App` Bigliettaio di bordo).
-* **Nuova tabella a bolle colorate**: ogni turno ha il suo colore dedicato (`D1` blu, `D2` verde, `D3` arancione, `D4` viola, `P1`, `P2`, ecc.), mentre i riposi sono trattini neutri `—` per una lettura pulita. Le trasferte hanno bordo arancione (`D1C`), gli imbarcati bordo blu (`#`) e i servizi speciali bordo viola (`S.S.`).
-* **La tua riga resta sempre visibile**: la riga col tuo nominativo è evidenziata in verde acqua ed è fissata in cima alla tabella per non perderla mai di vista mentre scorri l'elenco.
-* **Navigazione veloce**: puoi cambiare residenza (*Desenzano*, *Maderno*, *Riva*, *Peschiera*) con le pastiglie in alto e scorrere le settimane con `‹ 7 – 13 set ›` o tornare subito a oggi con il tasto verde acqua **Oggi**.
-* **Tocca qualsiasi casella del tabellone**: toccando un turno di un collega o di un altro giorno, la scheda in alto (o la colonna destra su PC) carica all'istante orari, nave ed equipaggio di quel turno!
+* **Scheda in alto con il tuo turno di oggi**:
+  * Mostra il gettone del turno (es. `POND`, `D1`, `T1`, `M1`), l'orario di presentazione e fine con la durata effettiva (es. `mer 28 ott · 9.30 – 19.50 (8 h 55')`) e la pastiglia col tuo nome (`● PEDRONI M.`).
+* **Pulsanti rapidi residenze**:
+  * In alto a sinistra nella tabella trovi i 4 cerchietti per cambiare residenza con un tocco: **`D`** (Desenzano), **`M`** (Maderno), **`R`** (Riva), **`P`** (Peschiera).
+* **La tua riga è fissata in cima**:
+  * Il tuo nominativo è scritto in verde acqua ed è fissato in alto: scorrendo la tabella dei colleghi, la tua riga resta sempre visibile come riferimento.
+* **Colonna «OGGI» tratteggiata in verde acqua**:
+  * La giornata odierna è evidenziata da una cornice verticale tratteggiata (`OGGI 28`), così vedi all'istante chi è di servizio, a riposo (`—`) o in ferie/congedo (`F.P.`, `CON`).
+* **Pallini colorati delle qualifiche**:
+  * Un pallino colorato precede il nome di ciascun collega: 🟡 **Giallo** per Capitani/Comandanti, 🟣 **Viola** per Motoristi, 🟢 **Verde** per Timonieri/Marinai.
+* **Gettoni turno e puntini di variazione**:
+  * Ogni turno ha il suo colore contrattuale (`T1`, `T2`, `M1`, `POND`, `LAV`, `L.D.`, ecc.). I piccoli pallini colorati vicino al gettone indicano variazioni O.d.S., trasferte o note di servizio.
+* **Tocca qualsiasi casella del tabellone**:
+  * Toccando un turno qualsiasi, la testata in alto si aggiorna all'istante caricando orario, nave ed equipaggio di quel servizio!
 
 ---
 

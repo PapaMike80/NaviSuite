@@ -23,28 +23,39 @@ Questa guida approfondisce tutte le funzioni avanzate di **NaviSuite**: dal calc
 
 ## 1. La Nuova Pagina Turni (`NaviTurni`): Tabellone, Bolle ed Equipaggi
 
-La pagina **Turni** è stata completamente rinnovata con una nuova interfaccia reattiva, adatta sia alla consultazione veloce dal telefono sia alla visione d'insieme su tablet e PC:
+La pagina **Turni** è stata completamente rinnovata con la nuova interfaccia grafica fluida, ottimizzata per l'uso immediato sul campo:
 
 <p align="center">
-  <img src="../tools/mockup-naviturni-equipaggio.png" alt="Nuova interfaccia Turni da Telefono e da PC" width="100%">
+  <img src="../assets/images/naviturni-reale.png" alt="Nuova grafica NaviTurni reale" width="320">
 </p>
 
-### Caratteristiche principali della nuova grafica
+### Struttura e funzioni della nuova interfaccia:
 
-* **Scheda «Con chi navighi» sempre in primo piano**:
-  * All'apertura riconosce il tuo profilo e mostra in alto il **tuo turno di oggi**, gli orari previsti di inizio e termine (`7.10 – 18.30`), la **nave assegnata** (`nave Zanardelli`) e il numero di colleghi a bordo.
-  * L'elenco dell'equipaggio è ordinato gerarchicamente per grado contrattuale (`Cap`, `CT`, `Mot`, `Tim`, `AM`, `Mar`, `App`) e anzianità, con la propria riga evidenziata con l'indicazione `tu`.
-* **Tabellone a bolle con codice colore contrattuale**:
-  * Ogni turno di servizio ha un colore caratteristico e uniforme (`D1` blu, `D2` verde smeraldo, `D3` arancione, `D4` magenta/viola, `D5` giallo tenue, `P1`/`P2`, ecc.).
-  * I **riposi** sono indicati con un trattino neutro `—` per lasciare pulita la visuale e far risaltare subito le giornate di navigazione o servizio.
-  * Le **trasferte** (`D1C`) sono evidenziate con un contorno arancione, gli **imbarcati** con contorno blu (`#`) e i servizi speciali con contorno viola (`S.S.`).
-* **Riga dell'agente fissata in cima**:
-  * Scorrendo la tabella dei colleghi verso il basso, la **tua riga personale** (evidenziata con sfondo verde acqua e nome verde brillante) rimane ancorata in alto, permettendoti di confrontare il tuo turno con quello di qualsiasi collega senza perdere il riferimento.
-* **Tocco rapido per esplorare qualsiasi turno**:
-  * Toccando una casella di un collega o un giorno diverso, la scheda superiore su telefono (o la colonna laterale dedicata su PC) si aggiorna all'istante caricando la nave, la durata in ore e la composizione dell'equipaggio di quel giorno.
-* **Barra periodo e selezione residenza**:
-  * Pastiglie rapide per passare tra *Desenzano*, *Maderno*, *Riva* e *Peschiera*.
-  * Selettore di settimana con frecce `‹ 7 – 13 set ›` e pulsante **Oggi** che ti riporta all'istante al giorno corrente.
+1. **Testata operativa del turno**:
+   * In alto trovi la pastiglia del turno corrente (es. `POND` in bordeaux per i pontili, `T1` in blu per traghetti, `M1` in arancione, `D1`...).
+   * Sotto compaiono giorno, orario preciso di presentazione e termine, con la durata complessiva: `mer 28 ott · 9.30 – 19.50 (8 h 55')`.
+   * La pastiglia con il pallino e il tuo nome (`● PEDRONI M.`) conferma il profilo attualmente collegato.
+2. **Pulsanti rapidi delle residenze (`D`, `M`, `R`, `P`)**:
+   * Posizionati nell'angolo in alto a sinistra della tabella per cambiare istantaneamente la visuale tra:
+     * **`D`** → Desenzano del Garda
+     * **`M`** → Maderno
+     * **`R`** → Riva del Garda
+     * **`P`** → Peschiera del Garda
+3. **Riga personale fissata in alto**:
+   * La riga con il tuo nome (`PEDRONI M.`) è scritta in verde acqua ed è fissata in alto: mentre scorri l'elenco dei colleghi verso il basso, la tua riga rimane fissa come riferimento per confrontare i turni.
+4. **Colonna «OGGI» evidenziata con cornice tratteggiata**:
+   * Il giorno corrente (`OGGI 28`) è racchiuso da una colonna verticale tratteggiata in verde acqua su tutta la lunghezza della tabella, consentendo di individuare all'istante chi è in servizio, chi è a terra e chi è a riposo oggi.
+5. **Pallini del grado contrattuale**:
+   * Un indicatore circolare colorato precede il cognome di ciascun collega:
+     * 🟡 **Giallo**: Capitani e Comandanti (`Cap`, `CT`)
+     * 🟣 **Viola**: Motoristi e Aiuto Motoristi (`Mot`, `AM`)
+     * 🟢 **Verde**: Timonieri, Marinai e Applicati (`Tim`, `Mar`, `App`)
+6. **Gettoni dei turni e puntini di variazione**:
+   * **Servizi di bordo e di terra**: gettoni circolari colorati (`T1`, `T2`, `M1`, `POND`, `LAV`, `L.D.`).
+   * **Assenze e congedi**: `F.P.` (Festività Soppressa / Ferie Programmate), `CON` (Congedo), `—` (Riposo).
+   * **Puntini indicatori**: piccoli pallini colorati posizionati ai bordi del gettone (es. arancione, viola, azzurro) segnalano variazioni da O.d.S., trasferte o rifornimenti.
+7. **Esplorazione interattiva con un tocco**:
+   * Toccando qualsiasi cella della tabella (anche di colleghi o di giorni futuri), la testata in alto si sincronizza all'istante mostrando gli orari di quel servizio e l'equipaggio collegato.
 
 ---
 
