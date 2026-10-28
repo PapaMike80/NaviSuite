@@ -88,7 +88,10 @@
     .tut-corpo{display:grid;gap:10px;padding:0 12px 12px}
     .tut-corpo img{display:block;max-width:100%;max-height:62vh;margin:0 auto;border-radius:14px;border:1px solid var(--line);background:#071923}
     .tut-corpo ol{margin:0;padding-left:22px;display:grid;gap:4px;font-size:13.5px}.tut-corpo ol b{color:var(--t)}
+    .tut-corpo ul{margin:4px 0;padding-left:20px;display:grid;gap:3px;font-size:13px;color:var(--muted)}.tut-corpo ul b{color:var(--ink)}
     .tut-corpo p{margin:0;font-size:12px;color:var(--muted)}
+    .tut-btn{display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:4px;padding:8px 14px;border-radius:10px;background:color-mix(in srgb,var(--t) 18%,transparent);border:1px solid color-mix(in srgb,var(--t) 45%,transparent);color:var(--t);font:800 12.5px Manrope,system-ui,sans-serif;text-decoration:none;transition:background .15s ease}
+    .tut-btn:hover{background:color-mix(in srgb,var(--t) 28%,transparent)}
 
     /* Visualizzatore */
     .document-viewer[hidden]{display:none}
@@ -133,22 +136,136 @@
 
     <div class="colonne">
       <section class="sez" style="--c:var(--teal)">
-        <div id="tutorial-docs" class="sez-head"><span class="sez-ic">❓</span><div><small>COME SI FA</small><h2>Tutorial</h2></div><span class="count">2 guide</span></div>
+        <div id="tutorial-docs" class="sez-head"><span class="sez-ic">❓</span><div><small>COME SI FA</small><h2>Tutorial</h2></div><span class="count">8 guide</span></div>
         <div id="tutorialGrid" class="tutorial-grid">
+          <details class="tutorial" style="--t:var(--teal)" data-gif="tools/mockup-naviturni-7gg.png">
+            <summary><span class="tut-ic">🚀</span><span><strong>Guida rapida per iniziare</strong><small>Primo accesso, installazione Home e 5 pagine base</small></span></summary>
+            <div class="tut-corpo">
+              <img alt="Guida rapida: Turni ed equipaggio">
+              <ol>
+                <li><b>Salva l'app sul telefono</b>: apri <i>papamike80.github.io/NaviSuite</i>. Su iPhone tocca <i>Condividi</i> → <i>Aggiungi a schermata Home</i>; su Android tocca <i>⋮</i> → <i>Installa app</i>.</li>
+                <li><b>Accedi con il PIN</b>: scrivi il cognome, usa il PIN iniziale <b>1957</b> e imposta subito il tuo PIN personale da 4 a 8 cifre.</li>
+                <li><b>Le 5 pagine di tutti i giorni</b>: <b>Distinta</b> (ore e competenze), <b>Il mio turno</b> (la tua giornata), <b>Turni</b> (tabellone generale), <b>Oggi</b> (navi ed equipaggi del giorno), <b>Scali</b> (arrivi e pontili in tempo reale).</li>
+                <li><b>Chiedere un cambio turno</b>: dal menu ☰ tocca <i>Cambio</i> (⇄), scegli la data e seleziona tra i colleghi compatibili proposti.</li>
+              </ol>
+              <a class="tut-btn" href="docs/GUIDA-RAPIDA.md" target="_blank">Apri la Guida Rapida completa →</a>
+            </div>
+          </details>
+
+          <details class="tutorial" style="--t:var(--cyan)">
+            <summary><span class="tut-ic">🏠</span><span><strong>Scegliere la prima pagina all'apertura</strong><small>Apri subito Il mio turno, Turni, Distinta o Scali</small></span></summary>
+            <div class="tut-corpo">
+              <ol>
+                <li><b>Tocca il menu ☰</b> in alto a destra e seleziona <b>Impostazioni (⚙)</b>.</li>
+                <li><b>Tocca il riquadro azzurro «Prima pagina di apertura»</b> per aprirlo.</li>
+                <li><b>Tocca la pagina che preferisci</b> tra quelle proposte:
+                  <ul>
+                    <li><b>Automatica</b> (predefinita): apre <i>Il mio turno</i> (anche nei giorni a terra).</li>
+                    <li><b>Turni</b>: apre direttamente il calendario turni della tua residenza.</li>
+                    <li><b>Distinta</b>: apre subito la tua <i>NaviDiaria</i> mensile.</li>
+                    <li><b>Il mio turno</b>: nave, corse, ormeggio serale e colleghi di oggi.</li>
+                    <li><b>Oggi</b>: quadro giornaliero di tutte le navi ed equipaggi in servizio.</li>
+                    <li><b>Scali</b>: navi allo scalo, pontili e mappa in tempo reale.</li>
+                    <li><b>Documenti</b> / <b>Cambio</b> / <b>Home</b></li>
+                  </ul>
+                </li>
+                <li><b>Fatto!</b> La pastiglia scelta si illumina ed è salvata subito sul tuo profilo senza dover premere Salva.</li>
+              </ol>
+              <p>La preferenza è personale e resta valida ogni volta che apri NaviSuite.</p>
+            </div>
+          </details>
+
           <details class="tutorial" style="--t:var(--teal)" data-gif="assets/images/guide/guida-menu.gif">
             <summary><span class="tut-ic">☰</span><span><strong>Spostare le pagine nel menu</strong><small>Metti in alto le pagine che usi di più</small></span></summary>
             <div class="tut-corpo">
               <img alt="Guida animata: Spostare le pagine nel menu">
-              <ol><li><b>Tocca il menu ☰</b> in alto a destra.</li><li><b>Tieni premuto</b> su una pagina per mezzo secondo.</li><li><b>Trascina la pagina</b> dove vuoi, tra le principali o le altre.</li><li><b>Rilascia</b>: il menu si riordina da solo e resta salvato.</li></ol>
+              <ol>
+                <li><b>Tocca il menu ☰</b> in alto a destra.</li>
+                <li><b>Tieni premuto</b> su una pagina per mezzo secondo.</li>
+                <li><b>Trascina la pagina</b> dove vuoi, tra le principali o le altre.</li>
+                <li><b>Rilascia</b>: il menu si riordina da solo e resta salvato.</li>
+              </ol>
               <p>La scelta vale solo per te; con «Ripristina il menu» torni al menu di base.</p>
             </div>
           </details>
+
           <details class="tutorial" style="--t:var(--orange)" data-gif="assets/images/guide/guida-distinta.gif">
             <summary><span class="tut-ic">≈</span><span><strong>Modificare una giornata nella Distinta</strong><small>Ritardi, cambi, ticket, diaria…</small></span></summary>
             <div class="tut-corpo">
               <img alt="Guida animata: Modificare una giornata nella Distinta">
-              <ol><li><b>Tocca il giorno</b> da modificare nella Distinta mensile.</li><li><b>Tocca la voce</b> da cambiare (es. Ritardo) e <b>scrivi il nuovo valore</b>.</li><li><b>Tocca una bolla</b> per cambiarne il contenuto (Ticket, Diaria, Pernotto…).</li><li><b>Chiudi con la ✕</b>: la giornata è salvata e il foglio si aggiorna.</li></ol>
+              <ol>
+                <li><b>Tocca il giorno</b> da modificare nella Distinta mensile.</li>
+                <li><b>Tocca la voce</b> da cambiare (es. Ritardo, Cambio, Sentine, Banca ore) e <b>scrivi il nuovo valore</b>.</li>
+                <li><b>Tocca una bolla</b> per cambiarne il contenuto (Ticket, Diaria, Pernotto, Festività…).</li>
+                <li><b>Chiudi con la ✕</b>: la giornata è salvata e il foglio si aggiorna da solo.</li>
+              </ol>
               <p>Per una giornata passata NaviSuite chiede conferma prima di salvare.</p>
+            </div>
+          </details>
+
+          <details class="tutorial" style="--t:var(--violet)" data-gif="tools/mockup-notifiche.png">
+            <summary><span class="tut-ic">🔔</span><span><strong>Avvisi a telefono bloccato (Notifiche)</strong><small>Arrivi navi 10 min prima, prossimo scalo, ODS e cambi</small></span></summary>
+            <div class="tut-corpo">
+              <img alt="Guida notifiche a telefono bloccato">
+              <ol>
+                <li><b>Apri il menu ☰</b> e tocca <b>Impostazioni (⚙) → Notifiche</b>.</li>
+                <li><b>Attiva «Su questo telefono»</b> e consenti l'invio delle notifiche sul dispositivo.</li>
+                <li><b>Scegli quali avvisi ricevere</b>:
+                  <ul>
+                    <li><b>Riepilogo della giornata</b>: turno, nave ed equipaggio (la sera prima, la mattina o prima del servizio).</li>
+                    <li><b>Navi (10 minuti prima)</b>: a terra ricevi nave, pontile, corsa e comandante in arrivo; a bordo ricevi il prossimo scalo.</li>
+                    <li><b>Cambi turno</b>: avviso immediato se un collega invia una richiesta e quando l'ufficio la approva.</li>
+                    <li><b>ODS e variazioni</b>: notifica appena viene pubblicato un ODS con variazioni sul tuo turno.</li>
+                  </ul>
+                </li>
+              </ol>
+              <p>Gli avvisi tengono conto in tempo reale di ritardi, corse sospese e corse BIS.</p>
+            </div>
+          </details>
+
+          <details class="tutorial" style="--t:var(--rose)" data-gif="tools/mockup-verifica-busta-mail.png">
+            <summary><span class="tut-ic">✔</span><span><strong>Verifica Busta Paga con cedolino PDF</strong><small>Confronto automatico con la Distinta e mail pronta</small></span></summary>
+            <div class="tut-corpo">
+              <img alt="Guida verifica busta paga">
+              <ol>
+                <li><b>Apri Verifica busta (✔)</b> dal menu ☰ o tocca <i>Verifica busta</i> nella Distinta.</li>
+                <li><b>Premi «+ Carica»</b> e seleziona il PDF del cedolino inviato dall'azienda.</li>
+                <li><b>Controlla il confronto automatico</b>:
+                  <ul>
+                    <li><b>Verde (ok)</b>: le voci coincidono.</li>
+                    <li><b>Rosso (diff.)</b>: ore di straordinario mancanti, diaria o indennità differenti.</li>
+                    <li><b>Giallo (verifica)</b>: voci particolari da controllare.</li>
+                  </ul>
+                </li>
+                <li><b>Invia la segnalazione</b>: se ci sono differenze, premi <b>Apri mail</b> o <b>Copia</b> per inviare all'Ufficio Personale la mail già scritta con il riepilogo dettagliato dei giorni e dei turni.</li>
+              </ol>
+              <p>🔒 Il PDF resta solo sul telefono: non viene mai caricato su server esterni.</p>
+            </div>
+          </details>
+
+          <details class="tutorial" style="--t:var(--sky)">
+            <summary><span class="tut-ic">📅</span><span><strong>Calendario personale e Widget iPhone</strong><small>Turni su Apple Calendar, Google Calendar e Widget Home</small></span></summary>
+            <div class="tut-corpo">
+              <ol>
+                <li><b>Calendario sincronizzato</b>: vai in <b>Impostazioni (⚙) → Calendario personale</b> e premi <b>Attiva sincronizzazione</b>.</li>
+                <li><b>Premi «Aggiungi su iPhone» o «Aggiungi su Google»</b>: i tuoi turni compariranno nel calendario del telefono con orario, nave, ormeggio serale, rifornimento ed equipaggio completo con qualifiche.</li>
+                <li><b>Widget per iPhone (Scriptable)</b>: con l'app gratuita <i>Scriptable</i> puoi inserire il widget sulla schermata Home o di blocco per vedere sempre la prossima nave o il prossimo scalo (istruzioni in <i>tools/widget-iphone</i>).</li>
+              </ol>
+              <p>Il calendario si aggiorna da solo se un turno cambia per ODS o cambio turno.</p>
+            </div>
+          </details>
+
+          <details class="tutorial" style="--t:var(--amber)">
+            <summary><span class="tut-ic">📘</span><span><strong>Guida Avanzata completa</strong><small>Calcolo 39h, ritardi equipaggio, controllo cassa e backup</small></span></summary>
+            <div class="tut-corpo">
+              <ol>
+                <li><b>Calcolo su base 39h</b>: gestione automatica del CCNL e delle settimane a cavallo di mese.</li>
+                <li><b>Ritardo equipaggio</b>: se un collega della tua nave segna un ritardo, NaviSuite te lo propone con un tocco.</li>
+                <li><b>Controllo Cassa (¤)</b>: calcolatore veloce per quadrare fondo cassa e conteggio tagli.</li>
+                <li><b>Mappa live e partenze A4</b>: quadro arrivi e partenze dallo scalo in 3 lingue pronto da stampare.</li>
+                <li><b>Backup e allineamento archivi</b>: scarica la tua distinta o allinea discrepanze tra dispositivi.</li>
+              </ol>
+              <a class="tut-btn" href="docs/GUIDA-AVANZATA.md" target="_blank">Apri la Guida Avanzata completa →</a>
             </div>
           </details>
         </div>
@@ -198,8 +315,19 @@
 
   <script src="assets/js/announcements-recovered.js?v=14"></script>
   <script>
-    // Tutorial: la GIF si scarica solo quando si apre la guida (e riparte dall'inizio)
-    document.querySelectorAll('details.tutorial[data-gif]').forEach(d=>d.addEventListener('toggle',()=>{const img=d.querySelector('img');if(d.open)img.src=d.dataset.gif;else img.removeAttribute('src');}));
+    // Tutorial: la GIF/immagine si scarica solo quando si apre la guida (e riparte dall'inizio)
+    document.querySelectorAll('details.tutorial[data-gif]').forEach(d=>{
+      d.addEventListener('toggle',()=>{
+        const img=d.querySelector('img');
+        if(!img)return;
+        if(d.open)img.src=d.dataset.gif;
+        else img.removeAttribute('src');
+      });
+    });
+    // Aggiorna il contatore guide
+    const tutCount=document.querySelectorAll('#tutorialGrid .tutorial').length;
+    const tutBadge=document.querySelector('#tutorial-docs .count');
+    if(tutBadge && tutCount)tutBadge.textContent=`${tutCount} guide`;
   </script>
 </body>
 </html>
