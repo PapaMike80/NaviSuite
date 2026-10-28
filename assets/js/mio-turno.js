@@ -250,7 +250,7 @@
       '<a href="collegamenti.html" style="color:#2dd4bf;font-size:11.5px;font-weight:700;text-decoration:none">Collegamenti completi ↗</a></div>';
     return card('Mezzi pubblici · ' + ct.casa + ' ⇄ ' + ct.lavoro, badge, htmlAndata + htmlRitorno + note, 'mt-collegamenti-card', 'collegamenti');
   }
-  function renderNave(code, day, me) {
+  function renderNave(code, day, me, found) {
     const turniNavi = [...(state.schedule?.turni_navi || []), ...state.firebaseNavi];
     const oggi = T.turniDelGiorno(turniNavi, day)[code] || {};
     const ieri = T.turniDelGiorno(turniNavi, addDays(day, -1))[code] || {};
@@ -564,7 +564,7 @@
     notice(messages.join(' · '));
     if (!nave && !terra) window.NaviOrarioPage?.hide();
     if (nave) {
-      renderNave(nave, day, me);
+      renderNave(nave, day, me, found);
       // In linea: la mappa del lago con la mia corsa (sotto corse, scali e turno)
       $('turno-scali').hidden = false;
       window.NaviOrarioPage?.show({ modo: 'nave', turno: nave, day });
