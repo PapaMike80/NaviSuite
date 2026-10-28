@@ -99,9 +99,14 @@ historical_questions = [
     }
 ]
 
-# Elenco completo documenti ufficiali
+# Elenco completo documenti ufficiali (incluso atti ufficiali inPA scaricati)
 all_docs = [
-    ("Bando Ufficiale Concorso Operatore Ufficio", "docs/controllo/Bando162026_DE.pdf", "Bando C163 e determina DG", "PDF Ufficiale"),
+    ("Elenco Candidati Ammessi (Pubblicato il 14/10/2026)", "docs/controllo/00_Bando_e_Atti_Ufficiali/Elenco_candidati_ammessi_16_2026_DE.pdf", "Determina e firma RUP del 14/10/2026 con i 69 candidati ammessi alla prova scritta", "Atti inPA / GGNL"),
+    ("Bando Ufficiale Concorso Operatore Ufficio (Prot. C163 / Det. C162)", "docs/controllo/00_Bando_e_Atti_Ufficiali/Bando162026_DE.pdf", "Bando integrale per 3 posti (Arona, Como, Desenzano), requisiti e materie esame", "Bando Ufficiale inPA"),
+    ("Allegato B - Carta della Mobilità e dei Servizi GGNL", "docs/controllo/00_Bando_e_Atti_Ufficiali/AllegatoB_CartaMobilita.pdf", "Carta della mobilità ufficiale della Gestione Governativa Navigazione Laghi", "Documento Ufficiale GGNL"),
+    ("Allegato A - Codice Etico Navigazione Laghi", "docs/controllo/00_Bando_e_Atti_Ufficiali/AllegatoA_Codice-Etico-GestioneNavigazioneLaghi.pdf", "Codice etico aziendale e regole di integrità del dipendente GGNL", "Allegato Bando inPA"),
+    ("Allegato C - Regolamento di Esercizio GGNL", "docs/controllo/00_Bando_e_Atti_Ufficiali/AllegatoC_REGOLAMENTO_ESERCIZIO_13_05_03.pdf", "Condizioni di trasporto passeggeri, compiti equipaggio e controlleria", "Allegato Bando inPA"),
+    ("Informativa Trattamento Dati Personali Candidati", "docs/controllo/00_Bando_e_Atti_Ufficiali/InformativaAlTrattamentoDeiDatiPersonaliDeiCandidati_Regolamento(UE)n.679_2016-1.pdf", "Informativa ex artt. 13-14 Regolamento UE 2016/679 (GDPR) per i candidati", "Privacy inPA"),
     ("Guida Generale allo Studio & Indice", "docs/controllo/00_GUIDA_STUDIO_E_INDICE_MATERIE.md", "Mappa concettuale 18 materie e piano 4 settimane", "Markdown Guida"),
     ("Legge 18 luglio 1957, n. 614", "docs/controllo/01_Normativa_GGNL_e_Trasporti/LEGGE 18 luglio 1957, n. 614.pdf", "Legge istitutiva Gestione Governativa", "Normativa"),
     ("Regolamento di Esercizio 2004", "docs/controllo/01_Normativa_GGNL_e_Trasporti/Regolamento_di_Esercizio_2004.pdf", "Regolamento approvato dal MIT nota NI/1716", "Regolamento Aziendale"),
@@ -116,11 +121,8 @@ all_docs = [
     ("R.D. 8 gennaio 1931, n. 148", "docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/RD_148_1931_Stato_Giuridico_Autoferrotranviari.pdf", "Stato giuridico e disciplina autoferrotranviari", "Regio Decreto"),
     ("CCNL Autoferrotranviari", "docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/CCNL_AUTOFERROTRANVIERI_0.pdf", "Contratto Collettivo Nazionale di Lavoro", "CCNL"),
     ("D.P.R. 13 giugno 2023, n. 81", "docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/DPR_81_2023_Codice_Comportamento.pdf", "Nuovo codice di comportamento dipendenti pubblici", "DPR Nazionale"),
-    ("Codice Etico GGNL (Allegato A)", "docs/controllo/03_Stato_Giuridico_e_Codice_Comportamento/Codice_Etico_GGNL_Allegato_A.pdf", "Codice etico aziendale della Navigazione Laghi", "Codice Aziendale"),
     ("D.P.C.M. 3 dicembre 2013", "docs/controllo/04_Gestione_Documentale_e_Privacy/DPCM_3_12_2013_Gestione_Documentale.pdf", "Regole tecniche protocollo e conservazione a norma", "DPCM Tecnico"),
     ("Regolamento (UE) 2016/679 (GDPR)", "docs/controllo/04_Gestione_Documentale_e_Privacy/Regolamento_UE_2016_679_GDPR.pdf", "Protezione persone fisiche e dati personali", "Regolamento UE"),
     ("Dispensa Geografia dei 3 Laghi", "docs/controllo/05_Geografia_dei_Laghi/DISPENSA_GEOGRAFIA_LAGHI.md", "Bacini, porti, traghetti auto e venti (Garda, Como, Maggiore)", "Dispensa Studio"),
     ("Dispensa Informatica (Excel, PEC) & Inglese", "docs/controllo/06_Informatica_e_Inglese/DISPENSA_INFORMATICA_E_INGLESE.md", "Excel avanzato, ricevute PEC, glossario trasporti", "Dispensa Studio")
 ]
-
-print("Script base pronto.")

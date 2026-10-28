@@ -1,0 +1,48 @@
+{
+  "last_check": "2026-10-28T14:30:25.762015",
+  "inpa_docs": {
+    "Bando162026_DE.pdf": {
+      "url": "https://portale.inpa.gov.it/api/media/f1fa7369-ddb7-4a11-a034-c08492b2c616",
+      "downloaded_at": "2026-10-28T14:30:20.794348",
+      "size": 685934
+    },
+    "InformativaAlTrattamentoDeiDatiPersonaliDeiCandidati_Regolamento(UE)n.679_2016-1.pdf": {
+      "url": "https://portale.inpa.gov.it/api/media/d90f73ca-8714-442a-879a-1ae197a62b40",
+      "downloaded_at": "2026-10-28T14:30:20.893657",
+      "size": 195877
+    },
+    "AllegatoA_Codice-Etico-GestioneNavigazioneLaghi.pdf": {
+      "url": "https://portale.inpa.gov.it/api/media/c17ad42a-e3d7-4550-a95b-88c9fc7d05f1",
+      "downloaded_at": "2026-10-28T14:30:20.978214",
+      "size": 150821
+    },
+    "AllegatoC_REGOLAMENTO_ESERCIZIO_13_05_03.pdf": {
+      "url": "https://portale.inpa.gov.it/api/media/6641b68d-49f8-4543-9fd5-d8e7c0e014e6",
+      "downloaded_at": "2026-10-28T14:30:21.075230",
+      "size": 230155
+    },
+    "Elenco_candidati_ammessi_16_2026_DE.pdf": {
+      "url": "https://portale.inpa.gov.it/api/media/22e04c68-fb54-4a4e-aa2b-02681c098400",
+      "downloaded_at": "2026-10-28T14:30:21.175579",
+      "size": 133672
+    }
+  },
+  "navilaghi_docs": {
+    "Bando162026_DE-2.pdf": {
+      "url": "https://www.navigazionelaghi.it/wp-content/uploads/2026/09/Bando162026_DE-2.pdf",
+      "downloaded_at": "2026-10-28T14:30:21.375248",
+      "size": 685934
+    },
+    "InformativaAlTrattamentoDeiDatiPersonaliDeiCandidati_RegolamentoUEn.679_2016-1.pdf": {
+      "url": "https://www.navigazionelaghi.it/wp-content/uploads/2026/09/InformativaAlTrattamentoDeiDatiPersonaliDeiCandidati_RegolamentoUEn.679_2016-1.pdf",
+      "downloaded_at": "2026-10-28T14:30:21.437115",
+      "size": 195877
+    },
+    "AllegatoB_CartaMobilita.pdf": {
+      "url": "https://www.navigazionelaghi.it/wp-content/uploads/2026/10/AllegatoB_CartaMobilita.pdf",
+      "downloaded_at": "2026-10-28T14:30:21.624340",
+      "size": 1632115
+    }
+  },
+  "alerts": []
+}
