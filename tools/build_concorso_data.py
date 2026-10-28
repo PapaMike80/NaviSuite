@@ -38,10 +38,10 @@ past_papers = [
 # Database quesiti storici commentati per la tabella
 historical_questions = [
     {
-        "q": "In base alla Legge n. 614/1957, quale durata ha l'incarico del Gestore Governativo?",
-        "ans": "A tempo indeterminato; cessa per dimissioni, morte o revoca del Ministro",
-        "source": "Prova Ufficiale DE 12/2025",
-        "note": "Art. 1 L. 614/1957. Non ha una scadenza fissa di 3 o 5 anni."
+        "q": "In base all'Art. 1 della Legge 614/1957 (testo vigente), quale durata ha l'incarico del Gestore Governativo?",
+        "ans": "5 anni, rinnovabile per una sola volta",
+        "source": "L. 614/1957 Art. 1 c. 1 (modificato da L. 14/2023)",
+        "note": "ATTENZIONE: Nel testo originario del 1957 non c'era scadenza (indeterminato); la L. 14/2023 ha introdotto il termine espresso di 5 anni rinnovabile una sola volta!"
     },
     {
         "q": "Quale sanzione del R.D. 148/1931 ha funzione di richiamo preliminare?",
