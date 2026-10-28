@@ -676,5 +676,6 @@ console.log('Busta verifica test passed');
   assert.equal(stDic.postScadenza, true);
   assert.equal(stDic.fisso, 0, 'a dicembre dopo scadenza 30-11 non c\'e\' stipendio fisso mensile');
   assert.equal(stDic.righe.find(r => r.id === 'congedoFZ0').importo, 16, '2 gg CON x 8 € = 16 €');
-  assert.equal(stDic.lordo, 21.08, '16 (FZ0) + 4.04 (FD0) + 1.04 (49X)');
+  assert.equal(stDic.righe.find(r => r.id === 'tredicesima').importo, 813.43, '13ª mensilità 6 ratei = 813,43 €');
+  assert.equal(stDic.lordo, 834.51, '16 (FZ0) + 4.04 (FD0) + 1.04 (49X) + 813.43 (13ma)');
 }

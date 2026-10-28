@@ -31,6 +31,7 @@
   function unitValue(value, unit) {
     if (value === null || value === undefined) return '—';
     if (unit === 'ore') return `${number(value, 2)} h`;
+    if (unit === 'ratei') return `${number(value, Number.isInteger(value) ? 0 : 2)} ratei`;
     return number(value, Number.isInteger(value) ? 0 : 2);
   }
   function signedUnit(value, unit) {
@@ -40,9 +41,12 @@
 
   let agent = null;
   try { agent = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch (_) { agent = null; }
+  const IRPEF_KEY = 'navisuite.verificaBusta.nascondiIrpef';
+  let nascondiIrpefInit = true;
+  try { const v = localStorage.getItem(IRPEF_KEY); if (v !== null) nascondiIrpefInit = v !== '0'; } catch (_) {}
 
   // buste: chiave (mese della busta, o nome del file se il mese non si legge) -> {busta, fileName, bustaMonth, month}
-  const state = { buste: {}, corrente: '', tab: 'confronto', anno: '', data: null, loadingData: null, archivio: {} };
+  const state = { buste: {}, corrente: '', tab: 'confronto', anno: '', data: null, loadingData: null, archivio: {}, nascondiIrpef: nascondiIrpefInit };
 
   function setAlerts(list) {
     els.alerts.innerHTML = list.map(alert => `<p class="vb-alert ${alert.kind || 'warn'}">${escapeHtml(alert.text)}</p>`).join('');
@@ -495,6 +499,11 @@
     const on = document.body.classList.contains('vb-blur');
     return `<button type="button" class="vb-blur-btn" data-vb-blur="1" aria-pressed="${on}" title="${on ? 'Mostra cifre' : 'Nascondi cifre'}">${on ? '👁' : '🙈'}</button>`;
   };
+  const irpefBtnHtml = (rimb = 0) => {
+    if (!rimb) return '';
+    const nascosto = Boolean(state.nascondiIrpef);
+    return `<button type="button" class="vb-irpef-btn${nascosto ? '' : ' is-active'}" data-vb-irpef="1" aria-pressed="${!nascosto}" title="${nascosto ? `Rimborso IRPEF/730 (${euro(rimb)}) nascosto: clicca per mostrarlo` : `Rimborso IRPEF/730 (${euro(rimb)}) incluso: clicca per nasconderlo`}">🧾 ${nascosto ? 'Mostra IRPEF' : 'Nascondi IRPEF'}</button>`;
+  };
   function stimaHtml(st, intera) {
     const giorni = (new Date(`${st.p.endIso}T12:00:00`) - new Date(`${st.p.startIso}T12:00:00`)) / 864e5 + 1;
     const inCorso = st.p.endIso >= oggiIso();
@@ -514,7 +523,7 @@
         : `<div class="voce st"><span class="n">${escapeHtml(r.label)} <span class="eur num eurv">${escapeHtml(euro(r.importo))}</span></span><span class="pill num">${unitValue(r.quantita, r.unit)}</span><span class="c num">${unitValue(r.quantita, r.unit)} × <span class="eurv">${escapeHtml(number(r.base, 2))} €</span>${r.daMese ? ` (${escapeHtml(meseCorto(r.daMese))})` : ''}${corrInfo}</span>${notaBox}</div>`;
     };
     const parteFissaHtml = st.postScadenza
-      ? `<p class="grp">Parte fissa · <span class="eurv">0,00 €</span> (contratto in scadenza il ${escapeHtml(st.scadenzaContratto || '30-11')})</p><p class="msub">Lo stipendio base mensile è già corrisposto nelle buste fino a novembre: nella busta di ${escapeHtml(monthLabel(st.bustaMonth).toLowerCase())} entrano solo le competenze variabili di ${escapeHtml(monthLabel(st.month).toLowerCase())} (più eventuale 13ª mensilità e TFR liquidati a fine rapporto).</p>`
+      ? `<p class="grp">Parte fissa · <span class="eurv">0,00 €</span> (contratto in scadenza il ${escapeHtml(st.scadenzaContratto || '30-11')})</p><p class="msub">Lo stipendio base mensile è già corrisposto nelle buste fino a novembre: nella busta di ${escapeHtml(monthLabel(st.bustaMonth).toLowerCase())} entrano le competenze variabili di ${escapeHtml(monthLabel(st.month).toLowerCase())} e la 13ª mensilità.</p>`
       : `<p class="grp">Parte fissa · <span class="eurv">${escapeHtml(euro(st.fisso))}</span> come la busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p>`;
     const dettaglioRit = st.contributi
       ? `contributi FAP 9,36% (−${escapeHtml(euro(st.contributi))}) + IRPEF netta (−${escapeHtml(euro(st.irpefNetta))})${st.diarieEsenti ? `, con ${escapeHtml(euro(st.diarieEsenti))} di diarie esenti` : ''}`
@@ -522,14 +531,20 @@
     return `<p class="msub">${st.giornate} giornate nella Distinta su ${giorni} del periodo${inCorso ? ' · periodo in corso: la stima cresce con le giornate inserite' : ''}</p>${testa}`
       + `<p class="grp">Voci dalla Distinta · prezzi della busta di ${escapeHtml(monthLabel(st.ref).toLowerCase())}</p><div class="voci">${st.righe.map(riga).join('') || '<p class="msub">Nessuna voce variabile.</p>'}</div>`
       + parteFissaHtml
-      + `<p class="msub">Stima calcolata con ${dettaglioRit}. Non conta conguagli di fine anno, tredicesima e una tantum; il ticket elettronico non è nel netto.</p>`;
+      + `<p class="msub">Stima calcolata con ${dettaglioRit}. Non conta conguagli di fine anno e una tantum; il ticket elettronico non è nel netto.</p>`;
   }
 
   const statoMese = c => !c ? 'check' : c.result.rows.some(r => r.status === 'diff' && !r.trascurabile) ? 'diff' : c.result.rows.some(r => r.status !== 'ok' && !r.trascurabile) ? 'check' : 'ok';
 
-  // Totali: netto in primo piano con scimmietta mostra/nascondi accanto, lordo e ritenute piccoli a destra
-  function tilesHtml(t) {
-    return `<div class="tot num"><div><small>Netto</small><div class="tot-main"><span class="tot-n">${eurv(t.netto)}</span>${blurBtnHtml()}</div></div><div class="tot-side">lordo <b>${eurv(t.competenze)}</b><br>ritenute <b>${t.ritenute === null || t.ritenute === undefined ? '—' : `<span class="eurv">−${escapeHtml(euro(Math.abs(t.ritenute)))}</span>`}</b></div></div>`;
+  // Totali: netto in primo piano con scimmietta mostra/nascondi accanto (+ eventuale toggle rimborso IRPEF/730), lordo e ritenute piccoli a destra
+  function tilesHtml(t, rimbIrpef = 0) {
+    const sottrai = state.nascondiIrpef && rimbIrpef > 0 ? rimbIrpef : 0;
+    const netto = t.netto !== null && t.netto !== undefined ? Math.round((Number(t.netto) - sottrai) * 100) / 100 : t.netto;
+    const comp = t.competenze !== null && t.competenze !== undefined ? Math.round((Number(t.competenze) - sottrai) * 100) / 100 : t.competenze;
+    const subIrpef = rimbIrpef > 0
+      ? `<div class="range">${state.nascondiIrpef ? `escluso rimborso IRPEF/730 di ${eurv(rimbIrpef)}` : `include rimborso IRPEF/730 di ${eurv(rimbIrpef)}`}</div>`
+      : '';
+    return `<div class="tot num"><div><small>Netto</small><div class="tot-main"><span class="tot-n">${eurv(netto)}</span>${blurBtnHtml()}${irpefBtnHtml(rimbIrpef)}</div>${subIrpef}</div><div class="tot-side">lordo <b>${eurv(comp)}</b><br>ritenute <b>${t.ritenute === null || t.ritenute === undefined ? '—' : `<span class="eurv">−${escapeHtml(euro(Math.abs(t.ritenute)))}</span>`}</b></div></div>`;
   }
 
   function voceHtml(row, item) {
@@ -670,7 +685,8 @@
     }
     els.titolo.textContent = nome;
     const emMese = extra ? (item.bustaMonth.endsWith('-14') ? `luglio ${item.bustaMonth.slice(0, 4)}` : `dicembre ${item.bustaMonth.slice(0, 4)}`) : '';
-    els.confronto.innerHTML = `<div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${extra ? ` · emessa a ${escapeHtml(emMese)}` : c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {})}${extra ? '' : scartoStima(item, data, calculator)}${corpo}`;
+    const c730 = window.NaviBustaCompare.conguaglio730?.(item.busta.voci) || 0;
+    els.confronto.innerHTML = `<div><p class="msub">Busta di ${escapeHtml(nome.toLowerCase())}${extra ? ` · emessa a ${escapeHtml(emMese)}` : c ? ` → Distinta di ${escapeHtml(monthLabel(item.month).toLowerCase())} (${dateText(c.p.startIso)} – ${dateText(c.p.endIso)})` : ''}</p></div>${tilesHtml(item.busta.totals || {}, c730)}${extra ? '' : scartoStima(item, data, calculator)}${corpo}`;
   }
   // Busta arrivata: quanto avrebbe detto la stima
   function scartoStima(item, data, calculator) {
@@ -696,9 +712,10 @@
     const stato = m => isSenzaDistinta(m) ? 'ok' : (data && calculator && state.buste[m] ? statoMese(confronta(state.buste[m], data, calculator)) : 'ok');
     const stimeAnno = Object.keys(stime).filter(m => m.startsWith(state.anno));
     const totStime = stimeAnno.reduce((t, m) => t + stime[m].netto, 0);
-    // Esclude dal grafico i rimborsi IRPEF / 730 (es. C75, B03) per non falsare la scala delle barre
+    // Rimborsi IRPEF / 730 (es. C75, B03): possono essere nascosti o mostrati con il pulsante [data-vb-irpef]
     const rimborsoIrpef = m => Math.max(0, window.NaviBustaCompare.conguaglio730?.(state.archivio[m]?.voci) || 0);
-    const nettoGrafico = m => Math.max(0, (Number(state.archivio[m]?.totals?.netto) || 0) - rimborsoIrpef(m));
+    const totRimborsi = delAnno.reduce((t, m) => t + rimborsoIrpef(m), 0);
+    const nettoGrafico = m => Math.max(0, (Number(state.archivio[m]?.totals?.netto) || 0) - (state.nascondiIrpef ? rimborsoIrpef(m) : 0));
     const totNettoGrafico = delAnno.reduce((t, m) => t + nettoGrafico(m), 0);
     const max = Math.max(1, ...delAnno.map(nettoGrafico), ...stimeAnno.map(m => stime[m].netto));
     // Quota degli straordinari (voci 334 e 01Y) dentro la colonna del netto
@@ -716,12 +733,17 @@
       const shortLbl = m.endsWith('-14') ? '14ª' : m.endsWith('-13') ? '13ª' : isBustaTfr(m) ? 'TFR' : meseCorto(m).slice(0, 1).toUpperCase();
       if (!state.archivio[m] && stime[m]) return `<div title="${escapeHtml(monthLabel(m))} · stima ≈ ${escapeHtml(euro(stime[m].netto))}"><i class="s" style="height:${Math.max(3, Math.round(stime[m].netto / max * 64))}px"></i><span>${shortLbl}</span></div>`;
       const quota = n ? Math.min(100, Math.round(o / n * 100)) : 0;
-      const rimbNote = rimb ? ` · netto ${escapeHtml(euro(n))} (escluso rimborso IRPEF/730 di ${escapeHtml(euro(rimb))})` : '';
+      const rimbNote = rimb ? ` · netto ${escapeHtml(euro(n))}${state.nascondiIrpef ? ` (escluso rimborso IRPEF/730 di ${escapeHtml(euro(rimb))})` : ` (include rimborso IRPEF/730 di ${escapeHtml(euro(rimb))})`}` : '';
       return `<div title="${escapeHtml(isBustaTfr(m) ? `Liquidazione TFR (${monthLabel(m)})` : monthLabel(m))}${rimbNote}${o ? ` · straordinari ${escapeHtml(euro(o))}` : ''}"><i class="${!state.archivio[m] ? 'v' : stato(m) === 'diff' ? 'r' : ''}" style="height:${state.archivio[m] ? Math.max(3, Math.round(n / max * 64)) : 2}px">${quota ? `<b style="height:${quota}%"></b>` : ''}</i><span>${shortLbl}</span></div>`;
     }).join('');
     const nomeRiga = m => isBustaTfr(m) ? `Liquidazione TFR (${monthLabel(m).split(' ')[0]})` : isMensilitaExtra(m) ? monthLabel(m).replace(/\s+\d{4}$/, '') : monthLabel(m).split(' ')[0];
     const listaStime = stimeAnno.slice().reverse().map(m => `<div class="yr yr-stima"><i class="dot" style="--c:var(--amber)"></i><button type="button" class="mm" data-apri="stima:${m}">${escapeHtml(nomeRiga(m))} <span class="stima-tag">stima</span></button><span class="num">≈ ${eurv(stime[m].netto)}</span><span></span></div>`).join('');
-    const lista = listaStime + delAnno.slice().reverse().map(m => `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(nomeRiga(m))}</button><span class="num">${eurv(state.archivio[m].totals?.netto)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`).join('');
+    const lista = listaStime + delAnno.slice().reverse().map(m => {
+      const rimb = rimborsoIrpef(m);
+      const n = (Number(state.archivio[m].totals?.netto) || 0) - (state.nascondiIrpef ? rimb : 0);
+      const tag730 = rimb && !state.nascondiIrpef ? ` <small class="stima-tag" style="background:color-mix(in srgb,var(--teal) 22%,transparent);color:var(--teal)">+730</small>` : '';
+      return `<div class="yr"><i class="dot" style="--c:${COLORE[stato(m)]}"></i><button type="button" class="mm" data-apri="${m}">${escapeHtml(nomeRiga(m))}${tag730}</button><span class="num">${eurv(n)}</span><button type="button" class="x" data-togli="${m}" aria-label="Togli la busta di ${escapeHtml(monthLabel(m).toLowerCase())}">✕</button></div>`;
+    }).join('');
     const voci = new Map();
     delAnno.forEach(m => (state.archivio[m].voci || []).forEach(v => {
       if (!v.code) return;
@@ -733,7 +755,7 @@
     els.titolo.textContent = `Anno ${state.anno}`;
     els.anno.innerHTML = `<div class="sel">${anni.map(a => `<button type="button" class="chip${a === state.anno ? ' on' : ''}" data-anno="${a}">${a}</button>`).join('')}</div>`
       + `<p class="msub">${delAnno.length} ${delAnno.length === 1 ? 'busta' : 'buste'} · netto mese per mese (rosso: differenze con la Distinta)</p>`
-      + `<div class="spark" aria-hidden="true">${barre}</div><p class="legenda"><i class="q q-n"></i>netto (esclusi rimborsi IRPEF) <i class="q q-s"></i>di cui straordinari${stimeAnno.length ? ' <i class="q q-st"></i>stima' : ''}${totStraord ? ` · <b class="num">${eurv(totStraord)}</b> nell'anno (${Math.round(totStraord / (totNettoGrafico || 1) * 100)}% del netto)` : ''}</p>${tilesHtml(tot)}${totStime ? `<p class="msub">Con ${stimeAnno.length === 1 ? 'la stima' : `le ${stimeAnno.length} stime`}: netto dell'anno ≈ ${eurv(tot.netto + totStime)}</p>` : ''}<div class="ylist">${lista}</div>`
+      + `<div class="spark" aria-hidden="true">${barre}</div><p class="legenda"><i class="q q-n"></i>netto${state.nascondiIrpef && totRimborsi ? ' (esclusi rimborsi IRPEF)' : ''} <i class="q q-s"></i>di cui straordinari${stimeAnno.length ? ' <i class="q q-st"></i>stima' : ''}${totStraord ? ` · <b class="num">${eurv(totStraord)}</b> nell'anno (${Math.round(totStraord / (totNettoGrafico || 1) * 100)}% del netto)` : ''}</p>${tilesHtml(tot, totRimborsi)}${totStime ? `<p class="msub">Con ${stimeAnno.length === 1 ? 'la stima' : `le ${stimeAnno.length} stime`}: netto dell'anno ≈ ${eurv((state.nascondiIrpef ? totNettoGrafico : tot.netto) + totStime)}</p>` : ''}<div class="ylist">${lista}</div>`
       + (righeVoci ? `<details class="altre"><summary>Totali per voce nel ${state.anno} ▾</summary><div class="vwrap"><table class="vtab"><thead><tr><th>Voce</th><th>Quantità</th><th>Importo</th><th>Mesi</th></tr></thead><tbody>${righeVoci}</tbody></table></div></details>` : '');
   }
 
@@ -932,7 +954,14 @@
     try { blur(localStorage.getItem(BLUR_KEY) === '1'); } catch (_) { blur(false); }
     document.addEventListener('click', e => {
       const b = e.target.closest('[data-vb-blur]');
-      if (b) { e.stopPropagation(); blur(!document.body.classList.contains('vb-blur')); }
+      if (b) { e.stopPropagation(); blur(!document.body.classList.contains('vb-blur')); return; }
+      const irp = e.target.closest('[data-vb-irpef]');
+      if (irp) {
+        e.stopPropagation();
+        state.nascondiIrpef = !state.nascondiIrpef;
+        try { localStorage.setItem(IRPEF_KEY, state.nascondiIrpef ? '1' : '0'); } catch (_) {}
+        ridisegna();
+      }
     });
     $('vbTabConfronto')?.addEventListener('click', () => { state.tab = 'confronto'; ridisegna(); });
     $('vbTabAnno')?.addEventListener('click', () => { state.tab = 'anno'; ridisegna(); });

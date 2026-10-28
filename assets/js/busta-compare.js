@@ -349,6 +349,23 @@
       variabile = round2(variabile + fz0Imp);
       righe.push({ id: 'congedoFZ0', label: 'Indennità retribuzione ferie (FZ0)', unit: 'giorni', quantita: congedoGg, quantitaOriginale: congedoGg, correzione: 0, importoCorrezione: 0, base: fz0Base, importo: fz0Imp, importoRef: 0 });
     }
+    // Nella busta di dicembre (es. 2026-12) viene liquidata anche la 13ª mensilita' (voce 181: 813,43 € per 6 ratei + FJ6 EDR 13ª: 13,83 €)
+    if (bustaMonth.endsWith('-12') && opzioni.includi13ma !== false) {
+      const tutteVoci = [voci, ...(Array.isArray(altreBuste) ? altreBuste.map(b => b?.voci || []) : [])].flat();
+      const v181 = tutteVoci.find(v => v?.code === '181' && Number(v?.amount) > 0);
+      const ratei13 = Number(v181?.quantity) || 6;
+      const imp13 = round2(Number(v181?.amount) || 813.43);
+      const base13 = Number(v181?.base) || round2((imp13 / ratei13) * 100000) / 100000;
+      variabile = round2(variabile + imp13);
+      righe.push({ id: 'tredicesima', label: '13ª mensilità (181)', unit: 'ratei', quantita: ratei13, quantitaOriginale: ratei13, correzione: 0, importoCorrezione: 0, base: base13, importo: imp13, importoRef: 0 });
+      const vFj6 = tutteVoci.find(v => (v?.code === 'FJ6' || v?.code === 'FJ7') && Number(v?.amount) > 0);
+      const has03N = voci.some(v => v?.code === '03N');
+      if (vFj6 || has03N) {
+        const impEdr13 = round2(Number(vFj6?.amount) || 13.83);
+        variabile = round2(variabile + impEdr13);
+        righe.push({ id: 'edr13', label: 'EDR Rinn. CCNL 13ª (FJ6)', unit: 'ratei', quantita: ratei13, quantitaOriginale: ratei13, correzione: 0, importoCorrezione: 0, base: round2((impEdr13 / ratei13) * 1000) / 1000, importo: impEdr13, importoRef: 0 });
+      }
+    }
     const fissoRiferimento = round2(lordoRef - variabileRef);
     const fisso = postScadenza ? 0 : fissoRiferimento;
     const lordo = round2(fisso + variabile);
