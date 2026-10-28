@@ -296,7 +296,39 @@
       chipsHtml += '<span class="mt-comp-chip ghost" title="Orari coperti da mezzi pubblici: nessun pernotto necessario">🏨 Pernotto: no</span>';
     }
 
-    const htmlCompetenze = '<div class="mt-col-competenze"><div class="mt-col-titolo">💼 Competenze trasferta</div><div class="mt-comp-chips">' + chipsHtml + '</div></div>';
+    // Controllo se le competenze sono gia' salvate nella distinta per questo giorno
+    const me = profile();
+    const entriesKey = 'navidiaria.entries.v1.' + (me?.id || 'guest');
+    let giaRegistrato = false;
+    try {
+      const arr = JSON.parse(localStorage.getItem(entriesKey) || '[]');
+      const ent = arr.find(e => e.date === day);
+      if (ent) {
+        const okDiaria = Number(ent.allowanceRate) === 50;
+        const okTicket = !comp.secondoTicket || Number(ent.secondMeal) > 0;
+        const okPernotto = !comp.pernottoSera || Boolean(ent.overnight40);
+        giaRegistrato = okDiaria && okTicket && okPernotto;
+      }
+    } catch (_) {}
+
+    const actionHtml = '<div class="mt-comp-action">' +
+      '<button type="button" class="mt-comp-btn' + (giaRegistrato ? ' ok' : '') + '" id="btn-riporta-distinta" ' +
+        'data-day="' + esc(day) + '" data-shift="' + esc(turnoCode || '') + '" ' +
+        'data-casa="' + esc(casa) + '" data-sede="' + esc(sede) + '" ' +
+        'data-inizio="' + esc(inizioClean) + '" data-fine="' + esc(fineClean) + '">' +
+        (giaRegistrato ? '✓ Riportato nella Distinta' : '📋 Riporta nella Distinta') +
+      '</button>' +
+      '<div id="mt-comp-feedback" class="mt-comp-feedback" style="display:' + (giaRegistrato ? 'flex' : 'none') + '">' +
+        '<span class="mt-fb-ok">✓ Competenze salvate nella Distinta</span> ' +
+        '<a href="navidiaria.html?editDate=' + encodeURIComponent(day) + '" class="mt-fb-link">Apri in Distinta ↗</a>' +
+      '</div>' +
+    '</div>';
+
+    const htmlCompetenze = '<div class="mt-col-competenze">' +
+      '<div class="mt-col-titolo">💼 Competenze trasferta</div>' +
+      '<div class="mt-comp-chips">' + chipsHtml + '</div>' +
+      actionHtml +
+    '</div>';
 
     const note = '<div class="mt-col-foot" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px dashed #1f4250">' +
       '<small style="color:#9fb8c2">Residenza: <b>' + esc(ct.casa) + '</b> · Sede turno: <b>' + esc(ct.lavoro) + '</b></small>' +
@@ -732,6 +764,118 @@
     }
   });
   $('turno-title').addEventListener('click', apriDistinta);
+  function riportaInDistinta(day, shiftCode, ct) {
+    const me = profile();
+    const id = me?.id || 'guest';
+    const entriesKey = 'navidiaria.entries.v1.' + id;
+    let list = [];
+    try {
+      list = JSON.parse(localStorage.getItem(entriesKey) || '[]');
+    } catch (_) {
+      list = [];
+    }
+    if (!Array.isArray(list)) list = [];
+
+    const comp = ct?.competenze || {};
+    let entry = list.find(e => e.date === day);
+    const now = Date.now();
+
+    if (!entry) {
+      entry = {
+        id: 'naviturni-' + day,
+        date: day,
+        shift: shiftCode || 'PonD',
+        delay: 0,
+        bank: 0,
+        rf: false,
+        embark: false,
+        cashHandling: false,
+        mealUsed: true,
+        ticketPresence: true,
+        note: '',
+        imported: true
+      };
+      list.push(entry);
+    }
+
+    entry.travel = true;
+    entry.allowanceRate = comp.diariaRate || 50;
+    if (comp.secondoTicket) {
+      entry.secondMeal = 1;
+    }
+    if (comp.pernottoSera) {
+      entry.overnight40 = true;
+    }
+    entry.manualOverride = true;
+    entry.manualModified = true;
+    entry.modificatoIl = now;
+
+    let pernottoPrimaInfo = '';
+    if (comp.pernottoPrima) {
+      const dt = new Date(day + 'T12:00:00');
+      dt.setDate(dt.getDate() - 1);
+      const ieriIso = dt.toISOString().slice(0, 10);
+      let entryIeri = list.find(e => e.date === ieriIso);
+      if (entryIeri) {
+        entryIeri.overnight40 = true;
+        entryIeri.manualOverride = true;
+        entryIeri.modificatoIl = now;
+      } else {
+        list.push({
+          id: 'naviturni-' + ieriIso,
+          date: ieriIso,
+          shift: 'Riposo',
+          overnight40: true,
+          manualOverride: true,
+          modificatoIl: now,
+          imported: false
+        });
+      }
+      pernottoPrimaInfo = ' · Pernotto 40% sera prima (' + ieriIso + ')';
+    }
+
+    list.sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+    localStorage.setItem(entriesKey, JSON.stringify(list));
+    localStorage.setItem('navidiaria.cloudDirty.' + id, '1');
+
+    if (window.NaviAdminFirebase?.saveDiaria) {
+      window.NaviAdminFirebase.saveDiaria(String(id), list).catch(err => {
+        console.warn('Sync Firebase distinta non riuscito:', err);
+      });
+    }
+
+    window.dispatchEvent(new CustomEvent('navisuite-distinta-updated', { detail: { date: day, entries: list } }));
+
+    const btn = document.getElementById('btn-riporta-distinta');
+    if (btn) {
+      btn.classList.add('ok');
+      btn.innerHTML = '✓ Riportato nella Distinta';
+    }
+    const fb = document.getElementById('mt-comp-feedback');
+    if (fb) {
+      let dettagli = ['Diaria 50%'];
+      if (comp.pernottoSera) dettagli.push('Pernotto 40%');
+      if (comp.secondoTicket) dettagli.push('2° Ticket');
+      fb.innerHTML = '<span class="mt-fb-ok">✓ Salvato in Distinta: ' + dettagli.join(', ') + pernottoPrimaInfo + '</span> ' +
+        '<a href="navidiaria.html?editDate=' + encodeURIComponent(day) + '" class="mt-fb-link">Apri in Distinta ↗</a>';
+      fb.style.display = 'flex';
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('#btn-riporta-distinta');
+    if (!btn) return;
+    const day = btn.dataset.day;
+    const shift = btn.dataset.shift;
+    const casa = btn.dataset.casa;
+    const sede = btn.dataset.sede;
+    const inizio = btn.dataset.inizio;
+    const fine = btn.dataset.fine;
+    const C = window.NaviCollegamenti;
+    const ct = C?.cercaTurno?.({ casa, turnoResidenza: sede, iso: day, inizio, fine });
+    riportaInDistinta(day, shift, ct);
+  });
+
 
   document.addEventListener('click', async event => {
     const btn = event.target.closest('[data-doc-id]');

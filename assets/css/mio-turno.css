@@ -234,3 +234,51 @@
   color: #94adb5;
   font-weight: 600;
 }
+
+.mt-comp-action {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mt-comp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font: 800 13px Manrope, sans-serif;
+  cursor: pointer;
+  background: rgba(45, 212, 191, 0.15);
+  border: 1px solid #2dd4bf;
+  color: #2dd4bf;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.mt-comp-btn:hover {
+  background: rgba(45, 212, 191, 0.28);
+  color: #a7fff0;
+}
+.mt-comp-btn.ok {
+  background: rgba(6, 78, 59, 0.85);
+  border-color: #059669;
+  color: #a7f3d0;
+}
+.mt-comp-feedback {
+  font-size: 11.5px;
+  color: #9fb8c2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+}
+.mt-fb-ok {
+  color: #34d399;
+  font-weight: 700;
+}
+.mt-fb-link {
+  color: #2dd4bf;
+  font-weight: 700;
+  text-decoration: underline;
+}
