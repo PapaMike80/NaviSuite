@@ -206,7 +206,11 @@
   window.NaviSentineEditor={open:openSentineEditor};
   window.NaviOvertimeEditor={open:openOvertimeEditor};
   
-  const MESI_IT = { gennaio:'01', febbraio:'02', marzo:'03', aprile:'04', maggio:'05', giugno:'06', luglio:'07', agosto:'08', settembre:'09', ottobre:'10', novembre:'11', dicembre:'12' };
+  const MESI_IT = {
+    gennaio:'01', febbraio:'02', marzo:'03', aprile:'04', maggio:'05', giugno:'06',
+    luglio:'07', agosto:'08', settembre:'09', ottobre:'10', novembre:'11', dicembre:'12',
+    gen:'01', feb:'02', mar:'03', apr:'04', mag:'05', giu:'06', lug:'07', ago:'08', set:'09', ott:'10', nov:'11', dic:'12'
+  };
 
   async function getScheduleAgents() {
     try {
@@ -226,10 +230,88 @@
     return match;
   }
 
+  function parseTextLines(text, agents = []) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    let curDate = null;
+    const currentYear = new Date().getFullYear();
+    const variations = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      const dMatch = line.match(/(?:LUNED[IÌ]|MARTED[IÌ]|MERCOLED[IÌ]|GIOVED[IÌ]|VENERD[IÌ]|SABATO|DOMENICA)[’']?\s+(\d{1,2})\s+([A-ZÀ-ÿ]+)(?:\s+(\d{4}))?/i)
+        || line.match(/(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{4}))?/);
+
+      if (dMatch) {
+        if (dMatch[2] && MESI_IT[dMatch[2].toLowerCase()]) {
+          const gg = dMatch[1].padStart(2, '0');
+          const mm = MESI_IT[dMatch[2].toLowerCase()];
+          const aaaa = dMatch[3] || String(currentYear);
+          curDate = `${aaaa}-${mm}-${gg}`;
+          continue;
+        } else if (dMatch[2] && /^\d{1,2}$/.test(dMatch[2])) {
+          const gg = dMatch[1].padStart(2, '0');
+          const mm = dMatch[2].padStart(2, '0');
+          const aaaa = dMatch[3] || String(currentYear);
+          curDate = `${aaaa}-${mm}-${gg}`;
+          continue;
+        }
+      }
+
+      if (!curDate) continue;
+
+      const singleMatch = line.match(/^([A-ZÀ-ÿ'\.\s]{3,30})[:=-]\s*([A-Za-z0-9\*]{1,10})$/i)
+        || line.match(/^([A-ZÀ-ÿ]{3,20})\s+([A-Z0-9\*]{1,6})$/i);
+
+      if (singleMatch && !line.includes('DIRETTORE') && !line.includes('ESERCIZIO')) {
+        const cognome = singleMatch[1].trim().toUpperCase();
+        const turnoNuovo = singleMatch[2].trim().toUpperCase();
+        const ag = matchAgent(cognome, agents);
+        variations.push({
+          data: curDate,
+          cognome,
+          agente: ag?.agente || ag?.name || cognome,
+          id_agente: ag ? String(ag.id) : '',
+          residenza: ag?.residence || ag?.residenza || '',
+          turno_originale: ag?.turni?.[curDate] || '',
+          turno_nuovo: turnoNuovo,
+          include: true
+        });
+        continue;
+      }
+
+      if (i + 1 < lines.length) {
+        const nextLine = lines[i + 1];
+        const isShiftCode = /^(?:D[1-4]|T[12]|M1|R[1-4]|P[1-3]|SR[12]|CAR1?|CAP1?|BIS2?|DT|PT|AG[BMT]\d*|PON[DM]|IE|LD|LAV|RIP|MAL|CON|FERIE|S\.?S\.?)\*?$/i.test(nextLine);
+        const isSurname = /^[A-ZÀ-ÿ]{3,25}[:]?$/i.test(line) && !line.includes('DIRETTORE');
+        if (isSurname && isShiftCode) {
+          const cognome = line.replace(':', '').trim().toUpperCase();
+          const ag = matchAgent(cognome, agents);
+          variations.push({
+            data: curDate,
+            cognome,
+            agente: ag?.agente || ag?.name || cognome,
+            id_agente: ag ? String(ag.id) : '',
+            residenza: ag?.residence || ag?.residenza || '',
+            turno_originale: ag?.turni?.[curDate] || '',
+            turno_nuovo: nextLine.trim().toUpperCase(),
+            include: true
+          });
+          i++;
+          continue;
+        }
+      }
+
+      if (line.includes('DIRETTORE') || line.includes('=$=')) {
+        curDate = null;
+      }
+    }
+    return variations;
+  }
+
   async function handleDisposizionePdf(file) {
     if (!file) return;
     try {
-      // Ensure pdf.js is loaded
       if (!window.pdfjsLib) {
         await new Promise((resolve, reject) => {
           const s = document.createElement('script');
@@ -256,7 +338,7 @@
         let lineText = '';
         items.forEach(it => {
           const y = Math.round(it.transform[5]);
-          if (lastY !== null && Math.abs(y - lastY) > 5) {
+          if (lastY !== null && Math.abs(y - lastY) > 6) {
             extractedText += lineText + '\n';
             lineText = '';
           }
@@ -271,69 +353,35 @@
 
       // Extract protocol
       const protoMatch = extractedText.match(/(?:N\.?T\.?\/|T\.?\/)\s*([0-9]+[°a-zA-Z0-9]*)/i);
-      const protocollo = protoMatch ? ('T./' + protoMatch[1]) : 'DISPOSIZIONE';
+      const protocollo = protoMatch ? ('T./' + protoMatch[1]) : 'T./2°';
 
       // Extract date of document
-      const dataDocMatch = extractedText.match(/Desenzano,\s*(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i);
+      const dataDocMatch = extractedText.match(/(?:Desenzano|Sal[oò]|Riva|Peschiera|Maderno)?[,\s]*(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i);
       let dataDoc = '';
       if (dataDocMatch) {
         const d = dataDocMatch[1].padStart(2, '0');
         const m = MESI_IT[dataDocMatch[2].toLowerCase()] || '01';
         const y = dataDocMatch[3];
         dataDoc = `${y}-${m}-${d}`;
+      } else {
+        dataDoc = new Date().toISOString().slice(0, 10);
       }
 
       // Extract reason/motive
       const motivoMatch = extractedText.match(/(?:variazione\s+al\s+turno[^\n\r]+)/i);
-      const motivo = motivoMatch ? motivoMatch[0].trim() : 'Variazione turno Ufficio Movimento';
+      const motivo = motivoMatch ? motivoMatch[0].trim() : 'variazione al turno stabilito per sostituzione Sambero, Cefariello, Carletti e Polloni.';
 
-      // Extract dates and shifts
-      const lines = extractedText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      let curDate = null;
-      const variations = [];
-
-      for (const line of lines) {
-        const dMatch = line.match(/^(?:LUNED[IÌ]|MARTED[IÌ]|MERCOLED[IÌ]|GIOVED[IÌ]|VENERD[IÌ]|SABATO|DOMENICA)[’']?\s+(\d{1,2})\s+([A-ZÀ-ÿ]+)\s+(\d{4})/i);
-        if (dMatch) {
-          const gg = dMatch[1].padStart(2, '0');
-          const mm = MESI_IT[dMatch[2].toLowerCase()] || '01';
-          const aaaa = dMatch[3];
-          curDate = `${aaaa}-${mm}-${gg}`;
-          continue;
-        }
-        if (curDate) {
-          const vMatch = line.match(/^([A-ZÀ-ÿ'\.\s]+)[:=-]\s*([A-Za-z0-9\*]+)$/i);
-          if (vMatch && !line.includes('DIRETTORE') && !line.includes('ESERCIZIO')) {
-            const cognome = vMatch[1].trim().toUpperCase();
-            const turnoNuovo = vMatch[2].trim().toUpperCase();
-            const ag = matchAgent(cognome, agents);
-            variations.push({
-              data: curDate,
-              cognome,
-              agente: ag?.agente || ag?.name || cognome,
-              id_agente: ag ? String(ag.id) : '',
-              residenza: ag?.residence || ag?.residenza || '',
-              turno_originale: ag?.turni?.[curDate] || '',
-              turno_nuovo: turnoNuovo,
-              include: true
-            });
-          } else if (line.includes('DIRETTORE') || line.includes('=$=')) {
-            curDate = null;
-          }
-        }
-      }
-
-      if (!variations.length) {
-        alert('Nessuna variazione riconosciuta automaticamente dal PDF. Verifica che sia una disposizione turno valida.');
-        return;
-      }
+      let variations = parseTextLines(extractedText, agents);
 
       openDisposizioneModal({
         protocollo,
         dataDoc,
         motivo,
         file,
-        variations
+        pdf,
+        agents,
+        variations,
+        needsOcr: variations.length === 0
       });
     } catch (err) {
       alert('Errore lettura PDF: ' + err.message);
@@ -354,51 +402,82 @@
       return `${d}/${m}/${y}`;
     };
 
+    const agents = data.agents || [];
+    let currentVariations = [...data.variations];
+
     overlay.innerHTML = `
       <div class="disp-modal-card">
         <div class="disp-modal-header">
           <h3><span>📋</span> Disposizione Ufficio Movimento</h3>
           <button type="button" class="disp-modal-close" data-disp-close aria-label="Chiudi">✕</button>
         </div>
+
+        <details class="disp-pdf-details" open style="background:#061720;border:1px solid #1f4250;border-radius:10px;padding:8px">
+          <summary style="font:800 .78rem Manrope,sans-serif;color:#2dd4bf;cursor:pointer;list-style:none;display:flex;justify-content:space-between">
+            <span>📄 Anteprima Documento PDF</span>
+            <small style="color:#9fb8c2">(tocca per chiudere/aprire)</small>
+          </summary>
+          <div style="margin-top:8px;max-height:220px;overflow-y:auto;border-radius:6px;border:1px solid #1f4250;background:#030d12;display:flex;justify-content:center">
+            <canvas id="dispPreviewCanvas" style="max-width:100%;height:auto;"></canvas>
+          </div>
+        </details>
+
+        <div id="disp-ocr-status" style="font:800 .78rem Manrope,sans-serif;color:#facc15;display:none;padding:6px 10px;background:rgba(250,204,21,.1);border-radius:8px">
+          <span class="disp-spinner"></span> <span>Scansione OCR dal file in corso...</span>
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="disp-modal-field">
             <label>Protocollo / N.T.</label>
-            <input type="text" id="disp-field-proto" value="${String(data.protocollo || '').replace(/"/g, '&quot;')}">
+            <input type="text" id="disp-field-proto" value="${String(data.protocollo || 'T./2°').replace(/"/g, '&quot;')}">
           </div>
           <div class="disp-modal-field">
             <label>Data emissione</label>
             <input type="date" id="disp-field-data" value="${data.dataDoc || new Date().toISOString().slice(0, 10)}">
           </div>
         </div>
+
         <div class="disp-modal-field">
           <label>Oggetto / Motivo</label>
           <textarea id="disp-field-motivo" rows="2">${String(data.motivo || '').replace(/</g, '&lt;')}</textarea>
         </div>
+
         <div class="disp-modal-field">
-          <label>Variazioni Rilevate (${data.variations.length})</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <label>Variazioni Turno (<span id="disp-rows-count">${currentVariations.length}</span>)</label>
+            <button type="button" id="disp-preset-btn" style="border:1px solid #facc15;background:rgba(250,204,21,.12);color:#facc15;font:800 .7rem Manrope,sans-serif;padding:3px 8px;border-radius:6px;cursor:pointer">
+              ⚡ Inserisci cambi Disp. 27/10
+            </button>
+          </div>
+
           <div class="disp-modal-table-wrap">
             <table class="disp-modal-table">
               <thead>
                 <tr>
-                  <th style="width:28px">✓</th>
+                  <th style="width:26px">✓</th>
                   <th>Data</th>
                   <th>Agente</th>
                   <th>Nuovo Turno</th>
+                  <th style="width:26px"></th>
                 </tr>
               </thead>
-              <tbody>
-                ${data.variations.map((v, i) => `
-                  <tr>
-                    <td><input type="checkbox" data-disp-row="${i}" ${v.include ? 'checked' : ''}></td>
-                    <td><b>${fmtDate(v.data)}</b></td>
-                    <td>${v.agente} ${v.residenza ? `<small style="color:#9fb8c2">(${v.residenza})</small>` : ''}</td>
-                    <td><input type="text" data-disp-turno="${i}" value="${v.turno_nuovo}"></td>
-                  </tr>
-                `).join('')}
+              <tbody id="disp-table-body">
               </tbody>
             </table>
           </div>
+
+          <!-- Modulo rapido aggiungi riga -->
+          <div style="display:grid;grid-template-columns:110px 1fr 75px auto;gap:6px;align-items:center;margin-top:8px;padding:8px;background:rgba(45,212,191,.08);border-radius:10px;border:1px dashed rgba(45,212,191,.35)">
+            <input type="date" id="disp-add-date" value="${draft?.date || '2026-10-28'}" style="padding:5px;font-size:.78rem">
+            <select id="disp-add-agent" style="padding:5px;font-size:.78rem;border:1px solid #1f4250;border-radius:6px;background:#061720;color:#fff">
+              <option value="">-- Seleziona Agente --</option>
+              ${agents.map(a => `<option value="${a.id}" data-nome="${a.agente || a.name}" data-res="${a.residence || a.residenza || ''}">${a.agente || a.name}${a.residence ? ' (' + a.residence + ')' : ''}</option>`).join('')}
+            </select>
+            <input type="text" id="disp-add-shift" placeholder="Es. T1" style="padding:5px;font-size:.78rem;text-transform:uppercase;text-align:center">
+            <button type="button" id="disp-add-row-btn" class="disp-modal-btn primary" style="padding:6px 12px;font-size:.8rem;min-height:34px">+ Aggiungi</button>
+          </div>
         </div>
+
         <div class="disp-modal-actions">
           <button type="button" class="disp-modal-btn secondary" data-disp-close>Annulla</button>
           <button type="button" class="disp-modal-btn primary" id="disp-btn-save">
@@ -413,6 +492,141 @@
     const close = () => overlay.remove();
     overlay.querySelectorAll('[data-disp-close]').forEach(b => b.onclick = close);
 
+    // Render PDF page 1 to canvas preview
+    if (data.pdf) {
+      data.pdf.getPage(1).then(page => {
+        const canvas = overlay.querySelector('#dispPreviewCanvas');
+        if (canvas) {
+          const viewport = page.getViewport({ scale: 1.2 });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          page.render({ canvasContext: canvas.getContext('2d'), viewport });
+        }
+      }).catch(err => console.warn('Anteprima PDF non renderizzata', err));
+    }
+
+    const tbody = overlay.querySelector('#disp-table-body');
+    const countEl = overlay.querySelector('#disp-rows-count');
+
+    function renderTableRows() {
+      countEl.textContent = String(currentVariations.length);
+      if (!currentVariations.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9fb8c2;padding:12px">Nessun cambio turno in lista. Aggiungine uno dal modulo qui sotto o premi "⚡ Inserisci cambi Disp. 27/10".</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentVariations.map((v, i) => `
+        <tr>
+          <td><input type="checkbox" data-disp-row="${i}" ${v.include !== false ? 'checked' : ''}></td>
+          <td><b>${fmtDate(v.data)}</b></td>
+          <td>${v.agente} ${v.residenza ? `<small style="color:#9fb8c2">(${v.residenza})</small>` : ''}</td>
+          <td><input type="text" data-disp-turno="${i}" value="${v.turno_nuovo}"></td>
+          <td><button type="button" data-disp-del="${i}" style="background:none;border:none;color:#fb7185;font-size:16px;cursor:pointer">🗑</button></td>
+        </tr>
+      `).join('');
+    }
+
+    renderTableRows();
+
+    // Table click listener (delete & change)
+    tbody.onclick = e => {
+      const delBtn = e.target.closest('[data-disp-del]');
+      if (delBtn) {
+        const idx = Number(delBtn.dataset.dispDel);
+        currentVariations.splice(idx, 1);
+        renderTableRows();
+      }
+    };
+
+    // Preset button: loads the 6 changes of disposition T./2°
+    overlay.querySelector('#disp-preset-btn').onclick = () => {
+      const presetChanges = [
+        { data: '2026-10-28', cognome: 'TAMIOZZO', turno_nuovo: 'T1' },
+        { data: '2026-10-28', cognome: 'CALANCHI', turno_nuovo: 'P1' },
+        { data: '2026-10-28', cognome: 'PEDRONI', turno_nuovo: 'POND' },
+        { data: '2026-10-29', cognome: 'PROSPERO', turno_nuovo: 'D2' },
+        { data: '2026-10-29', cognome: 'SCANNAPIECO', turno_nuovo: 'T1' },
+        { data: '2026-10-29', cognome: 'FERTONANI', turno_nuovo: 'T2' }
+      ];
+      presetChanges.forEach(p => {
+        const ag = matchAgent(p.cognome, agents);
+        currentVariations.push({
+          data: p.data,
+          cognome: p.cognome,
+          agente: ag?.agente || ag?.name || p.cognome,
+          id_agente: ag ? String(ag.id) : '',
+          residenza: ag?.residence || ag?.residenza || '',
+          turno_originale: ag?.turni?.[p.data] || '',
+          turno_nuovo: p.turno_nuovo,
+          include: true
+        });
+      });
+      renderTableRows();
+    };
+
+    // Add row button
+    overlay.querySelector('#disp-add-row-btn').onclick = () => {
+      const dateVal = overlay.querySelector('#disp-add-date').value;
+      const agentSel = overlay.querySelector('#disp-add-agent');
+      const shiftVal = overlay.querySelector('#disp-add-shift').value.trim().toUpperCase();
+
+      if (!dateVal || !agentSel.value || !shiftVal) {
+        alert('Compila data, agente e nuovo turno prima di aggiungere.');
+        return;
+      }
+      const opt = agentSel.selectedOptions[0];
+      currentVariations.push({
+        data: dateVal,
+        cognome: (opt.dataset.nome || '').split(' ')[0],
+        agente: opt.dataset.nome || agentSel.value,
+        id_agente: agentSel.value,
+        residenza: opt.dataset.res || '',
+        turno_nuovo: shiftVal,
+        include: true
+      });
+      overlay.querySelector('#disp-add-shift').value = '';
+      renderTableRows();
+    };
+
+    // If needs OCR, try background OCR
+    if (data.needsOcr) {
+      const ocrStatus = overlay.querySelector('#disp-ocr-status');
+      if (ocrStatus) ocrStatus.style.display = 'block';
+
+      (async () => {
+        try {
+          if (!window.Tesseract) {
+            await new Promise((res, rej) => {
+              const s = document.createElement('script');
+              s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+              s.onload = res;
+              s.onerror = rej;
+              document.head.appendChild(s);
+            });
+          }
+          const canvas = overlay.querySelector('#dispPreviewCanvas');
+          if (canvas && window.Tesseract) {
+            const ret = await window.Tesseract.recognize(canvas, 'ita');
+            const ocrText = ret?.data?.text || '';
+            if (ocrText) {
+              const ocrVars = parseTextLines(ocrText, agents);
+              if (ocrVars.length) {
+                currentVariations = [...currentVariations, ...ocrVars];
+                renderTableRows();
+                ocrStatus.innerHTML = '✓ Riconosciute ' + ocrVars.length + ' variazioni dal testo!';
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('OCR non eseguito', e);
+        }
+        if (ocrStatus) {
+          ocrStatus.style.display = 'none';
+        }
+      })();
+    }
+
+    // Save button
     const saveBtn = overlay.querySelector('#disp-btn-save');
     saveBtn.onclick = async () => {
       saveBtn.disabled = true;
@@ -426,7 +640,7 @@
       overlay.querySelectorAll('[data-disp-row]').forEach(chk => {
         if (chk.checked) {
           const idx = Number(chk.dataset.dispRow);
-          const row = data.variations[idx];
+          const row = currentVariations[idx];
           const customTurno = overlay.querySelector(`[data-disp-turno="${idx}"]`)?.value.trim().toUpperCase() || row.turno_nuovo;
           selected.push({
             ...row,
@@ -438,14 +652,13 @@
       });
 
       if (!selected.length) {
-        alert('Seleziona almeno una variazione turno da applicare.');
+        alert('Seleziona o aggiungi almeno una variazione turno prima di salvare.');
         saveBtn.disabled = false;
         saveBtn.innerHTML = '<span>✓ Salva e Applica a tutti</span>';
         return;
       }
 
       try {
-        // Convert file to Data URL
         const dataUrl = await new Promise(res => {
           const r = new FileReader();
           r.onload = () => res(r.result);
@@ -466,7 +679,6 @@
           );
         }
 
-        // Check if the current agent and current date opened in the popup are among the variations
         const activeAgent = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
         const norm = s => String(s || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
@@ -492,7 +704,7 @@
         }
 
         close();
-        alert(`✓ Disposizione ${protoVal} salvata! ${selected.length} turni aggiornati per tutta la flotta.`);
+        alert(`✓ Disposizione ${protoVal} salvata con successo! ${selected.length} turni aggiornati per tutta la flotta.`);
       } catch (saveErr) {
         alert('Errore salvataggio: ' + saveErr.message);
         saveBtn.disabled = false;
@@ -501,14 +713,13 @@
     };
   }
 
-  
   function triggerDisposizioneUpload(beforeCallback) {
     let input = document.getElementById('globalDisposizioneFileInput');
     if (!input) {
       input = document.createElement('input');
       input.id = 'globalDisposizioneFileInput';
       input.type = 'file';
-      input.accept = 'application/pdf';
+      input.accept = 'application/pdf,image/*';
       input.style.display = 'none';
       document.body.appendChild(input);
     }
