@@ -83,4 +83,31 @@ let entryIeri = { id: 'naviturni-' + ieriIso, date: ieriIso, shift: 'Riposo' };
 if (tPrima.competenze.pernottoPrima) entryIeri.overnight40 = true;
 assert.strictEqual(entryIeri.overnight40, true);
 
+// Test collegamenti ferroviari Desenzano <-> Peschiera
+const tTrenoDP = C.cerca('Desenzano', 'Peschiera', '2026-10-29', 8 * 60 + 30);
+assert.ok(tTrenoDP.validi.length > 0);
+assert.strictEqual(C.ora(tTrenoDP.validi[0].parte), '07:49');
+assert.strictEqual(C.ora(tTrenoDP.validi[0].arriva), '07:58');
+assert.strictEqual(tTrenoDP.validi[0].tratte[0].sale.linea.id, 'treno-dp');
+
+const tTrenoPD = C.cerca('Peschiera', 'Desenzano', '2026-10-29', 8 * 60 + 30);
+assert.ok(tTrenoPD.validi.length > 0);
+assert.strictEqual(C.ora(tTrenoPD.validi[0].parte), '07:57');
+assert.strictEqual(C.ora(tTrenoPD.validi[0].arriva), '08:06');
+assert.strictEqual(tTrenoPD.validi[0].tratte[0].sale.linea.id, 'treno-pd');
+
+// Test turno a Peschiera con residenza Desenzano (P1: 08:45 - 21:30)
+const tTurnoPeschiera = C.cercaTurno({ casa: 'Desenzano', turnoResidenza: 'Peschiera', iso: '2026-10-29', inizio: '08:45', fine: '21:30' });
+assert.ok(tTurnoPeschiera && tTurnoPeschiera.fattibile);
+assert.strictEqual(C.ora(tTurnoPeschiera.andata.parte), '07:49');
+assert.strictEqual(C.ora(tTurnoPeschiera.andata.arriva), '07:58');
+assert.strictEqual(C.ora(tTurnoPeschiera.ritorno.parte), '21:57');
+assert.strictEqual(C.ora(tTurnoPeschiera.ritorno.arriva), '22:06');
+assert.strictEqual(tTurnoPeschiera.competenze.trasferta, true);
+assert.strictEqual(tTurnoPeschiera.competenze.diariaRate, 50);
+assert.strictEqual(tTurnoPeschiera.competenze.secondoTicket, true); // rientro 22:06 > 20:45
+assert.strictEqual(tTurnoPeschiera.competenze.pernottoPrima, false);
+assert.strictEqual(tTurnoPeschiera.competenze.pernottoSera, false);
+
+console.log('collegamenti treno desenzano-peschiera ok');
 console.log('collegamenti turno ok');

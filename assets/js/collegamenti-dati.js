@@ -2,7 +2,7 @@
 // Ogni linea e' una tabella di testo: prima riga i giorni di ogni corsa, poi una riga per fermata.
 // Giorni: FER lun-sab, LV lun-ven, SAB sabato, FEST domenica e festivi, SCO solo giorni di scuola (lun-sab), TUTTI ogni giorno.
 (typeof window !== 'undefined' ? window : globalThis).NaviCollegamentiDefault = {
- "versione": 2,
+ "versione": 3,
  "stagioni": {
   "invernale": {
    "nome": "Invernale",
@@ -60,17 +60,17 @@
      "id": "treno-dp",
      "nome": "Treno · Desenzano → Peschiera",
      "tipo": "treno",
-     "testo": "giorni\nDesenzano FS\nPeschiera FS",
+     "testo": "giorni;FER;FER;FER;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI\nDesenzano FS;06:07;06:50;07:07;07:49;08:49;09:49;10:49;11:49;12:49;13:49;14:49;15:49;16:49;17:49;18:49;19:49;20:49;21:49;22:49;23:49\nPeschiera FS;06:15;06:58;07:15;07:58;08:58;09:58;10:58;11:58;12:58;13:58;14:58;15:58;16:58;17:58;18:58;19:58;20:58;21:58;22:58;23:57",
      "fonte": "https://www.trenitalia.com",
-     "note": "Da compilare con l'orario Trenitalia in vigore (circa 10 minuti di viaggio)."
+     "note": "RegioExpress RE6 / Regionali Trenord - Trenitalia (circa 8-9 minuti di viaggio)."
     },
     {
      "id": "treno-pd",
      "nome": "Treno · Peschiera → Desenzano",
      "tipo": "treno",
-     "testo": "giorni\nPeschiera FS\nDesenzano FS",
+     "testo": "giorni;FER;FER;FER;FER;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI\nPeschiera FS;05:27;05:57;06:57;07:17;07:57;08:57;09:57;10:57;11:57;12:57;13:57;14:57;15:57;16:57;17:57;18:57;19:57;20:57;21:57;22:57\nDesenzano FS;05:36;06:06;07:06;07:26;08:06;09:06;10:06;11:06;12:06;13:06;14:06;15:06;16:06;17:06;18:06;19:06;20:06;21:06;22:06;23:06",
      "fonte": "https://www.trenitalia.com",
-     "note": "Da compilare con l'orario Trenitalia in vigore (circa 10 minuti di viaggio)."
+     "note": "RegioExpress RE6 / Regionali Trenord - Trenitalia (circa 9 minuti di viaggio)."
     },
     {
      "id": "rl202-a",
@@ -122,17 +122,17 @@
      "id": "treno-dp",
      "nome": "Treno · Desenzano → Peschiera",
      "tipo": "treno",
-     "testo": "giorni\nDesenzano FS\nPeschiera FS",
+     "testo": "giorni;FER;FER;FER;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI\nDesenzano FS;06:07;06:50;07:07;07:49;08:49;09:49;10:49;11:49;12:49;13:49;14:49;15:49;16:49;17:49;18:49;19:49;20:49;21:49;22:49;23:49\nPeschiera FS;06:15;06:58;07:15;07:58;08:58;09:58;10:58;11:58;12:58;13:58;14:58;15:58;16:58;17:58;18:58;19:58;20:58;21:58;22:58;23:57",
      "fonte": "https://www.trenitalia.com",
-     "note": "Da compilare con l'orario Trenitalia in vigore (circa 10 minuti di viaggio)."
+     "note": "RegioExpress RE6 / Regionali Trenord - Trenitalia (circa 8-9 minuti di viaggio)."
     },
     {
      "id": "treno-pd",
      "nome": "Treno · Peschiera → Desenzano",
      "tipo": "treno",
-     "testo": "giorni\nPeschiera FS\nDesenzano FS",
+     "testo": "giorni;FER;FER;FER;FER;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI;TUTTI\nPeschiera FS;05:27;05:57;06:57;07:17;07:57;08:57;09:57;10:57;11:57;12:57;13:57;14:57;15:57;16:57;17:57;18:57;19:57;20:57;21:57;22:57\nDesenzano FS;05:36;06:06;07:06;07:26;08:06;09:06;10:06;11:06;12:06;13:06;14:06;15:06;16:06;17:06;18:06;19:06;20:06;21:06;22:06;23:06",
      "fonte": "https://www.trenitalia.com",
-     "note": "Da compilare con l'orario Trenitalia in vigore (circa 10 minuti di viaggio)."
+     "note": "RegioExpress RE6 / Regionali Trenord - Trenitalia (circa 9 minuti di viaggio)."
     }
    ]
   }

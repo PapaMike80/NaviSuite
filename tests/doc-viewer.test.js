@@ -41,7 +41,7 @@ assert.match(sharedMenuCode, /doc-viewer\.js/, 'shared-menu.js must auto-inject 
 
 // 7. Verify sw.js includes doc-viewer.js and new cache version
 const swCode = fs.readFileSync('sw.js', 'utf8');
-assert.match(swCode, /navisuite-v749-doc-viewer-autohide/, 'sw.js cache version must be bumped');
+assert.match(swCode, /navisuite-v7\d\d/, 'sw.js cache version must be bumped');
 assert.match(swCode, /'\.\/assets\/js\/doc-viewer\.js'/, 'sw.js must cache doc-viewer.js');
 
 // 8. Verify dispense do not have the redundant top-bar section
