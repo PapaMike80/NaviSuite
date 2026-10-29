@@ -220,7 +220,11 @@
         <span>Torna al Concorso Controllo</span>
       </a>
       <div style="display:flex; gap:10px;">
-        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
+                <button onclick="if(window.parent!==window&&window.parent.NaviSuiteMenu){window.parent.NaviSuiteMenu.open()}else if(window.NaviSuiteMenu){window.NaviSuiteMenu.open()}else{location.href='../../../quiz.html'}" class="back-btn" style="cursor:pointer; background:var(--teal); color:var(--on); border:none; font-weight:800;" aria-label="Menu NaviSuite" title="Menu NaviSuite">
+          <span>☰</span>
+          <span>Menu</span>
+        </button>
+<button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="back-btn" style="cursor:pointer;">
           <span>⬆</span>
           <span>Inizio</span>
         </button>
@@ -420,5 +424,8 @@
     NaviSuite © 2026 · Concorso Operatore di Ufficio GGNL (par. 130) · Settore Controllo Navigarda
   </footer>
 
+  <script src="../../../assets/js/shared-roles.js?v=16"></script>
+  <script src="../../../assets/js/shared-menu.js?v=1.99"></script>
+  <script src="../../../assets/js/doc-viewer.js?v=1"></script>
 </body>
 </html>

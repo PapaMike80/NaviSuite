@@ -52,6 +52,22 @@
       z-index: 100;
       padding: 12px 0;
     }
+    .navisuite-header-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--teal);
+      border-radius: 12px;
+      background: #103a3d;
+      color: #a7fff0;
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
     .top-nav-inner {
       display: flex;
       justify-content: space-between;
@@ -496,6 +512,7 @@
         <span>Torna a Concorsi GGNL</span>
       </a>
       <span class="mono" style="font-size:0.8rem; color:var(--muted);">GGNL · Ufficio Controllo</span>
+      <button type="button" id="navisuite-header-menu" class="navisuite-header-menu-btn" onclick="window.NaviSuiteMenu?.open?.()" aria-label="Apri menu NaviSuite" title="Menu NaviSuite">☰</button>
     </div>
   </nav>
 
@@ -1674,5 +1691,10 @@
 
     window.addEventListener('DOMContentLoaded', initQuizMenu);
   </script>
+  <script src="assets/js/shared-roles.js?v=16"></script>
+  <script src="assets/js/admin-firebase-rest.js"></script>
+  <script src="assets/js/shared-menu.js?v=1.99"></script>
+  <script src="assets/js/doc-viewer.js?v=1"></script>
+  <script src="assets/js/offline.js?v=2"></script>
 </body>
 </html>

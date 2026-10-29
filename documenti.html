@@ -99,6 +99,7 @@
     .viewer-toolbar{--c:var(--teal);display:flex;align-items:center;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--card)}
     .viewer-toolbar strong{min-width:0;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
     .viewer-toolbar .document-action.download{background:var(--teal);border-color:var(--teal);color:var(--on)}
+    .viewer-toolbar .document-action.menu{background:#103a3d;border-color:var(--teal);color:#a7fff0;font-weight:900;font-size:15px}
     .document-pages{min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border:1px solid var(--line);border-radius:0 0 14px 14px;background:#5d6367}
     .document-page{display:flex;justify-content:center;width:100%;margin:0 auto 12px}
     .document-page:last-child{margin-bottom:0}
@@ -306,6 +307,7 @@
     <div class="viewer-toolbar">
       <strong id="viewerTitle">Documento</strong>
       <button id="viewerDownload" class="document-action download" type="button">↓ Scarica</button>
+      <button id="viewerMenu" class="document-action menu" type="button" aria-label="Menu NaviSuite" onclick="window.NaviSuiteMenu?.open?.()">☰ Menu</button>
       <button id="viewerClose" class="document-action" type="button">✕ Chiudi</button>
     </div>
     <div id="documentPages" class="document-pages" tabindex="0" aria-label="Pagine del documento"></div>
@@ -314,6 +316,7 @@
 
   <script src="assets/js/shared-roles.js?v=16"></script>
   <script src="assets/js/shared-menu.js?v=1.99"></script>
+  <script src="assets/js/doc-viewer.js?v=1"></script>
   <script src="assets/js/offline.js?v=2"></script>
   <script src="assets/js/admin-firebase-rest.js?v=96"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>

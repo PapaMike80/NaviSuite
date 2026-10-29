@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v747-concorsi-tutti-settori';
+const CACHE_VERSION = 'navisuite-v748-doc-viewer-modal';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -75,6 +75,7 @@ const CORE_ASSETS = [
   './assets/js/portal.js',
   './assets/js/shared-menu.js',
   './assets/js/section-memory.js',
+  './assets/js/doc-viewer.js',
   './assets/js/oggi.js',
   './assets/js/course-info.js',
   './assets/js/announcements-recovered.js',
