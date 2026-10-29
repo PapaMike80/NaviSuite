@@ -1,0 +1,67 @@
+{
+  "last_updated": "2026-10-29T15:10:00Z",
+  "monitor_status": "ATTIVO",
+  "portale_monitorati": ["inPA (Portale del Reclutamento)", "Albo Pretorio Navigazione Laghi"],
+  "ambiti_monitorati": [
+    "Uffici Amministrativi e Direzione (Arona, Como, Desenzano, Milano)",
+    "Ufficio Controllo e Supporto Operativo",
+    "Ufficio Tecnico e Cantieri (Peschiera, Arona, Como)",
+    "Settore Naviganti (Marinai di linea e stagionali, Operatori Generici)",
+    "Biglietterie e Personale di Scalo"
+  ],
+  "concorsi_attivi": [
+    {
+      "id": "18_2026_DE",
+      "titolo": "Concorso Coordinatore Ufficio Tecnico",
+      "settore": "uffici",
+      "categoria": "Ufficio Tecnico · par. 205",
+      "contratto": "Tempo Indeterminato · Tempo Pieno",
+      "posti": 4,
+      "sedi": ["Arona (1)", "Peschiera del Garda (1)", "Como (2)"],
+      "scadenza": "2026-11-15T23:59:59",
+      "stato": "APERTO",
+      "bando_pdf": "docs/uffici/00_Bando_e_Atti_Ufficiali/Bando_182026_DE_Coordinatore_Ufficio_Tecnico.pdf",
+      "inpa_url": "https://www.inpa.gov.it/bandi-e-avvisi/dettaglio-bando-avviso/?concorso_id=e0a004a1b171436fa48cbbf2f1e92979"
+    },
+    {
+      "id": "17_2026_DE",
+      "titolo": "Concorso Operatore Generico Naviganti",
+      "settore": "naviganti",
+      "categoria": "Settore Naviganti · par. 116",
+      "contratto": "Tempo Indeterminato · Tempo Pieno",
+      "posti": 11,
+      "sedi": ["Lago Maggiore (5)", "Lago di Como (6)", "Lago di Garda"],
+      "scadenza": "2026-11-05T23:59:59",
+      "stato": "APERTO",
+      "bando_pdf": "docs/naviganti/00_Bando_e_Atti_Ufficiali/Bando_172026_DE_Operatore_Generico_Naviganti.pdf",
+      "inpa_url": "https://www.inpa.gov.it/bandi-e-avvisi/dettaglio-bando-avviso/?concorso_id=88c979c391b94e958a6f8eb39e275aac",
+      "scheda_html": "concorso-naviganti.html"
+    },
+    {
+      "id": "16_2026_DE",
+      "titolo": "Concorso Ufficio Controllo",
+      "settore": "uffici",
+      "categoria": "Operatore di Ufficio · par. 130",
+      "contratto": "Tempo Determinato (12 mesi)",
+      "posti": 3,
+      "sedi": ["Arona (1)", "Como (1)", "Desenzano del Garda (1)"],
+      "scadenza": "2026-10-09T23:59:59",
+      "stato": "IN_CORSO_AMMESSI_PUBBLICATI",
+      "candidati_ammessi": 69,
+      "bando_pdf": "docs/controllo/00_Bando_e_Atti_Ufficiali/Bando162026_DE.pdf",
+      "scheda_html": "concorso-controllo.html"
+    }
+  ],
+  "prossimi_bandi_attesi": [
+    {
+      "profilo": "Marinaio a Tempo Determinato / Stagionale (par. 121)",
+      "settore": "naviganti",
+      "descrizione": "Bando stagionale annuale per il personale navigante su Garda, Maggiore e Como."
+    },
+    {
+      "profilo": "Operatore di Ufficio / Biglietteria e Scali",
+      "settore": "uffici",
+      "descrizione": "Selezioni per servizi a terra, contabilità e biglietterie di bacino."
+    }
+  ]
+}
