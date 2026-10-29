@@ -89,7 +89,7 @@
       ['cambi_turno.html','⇄','Cambio'],
       ['battaglia-garda.html','⛴','Battaglia sul Garda'],
       ['controllo_cassa.html','$','Cassa'],
-      ...(isAdmin?[['quiz.html','🏆','Concorsi']]:[]),
+      ['quiz.html','🏆','Concorsi'],
       ['backup-dati.html','⤓','Backup'],
       ['impostazioni.html','⚙','Impostazioni'],
       ...(roles.puoAprire?.('comitive.html',agent)?[['comitive.html','⛴','Comitive']]:[]),

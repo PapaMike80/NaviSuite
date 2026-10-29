@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v745-elimina-turno-terra';
+const CACHE_VERSION = 'navisuite-v746-concorsi-naviganti';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -45,6 +45,10 @@ const CORE_ASSETS = [
   './navidistinta.html',
   './verifica-busta.html',
   './backup-dati.html',
+  './quiz.html',
+  './concorso-controllo.html',
+  './concorso-naviganti.html',
+  './concorso-movimento.html',
   './stampa-partenze.html',
   './orari.html',
   './assets/js/orario-corse-estate.js',

@@ -151,7 +151,7 @@ function showChoice(agent) {
   if (comitive) comitive.hidden = !window.NaviRoles?.puoAprire?.('comitive.html', agent);
   if (collegamenti) collegamenti.hidden = !window.NaviRoles?.puoAprire?.('collegamenti.html', agent);
   const quiz = document.querySelector('.app-card.quiz');
-  if (quiz) quiz.hidden = !isAdminAgent(agent);
+  if (quiz) quiz.hidden = false;
   const backup = document.querySelector('.app-card.backup');
   if (backup) backup.hidden = isBaristaAgent(agent);
   // sezioni scelte dagli admin: ogni scheda va nella griglia della sua sezione

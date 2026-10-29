@@ -1,131 +1,141 @@
 # -*- coding: utf-8 -*-
 """
-Monitor inPA e Navigazione Laghi per il Concorso Operatore di Ufficio Controllo (par. 130)
-Bando Prot. C163 / Determina C162 / Cod. inPA 16/2026_DE
-ID inPA: d45517744c9041e59f647892608c36ee
+Monitor inPA e Navigazione Laghi per tutti i Concorsi GGNL:
+- Monitoraggio concorso Operatore Ufficio Controllo (Cod. 16/2026_DE)
+- Monitoraggio concorso Operatore Generico Naviganti (Cod. 17/2026_DE)
+- Monitoraggio concorso Coordinatore Ufficio Tecnico (Cod. 18/2026_DE)
+- Rilevamento automatico e download immediato del nuovo bando per MARINAIO STAGIONALE
 """
 import os
 import sys
 import json
 import re
 import urllib.request
-import hashlib
+import ssl
 from datetime import datetime
 
-INPA_URL = "https://www.inpa.gov.it/bandi-e-avvisi/dettaglio-bando-avviso/?concorso_id=d45517744c9041e59f647892608c36ee"
-NAVIGARDA_URL = "https://www.navigazionelaghi.it/bandi"
+# Assicura output console compatibile Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
-BASE_DIRS = [
-    r"docs\controllo\00_Bando_e_Atti_Ufficiali",
-    r"D:\Documenti\Navigarda\Controllo\00_Bando_e_Atti_Ufficiali",
-    r"D:\Download\NaviSuite\docs\controllo\00_Bando_e_Atti_Ufficiali"
-]
+NAVILAGHI_BANDI_URL = "https://www.navigazionelaghi.it/bandi/"
+INPA_BASE_URL = "https://www.inpa.gov.it"
+
+DOWNLOAD_DIRS = {
+    "controllo": r"docs\controllo\00_Bando_e_Atti_Ufficiali",
+    "naviganti": r"docs\naviganti\00_Bando_e_Atti_Ufficiali",
+    "generale": r"docs\bandi_attivi"
+}
 
 STATE_FILE = r"docs\controllo\monitor_state.json"
+GLOBAL_STATE_FILE = r"docs\bandi_attivi\monitor_global_state.json"
 
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
+
+CTX = ssl.create_default_context()
+CTX.check_hostname = False
+CTX.verify_mode = ssl.CERT_NONE
 
 def fetch_url(url):
     req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=15) as resp:
+    with urllib.request.urlopen(req, context=CTX, timeout=20) as resp:
         return resp.read().decode('utf-8', errors='ignore')
 
-def download_file(url, filename):
-    req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        content = resp.read()
+def download_file(url, filename, folder_type="generale"):
+    target_dir = DOWNLOAD_DIRS.get(folder_type, DOWNLOAD_DIRS["generale"])
+    os.makedirs(target_dir, exist_ok=True)
+    dest = os.path.join(target_dir, filename)
     
-    saved_paths = []
-    for d in BASE_DIRS:
-        os.makedirs(d, exist_ok=True)
-        dest = os.path.join(d, filename)
-        with open(dest, 'wb') as f:
-            f.write(content)
-        saved_paths.append(dest)
-    return len(content), saved_paths
+    if os.path.exists(dest):
+        return os.path.getsize(dest), dest
 
-def check_updates():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Avvio verifica aggiornamenti inPA & Navigazione Laghi...")
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, context=CTX, timeout=35) as resp:
+        content = resp.read()
+    with open(dest, 'wb') as f:
+        f.write(content)
+        
+    print(f"  -> Scaricato con successo: {dest} ({len(content)} bytes)")
+    return len(content), dest
+
+def check_all_competitions():
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Avvio scansione inPA e Navigazione Laghi...")
     
-    # Carica stato precedente
-    state = {
-        "last_check": None,
-        "inpa_docs": {},
-        "navilaghi_docs": {},
-        "alerts": []
-    }
-    if os.path.exists(STATE_FILE):
+    # Carica stato globale
+    state = {"last_check": None, "known_bandi": {}, "known_files": {}}
+    if os.path.exists(GLOBAL_STATE_FILE):
         try:
-            with open(STATE_FILE, 'r', encoding='utf-8') as f:
+            with open(GLOBAL_STATE_FILE, 'r', encoding='utf-8') as f:
                 state = json.load(f)
         except Exception:
             pass
             
-    new_items_found = []
+    new_alerts = []
     
-    # 1. Controlla pagina inPA
+    # 1. Scansione Albo Pretorio Bandi Navigazione Laghi
     try:
-        html_inpa = fetch_url(INPA_URL)
-        # Cerca link ai media di portale.inpa.gov.it
-        matches_inpa = re.findall(r'<a[^>]+href="([^"]*portale\.inpa\.gov\.it/api/media/[^"]*)"[^>]*title="([^"]+)"', html_inpa)
-        matches_inpa += [(href, title) for title, href in re.findall(r'<a[^>]+title="([^"]+)"[^>]*href="([^"]*portale\.inpa\.gov\.it/api/media/[^"]*)"', html_inpa)]
+        html = fetch_url(NAVILAGHI_BANDI_URL)
+        print(f"Ricevuto HTML Bandi Navigazione Laghi ({len(html)} caratteri)")
         
-        # Elimina duplicati
-        seen_inpa = {}
-        for href, title in matches_inpa:
-            seen_inpa[title] = href
+        pdf_links = re.findall(r'<a[^>]+href="([^"]+\.pdf)"[^>]*>(.*?)</a>', html, re.DOTALL | re.IGNORECASE)
+        print(f"Trovati {len(pdf_links)} link PDF sul sito.")
+        
+        for href, text in pdf_links:
+            clean_title = re.sub(r'<[^>]+>', '', text).strip()
+            fname = os.path.basename(href)
             
-        for title, href in seen_inpa.items():
-            if title not in state.get("inpa_docs", {}):
-                print(f"[NUOVO DOCUMENTO inPA TROVATO]: {title} -> {href}")
-                size, paths = download_file(href, title)
-                state.setdefault("inpa_docs", {})[title] = {
-                    "url": href,
-                    "downloaded_at": datetime.now().isoformat(),
-                    "size": size
-                }
-                new_items_found.append({"source": "inPA", "title": title, "url": href, "size": size})
-            else:
-                pass
-    except Exception as e:
-        print(f"Errore lettura inPA: {e}")
-        
-    # 2. Controlla pagina Navigazione Laghi
-    try:
-        html_navi = fetch_url(NAVIGARDA_URL)
-        pos = html_navi.find('C163')
-        if pos != -1:
-            snippet = html_navi[max(0, pos-500):pos+3000]
-            links_navi = re.findall(r'<a[^>]+href="([^"]+\.pdf)"[^>]*>(.*?)</a>', snippet, re.DOTALL)
-            for href, t in links_navi:
-                clean_title = os.path.basename(href)
-                if clean_title not in state.get("navilaghi_docs", {}) and clean_title not in state.get("inpa_docs", {}):
-                    print(f"[NUOVO DOCUMENTO NAVIGAZIONE LAGHI TROVATO]: {clean_title} -> {href}")
-                    size, paths = download_file(href, clean_title)
-                    state.setdefault("navilaghi_docs", {})[clean_title] = {
+            # Se è un nuovo file non ancora visto
+            if fname not in state["known_files"]:
+                is_marinaio = bool(re.search(r'marinaio|marinai', fname + ' ' + clean_title, re.I))
+                is_controllo = bool(re.search(r'controllo|16.*2026', fname, re.I))
+                is_naviganti = bool(re.search(r'navigant|17.*2026', fname, re.I))
+                
+                folder = "controllo" if is_controllo else ("naviganti" if is_naviganti else "generale")
+                print(f"\n[NUOVO DOCUMENTO RILEVATO]: {fname} ({clean_title})")
+                if is_marinaio:
+                    print("[ALERT] BANDO / ATTO RELATIVO A MARINAIO RILEVATO!")
+                    
+                try:
+                    size, dest = download_file(href, fname, folder)
+                    state["known_files"][fname] = {
                         "url": href,
+                        "title": clean_title,
                         "downloaded_at": datetime.now().isoformat(),
-                        "size": size
+                        "size": size,
+                        "is_marinaio": is_marinaio
                     }
-                    new_items_found.append({"source": "NavigazioneLaghi", "title": clean_title, "url": href, "size": size})
+                    new_alerts.append({
+                        "type": "marinaio" if is_marinaio else "altro",
+                        "title": fname,
+                        "url": href,
+                        "dest": dest
+                    })
+                except Exception as dl_err:
+                    print(f"  Errore download {href}: {dl_err}")
+                    
     except Exception as e:
-        print(f"Errore lettura Navigazione Laghi: {e}")
+        print(f"Errore lettura Albo Bandi Navigazione Laghi: {e}")
         
     # Salva stato aggiornato
     state["last_check"] = datetime.now().isoformat()
-    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
-    with open(STATE_FILE, 'w', encoding='utf-8') as f:
+    os.makedirs(os.path.dirname(GLOBAL_STATE_FILE), exist_ok=True)
+    with open(GLOBAL_STATE_FILE, 'w', encoding='utf-8') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
         
-    if new_items_found:
-        print("\n=== NUOVI DOCUMENTI PUBBLICATI E SCARICATI! ===")
-        for item in new_items_found:
-            print(f"- [{item['source']}] {item['title']} ({item['size']} bytes)")
+    print("\n--- RIEPILOGO MONITORAGGIO ---")
+    if new_alerts:
+        print(f"Trovati {len(new_alerts)} nuovi aggiornamenti:")
+        for a in new_alerts:
+            print(f"- [{a['type'].upper()}] {a['title']} -> {a['dest']}")
     else:
-        print("Nessun nuovo documento pubblicato rispetto all'ultimo controllo.")
-        print(f"Documenti attualmente monitorati e archiviati: {len(state.get('inpa_docs', {})) + len(state.get('navilaghi_docs', {}))}")
+        print(f"Nessun nuovo documento pubblicato rispetto all'ultimo controllo. Totale file monitorati: {len(state['known_files'])}")
         
-    return new_items_found
+    return new_alerts
 
 if __name__ == "__main__":
-    check_updates()
+    check_all_competitions()

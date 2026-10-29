@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Concorso Naviganti · Operatore Generico | NaviSuite</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #071923;
+      --surface: #0b1c26;
+      --card: #102733;
+      --card2: #143140;
+      --line: #1f4250;
+      --ink: #eaf2f4;
+      --muted: #9fb8c2;
+      --on: #06231f;
+
+      --teal: #2dd4bf;
+      --cyan: #67d7e6;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --green: #52c879;
+      --pink: #f472b6;
+      --blue: #54a7ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: linear-gradient(160deg, color-mix(in srgb, var(--cyan) 9%, var(--surface)), var(--surface) 40%, color-mix(in srgb, var(--amber) 9%, var(--surface)));
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: 'DM Mono', monospace; font-variant-numeric: tabular-nums; }
+    .wrap { width: min(1060px, calc(100% - 32px)); margin: auto; }
+
+    .top-nav {
+      background: rgba(7, 25, 35, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 0;
+    }
+    .top-nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      transition: all 0.15s ease;
+    }
+    .back-link:hover {
+      color: var(--ink);
+      border-color: var(--teal);
+      background: var(--card2);
+      text-decoration: none;
+    }
+
+    header.hero { padding: 34px 0 20px; }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+    h1.title {
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 760px;
+      line-height: 1.5;
+    }
+
+    .status-banner {
+      background: linear-gradient(135deg, rgba(103, 215, 230, 0.12), rgba(251, 191, 36, 0.08));
+      border: 1px solid rgba(103, 215, 230, 0.35);
+      border-left: 5px solid var(--cyan);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin: 20px 0 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .status-left { flex: 1; min-width: 260px; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--cyan);
+      color: #052229;
+      font-weight: 900;
+      font-size: 0.76rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .status-title { font-size: 1.1rem; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+    .status-desc { font-size: 0.9rem; color: var(--muted); }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--cyan);
+      color: #06231f;
+      font-weight: 800;
+      font-size: 0.9rem;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-action:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+    .btn-outline:hover {
+      border-color: var(--cyan);
+      background: var(--card2);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+    .card-box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .card-box h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .key-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .key-table tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .key-table tr:last-child { border-bottom: none; }
+    .key-table td { padding: 9px 4px; }
+    .key-table td:first-child { color: var(--muted); font-weight: 600; width: 40%; }
+    .key-table td:last-child { color: var(--ink); font-weight: 700; }
+
+    .step-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .step-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .step-num {
+      background: var(--cyan);
+      color: #04242b;
+      font-weight: 900;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .step-content h4 { font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 3px; }
+    .step-content p { font-size: 0.86rem; color: var(--muted); line-height: 1.4; }
+
+    .files-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .file-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s ease;
+    }
+    .file-row:hover { border-color: var(--cyan); text-decoration: none; }
+    .file-name { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .file-meta { font-size: 0.78rem; color: var(--muted); }
+
+    footer {
+      margin-top: auto;
+      padding: 24px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-nav">
+    <div class="wrap top-nav-inner">
+      <a href="quiz.html" class="back-link">
+        <span>←</span>
+        <span>Torna al Portale Concorsi</span>
+      </a>
+      <span class="mono" style="font-size:0.8rem; color:var(--muted);">inPA: 17/2026_DE · Prot. C167</span>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <header class="hero">
+      <span class="eyebrow">BANDO CONCORSO UFFICIALE · GGNL 2026</span>
+      <h1 class="title">Concorso Operatore Generico</h1>
+      <p class="subtitle">11 posti a tempo pieno e <strong>INDETERMINATO</strong> nel Settore Naviganti (Area Operativa Esercizio · par. 116) presso le Direzioni di Esercizio Lago Maggiore, Lago di Como e Lago di Garda.</p>
+    </header>
+
+    <!-- STATUS BANNER -->
+    <div class="status-banner">
+      <div class="status-left">
+        <span class="status-pill">● Iscrizioni Aperte su inPA</span>
+        <div class="status-title">Scadenza presentazione domande: 05 Novembre 2026</div>
+        <div class="status-desc">Candidatura telematica attiva su Portale inPA (ID concorso: 88c979c391b94e958a6f8eb39e275aac). Bando integrale scaricato e archiviato in NaviSuite.</div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="docs/naviganti/00_Bando_e_Atti_Ufficiali/Bando_172026_DE_Operatore_Generico_Naviganti.pdf" target="_blank" class="btn-action">
+          <span>📄</span>
+          <span>Scarica Bando PDF</span>
+        </a>
+        <a href="https://www.inpa.gov.it/bandi-e-avvisi/dettaglio-bando-avviso/?concorso_id=88c979c391b94e958a6f8eb39e275aac" target="_blank" class="btn-action btn-outline">
+          <span>🌐</span>
+          <span>Pagina inPA</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 2 COLUMNS: DETTAGLI & PROVE -->
+    <div class="grid-2">
+      
+      <!-- DETTAGLI CONCORSO -->
+      <div class="card-box">
+        <h3><span>ℹ️</span><span>Scheda Bando & Requisiti</span></h3>
+        <table class="key-table">
+          <tr>
+            <td>Codice inPA</td>
+            <td class="mono">17/2026_DE</td>
+          </tr>
+          <tr>
+            <td>Protocollo / Determina</td>
+            <td>Prot. n. C167 / Determina C166 del 25/09/2026</td>
+          </tr>
+          <tr>
+            <td>Posti a concorso</td>
+            <td><strong>11 posti a tempo pieno e indeterminato</strong> (CCNL Autoferrotranviari)</td>
+          </tr>
+          <tr>
+            <td>Ripartizione sedi</td>
+            <td>Lago Maggiore (5 posti), Lago di Como (6 posti), Direzione Garda</td>
+          </tr>
+          <tr>
+            <td>Titolo di studio</td>
+            <td>Licenza Media (scuola secondaria di 1° grado)</td>
+          </tr>
+          <tr>
+            <td>Requisiti fisici</td>
+            <td>Capacità di nuotare e vogare + idoneità fisica all'impiego</td>
+          </tr>
+          <tr>
+            <td>Scadenza Bando</td>
+            <td><strong style="color:var(--amber);">05 Novembre 2026 (ore 23:59)</strong></td>
+          </tr>
+        </table>
+
+        <div style="margin-top:18px;">
+          <h4 style="font-size:0.92rem; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.08em;">Documenti Ufficiali Scaricati</h4>
+          <div class="files-list">
+            <a href="docs/naviganti/00_Bando_e_Atti_Ufficiali/Bando_172026_DE_Operatore_Generico_Naviganti.pdf" target="_blank" class="file-row">
+              <span class="file-name"><span>📕</span> Bando_172026_DE.pdf</span>
+              <span class="file-meta">186 KB · Determina & Bando Integrale</span>
+            </a>
+            <a href="docs/naviganti/00_Bando_e_Atti_Ufficiali/Informativa_Privacy_17_2026.pdf" target="_blank" class="file-row">
+              <span class="file-name"><span>📑</span> Informativa Trattamento Dati Personali</span>
+              <span class="file-meta">195 KB · GDPR</span>
+            </a>
+            <a href="docs/naviganti/00_Bando_e_Atti_Ufficiali/Regolamento_Progressioni_Carriera_RPC.pdf" target="_blank" class="file-row">
+              <span class="file-name"><span>📘</span> Regolamento Progressioni Carriera (RPC)</span>
+              <span class="file-meta">2.0 MB · GGNL</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- FASI SELETTIVE & PROGRAMMA -->
+      <div class="card-box">
+        <h3><span>📋</span><span>Fasi Selettive & Materie d'Esame</span></h3>
+        <ul class="step-list">
+          <li class="step-item">
+            <span class="step-num">A</span>
+            <div class="step-content">
+              <h4>Prova Preliminare: Nuoto e Voga</h4>
+              <p>Accertamento dell'idoneità fisica di base come previsto dall'art. 21 RPC. Il superamento è condizione necessaria per accedere alla prova scritta.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">B</span>
+            <div class="step-content">
+              <h4>Prova Scritta: Test a Risposta Multipla</h4>
+              <p>Test digitale sui quesiti teorici del programma (soglia di superamento: <strong>18/30</strong>).</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">C</span>
+            <div class="step-content">
+              <h4>Prova Pratica Tecnico-Manuale</h4>
+              <p>Accertamento delle abilità pratiche e marinare per le mansioni proprie del settore naviganti (soglia: <strong>18/30</strong>).</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <span class="step-num">D</span>
+            <div class="step-content">
+              <h4>Colloquio Orale Finale</h4>
+              <p>Approfondimento degli argomenti del programma d'esame e lingua inglese di base (soglia: <strong>18/30</strong>).</p>
+            </div>
+          </li>
+        </ul>
+
+        <div style="margin-top:18px; padding:12px; background:var(--surface); border:1px solid var(--line); border-radius:10px;">
+          <h4 style="font-size:0.9rem; color:var(--cyan); margin-bottom:6px;">Materie del Programma d'Esame (Art. 7)</h4>
+          <p style="font-size:0.83rem; color:var(--muted); line-height:1.45;">
+            Conoscenza dei tre laghi GGNL (fondali, correnti, venti) · Precauzioni antincendio ed estintori · Nomenclatura e attrezzatura navi · Codice Navigazione e Regolamento Navigazione Interna (DPR 631/1949) · Regolamento di Esercizio 2004 · Codice Comportamento DPR 81/2023 & Codice Etico · Sicurezza D.Lgs 81/2008 · Ordinamento GGNL (L. 614/1957) · Stato giuridico RD 148/1931 · Privacy GDPR · Informatica di base e Inglese.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MONITORAGGIO AUTOMATICO INPA -->
+    <div class="card-box" style="border-left: 4px solid var(--amber); margin-bottom: 28px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div>
+          <span style="display:inline-block; font-size:0.75rem; font-weight:800; color:var(--amber); letter-spacing:0.1em; text-transform:uppercase;">Monitor Automatico inPA & GGNL</span>
+          <h3 style="margin:4px 0 6px; font-size:1.15rem; color:#fff;">Attesa Pubblicazione: Bando Marinaio Stagionale</h3>
+          <p style="color:var(--muted); font-size:0.9rem; max-width:760px;">
+            Il sistema monitora regolarmente l'Albo Pretorio di Navigazione Laghi e il portale inPA per intercettare la pubblicazione dei prossimi bandi stagionali (marinai / operatori di cassa). Non appena viene emessa la nuova determina, il bando verrà salvato automaticamente e comparirà in questa sezione.
+          </p>
+        </div>
+        <a href="quiz.html" class="btn-action" style="background:var(--amber); color:#081820;">
+          <span>← Portale Concorsi</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    NaviSuite · Gestione Governativa Navigazione Laghi Maggiore, di Garda e di Como
+  </footer>
+
+  <script src="assets/js/shared-roles.js?v=16"></script>
+  <script src="assets/js/admin-firebase-rest.js"></script>
+  <script src="assets/js/shared-menu.js?v=1.99"></script>
+  <script src="assets/js/offline.js?v=2"></script>
+</body>
+</html>

@@ -33,10 +33,10 @@
       flex-direction: column;
     }
     a { text-decoration: none; color: inherit; }
-    .wrap { width: min(960px, calc(100% - 32px)); margin: auto; }
+    .wrap { width: min(1080px, calc(100% - 32px)); margin: auto; }
 
     header {
-      padding: 44px 0 24px;
+      padding: 38px 0 20px;
       text-align: center;
     }
     .eyebrow {
@@ -59,24 +59,84 @@
     }
     .intro {
       color: var(--muted);
-      max-width: 65ch;
+      max-width: 72ch;
       margin: 0 auto;
       font-size: 1.02rem;
       line-height: 1.55;
     }
 
+    /* BARRA MONITORAGGIO INPA */
+    .monitor-strip {
+      background: rgba(12, 37, 48, 0.88);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin: 24px 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .monitor-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green);
+      flex-shrink: 0;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+    .monitor-text b {
+      color: #fff;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .monitor-text span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+    .monitor-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+    }
+    .pill-open { background: rgba(103, 215, 230, 0.18); border: 1px solid var(--cyan); color: var(--cyan); }
+    .pill-progress { background: rgba(45, 212, 191, 0.18); border: 1px solid var(--teal); color: var(--teal); }
+    .pill-waiting { background: rgba(251, 191, 36, 0.18); border: 1px solid var(--amber); color: var(--amber); }
+
     .hub-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 22px;
-      margin: 36px 0 60px;
+      margin: 26px 0 50px;
     }
 
     .hub-card {
       background: var(--card);
       border: 1.5px solid var(--line);
       border-radius: 22px;
-      padding: 30px;
+      padding: 28px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -104,10 +164,15 @@
       gap: 6px;
       padding: 5px 12px;
       border-radius: 999px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 800;
       letter-spacing: 0.05em;
       margin-bottom: 16px;
+    }
+    .card-badge.new {
+      background: rgba(103, 215, 230, 0.18);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
     }
     .card-badge.active {
       background: rgba(45, 212, 191, 0.15);
@@ -119,37 +184,42 @@
       border: 1px solid var(--blue);
       color: #a5d2ff;
     }
+    .card-badge.incoming {
+      background: rgba(251, 191, 36, 0.18);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+    }
 
     .card-icon {
-      font-size: 2.6rem;
-      margin-bottom: 14px;
+      font-size: 2.5rem;
+      margin-bottom: 12px;
       display: block;
     }
     .card-title {
-      font-size: 1.45rem;
+      font-size: 1.4rem;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       line-height: 1.25;
     }
     .card-subtitle {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 700;
       color: var(--card-color, var(--teal));
       margin-bottom: 14px;
     }
     .card-desc {
       color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.55;
-      margin-bottom: 22px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
     .feature-list {
       list-style: none;
       display: grid;
-      gap: 10px;
-      margin-bottom: 28px;
-      font-size: 0.9rem;
+      gap: 9px;
+      margin-bottom: 26px;
+      font-size: 0.88rem;
       color: #d1e2f2;
     }
     .feature-list li {
@@ -171,8 +241,8 @@
       background: var(--card-color, var(--teal));
       color: var(--btn-text, #06231f);
       font-weight: 800;
-      font-size: 0.98rem;
-      padding: 14px 20px;
+      font-size: 0.95rem;
+      padding: 13px 18px;
       border-radius: 12px;
       text-align: center;
       display: flex;
@@ -184,6 +254,23 @@
     .btn-enter:hover {
       filter: brightness(1.1);
     }
+
+    /* SEZIONE MARINAIO IN ARRIVO */
+    .incoming-banner {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(12, 37, 48, 0.95));
+      border: 1.5px dashed rgba(251, 191, 36, 0.45);
+      border-radius: 20px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .incoming-left { flex: 1; min-width: 280px; }
+    .incoming-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 6px; display:flex; align-items:center; gap:10px; }
+    .incoming-desc { color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
 
     footer {
       text-align: center;
@@ -200,27 +287,67 @@
   <header class="wrap">
     <span class="eyebrow">GESTIONE GOVERNATIVA NAVIGAZIONE LAGHI</span>
     <h1>Concorsi & Selettive GGNL</h1>
-    <p class="intro">Portale unico di preparazione e simulazione concorsi per il personale di navigazione e gli uffici amministrativi.</p>
+    <p class="intro">Portale unico di preparazione e monitoraggio concorsi per il personale di navigazione e gli uffici amministrativi dei tre laghi.</p>
+
+    <!-- BARRA MONITORAGGIO INPA -->
+    <div class="monitor-strip">
+      <div class="monitor-info">
+        <span class="pulse-dot"></span>
+        <div class="monitor-text">
+          <b>Monitor inPA & Bandi GGNL Attivo</b>
+          <span>Verifica automatica continua su inPA e Albo Pretorio Navigazione Laghi. Rilevato nuovo bando naviganti e attesa imminente per marinai stagionali.</span>
+        </div>
+      </div>
+      <div class="monitor-badges">
+        <span class="pill pill-open">17/2026: Naviganti (Aperto)</span>
+        <span class="pill pill-progress">16/2026: Controllo (In Corso)</span>
+        <span class="pill pill-waiting">In Arrivo: Marinaio Stagionale</span>
+      </div>
+    </div>
   </header>
 
   <main class="wrap">
     <div class="hub-grid">
+
+      <!-- CARD 1: NUOVO CONCORSO OPERATORE GENERICO (SETTORE NAVIGANTI) -->
+      <article class="hub-card" style="--card-color:var(--cyan); --btn-text:#052229;">
+        <div>
+          <span class="card-badge new">● ISCRIZIONI APERTE · SCADE 05/11/2026</span>
+          <span class="card-icon">⚓</span>
+          <h2 class="card-title">Concorso Settore Naviganti</h2>
+          <div class="card-subtitle">Operatore Generico (par. 116) · Tempo Indeterminato</div>
+          <p class="card-desc">Bando Prot. C167 per 11 posti a tempo pieno e <strong>INDETERMINATO</strong> destinati al personale di coperta e servizio nei bacini Maggiore, Como e Garda.</p>
+
+          <ul class="feature-list">
+            <li><span class="dot"></span><span><strong>11 Posti a tempo indeterminato</strong> (CCNL Autoferrotranviari)</span></li>
+            <li><span class="dot"></span><span><strong>Requisiti:</strong> Licenza media + idoneità al nuoto e alla voga</span></li>
+            <li><span class="dot"></span><span><strong>Fasi d'esame:</strong> Prova preliminare nuoto/voga, scritta a quiz, prova pratica e orale</span></li>
+            <li><span class="dot"></span><span><strong>Cod. inPA:</strong> 17/2026_DE · Candidature telematiche aperte</span></li>
+            <li><span class="dot"></span><span>Bando integrale e regolamento RPC archiviati e scaricabili</span></li>
+          </ul>
+        </div>
+
+        <a href="concorso-naviganti.html" class="btn-enter" style="background:var(--cyan); color:#052229;">
+          <span>Accedi a Scheda Bando & Materie</span>
+          <span>→</span>
+        </a>
+      </article>
       
-      <!-- CARD 1: CONCORSO CONTROLLO (NUOVO) -->
+      <!-- CARD 2: CONCORSO CONTROLLO (IN CORSO) -->
       <article class="hub-card" style="--card-color:var(--teal); --btn-text:#06231f;">
         <div>
-          <span class="card-badge active">● IN CORSO · BANDO 2026</span>
+          <span class="card-badge active">● IN CORSO · AMMESSI PUBBLICATI</span>
           <span class="card-icon">🏢</span>
           <h2 class="card-title">Concorso Ufficio Controllo</h2>
           <div class="card-subtitle">Operatore di Ufficio · Parametro 130</div>
-          <p class="card-desc">Concorso per 3 posti a tempo determinato (12 mesi) nelle sedi di Arona, Como e Desenzano del Garda. Materiale di studio completo e simulatore d'esame.</p>
+          <p class="card-desc">Concorso per 3 posti a tempo determinato nelle sedi di Arona, Como e Desenzano del Garda. Pubblicato l'elenco dei 69 ammessi; in attesa della data della prova.</p>
 
           <ul class="feature-list">
-            <li><span class="dot"></span><span><strong>9 Moduli didattici</strong> con impaginazione standardizzata</span></li>
-            <li><span class="dot"></span><span><strong>Punti chiave</strong>, numeri e trappole dei quiz evidenziate</span></li>
-            <li><span class="dot"></span><span><strong>Prove passate ufficiali</strong> (2025 Como e Desenzano)</span></li>
-            <li><span class="dot"></span><span><strong>Simulatore Quiz</strong> con risposte rimescolate casualmente ad ogni avvio</span></li>
-            <li><span class="dot"></span><span>Tutti i testi di legge e le dispense scaricabili in PDF</span></li>
+            <li><span class="dot"></span><span><strong>69 Candidati ammessi</strong> ufficiali (Determina 14/10/2026)</span></li>
+            <li><span class="dot"></span><span><strong>9 Moduli didattici</strong> completi su Legge 614, Regolamento e Bilancio</span></li>
+            <li><span class="dot"></span><span><strong>Prove passate ufficiali</strong> (Desenzano e Como 2025)</span></li>
+            <li><span class="dot"></span><span><strong>Simulatore Quiz</strong> interattivo con rimescolamento risposte</span></li>
+            <li><span class="dot"></span><span>Bando, codice etico, regolamento di esercizio e carta della mobilità</span></li>
           </ul>
         </div>
 
@@ -230,14 +357,14 @@
         </a>
       </article>
 
-      <!-- CARD 2: CONCORSO MOVIMENTO (ARCHIVIO FATTO) -->
+      <!-- CARD 3: CONCORSO MOVIMENTO (ARCHIVIO FATTO) -->
       <article class="hub-card" style="--card-color:var(--blue); --btn-text:#ffffff;">
         <div>
           <span class="card-badge archive">✔ ARCHIVIO · CONCORSO GIÀ FATTO</span>
           <span class="card-icon">🚢</span>
           <h2 class="card-title">Concorso Movimento</h2>
           <div class="card-subtitle">Personale Viaggiante · Parametro 130</div>
-          <p class="card-desc">Archivio completo delle prove e dei quiz per il concorso movimento già svolto. Accesso ai 300 quesiti, alle simulazioni e al riepilogo errori.</p>
+          <p class="card-desc">Archivio completo delle prove e dei quiz per il concorso movimento già svolto. Accesso ai 300 quesiti ufficiali, alle simulazioni e al riepilogo errori.</p>
 
           <ul class="feature-list">
             <li><span class="dot"></span><span><strong>300 Quesiti</strong> complessivi sulle materie di navigazione</span></li>
@@ -255,6 +382,26 @@
       </article>
 
     </div>
+
+    <!-- AVVISO BANDO MARINAIO STAGIONALE IN ARRIVO -->
+    <div class="incoming-banner">
+      <div class="incoming-left">
+        <div class="incoming-title">
+          <span>⏳</span>
+          <span>Prossimo Bando Atteso: Marinaio Stagionale GGNL</span>
+        </div>
+        <p class="incoming-desc">
+          È attesa a breve la pubblicazione del nuovo bando di selezione per <strong>Marinai a tempo determinato / stagionali</strong> per la prossima stagione di navigazione sui tre laghi (Garda, Maggiore, Como). Il nostro script di monitoraggio inPA e Albo Pretorio è attivo: non appena il bando verrà emanato, NaviSuite scaricherà automaticamente il testo ufficiale in PDF, estrarrà le scadenze e creerà la sezione dedicata per la preparazione.
+        </p>
+      </div>
+      <div>
+        <a href="https://www.inpa.gov.it" target="_blank" class="btn-enter" style="background:var(--amber); color:#081820; font-size:0.88rem; padding:11px 16px; white-space:nowrap;">
+          <span>Controlla inPA</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </div>
+
   </main>
 
   <footer>

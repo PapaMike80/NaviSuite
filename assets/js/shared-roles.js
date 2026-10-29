@@ -72,7 +72,7 @@
   // Sezioni del menu e della Home: di default come sempre, ma gli admin possono spostare le pagine (pagina Agenti > Accesso alle pagine)
   const SEZIONI = [['principali', 'PRINCIPALI'], ['altre', 'UTENTI'], ['amministrazione', 'AMMINISTRAZIONE']];
   const SEZIONE_PREDEFINITA = { 'mio-turno.html': 'principali', 'orario.html': 'principali', 'naviturni.html': 'principali', 'oggi.html': 'principali', 'navidiaria.html': 'principali',
-    'quiz.html': 'amministrazione', 'comitive.html': 'amministrazione', 'verifica-busta.html': 'amministrazione', 'agenti.html': 'amministrazione', 'aggiornamenti.html': 'amministrazione',
+    'quiz.html': 'altre', 'comitive.html': 'amministrazione', 'verifica-busta.html': 'amministrazione', 'agenti.html': 'amministrazione', 'aggiornamenti.html': 'amministrazione',
     'movimento.html': 'amministrazione', 'collegamenti.html': 'amministrazione' };
   const sezionePredefinita = file => SEZIONE_PREDEFINITA[String(file || '').toLowerCase().split('?')[0]] || 'altre';
   // Disposizione del menu. Gli admin la decidono per tutti (sezioni + ordine, salvati insieme all'accesso); ogni agente puo' poi
