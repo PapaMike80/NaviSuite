@@ -52,7 +52,18 @@
     return `<span class="cell-pill ${classe(v)}">${esc(txt)}</span>`;
   }
 
-  const sameShift = (a, b) => String(a ?? '').trim().toUpperCase() === String(b ?? '').trim().toUpperCase();
+  const canonicalShift = v => {
+    const s = String(v ?? '').trim().toUpperCase().replace(/[‐‑–—]/g, '-').replace(/[;,.]+$/, '');
+    if (s === 'TERRA') return 'LAV';
+    if (/^L\.?D$/.test(s)) return 'L.D.';
+    if (/^F\.?P$/.test(s)) return 'F.P.';
+    if (/^CONG?$/.test(s)) return 'CON';
+    return s;
+  };
+  const sameShift = (a, b) => {
+    if (isRip(a) && isRip(b)) return true;
+    return canonicalShift(a) === canonicalShift(b);
+  };
 
   function costruisci(batch, hook) {
     const known = new Set((hook.schedule()?.date || []).map(d => d.iso));
@@ -159,6 +170,7 @@
     const hook = window.NaviConfrontoHook, file = $('cmp-file').files?.[0];
     if (!hook?.importa || !file || !view) return avviso('Carica e confronta prima il PDF.', 'warn');
     const tipo = $('cmp-tipo').value, { batch } = view;
+    (batch.rows || []).forEach(r => { if (Array.isArray(r.turni)) r.turni = r.turni.map(t => canonicalShift(t)); });
     if (!confirm(`Importo il turno dal ${itData(batch.inizio)} al ${itData(batch.fine)} come ${tipo === 'bozza' ? 'BOZZA' : 'TURNO UFFICIALE'}?`)) return;
     btn.disabled = true; avviso('Importazione in corso…', 'ok');
     try {
@@ -207,7 +219,7 @@
         ].filter(Boolean).join('');
         body += `<tr class="${r.nDiff && r.current ? 'has-diff' : ''}${r.current ? '' : ' agente-nuovo'}"><td class="td-name"><span class="agent-name-text">${esc(r.row.agente)}</span>${badges}</td>${r.cells.map((c, i) => {
           const cls = [cols[i].dow === 1 ? 'week-start' : '', cols[i].dow === 0 ? 'week-end' : '', c.diff && r.current ? 'cmp-cell-diff' : '', cols[i].inBozza ? '' : 'senza-bozza'].filter(Boolean).join(' ');
-          const was = c.diff && r.current && c.vecchio !== null ? `<span class="cmp-was" title="Nella bozza">era ${esc(isRip(c.vecchio) ? 'rip' : c.vecchio)}</span>` : '';
+          const was = c.diff && r.current && c.vecchio !== null ? `<span class="cmp-was" title="Nella bozza">era ${esc(isRip(c.vecchio) ? 'rip' : canonicalShift(c.vecchio))}</span>` : '';
           return `<td class="${cls}">${pill(c.nuovo)}${was}</td>`;
         }).join('')}</tr>`;
       });

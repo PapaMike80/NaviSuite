@@ -184,12 +184,12 @@
   <script src="assets/js/admin-firebase-rest.js?v=96"></script>
   <script src="assets/js/shared-menu.js?v=1.99"></script>
   <script src="assets/js/offline.js?v=2"></script>
-  <script src="assets/js/shared-data.js?v=137"></script>
+  <script src="assets/js/shared-data.js?v=138"></script>
   <script src="assets/js/turn-import-helpers.js?v=1"></script>
   <script src="assets/js/servizi-terra-a4.js?v=21"></script>
   <script src="assets/js/admin-pocketbase-rest.js?v=6"></script>
   <script src="assets/js/comitive.js?v=8"></script>
-  <script src="assets/js/confronto-turno.js?v=1"></script>
+  <script src="assets/js/confronto-turno.js?v=2"></script>
   <script src="vendor/pdfjs/pdf.min.js"></script>
   <script src="vendor/pdfjs/pdf.worker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -290,7 +290,44 @@
       const candidates=list.map(agent=>({agent,surname:normalize(String(agent.agente||'').split(/\s+/)[0])})).filter(item=>item.surname.length>3);
       return candidates.find(item=>item.surname===surname)?.agent||candidates.filter(item=>Math.abs(item.surname.length-surname.length)<=1&&editDistance(item.surname,surname)<=1).map(item=>item.agent)[0];
     }
-    function repairLegacyScheduleImports(){let changed=false;state.scheduleImports=state.scheduleImports.map(batch=>{if(String(batch.inizio)!=='2026-06-22'||String(batch.fine)!=='2026-07-26')return batch;const rows=(batch.rows||[]).map(row=>{if(row.agent_uid)return row;const expected=LEGACY_DESENZANO_2026[Number(row.id_agente)];if(!expected)return row;const agent=resolveAgent(expected);if(!agent)return row;changed=true;return {...row,id_agente:String(agent.id),agent_uid:String(agent.agent_uid||stableAgentUid(agent.agente)),agente:String(agent.agente),residenza:String(agent.residence||row.residenza||'')}});return {...batch,identityVersion:2,rows}});return changed}
+    function repairLegacyScheduleImports(){
+      let changed=false;
+      state.scheduleImports=state.scheduleImports.map(batch=>{
+        let batchChanged=false;
+        let rows=batch.rows||[];
+        if(String(batch.inizio)==='2026-06-22'&&String(batch.fine)==='2026-07-26'){
+          rows=rows.map(row=>{
+            if(row.agent_uid)return row;
+            const expected=LEGACY_DESENZANO_2026[Number(row.id_agente)];
+            if(!expected)return row;
+            const agent=resolveAgent(expected);
+            if(!agent)return row;
+            batchChanged=true;
+            return {...row,id_agente:String(agent.id),agent_uid:String(agent.agent_uid||stableAgentUid(agent.agente)),agente:String(agent.agente),residenza:String(agent.residence||row.residenza||'')};
+          });
+        }
+        rows=rows.map(row=>{
+          if(!Array.isArray(row.turni))return row;
+          let rowChanged=false;
+          const turni=row.turni.map(shift=>{
+            const s=String(shift??'').trim().toUpperCase();
+            if(s==='TERRA'||s==='LAV.'||s==='LAV;'){rowChanged=true;return 'LAV';}
+            return shift;
+          });
+          if(rowChanged){batchChanged=true;return {...row,turni};}
+          return row;
+        });
+        if(batchChanged){changed=true;return {...batch,identityVersion:Math.max(2,Number(batch.identityVersion||0)),rows};}
+        return batch;
+      });
+      ['odsVariations','manualVariations'].forEach(k=>{
+        (state[k]||[]).forEach(v=>{
+          if(String(v?.turno_nuovo||'').toUpperCase()==='TERRA'){v.turno_nuovo='LAV';changed=true;}
+          if(String(v?.turno_originale||'').toUpperCase()==='TERRA'){v.turno_originale='LAV';changed=true;}
+        });
+      });
+      return changed;
+    }
     function csvCell(value){const text=String(value??'');return /[",\r\n;]/.test(text)?`"${text.replace(/"/g,'""')}"`:text}
     function parseCsvMatrix(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<String(text).length;i++){const char=text[i],next=text[i+1];if(char==='"'){if(quoted&&next==='"'){cell+='"';i++}else quoted=!quoted}else if(!quoted&&(char===','||char===';')){row.push(cell.trim());cell=''}else if(!quoted&&(char==='\n'||char==='\r')){if(char==='\r'&&next==='\n')i++;row.push(cell.trim());cell='';if(row.some(Boolean))rows.push(row);row=[]}else cell+=char}row.push(cell.trim());if(row.some(Boolean))rows.push(row);return rows}
     function googleSheetCsvUrl(value){const raw=String(value||'').trim(),id=raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)?.[1];if(!id)throw new Error('Collegamento del Foglio Google non riconosciuto');const gid=raw.match(/[?#&]gid=(\d+)/)?.[1]||'0';return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`}
@@ -812,7 +849,7 @@
         const tokens=content.toUpperCase().match(/={2,}|\b(?:RIP|[A-Z]{1,5}\d{0,2})\b/g)||[];
         let shift=(service?.[1]||explicitCode||tokens.find(t=>!['DALLE','ALLE','SONO','PRONTI','MUOVERE','CON','COME','PER','IL','LA','DI','IN','A'].includes(t))||'').replace(/^={2,}$/,'RIP');
         if(/^L\.?\s*D\.?$/i.test(shift))shift='L.D.';
-        if(/^F\.?\s*P\.?$/i.test(shift))shift='F.P.';
+        if(/^F\.?\s*P\.?$/i.test(shift))shift='F.P.'; if(/^TERRA$/i.test(shift))shift='LAV';
         if(!shift){avvisa(currentDate,`Servizio non riconosciuto, riga non usata: «${line.trim()}»`);continue}
         if(/^=+$/.test(m[2].trim())&&m[2].trim().length!==3)avvisa(currentDate,`«${m[2].trim()}» letto come RIP (di solito è «===»): «${line.trim()}»`);
         m[1].split(/\s*,\s*|\s+E\s+/i).forEach(name=>{
@@ -943,7 +980,7 @@
       const raw=String(value??'').trim().toUpperCase().replace(/[‐‑–—]/g,'-');
       if(!raw||/^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw))return 'RIP';
       if(/^(?:CONG?\.?|CON[;/]|CONC\.?|C\.)$/.test(raw))return 'CON';
-      if(/^LAV[.;]?$/.test(raw))return 'LAV';
+      if(/^(?:LAV[.;]?|TERRA)$/.test(raw))return 'LAV';
       if(/^L\.?D[.;]?$/.test(raw))return 'L.D.';
       if(/^F\.?P\.?-*$/.test(raw))return 'F.P.';
       // Abbreviazioni del turno PDF: c.c./c--- = congedo, crip--/crip./c.rip. = riposo, cF.P. = F.P., l.d/C = L.D.
@@ -1239,7 +1276,7 @@
       renderResidenceMoveDebug();
       const linkedSheet=state.scheduleImports.filter(item=>item.source==='google_sheet'&&item.attiva!==false).sort((a,b)=>String(b.importedAt).localeCompare(String(a.importedAt)))[0];
       $('turn-sheet-url').value=linkedSheet?.sheetUrl||localStorage.getItem('navisuite.turnSheetUrl')||'';
-      setStatus(repairedLegacyTurn?'✓ Turno 22 giugno–26 luglio riparato per nome agente e salvato su Firebase.':'Connesso a Firebase. Puoi importare i documenti o registrare una variazione.','ok');
+      setStatus(repairedLegacyTurn?'✓ Turni corretti (sostituito codice TERRA non valido con LAV) e salvati su Firebase.':'Connesso a Firebase. Puoi importare i documenti o registrare una variazione.','ok');
     }
     $('agent').addEventListener('change',updateCurrent);$('date').addEventListener('change',updateCurrent);
     $('new-ods-file').addEventListener('change',async event=>{

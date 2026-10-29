@@ -190,7 +190,7 @@
         dentro.filter(a => a.residenza === r).sort((a, b) => perDisponibilita(a, b) || String(a.agent.agente).localeCompare(String(b.agent.agente), 'it')).map(riga).join('')).join('');
     }).join('');
     // dove va chi sbarca: di solito riposo; si cambia dal valore nella bolla (assenze, a terra, altre corse)
-    const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
+    const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Lavori', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
     const nomeDest = v => NOMI[v] || `sulla ${v}`;
     const per = ui.destAperto;
     const attuale = per === 'togli' ? ui.togliDest : ui.sbarco;
@@ -201,7 +201,7 @@
     const destinazioni = per ? `<div class="pop-dest">
       <p>${per === 'togli' ? `${esc(x.membro?.name || '')} se lo togli va in` : 'Chi viene sostituito va in'}</p>
       <p>Assenze</p><div class="pop-chips">${['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'].map(chip).join('')}</div>
-      <p>A terra</p><div class="pop-chips">${['LD', 'LAV', ...terraSigle, 'TERRA'].map(chip).join('')}</div>
+      <p>A terra</p><div class="pop-chips">${['LD', 'LAV', ...terraSigle].map(chip).join('')}</div>
       <p>Su una corsa</p><div class="pop-chips">${corseDest.map(chip).join('')}</div></div>` : '';
     // due bolle: "Sostituito va in …" (di solito riposo) e "Toglilo" (subito, in riposo o dove scegli accanto)
     const bolle = x.membro ? `<div class="pop-bolle">` +

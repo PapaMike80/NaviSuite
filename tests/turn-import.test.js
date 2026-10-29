@@ -60,7 +60,7 @@ const pedroni=data.residenze.DESENZANO.find(agent=>agent.agente==='PEDRONI M.');
 assert.equal(pedroni.residenzaPrecedente,'DESENZANO');
 assert.equal(pedroni.residenzaNuova,'MADERNO');
 assert.equal(pedroni.residenzaDal,dates[0]);
-assert.deepEqual(dates.map(iso=>pedroni.turni[iso]),['TERRA','CON','L.D.']);
+assert.deepEqual(dates.map(iso=>pedroni.turni[iso]),['LAV','CON','L.D.']);
 
 // Dalla decorrenza passa alla residenza nuova.
 data=fresh();shared.applyScheduleImports(data,batch(rows),{today:'2026-10-05'});

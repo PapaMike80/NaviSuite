@@ -9,7 +9,7 @@
   const view = document.getElementById('richieste-view');
   if (!NM || !view) return;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra' };
+  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Lavori' };
   const nomeTurno = t => NOMI[String(t || '').trim().toUpperCase()] || t || '—';
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
   const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];

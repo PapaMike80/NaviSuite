@@ -19,7 +19,7 @@
     const raw = String(value ?? '').trim().toUpperCase().replace(/[‐‑–—]/g, '-').replace(/\s+/g, '');
     if (!raw || /^(?:RIP|RIPOSO|===|--+)$/.test(raw)) return 'RIP';
     if (/^(?:CON|CONG\.?|CONGEDO)$/.test(raw)) return 'CON';
-    if (/^(?:LAV\.?|TERRA)$/.test(raw)) return 'TERRA';
+    if (/^(?:LAV\.?|TERRA)$/.test(raw)) return 'LAV';
     if (/^F\.?P\.?$/.test(raw)) return 'F.P.';
     return raw;
   }

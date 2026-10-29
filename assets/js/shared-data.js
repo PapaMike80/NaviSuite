@@ -268,7 +268,7 @@
     const raw = String(value ?? '').trim().toUpperCase().replace(/[‐‑–—]/g, '-');
     if (!raw || /^(?:RIP(?:\.|-*)?|RIPOSO|-{2,}|={2,})$/.test(raw)) return 'RIP';
     if (/^(?:CONG?\.?|CON[;/]|CONC\.?|C\.)$/.test(raw)) return 'CON';
-    if (/^(?:LAV[.;]?|TERRA)$/.test(raw)) return 'TERRA';
+    if (/^(?:LAV[.;]?|TERRA)$/.test(raw)) return 'LAV';
     if (/^L\.?D[.;]?$/.test(raw)) return 'L.D.';
     if (/^F\.?P\.?-*$/.test(raw)) return 'F.P.';
     return raw.replace(/\.{2,}$/g, '.').replace(/-+$/g, '');

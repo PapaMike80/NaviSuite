@@ -17,7 +17,7 @@
   // Pallino del grado (sigla e colore come nelle Corse).
   const ICONE = { Capitano: ['Cap', '#facc15'], 'Capo timoniere': ['CT', '#fb923c'], Timoniere: ['Tim', '#22c55e'], Motorista: ['Mot', '#a855f7'],
     'Aiuto motorista': ['AM', '#3b82f6'], Marinaio: ['Mar', '#e8f3f6'], Applicato: ['App', '#a3e635'] };
-  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Terra', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
+  const NOMI = { RIP: 'Riposo', MAL: 'Malattia', CON: 'Congedo', FERIE: 'Ferie', 'F.P.': 'F.P.', LD: 'L.D.', LAV: 'Lavori', TERRA: 'Lavori', 'S.S.': 'S.S.', 'S.S': 'S.S.' };
   const nomeTurno = t => NOMI[t] || t || '—';
 
   // Anzianita' del prospetto dei turni (posizione, 1 = la piu' anziana); chi non c'e' va in fondo.
@@ -36,7 +36,7 @@
     const sovrToggle = `<button type="button" class="ag-sovr${ui.sovr ? ' on' : ''}" data-act="sovr-toggle" title="Sulla corsa scelta come sovrannumero (turno con asterisco, es. D1*): non conta nel minimo della nave">${ui.sovr ? '☑' : '☐'} In sovrannumero (*)</button>`;
     // in sovrannumero solo le corse; altrimenti assenze, a terra (con TERRA) e corse. Niente codici "altri".
     if (ui.sovr) return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Su una corsa · sovrannumero (*)', corse)}</div>`;
-    return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra, 'TERRA'])}` +
+    return `<div class="pop-dest ag-dest">${sovrToggle}${gruppo('Assenze', ['RIP', 'MAL', 'CON', 'FERIE', 'F.P.'])}${gruppo('A terra', ['LD', 'LAV', ...terra])}` +
       `${gruppo('Su una corsa', corse)}</div>`;
   }
 
