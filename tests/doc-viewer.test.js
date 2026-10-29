@@ -9,12 +9,14 @@ assert.doesNotThrow(() => {
 
 const docViewerCode = fs.readFileSync('assets/js/doc-viewer.js', 'utf8');
 
-// 2. Check essential viewer components
+// 2. Check essential viewer components & autohide support
 assert.match(docViewerCode, /id="naviDocCloseBtn"/, 'Missing close button in doc-viewer.js');
 assert.match(docViewerCode, /id="naviDocMenuBtn"/, 'Missing menu button in doc-viewer.js');
 assert.match(docViewerCode, /window\.NaviDocViewer\s*=/, 'Missing NaviDocViewer export in doc-viewer.js');
 assert.match(docViewerCode, /window\.NaviSuiteMenu\.open/, 'Missing NaviSuiteMenu open trigger in doc-viewer.js');
 assert.match(docViewerCode, /body\.navi-doc-open/, 'Missing body scroll lock CSS in doc-viewer.js');
+assert.match(docViewerCode, /setToolbarHidden/, 'Missing setToolbarHidden function in doc-viewer.js');
+assert.match(docViewerCode, /navi-doc-toolbar-hidden/, 'Missing navi-doc-toolbar-hidden class in doc-viewer.js');
 
 // 3. Verify concorso-controllo.html
 const controlloHtml = fs.readFileSync('concorso-controllo.html', 'utf8');
@@ -39,7 +41,11 @@ assert.match(sharedMenuCode, /doc-viewer\.js/, 'shared-menu.js must auto-inject 
 
 // 7. Verify sw.js includes doc-viewer.js and new cache version
 const swCode = fs.readFileSync('sw.js', 'utf8');
-assert.match(swCode, /navisuite-v748-doc-viewer-modal/, 'sw.js cache version must be bumped');
+assert.match(swCode, /navisuite-v749-doc-viewer-autohide/, 'sw.js cache version must be bumped');
 assert.match(swCode, /'\.\/assets\/js\/doc-viewer\.js'/, 'sw.js must cache doc-viewer.js');
+
+// 8. Verify dispense do not have the redundant top-bar section
+const dispensa01 = fs.readFileSync('docs/controllo/dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html', 'utf8');
+assert.doesNotMatch(dispensa01, /<nav class="top-bar">/, 'Dispensa 01 must not have redundant top-bar');
 
 console.log('Doc viewer tests passed successfully');

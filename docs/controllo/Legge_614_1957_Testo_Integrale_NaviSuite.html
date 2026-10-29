@@ -325,17 +325,7 @@
 </head>
 <body>
 
-  <div class="top-bar">
-    <div class="wrap top-bar-inner">
-      <a href="dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html" class="back-btn">
-        <span>←</span>
-        <span>Dispensa 01 Ordinamento GGNL</span>
-      </a>
-      <div style="display:flex; gap:10px;">
-        <a href="../../concorso-controllo.html" class="back-btn">Portale Concorsi</a>
-        <button onclick="window.print()" class="back-btn" style="cursor:pointer;">🖨️ Stampa</button>
-      </div>
-    </div>
+  
   </div>
 
   <div class="wrap">
@@ -584,5 +574,50 @@
   <script src="../../assets/js/shared-roles.js?v=16"></script>
   <script src="../../assets/js/shared-menu.js?v=1.99"></script>
   <script src="../../assets/js/doc-viewer.js?v=1"></script>
+
+  <script>
+    // Notifica di scroll al visualizzatore universale NaviSuite per autohide barra
+    (() => {
+      let lastY = 0;
+      let touchStartY = 0;
+      function notify(hidden) {
+        try {
+          if (window.parent && window.parent !== window && typeof window.parent.NaviDocViewer?.setToolbarHidden === 'function') {
+            window.parent.NaviDocViewer.setToolbarHidden(hidden);
+          }
+        } catch (_) {}
+      }
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY || document.documentElement.scrollTop || 0;
+        if (y <= 25) {
+          notify(false);
+        } else if (y - lastY > 10) {
+          notify(true);
+        } else if (y - lastY < -8) {
+          notify(false);
+        }
+        lastY = y;
+      }, { passive: true });
+
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!e.touches || !e.touches[0]) return;
+        const currentY = window.scrollY || document.documentElement.scrollTop || 0;
+        const diff = e.touches[0].clientY - touchStartY;
+        if (currentY <= 25) {
+          notify(false);
+        } else if (diff < -14) {
+          notify(true);
+        } else if (diff > 10) {
+          notify(false);
+        }
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+    })();
+  </script>
+
 </body>
 </html>

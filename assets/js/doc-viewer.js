@@ -3,7 +3,7 @@
 
   if (window.NaviDocViewer) return;
 
-  // Inietta lo stile del visualizzatore
+  // Inietta lo stile del visualizzatore con supporto autohide e scrolling fluido
   function injectStyles() {
     if (document.getElementById('navi-doc-viewer-styles')) return;
     const style = document.createElement('style');
@@ -15,7 +15,7 @@
       .navi-doc-viewer {
         position: fixed;
         inset: 0;
-        z-index: 9990; /* appena sotto #navisuite-popup (10000) per aprire il menu sopra */
+        z-index: 9990; /* sotto #navisuite-popup (10000) per aprire il menu sopra */
         display: flex;
         flex-direction: column;
         background: #071923;
@@ -23,6 +23,7 @@
         min-width: 0;
         min-height: 0;
         box-sizing: border-box;
+        overflow: hidden;
       }
 
       body.navi-doc-open {
@@ -33,19 +34,48 @@
         display: none !important;
       }
 
+      /* Barra superiore con animazione a comparsa/scomparsa */
       .navi-doc-toolbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 25;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
         padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
-        background: rgba(11, 28, 38, 0.98);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(11, 28, 38, 0.96);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-bottom: 1px solid #1f4250;
         min-height: calc(56px + env(safe-area-inset-top, 0px));
         box-sizing: border-box;
-        flex-shrink: 0;
+        transform: translateY(0);
+        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        will-change: transform;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      .navi-doc-toolbar.navi-doc-toolbar-hidden {
+        transform: translateY(-100%);
+        pointer-events: none;
+      }
+
+      /* Sensore touch invisibile in alto per riaprire la barra con un tocco quando è nascosta */
+      .navi-doc-top-sensor {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(28px + env(safe-area-inset-top, 0px));
+        z-index: 20;
+        cursor: pointer;
+        display: none;
+      }
+      .navi-doc-toolbar-hidden ~ .navi-doc-top-sensor {
+        display: block;
       }
 
       .navi-doc-action-btn {
@@ -67,7 +97,7 @@
         flex-shrink: 0;
       }
       .navi-doc-action-btn:active {
-        transform: scale(0.96);
+        transform: scale(0.95);
       }
 
       .navi-doc-close-btn {
@@ -139,12 +169,13 @@
         background: #154c50;
       }
 
+      /* Viewport a pieno schermo per immersione totale */
       .navi-doc-viewport {
-        position: relative;
-        flex: 1;
-        min-height: 0;
+        position: absolute;
+        inset: 0;
         width: 100%;
-        background: #ffffff;
+        height: 100%;
+        background: #071923;
         overflow: hidden;
       }
 
@@ -167,7 +198,7 @@
         -webkit-overflow-scrolling: touch;
         background: #071923;
         color: #eaf2f4;
-        padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+        padding: calc(72px + env(safe-area-inset-top, 0px)) 20px calc(30px + env(safe-area-inset-bottom, 0px));
         box-sizing: border-box;
         font-family: 'Manrope', system-ui, sans-serif;
         line-height: 1.6;
@@ -199,12 +230,70 @@
   }
 
   let viewerEl = null;
+  let toolbarEl = null;
   let iframeEl = null;
   let mdViewEl = null;
   let titleEl = null;
   let subEl = null;
   let downloadBtn = null;
   let hasPushedState = false;
+  let isToolbarHidden = false;
+
+  function setToolbarHidden(hidden) {
+    if (isToolbarHidden === hidden || !toolbarEl) return;
+    isToolbarHidden = hidden;
+    if (hidden) {
+      toolbarEl.classList.add('navi-doc-toolbar-hidden');
+    } else {
+      toolbarEl.classList.remove('navi-doc-toolbar-hidden');
+    }
+  }
+
+  function setupScrollWatcher(targetWin, targetDoc) {
+    if (!targetWin) return;
+    let lastY = 0;
+    let touchStartY = 0;
+
+    targetWin.addEventListener('scroll', () => {
+      const currentY = targetWin.scrollY || targetDoc?.documentElement?.scrollTop || targetDoc?.body?.scrollTop || 0;
+      const diff = currentY - lastY;
+
+      if (currentY <= 25) {
+        setToolbarHidden(false);
+      } else if (diff > 10) {
+        // Scorrimento verso il basso -> nascondi
+        setToolbarHidden(true);
+      } else if (diff < -8) {
+        // Scorrimento verso l'alto -> mostra
+        setToolbarHidden(false);
+      }
+      lastY = currentY;
+    }, { passive: true });
+
+    targetWin.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    targetWin.addEventListener('touchmove', (e) => {
+      if (!e.touches || !e.touches[0]) return;
+      const touchY = e.touches[0].clientY;
+      const diff = touchY - touchStartY;
+      const currentY = targetWin.scrollY || targetDoc?.documentElement?.scrollTop || targetDoc?.body?.scrollTop || 0;
+
+      if (currentY <= 25) {
+        setToolbarHidden(false);
+      } else if (diff < -15) {
+        // Dito va su, pagina scorre in basso -> nascondi
+        setToolbarHidden(true);
+      } else if (diff > 12) {
+        // Dito va giù, pagina scorre in alto -> mostra
+        setToolbarHidden(false);
+      }
+      touchStartY = touchY;
+    }, { passive: true });
+  }
 
   function ensureViewerElements() {
     if (viewerEl) return;
@@ -219,7 +308,7 @@
     viewerEl.setAttribute('aria-label', 'Visualizzatore Documenti NaviSuite');
 
     viewerEl.innerHTML = `
-      <div class="navi-doc-toolbar">
+      <div id="naviDocToolbar" class="navi-doc-toolbar">
         <button type="button" id="naviDocCloseBtn" class="navi-doc-action-btn navi-doc-close-btn" aria-label="Chiudi documento" title="Chiudi documento">
           <span>✕</span>
           <span>Chiudi</span>
@@ -241,7 +330,9 @@
         </div>
       </div>
 
-      <div class="navi-doc-viewport">
+      <div class="navi-doc-top-sensor" id="naviDocTopSensor" title="Tocca per mostrare la barra"></div>
+
+      <div class="navi-doc-viewport" id="naviDocViewport">
         <iframe id="naviDocIframe" title="Visualizzatore Documento" allow="fullscreen"></iframe>
         <div id="naviDocMarkdown" class="navi-doc-md" hidden></div>
       </div>
@@ -249,11 +340,15 @@
 
     document.body.appendChild(viewerEl);
 
+    toolbarEl = document.getElementById('naviDocToolbar');
     iframeEl = document.getElementById('naviDocIframe');
     mdViewEl = document.getElementById('naviDocMarkdown');
     titleEl = document.getElementById('naviDocTitle');
     subEl = document.getElementById('naviDocSubtitle');
     downloadBtn = document.getElementById('naviDocDownloadBtn');
+
+    // Tocco sulla barra superiore nascosta o sul sensore per ripristinare
+    document.getElementById('naviDocTopSensor').addEventListener('click', () => setToolbarHidden(false));
 
     document.getElementById('naviDocCloseBtn').addEventListener('click', () => close(true));
     document.getElementById('naviDocMenuBtn').addEventListener('click', () => {
@@ -264,9 +359,36 @@
       }
     });
 
-    window.addEventListener('popstate', (e) => {
+    window.addEventListener('popstate', () => {
       if (!viewerEl.hidden) {
         close(false);
+      }
+    });
+
+    // Monitoraggio scroll per Markdown view
+    let lastMdY = 0;
+    mdViewEl.addEventListener('scroll', () => {
+      const currentY = mdViewEl.scrollTop;
+      const diff = currentY - lastMdY;
+      if (currentY <= 25) {
+        setToolbarHidden(false);
+      } else if (diff > 10) {
+        setToolbarHidden(true);
+      } else if (diff < -8) {
+        setToolbarHidden(false);
+      }
+      lastMdY = currentY;
+    }, { passive: true });
+
+    // Monitoraggio scroll sull'iframe quando caricato
+    iframeEl.addEventListener('load', () => {
+      try {
+        const win = iframeEl.contentWindow;
+        if (win) {
+          setupScrollWatcher(win, win.document);
+        }
+      } catch (_) {
+        // Frame cross-origin o plugin PDF nativo
       }
     });
   }
@@ -325,6 +447,9 @@
     if (!url) return;
     ensureViewerElements();
 
+    // Mostra sempre la barra all'apertura
+    setToolbarHidden(false);
+
     const displayTitle = cleanTitle(title, url);
     titleEl.textContent = displayTitle;
 
@@ -344,6 +469,7 @@
       iframeEl.style.display = 'none';
       mdViewEl.style.display = 'block';
       mdViewEl.hidden = false;
+      mdViewEl.scrollTop = 0;
       mdViewEl.innerHTML = '<p style="color:var(--teal)">Caricamento documento in corso...</p>';
 
       fetch(url)
@@ -354,7 +480,7 @@
         .then(text => {
           mdViewEl.innerHTML = renderMarkdownBasic(text);
         })
-        .catch(err => {
+        .catch(() => {
           mdViewEl.hidden = true;
           iframeEl.style.display = 'block';
           iframeEl.src = url;
@@ -363,7 +489,6 @@
       mdViewEl.style.display = 'none';
       mdViewEl.hidden = true;
       iframeEl.style.display = 'block';
-      // Append #view=FitH for PDFs to fit width in supported mobile viewports
       const targetUrl = isPdf && !url.includes('#') ? `${url}#view=FitH` : url;
       iframeEl.src = targetUrl;
     }
@@ -371,16 +496,16 @@
     viewerEl.hidden = false;
     document.body.classList.add('navi-doc-open');
 
-    // Salva lo stato history per consentire il tasto "Indietro" di chiudere il visualizzatore
     try {
       history.pushState({ naviDocOpen: true }, '', location.href);
       hasPushedState = true;
-    } catch (e) {}
+    } catch (_) {}
   }
 
   function close(popHistory) {
     if (!viewerEl || viewerEl.hidden) return;
     viewerEl.hidden = true;
+    setToolbarHidden(false);
     if (iframeEl) iframeEl.src = 'about:blank';
     document.body.classList.remove('navi-doc-open');
 
@@ -390,7 +515,7 @@
         if (history.state?.naviDocOpen) {
           history.back();
         }
-      } catch (e) {}
+      } catch (_) {}
     }
   }
 
@@ -403,7 +528,6 @@
     if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
     if (/^(tel:|mailto:|whatsapp:|sms:)/i.test(href)) return;
 
-    // Se il link ha data-no-viewer, lascia passare
     if (link.hasAttribute('data-no-viewer')) return;
 
     const isExplicit = link.hasAttribute('data-doc-viewer');
@@ -411,7 +535,6 @@
     const isMd = /\.md($|\?)/i.test(href);
     const isDispensa = href.includes('dispense_navisuite/') || (href.includes('docs/controllo/') && href.endsWith('.html'));
 
-    // Link esterni a siti terzi (es. inPA o albo navigazionelaghi) che NON sono PDF
     const isExternal = link.origin && link.origin !== location.origin;
     if (isExternal && !isPdf && !isExplicit) return;
 
@@ -431,7 +554,8 @@
   window.NaviDocViewer = {
     open,
     close,
-    isOpen: () => viewerEl && !viewerEl.hidden
+    isOpen: () => viewerEl && !viewerEl.hidden,
+    setToolbarHidden
   };
 
   window.openDocument = open;
