@@ -1,5 +1,7 @@
 const assert = require('assert');
 global.window = {};
+require('../assets/js/course-info.js');
+window.NaviCourseInfo = global.NaviCourseInfo;
 require('../assets/js/collegamenti-dati.js');
 global.localStorage = { getItem: () => null, setItem: () => {} };
 require('../assets/js/collegamenti.js');
@@ -108,6 +110,24 @@ assert.strictEqual(tTurnoPeschiera.competenze.diariaRate, 50);
 assert.strictEqual(tTurnoPeschiera.competenze.secondoTicket, true); // rientro 22:06 > 20:45
 assert.strictEqual(tTurnoPeschiera.competenze.pernottoPrima, false);
 assert.strictEqual(tTurnoPeschiera.competenze.pernottoSera, false);
+
+// Test regola trasferta (30 min prima terra, 1h30 prima corsa)
+const infoR1 = C.orariTurno('R1', '2026-10-28');
+assert.strictEqual(infoR1.tipo, 'corsa');
+assert.strictEqual(infoR1.inizio, '08:45');
+assert.strictEqual(infoR1.arrivoRichiesto, '07:15'); // 1h 30m prima di 08:45
+assert.strictEqual(infoR1.sede, 'Riva');
+
+const infoPonD = C.orariTurno('PonD', '2026-10-28');
+assert.strictEqual(infoPonD.tipo, 'terra');
+assert.strictEqual(infoPonD.inizio, '09:30');
+assert.strictEqual(infoPonD.arrivoRichiesto, '09:00'); // 30 min prima di 09:30
+assert.strictEqual(infoPonD.sede, 'Desenzano');
+
+// Calcolo competenze R1 per agente di Maderno: arrivo alle 07:15 non coperto da bus (primo alle 07:31) -> pernotto sera prima
+const tR1 = C.calcolaCompetenzeTurno({ casa: 'Maderno', shift: 'R1', iso: '2026-10-28' });
+assert.ok(tR1 && tR1.isTrasferta);
+assert.strictEqual(tR1.competenze.pernottoPrima, true);
 
 console.log('collegamenti treno desenzano-peschiera ok');
 console.log('collegamenti turno ok');

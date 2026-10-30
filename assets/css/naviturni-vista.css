@@ -206,3 +206,7 @@ body.nt-stile #tbody td.shared-crew-day .cell-pill.nt-pulsa,body.nt-stile #tbody
 /* indicatore dello strappo verso il passato */
 #nt-tira{position:fixed;left:10px;top:50%;z-index:300;transform:translate(calc((var(--f,0) - 1) * 40px),-50%);opacity:0;pointer-events:none;padding:10px 14px;border-radius:999px;border:1.5px solid #2dd4bf;background:rgba(9,28,37,.94);color:#a7fff0;font:800 13px Manrope,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);transition:opacity .15s}
 #nt-tira.pronto{background:#2dd4bf;color:#06231f}
+
+/* Adattamento altezza testata per pastiglie variazioni ed esclusione pallino dot */
+#nt-testata .nt-eq-nomi { min-height: 55px; height: auto !important; overflow: visible !important; }
+#nt-testata .nt-eq-nomi span.nt-var-chip::before { display: none !important; }

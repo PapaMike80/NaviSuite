@@ -70,7 +70,9 @@
     const day = scelta?.day || oggi, code = scelta?.code || (mio ? turno(mio.a, oggi) : '');
     const giorno = giornoLungo(day).replace(/ (\S{3})\S*$/, ' $1');
     const testa = (titolo, contesto, nomi) => `<p class="terra-label">NAVITURNI</p><h1 class="terra-title nt-titolo">${titolo}</h1><p class="terra-context nt-contesto">${contesto}</p><div class="nt-eq-nomi">${nomi}</div>`;
-    if (!code || RIPOSO.test(code)) return testa('Riposo', `${giorno} · tocca un turno per vedere l'equipaggio`, '');
+    const vars = G.variazioniTurno ? G.variazioniTurno(schedule, code, day, []) : [];
+    const varHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(vars, 'nt') : '';
+    if (!code || RIPOSO.test(code)) return testa('Riposo', `${giorno} · tocca un turno per vedere l'equipaggio`, varHtml);
     const nave = G.naveCode(code), ore = oreTurno(nave || code, day);
     const riga = (schedule?.turni_navi || []).filter(r => String(r?.data || '').slice(0, 10) === day && G.naveCode(r?.corsa) === nave && r?.attiva !== false).pop();
     const durata = ore ? `${Math.floor(ore)} h${Math.round((ore % 1) * 60) ? ` ${String(Math.round((ore % 1) * 60)).padStart(2, '0')}'` : ''}` : '';
@@ -79,11 +81,13 @@
     const ord = m => { const i = ORDINE_GRADI.indexOf(m.grado[0]); return i < 0 ? 99 : i; };
     crew = crew.slice().sort((x, y) => ord(x) - ord(y) || anzianita({ agente: x.name }) - anzianita({ agente: y.name }) || x.name.localeCompare(y.name, 'it'));
     const nomi = crew.map(m => `<span style="--g:${m.grado[1]}" title="${esc(m.grado[0] === 'Applicato' ? 'Bigliettaio' : m.grado[0] || '')}">${esc(m.name)}</span>`).join('');
+    const crewVars = G.variazioniTurno ? G.variazioniTurno(schedule, code, day, crew) : [];
+    const crewVarHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(crewVars, 'nt') : '';
     const chip = `<span class="chip" style="--c:${G.coloreTurno(code)}">${esc(code)}</span>`;
     const res = scelta?.res || mio?.res || (typeof currentResidence !== 'undefined' ? currentResidence : '');
     const [inizio, fine] = orarioServizio(code, nave, res, day, riga);
     const quando = inizio && fine ? `${ora(inizio)} – ${ora(fine)}${durata ? ` (${durata})` : ''}` : durata;
-    return testa(`${chip} ${esc(riga?.nave || (nave ? 'Nave non indicata' : ''))}`, [giorno, quando].filter(Boolean).join(' · '), nomi);
+    return testa(`${chip} ${esc(riga?.nave || (nave ? 'Nave non indicata' : ''))}`, [giorno, quando].filter(Boolean).join(' · '), `${nomi}${crewVarHtml}`);
   }
 
 
@@ -309,4 +313,24 @@
   function carica(data) { schedule = data || { residenze: {} }; cache.clear(); disegnaScheda(); segnaOggi(); if (primaVolta) { primaVolta = false; inCima(); } }
   window.NaviSharedData?.loadCacheFirst?.(data => carica(data))?.catch?.(() => {});
   G.caricaModifiche?.(profilo())?.then?.(() => { if (schedule) { cache.clear(); disegnaScheda(); } })?.catch?.(() => {});
+  // Clic su pastiglia variazione: apre eventuale documento allegato
+  document.addEventListener('click', async e => {
+    const chip = e.target.closest('.nt-var-chip');
+    if (!chip) return;
+    if (chip.dataset.docId) {
+      try {
+        const fileData = await window.NaviAdminFirebase?.getAdminDocumentFile?.(chip.dataset.docId);
+        if (fileData) {
+          const url = fileData.dataUrl || fileData.url || (fileData.base64 ? `data:application/pdf;base64,${fileData.base64}` : '');
+          if (url) { window.open(url, '_blank'); return; }
+        }
+      } catch (_) {}
+    }
+    if (chip.dataset.odsDoc) {
+      const fileName = typeof odsPdfFiles !== 'undefined' ? odsPdfFiles[chip.dataset.odsDoc] : null;
+      if (fileName) window.open(`ods/${encodeURIComponent(fileName)}`, '_blank');
+      else window.open('documenti.html#ods-docs', '_blank');
+    }
+  });
+
 })();

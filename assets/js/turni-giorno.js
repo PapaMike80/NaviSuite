@@ -251,5 +251,226 @@
   // testo chiaro sui colori scuri, scuro su quelli chiari
   const testoSu = hex => { const n = parseInt(String(hex).slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; return l > 0.6 ? '#06231f' : '#ffffff'; };
 
-  root.NaviTurniGiorno = { coloreTurno, testoSu, SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali };
+    // Variazioni (ODS, Movimento, Collega) per una corsa/servizio o per l'equipaggio in un giorno.
+  function variazioniTurno(data, code, day, crew, options) {
+    crew = crew || []; options = options || {};
+    if (!data || !day) return [];
+    const cleanCode = (naveCode(code) || terraCode(code) || String(code || "")).trim().toUpperCase();
+    const dayStr = String(day || "").slice(0, 10);
+    const results = [];
+    const seen = new Set();
+
+    const allAgents = Object.values(data?.residenze || {}).flat().filter(Boolean);
+    const normStr = s => norm(s);
+
+    const findAgent = (id, name) => {
+      const idStr = String(id || "").trim();
+      const n = normStr(name);
+      return allAgents.find(a => (idStr && String(a.id || "").trim() === idStr) || (n && (normStr(a.agente || a.name) === n || normStr(a.agente || a.name).startsWith(n + " ") || n.startsWith(normStr(a.agente || a.name) + " "))));
+    };
+
+    const vodsList = (Array.isArray(data?.variazioni_ods) ? data.variazioni_ods : [])
+      .filter(v => v && v.attiva !== false && String(v.data || "").slice(0, 10) === dayStr);
+
+    // 1. Se fornito un turno esplicito dell'utente corrente (es. found da mio-turno.js)
+    if (options.currentUserShift?.isModified) {
+      const cur = options.currentUserShift;
+      const vInfo = cur.variazioneInfo || {};
+      const agentObj = cur.agent || {};
+      const agentName = agentObj.agente || agentObj.name || options.currentUserName || "Tu";
+      const orig = String(cur.originalShift?.turno || vInfo.turno_originale || "").trim();
+      const nw = String(cur.turno || vInfo.turno_nuovo || cleanCode).trim();
+      const key = "user:" + String(agentObj.id || agentName) + ":" + orig + ":" + nw;
+      if (!seen.has(key)) {
+        seen.add(key);
+        const isCollega = Boolean(vInfo.requestId || vInfo.collega || vInfo.colleagueName || /collega/i.test(String(cur.modifiedBy || "")) || /utente/i.test(String(cur.modifiedBy || "")));
+        const isMov = !isCollega && (vInfo.ods === "MOVIMENTO" || vInfo.tipo === "DISPOSIZIONE" || vInfo.tipo === "MANUALE" ||
+          vInfo.protocollo || vInfo.docId || /movimento/i.test(String(vInfo.note || "")) || /movimento/i.test(String(cur.modifiedBy || "")));
+        let tipo = isCollega ? "collega" : (isMov ? "movimento" : "ods");
+        let author = "";
+        if (isMov) {
+          const m = String(vInfo.note || cur.modifiedBy || "").match(/Movimento\s*\(([^)]+)\)/i);
+          if (m && m[1]) author = m[1].trim();
+          else if (vInfo.autore && !/movimento/i.test(vInfo.autore)) author = vInfo.autore.trim();
+        }
+        const label = isMov
+          ? (author ? "Movimento (" + author + ")" : "Movimento")
+          : (tipo === "collega" ? (author ? "Collega (" + author + ")" : "Collega") : (vInfo.ods ? (String(vInfo.ods).toUpperCase().startsWith("ODS") ? vInfo.ods : "ODS " + vInfo.ods) : "ODS"));
+        results.push({
+          tipo,
+          agentName,
+          originalShift: orig,
+          newShift: nw,
+          author,
+          label,
+          ods: vInfo.ods || (tipo === "ods" ? "ODS" : ""),
+          docId: vInfo.docId || "",
+          protocollo: vInfo.protocollo || "",
+          note: vInfo.note || ""
+        });
+      }
+    }
+
+    // 2. Controlla ogni membro dell'equipaggio passato
+    (crew || []).forEach(member => {
+      const ag = findAgent(member.id, member.name);
+      const agentId = String(ag?.id || member.id || "").trim();
+      const agentName = String(ag?.agente || member.name || "").trim();
+      const origShift = ag?.turni?.[dayStr] !== undefined ? String(ag.turni[dayStr]).trim() : "";
+
+      let v = vodsList.find(x => (agentId && String(x.id_agente || "").trim() === agentId) || normStr(x.agente) === normStr(agentName) || normStr(x.agente).startsWith(normStr(agentName) + " ") || normStr(agentName).startsWith(normStr(x.agente) + " "));
+      if (!v && ag?.variazioni_ods?.[dayStr]) {
+        v = ag.variazioni_ods[dayStr];
+      }
+
+      if (v) {
+        const orig = String(v.turno_originale || origShift || "").trim();
+        const nw = String(v.turno_nuovo || cleanCode).trim();
+        const key = (agentId || agentName) + ":" + orig + ":" + nw;
+        if (!seen.has(key)) {
+          seen.add(key);
+          const isCollega = Boolean(v.requestId || v.collega || v.colleagueName || (String(v.tipo || "").toUpperCase() === "MANUALE" && !/movimento/i.test(String(v.note || v.autore || ""))));
+          const isMov = !isCollega && (v.ods === "MOVIMENTO" || v.tipo === "DISPOSIZIONE" || v.tipo === "MANUALE" ||
+            v.protocollo || v.docId || /movimento/i.test(String(v.note || "")) || /movimento/i.test(String(v.autore || "")));
+          const tipo = isCollega ? "collega" : (isMov ? "movimento" : "ods");
+          let author = "";
+          if (isMov) {
+            const m = String(v.note || v.autore || "").match(/Movimento\s*\(([^)]+)\)/i);
+            if (m && m[1]) author = m[1].trim();
+            else if (v.autore && !/movimento/i.test(v.autore)) author = v.autore.trim();
+          } else if (isCollega) {
+            author = v.collega || v.colleagueName || "";
+          }
+          const label = isMov
+            ? (author ? "Movimento (" + author + ")" : "Movimento")
+            : (tipo === "collega" ? (author ? "Collega (" + author + ")" : "Collega") : (v.ods ? (String(v.ods).toUpperCase().startsWith("ODS") ? v.ods : "ODS " + v.ods) : "ODS"));
+          results.push({
+            tipo,
+            agentName,
+            originalShift: orig,
+            newShift: nw,
+            author,
+            label,
+            ods: v.ods || (tipo === "ods" ? "ODS" : ""),
+            docId: v.docId || "",
+            protocollo: v.protocollo || "",
+            note: v.note || ""
+          });
+        }
+      } else {
+        const manual = agentId ? modifiche.get(agentId + "|" + dayStr) : null;
+        if (manual && (!origShift || normStr(manual) !== normStr(origShift))) {
+          const manualFrom = modifiche.da?.get(agentId + "|" + dayStr) || origShift;
+          const key = "manual:" + (agentId || agentName) + ":" + manualFrom + ":" + manual;
+          if (!seen.has(key)) {
+            seen.add(key);
+            results.push({
+              tipo: "collega",
+              agentName,
+              originalShift: manualFrom,
+              newShift: manual,
+              author: "",
+              label: "Collega",
+              ods: "",
+              docId: "",
+              protocollo: "",
+              note: "Cambio turno"
+            });
+          }
+        }
+      }
+    });
+
+    // 3. Controlla agenti originariamente assegnati a questo turno e poi spostati (partiti)
+    if (cleanCode && cleanCode !== "RIP") {
+      allAgents.forEach(ag => {
+        const orig = ag?.turni?.[dayStr] !== undefined ? String(ag.turni[dayStr]).trim() : "";
+        const cleanOrig = (naveCode(orig) || terraCode(orig) || orig).toUpperCase();
+        if (cleanOrig === cleanCode) {
+          const agentId = String(ag.id || "").trim();
+          const agentName = String(ag.agente || "").trim();
+          const inCrew = (crew || []).some(m => (agentId && String(m.id || "").trim() === agentId) || normStr(m.name) === normStr(agentName));
+          if (!inCrew) {
+            let v = vodsList.find(x => (agentId && String(x.id_agente || "").trim() === agentId) || normStr(x.agente) === normStr(agentName));
+            if (!v && ag?.variazioni_ods?.[dayStr]) v = ag.variazioni_ods[dayStr];
+            if (v) {
+              const nw = String(v.turno_nuovo || "RIP").trim();
+              const key = "departed:" + (agentId || agentName) + ":" + orig + ":" + nw;
+              if (!seen.has(key)) {
+                seen.add(key);
+                const isCollega = Boolean(v.requestId || v.collega || v.colleagueName || (String(v.tipo || "").toUpperCase() === "MANUALE" && !/movimento/i.test(String(v.note || v.autore || ""))));
+                const isMov = !isCollega && (v.ods === "MOVIMENTO" || v.tipo === "DISPOSIZIONE" || v.tipo === "MANUALE" ||
+                  v.protocollo || v.docId || /movimento/i.test(String(v.note || "")) || /movimento/i.test(String(v.autore || "")));
+                const tipo = isCollega ? "collega" : (isMov ? "movimento" : "ods");
+                let author = "";
+                if (isMov) {
+                  const m = String(v.note || v.autore || "").match(/Movimento\s*\(([^)]+)\)/i);
+                  if (m && m[1]) author = m[1].trim();
+                  else if (v.autore && !/movimento/i.test(v.autore)) author = v.autore.trim();
+                } else if (isCollega) {
+                  author = v.collega || v.colleagueName || "";
+                }
+                const label = isMov
+                  ? (author ? "Movimento (" + author + ")" : "Movimento")
+                  : (tipo === "collega" ? (author ? "Collega (" + author + ")" : "Collega") : (v.ods ? (String(v.ods).toUpperCase().startsWith("ODS") ? v.ods : "ODS " + v.ods) : "ODS"));
+                results.push({
+                  tipo,
+                  agentName,
+                  originalShift: orig,
+                  newShift: nw,
+                  author,
+                  label,
+                  ods: v.ods || (tipo === "ods" ? "ODS" : ""),
+                  docId: v.docId || "",
+                  protocollo: v.protocollo || "",
+                  note: v.note || "",
+                  partito: true
+                });
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return results;
+  }
+
+  function formattaPastiglieVariazioni(variazioni, cssPrefix) {
+    cssPrefix = cssPrefix || "nt";
+    if (!variazioni || !variazioni.length) return "";
+    return variazioni.map(v => {
+      const cls = cssPrefix + "-var-chip " + cssPrefix + "-var-" + v.tipo;
+      let icon = "📋";
+      if (v.tipo === "ods") icon = "📄";
+      else if (v.tipo === "collega") icon = "⇄";
+
+      const orig = String(v.originalShift || "").trim().toUpperCase();
+      const nw = String(v.newShift || "").trim().toUpperCase();
+
+      let cambioText = "";
+      if (v.partito) {
+        cambioText = "(da " + (orig || "—") + " a " + (nw || "RIP") + ")";
+      } else if (orig && orig !== nw) {
+        cambioText = "(da " + orig + ")";
+      }
+
+      const text = v.label + ": " + v.agentName + (cambioText ? " " + cambioText : "");
+
+      const titleParts = [
+        v.label,
+        v.agentName + ": " + (orig || "—") + " → " + (nw || "—"),
+        v.protocollo ? "prot. " + v.protocollo : "",
+        v.note ? v.note : ""
+      ].filter(Boolean);
+
+      const title = titleParts.join(" · ");
+      const docAttr = v.docId ? ' data-doc-id="' + String(v.docId).replace(/"/g, "&quot;") + '"' : "";
+      const odsAttr = v.tipo === "ods" && !v.docId ? ' data-ods-doc="' + String(v.ods || "").replace(/"/g, "&quot;") + '"' : "";
+
+      return '<span class="' + cls + '" title="' + title.replace(/"/g, "&quot;") + '"' + docAttr + odsAttr + ' role="note"><i class="' + cssPrefix + '-var-icon" aria-hidden="true">' + icon + '</i>' + text + (v.docId ? " 📄" : "") + '</span>';
+    }).join("");
+  }
+
+  root.NaviTurniGiorno = { coloreTurno, testoSu, SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali, variazioniTurno, formattaPastiglieVariazioni };
 })(typeof window !== 'undefined' ? window : globalThis);

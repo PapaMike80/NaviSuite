@@ -174,7 +174,7 @@
     };
   }
 
-  function cercaTurno({ casa, turnoResidenza, iso, inizio, fine }) {
+  function cercaTurno({ casa, turnoResidenza, iso, inizio, fine, shift, tipo, orarioServizio, anticipoMin }) {
     const daCasa = normalizzaResidenza(casa);
     const alLavoro = normalizzaResidenza(turnoResidenza);
     if (!daCasa || !alLavoro) return null;
@@ -204,6 +204,10 @@
       data: iso,
       inizio: inizioMin,
       fine: fineMin,
+      orarioServizio: orarioServizio || inizio,
+      shift: shift || null,
+      tipo: tipo || null,
+      anticipoMin: anticipoMin || null,
       andata: primoAndata,
       andataAlternativa: andata?.validi?.[1] || null,
       andataPrimoDopo: andata?.primoDopo || null,
@@ -232,9 +236,31 @@
     return SERVICE_RESIDENCES[clean] || null;
   }
 
+  const ANTICIPO_TRASFERTA_TERRA = 30; // 30 min prima per servizi a terra
+  const ANTICIPO_TRASFERTA_CORSA = 90; // 1:30 (90 min) prima della prima partenza corsa
+
   function orariTurno(code, iso) {
     if (!code) return null;
     const clean = String(code).trim().toUpperCase().replace(/^C/, '').replace(/C$/, '').replace(/\*$/, '');
+
+    // 1. Corse nave da NaviCourseInfo (se disponibile)
+    const CInfo = typeof window !== 'undefined' ? window.NaviCourseInfo : (typeof globalThis !== 'undefined' ? globalThis.NaviCourseInfo : null);
+    const cData = CInfo?.info?.(clean, iso);
+    if (cData?.firstDeparture) {
+      const sede = residenzaDelServizio(clean);
+      const startMin = minuti(cData.firstDeparture);
+      const arrivoRichiestoMin = startMin != null ? Math.max(0, startMin - ANTICIPO_TRASFERTA_CORSA) : null;
+      return {
+        tipo: 'corsa',
+        inizio: cData.firstDeparture,
+        fine: cData.lastArrival,
+        arrivoRichiesto: arrivoRichiestoMin != null ? ora(arrivoRichiestoMin) : cData.firstDeparture,
+        anticipoMin: ANTICIPO_TRASFERTA_CORSA,
+        sede
+      };
+    }
+
+    // 2. Servizi a terra da NaviServiziTerra (se disponibile)
     const T = typeof window !== 'undefined' ? window.NaviServiziTerra : (typeof globalThis !== 'undefined' ? globalThis.NaviServiziTerra : null);
     if (T?.DATA?.SERVIZI) {
       for (const res of Object.keys(T.DATA.SERVIZI)) {
@@ -242,49 +268,67 @@
         if (s) {
           const inizioClean = String(s[1] || '').split(/[-–]/)[0].trim().replace('.', ':');
           const fineClean = String(s[2] || s[1] || '').split(/[-–]/).pop().trim().replace('.', ':');
+          const startMin = minuti(inizioClean);
+          const arrivoRichiestoMin = startMin != null ? Math.max(0, startMin - ANTICIPO_TRASFERTA_TERRA) : null;
           return {
+            tipo: 'terra',
             inizio: inizioClean,
             fine: fineClean,
+            arrivoRichiesto: arrivoRichiestoMin != null ? ora(arrivoRichiestoMin) : inizioClean,
+            anticipoMin: ANTICIPO_TRASFERTA_TERRA,
             sede: res === 'MADERNO' ? 'Maderno' : 'Desenzano'
           };
         }
       }
     }
+
+    // 3. Fallback TABELLA per corse e servizi a terra
     const TABELLA = {
-      POND: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
-      AGB: { inizio: '08:00', fine: '17:30', sede: 'Desenzano' },
-      DT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
-      PT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano' },
-      AGM: { inizio: '09:00', fine: '19:30', sede: 'Maderno' },
-      AGT: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
-      AGT1: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
-      AGT2: { inizio: '07:50', fine: '18:20', sede: 'Maderno' },
-      PONM: { inizio: '09:30', fine: '19:55', sede: 'Maderno' },
-      D1: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
-      D2: { inizio: '07:50', fine: '19:15', sede: 'Desenzano' },
-      D3: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
-      D4: { inizio: '07:45', fine: '20:00', sede: 'Desenzano' },
-      BIS: { inizio: '08:00', fine: '20:15', sede: 'Desenzano' },
-      T1: { inizio: '06:10', fine: '19:45', sede: 'Maderno' },
-      T2: { inizio: '07:05', fine: '19:38', sede: 'Maderno' },
-      M1: { inizio: '07:05', fine: '19:38', sede: 'Maderno' },
-      R1: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
-      R2: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
-      R3: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
-      R4: { inizio: '07:30', fine: '20:45', sede: 'Riva' },
-      CAR1: { inizio: '09:00', fine: '21:10', sede: 'Riva' },
-      P1: { inizio: '08:45', fine: '21:30', sede: 'Peschiera' },
-      P2: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
-      P3: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
-      CAP: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
-      CAP1: { inizio: '08:35', fine: '21:40', sede: 'Peschiera' },
-      SR1: { inizio: '08:00', fine: '20:15', sede: 'Peschiera' },
-      SR2: { inizio: '08:00', fine: '19:15', sede: 'Peschiera' }
+      POND: { inizio: '09:30', fine: '19:50', sede: 'Desenzano', tipo: 'terra' },
+      AGB: { inizio: '08:00', fine: '17:30', sede: 'Desenzano', tipo: 'terra' },
+      DT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano', tipo: 'terra' },
+      PT: { inizio: '09:30', fine: '19:50', sede: 'Desenzano', tipo: 'terra' },
+      AGM: { inizio: '09:00', fine: '19:30', sede: 'Maderno', tipo: 'terra' },
+      AGT: { inizio: '07:50', fine: '18:20', sede: 'Maderno', tipo: 'terra' },
+      AGT1: { inizio: '07:50', fine: '18:20', sede: 'Maderno', tipo: 'terra' },
+      AGT2: { inizio: '07:50', fine: '18:20', sede: 'Maderno', tipo: 'terra' },
+      PONM: { inizio: '09:30', fine: '19:55', sede: 'Maderno', tipo: 'terra' },
+      D1: { inizio: '09:15', fine: '19:40', sede: 'Desenzano', tipo: 'corsa' },
+      D2: { inizio: '08:50', fine: '19:00', sede: 'Desenzano', tipo: 'corsa' },
+      D3: { inizio: '08:00', fine: '19:20', sede: 'Desenzano', tipo: 'corsa' },
+      D4: { inizio: '08:15', fine: '19:45', sede: 'Desenzano', tipo: 'corsa' },
+      BIS: { inizio: '08:30', fine: '18:40', sede: 'Desenzano', tipo: 'corsa' },
+      T1: { inizio: '08:10', fine: '18:30', sede: 'Maderno', tipo: 'corsa' },
+      T2: { inizio: '08:45', fine: '19:10', sede: 'Maderno', tipo: 'corsa' },
+      M1: { inizio: '09:15', fine: '19:25', sede: 'Maderno', tipo: 'corsa' },
+      R1: { inizio: '08:45', fine: '19:25', sede: 'Riva', tipo: 'corsa' },
+      R2: { inizio: '08:10', fine: '18:50', sede: 'Riva', tipo: 'corsa' },
+      R3: { inizio: '09:40', fine: '17:40', sede: 'Riva', tipo: 'corsa' },
+      R4: { inizio: '09:20', fine: '20:30', sede: 'Riva', tipo: 'corsa' },
+      CAR1: { inizio: '08:20', fine: '19:40', sede: 'Riva', tipo: 'corsa' },
+      P1: { inizio: '09:10', fine: '19:30', sede: 'Peschiera', tipo: 'corsa' },
+      P2: { inizio: '08:25', fine: '18:35', sede: 'Peschiera', tipo: 'corsa' },
+      P3: { inizio: '08:35', fine: '19:00', sede: 'Peschiera', tipo: 'corsa' },
+      CAP: { inizio: '08:30', fine: '19:35', sede: 'Peschiera', tipo: 'corsa' },
+      CAP1: { inizio: '08:30', fine: '19:35', sede: 'Peschiera', tipo: 'corsa' },
+      SR1: { inizio: '09:00', fine: '18:30', sede: 'Peschiera', tipo: 'corsa' },
+      SR2: { inizio: '08:40', fine: '18:55', sede: 'Peschiera', tipo: 'corsa' }
     };
     const row = TABELLA[clean];
-    if (row) return { ...row };
+    if (row) {
+      const tipo = row.tipo || (clean.startsWith('POND') || clean.startsWith('AG') || clean.startsWith('PT') || clean.startsWith('DT') ? 'terra' : 'corsa');
+      const anticipo = tipo === 'terra' ? ANTICIPO_TRASFERTA_TERRA : ANTICIPO_TRASFERTA_CORSA;
+      const startMin = minuti(row.inizio);
+      const arrivoRichiestoMin = startMin != null ? Math.max(0, startMin - anticipo) : null;
+      return {
+        ...row,
+        tipo,
+        arrivoRichiesto: arrivoRichiestoMin != null ? ora(arrivoRichiestoMin) : row.inizio,
+        anticipoMin: anticipo
+      };
+    }
     const sede = residenzaDelServizio(clean);
-    return sede ? { inizio: null, fine: null, sede } : null;
+    return sede ? { inizio: null, fine: null, sede, arrivoRichiesto: null } : null;
   }
 
   function calcolaCompetenzeTurno({ casa, shift, iso, travel }) {
@@ -300,8 +344,12 @@
           casa: daCasa,
           turnoResidenza: aSede,
           iso,
-          inizio: info?.inizio,
-          fine: info?.fine
+          inizio: info?.arrivoRichiesto || info?.inizio,
+          fine: info?.fine,
+          shift,
+          tipo: info?.tipo,
+          orarioServizio: info?.inizio,
+          anticipoMin: info?.anticipoMin
         })
       : null;
 
@@ -484,6 +532,6 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scarica(); });
   }
 
-  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, competenzeTrasferta, calcolaCompetenzeTurno, orariTurno, residenzaDelServizio, ORA_SECONDO_TICKET, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, get dati() { return dati; }, set dati(v) { dati = v; } };
+  window.NaviCollegamenti = { aggiorna, leggiTabella, cerca, cercaDopo, cercaTurno, competenzeTrasferta, calcolaCompetenzeTurno, orariTurno, residenzaDelServizio, ORA_SECONDO_TICKET, normalizzaResidenza, disegnaViaggio, ora, minuti, RESIDENZE, TIPI, valeIl, festivo, stagioneDel, ANTICIPO_TRASFERTA_TERRA, ANTICIPO_TRASFERTA_CORSA, get dati() { return dati; }, set dati(v) { dati = v; } };
   if (typeof document !== 'undefined' && document.getElementById('col-linee')) avvia();
 })();

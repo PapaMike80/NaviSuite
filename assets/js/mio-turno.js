@@ -68,14 +68,15 @@
   };
 
   // Scheda Turno: ore del servizio, inizio e fine e sotto l'equipaggio.
-  function turnoCard(code, day, { inizio = '', fine = '', crewHtml = '', nave = '' } = {}) {
+  function turnoCard(code, day, { inizio = '', fine = '', crewHtml = '', nave = '', variazioniHtml = '' } = {}) {
     const comp = C?.shiftForCode(code === 'RIP' ? 'Riposo' : code, day) || {};
     const lavoro = code !== 'RIP' && Number(comp.hours) > 0;
     const orario = inizio && fine ? `<span class="mt-orario">${esc(ora(inizio))} → ${esc(ora(fine))}</span>` : '';
     // niente riquadro «Modificato da / Ripristina turno originale»: il cambio turno si vede nella striscia dei giorni
     const head = `<div class="mt-turno">${chip(code === 'RIP' ? 'Riposo' : code)}` +
       `${nave ? `<b class="mt-nave">${esc(nave)}</b>` : ''}${orario}` +
-      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>`;
+      `${lavoro ? `<span class="mt-ore">${oreMinuti(comp.hours)}</span>` : ''}</div>` +
+      (variazioniHtml ? `<div class="mt-crew-variazioni">${variazioniHtml}</div>` : '');
     // con l'equipaggio la riga del turno non serve (e' gia' nell'intestazione); senza (riposo) resta la pastiglia
     return crewHtml ? card('Equipaggio', '', crewHtml) : card('Il mio turno', '', head);
   }
@@ -248,7 +249,7 @@
     return '';
   }
 
-  function cardCollegamenti(day, turnoCode, sedeTurno, casaAgente, inizio, fine) {
+  function cardCollegamenti(day, turnoCode, sedeTurno, casaAgente, inizio, fine, meta = {}) {
     const C = window.NaviCollegamenti;
     if (!C?.cercaTurno) return '';
     const casa = C.normalizzaResidenza(casaAgente);
@@ -256,17 +257,34 @@
     if (!casa || !sede || casa === sede) return '';
     const inizioClean = String(inizio || '').split(/[-–]/)[0].trim();
     const fineClean = String(fine || '').split(/[-–]/).pop().trim();
-    const ct = C.cercaTurno({ casa, turnoResidenza: sede, iso: day, inizio: inizioClean, fine: fineClean });
+    const ct = C.cercaTurno({
+      casa,
+      turnoResidenza: sede,
+      iso: day,
+      inizio: inizioClean,
+      fine: fineClean,
+      shift: turnoCode,
+      tipo: meta.tipo,
+      orarioServizio: meta.orarioServizio,
+      anticipoMin: meta.anticipoMin
+    });
     if (!ct || ct.stessaResidenza) return '';
     const badge = ct.fattibile
       ? 'Fattibile coi mezzi'
       : 'Serve auto o pernotto';
+
+    const infoDettaglio = meta.tipo === 'corsa' && meta.orarioServizio
+      ? 'arrivo entro ore ' + esc(ora(inizioClean)) + ' <span style="font-weight:normal">(1h 30m prima della partenza delle ' + esc(ora(meta.orarioServizio)) + ')</span>'
+      : meta.tipo === 'terra' && meta.orarioServizio
+        ? 'arrivo entro ore ' + esc(ora(inizioClean)) + ' <span style="font-weight:normal">(30 min prima dell\'inizio delle ' + esc(ora(meta.orarioServizio)) + ')</span>'
+        : 'inizio turno ore ' + esc(ora(inizioClean));
+
     let htmlAndata = '';
     if (ct.andata) {
-      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizioClean)) + ')</small></div>' +
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(' + infoDettaglio + ')</small></div>' +
         C.disegnaViaggio(ct.andata, ct.inizio, 'arrivo') + '</div>';
     } else if (ct.inizio != null) {
-      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(inizio turno ore ' + esc(ora(inizioClean)) + ')</small></div>' +
+      htmlAndata = '<div class="mt-col-sezione"><div class="mt-col-titolo">▲ Andata: <b>' + esc(ct.casa) + ' → ' + esc(ct.lavoro) + '</b> <small>(' + infoDettaglio + ')</small></div>' +
         '<p class="col-no">✕ Nessun mezzo pubblico arriva a ' + esc(ct.lavoro) + ' entro le ' + esc(ora(inizioClean)) + ': serve pernotto la sera prima (40%).</p>' +
         (ct.andataPrimoDopo ? '<p class="col-info">Primo arrivo possibile:</p>' + C.disegnaViaggio(ct.andataPrimoDopo, ct.inizio, 'arrivo') : '') + '</div>';
     }
@@ -358,10 +376,14 @@
     $('turno-context').textContent = [G.comandante(crew), info.trips ? `corse ${info.trips}` : ''].filter(Boolean).join(' · ');
 
 
-    const equipaggio = crew.length
+    const vars = G.variazioniTurno ? G.variazioniTurno(state.schedule, code, day, crew, { currentUserShift: found, currentUserName: me?.name }) : [];
+    const varHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(vars, 'mt') : '';
+    const crewVarsWrap = varHtml ? `<div class="mt-crew-variazioni">${varHtml}</div>` : '';
+
+    const equipaggio = (crew.length
       ? `<ul class="mt-crew">${crew.map(member => `<li class="${member.id && member.id === String(me?.id || '') ? 'me' : ''}" style="color:${member.grado[1]}">` +
         `<b>${esc(member.name)}</b><small>${esc(member.grado[0] || '')}</small></li>`).join('')}</ul>`
-      : `<p class="legend">${state.schedule ? 'Equipaggio non disponibile.' : 'Caricamento equipaggio…'}</p>`;
+      : `<p class="legend">${state.schedule ? 'Equipaggio non disponibile.' : 'Caricamento equipaggio…'}</p>`) + crewVarsWrap;
 
     // Corse e scali come l'orario di Servizi a terra: una riga per scalo. Prima di ogni corsa (anche
     // la prima) una linea con il suo numero; se la corsa riparte subito dallo scalo d'arrivo della
@@ -418,10 +440,31 @@
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
     const sedeNave = residenzaDiNave(code);
     const casa = residenzaAgente(me, found, state.schedule) || (sedeNave === 'Maderno' ? 'Desenzano' : 'Maderno');
+    const isTrasfNave = Boolean(casa && sedeNave && casa !== sedeNave);
+    const startNaveMin = window.NaviCollegamenti?.minuti?.(info.firstDeparture);
+    // Fuori residenza: arrivo 90 min (1h30) prima della prima partenza corsa (es. R1 08:45 -> 07:15)
+    const inizioAndataNave = (isTrasfNave && startNaveMin != null)
+      ? window.NaviCollegamenti.ora(Math.max(0, startNaveMin - 90))
+      : info.presentation;
+
     let coll = '', ct = null;
     try {
-      ct = window.NaviCollegamenti?.cercaTurno?.({ casa, turnoResidenza: sedeNave, iso: day, inizio: info.presentation, fine: info.lastArrival });
-      coll = cardCollegamenti(day, code, sedeNave, casa, info.presentation, info.lastArrival);
+      ct = window.NaviCollegamenti?.cercaTurno?.({
+        casa,
+        turnoResidenza: sedeNave,
+        iso: day,
+        inizio: inizioAndataNave,
+        fine: info.lastArrival,
+        shift: code,
+        tipo: 'corsa',
+        orarioServizio: info.firstDeparture,
+        anticipoMin: 90
+      });
+      coll = cardCollegamenti(day, code, sedeNave, casa, inizioAndataNave, info.lastArrival, {
+        tipo: 'corsa',
+        orarioServizio: info.firstDeparture,
+        anticipoMin: 90
+      });
     } catch (e) {
       console.warn('Collegamenti nave non calcolati', e);
     }
@@ -442,15 +485,38 @@
     if (servizio) servizioHeader(inizioClean, fineClean, day, code);
     const sedeTerra = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
     const casa = residenzaAgente(me, found, state.schedule) || (sedeTerra === 'Maderno' ? 'Desenzano' : 'Maderno');
+    const isTrasfTerra = Boolean(casa && sedeTerra && casa !== sedeTerra);
+    const startTerraMin = window.NaviCollegamenti?.minuti?.(inizioClean);
+    // Fuori residenza: arrivo 30 min prima dell'inizio servizio a terra (es. PonD 09:30 -> 09:00)
+    const inizioAndataTerra = (isTrasfTerra && startTerraMin != null)
+      ? window.NaviCollegamenti.ora(Math.max(0, startTerraMin - 30))
+      : inizioClean;
+
     let coll = '', ct = null;
     try {
-      ct = window.NaviCollegamenti?.cercaTurno?.({ casa, turnoResidenza: sedeTerra, iso: day, inizio: inizioClean, fine: fineClean });
-      coll = cardCollegamenti(day, code, sedeTerra, casa, inizioClean, fineClean);
+      ct = window.NaviCollegamenti?.cercaTurno?.({
+        casa,
+        turnoResidenza: sedeTerra,
+        iso: day,
+        inizio: inizioAndataTerra,
+        fine: fineClean,
+        shift: code,
+        tipo: 'terra',
+        orarioServizio: inizioClean,
+        anticipoMin: 30
+      });
+      coll = cardCollegamenti(day, code, sedeTerra, casa, inizioAndataTerra, fineClean, {
+        tipo: 'terra',
+        orarioServizio: inizioClean,
+        anticipoMin: 30
+      });
     } catch (e) {
       console.warn('Collegamenti terra non calcolati', e);
     }
     impostaContesto(sedeTerra, ct);
-    $('turno-after').innerHTML = `<div class="terra-col">${coll}${turnoCard(code, day, servizio ? { inizio: inizioClean, fine: fineClean } : {})}</div>`;
+    const terraVars = G.variazioniTurno ? G.variazioniTurno(state.schedule, code, day, [], { currentUserShift: found, currentUserName: me?.name }) : [];
+    const terraVarHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(terraVars, 'mt') : '';
+    $('turno-after').innerHTML = `<div class="terra-col">${coll}${turnoCard(code, day, servizio ? { inizio: inizioClean, fine: fineClean, variazioniHtml: terraVarHtml } : { variazioniHtml: terraVarHtml })}</div>`;
     $('turno-scali').hidden = false;
     window.NaviOrarioPage?.show({ modo: 'terra', scalo: residenza === 'MADERNO' ? 'Maderno' : 'Desenzano', day, turno: code, inizio: servizio ? servizio[1].split(' – ')[0] : '' });
   }
@@ -468,14 +534,16 @@
     const venerdi = parseIso(day).getDay() === 5 && !window.NaviDistintaTotals?.isHoliday?.(parseIso(day));
     return { mattina: o.mattina, pomeriggio: [o.pomeriggio[0], venerdi ? o.venerdi : o.pomeriggio[1]] };
   }
-  function renderAltro(turno, day, residenza = '') {
+  function renderAltro(turno, day, residenza = '', me = null, found = null) {
+    const altroVars = G.variazioniTurno ? G.variazioniTurno(state.schedule, turno, day, [], { currentUserShift: found, currentUserName: me?.name }) : [];
+    const altroVarHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(altroVars, 'mt') : '';
     const lav = lavoroDi(turno);
     if (lav) {
       const o = orarioLavori(residenza, day), dove = String(residenza || '').toLowerCase().replace(/^./, c => c.toUpperCase());
       $('turno-title').textContent = lav === 'LAV' ? 'LAV · Lavori' : 'L.D.';
       $('turno-context').textContent = `${dove ? `${dove} · ` : ''}${o.mattina.join('–')} e ${o.pomeriggio.join('–')} (O.d.S. 39/2026)`;
       servizioHeader(o.mattina[0], o.pomeriggio[1], day, 'LAV');
-      $('turno-content').innerHTML = `<div class="terra-col">${turnoCard('LAV', day, { inizio: o.mattina[0], fine: o.pomeriggio[1] })}</div>`;
+      $('turno-content').innerHTML = `<div class="terra-col">${turnoCard('LAV', day, { inizio: o.mattina[0], fine: o.pomeriggio[1], variazioniHtml: altroVarHtml })}</div>`;
       return;
     }
     const label = turno ? String(turno).toUpperCase() : '';
@@ -490,7 +558,7 @@
     const riposo = !label || /^(R|RIP|RIPOSO|CON|F\.?P\.?|MALATTIA)$/.test(label);
     $('turno-title').textContent = riposo ? (label && !['R', 'RIP', 'RIPOSO'].includes(label) ? label : 'Riposo') : label;
     $('turno-context').textContent = riposo ? 'Nessuna corsa in questo giorno' : 'Turno senza corse in orario';
-    $('turno-content').innerHTML = `<div class="terra-col">${turnoCard(riposo ? 'RIP' : label, day)}</div>`;
+    $('turno-content').innerHTML = `<div class="terra-col">${turnoCard(riposo ? 'RIP' : label, day, { variazioniHtml: altroVarHtml })}</div>`;
   }
 
   function renderTestSelect(myShift) {
@@ -671,24 +739,9 @@
     // Le corse sospese dall'Ufficio Movimento non hanno un avviso in alto: restano segnate «SOSPESA» nell'elenco delle corse
     notice(messages.join(' · '));
     const dispEl = $('turno-disposizione');
-    const vInfo = found?.variazioneInfo;
     if (dispEl) {
-      if (vInfo && (vInfo.note || vInfo.ods || vInfo.protocollo)) {
-        dispEl.hidden = false;
-        dispEl.innerHTML = `
-          <div class="mt-disp-header">
-            <span class="mt-disp-badge"><span class="mt-disp-badge-icon">📋</span> Variazione ${esc(vInfo.ods || 'Ufficio Movimento')}${vInfo.protocollo ? ` (${esc(vInfo.protocollo)})` : ''}</span>
-            ${vInfo.docId ? `<button type="button" class="mt-disp-open-pdf" data-doc-id="${esc(vInfo.docId)}">📄 Vedi PDF Disposizione</button>` : ''}
-          </div>
-          ${vInfo.note ? `<div class="mt-disp-note">${esc(vInfo.note)}</div>` : ''}
-          <div class="mt-disp-meta">
-            Turno assegnato: <strong>${esc(turno)}</strong>
-            ${found.originalShift?.turno && found.originalShift.turno !== turno ? `<span>(turno originale: <s>${esc(found.originalShift.turno)}</s>)</span>` : ''}
-          </div>`;
-      } else {
-        dispEl.hidden = true;
-        dispEl.innerHTML = '';
-      }
+      dispEl.hidden = true;
+      dispEl.innerHTML = '';
     }
     if (!nave && !terra) window.NaviOrarioPage?.hide();
     if (nave) {
@@ -698,7 +751,7 @@
       window.NaviOrarioPage?.show({ modo: 'nave', turno: nave, day });
     }
     else if (terra) renderTerra(terra, G.terraResidenza(terra) || String(found?.residenza || 'DESENZANO').toUpperCase(), day, me, found);
-    else renderAltro(turno, day, String(found?.residenza || '').toUpperCase());
+    else renderAltro(turno, day, String(found?.residenza || '').toUpperCase(), me, found);
     const url = new URL(location.href);
     url.searchParams.delete('auto');
     if (state.day) url.searchParams.set('day', state.day); else url.searchParams.delete('day');
