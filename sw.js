@@ -241,7 +241,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
     await Promise.all(names
-      .filter(name => name.startsWith('navisuite-') && name !== CACHE_VERSION)
+      .filter(name => (name.startsWith('navisuite-') || name.startsWith('navibeta-')) && name !== CACHE_VERSION)
       .map(name => caches.delete(name)));
     await self.clients.claim();
   })());
