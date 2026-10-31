@@ -2680,6 +2680,10 @@
         selectedCrewAgent = null;
       }
       globalData = data;
+      try {
+        window.globalData = data;
+        window.dispatchEvent(new CustomEvent('navisuite:turni-updated', { detail: data }));
+      } catch (_) {}
       inizializzaCalendario();
       buildTableHeader();
       document.getElementById("stat-status").textContent = "Aggiornati";

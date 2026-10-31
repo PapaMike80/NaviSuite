@@ -260,7 +260,8 @@
     const results = [];
     const seen = new Set();
 
-    const allAgents = Object.values(data?.residenze || {}).flat().filter(Boolean);
+    const activeData = data || (typeof globalData !== "undefined" ? globalData : null) || (typeof schedule !== "undefined" ? schedule : null);
+    const allAgents = Object.values(activeData?.residenze || {}).flat().filter(Boolean);
     const normStr = s => norm(s);
 
     const findAgent = (id, name) => {
@@ -269,8 +270,10 @@
       return allAgents.find(a => (idStr && String(a.id || "").trim() === idStr) || (n && (normStr(a.agente || a.name) === n || normStr(a.agente || a.name).startsWith(n + " ") || n.startsWith(normStr(a.agente || a.name) + " "))));
     };
 
-    const vodsList = (Array.isArray(data?.variazioni_ods) ? data.variazioni_ods : [])
-      .filter(v => v && v.attiva !== false && String(v.data || "").slice(0, 10) === dayStr);
+    const rawVods = (Array.isArray(activeData?.variazioni_ods) && activeData.variazioni_ods.length)
+      ? activeData.variazioni_ods
+      : ((typeof globalData !== "undefined" && Array.isArray(globalData?.variazioni_ods)) ? globalData.variazioni_ods : []);
+    const vodsList = rawVods.filter(v => v && v.attiva !== false && String(v.data || "").slice(0, 10) === dayStr);
 
     // 1. Se fornito un turno esplicito dell'utente corrente (es. found da mio-turno.js)
     if (options.currentUserShift?.isModified) {

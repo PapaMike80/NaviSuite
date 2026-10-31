@@ -8,14 +8,18 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v750-treni-desenzano-peschiera';
+const CACHE_VERSION = 'navisuite-v751-pastiglie-variazioni';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
 const PAGE_ASSETS = [
   './assets/css/naviturni-page.css?v=4',
   './assets/css/naviturni-page-fixes.css?v=1',
-  './assets/js/naviturni-page.js?v=22', './assets/js/naviturni-vista.js?v=48', './assets/css/naviturni-vista.css?v=51',
+  './assets/js/naviturni-page.js?v=23', './assets/js/naviturni-vista.js?v=49', './assets/css/naviturni-vista.css?v=52',
+  './assets/css/turni-common.css?v=2',
+  './assets/js/turni-giorno.js?v=14',
+  './assets/css/mio-turno.css?v=26',
+  './assets/js/mio-turno.js?v=73',
   './assets/js/naviturni-change-requests.js?v=1',
   './assets/css/cambi-turno-page.css?v=3',
   './assets/css/cambi-turno-page-fixes.css?v=1',

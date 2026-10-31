@@ -282,3 +282,45 @@
   font-weight: 700;
   text-decoration: underline;
 }
+
+/* Pastiglie Variazioni (ODS, Movimento, Collega) per Il Mio Turno */
+.mt-crew-variazioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(124, 173, 189, 0.2);
+}
+.mt-var-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 800 11.5px/1.2 Manrope, system-ui, sans-serif;
+  letter-spacing: .02em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  user-select: none;
+  cursor: default;
+}
+.mt-var-chip i { font-style: normal; font-size: 12px; line-height: 1; }
+.mt-var-chip.mt-var-movimento {
+  background: rgba(245, 158, 11, 0.20) !important;
+  border: 1px solid rgba(245, 158, 11, 0.70) !important;
+  color: #fde68a !important;
+}
+.mt-var-chip.mt-var-ods {
+  background: rgba(45, 212, 191, 0.20) !important;
+  border: 1px solid rgba(45, 212, 191, 0.70) !important;
+  color: #5eead4 !important;
+}
+.mt-var-chip.mt-var-collega {
+  background: rgba(34, 197, 94, 0.20) !important;
+  border: 1px solid rgba(34, 197, 94, 0.70) !important;
+  color: #86efac !important;
+}
+.mt-var-chip[data-doc-id],
+.mt-var-chip[data-ods-doc] {
+  cursor: pointer;
+}

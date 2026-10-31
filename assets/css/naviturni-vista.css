@@ -111,9 +111,9 @@ body.nt-stile #nt-vista:empty{display:none}
 #nt-testata .terra-title{display:flex;align-items:center;gap:10px;margin:0;height:38px;white-space:nowrap;overflow:hidden;font:800 26px/1.1 Manrope,system-ui,sans-serif;color:#eaf2f4;max-width:calc(100% - 60px)}
 #nt-testata .chip{--c:#94a3b8;display:inline-flex;align-items:center;justify-content:center;min-width:38px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);font:900 16px/1 Manrope,sans-serif}
 #nt-testata .terra-context{margin:5px 0 8px;height:20px;line-height:20px;color:#9bc8d5;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#nt-testata .nt-eq-nomi{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;height:55px;overflow:hidden}
-#nt-testata .nt-eq-nomi span{display:inline-flex;align-items:center;gap:5px;height:25px;box-sizing:border-box;padding:0 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12px;font-weight:900;white-space:nowrap}
-#nt-testata .nt-eq-nomi span::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--g)}
+#nt-testata .nt-eq-nomi{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;min-height:55px;height:auto!important;overflow:visible!important}
+#nt-testata .nt-eq-nomi span:not(.nt-var-chip){display:inline-flex;align-items:center;gap:5px;height:25px;box-sizing:border-box;padding:0 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12px;font-weight:900;white-space:nowrap}
+#nt-testata .nt-eq-nomi span:not(.nt-var-chip)::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--g)}
 body.nt-stile>header.page-header .turni-header-copy[hidden]{display:none!important}
 /* testata sempre ferma in alto, anche scorrendo la tabella in giù; la tabella si incolla sotto */
 body.nt-stile>header.page-header{top:env(safe-area-inset-top,0px)!important;z-index:200!important;background:#091c25!important}
@@ -207,6 +207,39 @@ body.nt-stile #tbody td.shared-crew-day .cell-pill.nt-pulsa,body.nt-stile #tbody
 #nt-tira{position:fixed;left:10px;top:50%;z-index:300;transform:translate(calc((var(--f,0) - 1) * 40px),-50%);opacity:0;pointer-events:none;padding:10px 14px;border-radius:999px;border:1.5px solid #2dd4bf;background:rgba(9,28,37,.94);color:#a7fff0;font:800 13px Manrope,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);transition:opacity .15s}
 #nt-tira.pronto{background:#2dd4bf;color:#06231f}
 
-/* Adattamento altezza testata per pastiglie variazioni ed esclusione pallino dot */
-#nt-testata .nt-eq-nomi { min-height: 55px; height: auto !important; overflow: visible !important; }
-#nt-testata .nt-eq-nomi span.nt-var-chip::before { display: none !important; }
+/* Pastiglie variazioni (ODS, Movimento, Collega) per la testata di NaviTurni */
+#nt-testata .nt-eq-nomi .nt-var-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  height: 25px !important;
+  box-sizing: border-box !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font: 800 11.5px/1 Manrope, system-ui, sans-serif !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+  cursor: default;
+}
+#nt-testata .nt-eq-nomi .nt-var-chip::before { display: none !important; }
+#nt-testata .nt-eq-nomi .nt-var-chip i { font-style: normal; font-size: 12px; line-height: 1; }
+#nt-testata .nt-eq-nomi .nt-var-chip.nt-var-movimento {
+  background: rgba(245, 158, 11, 0.20) !important;
+  border: 1px solid rgba(245, 158, 11, 0.70) !important;
+  color: #fde68a !important;
+}
+#nt-testata .nt-eq-nomi .nt-var-chip.nt-var-ods {
+  background: rgba(45, 212, 191, 0.20) !important;
+  border: 1px solid rgba(45, 212, 191, 0.70) !important;
+  color: #5eead4 !important;
+}
+#nt-testata .nt-eq-nomi .nt-var-chip.nt-var-collega {
+  background: rgba(34, 197, 94, 0.20) !important;
+  border: 1px solid rgba(34, 197, 94, 0.70) !important;
+  color: #86efac !important;
+}
+#nt-testata .nt-eq-nomi .nt-var-chip[data-doc-id],
+#nt-testata .nt-eq-nomi .nt-var-chip[data-ods-doc] {
+  cursor: pointer !important;
+}
