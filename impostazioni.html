@@ -170,6 +170,17 @@
     .ut-telrow{display:flex;gap:6px}.ut-telrow input{flex:1;min-width:0;border-radius:10px;border:1px solid #1f4250;background:#071923;color:inherit;padding:9px 10px;font:600 15px "DM Mono",ui-monospace,monospace}
     .ut-telrow button{border:0;border-radius:10px;padding:9px 14px;font-weight:800;font-size:13px;background:#25d366;color:#06231f;cursor:pointer}
     .ut-tel small{display:block;margin-top:6px;font-size:11px;color:#9fb8c2}
+    .ut-email{border-radius:14px;padding:12px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.38);display:grid;gap:8px}
+    .ut-email label{display:block;font-size:12px;font-weight:800;color:var(--s-teal)}
+    .ut-emailrow{display:flex;gap:6px}
+    .ut-emailrow input{flex:1;min-width:0;border-radius:10px;border:1px solid #1f4250;background:#071923;color:inherit;padding:9px 10px;font:600 14px "DM Mono",ui-monospace,monospace}
+    .ut-emailrow button{border:0;border-radius:10px;padding:9px 14px;font-weight:800;font-size:13px;background:var(--s-teal);color:#06231f;cursor:pointer}
+    .ut-email small{display:block;margin-top:2px;font-size:11px;color:#9fb8c2}
+    .ut-nl-options{display:grid;gap:8px;margin-top:6px;padding-top:8px;border-top:1px dashed rgba(45,212,191,.25)}
+    .ut-nl-opt{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--s-ink)}
+    .ut-nl-opt input[type=checkbox]{margin-top:2px;width:16px;height:16px;accent-color:var(--s-teal);cursor:pointer;flex-shrink:0}
+    .ut-nl-opt span{line-height:1.35}
+    .ut-nl-opt small{display:block;color:#9fb8c2;font-size:11px}
     .ut-pin{display:flex;justify-content:space-between;align-items:center;border-radius:14px;padding:11px 12px;background:#102733;border:1px solid #1f4250}
     .ut-dots{font:600 20px "DM Mono",ui-monospace,monospace;letter-spacing:.3em;color:#9fb8c2}
     .ut-btn{display:block;text-align:center;border-radius:12px;padding:11px;font-weight:800;font-size:14px;color:#06231f;background:linear-gradient(90deg,#2dd4bf,#67d7e6);text-decoration:none}
@@ -192,7 +203,7 @@
     .imp-gruppo{margin:10px 2px -2px;font:800 11px Manrope,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--s-muted)}
     /* riquadri */
     body.impostazioni-page .pref-card,body.impostazioni-page main .section{--c:var(--s-teal);margin:0!important;padding:12px 12px!important;border-radius:16px!important;background:color-mix(in srgb,var(--c) 10%,var(--s-card))!important;border:1px solid color-mix(in srgb,var(--c) 38%,transparent)!important;box-shadow:none!important;color:var(--s-ink)}
-    #utente{--c:var(--s-teal)!important}#pagina-iniziale{--c:var(--s-cyan)!important}#ticket-preference{--c:var(--s-amber)!important}#notifiche-push{--c:var(--s-violet)!important}
+    #utente{--c:var(--s-teal)!important}#pagina-iniziale{--c:var(--s-cyan)!important}#ticket-preference{--c:var(--s-amber)!important}#notifiche-push{--c:var(--s-violet)!important}#newsletter-preference{--c:var(--s-teal)!important}
     #gestione-settimane{--c:var(--s-teal)!important}#gestione-avvisi{--c:var(--s-amber)!important}#gestione-utenti{--c:var(--s-pink)!important}#theme-test-setting{--c:var(--s-pink)!important}#data-source-setting{--c:var(--s-rose)!important}#simulated-date-setting{--c:var(--s-amber)!important}
     body.impostazioni-page main section[class*="section"][id*="calendar"],body.impostazioni-page main section.settings-foldable:not(.admin-section):not(#theme-test-setting):not(#data-source-setting){--c:var(--s-cyan)}
     body.impostazioni-page .pref-head,body.impostazioni-page .section-head{margin:0!important;padding:0!important;align-items:center!important}
@@ -250,9 +261,29 @@
         <span class="ut-ff" id="ut-ff" hidden></span>
       </div>
       <div class="ut-tel"><label for="ut-telefono">📱 Telefono per WhatsApp</label><div class="ut-telrow"><input id="ut-telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="+39 333 1234567"><button type="button" id="ut-tel-salva">Salva</button></div><small id="ut-tel-stato">Lo vedono gli amministratori per scriverti su WhatsApp. Puoi cambiarlo quando vuoi.</small></div>
-      <div class="ut-pin"><span>PIN</span><span class="ut-dots">••••</span></div>
-      <a class="ut-btn" href="navidiaria.html?pin=1">Cambia PIN</a>
-      <p class="ut-lock">🔒 Il PIN è salvato cifrato e non si può mostrare: se lo hai dimenticato chiedi un nuovo PIN iniziale a un amministratore.</p>
+      <div class="ut-email">
+        <label for="ut-email-input">✉️ Email &amp; Notifiche NaviSuite</label>
+        <div class="ut-emailrow">
+          <input id="ut-email-input" type="email" inputmode="email" autocomplete="email" placeholder="esempio@gmail.com">
+          <button type="button" id="ut-email-salva">Salva</button>
+        </div>
+        <small id="ut-email-stato">Ricevi i turni e gli avvisi senza dover aprire l'app.</small>
+        
+        <div class="ut-nl-options">
+          <label class="ut-nl-opt">
+            <input type="checkbox" id="ut-nl-opt-daily" checked>
+            <span><strong>🌙 Briefing Quotidiano</strong><small>Ogni sera il turno di domani, orario di presentazione e rifornimenti</small></span>
+          </label>
+          <label class="ut-nl-opt">
+            <input type="checkbox" id="ut-nl-opt-weekly" checked>
+            <span><strong>📅 Newsletter Settimanale</strong><small>Ogni lunedì mattina con i 7 giorni e le navi assegnate</small></span>
+          </label>
+          <label class="ut-nl-opt">
+            <input type="checkbox" id="ut-nl-opt-concorsi" checked>
+            <span><strong>🚨 Allerta Concorsi</strong><small>Notifica immediata all'uscita di nuovi bandi Navigazione Laghi</small></span>
+          </label>
+        </div>
+      </div>
     </section>
     <section class="pref-card" id="pagina-iniziale" aria-labelledby="pagina-iniziale-title">
       <div class="pref-head"><span class="pref-num" aria-hidden="true">01</span><div><h2 id="pagina-iniziale-title">Prima pagina di apertura</h2><p>Scegli dove aprire NaviSuite. Con «Automatica» (predefinita) apri Il mio turno, anche nei giorni a terra; dal menu puoi sempre tornare alla Home.</p></div></div>
@@ -284,7 +315,8 @@
       </div>
       <p class="pref-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>Potrai sempre cambiarlo sul singolo giorno.</span></p>
     </section>
-    <section class="section admin-section" id="gestione-settimane" hidden>
+        
+<section class="section admin-section" id="gestione-settimane" hidden>
       <div class="section-head"><div><h2>Pubblicazione settimane</h2><p>Scegli quali settimane Firebase considera ufficiali, in bozza oppure nascoste.</p></div><span class="badge">Solo amministratori</span></div>
       <div class="calendar-login" id="draft-period-box" style="display:grid!important;grid-template-columns:1fr!important;gap:10px">
         <div class="grid">
@@ -777,7 +809,63 @@
   })();
   </script>
   <script>
-  // Stile a riquadri: sezioni in tre gruppi (Utente · Preferenze · Amministrazione). Sul telefono una colonna, da PC tre.
+  // Gestione preferenze email newsletter / briefing / concorsi
+  (function(){
+    const emailInput = document.getElementById('nl-email');
+    const optDaily = document.getElementById('nl-opt-daily');
+    const optWeekly = document.getElementById('nl-opt-weekly');
+    const optConcorsi = document.getElementById('nl-opt-concorsi');
+    const btnSalva = document.getElementById('nl-salva-btn');
+    const stato = document.getElementById('nl-stato');
+
+    if (!emailInput || !btnSalva) return;
+
+    const PREF_KEY = 'navisuite.emailNotifications.v1';
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(PREF_KEY) || '{}'); } catch (_) {}
+
+    emailInput.value = saved.email || (profile?.email || '');
+    if (saved.daily !== undefined) optDaily.checked = !!saved.daily;
+    if (saved.weekly !== undefined) optWeekly.checked = !!saved.weekly;
+    if (saved.concorsi !== undefined) optConcorsi.checked = !!saved.concorsi;
+
+    btnSalva.addEventListener('click', async () => {
+      const email = String(emailInput.value || '').trim();
+      if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+        stato.textContent = '❌ Inserisci un indirizzo email valido.';
+        stato.style.color = '#fb7185';
+        return;
+      }
+
+      const prefs = {
+        email,
+        daily: optDaily.checked,
+        weekly: optWeekly.checked,
+        concorsi: optConcorsi.checked,
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+        if (window.NaviAdminFirebase && profile?.id) {
+          try {
+            await window.NaviAdminFirebase.databaseRequest(`private/adminUpdates/agentProfiles/${window.NaviAdminFirebase.safeUserKey(profile.id)}/emailPrefs`, {
+              method: 'PUT',
+              body: JSON.stringify(prefs)
+            });
+          } catch (_) {}
+        }
+        stato.textContent = email ? '✓ Preferenze salvate con successo!' : '✓ Preferenze salvate (notifiche email disattivate).';
+        stato.style.color = '#2dd4bf';
+        if (typeof showSaved === 'function') showSaved(true, 'Preferenze email salvate');
+      } catch (err) {
+        stato.textContent = 'Errore salvataggio: ' + err.message;
+        stato.style.color = '#fb7185';
+      }
+    });
+  })();
+
+    // Stile a riquadri: sezioni in tre gruppi (Utente · Preferenze · Amministrazione). Sul telefono una colonna, da PC tre.
   (function(){
     const main=document.querySelector('body.impostazioni-page main');if(!main)return;
     const col=(cls,titolo)=>{const c=document.createElement('div');c.className='imp-col '+cls;if(titolo){const h=document.createElement('h3');h.className='imp-gruppo';h.textContent=titolo;c.appendChild(h);}main.appendChild(c);return c;};

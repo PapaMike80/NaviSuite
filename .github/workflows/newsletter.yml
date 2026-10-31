@@ -1,0 +1,50 @@
+name: NaviSuite Notifiche & Newsletter Email
+
+on:
+  schedule:
+    # 1. Newsletter Settimanale: ogni Lunedì mattina alle 05:00 UTC (06:00/07:00 italiane)
+    - cron: '0 5 * * 1'
+    # 2. Briefing Quotidiano: ogni sera alle 18:30 UTC (19:30/20:30 italiane) per il turno di domani
+    - cron: '30 18 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Quale email inviare?'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - 'settimanale'
+          - 'quotidiana'
+          - 'both'
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Esegui Invio
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          DAY_OF_WEEK=$(date +%u)
+          HOUR=$(date +%H)
+          ACTION="${{ github.event.inputs.action }}"
+
+          if [ "$ACTION" = "settimanale" ] || ([ "$ACTION" != "quotidiana" ] && [ "$DAY_OF_WEEK" -eq 1 ] && [ "$HOUR" -lt 12 ]); then
+            echo "Invio Newsletter Settimanale..."
+            node tools/newsletter/cron-newsletter.js
+          fi
+
+          if [ "$ACTION" = "quotidiana" ] || [ "$ACTION" = "both" ] || ([ "$ACTION" != "settimanale" ] && [ "$HOUR" -ge 12 ]); then
+            echo "Invio Briefing Quotidiano per domani..."
+            node tools/newsletter/send-daily-briefing.js
+          fi
