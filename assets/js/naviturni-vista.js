@@ -10,7 +10,7 @@
   const testata = document.createElement('div'); testata.id = 'nt-testata';
   if (header) { header.querySelector('.turni-header-copy')?.setAttribute('hidden', ''); header.prepend(testata); }
   // durante il caricamento la testata ha già la sua altezza: quando arrivano i dati non si sposta nulla
-  testata.innerHTML = `<p class="terra-label">NAVITURNI</p><h1 class="terra-title nt-titolo">Caricamento…</h1><p class="terra-context nt-contesto">&nbsp;</p><div class="nt-eq-nomi"></div>`;
+  testata.innerHTML = `<p class="terra-label">NAVITURNI</p><h1 class="terra-title nt-titolo">Caricamento…</h1><p class="terra-context nt-contesto">&nbsp;</p><div class="nt-eq-nomi"><div class="nt-crew-row"></div></div>`;
   if (!G || !box) return;
   document.body.classList.add('nt-stile');
   const GIORNI = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'], MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
@@ -69,11 +69,17 @@
     const mio = io();
     const day = scelta?.day || oggi, code = scelta?.code || (mio ? turno(mio.a, oggi) : '');
     const giorno = giornoLungo(day).replace(/ (\S{3})\S*$/, ' $1');
-    const testa = (titolo, contesto, nomi) => `<p class="terra-label">NAVITURNI</p><h1 class="terra-title nt-titolo">${titolo}</h1><p class="terra-context nt-contesto">${contesto}</p><div class="nt-eq-nomi">${nomi}</div>`;
+    const testa = (titolo, contesto, crewHtml, varsHtml = '') => {
+      const hasVars = Boolean(varsHtml && varsHtml.trim());
+      const content = hasVars
+        ? `<div class="nt-crew-row">${crewHtml}</div><div class="nt-vars-row">${varsHtml}</div>`
+        : `<div class="nt-crew-row">${crewHtml}</div>`;
+      return `<p class="terra-label">NAVITURNI</p><h1 class="terra-title nt-titolo">${titolo}</h1><p class="terra-context nt-contesto">${contesto}</p><div class="nt-eq-nomi${hasVars ? ' has-vars' : ''}">${content}</div>`;
+    };
     const curSchedule = schedule || (typeof window !== 'undefined' ? window.globalData : null);
     const vars = G.variazioniTurno ? G.variazioniTurno(curSchedule, code, day, []) : [];
     const varHtml = G.formattaPastiglieVariazioni ? G.formattaPastiglieVariazioni(vars, 'nt') : '';
-    if (!code || RIPOSO.test(code)) return testa('Riposo', `${giorno} · tocca un turno per vedere l'equipaggio`, varHtml);
+    if (!code || RIPOSO.test(code)) return testa('Riposo', `${giorno} · tocca un turno per vedere l'equipaggio`, '', varHtml);
     const nave = G.naveCode(code), ore = oreTurno(nave || code, day);
     const riga = (curSchedule?.turni_navi || []).filter(r => String(r?.data || '').slice(0, 10) === day && G.naveCode(r?.corsa) === nave && r?.attiva !== false).pop();
     const durata = ore ? `${Math.floor(ore)} h${Math.round((ore % 1) * 60) ? ` ${String(Math.round((ore % 1) * 60)).padStart(2, '0')}'` : ''}` : '';
@@ -88,7 +94,7 @@
     const res = scelta?.res || mio?.res || (typeof currentResidence !== 'undefined' ? currentResidence : '');
     const [inizio, fine] = orarioServizio(code, nave, res, day, riga);
     const quando = inizio && fine ? `${ora(inizio)} – ${ora(fine)}${durata ? ` (${durata})` : ''}` : durata;
-    return testa(`${chip} ${esc(riga?.nave || (nave ? 'Nave non indicata' : ''))}`, [giorno, quando].filter(Boolean).join(' · '), `${nomi}${crewVarHtml}`);
+    return testa(`${chip} ${esc(riga?.nave || (nave ? 'Nave non indicata' : ''))}`, [giorno, quando].filter(Boolean).join(' · '), nomi, crewVarHtml);
   }
 
 

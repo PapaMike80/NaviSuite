@@ -111,8 +111,12 @@ body.nt-stile #nt-vista:empty{display:none}
 #nt-testata .terra-title{display:flex;align-items:center;gap:10px;margin:0;height:38px;white-space:nowrap;overflow:hidden;font:800 26px/1.1 Manrope,system-ui,sans-serif;color:#eaf2f4;max-width:calc(100% - 60px)}
 #nt-testata .chip{--c:#94a3b8;display:inline-flex;align-items:center;justify-content:center;min-width:38px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:999px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);font:900 16px/1 Manrope,sans-serif}
 #nt-testata .terra-context{margin:5px 0 8px;height:20px;line-height:20px;color:#9bc8d5;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#nt-testata .nt-eq-nomi{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;min-height:55px;height:auto!important;overflow:visible!important}
-#nt-testata .nt-eq-nomi span:not(.nt-var-chip){display:inline-flex;align-items:center;gap:5px;height:25px;box-sizing:border-box;padding:0 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12px;font-weight:900;white-space:nowrap}
+#nt-testata .nt-eq-nomi{display:flex;flex-direction:column;gap:5px;height:55px!important;min-height:55px!important;max-height:55px!important;overflow:hidden!important;box-sizing:border-box}
+#nt-testata .nt-crew-row{display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;height:55px;max-height:55px;overflow:hidden;width:100%}
+#nt-testata .nt-eq-nomi.has-vars .nt-crew-row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;height:25px;min-height:25px;max-height:25px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#nt-testata .nt-vars-row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;height:25px;min-height:25px;max-height:25px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;width:100%}
+#nt-testata .nt-crew-row::-webkit-scrollbar,#nt-testata .nt-vars-row::-webkit-scrollbar{display:none}
+#nt-testata .nt-eq-nomi span:not(.nt-var-chip){display:inline-flex;align-items:center;flex:0 0 auto!important;gap:5px;height:25px;box-sizing:border-box;padding:0 9px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid #244653;color:#eaf2f4;font-size:12px;font-weight:900;white-space:nowrap}
 #nt-testata .nt-eq-nomi span:not(.nt-var-chip)::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--g)}
 body.nt-stile>header.page-header .turni-header-copy[hidden]{display:none!important}
 /* testata sempre ferma in alto, anche scorrendo la tabella in giù; la tabella si incolla sotto */
@@ -211,6 +215,7 @@ body.nt-stile #tbody td.shared-crew-day .cell-pill.nt-pulsa,body.nt-stile #tbody
 #nt-testata .nt-eq-nomi .nt-var-chip {
   display: inline-flex !important;
   align-items: center !important;
+  flex: 0 0 auto !important;
   gap: 5px !important;
   height: 25px !important;
   box-sizing: border-box !important;
