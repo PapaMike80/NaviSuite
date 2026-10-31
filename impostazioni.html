@@ -193,7 +193,7 @@
     /* riquadri */
     body.impostazioni-page .pref-card,body.impostazioni-page main .section{--c:var(--s-teal);margin:0!important;padding:12px 12px!important;border-radius:16px!important;background:color-mix(in srgb,var(--c) 10%,var(--s-card))!important;border:1px solid color-mix(in srgb,var(--c) 38%,transparent)!important;box-shadow:none!important;color:var(--s-ink)}
     #utente{--c:var(--s-teal)!important}#pagina-iniziale{--c:var(--s-cyan)!important}#ticket-preference{--c:var(--s-amber)!important}#notifiche-push{--c:var(--s-violet)!important}
-    #gestione-settimane{--c:var(--s-teal)!important}#gestione-avvisi{--c:var(--s-amber)!important}#gestione-utenti{--c:var(--s-pink)!important}#theme-test-setting{--c:var(--s-pink)!important}#data-source-setting{--c:var(--s-rose)!important}
+    #gestione-settimane{--c:var(--s-teal)!important}#gestione-avvisi{--c:var(--s-amber)!important}#gestione-utenti{--c:var(--s-pink)!important}#theme-test-setting{--c:var(--s-pink)!important}#data-source-setting{--c:var(--s-rose)!important}#simulated-date-setting{--c:var(--s-amber)!important}
     body.impostazioni-page main section[class*="section"][id*="calendar"],body.impostazioni-page main section.settings-foldable:not(.admin-section):not(#theme-test-setting):not(#data-source-setting){--c:var(--s-cyan)}
     body.impostazioni-page .pref-head,body.impostazioni-page .section-head{margin:0!important;padding:0!important;align-items:center!important}
     body.impostazioni-page .pref-num{display:none!important}
@@ -307,6 +307,30 @@
       <div id="announcement-grid"></div>
       <div class="status" id="announcement-status" aria-live="polite"></div>
     </section>
+    <section class="section admin-section" id="simulated-date-setting" hidden>
+      <div class="section-head"><div><h2>Data simulata <small style="color:#fbbf24">· test fine stagione</small></h2><p>Imposta una data specifica per testare turni, orari, corse ed equipaggi di stagione anche a fine stagione.</p></div><span class="badge">Solo admin</span></div>
+      <div style="display:grid;gap:12px;margin-top:14px">
+        <div id="sim-date-current-card" style="padding:11px 13px;border-radius:12px;background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.28);font-size:13px;line-height:1.45">
+          <strong id="sim-date-current-title" style="display:block;color:#fcd34d">Data attuale: Reale</strong>
+          <span id="sim-date-current-desc" style="color:var(--s-muted);font-size:12px">NaviSuite sta usando la data odierna reale.</span>
+        </div>
+        <div class="field" style="max-width:320px">
+          <label for="sim-date-input">Giorno di lavoro da impostare</label>
+          <input id="sim-date-input" type="date">
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:11px;color:var(--s-muted);font-weight:700">Date di prova:</span>
+          <button type="button" class="btn sim-quick-btn" data-date="2026-08-15" style="padding:5px 9px;font-size:11px;border:1px solid #31535e;background:#0b2029;color:var(--s-ink);cursor:pointer">15 Ago (Ferragosto)</button>
+          <button type="button" class="btn sim-quick-btn" data-date="2026-09-15" style="padding:5px 9px;font-size:11px;border:1px solid #31535e;background:#0b2029;color:var(--s-ink);cursor:pointer">15 Set (Piena stagione)</button>
+          <button type="button" class="btn sim-quick-btn" data-date="2026-10-10" style="padding:5px 9px;font-size:11px;border:1px solid #31535e;background:#0b2029;color:var(--s-ink);cursor:pointer">10 Ott (Autunno)</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px">
+          <button class="btn primary" type="button" id="sim-date-save-btn">Imposta e carica dati</button>
+          <button class="btn" type="button" id="sim-date-reset-btn" style="border-color:#80424a;background:#351e24;color:#ff9ba4">Ripristina data reale</button>
+        </div>
+        <div class="status" id="sim-date-status" aria-live="polite"></div>
+      </div>
+    </section>
     <section class="section" id="theme-test-setting" hidden>
       <div class="section-head"><div><h2>Tema grafico <small style="color:#2dd4bf">· prova personale</small></h2><p>Questa scelta è disponibile solo per il tuo profilo di prova.</p></div><span class="badge">Solo Pedro</span></div>
       <div class="field" style="max-width:320px"><label for="navisuite-theme-select">Aspetto</label><select id="navisuite-theme-select"><option value="dark">Scuro</option><option value="light">Chiaro</option></select></div>
@@ -331,6 +355,7 @@
   <script src="assets/js/draft-period.js?v=2"></script>
   <script src="assets/js/shared-menu.js?v=1.99"></script>
   <script src="assets/js/offline.js?v=2"></script>
+  <script src="assets/js/simulated-date.js?v=1"></script>
   <script src="assets/js/data-source-toggle.js?v=1"></script>
   <script src="assets/js/calendar-settings-v2.js?v=7"></script>
   <script>
@@ -560,6 +585,123 @@
       });
     }
     if(isAdmin)installSettingsAccordion();
+    // Controllo data simulata per admin (test di fine stagione)
+    function initSimulatedDateControl() {
+      if (!isAdmin) return;
+      const section = document.getElementById("simulated-date-setting");
+      const input = document.getElementById("sim-date-input");
+      const title = document.getElementById("sim-date-current-title");
+      const desc = document.getElementById("sim-date-current-desc");
+      const status = document.getElementById("sim-date-status");
+      const saveBtn = document.getElementById("sim-date-save-btn");
+      const resetBtn = document.getElementById("sim-date-reset-btn");
+      if (!section || !input) return;
+      section.hidden = false;
+
+      function formatDateIt(iso) {
+        if (!iso) return "—";
+        const [y, m, d] = String(iso).split("-").map(Number);
+        if (!y || !m || !d) return iso;
+        return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(y, m - 1, d));
+      }
+
+      function updateUI() {
+        const sim = window.NaviDate?.getSimulatedDate?.();
+        const real = window.NaviDate?.realTodayIso?.() || new Date().toISOString().slice(0, 10);
+        if (sim) {
+          title.textContent = "Data simulata attiva: " + formatDateIt(sim);
+          desc.textContent = "NaviSuite e tutte le pagine stanno operando sul giorno " + sim + ". I turni ed equipaggi caricati corrispondono a questa data.";
+          input.value = sim;
+          resetBtn.disabled = false;
+          resetBtn.style.opacity = "1";
+        } else {
+          title.textContent = "Data reale: " + formatDateIt(real);
+          desc.textContent = "Nessuna simulazione attiva. NaviSuite opera sulla data odierna reale.";
+          input.value = real;
+          resetBtn.disabled = true;
+          resetBtn.style.opacity = "0.5";
+        }
+      }
+
+      updateUI();
+
+      if (location.hash === '#simulated-date-setting') {
+        section.dataset.collapsed = 'false';
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      }
+
+      document.querySelectorAll(".sim-quick-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (btn.dataset.date) {
+            input.value = btn.dataset.date;
+            status.textContent = "Data selezionata: " + formatDateIt(btn.dataset.date) + ". Premi «Imposta e carica dati» per confermare.";
+          }
+        });
+      });
+
+      saveBtn.addEventListener("click", async () => {
+        const val = String(input.value || "").trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+          status.textContent = "Inserisci una data valida nel formato AAAA-MM-GG.";
+          return;
+        }
+        saveBtn.disabled = true;
+        status.textContent = "Impostazione data e caricamento dati del " + formatDateIt(val) + " in corso…";
+        try {
+          if (window.NaviDate?.loadDataForDate) {
+            await window.NaviDate.loadDataForDate(val);
+          } else {
+            localStorage.setItem("navisuite.simulatedDate", val);
+            try { localStorage.removeItem("navisuite.oggi.snapshot.v1"); } catch (_) {}
+            try { window.NaviSharedData?.clear?.(); } catch (_) {}
+            if (window.NaviSharedData?.loadCompleto) await window.NaviSharedData.loadCompleto();
+          }
+          updateUI();
+
+      if (location.hash === '#simulated-date-setting') {
+        section.dataset.collapsed = 'false';
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      }
+          status.textContent = "✓ Data impostata al " + formatDateIt(val) + ". I dati sono stati caricati.";
+          showSaved(true, "Data di test impostata al " + val);
+        } catch (err) {
+          status.textContent = "Errore durante il caricamento dei dati: " + (err.message || err);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+
+      resetBtn.addEventListener("click", async () => {
+        resetBtn.disabled = true;
+        status.textContent = "Ripristino della data reale in corso…";
+        try {
+          if (window.NaviDate?.clearSimulatedDate) {
+            window.NaviDate.clearSimulatedDate();
+            window.NaviDate.clearDailyCaches();
+          } else {
+            localStorage.removeItem("navisuite.simulatedDate");
+            try { localStorage.removeItem("navisuite.oggi.snapshot.v1"); } catch (_) {}
+            try { window.NaviSharedData?.clear?.(); } catch (_) {}
+          }
+          if (window.NaviSharedData?.load) {
+            await window.NaviSharedData.load("", { force: true });
+          }
+          updateUI();
+
+      if (location.hash === '#simulated-date-setting') {
+        section.dataset.collapsed = 'false';
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      }
+          status.textContent = "✓ Ripristinata data reale. NaviSuite torna al giorno odierno.";
+          showSaved(true, "Data reale ripristinata");
+        } catch (err) {
+          status.textContent = "Errore durante il ripristino: " + (err.message || err);
+        } finally {
+          resetBtn.disabled = false;
+        }
+      });
+    }
+    initSimulatedDateControl();
     loadWeeks();
     loadDraftPeriod();
   </script>
@@ -640,7 +782,7 @@
     const main=document.querySelector('body.impostazioni-page main');if(!main)return;
     const col=(cls,titolo)=>{const c=document.createElement('div');c.className='imp-col '+cls;if(titolo){const h=document.createElement('h3');h.className='imp-gruppo';h.textContent=titolo;c.appendChild(h);}main.appendChild(c);return c;};
     const cUtente=col('imp-col-utente','Utente'),cPref=col('imp-col-pref','Preferenze'),cAdmin=col('imp-col-admin','Amministrazione 🔒');
-    const dove=sez=>{if(sez.id==='utente')return cUtente;if(sez.classList.contains('admin-section')||['data-source-setting','theme-test-setting'].includes(sez.id))return cAdmin;return cPref;};
+    const dove=sez=>{if(sez.id==='utente')return cUtente;if(sez.classList.contains('admin-section')||['data-source-setting','theme-test-setting','simulated-date-setting'].includes(sez.id))return cAdmin;return cPref;};
     const ordinePref=['pagina-iniziale','ticket-preference','notifiche-push'];
     function distribuisci(){
       [...main.children].forEach(el=>{if(el.classList.contains('imp-col')||el.classList.contains('intro'))return;if(el.matches('section,.pref-card'))dove(el).appendChild(el);});

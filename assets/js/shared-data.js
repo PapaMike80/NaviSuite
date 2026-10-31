@@ -197,6 +197,7 @@
   const GIORNI_PASSATI = 7;
   const COMPLETA_CACHE = 'navi-dati-v1', COMPLETA_URL = '/__dati/turni-completi';
   function leggero(data) {
+    if (window.NaviDate?.isSimulated?.()) return data;
     const d = new Date(); d.setDate(d.getDate() - GIORNI_PASSATI);
     const cut = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const out = { ...data, __leggeroDal: cut };
@@ -381,6 +382,7 @@
     agent.ff = { grado: agent.qualifica, dal: ff.dal, al: ff.al };
   }
   function localTodayIso() {
+    if (window.NaviDate?.todayIso) return window.NaviDate.todayIso();
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }
@@ -638,7 +640,8 @@
   }
 
   async function load(_url, { force = false, completo = false } = {}) {
-    if (force && !completo) {
+    const sim = window.NaviDate?.getSimulatedDate?.();
+    if (force && !completo && !sim) {
       const pronto = await turnoPronto();
       if (pronto) {
         lastSource = 'firebase';

@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v754-pdf-multipage-scroll-variazioni';
+const CACHE_VERSION = 'navisuite-v755-data-simulata-sync-completo';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -78,6 +78,7 @@ const CORE_ASSETS = [
   './assets/js/shared-roles.js',
   './assets/js/portal.js',
   './assets/js/shared-menu.js',
+  './assets/js/simulated-date.js',
   './assets/js/section-memory.js',
   './assets/js/doc-viewer.js',
   './vendor/pdfjs/pdf.min.js',

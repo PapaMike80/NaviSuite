@@ -43,8 +43,10 @@
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
   const state = { comitive: [], day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false, collegamenti: true }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
   if (!admin) document.querySelector('.mt-test')?.remove();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date())) state.day = params.get('day');
-  const today = () => state.day || iso(new Date());
+  const simDate = window.NaviDate?.getSimulatedDate?.();
+  const defaultToday = simDate || iso(new Date());
+  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== defaultToday) state.day = params.get('day');
+  const today = () => state.day || defaultToday;
 
   function card(title, side, body, cls = '', section = 'turno') {
     return `<details class="terra-card ${cls}" data-mt-section="${section}"${state.sections[section] ? ' open' : ''}><summary class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</summary><div class="terra-card-body">${body}</div></details>`;

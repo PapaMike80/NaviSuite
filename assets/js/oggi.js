@@ -18,7 +18,7 @@
   const statusEl=document.getElementById('oggi-status');
   const contentEl=document.getElementById('oggi-content');
   const refreshButton=document.getElementById('oggi-refresh');
-  const todayIso=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Rome'});
+  const todayIso = () => (window.NaviDate?.todayIso ? window.NaviDate.todayIso() : new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Rome' }));
   const addDays=(iso,days)=>{const [year,month,day]=String(iso||todayIso()).split('-').map(Number);return new Date(Date.UTC(year,month-1,day+days,12)).toISOString().slice(0,10);};
   let selectedIso=todayIso();
   const dateLabel=iso=>{const [year,month,day]=String(iso||'').split('-').map(Number);const date=new Date(Date.UTC(year,month-1,day,12));return `${WEEKDAY_LABELS[date.getUTCDay()]} ${day} ${MONTH_LABELS[month-1]}`;};

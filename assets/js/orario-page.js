@@ -79,8 +79,10 @@
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
-  const today = () => state.day || iso(new Date());
-  const realToday = () => today() === iso(new Date());
+  const simDate = window.NaviDate?.getSimulatedDate?.();
+  const defaultDay = simDate || iso(new Date());
+  const today = () => state.day || defaultDay;
+  const realToday = () => today() === defaultDay;
   const nowMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
   // Ora mostrata: quella del cursore, altrimenti adesso (o le 9.00 per gli altri giorni).
   // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima ora dell'elenco Allo scalo

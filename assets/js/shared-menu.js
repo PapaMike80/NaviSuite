@@ -96,7 +96,7 @@
       ...(roles.puoAprire?.('comitive.html',agent)?[['comitive.html','⛴','Comitive']]:[]),
       ...(roles.puoAprire?.('verifica-busta.html',agent)?[['verifica-busta.html','✔','Verifica busta']]:[]),
       ...(roles.puoAprire?.('agenti.html',agent)?[['agenti.html','♙','Agenti']]:[]),
-      ...(isAdmin?[['aggiornamenti.html','↻','Aggiornamenti']]:[]),
+      ...(isAdmin?[['aggiornamenti.html','↻','Aggiornamenti'],['impostazioni.html#simulated-date-setting','📅','Data test']]:[]),
       ...(roles.puoAprire?.('movimento.html',agent)?[['movimento.html','⚓','Movimento']]:[]),
       ...(roles.puoAprire?.('collegamenti.html',agent)?[['collegamenti.html','⇆','Collegamenti']]:[])
     ];

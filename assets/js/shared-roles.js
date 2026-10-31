@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  const ADMIN_IDS = ['91', '92'];
+  const ADMIN_IDS = ['91', '92', 'AG_PEDRONI_M', 'AG_STUMPO_D'];
   const idOf = agent => String(agent?.id || '').trim();
   const idOrAgentIdOf = agent => String(agent?.id || agent?.agentId || '').trim();
   const roleOf = agent => String(agent?.role || '').toLowerCase();
@@ -22,7 +22,10 @@
 
   // Amministratore "pieno": ID storici oppure ruolo esplicito `admin`.
   function isAdminAgent(agent) {
-    return ADMIN_IDS.includes(idOf(agent)) || roleOf(agent) === 'admin';
+    if (!agent) return false;
+    const id = idOrAgentIdOf(agent);
+    const name = String(agent.name || agent.agente || agent.cognome || '');
+    return ADMIN_IDS.includes(id) || roleOf(agent) === 'admin' || /\bPEDRONI\b/i.test(name);
   }
 
   // Come sopra, ma riconosce anche `role == 'super_user'`. Usato dai moduli che
@@ -223,4 +226,27 @@
     isBaristaAgent,
     isHibaBarista,
   });
+
+  // Data simulata fallback per retrocompatibilità se simulated-date.js non è caricato prima
+  if (!window.NaviDate) {
+    window.NaviDate = {
+      getSimulatedDate: function () {
+        try {
+          const p = JSON.parse(localStorage.getItem('navidiaria.activeAgent') || localStorage.getItem('naviturni_logged_agent') || 'null');
+          if (!isAdminAgent(p)) return null;
+          const v = localStorage.getItem('navisuite.simulatedDate');
+          return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+        } catch (_) { return null; }
+      },
+      todayIso: function () {
+        const s = window.NaviDate?.getSimulatedDate?.();
+        if (s) return s;
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      },
+      isSimulated: function () {
+        return !!window.NaviDate?.getSimulatedDate?.();
+      }
+    };
+  }
 })();

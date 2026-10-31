@@ -476,7 +476,7 @@
     // al login puo' avere la residenza vecchia, si allinea a quella in vigore oggi.
     function reconcileLoggedResidence() {
       if (!loggedAgentProfile?.id || !globalData?.residenze) return;
-      const today = new Date().toLocaleDateString('sv-SE');
+      const today = localIsoToday();
       for (const list of Object.values(globalData.residenze)) {
         const agent = (list || []).find(item => String(item.id || '') === String(loggedAgentProfile.id));
         if (agent?.residenzaDal && agent.residenzaNuova && agent.residenzaPrecedente) {
@@ -861,19 +861,19 @@
     }
 
     function isTodayDate(dateObj) {
+      const todayStr = localIsoToday();
       const a = new Date(dateObj);
-      const b = new Date();
-      a.setHours(0, 0, 0, 0);
-      b.setHours(0, 0, 0, 0);
-      return a.getTime() === b.getTime();
+      const aStr = `${a.getFullYear()}-${String(a.getMonth() + 1).padStart(2, '0')}-${String(a.getDate()).padStart(2, '0')}`;
+      return aStr === todayStr;
     }
 
     function formatTodayMenuLabel() {
+      const d = new Date(`${localIsoToday()}T12:00:00`);
       return new Intl.DateTimeFormat("it-IT", {
         weekday:"short",
         day:"2-digit",
         month:"short"
-      }).format(new Date()).replace(/\./g, "").toLocaleUpperCase("it");
+      }).format(d).replace(/\./g, "").toLocaleUpperCase("it");
     }
 
     function buildMonthHeader() {
@@ -2087,12 +2087,11 @@
     }
 
     function goToToday() {
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const target = dateCalendario.find(cal => {
+      const todayStr = localIsoToday();
+      const target = dateCalendario.find(cal => cal.iso === todayStr) || dateCalendario.find(cal => {
         const date = new Date(cal.realObj);
-        date.setHours(0, 0, 0, 0);
-        return date.getTime() === now.getTime();
+        const str = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        return str === todayStr;
       });
       if (!target) return;
       if ((isBaristaProfile() || crewNavigationMode === "personal") && selectDayForLoggedAgent(target)) {
@@ -2171,6 +2170,7 @@
     }
 
     function localIsoToday() {
+      if (window.NaviDate?.todayIso) return window.NaviDate.todayIso();
       const now = new Date();
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     }
