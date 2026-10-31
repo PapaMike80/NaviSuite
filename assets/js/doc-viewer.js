@@ -3,6 +3,12 @@
 
   if (window.NaviDocViewer) return;
 
+  const esc = str => String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
   // Inietta lo stile del visualizzatore con supporto autohide e scrolling fluido
   function injectStyles() {
     if (document.getElementById('navi-doc-viewer-styles')) return;
@@ -189,6 +195,117 @@
         -webkit-overflow-scrolling: touch;
       }
 
+      /* Pagine PDF native renderizzate con PDF.js */
+      .navi-doc-pdf-pages {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        background: #071923;
+        color: #eaf2f4;
+        padding: calc(68px + env(safe-area-inset-top, 0px)) 10px calc(40px + env(safe-area-inset-bottom, 0px));
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .navi-doc-pdf-pages[hidden] {
+        display: none !important;
+      }
+
+      .navi-doc-pdf-jump-banner {
+        width: 100%;
+        max-width: 860px;
+        background: rgba(16, 58, 61, 0.95);
+        border: 1px solid #2dd4bf;
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: #eaf2f4;
+        font-size: 13px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .navi-doc-pdf-jump-btn {
+        background: #2dd4bf;
+        color: #071923;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 12.5px;
+        padding: 7px 14px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform 0.1s ease, filter 0.15s ease;
+      }
+      .navi-doc-pdf-jump-btn:active {
+        transform: scale(0.96);
+      }
+
+      .navi-doc-pdf-page-holder {
+        width: 100%;
+        max-width: 860px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+      .navi-doc-pdf-page-holder.navi-doc-page-target {
+        border: 2px solid #2dd4bf;
+        box-shadow: 0 0 24px rgba(45, 212, 191, 0.45);
+      }
+      .navi-doc-pdf-page-holder canvas {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+      }
+      .navi-doc-pdf-page-num {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: rgba(11, 28, 38, 0.85);
+        color: #2dd4bf;
+        border: 1px solid rgba(45, 212, 191, 0.45);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        pointer-events: none;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+
+      .navi-doc-pdf-loading, .navi-doc-pdf-error {
+        color: #2dd4bf;
+        font-size: 14.5px;
+        font-weight: 700;
+        padding: 40px 20px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .navi-doc-pdf-error {
+        color: #fca5a5;
+      }
+
       .navi-doc-md {
         position: absolute;
         inset: 0;
@@ -232,12 +349,14 @@
   let viewerEl = null;
   let toolbarEl = null;
   let iframeEl = null;
+  let pdfPagesEl = null;
   let mdViewEl = null;
   let titleEl = null;
   let subEl = null;
   let downloadBtn = null;
   let hasPushedState = false;
   let isToolbarHidden = false;
+  let activeRenderToken = 0;
 
   function setToolbarHidden(hidden) {
     if (isToolbarHidden === hidden || !toolbarEl) return;
@@ -333,6 +452,7 @@
       <div class="navi-doc-top-sensor" id="naviDocTopSensor" title="Tocca per mostrare la barra"></div>
 
       <div class="navi-doc-viewport" id="naviDocViewport">
+        <div id="naviDocPdfPages" class="navi-doc-pdf-pages" hidden></div>
         <iframe id="naviDocIframe" title="Visualizzatore Documento" allow="fullscreen"></iframe>
         <div id="naviDocMarkdown" class="navi-doc-md" hidden></div>
       </div>
@@ -342,6 +462,7 @@
 
     toolbarEl = document.getElementById('naviDocToolbar');
     iframeEl = document.getElementById('naviDocIframe');
+    pdfPagesEl = document.getElementById('naviDocPdfPages');
     mdViewEl = document.getElementById('naviDocMarkdown');
     titleEl = document.getElementById('naviDocTitle');
     subEl = document.getElementById('naviDocSubtitle');
@@ -364,6 +485,21 @@
         close(false);
       }
     });
+
+    // Monitoraggio scroll per PDF view
+    let lastPdfY = 0;
+    pdfPagesEl.addEventListener('scroll', () => {
+      const currentY = pdfPagesEl.scrollTop;
+      const diff = currentY - lastPdfY;
+      if (currentY <= 25) {
+        setToolbarHidden(false);
+      } else if (diff > 12) {
+        setToolbarHidden(true);
+      } else if (diff < -8) {
+        setToolbarHidden(false);
+      }
+      lastPdfY = currentY;
+    }, { passive: true });
 
     // Monitoraggio scroll per Markdown view
     let lastMdY = 0;
@@ -393,6 +529,211 @@
     });
   }
 
+  function getPdfJsBasePath() {
+    if (location.pathname.includes('/docs/controllo/dispense_navisuite/')) return '../../../';
+    if (location.pathname.includes('/docs/controllo/')) return '../../';
+    return './';
+  }
+
+  async function ensurePdfJs() {
+    if (window.pdfjsLib?.getDocument) {
+      if (window.pdfjsLib.GlobalWorkerOptions && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = getPdfJsBasePath() + 'vendor/pdfjs/pdf.worker.min.js';
+      }
+      return window.pdfjsLib;
+    }
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      const basePath = getPdfJsBasePath();
+      s.src = basePath + 'vendor/pdfjs/pdf.min.js';
+      s.onload = () => {
+        if (window.pdfjsLib?.GlobalWorkerOptions) {
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = basePath + 'vendor/pdfjs/pdf.worker.min.js';
+        }
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = () => reject(new Error('PDF.js non disponibile'));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function findTargetPage(pdf, options) {
+    if (!pdf || pdf.numPages <= 1) return null;
+    const agentQuery = String(options?.agentName || '').trim().toUpperCase();
+    const surnameMatch = agentQuery.match(/^([A-ZÀ-ÖØ-öø-ÿ'\s]+?)(?:\s+[A-Z]\.|\s+[(]|$)/);
+    const surname = (surnameMatch ? surnameMatch[1] : agentQuery).trim();
+
+    let variationPage = null;
+    let agentPage = null;
+
+    const variationRegex = /(?:variazion[ie]|modifiche|moviment[io])\s+(?:turn[oi]|personale)|turno\s+del\s+personale|variazioni\s+turni|variazioni\s+servizio/i;
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+      try {
+        const page = await pdf.getPage(p);
+        const textContent = await page.getTextContent();
+        const text = textContent.items.map(it => it.str).join(' ');
+
+        if (!variationPage && variationRegex.test(text)) {
+          variationPage = p;
+        }
+
+        if (surname && surname.length >= 3) {
+          const nameRegex = new RegExp('\\b' + surname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+          if (nameRegex.test(text)) {
+            if (variationPage || variationRegex.test(text)) {
+              agentPage = p;
+              break;
+            } else if (!agentPage) {
+              agentPage = p;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    return agentPage || variationPage || null;
+  }
+
+  async function renderPdfDocument(url, displayTitle, options, renderId) {
+    if (!pdfPagesEl) return;
+    pdfPagesEl.hidden = false;
+    pdfPagesEl.scrollTop = 0;
+    pdfPagesEl.innerHTML = `
+      <div class="navi-doc-pdf-loading">
+        <span style="font-size:26px;">⏳</span>
+        <span>Caricamento documento in corso…</span>
+      </div>
+    `;
+    iframeEl.style.display = 'none';
+    mdViewEl.style.display = 'none';
+
+    let pdfjs = null;
+    try {
+      pdfjs = await ensurePdfJs();
+    } catch (e) {
+      console.warn('PDF.js non disponibile, fallback a iframe:', e);
+      pdfPagesEl.hidden = true;
+      iframeEl.style.display = 'block';
+      iframeEl.src = !url.includes('#') ? `${url}#view=FitH` : url;
+      return;
+    }
+
+    if (renderId !== activeRenderToken) return;
+
+    try {
+      let docParam = url;
+      if (typeof url === 'string' && url.startsWith('data:')) {
+        const b64 = url.split(',')[1] || '';
+        const binStr = atob(b64);
+        const bytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+        docParam = { data: bytes, isEvalSupported: false };
+      } else {
+        docParam = { url: url, isEvalSupported: false };
+      }
+
+      const loadingTask = pdfjs.getDocument(docParam);
+      const pdf = await loadingTask.promise;
+
+      if (renderId !== activeRenderToken) return;
+
+      subEl.textContent = `Documento PDF · ${pdf.numPages} ${pdf.numPages === 1 ? 'pagina' : 'pagine'}`;
+
+      const targetPageNumber = await findTargetPage(pdf, options);
+
+      if (renderId !== activeRenderToken) return;
+
+      pdfPagesEl.replaceChildren();
+
+      let jumpBtn = null;
+      if (targetPageNumber && targetPageNumber > 1) {
+        const banner = document.createElement('div');
+        banner.className = 'navi-doc-pdf-jump-banner';
+        banner.id = 'naviDocJumpBanner';
+
+        const agentText = options?.agentName ? `per <strong>${esc(options.agentName)}</strong> ` : '';
+        banner.innerHTML = `
+          <span>📌 <strong>Variazioni turno</strong> ${agentText}a <strong>Pagina ${targetPageNumber}</strong></span>
+          <button type="button" class="navi-doc-pdf-jump-btn" id="naviDocJumpBtn">Vai a Pagina ${targetPageNumber} ↓</button>
+        `;
+        pdfPagesEl.appendChild(banner);
+        jumpBtn = banner.querySelector('#naviDocJumpBtn');
+      }
+
+      const availableWidth = Math.max(280, Math.min(860, (pdfPagesEl.clientWidth || window.innerWidth) - 20));
+      const outputScale = Math.min(window.devicePixelRatio || 1, 2.2);
+
+      let targetHolderEl = null;
+
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        if (renderId !== activeRenderToken) return;
+
+        const page = await pdf.getPage(pageNumber);
+        const naturalViewport = page.getViewport({ scale: 1 });
+        const cssScale = Math.min(1.5, availableWidth / naturalViewport.width);
+        const cssViewport = page.getViewport({ scale: cssScale });
+        const renderViewport = page.getViewport({ scale: cssScale * outputScale });
+
+        const holder = document.createElement('div');
+        holder.className = 'navi-doc-pdf-page-holder';
+        holder.id = `naviDocPage-${pageNumber}`;
+        holder.setAttribute('aria-label', `Pagina ${pageNumber} di ${pdf.numPages}`);
+        holder.style.maxWidth = `${Math.floor(cssViewport.width)}px`;
+        holder.style.minHeight = `${Math.floor(cssViewport.height)}px`;
+
+        if (pageNumber === targetPageNumber) {
+          holder.classList.add('navi-doc-page-target');
+          targetHolderEl = holder;
+        }
+
+        const badge = document.createElement('div');
+        badge.className = 'navi-doc-pdf-page-num';
+        badge.textContent = `Pag. ${pageNumber} / ${pdf.numPages}`;
+        holder.appendChild(badge);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(renderViewport.width);
+        canvas.height = Math.floor(renderViewport.height);
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        holder.appendChild(canvas);
+
+        pdfPagesEl.appendChild(holder);
+
+        await page.render({
+          canvasContext: canvas.getContext('2d', { alpha: false }),
+          viewport: renderViewport
+        }).promise;
+      }
+
+      function scrollToHolder(el) {
+        if (!el || !pdfPagesEl) return;
+        const top = Math.max(0, el.offsetTop - 64);
+        pdfPagesEl.scrollTo({ top, behavior: 'smooth' });
+      }
+
+      if (jumpBtn && targetHolderEl) {
+        jumpBtn.addEventListener('click', () => scrollToHolder(targetHolderEl));
+      }
+
+      if (targetHolderEl && targetPageNumber > 1) {
+        setTimeout(() => {
+          if (renderId === activeRenderToken && targetHolderEl) {
+            scrollToHolder(targetHolderEl);
+          }
+        }, 180);
+      }
+
+    } catch (err) {
+      if (renderId !== activeRenderToken) return;
+      console.warn('Errore PDF.js, uso fallback iframe:', err);
+      pdfPagesEl.hidden = true;
+      iframeEl.style.display = 'block';
+      iframeEl.src = !url.includes('#') ? `${url}#view=FitH` : url;
+    }
+  }
+
   function cleanTitle(rawTitle, url) {
     if (rawTitle && rawTitle.length > 2 && !/^(pdf|leggi|scarica|apri|vai|clicca)/i.test(rawTitle.trim())) {
       return rawTitle.replace(/[📄📖↓🔗]/g, '').trim();
@@ -405,7 +746,6 @@
   }
 
   function renderMarkdownBasic(md) {
-    const esc = str => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     let html = '';
     const lines = md.split(/\r?\n/);
     let inList = false;
@@ -443,9 +783,11 @@
     return html;
   }
 
-  function open(url, title) {
+  function open(url, title, options) {
     if (!url) return;
     ensureViewerElements();
+    activeRenderToken++;
+    const currentToken = activeRenderToken;
 
     // Mostra sempre la barra all'apertura
     setToolbarHidden(false);
@@ -467,6 +809,7 @@
     if (isPdf) downloadBtn.setAttribute('download', displayTitle + '.pdf');
 
     if (isMd) {
+      if (pdfPagesEl) pdfPagesEl.hidden = true;
       iframeEl.style.display = 'none';
       mdViewEl.style.display = 'block';
       mdViewEl.hidden = false;
@@ -479,14 +822,22 @@
           return r.text();
         })
         .then(text => {
+          if (currentToken !== activeRenderToken) return;
           mdViewEl.innerHTML = renderMarkdownBasic(text);
         })
         .catch(() => {
+          if (currentToken !== activeRenderToken) return;
           mdViewEl.hidden = true;
           iframeEl.style.display = 'block';
           iframeEl.src = url;
         });
+    } else if (isPdf) {
+      iframeEl.style.display = 'none';
+      mdViewEl.style.display = 'none';
+      mdViewEl.hidden = true;
+      renderPdfDocument(url, displayTitle, options, currentToken);
     } else {
+      if (pdfPagesEl) pdfPagesEl.hidden = true;
       mdViewEl.style.display = 'none';
       mdViewEl.hidden = true;
       iframeEl.style.display = 'block';
@@ -505,8 +856,13 @@
 
   function close(popHistory) {
     if (!viewerEl || viewerEl.hidden) return;
+    activeRenderToken++;
     viewerEl.hidden = true;
     setToolbarHidden(false);
+    if (pdfPagesEl) {
+      pdfPagesEl.hidden = true;
+      pdfPagesEl.replaceChildren();
+    }
     if (iframeEl) iframeEl.src = 'about:blank';
     document.body.classList.remove('navi-doc-open');
 
@@ -556,7 +912,8 @@
     open,
     close,
     isOpen: () => viewerEl && !viewerEl.hidden,
-    setToolbarHidden
+    setToolbarHidden,
+    findTargetPage
   };
 
   window.openDocument = open;

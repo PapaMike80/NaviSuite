@@ -39,12 +39,19 @@ assert.match(documentiHtml, /window\.NaviSuiteMenu\?\.open/, 'viewerMenu onclick
 const sharedMenuCode = fs.readFileSync('assets/js/shared-menu.js', 'utf8');
 assert.match(sharedMenuCode, /doc-viewer\.js/, 'shared-menu.js must auto-inject doc-viewer.js');
 
-// 7. Verify sw.js includes doc-viewer.js and new cache version
+// 7. Verify sw.js includes doc-viewer.js, pdf.js and new cache version
 const swCode = fs.readFileSync('sw.js', 'utf8');
 assert.match(swCode, /navisuite-v7\d\d/, 'sw.js cache version must be bumped');
 assert.match(swCode, /'\.\/assets\/js\/doc-viewer\.js'/, 'sw.js must cache doc-viewer.js');
+assert.match(swCode, /'\.\/vendor\/pdfjs\/pdf\.min\.js'/, 'sw.js must cache pdf.min.js');
+assert.match(swCode, /'\.\/vendor\/pdfjs\/pdf\.worker\.min\.js'/, 'sw.js must cache pdf.worker.min.js');
 
-// 8. Verify dispense do not have the redundant top-bar section
+// 8. Verify PDF multi-page rendering and variation jump support
+assert.match(docViewerCode, /id="naviDocPdfPages"/, 'Missing naviDocPdfPages element in doc-viewer.js');
+assert.match(docViewerCode, /findTargetPage/, 'Missing findTargetPage function in doc-viewer.js');
+assert.match(docViewerCode, /naviDocJumpBanner/, 'Missing jump banner logic in doc-viewer.js');
+
+// 9. Verify dispense do not have the redundant top-bar section
 const dispensa01 = fs.readFileSync('docs/controllo/dispense_navisuite/01_Ordinamento_GGNL_Legge_614.html', 'utf8');
 assert.doesNotMatch(dispensa01, /<nav class="top-bar">/, 'Dispensa 01 must not have redundant top-bar');
 

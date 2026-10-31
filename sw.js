@@ -8,7 +8,7 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v753-apertura-ods-diretto';
+const CACHE_VERSION = 'navisuite-v754-pdf-multipage-scroll-variazioni';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
@@ -17,7 +17,7 @@ const PAGE_ASSETS = [
   './assets/css/naviturni-page-fixes.css?v=1',
   './assets/js/naviturni-page.js?v=23', './assets/js/naviturni-vista.js?v=51', './assets/css/naviturni-vista.css?v=53',
   './assets/css/turni-common.css?v=2',
-  './assets/js/turni-giorno.js?v=15',
+  './assets/js/turni-giorno.js?v=16',
   './assets/css/mio-turno.css?v=26',
   './assets/js/mio-turno.js?v=74',
   './assets/js/naviturni-change-requests.js?v=1',
@@ -80,6 +80,8 @@ const CORE_ASSETS = [
   './assets/js/shared-menu.js',
   './assets/js/section-memory.js',
   './assets/js/doc-viewer.js',
+  './vendor/pdfjs/pdf.min.js',
+  './vendor/pdfjs/pdf.worker.min.js',
   './assets/js/oggi.js',
   './assets/js/course-info.js',
   './assets/js/announcements-recovered.js',

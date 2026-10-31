@@ -471,8 +471,9 @@
       const docAttr = v.docId ? ' data-doc-id="' + String(v.docId).replace(/"/g, "&quot;") + '"' : "";
       const odsAttr = v.ods ? ' data-ods-doc="' + String(v.ods || "").replace(/"/g, "&quot;") + '"' : "";
       const protAttr = v.protocollo ? ' data-protocollo="' + String(v.protocollo || "").replace(/"/g, "&quot;") + '"' : "";
+      const agentAttr = v.agentName ? ' data-agent-name="' + String(v.agentName || "").replace(/"/g, "&quot;") + '"' : "";
 
-      return '<span class="' + cls + '" title="' + title.replace(/"/g, "&quot;") + '"' + docAttr + odsAttr + protAttr + ' role="note"><i class="' + cssPrefix + '-var-icon" aria-hidden="true">' + icon + '</i>' + text + (v.docId ? " 📄" : "") + '</span>';
+      return '<span class="' + cls + '" title="' + title.replace(/"/g, "&quot;") + '"' + docAttr + odsAttr + protAttr + agentAttr + ' role="note"><i class="' + cssPrefix + '-var-icon" aria-hidden="true">' + icon + '</i>' + text + (v.docId ? " 📄" : "") + '</span>';
     }).join("");
   }
 
@@ -521,9 +522,16 @@
 
   async function apriDocumentoVariazione(info) {
     info = info || {};
-    const ods = String(info.odsDoc || info.ods || "").trim();
-    const docId = String(info.docId || "").trim();
+    const ods = String(info.odsDoc || info.odsdoc || info.ods || "").trim();
+    const docId = String(info.docId || info.docid || "").trim();
     const protocollo = String(info.protocollo || "").trim();
+    const agentName = String(info.agentName || info.agentname || info.agent || "").trim();
+    const options = {
+      agentName: agentName,
+      targetSection: "variazioni",
+      ods: ods,
+      protocollo: protocollo
+    };
 
     // 1. Se c'è un docId esplicito di Firebase (es. Disposizione Movimento allegata o DOC_...)
     if (docId && window.NaviAdminFirebase?.getAdminDocumentFile) {
@@ -533,7 +541,7 @@
         if (dataUrl) {
           const blobUrl = b64toBlobUrl(dataUrl);
           const title = protocollo ? ('Disposizione ' + protocollo) : (ods ? ('ODS ' + ods) : 'Documento');
-          if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title); return true; }
+          if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title, options); return true; }
           window.open(blobUrl, '_blank');
           return true;
         }
@@ -551,7 +559,7 @@
       if (STATIC_ODS_FILES[odsNum]) {
         const url = 'ods/' + encodeURIComponent(STATIC_ODS_FILES[odsNum]);
         const title = ods.toUpperCase().startsWith('ODS') ? ods : ('ODS ' + ods);
-        if (typeof window.openDocument === 'function') { window.openDocument(url, title); return true; }
+        if (typeof window.openDocument === 'function') { window.openDocument(url, title, options); return true; }
         window.open(url, '_blank');
         return true;
       }
@@ -585,7 +593,7 @@
           if (dataUrl) {
             const blobUrl = b64toBlobUrl(dataUrl);
             const title = ods.toUpperCase().startsWith('ODS') ? ods : ('ODS ' + ods);
-            if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title); return true; }
+            if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title, options); return true; }
             window.open(blobUrl, '_blank');
             return true;
           }
