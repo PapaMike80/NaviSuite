@@ -3,6 +3,11 @@
 __pycache__/
 *.pyc
 
+.env
+.env.*
+*.env
+tools/newsletter/.env
+
 docs/bandi_attivi/
 tools/audit/node_modules/
 tools/audit-report/
