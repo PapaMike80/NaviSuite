@@ -453,7 +453,7 @@
     const displayTitle = cleanTitle(title, url);
     titleEl.textContent = displayTitle;
 
-    const isPdf = /\.pdf($|\?)/i.test(url);
+    const isPdf = /\.pdf($|\?)/i.test(url) || url.startsWith('blob:') || url.startsWith('data:application/pdf');
     const isMd = /\.md($|\?)/i.test(url);
     const isDispensa = url.includes('dispense_navisuite/');
 
@@ -464,6 +464,7 @@
     subEl.textContent = subText;
 
     downloadBtn.href = url;
+    if (isPdf) downloadBtn.setAttribute('download', displayTitle + '.pdf');
 
     if (isMd) {
       iframeEl.style.display = 'none';

@@ -1031,5 +1031,16 @@
   // tornando con «Indietro» la pagina puo' essere ripresa dalla memoria del browser: ricarico i cambi
   window.addEventListener('pageshow', event => { if (event.persisted) aggiornaModifiche(); });
   window.addEventListener('storage', event => { if (String(event.key || '').startsWith('navidiaria.entries.v1.')) aggiornaModifiche(); });
+  // Clic su pastiglia variazione: apre eventuale documento allegato / ODS
+  document.addEventListener('click', async e => {
+    const chip = e.target.closest('.mt-var-chip');
+    if (!chip) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (G?.apriDocumentoVariazione) {
+      await G.apriDocumentoVariazione(chip.dataset);
+    }
+  });
+
   setInterval(() => { if (state.schedule) aggiornaModifiche(); }, 60000);
 })();

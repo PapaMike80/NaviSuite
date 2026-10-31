@@ -67,4 +67,13 @@ test('variazioni pastiglie (ODS, Movimento, Collega)', () => {
 
   const htmlMt = G.formattaPastiglieVariazioni(vars, 'mt');
   assert.ok(htmlMt.includes('mt-var-chip mt-var-movimento'), 'Has MT Movimento chip');
+
+  // Test apriDocumentoVariazione helper
+  assert.ok(G.apriDocumentoVariazione, 'apriDocumentoVariazione function exists');
+  let docOpened = null;
+  context.openDocument = (url, title) => { docOpened = { url, title }; };
+  G.apriDocumentoVariazione({ odsDoc: '40/26' });
+  assert.ok(docOpened, 'Document opened');
+  assert.ok(docOpened.url.includes('O.d.S.%20n.%2040-2026.pdf'), 'Opened ODS 40 file path');
+  assert.equal(docOpened.title, 'ODS 40/26', 'Title formatted properly');
 });

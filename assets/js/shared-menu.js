@@ -1,7 +1,7 @@
 (function(){
   // memoria delle sezioni aperte/chiuse, per tutte le pagine col menu
   if(!document.querySelector('script[src*="section-memory.js"]')){const m=document.createElement('script');m.src='assets/js/section-memory.js?v=2';m.defer=true;document.head.appendChild(m);}
-  if(!document.querySelector('script[src*="doc-viewer.js"]')){const d=document.createElement('script');d.src='assets/js/doc-viewer.js?v=1';d.defer=true;document.head.appendChild(d);}
+  if(!document.querySelector('script[src*="doc-viewer.js"]')){const d=document.createElement('script');d.src='assets/js/doc-viewer.js?v=2';d.defer=true;document.head.appendChild(d);}
   const APP_VERSION='v1.48';
   const NAVISUITE_KOFI_URL='https://ko-fi.com/papamike80';
   function installSupportFooter(){

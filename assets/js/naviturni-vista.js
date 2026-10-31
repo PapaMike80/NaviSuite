@@ -325,19 +325,10 @@
   document.addEventListener('click', async e => {
     const chip = e.target.closest('.nt-var-chip');
     if (!chip) return;
-    if (chip.dataset.docId) {
-      try {
-        const fileData = await window.NaviAdminFirebase?.getAdminDocumentFile?.(chip.dataset.docId);
-        if (fileData) {
-          const url = fileData.dataUrl || fileData.url || (fileData.base64 ? `data:application/pdf;base64,${fileData.base64}` : '');
-          if (url) { window.open(url, '_blank'); return; }
-        }
-      } catch (_) {}
-    }
-    if (chip.dataset.odsDoc) {
-      const fileName = typeof odsPdfFiles !== 'undefined' ? odsPdfFiles[chip.dataset.odsDoc] : null;
-      if (fileName) window.open(`ods/${encodeURIComponent(fileName)}`, '_blank');
-      else window.open('documenti.html#ods-docs', '_blank');
+    e.preventDefault();
+    e.stopPropagation();
+    if (G?.apriDocumentoVariazione) {
+      await G.apriDocumentoVariazione(chip.dataset);
     }
   });
 

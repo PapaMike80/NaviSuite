@@ -469,11 +469,136 @@
 
       const title = titleParts.join(" · ");
       const docAttr = v.docId ? ' data-doc-id="' + String(v.docId).replace(/"/g, "&quot;") + '"' : "";
-      const odsAttr = v.tipo === "ods" && !v.docId ? ' data-ods-doc="' + String(v.ods || "").replace(/"/g, "&quot;") + '"' : "";
+      const odsAttr = v.ods ? ' data-ods-doc="' + String(v.ods || "").replace(/"/g, "&quot;") + '"' : "";
+      const protAttr = v.protocollo ? ' data-protocollo="' + String(v.protocollo || "").replace(/"/g, "&quot;") + '"' : "";
 
-      return '<span class="' + cls + '" title="' + title.replace(/"/g, "&quot;") + '"' + docAttr + odsAttr + ' role="note"><i class="' + cssPrefix + '-var-icon" aria-hidden="true">' + icon + '</i>' + text + (v.docId ? " 📄" : "") + '</span>';
+      return '<span class="' + cls + '" title="' + title.replace(/"/g, "&quot;") + '"' + docAttr + odsAttr + protAttr + ' role="note"><i class="' + cssPrefix + '-var-icon" aria-hidden="true">' + icon + '</i>' + text + (v.docId ? " 📄" : "") + '</span>';
     }).join("");
   }
 
-  root.NaviTurniGiorno = { coloreTurno, testoSu, SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali, variazioniTurno, formattaPastiglieVariazioni };
+  const STATIC_ODS_FILES = {
+    16: "O.d.S. n. 16-2026 ESTATE.pdf",
+    18: "O.d.S. n. 18-2026.pdf",
+    19: "O.d.S. n. 19-2026.pdf",
+    20: "O.d.S. n. 20-2026.pdf",
+    21: "O.d.S. n. 21-2026.pdf",
+    22: "O.d.S. n. 22-2026.pdf",
+    23: "O.d.S. n. 23-2026.pdf",
+    24: "O.d.S. n. 24-2026.pdf",
+    25: "O.d.S. n. 25-2026.pdf",
+    26: "O.d.S. n. 26-2026.pdf",
+    27: "O.d.S. n. 27-2026.pdf",
+    28: "O.d.S. n. 28-2026.pdf",
+    29: "O.d.S. n. 29-2026.pdf",
+    30: "O.d.S. n. 30-2026.pdf",
+    31: "O.d.S. n. 31-2026.pdf",
+    32: "O.d.S. n. 32-2026.pdf",
+    34: "O.d.S. n. 34-2026.pdf",
+    35: "O.d.S. n. 35-2026.pdf",
+    36: "O.d.S. n. 36-2026.pdf",
+    37: "O.d.S. n. 37-2026.pdf",
+    38: "O.d.S. n. 38-2026.pdf",
+    39: "O.d.S. n. 39-2026 INVERNO.pdf",
+    40: "O.d.S. n. 40-2026.pdf",
+    41: "O.d.S. n. 41-2026.pdf"
+  };
+
+  function b64toBlobUrl(dataUrl) {
+    try {
+      const parts = String(dataUrl).split(',');
+      const mime = parts[0]?.match(/:(.*?);/)?.[1] || 'application/pdf';
+      const b64 = parts[1] || parts[0];
+      const bin = atob(b64);
+      const len = bin.length;
+      const u8 = new Uint8Array(len);
+      for (let i = 0; i < len; i++) u8[i] = bin.charCodeAt(i);
+      const blob = new Blob([u8], { type: mime });
+      return URL.createObjectURL(blob);
+    } catch (_) {
+      return dataUrl;
+    }
+  }
+
+  async function apriDocumentoVariazione(info) {
+    info = info || {};
+    const ods = String(info.odsDoc || info.ods || "").trim();
+    const docId = String(info.docId || "").trim();
+    const protocollo = String(info.protocollo || "").trim();
+
+    // 1. Se c'è un docId esplicito di Firebase (es. Disposizione Movimento allegata o DOC_...)
+    if (docId && window.NaviAdminFirebase?.getAdminDocumentFile) {
+      try {
+        const raw = await window.NaviAdminFirebase.getAdminDocumentFile(docId);
+        const dataUrl = typeof raw === 'string' ? raw : (raw?.dataUrl || raw?.url || '');
+        if (dataUrl) {
+          const blobUrl = b64toBlobUrl(dataUrl);
+          const title = protocollo ? ('Disposizione ' + protocollo) : (ods ? ('ODS ' + ods) : 'Documento');
+          if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title); return true; }
+          window.open(blobUrl, '_blank');
+          return true;
+        }
+      } catch (err) {
+        console.warn('Errore apertura docId Firebase:', err);
+      }
+    }
+
+    // 2. Se è un ODS (es. "43/26", "43", "40/26", etc.)
+    const odsMatch = ods.match(/\d+/);
+    const odsNum = odsMatch ? parseInt(odsMatch[0], 10) : null;
+
+    if (odsNum) {
+      // 2a. Verifica se è un file statico già presente nella cartella ods/
+      if (STATIC_ODS_FILES[odsNum]) {
+        const url = 'ods/' + encodeURIComponent(STATIC_ODS_FILES[odsNum]);
+        const title = ods.toUpperCase().startsWith('ODS') ? ods : ('ODS ' + ods);
+        if (typeof window.openDocument === 'function') { window.openDocument(url, title); return true; }
+        window.open(url, '_blank');
+        return true;
+      }
+
+      // 2b. Cerca nei documenti caricati su Firebase
+      if (window.NaviAdminFirebase) {
+        try {
+          const targetDocId = 'ods-' + odsNum + '-2026';
+          let raw = null;
+          try {
+            raw = await window.NaviAdminFirebase.getAdminDocumentFile(targetDocId);
+          } catch (_) {
+            raw = null;
+          }
+
+          if (!raw && window.NaviAdminFirebase.getAdminDocuments) {
+            const docs = await window.NaviAdminFirebase.getAdminDocuments();
+            const found = (docs || []).find(d =>
+              d && (
+                Number(d.numero) === odsNum ||
+                String(d.id || '').toLowerCase() === targetDocId.toLowerCase() ||
+                new RegExp('\\b(?:o\\.?d\\.?s\\.?|ods)[^0-9]*' + odsNum + '\\b', 'i').test(d.filename || d.titolo || '')
+              )
+            );
+            if (found?.id) {
+              raw = await window.NaviAdminFirebase.getAdminDocumentFile(found.id);
+            }
+          }
+
+          const dataUrl = typeof raw === 'string' ? raw : (raw?.dataUrl || raw?.url || '');
+          if (dataUrl) {
+            const blobUrl = b64toBlobUrl(dataUrl);
+            const title = ods.toUpperCase().startsWith('ODS') ? ods : ('ODS ' + ods);
+            if (typeof window.openDocument === 'function') { window.openDocument(blobUrl, title); return true; }
+            window.open(blobUrl, '_blank');
+            return true;
+          }
+        } catch (err) {
+          console.warn('Errore ricerca ODS su Firebase:', err);
+        }
+      }
+    }
+
+    // Fallback: se proprio non si trova il file esatto
+    window.open('documenti.html#ods-docs', '_blank');
+    return false;
+  }
+
+  root.NaviTurniGiorno = { coloreTurno, testoSu, SIGLE_TERRA, TERRA_RESIDENZA, norm, terraCode, terraResidenza, naveCode, GRADI, gradoOf, comandante, equipaggi, turnoAgente, creaTurno, caricaModifiche, setModifiche, modificaManuale, modificheManuali, variazioniTurno, formattaPastiglieVariazioni, apriDocumentoVariazione };
 })(typeof window !== 'undefined' ? window : globalThis);
