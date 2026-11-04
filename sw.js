@@ -8,14 +8,14 @@
  * - aggiornare gli asset in background quando la rete e' disponibile.
  */
 
-const CACHE_VERSION = 'navisuite-v757-simulated-date-naviturni';
+const CACHE_VERSION = 'navisuite-v758-simulated-date-naviturni';
 // JS e CSS estratti da naviturni.html e cambi_turno.html. Sono legati al markup
 // della pagina: l'URL comprende ?v= e deve coincidere con quello scritto
 // nell'HTML, altrimenti il precache non viene usato.
 const PAGE_ASSETS = [
   './assets/css/naviturni-page.css?v=4',
   './assets/css/naviturni-page-fixes.css?v=1',
-  './assets/js/naviturni-page.js?v=24', './assets/js/naviturni-vista.js?v=52', './assets/css/naviturni-vista.css?v=53',
+  './assets/js/naviturni-page.js?v=25', './assets/js/naviturni-vista.js?v=53', './assets/css/naviturni-vista.css?v=53',
   './assets/css/turni-common.css?v=2',
   './assets/js/turni-giorno.js?v=16',
   './assets/css/mio-turno.css?v=26',

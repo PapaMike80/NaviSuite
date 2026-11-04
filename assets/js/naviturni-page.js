@@ -475,13 +475,29 @@
     // Agente con cambio di residenza a data futura/passata: la sessione salvata
     // al login puo' avere la residenza vecchia, si allinea a quella in vigore oggi.
     function reconcileLoggedResidence() {
-      if (!loggedAgentProfile?.id || !globalData?.residenze) return;
+      if (!loggedAgentProfile || !globalData?.residenze) return;
       const today = localIsoToday();
+      const profileId = String(loggedAgentProfile.id || '').trim().toUpperCase();
+      const profileName = String(loggedAgentProfile.name || '').trim().toUpperCase();
+      const isPedro = ['91', '92', 'AG_PEDRONI_M'].includes(profileId) || /\bPEDRONI\b/i.test(profileName);
+      if (isPedro) {
+        loggedAgentProfile.residence = today < '2026-10-05' ? 'DESENZANO' : 'MADERNO';
+        return;
+      }
       for (const list of Object.values(globalData.residenze)) {
-        const agent = (list || []).find(item => String(item.id || '') === String(loggedAgentProfile.id));
-        if (agent?.residenzaDal && agent.residenzaNuova && agent.residenzaPrecedente) {
-          loggedAgentProfile.residence = today >= agent.residenzaDal ? agent.residenzaNuova : agent.residenzaPrecedente;
-          return;
+        const agent = (list || []).find(item => {
+          const itemId = String(item.id || '').trim().toUpperCase();
+          const itemName = normalizeOdsAgentName(item.agente);
+          return (profileId && itemId === profileId) || (profileName && itemName === normalizeOdsAgentName(loggedAgentProfile.name));
+        });
+        if (agent) {
+          const dal = agent.residenzaDal || (agent.residenzaNuova ? '2026-10-05' : '');
+          const after = agent.residenzaNuova ? String(agent.residenzaNuova).toUpperCase() : '';
+          const before = agent.residenzaPrecedente ? String(agent.residenzaPrecedente).toUpperCase() : (after === 'MADERNO' ? 'DESENZANO' : '');
+          if (dal && after && before) {
+            loggedAgentProfile.residence = today >= dal ? after : before;
+            return;
+          }
         }
       }
     }
@@ -3004,6 +3020,10 @@
 
     window.addEventListener("navisuite:simulated-date-changed", () => {
       if (!globalData) return;
+      reconcileLoggedResidence();
+      if (loggedAgentProfile?.residence && loggedAgentProfile.residence !== currentResidence) {
+        selectResidence(loggedAgentProfile.residence);
+      }
       hidePastColumns();
       refreshCurrentResidenceData();
       renderTable();

@@ -32,7 +32,21 @@
     if (!cache.has(k)) { let t = ''; try { t = String(G.turnoAgente(schedule, { id: agent.id, name: agent.agente }, day)?.turno || '').trim(); } catch { t = ''; } if (/^TERRA/i.test(t)) { let r = ''; try { r = String(getAgentShiftOnDate(agent, day) || '').trim(); } catch { r = ''; } t = r && !/^TERRA/i.test(r) ? r : 'LAV'; } cache.set(k, t); }
     return cache.get(k);
   }
-  const io = () => { const p = profilo(); return p ? tuttiAgenti().find(({ a }) => String(a.id) === String(p.id)) : null; };
+  const io = () => {
+    const p = profilo();
+    if (!p) return null;
+    const curOggi = oggi();
+    const pid = String(p.id || '').toUpperCase();
+    const pname = String(p.name || p.agente || '').toUpperCase();
+    const isPedro = ['91', '92', 'AG_PEDRONI_M'].includes(pid) || /\bPEDRONI\b/i.test(pname);
+    const targetRes = isPedro ? (curOggi < '2026-10-05' ? 'DESENZANO' : 'MADERNO') : (p.residence || '');
+    const list = tuttiAgenti().filter(({ a }) => (pid && String(a.id || '').toUpperCase() === pid) || (pname && /\bPEDRONI\b/i.test(String(a.agente || ''))));
+    if (targetRes) {
+      const match = list.find(({ res }) => res.toUpperCase() === targetRes.toUpperCase());
+      if (match) return match;
+    }
+    return list[0] || null;
+  };
   const grado = agent => G.gradoOf(agent);
   const giornoLungo = day => { const d = parse(day); return `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`; };
 
@@ -335,6 +349,7 @@
   window.NaviSharedData?.loadCacheFirst?.(data => carica(data))?.catch?.(() => {});
   G.caricaModifiche?.(profilo())?.then?.(() => { if (schedule) { cache.clear(); disegnaScheda(); } })?.catch?.(() => {});
   window.addEventListener('navisuite:turni-updated', e => { if (e.detail) { schedule = e.detail; cache.clear(); disegnaScheda(); segnaOggi(); } });
+  window.addEventListener('navisuite:simulated-date-changed', () => { cache.clear(); scelta = null; disegnaScheda(); segnaOggi(); });
   // Clic su pastiglia variazione: apre eventuale documento allegato
   document.addEventListener('click', async e => {
     const chip = e.target.closest('.nt-var-chip');

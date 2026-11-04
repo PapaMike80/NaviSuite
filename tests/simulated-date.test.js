@@ -118,4 +118,7 @@ test('past crew loading and Pedro residence on 2026-08-15', () => {
   assert.ok(names.includes('BUTTURINI C.'), 'Butturini incluso nel D1');
   assert.ok(names.includes('PEDRONI M.'), 'Pedroni incluso nel D1');
   assert.strictEqual(eq.navi.D1.length, 4, 'Tutti e 4 i membri dell equipaggio caricati');
+
+  const pageCode = fs.readFileSync('assets/js/naviturni-page.js', 'utf8');
+  assert.ok(pageCode.includes("loggedAgentProfile.residence = today < '2026-10-05' ? 'DESENZANO' : 'MADERNO'"), 'reconcileLoggedResidence gestisce Pedro prima del 05/10/2026');
 });
