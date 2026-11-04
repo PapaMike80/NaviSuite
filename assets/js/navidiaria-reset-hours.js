@@ -116,7 +116,10 @@
   const missedRestMinutes = entry => n(entry?.missedRest ?? entry?.missedRestMinutes ?? entry?.mancatoRiposo ?? 0);
   const isWorking = entry => {
     if (!entry) return false;
-    return !['RIP','RIPOSO','MALATTIA'].includes(String(entry.shift || '').trim().toUpperCase());
+    const code = String(entry.shift || '').trim().toUpperCase();
+    if (['RIP','RIPOSO'].includes(code)) return false;
+    if (['MAL','MALATTIA'].includes(code)) return serviceMinutes(entry) > 0 || (Number(entry.workedMinutes) || 0) > 0;
+    return true;
   };
   // Straordinario = ore eccedenti le 39 settimanali (Lun-Dom), non la somma dei
   // componenti giornalieri: stessa regola gia' usata per il totale nella

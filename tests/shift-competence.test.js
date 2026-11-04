@@ -110,4 +110,30 @@ assert.match(navidiariaHtml, /assets\/js\/shift-competence\.js/);
 const navidistintaHtml = fs.readFileSync('navidistinta.html', 'utf8');
 assert.match(navidistintaHtml, /location\.replace\('navidiaria\.html'/, 'una sola Distinta: navidistinta rimanda a navidiaria');
 
+// Malattia: canonicalCode e shiftForCode riconoscono MAL / MALATTIA / Malattia e assegnano le ore configurate
+['MAL', 'MAL.', 'MALATTIA', 'mal', 'malattia', 'Malattia'].forEach(raw => {
+  assert.equal(NaviShiftCompetence.canonicalCode(raw), 'Malattia', `${raw} -> Malattia`);
+});
+const customWithMalattia = NaviShiftCompetence.DEFAULT_SHIFTS.map(s => s.code === 'Malattia' ? { ...s, hours: 8 } : s);
+['MAL', 'MALATTIA', 'Malattia'].forEach(raw => {
+  const mal = NaviShiftCompetence.shiftForCode(raw, '2026-08-05', customWithMalattia);
+  assert.equal(mal.code, 'Malattia');
+  assert.equal(Math.round(mal.hours * 60), 8 * 60, `${raw} con 8h configurate deve restituire 480 minuti`);
+});
+
+const NaviDistintaTotals = require('../assets/js/distinta-totals.js');
+const calcWithMalattia = NaviDistintaTotals.create({ shifts: customWithMalattia, shiftCompetence: NaviShiftCompetence });
+const malEntry = { date: '2026-08-05', shift: 'MALATTIA' };
+assert.equal(calcWithMalattia.isWorking(malEntry), true, 'Malattia con ore configurate deve risultare lavorata');
+assert.equal(calcWithMalattia.serviceMinutes(malEntry), 480, '480 min di servizio');
+assert.equal(calcWithMalattia.workedMinutes(malEntry), 480, '480 min lavorati');
+const malTotals = calcWithMalattia.summarize([[malEntry]]);
+assert.equal(malTotals.serviceMinutes, 480);
+assert.equal(malTotals.workedMinutes, 480);
+assert.equal(malTotals.ticketDue, 0, 'nessun ticket per malattia');
+assert.equal(malTotals.embark, 0, 'nessun imbarco per malattia');
+assert.equal(malTotals.allowance24, 0, 'nessuna diaria per malattia');
+assert.equal(malTotals.holiday, 0, 'nessuna festivita lavorata per malattia');
+assert.equal(malTotals.sundayShift, 0, 'nessuna domenica lavorata per malattia');
+
 console.log('shift competence (decorrenza ore turni) ok');

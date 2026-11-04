@@ -447,17 +447,54 @@
       };
     }
 
+    function realignGlobalDataResidences() {
+      if (!globalData?.residenze) return;
+      const today = localIsoToday();
+      const allAgents = Object.values(globalData.residenze).flat();
+      allAgents.forEach(agent => {
+        const id = String(agent.id || '').trim().toUpperCase();
+        const name = normalizeOdsAgentName(agent.agente);
+        const isPedro = ['91', '92', 'AG_PEDRONI_M'].includes(id) || /\bPEDRONI\b/i.test(name);
+        let wanted = '';
+        if (isPedro) {
+          wanted = today < '2026-10-05' ? 'DESENZANO' : 'MADERNO';
+        } else if (agent.residenzaDal && agent.residenzaNuova && agent.residenzaPrecedente) {
+          wanted = today >= agent.residenzaDal ? String(agent.residenzaNuova).toUpperCase() : String(agent.residenzaPrecedente).toUpperCase();
+        }
+        if (wanted) {
+          const currentRes = Object.keys(globalData.residenze).find(key => (globalData.residenze[key] || []).includes(agent));
+          if (currentRes && currentRes.toUpperCase() !== wanted) {
+            globalData.residenze[currentRes] = globalData.residenze[currentRes].filter(x => x !== agent);
+            globalData.residenze[wanted] = globalData.residenze[wanted] || [];
+            if (!globalData.residenze[wanted].includes(agent)) {
+              globalData.residenze[wanted].push(agent);
+            }
+          }
+        }
+      });
+    }
+
     function getLoggedAgentLocation() {
       if (!loggedAgentProfile) return null;
       // Gli agenti d'ufficio non hanno un turno: nessuna riga personale.
       if (isOfficeProfile()) return null;
+      realignGlobalDataResidences();
       const residence = loggedAgentProfile.residence;
       const agents = globalData?.residenze?.[residence] || [];
       const index = agents.findIndex(agent => {
         const sameId = loggedAgentProfile.id && String(agent.id || "") === loggedAgentProfile.id;
         return sameId || normalizeOdsAgentName(agent.agente) === normalizeOdsAgentName(loggedAgentProfile.name);
       });
-      return index >= 0 ? { residence, index, agent: completeAgent(agents[index]) } : null;
+      if (index >= 0) return { residence, index, agent: completeAgent(agents[index]) };
+      for (const [resKey, list] of Object.entries(globalData?.residenze || {})) {
+        if (resKey === residence) continue;
+        const idx = (list || []).findIndex(agent => {
+          const sameId = loggedAgentProfile.id && String(agent.id || "") === loggedAgentProfile.id;
+          return sameId || normalizeOdsAgentName(agent.agente) === normalizeOdsAgentName(loggedAgentProfile.name);
+        });
+        if (idx >= 0) return { residence: resKey, index: idx, agent: completeAgent(list[idx]) };
+      }
+      return null;
     }
 
     function findLoggedAgentIndex(residence = currentResidence) {
@@ -476,6 +513,7 @@
     // al login puo' avere la residenza vecchia, si allinea a quella in vigore oggi.
     function reconcileLoggedResidence() {
       if (!loggedAgentProfile || !globalData?.residenze) return;
+      realignGlobalDataResidences();
       const today = localIsoToday();
       const profileId = String(loggedAgentProfile.id || '').trim().toUpperCase();
       const profileName = String(loggedAgentProfile.name || '').trim().toUpperCase();
@@ -503,6 +541,7 @@
     }
 
     function applyLoggedAgentProfile() {
+      realignGlobalDataResidences();
       reconcileLoggedResidence();
       if (isBaristaProfile()) {
         if (applyBaristaAccessScope()) {
@@ -3020,8 +3059,9 @@
 
     window.addEventListener("navisuite:simulated-date-changed", () => {
       if (!globalData) return;
+      realignGlobalDataResidences();
       reconcileLoggedResidence();
-      if (loggedAgentProfile?.residence && loggedAgentProfile.residence !== currentResidence) {
+      if (loggedAgentProfile?.residence) {
         selectResidence(loggedAgentProfile.residence);
       }
       hidePastColumns();

@@ -17,14 +17,21 @@ try{(()=>{
     {key:'allowance50',label:'Diaria 50%',mobileLabel:'D. 50%',kind:'allowance',rate:50,value:e=>check(isWorking(e)&&Number(e.allowanceRate)===50)},
     {key:'overnight40',label:'Pernotto 40%',mobileLabel:'Pern. 40%',kind:'toggle',field:'overnight40',value:e=>check(isWorking(e)&&e.overnight40)},
     {key:'holiday',label:'Festivita',mobileLabel:'Fest.',kind:'holiday',value:(e,d)=>check(isWorking(e)&&holidayValue(e,d))},
-    {key:'sundayShift',label:'Ind. turno dom.',mobileLabel:'Ind.dom.',kind:'computed',value:(e,d)=>check(isWorking(e)&&d.getDay()===0)},
+    {key:'sundayShift',label:'Ind. turno dom.',mobileLabel:'Ind.dom.',kind:'computed',value:(e,d)=>check(isWorking(e)&&!isAbsenceShift(e)&&d.getDay()===0)},
     {key:'second-ticket',label:'Secondo ticket',mobileLabel:'2 ticket',kind:'toggle',field:'secondMeal',value:e=>check(isWorking(e)&&e.secondMeal)},
     {key:'embark',label:'Ind. imbarco',mobileLabel:'Imbarco',kind:'toggle',field:'embark',value:e=>check(isWorking(e)&&e.embark)},
     {key:'cashHandling',label:'Maneggio denaro',mobileLabel:'Denaro',kind:'toggle',field:'cashHandling',value:e=>check(isWorking(e)&&e.cashHandling)},
     {key:'hydrofoil',label:'Ind. aliscafo',mobileLabel:'Aliscafo',kind:'computed',value:e=>check(isWorking(e)&&(globalThis.NaviShiftCompetence?.aliscafo ? globalThis.NaviShiftCompetence.aliscafo(e.shift, e.date, typeof SHIFTS !== 'undefined' ? SHIFTS : undefined) : String(e.shift).toUpperCase() === 'SR1'))},
     {key:'rf',label:'Recupero forfait',mobileLabel:'Recup.',kind:'toggle',field:'rf',value:e=>check(isWorking(e)&&e.rf)}
   ];
-  function isWorking(e){return !!e&&!['RIPOSO','RIP','MALATTIA'].includes(String(e.shift||'').toUpperCase())}
+  const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP', 'MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
+  function isWorking(e){
+    if(!e)return false;
+    const code=String(e.shift||'').toUpperCase();
+    if(['RIPOSO','RIP'].includes(code))return false;
+    if(['MALATTIA','MAL'].includes(code))return serviceMinutes(e)>0||(Number(e.workedMinutes)||0)>0;
+    return true;
+  }
   function check(v){return v?'✓':''}
   function minutes(v){const n=Math.round(Number(v)||0);return n?String(n):''}
   function clock(v){const m=Math.max(0,Math.round(Number(v)||0));return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`}
@@ -66,8 +73,8 @@ try{(()=>{
     case 'allowance24':return worked.filter(e=>Number(e.allowanceRate)===24).length||'';
     case 'allowance50':return worked.filter(e=>Number(e.allowanceRate)===50).length||'';
     case 'overnight40':return worked.filter(e=>e.overnight40).length||'';
-    case 'holiday':return worked.filter(e=>holidayValue(e,new Date(`${e.date}T12:00:00`))).length||'';
-    case 'sundayShift':return worked.filter(e=>new Date(`${e.date}T12:00:00`).getDay()===0).length||'';
+    case 'holiday':return worked.filter(e=>!isAbsenceShift(e)&&holidayValue(e,new Date(`${e.date}T12:00:00`))).length||'';
+    case 'sundayShift':return worked.filter(e=>!isAbsenceShift(e)&&new Date(`${e.date}T12:00:00`).getDay()===0).length||'';
     case 'second-ticket':return worked.filter(e=>e.secondMeal).length||'';
     case 'embark':return worked.filter(e=>e.embark).length||'';
     case 'cashHandling':return worked.filter(e=>e.cashHandling).length||'';

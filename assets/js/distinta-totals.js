@@ -12,7 +12,7 @@
   const SHIFTS_STORAGE = 'navidiaria.shifts.v1';
   const COMPETENCE_VERSION = 'terra-rinominato-lav-2026-09-17';
   const GROUND_SHIFTS = new Set(['AGB', 'POND', 'DT', 'PT', 'AGM', 'AGT', 'PONM', 'LD', 'LAV', 'MALATTIA', 'RIPOSO', 'IE']);
-  const NOT_WORKING = ['RIPOSO', 'RIP', 'MALATTIA'];
+  const NOT_WORKING = ['RIPOSO', 'RIP'];
   const fixedHolidays = new Set(['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26']);
 
   function easterMondayKey(year) { const a = year % 19, b = Math.floor(year / 100), c = year % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1, monday = new Date(year, month - 1, day + 1, 12); return `${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`; }
@@ -60,7 +60,15 @@
     const shiftFor = (code, dateIso) => competence.shiftForCode(code, dateIso, SHIFTS);
 
     // --- Da navidiaria-monthly.js (baseWorkedMinutes con la correzione di sw.js) ---
-    function isWorking(e) { return !!e && !NOT_WORKING.includes(String(e.shift || '').toUpperCase()); }
+    function isWorking(e) {
+      if (!e) return false;
+      const code = String(e.shift || '').trim().toUpperCase();
+      if (NOT_WORKING.includes(code)) return false;
+      if (['MALATTIA', 'MAL'].includes(code)) {
+        return serviceMinutes(e) > 0 || (Number(e.workedMinutes) || 0) > 0;
+      }
+      return true;
+    }
     function serviceMinutes(e) { return e ? Math.max(0, Number.isFinite(Number(e.serviceMinutes)) ? Number(e.serviceMinutes) : Math.round(shiftFor(e.shift, e.date).hours * 60)) : 0; }
     function changeMinutes(e) { return overtime?.changes(e) ?? Math.max(0, Math.round(Number(e?.changeMinutes) || 0)); }
     function overtimeTotal(e) { return overtime?.total(e) ?? Math.max(0, Math.round(Number(e?.delay) || 0)); }
@@ -83,7 +91,7 @@
       // tutte le giornate lavorate hanno maneggio e imbarco.
       const cash139 = e => !!(e.cashHandling && e.embark);
       const cash138 = e => /^AG[BTM]\d*$/i.test(String(e.shift || '').trim());
-      const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP'].includes(String(e?.shift || '').trim().toUpperCase());
+      const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP', 'MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
       const isCongedoShift = e => ['CON', 'FERIE'].includes(String(e?.shift || '').trim().toUpperCase());
       let overtime139Minutes = 0;
       let overtimeMixedWeeks = 0;

@@ -164,13 +164,22 @@
     if (/^L\.?D[.;]?$/.test(upper)) return 'LD';
     if (/^(?:CONG?\.?|CON[;/]|CONC\.?|CONGEDO)$/.test(upper)) return 'CON';
     if (/^S\.?S\.?$/.test(upper)) return 'S.S.';
+    if (/^(?:MAL(?:ATTIA)?\.?)$/i.test(upper)) return 'Malattia';
+    if (/^(?:RIP(?:OSO)?\.?)$/i.test(upper)) return 'Riposo';
+    if (/^(?:F\.?P\.?|FP)$/i.test(upper)) return 'F.P.';
     return raw;
   }
 
   function shiftForCode(code, dateIso, baseShifts) {
     const list = shiftsFor(dateIso, baseShifts);
     const wanted = canonicalCode(code);
-    return list.find(shift => shift.code === code) || list.find(shift => shift.code === wanted) || list.at(-1);
+    const wantedUpper = wanted.toUpperCase();
+    const upperCode = String(code ?? '').trim().toUpperCase();
+    return list.find(shift => shift.code === code)
+      || list.find(shift => shift.code === wanted)
+      || list.find(shift => String(shift.code).toUpperCase() === wantedUpper)
+      || list.find(shift => String(shift.code).toUpperCase() === upperCode)
+      || list.at(-1);
   }
 
   // Indennita' aliscafo: dalla competenza del servizio (di base solo SR1)

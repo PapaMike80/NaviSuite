@@ -106,6 +106,7 @@
     if (campo === 'hours' || campo === 'allowanceRate' || campo === 'allowance') {
       s.stagioni = s.stagioni || {};
       s.stagioni[stagione] = { ...(s.stagioni[stagione] || {}), [campo]: valore };
+      if (campo === 'hours') s.hours = valore;
       if (campo === 'allowanceRate') s.stagioni[stagione].allowance = valore > 0;
     } else {
       s[campo] = valore;
