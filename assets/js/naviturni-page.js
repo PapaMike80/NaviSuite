@@ -703,17 +703,16 @@
         .map(item => String(item.data))
         .sort();
       if (!latestDates.length) return null;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
       return {
         number: latestNumber,
-        from: formatDateISOClient(today),
+        from: localIsoToday(),
         until: latestDates[latestDates.length - 1]
       };
     }
 
     function inizializzaCalendario() {
       dateCalendario.length = 0;
+      try { window.dateCalendario = dateCalendario; } catch (_) {}
       const odsCoverage = getLatestOdsCoverage();
       let colCounter = 3;
       settimaneInfo.forEach((sett, sIdx) => {
@@ -1243,8 +1242,7 @@
 
       // Il pallino riguarda esclusivamente collaborazioni da oggi in avanti.
       // La data ISO locale evita che il fuso orario trasformi "oggi" in ieri.
-      const now = new Date();
-      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const todayIso = localIsoToday();
 
       const effectiveShift = (person, cal) => ottieniTurnoPulito(getAgentShiftOnDate(person, cal.iso));
 
@@ -1990,13 +1988,10 @@
     function switchCoverageShift(shift) {
       let cal = dateCalendario.find(item => item.col === selectedCol);
       if (!cal) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        cal = dateCalendario.find(item => {
-          const date = new Date(item.realObj);
-          date.setHours(0, 0, 0, 0);
-          return date.getTime() === today.getTime();
-        }) || dateCalendario.find(item => item.realObj >= today) || dateCalendario[0];
+        const todayStr = localIsoToday();
+        cal = dateCalendario.find(item => item.iso === todayStr) ||
+          dateCalendario.find(item => item.iso >= todayStr) ||
+          dateCalendario[0];
       }
       if (cal) openCoverageCrew(cal.col, shift);
     }
@@ -2269,10 +2264,9 @@
     function hidePastColumns() {
       // Il limite resta sempre oggi: la selezione di una data futura non deve
       // nascondere le giornate comprese tra oggi e la data selezionata.
-      const referenceDate = new Date();
-      referenceDate.setHours(0, 0, 0, 0);
+      const todayIso = localIsoToday();
       dateCalendario.forEach(cal => {
-        const isPast = cal.realObj < referenceDate;
+        const isPast = cal.iso < todayIso;
         const isBeforeAutomaticWindow = automaticPastFromTime === null || cal.realObj.getTime() < automaticPastFromTime;
         const displayValue = (!showPastColumns && isPast && isBeforeAutomaticWindow) ? "none" : "table-cell";
         document.querySelectorAll(`th[data-col="${cal.col}"]`).forEach(el => {
@@ -2296,12 +2290,11 @@
 
     function updateAutomaticPastWindow(cal) {
       if (showPastColumns || !cal?.realObj) return;
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const todayIso = localIsoToday();
       const selectedDate = new Date(cal.realObj);
       selectedDate.setHours(0, 0, 0, 0);
       const previous = automaticPastFromTime;
-      automaticPastFromTime = selectedDate < today ? selectedDate.getTime() : null;
+      automaticPastFromTime = (cal.iso && cal.iso < todayIso) ? selectedDate.getTime() : null;
       if (automaticPastFromTime !== previous) {
         refreshCurrentResidenceData();
         renderTable();
@@ -2569,7 +2562,7 @@
       }
 
       const residenze = {};
-      const buildRow = (ag, isHidden, labelFor) => {
+      const buildRow = (ag, isHidden, labelFor, residenzaFallback) => {
         const turni_settimanali = {};
         const turni_settimanali_completi = {};
         let masked = false;
@@ -2588,8 +2581,14 @@
           id: ag.id || "",
           agente: ag.agente || "",
           qualifica: ag.qualifica || "marinaio",
+          turni: ag.turni || {},
           turni_settimanali
         };
+        if (ag.variazioni_ods) row.variazioni_ods = ag.variazioni_ods;
+        if (ag.variazioni_ods_completi) row.variazioni_ods_completi = ag.variazioni_ods_completi;
+        if (ag.residenza || residenzaFallback || ag.residence) {
+          row.residenza = ag.residenza || residenzaFallback || ag.residence;
+        }
         // Nella tabella di una residenza i giorni svolti nell'altra restano
         // etichettati "A <residenza>"; la riga fissata in alto (mia / collega)
         // mostra invece sempre i turni veri.
@@ -2620,7 +2619,7 @@
             const dal = ag.residenzaDal;
             const label = `A ${String(ag.residenzaNuova).toUpperCase()}`;
             moved.push({ ag, dal, home: residenza });
-            return buildRow(ag, iso => iso >= dal, () => label);
+            return buildRow(ag, iso => iso >= dal, () => label, residenza);
           }
           // Cambio gia' avvenuto: qui (nuova residenza) i giorni prima della decorrenza
           // erano nell'altra; li' compare con i turni veri fino alla decorrenza.
@@ -2629,9 +2628,9 @@
             String(ag.residenzaPrecedente).toUpperCase() !== residenza.toUpperCase()) {
             const dal = ag.residenzaDal;
             moved.push({ ag, dal, home: ag.residenzaPrecedente, dopo: true });
-            return buildRow(ag, iso => iso < dal, () => `A ${String(ag.residenzaPrecedente).toUpperCase()}`);
+            return buildRow(ag, iso => iso < dal, () => `A ${String(ag.residenzaPrecedente).toUpperCase()}`, residenza);
           }
-          return buildRow(ag, () => false);
+          return buildRow(ag, () => false, null, residenza);
         });
       });
 
@@ -2643,7 +2642,7 @@
         const otherKey = Object.keys(residenze).find(key => key.toUpperCase() === String(dopo ? home : ag.residenzaNuova).toUpperCase());
         if (!otherKey) return;
         const label = `A ${String(dopo ? ag.residenzaNuova : home).toUpperCase()}`;
-        const copy = buildRow(ag, dopo ? (iso => iso >= dal) : (iso => iso < dal), () => label);
+        const copy = buildRow(ag, dopo ? (iso => iso >= dal) : (iso => iso < dal), () => label, otherKey);
         const rank = name => (window.NaviSharedData?.seniorityRank ? window.NaviSharedData.seniorityRank(name) : Number.POSITIVE_INFINITY);
         const list = residenze[otherKey];
         const position = list.findIndex(item => rank(item.agente) > rank(copy.agente));
@@ -2767,18 +2766,15 @@
       const wrap = document.getElementById("matrix-scroll-wrap");
       if (!wrap || wrap.style.display === "none") return;
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const todayStr = localIsoToday();
 
-      let target = dateCalendario.find(cal => {
-        const d = new Date(cal.realObj);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime() === today.getTime();
-      });
+      let target = dateCalendario.find(cal => cal.iso === todayStr);
 
       if (!target) {
-        target = dateCalendario.find(cal => cal.realObj > today) || dateCalendario[dateCalendario.length - 1];
+        target = dateCalendario.find(cal => cal.iso >= todayStr) || dateCalendario[dateCalendario.length - 1];
       }
+
+      if (!target) return;
 
       const th = document.querySelector(`.date-header th[data-col="${target.col}"]`);
       const fixedCols = document.querySelectorAll(".date-header th:nth-child(1)");
@@ -3002,6 +2998,14 @@
       if (!globalData) return;
       inizializzaCalendario();
       buildTableHeader();
+      renderTable();
+      setTimeout(scrollToToday, 30);
+    });
+
+    window.addEventListener("navisuite:simulated-date-changed", () => {
+      if (!globalData) return;
+      hidePastColumns();
+      refreshCurrentResidenceData();
       renderTable();
       setTimeout(scrollToToday, 30);
     });

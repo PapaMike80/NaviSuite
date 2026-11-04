@@ -70,8 +70,9 @@
   const scaloValido = value => (POS[value] ? value : '');
   // l'equipaggio della nave e' un dato secondario: sta chiuso finche' non lo apri (si ricorda la scelta)
   document.addEventListener('toggle', event => { if (event.target.classList?.contains('or-equipaggio')) state.equipAperto = event.target.open; }, true);
+  const todayIso = () => (window.NaviDate?.todayIso ? window.NaviDate.todayIso() : iso(new Date()));
   const state = {
-    day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== iso(new Date()) ? params.get('day') : '',
+    day: /^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== todayIso() ? params.get('day') : '',
     view: params.get('vista') === 'viaggio' ? 'viaggio' : 'lago',
     from: scaloValido(params.get('da')) || mioScalo(), to: scaloValido(params.get('a')) || '',
     scalo: scaloValido(params.get('scalo')) || mioScalo(),
@@ -79,10 +80,9 @@
     schedule: null, firebaseNavi: []
   };
   if (!state.to) state.to = state.from === 'Desenzano' ? 'Sirmione' : 'Desenzano';
-  const simDate = window.NaviDate?.getSimulatedDate?.();
-  const defaultDay = simDate || iso(new Date());
-  const today = () => state.day || defaultDay;
-  const realToday = () => today() === defaultDay;
+  const defaultDay = () => todayIso();
+  const today = () => state.day || defaultDay();
+  const realToday = () => today() === defaultDay();
   const nowMinutes = () => { const now = new Date(); return now.getHours() * 60 + now.getMinutes(); };
   // Ora mostrata: quella del cursore, altrimenti adesso (o le 9.00 per gli altri giorni).
   // Ora mostrata: scelta a mano, l'orologio (oggi) oppure, negli altri giorni, la prima ora dell'elenco Allo scalo
@@ -555,7 +555,7 @@
     if (!voci.length) return '';
     voci.sort((a, b) => a.t - b.t || a.su - b.su);
     const pax = voci.reduce((n, v) => n + (parseInt(v.c.pax, 10) || 0), 0), clienti = new Set(voci.map(v => v.c.chiave)).size;
-    return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive ${g.day === iso(new Date()) ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
+    return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive ${g.day === todayIso() ? 'oggi' : 'del giorno'} a ${esc(state.scalo)}</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<a class="or-com-r${v.t < t ? ' past' : ''}" href="#or-com-${v.i}" data-com-riga="${v.i}"><span class="o">${esc(v.ora)}${window.NaviComitive.bolle.corsa(v.corsa, v.r.v.turno)}</span>` +
         `<span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `per ${esc(v.c.verso || '')}` : `da ${esc(v.c.da || '')}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></a>`).join('') + '</details>';
   }
@@ -1033,10 +1033,15 @@
   }
 
   function stopPlay() { if (state.playing) { clearInterval(state.playing); state.playing = null; } }
-  const goToDay = day => { state.day = day === iso(new Date()) ? '' : day; state.time = null; state.showPast = false; state.open = ''; stopPlay(); render(); };
+  const goToDay = day => { state.day = day === todayIso() ? '' : day; state.time = null; state.showPast = false; state.open = ''; stopPlay(); render(); };
   if (!EMBED) $('orario-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   if (!EMBED) $('orario-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
-  if (!EMBED) $('orario-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  if (!EMBED) $('orario-day-today').addEventListener('click', () => goToDay(todayIso()));
+  window.addEventListener('navisuite:simulated-date-changed', () => {
+    state.day = '';
+    state.showPast = false;
+    render();
+  });
   if (!EMBED) $('orario-scalo-top')?.addEventListener('change', event => { state.scalo = event.target.value; state.open = ''; state.scaloScelto = true; nuovoScalo(); state.showPast = false; render(); });
   if (!EMBED) $('orario-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('orario-tabs')?.addEventListener('click', event => {
@@ -1167,7 +1172,7 @@
   if (EMBED) {
     window.NaviOrarioPage = {
       show({ modo = 'terra', scalo = 'Desenzano', turno = '', day = '', inizio = '' } = {}) {
-        const giorno = day && day !== iso(new Date()) ? day : '';
+        const giorno = day && day !== todayIso() ? day : '';
         const cambia = !state.embed || state.embed.modo !== modo || state.embed.turno !== turno || (state.embed.inizio || '') !== inizio || state.day !== giorno || (modo === 'terra' && state.scalo !== scalo && !state.scaloScelto);
         // mentre si sceglie un pontile o si usa il cursore non si ridisegna
         if (!cambia && (document.activeElement?.closest?.('#orario-content select, #orario-scalo select') || state.playing)) return;

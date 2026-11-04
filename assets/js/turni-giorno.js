@@ -97,6 +97,42 @@
   const modificheManuali = () => [...modifiche.entries()].map(([key, turno]) => { const [id, day] = key.split('|'); return { id, day, turno, da: modifiche.da?.get(key) || '' }; });
   const setModifiche = map => { modifiche = map instanceof Map ? map : new Map(); };
 
+  function turnoDaAgente(agent, day) {
+    if (agent?.turni && agent.turni[day] !== undefined) {
+      return String(agent.turni[day]).trim();
+    }
+    if (agent?.turni_settimanali_completi || agent?.turni_settimanali) {
+      const weeks = agent.turni_settimanali_completi || agent.turni_settimanali;
+      const calList = (typeof dateCalendario !== 'undefined' && Array.isArray(dateCalendario))
+        ? dateCalendario
+        : (typeof window !== 'undefined' && Array.isArray(window.dateCalendario) ? window.dateCalendario : null);
+      if (calList) {
+        const cal = calList.find(c => c.iso === day);
+        if (cal?.weekKey && Array.isArray(weeks[cal.weekKey])) {
+          const d = new Date(day + 'T12:00:00');
+          const dayIdx = (d.getDay() + 6) % 7;
+          const s = weeks[cal.weekKey][dayIdx];
+          if (s && s !== '—' && !/^A\s+[A-Z]+/i.test(s)) return String(s).trim();
+        }
+      }
+      for (const [key, shifts] of Object.entries(weeks)) {
+        if (!Array.isArray(shifts)) continue;
+        const m = key.match(/settimana_(\d{2})-(\d{2})_al_(\d{2})-(\d{2})/);
+        if (m) {
+          const [y, mStr, dStr] = day.split('-');
+          const start = new Date(Number(y), Number(m[2]) - 1, Number(m[1]), 12);
+          const current = new Date(Number(y), Number(mStr) - 1, Number(dStr), 12);
+          const diffDays = Math.round((current - start) / 864e5);
+          if (diffDays >= 0 && diffDays < shifts.length) {
+            const s = shifts[diffDays];
+            if (s && s !== '—' && !/^A\s+[A-Z]+/i.test(s)) return String(s).trim();
+          }
+        }
+      }
+    }
+    return '';
+  }
+
   const turnoDi = (agent, day, map) => {
     const decisione = map.movimento?.get(`id:${agent?.id}`) ?? map.movimento?.get(`name:${norm(agent?.agente)}`);
     const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
@@ -104,7 +140,7 @@
     if (decisione && (manual === undefined || String(manual).trim().toUpperCase() === String(decisione.sovrascrive ?? '').trim().toUpperCase())) return decisione.shift;
     if (manual) return manual;
     const variation = map.get(`id:${agent?.id}`) ?? map.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
-    return variation !== undefined ? variation : agent?.turni?.[day];
+    return variation !== undefined ? variation : turnoDaAgente(agent, day);
   };
 
   // Turni del giorno: {terra: {AgB: ['ROSSI']}, navi: {D1: [{id, name, grado}, ...]}}. Le variazioni ODS vincono.
@@ -113,9 +149,11 @@
     const terra = {}, navi = {}, seen = new Set();
     Object.values(data?.residenze || {}).forEach(list => (list || []).forEach(agent => {
       const key = String(agent?.id || norm(agent?.agente));
-      if (!key || seen.has(key) || root.NaviRoles?.isBaristaAgent?.(agent)) return;
-      seen.add(key);
+      if (!key || root.NaviRoles?.isBaristaAgent?.(agent)) return;
       const shift = turnoDi(agent, day, map);
+      if (!shift || /^A\s+[A-Z]+/i.test(shift)) return;
+      if (seen.has(key)) return;
+      seen.add(key);
       const name = String(agent.agente || agent.name || '').trim();
       const ground = terraCode(shift);
       if (ground) (terra[ground] = terra[ground] || []).push(name);
@@ -170,7 +208,7 @@
         const decisione = vMap.movimento?.get(`id:${agent?.id}`) ?? vMap.movimento?.get(`name:${norm(agent?.agente)}`);
         const manual = modifiche.get(`${String(agent?.id || '')}|${day}`);
         const variation = vMap.get(`id:${agent?.id}`) ?? vMap.get(`name:${norm(agent?.agente)}`) ?? agent?.variazioni_ods?.[day]?.turno_nuovo;
-        const original = agent?.turni?.[day] !== undefined ? String(agent.turni[day]).trim() : '';
+        const original = turnoDaAgente(agent, day);
 
         let currentTurno = original;
         let isModified = false;

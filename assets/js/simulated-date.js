@@ -90,6 +90,7 @@
     try { localStorage.removeItem('turno_finali_data'); } catch (_) {}
     try { localStorage.removeItem('navi.sharedData.v1'); } catch (_) {}
     try { localStorage.removeItem('navi.sharedDataTime.v1'); } catch (_) {}
+    try { if (typeof indexedDB !== 'undefined') indexedDB.deleteDatabase('naviturni-offline'); } catch (_) {}
   }
 
   // Carica i dati completi per la data impostata

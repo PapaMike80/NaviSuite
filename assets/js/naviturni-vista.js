@@ -22,7 +22,7 @@
   const settimana = s => { const d = parse(s); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7)); const g = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - g) / 864e5 - 3 + ((g.getDay() + 6) % 7)) / 7); };
   const RIPOSO = /^(R|RIP\.?|RIPOSO|-{1,}|—|=+)$/i;
   const profilo = () => { try { return JSON.parse(localStorage.getItem('naviturni_logged_agent') || localStorage.getItem('navidiaria.activeAgent') || 'null'); } catch { return null; } };
-  const oggi = iso(new Date());
+  const oggi = () => (window.NaviDate?.todayIso ? window.NaviDate.todayIso() : iso(new Date()));
   let schedule = null, scelta = null;
   const cache = new Map();
 
@@ -67,7 +67,8 @@
   }
   function scheda() {
     const mio = io();
-    const day = scelta?.day || oggi, code = scelta?.code || (mio ? turno(mio.a, oggi) : '');
+    const curOggi = oggi();
+    const day = scelta?.day || curOggi, code = scelta?.code || (mio ? turno(mio.a, curOggi) : '');
     const giorno = giornoLungo(day).replace(/ (\S{3})\S*$/, ' $1');
     const testa = (titolo, contesto, crewHtml, varsHtml = '') => {
       const hasVars = Boolean(varsHtml && varsHtml.trim());
@@ -254,11 +255,24 @@
     });
     mieiTurni();
     segnaScelta();
-    const cal = dateCalendario.find(c => c.iso === oggi); if (!cal) return;
+    const curOggi = oggi();
+    const cal = dateCalendario.find(c => c.iso === curOggi);
+    document.querySelectorAll('.date-header th.nt-oggi, #tbody td.nt-oggi').forEach(x => {
+      if (!cal || x.dataset.col !== String(cal.col)) x.classList.remove('nt-oggi');
+    });
+    if (!cal) {
+      colonneAltrove();
+      return;
+    }
     document.querySelectorAll(`.date-header th[data-col="${cal.col}"]:not(.nt-oggi), #tbody td[data-col="${cal.col}"]:not(.nt-oggi)`).forEach(x => x.classList.add('nt-oggi'));
     colonneAltrove();
   }
   new MutationObserver(() => segnaOggi()).observe(document.getElementById('turni-operativi') || document.body, { childList: true, subtree: true });
+  window.addEventListener('navisuite:simulated-date-changed', () => {
+    scelta = null;
+    disegnaScheda();
+    segnaOggi();
+  });
 
   // all'apertura e cambiando residenza la tabella parte dal primo agente (in cima), senza slittare in giù
   const inCima = () => [0, 120, 400].forEach(t => setTimeout(() => window.scrollTo({ top: 0, left: window.scrollX, behavior: 'auto' }), t));
@@ -277,7 +291,7 @@
     const prima = document.querySelector('#tbody tr td[data-col]:not([style*="none"])');
     const x0 = prima ? prima.getBoundingClientRect().left : 0;
     giorniPassati += PASSO;
-    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - giorniPassati);
+    const d = parse(oggi()); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - giorniPassati);
     try { if (typeof caricaStorico === 'function') caricaStorico(); } catch { /* niente */ }
     // anche l'equipaggio dei giorni passati: i dati completi (lo storico) servono pure alla testata
     if (!storicoMio && schedule?.__leggeroDal && window.NaviSharedData?.loadCompleto) { storicoMio = true; window.NaviSharedData.loadCompleto({ onLocale: d => { if (d && !d.__leggeroDal) carica(d); } }).then(d => { if (d && !d.__leggeroDal) carica(d); }).catch(() => { storicoMio = false; }); }

@@ -1,7 +1,10 @@
 {
-  "last_updated": "2026-10-29T15:10:00Z",
+  "last_updated": "2026-11-04T10:15:00Z",
   "monitor_status": "ATTIVO",
-  "portale_monitorati": ["inPA (Portale del Reclutamento)", "Albo Pretorio Navigazione Laghi"],
+  "portale_monitorati": [
+    "inPA (Portale del Reclutamento)",
+    "Albo Pretorio Navigazione Laghi"
+  ],
   "ambiti_monitorati": [
     "Uffici Amministrativi e Direzione (Arona, Como, Desenzano, Milano)",
     "Ufficio Controllo e Supporto Operativo",
@@ -33,6 +36,7 @@
       "sedi": ["Lago Maggiore (5)", "Lago di Como (6)", "Lago di Garda"],
       "scadenza": "2026-11-05T23:59:59",
       "stato": "APERTO",
+      "avviso": "Scadenza imminente (domani 5 novembre ore 23:59)",
       "bando_pdf": "docs/naviganti/00_Bando_e_Atti_Ufficiali/Bando_172026_DE_Operatore_Generico_Naviganti.pdf",
       "inpa_url": "https://www.inpa.gov.it/bandi-e-avvisi/dettaglio-bando-avviso/?concorso_id=88c979c391b94e958a6f8eb39e275aac",
       "scheda_html": "concorso-naviganti.html"
@@ -48,6 +52,7 @@
       "scadenza": "2026-10-09T23:59:59",
       "stato": "IN_CORSO_AMMESSI_PUBBLICATI",
       "candidati_ammessi": 69,
+      "fase": "Attesa diario e calendario prove d'esame",
       "bando_pdf": "docs/controllo/00_Bando_e_Atti_Ufficiali/Bando162026_DE.pdf",
       "scheda_html": "concorso-controllo.html"
     }

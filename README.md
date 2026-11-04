@@ -97,6 +97,7 @@ NaviSuite/
 │   ├── css/                    # Fogli di stile modulari (tema scuro/chiaro responsive)
 │   ├── js/                     # Logica applicativa client-side, parser PDF e calcolo CCNL
 │   └── images/                 # Loghi, icone PWA e risorse grafiche
+├── automazioni/                # Stack Docker Compose unificato per TrueNAS (worker, notifiche, sync, backup, stampe, monitor)
 ├── ods/                        # Archivio PDF degli Ordini di Servizio pubblicati
 ├── stampe/                     # PDF pronti per la stampa generati dagli O.d.S.
 ├── backend/orari-api/          # Microservizio REST (Python/Docker) per sincronizzazione orari
@@ -161,6 +162,7 @@ Su Windows è possibile avviare direttamente con un doppio clic lo script [`tool
 * 📘 [**Guida Avanzata per i Colleghi (`docs/GUIDA-AVANZATA.md`)**](docs/GUIDA-AVANZATA.md) — Manuale completo illustrato (Distinta, Verifica busta paga, Notifiche a schermo bloccato, Calendario `.ics`, Widget iPhone, Backup e allineamento).
 * 📄 [**Guida Testuale Semplice (`GUIDA_UTENTE.txt`)**](GUIDA_UTENTE.txt) — Istruzioni in formato solo testo per il primo accesso.
 * 🖨️ [**Guida Stampe da O.d.S. (`tools/stampe/README.md`)**](tools/stampe/README.md) — Dettagli sulla generazione dei PDF per scali, pontilisti e passeggeri.
+* 🐳 [**Automazioni TrueNAS (`automazioni/README.md`)**](automazioni/README.md) — Stack unificato Docker Compose (arrivi, turno pronto, monitor inPA, stampe ODS, sync PocketBase).
 * 🔔 [**Worker Notifiche e Backup (`tools/push-arrivi-worker/README.md`)**](tools/push-arrivi-worker/README.md) — Configurazione degli avvisi a schermo bloccato e del backup automatico su TrueNAS.
 * 📅 [**Setup Calendario Personale (`tools/CALENDARIO_SETUP.md`)**](tools/CALENDARIO_SETUP.md) — Configurazione del feed `.ics` per iPhone e Google Calendar.
 * 📱 [**Istruzioni Widget iPhone (`tools/widget-iphone/ISTRUZIONI.md`)**](tools/widget-iphone/ISTRUZIONI.md) — Come installare il widget degli arrivi/scali su iOS.

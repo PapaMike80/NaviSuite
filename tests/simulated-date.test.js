@@ -80,3 +80,42 @@ test('impostazioni.html contains simulated date controls', () => {
   assert.ok(html.includes('id="sim-date-reset-btn"'), 'impostazioni.html ha pulsante ripristino');
   assert.ok(html.includes('simulated-date.js'), 'impostazioni.html carica simulated-date.js');
 });
+
+test('naviturni and mio-turno integrate NaviDate todayIso', () => {
+  const mioTurnoCode = fs.readFileSync('assets/js/mio-turno.js', 'utf8');
+  assert.ok(mioTurnoCode.includes('NaviDate?.todayIso'), 'mio-turno.js usa NaviDate.todayIso');
+  assert.ok(!mioTurnoCode.includes('renderGiorni(day, me) {\n    const box = $(\'turno-giorni\');\n    if (!box) return;\n    const oggi = iso(new Date());'), 'renderGiorni non usa iso(new Date()) hardcoded');
+
+  const naviTurniVista = fs.readFileSync('assets/js/naviturni-vista.js', 'utf8');
+  assert.ok(naviTurniVista.includes('NaviDate?.todayIso'), 'naviturni-vista.js usa NaviDate.todayIso');
+
+  const naviTurniPage = fs.readFileSync('assets/js/naviturni-page.js', 'utf8');
+  assert.ok(naviTurniPage.includes('const todayIso = localIsoToday();\n      dateCalendario.forEach(cal => {\n        const isPast = cal.iso < todayIso;'), 'naviturni-page.js nasconde colonne passate rispetto a localIsoToday');
+});
+
+test('past crew loading and Pedro residence on 2026-08-15', () => {
+  require('../assets/js/turni-giorno.js');
+  const turniGiorno = globalThis.NaviTurniGiorno;
+  const pastSchedule = {
+    residenze: {
+      DESENZANO: [
+        { id: '1', agente: 'AVANZINI A.', qualifica: 'marinaio', turni: { '2026-07-26': 'D1' } },
+        { id: '2', agente: 'SCALA L.', qualifica: 'timoniere', turni: { '2026-07-26': 'D1' } },
+        { id: '3', agente: 'BUTTURINI C.', qualifica: 'marinaio', turni: { '2026-07-26': 'D1' } },
+        { id: '91', agente: 'PEDRONI M.', qualifica: 'capitano', turni: { '2026-07-26': 'D1' }, variazioni_ods: { '2026-07-26': { turno_nuovo: 'D1' } } }
+      ],
+      MADERNO: [
+        { id: '91', agente: 'PEDRONI M.', qualifica: 'capitano', turni: { '2026-07-26': 'A DESENZANO' } }
+      ]
+    }
+  };
+
+  const eq = turniGiorno.equipaggi(pastSchedule, '2026-07-26');
+  assert.ok(eq.navi.D1, 'Equipaggio D1 presente per il giorno passato');
+  const names = eq.navi.D1.map(m => m.name);
+  assert.ok(names.includes('AVANZINI A.'), 'Avanzini incluso nel D1');
+  assert.ok(names.includes('SCALA L.'), 'Scala incluso nel D1');
+  assert.ok(names.includes('BUTTURINI C.'), 'Butturini incluso nel D1');
+  assert.ok(names.includes('PEDRONI M.'), 'Pedroni incluso nel D1');
+  assert.strictEqual(eq.navi.D1.length, 4, 'Tutti e 4 i membri dell equipaggio caricati');
+});

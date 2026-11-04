@@ -43,10 +43,10 @@
   const admin = !!window.NaviRoles?.isAdminAgent?.(profile());
   const state = { comitive: [], day: '', schedule: null, firebaseNavi: [], showPast: false, test: admin ? String(params.get('turno') || '') : '', sections: { turno: true, corse: false, mappa: false, collegamenti: true }, originalShift: null, currentShift: null, isModified: false, modifiedBy: null };
   if (!admin) document.querySelector('.mt-test')?.remove();
-  const simDate = window.NaviDate?.getSimulatedDate?.();
-  const defaultToday = simDate || iso(new Date());
-  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== defaultToday) state.day = params.get('day');
-  const today = () => state.day || defaultToday;
+  const todayIso = () => (window.NaviDate?.todayIso ? window.NaviDate.todayIso() : iso(new Date()));
+  const defaultToday = () => todayIso();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('day') || '') && params.get('day') !== defaultToday()) state.day = params.get('day');
+  const today = () => state.day || defaultToday();
 
   function card(title, side, body, cls = '', section = 'turno') {
     return `<details class="terra-card ${cls}" data-mt-section="${section}"${state.sections[section] ? ' open' : ''}><summary class="terra-card-head"><h2>${esc(title)}</h2>${side ? `<small>${esc(side)}</small>` : ''}</summary><div class="terra-card-body">${body}</div></details>`;
@@ -119,7 +119,7 @@
     if (!inizio || !fine) { el.classList.add('vuoto'); el.textContent = prossimoServizio(day); return; }
     const durata = m => `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}'` : ''}`;
     let resto = '', fase = '';
-    if (day === iso(new Date())) {
+    if (day === todayIso()) {
       const now = new Date(), n = oraProva ?? now.getHours() * 60 + now.getMinutes();
       const a = minutes(ora(inizio)), b = minutes(ora(fine));
       resto = n < a ? `inizia tra ${durata(a - n)}` : n < b ? `fine tra ${durata(b - n)}` : 'giornata finita';
@@ -177,7 +177,7 @@
 
   // Riquadro rosa «Comitive sulle tue corse»: sempre in vista, sparisce quando sono tutte salite e scese
   function riquadroComitive(rows, com, day, code) {
-    const oggi = iso(new Date()), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+    const oggi = todayIso(), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
     const passata = r => day < oggi || (day === oggi && minutes(r.orario) < nowMin);
     // una comitiva sparisce 30 minuti dopo il passaggio allo scalo (gli orari delle corse includono gia' il ritardo)
     const transitata = r => day < oggi || (day === oggi && minutes(r.orario) + 30 < nowMin);
@@ -188,14 +188,48 @@
     return `<details class="or-com"${state.comAperto ? ' open' : ''}><summary><span>👥 Comitive sulle tue corse</span><b class="cnt">${clienti} · ${pax} pax</b></summary>` +
       voci.map(v => `<div class="or-com-r${passata(v.r) ? ' past' : ''}" data-com-riga="${v.i}"><span class="o">${esc(v.r.orario)}${window.NaviComitive.bolle.corsa(v.r.run, v.r.per || code)}</span><span><span class="ss ${v.su ? 'su' : 'giu'}">${v.su ? 'SALGONO' : 'SCENDONO'}</span><b>${esc(v.c.cliente)}</b><span class="d">${v.su ? `${esc(v.r.nome)} → ${esc(v.c.scende || '')}` : `a ${esc(v.r.nome)}`}</span></span><span class="dx">${window.NaviComitive.bolle.pax(v.c)}${v.su ? window.NaviComitive.bolle.pag(v.c.pagamento) : ''}</span></div>`).join('') + '</details>';
   }
-  function residenzaAgente(me, found, schedule) {
-    const direct = me?.residence || me?.residenza || found?.residenza;
-    if (direct) return direct;
-    if (schedule?.residenze && me?.id) {
-      for (const [res, list] of Object.entries(schedule.residenze)) {
-        if ((list || []).some(a => String(a.id || '') === String(me.id))) return res;
+  function residenzaAgente(me, found, schedule, day) {
+    const d = day || today();
+    const id = String(me?.id || found?.agent?.id || '').trim();
+    const name = norm(me?.name || me?.agente || found?.agent?.agente || '');
+
+    // Cerca l'agente nello schedule
+    let agent = found?.agent;
+    if (!agent && schedule?.residenze) {
+      for (const list of Object.values(schedule.residenze)) {
+        agent = (list || []).find(a => (id && String(a.id || '') === id) || (!id && norm(a.agente || a.name) === name));
+        if (agent) break;
       }
     }
+
+    // 1. Se l'agente ha un cambio di residenza registrato con decorrenza (residenzaDal, residenzaNuova, residenzaPrecedente)
+    const dal = agent?.residenzaDal || me?.residenzaDal;
+    const nuova = agent?.residenzaNuova || me?.residenzaNuova;
+    const prec = agent?.residenzaPrecedente || me?.residenzaPrecedente;
+    if (dal && nuova && prec) {
+      return String(d < dal ? prec : nuova).toUpperCase();
+    }
+
+    // 2. Pedro (id 91 / AG_PEDRONI_M) fino al 04/10/2026 era di residenza a Desenzano, dal 05/10/2026 a Maderno
+    const isPedro = ['91', '92', 'AG_PEDRONI_M'].includes(id) || /\bPEDRONI\b/i.test(name);
+    if (isPedro) {
+      const decorrenza = dal || '2026-10-05';
+      return d < decorrenza ? 'DESENZANO' : 'MADERNO';
+    }
+
+    // 3. Se nello schedule per la data richiesta l'agente si trova in una residenza specifica
+    if (schedule?.residenze) {
+      for (const [res, list] of Object.entries(schedule.residenze)) {
+        if ((list || []).some(a => (id && String(a.id || '') === id) || (!id && norm(a.agente || a.name) === name))) {
+          return String(res).toUpperCase();
+        }
+      }
+    }
+
+    // 4. Fallback sul profilo dell'agente
+    const direct = found?.residenza || me?.residence || me?.residenza;
+    if (direct) return String(direct).toUpperCase();
+
     try {
       const turni = Object.values(found?.agent?.turni || {});
       const count = { Maderno: 0, Desenzano: 0, Riva: 0, Peschiera: 0 };
@@ -207,7 +241,7 @@
         else if (/^(P[1-3]|SR[12]|S\.?S\.?|IE)$/.test(u)) count.Peschiera++;
       });
       const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
-      if (top && top[1] > 0) return top[0];
+      if (top && top[1] > 0) return top[0].toUpperCase();
     } catch (_) {}
     return '';
   }
@@ -371,7 +405,7 @@
     const naveBis = T.turniDelGiorno(turniNavi, day).BIS?.nave || '';
     const sostituzione = code !== 'BIS' ? incarichi.find(inc => inc.tipo !== 'aiuto' && inc.turno === code) : null;
     const corseSostituite = sostituzione ? corseIncarico(sostituzione, day) : [];
-    const realToday = day === iso(new Date());
+    const realToday = day === todayIso();
     const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
 
     $('turno-title').innerHTML = `${chip(code)} ${esc(oggi.nave || 'Nave non indicata')}`;
@@ -441,7 +475,7 @@
     const left = turnoCard(code, day, { inizio: info.presentation, fine: info.lastArrival, crewHtml: equipaggio, nave: oggi.nave || '' });
     const right = card(code === 'BIS' && !rows.length ? 'Servizio' : 'Corse e scali', corse.length ? `${corse.length} corse` : '', listaCorse + regola, 'mt-corse-card', 'corse');
     const sedeNave = residenzaDiNave(code);
-    const casa = residenzaAgente(me, found, state.schedule) || (sedeNave === 'Maderno' ? 'Desenzano' : 'Maderno');
+    const casa = residenzaAgente(me, found, state.schedule, day) || (sedeNave === 'Maderno' ? 'Desenzano' : 'Maderno');
     const isTrasfNave = Boolean(casa && sedeNave && casa !== sedeNave);
     const startNaveMin = window.NaviCollegamenti?.minuti?.(info.firstDeparture);
     // Fuori residenza: arrivo 90 min (1h30) prima della prima partenza corsa (es. R1 08:45 -> 07:15)
@@ -486,7 +520,7 @@
     $('turno-content').innerHTML = '';
     if (servizio) servizioHeader(inizioClean, fineClean, day, code);
     const sedeTerra = residenza === 'MADERNO' ? 'Maderno' : 'Desenzano';
-    const casa = residenzaAgente(me, found, state.schedule) || (sedeTerra === 'Maderno' ? 'Desenzano' : 'Maderno');
+    const casa = residenzaAgente(me, found, state.schedule, day) || (sedeTerra === 'Maderno' ? 'Desenzano' : 'Maderno');
     const isTrasfTerra = Boolean(casa && sedeTerra && casa !== sedeTerra);
     const startTerraMin = window.NaviCollegamenti?.minuti?.(inizioClean);
     // Fuori residenza: arrivo 30 min prima dell'inizio servizio a terra (es. PonD 09:30 -> 09:00)
@@ -615,7 +649,7 @@
   function renderGiorni(day, me) {
     const box = $('turno-giorni');
     if (!box) return;
-    const oggi = iso(new Date());
+    const oggi = todayIso();
     const giorni = Array.from({ length: 29 }, (_, k) => addDays(oggi, k - 14));
     if (!giorni.includes(day)) giorni.push(day), giorni.sort();
     // la striscia si ricostruisce solo quando cambiano i giorni o i turni: cambiando giorno le tessere restano e scorrono
@@ -682,7 +716,7 @@
     });
   }
   function render() {
-    const day = today(), shown = parseIso(day), realToday = day === iso(new Date());
+    const day = today(), shown = parseIso(day), realToday = day === todayIso();
     const clock = new Date();
     $('turno-day-label').textContent = `${GIORNI[shown.getDay()]} ${shown.getDate()} ${MESI[shown.getMonth()]}` +
       (realToday ? ` · ore ${clock.getHours()}.${String(clock.getMinutes()).padStart(2, '0')}` : '');
@@ -778,7 +812,7 @@
     // la striscia parte subito, il turno cambia a meta' animazione
     if (strip) { strip.querySelectorAll('.mt-g').forEach(g => g.classList.toggle('on', g.dataset.giorno === day)); const sel = strip.querySelector('.mt-g.on'); if (sel) { giorniBloccati = true; strip.scrollTo({ left: sel.offsetLeft - (strip.clientWidth - sel.offsetWidth) / 2, behavior: 'smooth' }); } }
     cambioTimer = setTimeout(() => {
-      state.day = day === iso(new Date()) ? '' : day; state.showPast = false; render();
+      state.day = day === todayIso() ? '' : day; state.showPast = false; render();
       els.forEach(el => {
         el.classList.remove('mt-esce-sx', 'mt-esce-dx'); void el.offsetWidth; el.classList.add(`mt-entra-${verso}`);
         [...el.children].slice(0, 10).forEach((c, i) => c.style.setProperty('--i', i));
@@ -969,7 +1003,12 @@
   $('turno-title').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apriDistinta(); } });
   $('turno-day-prev').addEventListener('click', () => goToDay(addDays(today(), -1)));
   $('turno-day-next').addEventListener('click', () => goToDay(addDays(today(), 1)));
-  $('turno-day-today').addEventListener('click', () => goToDay(iso(new Date())));
+  $('turno-day-today').addEventListener('click', () => goToDay(todayIso()));
+  window.addEventListener('navisuite:simulated-date-changed', () => {
+    state.day = '';
+    state.showPast = false;
+    render();
+  });
   $('turno-day-input').addEventListener('change', event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) goToDay(event.target.value); });
   $('turno-test')?.addEventListener('change', event => { state.test = event.target.value; state.showPast = false; render(); });
   $('turno-content').addEventListener('click', event => {
