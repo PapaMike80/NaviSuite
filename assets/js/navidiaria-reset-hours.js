@@ -114,6 +114,7 @@
     return serviceMinutes(entry) + overtimeMinutes(entry);
   };
   const missedRestMinutes = entry => n(entry?.missedRest ?? entry?.missedRestMinutes ?? entry?.mancatoRiposo ?? 0);
+  const isMalattiaShift = entry => ['MAL', 'MALATTIA'].includes(String(entry?.shift || '').trim().toUpperCase());
   const isWorking = entry => {
     if (!entry) return false;
     const code = String(entry.shift || '').trim().toUpperCase();
@@ -140,7 +141,7 @@
     return days;
   };
   const weekOvertimeMinutes = date => {
-    const weekTotal = weekEntryDates(date).filter(x => isWorking(x.entry)).reduce((sum, x) => sum + workedMinutes(x.entry), 0);
+    const weekTotal = weekEntryDates(date).filter(x => isWorking(x.entry) && !isMalattiaShift(x.entry)).reduce((sum, x) => sum + workedMinutes(x.entry), 0);
     return Math.max(0, weekTotal - 39 * 60);
   };
   // Somma settimanale "di default" per una voce qualunque: ricalcola row.value

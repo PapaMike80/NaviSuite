@@ -36,10 +36,14 @@
   // della domenica. sett(entries, domenica) -> {dal, al, lavorate, straordinario}
   const SOGLIA = 39 * 60;
   const isoD = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const isMalattia = e => ['MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
   function sett(entries, domenica) {
     const fine = new Date(`${domenica}T12:00:00`), inizio = new Date(fine); inizio.setDate(fine.getDate() - 6);
-    const dal = isoD(inizio), lav = (entries || []).filter(e => e?.date >= dal && e.date <= domenica).reduce((s, e) => s + lavorate(e), 0);
-    return { dal, al: domenica, lavorate: lav, straordinario: Math.max(0, lav - SOGLIA) };
+    const dal = isoD(inizio);
+    const weekEntries = (entries || []).filter(e => e?.date >= dal && e.date <= domenica);
+    const lav = weekEntries.reduce((s, e) => s + lavorate(e), 0);
+    const lavNoMal = weekEntries.filter(e => !isMalattia(e)).reduce((s, e) => s + lavorate(e), 0);
+    return { dal, al: domenica, lavorate: lav, straordinario: Math.max(0, lavNoMal - SOGLIA) };
   }
   // domeniche di un mese ("2026-10") o di un anno ("2026")
   function domeniche(periodo) {

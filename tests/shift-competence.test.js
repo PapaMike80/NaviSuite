@@ -136,4 +136,29 @@ assert.equal(malTotals.allowance24, 0, 'nessuna diaria per malattia');
 assert.equal(malTotals.holiday, 0, 'nessuna festivita lavorata per malattia');
 assert.equal(malTotals.sundayShift, 0, 'nessuna domenica lavorata per malattia');
 
+// Logica B: Le ore di malattia coprono il debito orario fino a 39h, ma lo straordinario settimanale scatta solo sulle ore effettivamente lavorate oltre 39h
+// Esempio 1: 4 giorni Malattia (32h) + 1 giorno servizio 10h (600 min) -> Totale 42h, Straordinario = 0h
+const week1 = [
+  { date: '2026-08-03', shift: 'MALATTIA' }, // 8h = 480
+  { date: '2026-08-04', shift: 'MALATTIA' }, // 8h = 480
+  { date: '2026-08-05', shift: 'MALATTIA' }, // 8h = 480
+  { date: '2026-08-06', shift: 'MALATTIA' }, // 8h = 480
+  { date: '2026-08-07', shift: 'LAV', serviceMinutes: 600, workedMinutes: 600 } // 10h = 600
+];
+const totWeek1 = calcWithMalattia.summarize([week1]);
+assert.equal(totWeek1.workedMinutes, 4 * 480 + 600, '42 ore complessive');
+assert.equal(totWeek1.overtimeMinutes, 0, '0 straordinario: 10h effettive non superano 39h');
+
+// Esempio 4: 4 x D1 (13h = 52h lavorate) + 1 x Malattia (8h) -> Totale 60h, Straordinario = 13h (52h - 39h)
+const week2 = [
+  { date: '2026-08-10', shift: 'D1' }, // 13h
+  { date: '2026-08-11', shift: 'D1' }, // 13h
+  { date: '2026-08-12', shift: 'D1' }, // 13h
+  { date: '2026-08-13', shift: 'D1' }, // 13h
+  { date: '2026-08-14', shift: 'MALATTIA' } // 8h
+];
+const totWeek2 = calcWithMalattia.summarize([week2]);
+assert.equal(totWeek2.workedMinutes, 4 * 13 * 60 + 480, '60 ore complessive');
+assert.equal(totWeek2.overtimeMinutes, 13 * 60, '13 ore straordinario: 52h lavorate - 39h');
+
 console.log('shift competence (decorrenza ore turni) ok');

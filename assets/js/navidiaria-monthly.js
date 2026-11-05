@@ -25,6 +25,7 @@ try{(()=>{
     {key:'rf',label:'Recupero forfait',mobileLabel:'Recup.',kind:'toggle',field:'rf',value:e=>check(isWorking(e)&&e.rf)}
   ];
   const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP', 'MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
+  const isMalattiaShift = e => ['MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
   function isWorking(e){
     if(!e)return false;
     const code=String(e.shift||'').toUpperCase();
@@ -66,7 +67,7 @@ try{(()=>{
   function summarizedTotal(row,weekGroups){const worked=weekGroups.flat().filter(isWorking),service=worked.reduce((sum,e)=>sum+serviceMinutes(e),0),actual=worked.reduce((sum,e)=>sum+workedMinutes(e),0);switch(row.key){
     case 'service':return worked.length?`${worked.length} gg\n${clock(service)}`:'';
     case 'hours':return actual?clock(actual):'';
-    case 'overtime':{const overtimeMinutes=weekGroups.reduce((total,group)=>total+Math.max(0,group.filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60),0);return overtimeMinutes?clock(overtimeMinutes):''}
+    case 'overtime':{const overtimeMinutes=weekGroups.reduce((total,group)=>total+Math.max(0,group.filter(e=>isWorking(e)&&!isMalattiaShift(e)).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60),0);return overtimeMinutes?clock(overtimeMinutes):''}
     case 'bank':{const bank=worked.reduce((sum,e)=>sum+(Number(e.bank)||0),0);return bank?signedClock(bank):''}
     case 'ticket':{const due=worked.filter(ticketDue).length,used=worked.filter(e=>ticketDue(e)&&ticketValue(e)).length;return due?String(due-used):''}
     case 'allowance9':return worked.filter(e=>Number(e.allowanceRate)===9).length||'';
@@ -138,7 +139,7 @@ try{(()=>{
   // trasformazione in banca ore: totale e parte delle settimane non ancora finite (prevista dai turni).
   // Straordinario giornaliero dei giorni del mese dopo l'ultima domenica: si liquida in questo mese (es. lunedi' 27 luglio).
   function straordinariCoda(sundays){const mese=document.getElementById('monthFilter').value,ultima=sundays.length?iso(sundays[sundays.length-1]):'';return entries.filter(e=>String(e?.date||'').slice(0,7)===mese&&e.date>ultima&&isWorking(e)).reduce((sum,e)=>sum+Math.max(0,Math.round(Number(overtime?.total?.(e))||0)),0)}
-  function straordinariMese(sundays,ignoreCorr=false){let totale=0,previsti=0;const oggi=todayIso(),mese=document.getElementById('monthFilter').value;sundays.forEach(sunday=>{const m=Math.max(0,entriesInWeek(sunday).filter(isWorking).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60);totale+=m;if(iso(sunday)>=oggi)previsti+=m});const coda=straordinariCoda(sundays);totale+=coda;previsti+=coda;if(!ignoreCorr)totale=Math.max(0,totale+getRowCorr({key:'overtime',unit:'H'},mese));return {totale,previsti}}
+  function straordinariMese(sundays,ignoreCorr=false){let totale=0,previsti=0;const oggi=todayIso(),mese=document.getElementById('monthFilter').value;sundays.forEach(sunday=>{const m=Math.max(0,entriesInWeek(sunday).filter(e=>isWorking(e)&&!isMalattiaShift(e)).reduce((sum,e)=>sum+workedMinutes(e),0)-39*60);totale+=m;if(iso(sunday)>=oggi)previsti+=m});const coda=straordinariCoda(sundays);totale+=coda;previsti+=coda;if(!ignoreCorr)totale=Math.max(0,totale+getRowCorr({key:'overtime',unit:'H'},mese));return {totale,previsti}}
   function displayValue(row,value){const text=String(value||'');if(row.key!=='service'||!text)return escapeHtml(text);const [main,...details]=text.split('\n');return `<strong>${escapeHtml(main)}</strong>${details.length?`<small>${escapeHtml(details.join(' '))}</small>`:''}`}
   // Colonne: tutti i giorni del mese di calendario (1–30/31). I conteggi restano per settimane intere
   // (totali settimanali e del mese sulle domeniche del periodo di competenza).

@@ -92,12 +92,15 @@
       const cash139 = e => !!(e.cashHandling && e.embark);
       const cash138 = e => /^AG[BTM]\d*$/i.test(String(e.shift || '').trim());
       const isAbsenceShift = e => ['CON', 'FERIE', 'F.P.', 'FP', 'MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
+      const isMalattiaShift = e => ['MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
+      const isOvertimeWorking = e => isWorking(e) && !isMalattiaShift(e);
       const isCongedoShift = e => ['CON', 'FERIE'].includes(String(e?.shift || '').trim().toUpperCase());
       let overtime139Minutes = 0;
       let overtimeMixedWeeks = 0;
       weekGroups.forEach(group => {
         const working = group.filter(isWorking);
-        const extra = Math.max(0, working.reduce((total, e) => total + workedMinutes(e), 0) - 39 * 60);
+        const overtimeWorking = group.filter(isOvertimeWorking);
+        const extra = Math.max(0, overtimeWorking.reduce((total, e) => total + workedMinutes(e), 0) - 39 * 60);
         if (!extra) return;
         const cashDays = working.filter(cash139).length;
         if (cashDays === working.length) overtime139Minutes += extra;
@@ -108,7 +111,7 @@
         workedDays: worked.length,
         serviceMinutes: worked.reduce((sum, e) => sum + serviceMinutes(e), 0),
         workedMinutes: worked.reduce((sum, e) => sum + workedMinutes(e), 0),
-        overtimeMinutes: weekGroups.reduce((total, group) => total + Math.max(0, group.filter(isWorking).reduce((sum, e) => sum + workedMinutes(e), 0) - 39 * 60), 0),
+        overtimeMinutes: weekGroups.reduce((total, group) => total + Math.max(0, group.filter(isOvertimeWorking).reduce((sum, e) => sum + workedMinutes(e), 0) - 39 * 60), 0),
         bankMinutes: worked.reduce((sum, e) => sum + (Number(e.bank) || 0), 0),
         ticketDue: due,
         ticketUsed: used,
@@ -190,10 +193,12 @@
         const from = iso(start), to = iso(end);
         return list.filter(e => e.date >= from && e.date <= to);
       });
+      const isMalattiaShift = e => ['MAL', 'MALATTIA'].includes(String(e?.shift || '').trim().toUpperCase());
       const weeks = period.weeks.map(({ start, end }, index) => {
         const group = groups[index];
         const worked = group.filter(isWorking).reduce((sum, e) => sum + workedMinutes(e), 0);
-        return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, cash139Days: group.filter(e => isWorking(e) && e.cashHandling && e.embark).length, workedMinutes: worked, overtimeMinutes: Math.max(0, worked - 39 * 60) };
+        const overtimeEligible = group.filter(e => isWorking(e) && !isMalattiaShift(e)).reduce((sum, e) => sum + workedMinutes(e), 0);
+        return { startIso: iso(start), endIso: iso(end), workedDays: group.filter(isWorking).length, cash139Days: group.filter(e => isWorking(e) && e.cashHandling && e.embark).length, workedMinutes: worked, overtimeMinutes: Math.max(0, overtimeEligible - 39 * 60) };
       });
       // Giornate del solo mese di calendario: i giorni del mese precedente nella prima settimana
       // (colonna RIP = riporto della Distinta) sono gia' stati pagati con la busta precedente.
