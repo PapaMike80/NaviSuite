@@ -286,20 +286,218 @@
     }
     #btnCustomColor {
       position: relative;
-      touch-action: manipulation;
+      touch-action: none;
+      -webkit-touch-callout: none;
       user-select: none;
       -webkit-user-select: none;
     }
     #btnCustomColor.holding {
-      transform: scale(0.96);
-      border-color: #f59e0b !important;
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.6) !important;
-    }
-    #btnCustomColor.hold-ready {
-      transform: scale(1.05);
+      transform: scale(0.95);
       border-color: #2dd4bf !important;
-      box-shadow: 0 0 26px rgba(45, 212, 191, 0.9) !important;
-      background: rgba(45, 212, 191, 0.2) !important;
+      box-shadow: 0 0 25px rgba(45, 212, 191, 0.8) !important;
+    }
+
+    /* MODAL SELETTORE COLORE PERSONALIZZATO */
+    .color-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(3, 10, 18, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    .color-modal-overlay[hidden] {
+      display: none !important;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .color-modal-card {
+      width: min(100%, 420px);
+      background: radial-gradient(circle at center, #112638, #0a1622 90%);
+      border: 1px solid #2dd4bf;
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 30px rgba(45, 212, 191, 0.25);
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(20px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .color-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .btn-modal-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #94a3b8;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-modal-close:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    /* Anteprima Colore */
+    .color-preview-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(5, 14, 22, 0.7);
+      border: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+    .color-preview-swatch {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.85);
+      box-shadow: 0 0 16px currentColor;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .color-preview-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .color-preview-info strong {
+      font-family: ui-monospace, monospace;
+      font-size: 18px;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
+    .color-preview-info span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Griglia Palette Preset */
+    .color-presets-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .color-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin-bottom: 18px;
+    }
+    .btn-preset-color {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 4px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(9, 21, 34, 0.7);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-preset-color:hover, .btn-preset-color.active {
+      transform: translateY(-2px);
+      border-color: #2dd4bf;
+      background: rgba(45, 212, 191, 0.16);
+      box-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+    }
+    .preset-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+      border: 2px solid rgba(255,255,255,0.6);
+    }
+    .preset-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* Selettore Libero Avanzato */
+    .color-custom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(5, 14, 22, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+    .custom-wheel-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .custom-wheel-wrap input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 2px solid #2dd4bf;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+    .custom-wheel-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    .custom-wheel-wrap input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 8px;
+    }
+    .custom-wheel-text {
+      font-size: 12px;
+      color: #a7fff0;
+      font-weight: 700;
+    }
+
+    /* Azione Conferma */
+    .btn-color-confirm {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2dd4bf, #0d9488);
+      border: 1px solid #5eead4;
+      color: #02201d;
+      font-weight: 900;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(45, 212, 191, 0.4);
+      transition: all 0.2s;
+    }
+    .btn-color-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(45, 212, 191, 0.6);
     }
 
     /* CARD CONTATORE MONETE ARCADE */
@@ -440,12 +638,9 @@
         <button type="button" class="btn-effect" data-effect="4" id="btnCustomColor">
           <span class="ico" id="customColorDot" title="Tocca per scegliere il colore" style="display:inline-block;width:30px;height:30px;border-radius:50%;background:#c1170b;box-shadow:0 0 12px #c1170b;border:2px solid rgba(255,255,255,0.7);cursor:pointer;"></span>
           <span>Tinta Unita</span>
-          <small class="hint" id="customColorHint">Tieni premuto 🎨</small>
+          <small class="hint" id="customColorHint">🎨 Cambia colore</small>
         </button>
       </div>
-
-      <!-- Color picker nativo off-screen (attivo e accessibile per gesture utente) -->
-      <input type="color" id="hiddenColorPicker" style="position:fixed;top:-500px;left:-500px;width:10px;height:10px;opacity:0.01;visibility:visible;" value="#c1170b">
     </section>
 
     <!-- CONTATORE MONETE ARCADE -->
@@ -457,6 +652,45 @@
       </div>
     </section>
   </main>
+
+  <!-- MODAL SELETTORE COLORE PERSONALIZZATO -->
+  <div class="color-modal-overlay" id="colorModalOverlay" hidden>
+    <div class="color-modal-card" role="dialog" aria-modal="true" aria-labelledby="colorModalTitle">
+      <div class="color-modal-header">
+        <div>
+          <h3 id="colorModalTitle" style="margin:0;font-size:18px;font-weight:900;color:#fff;">Colore Personalizzato</h3>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Scegli una tinta per la statua Navigoto</p>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseColorModal" aria-label="Chiudi">✕</button>
+      </div>
+
+      <!-- Anteprima Colore -->
+      <div class="color-preview-bar">
+        <div class="color-preview-swatch" id="modalPreviewSwatch"></div>
+        <div class="color-preview-info">
+          <strong id="modalColorHex">#C1170B</strong>
+          <span id="modalColorName">Rosso Navigoto</span>
+        </div>
+      </div>
+
+      <!-- Griglia Preset Rapidi -->
+      <div class="color-presets-title">Palette Rapida (1 Tocco)</div>
+      <div class="color-presets-grid" id="colorPresetsGrid"></div>
+
+      <!-- Selettore Libero Avanzato -->
+      <div class="color-custom-row">
+        <span class="custom-wheel-text">Sfumatura libera:</span>
+        <div class="custom-wheel-wrap">
+          <input type="color" id="customColorWheelInput" value="#c1170b" aria-label="Selettore colore libero">
+        </div>
+      </div>
+
+      <!-- Azioni -->
+      <div class="color-modal-actions">
+        <button type="button" class="btn-color-confirm" id="btnConfirmColor">Applica alla Statua</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPT DI SISTEMA NAVISUITE & FIREBASE -->
   <script src="assets/js/shared-roles.js?v=5"></script>
@@ -667,11 +901,16 @@
 
       function updateCustomColorDisplay(hex) {
         currentCustomColor = hex;
-        hiddenColorPicker.value = hex;
         if (customColorDot) {
           customColorDot.style.background = hex;
           customColorDot.style.boxShadow = `0 0 12px ${hex}`;
         }
+        if (modalPreviewSwatch) {
+          modalPreviewSwatch.style.background = hex;
+          modalPreviewSwatch.style.color = hex;
+        }
+        if (modalColorHex) modalColorHex.textContent = hex.toUpperCase();
+        if (customColorWheelInput) customColorWheelInput.value = hex;
       }
 
       function applyCloudState(data) {
@@ -779,85 +1018,153 @@
         });
       });
 
-      // APERTURA DEL COLOR PICKER (Compatibile con iOS Safari, Android Chrome e Desktop)
-      function openColorPicker() {
-        try {
-          if (typeof hiddenColorPicker.showPicker === 'function') {
-            hiddenColorPicker.showPicker();
-          } else {
-            hiddenColorPicker.click();
-          }
-        } catch (e) {
-          hiddenColorPicker.click();
+      // 12 PRESET STUDIATI PER I LED WS2812B
+      const COLOR_PRESETS = [
+        { name: 'Rosso Navigoto', hex: '#c1170b' },
+        { name: 'Ambra Garda', hex: '#f59e0b' },
+        { name: 'Oro Puro', hex: '#ffd700' },
+        { name: 'Arancio Fuoco', hex: '#ff5722' },
+        { name: 'Ciano Fluo', hex: '#00f0ff' },
+        { name: 'Turchese Lago', hex: '#2dd4bf' },
+        { name: 'Blu Elettrico', hex: '#0066ff' },
+        { name: 'Viola Notte', hex: '#9d00ff' },
+        { name: 'Fucsia Fluo', hex: '#ff007f' },
+        { name: 'Verde Smeraldo', hex: '#00e676' },
+        { name: 'Verde Lime', hex: '#76ff03' },
+        { name: 'Bianco Caldo', hex: '#fff4e6' }
+      ];
+
+      const colorModalOverlay = document.getElementById('colorModalOverlay');
+      const btnCloseColorModal = document.getElementById('btnCloseColorModal');
+      const btnConfirmColor = document.getElementById('btnConfirmColor');
+      const modalPreviewSwatch = document.getElementById('modalPreviewSwatch');
+      const modalColorHex = document.getElementById('modalColorHex');
+      const modalColorName = document.getElementById('modalColorName');
+      const customColorWheelInput = document.getElementById('customColorWheelInput');
+      const colorPresetsGrid = document.getElementById('colorPresetsGrid');
+
+      function renderPresets() {
+        if (!colorPresetsGrid) return;
+        colorPresetsGrid.innerHTML = '';
+        COLOR_PRESETS.forEach(p => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn-preset-color';
+          if (p.hex.toLowerCase() === currentCustomColor.toLowerCase()) btn.classList.add('active');
+          btn.innerHTML = `
+            <span class="preset-swatch" style="background:${p.hex};color:${p.hex}"></span>
+            <span class="preset-label">${p.name}</span>
+          `;
+          btn.addEventListener('click', () => {
+            selectModalColor(p.hex, p.name);
+          });
+          colorPresetsGrid.appendChild(btn);
+        });
+      }
+
+      function selectModalColor(hex, name) {
+        currentCustomColor = hex;
+        updateCustomColorDisplay(hex);
+        if (modalColorName) modalColorName.textContent = name || 'Colore Personalizzato';
+
+        document.querySelectorAll('.btn-preset-color').forEach(b => {
+          const sw = b.querySelector('.preset-swatch');
+          const isMatch = sw && (sw.style.background.toLowerCase() === hex.toLowerCase());
+          b.classList.toggle('active', isMatch);
+        });
+
+        // Se l'effetto attivo è Tinta Unita (4), rifletti subito sulla statua
+        if (currentEffect === 4) {
+          sendCloudUpdate({ custom_hex: hex });
         }
       }
 
-      // 1. Tocco diretto sul pallino rotondo del colore o sul testo del suggerimento: apre SUBITO il selettore!
+      function openColorModal() {
+        if (!colorModalOverlay) return;
+        renderPresets();
+        selectModalColor(currentCustomColor, '');
+        colorModalOverlay.hidden = false;
+        navigator.vibrate?.(40);
+      }
+
+      function closeColorModal() {
+        if (!colorModalOverlay) return;
+        colorModalOverlay.hidden = true;
+      }
+
+      btnCloseColorModal?.addEventListener('click', closeColorModal);
+      colorModalOverlay?.addEventListener('click', (e) => {
+        if (e.target === colorModalOverlay) closeColorModal();
+      });
+
+      btnConfirmColor?.addEventListener('click', () => {
+        closeColorModal();
+        effectBtns.forEach(b => b.classList.remove('active'));
+        btnCustomColor.classList.add('active');
+        currentEffect = 4;
+        currentEffectLabel.textContent = 'Effetto: Colore Personalizzato';
+        currentPower = true;
+        statueStage.className = 'statue-stage powered-on';
+        btnPowerMain.className = 'btn-power-main on';
+        powerText.textContent = 'ACCESO';
+        sendCloudUpdate({ custom_hex: currentCustomColor, effect: 4, power: true });
+      });
+
+      customColorWheelInput?.addEventListener('input', () => {
+        selectModalColor(customColorWheelInput.value, 'Personalizzato');
+      });
+      customColorWheelInput?.addEventListener('change', () => {
+        selectModalColor(customColorWheelInput.value, 'Personalizzato');
+      });
+
+      // 1. Tocco diretto su pallino colore o scritta "🎨 Cambia colore" -> APRE SUBITO IL SELETTORE
       customColorDot?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        openColorPicker();
+        openColorModal();
       });
-      const customColorHint = document.getElementById('customColorHint');
-      customColorHint?.addEventListener('click', (e) => {
+      document.getElementById('customColorHint')?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        openColorPicker();
+        openColorModal();
       });
 
-      // 2. GESTIONE LONG-PRESS SUL PULSANTE TINTA UNITA:
-      // - Pressione prolungata (> 400ms): al rilascio apre il selettore colore per sceglierne uno nuovo
-      // - Tap / Click rapido (< 400ms): attiva immediatamente l'effetto Tinta Unita
-      let pressStartTime = 0;
-      let holdTimer = null;
-      let isHoldTriggered = false;
+      // 2. GESTIONE PULSANTE TINTA UNITA:
+      // - Tap rapido (< 350ms): Attiva subito l'effetto Tinta Unita
+      // - Pressione prolungata (> 350ms): Apre il selettore colore con vibrazione aptica
+      let touchStartTime = 0;
+      let longPressTimer = null;
+      let didLongPress = false;
 
-      btnCustomColor.addEventListener('pointerdown', (e) => {
-        if (e.button && e.button !== 0) return;
-        pressStartTime = Date.now();
-        isHoldTriggered = false;
+      function startPress() {
+        touchStartTime = Date.now();
+        didLongPress = false;
         btnCustomColor.classList.add('holding');
 
-        holdTimer = setTimeout(() => {
-          isHoldTriggered = true;
+        longPressTimer = setTimeout(() => {
+          didLongPress = true;
+          btnCustomColor.classList.remove('holding');
           navigator.vibrate?.(60);
-          btnCustomColor.classList.add('hold-ready');
-          if (customColorHint) customColorHint.textContent = 'Rilascia per scegliere! 🎨';
-        }, 400);
-      });
+          openColorModal();
+        }, 350);
+      }
 
-      const clearHoldState = () => {
-        if (holdTimer) {
-          clearTimeout(holdTimer);
-          holdTimer = null;
+      function endPress(e) {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
         }
-        btnCustomColor.classList.remove('holding', 'hold-ready');
-        if (customColorHint) customColorHint.textContent = 'Tieni premuto 🎨';
-      };
+        btnCustomColor.classList.remove('holding');
 
-      btnCustomColor.addEventListener('pointerleave', clearHoldState);
-      btnCustomColor.addEventListener('pointercancel', clearHoldState);
-
-      btnCustomColor.addEventListener('pointerup', (e) => {
-        const duration = Date.now() - pressStartTime;
-        const wasHold = isHoldTriggered || duration >= 400;
-        clearHoldState();
-
-        if (wasHold) {
-          e.preventDefault();
-          e.stopPropagation();
-          // Eseguito sincronicamente dentro pointerup (gesto utente attivo garantito dal browser)
-          openColorPicker();
-        }
-      });
-
-      // Click rapido: attiva subito l'effetto Tinta Unita
-      btnCustomColor.addEventListener('click', (e) => {
-        if (isHoldTriggered) {
-          isHoldTriggered = false;
+        if (didLongPress) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
           return;
         }
-        // Click normale: attiva subito l'effetto Tinta Unita
+
+        // Tap rapido: attiva subito l'effetto Tinta Unita
         effectBtns.forEach(b => b.classList.remove('active'));
         btnCustomColor.classList.add('active');
         currentEffect = 4;
@@ -867,30 +1174,49 @@
         btnPowerMain.className = 'btn-power-main on';
         powerText.textContent = 'ACCESO';
         sendCloudUpdate({ effect: 4, power: true });
+      }
+
+      function cancelPress() {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+        btnCustomColor.classList.remove('holding');
+      }
+
+      // Supporto Touch per smartphone (iOS / Android)
+      btnCustomColor.addEventListener('touchstart', (e) => {
+        startPress();
+      }, { passive: true });
+
+      btnCustomColor.addEventListener('touchend', (e) => {
+        endPress(e);
       });
 
-      // Doppio click su desktop apre anche la palette comodamente
+      btnCustomColor.addEventListener('touchcancel', cancelPress);
+
+      // Supporto Mouse per desktop
+      btnCustomColor.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        startPress();
+      });
+
+      btnCustomColor.addEventListener('mouseup', (e) => {
+        if (e.button !== 0) return;
+        endPress(e);
+      });
+
+      btnCustomColor.addEventListener('mouseleave', cancelPress);
+
+      // Menu contestuale e doppio click desktop
+      btnCustomColor.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        openColorModal();
+      });
+
       btnCustomColor.addEventListener('dblclick', (e) => {
         e.preventDefault();
-        openColorPicker();
-      });
-
-      // Quando l'utente sceglie un nuovo colore dalla palette
-      hiddenColorPicker.addEventListener('input', () => {
-        updateCustomColorDisplay(hiddenColorPicker.value);
-      });
-      hiddenColorPicker.addEventListener('change', () => {
-        const newColor = hiddenColorPicker.value;
-        updateCustomColorDisplay(newColor);
-        effectBtns.forEach(b => b.classList.remove('active'));
-        btnCustomColor.classList.add('active');
-        currentEffect = 4;
-        currentEffectLabel.textContent = 'Effetto: Colore Personalizzato';
-        currentPower = true;
-        statueStage.className = 'statue-stage powered-on';
-        btnPowerMain.className = 'btn-power-main on';
-        powerText.textContent = 'ACCESO';
-        sendCloudUpdate({ custom_hex: newColor, effect: 4, power: true });
+        openColorModal();
       });
 
       // Avvio
