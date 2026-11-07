@@ -3,21 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NaviSuite • Navigoto Coin Box</title>
+  <title>NaviSuite • Navigoto</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&family=Manrope:wght@600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/navi-layout.css">
   <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
   <style>
     :root {
-      --bg: #061821;
-      --panel: #0c2530;
-      --card: #102f3a;
-      --line: #28515d;
-      --ink: #edfafa;
-      --muted: #9eb9c1;
+      --bg: #070e17;
+      --panel: #0d1a29;
+      --card: #112338;
+      --line: #1c3852;
+      --ink: #f0fdf4;
+      --muted: #8ea8be;
       --accent: #2dd4bf;
       --yellow: #facc15;
       --gold: #f59e0b;
@@ -27,7 +27,7 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: radial-gradient(900px 420px at 18% -10%, #123e4b, transparent 60%), var(--bg);
+      background: radial-gradient(1000px 500px at 50% -10%, #0c2b42, transparent 70%), var(--bg);
       color: var(--ink);
       font-family: 'DM Sans', Manrope, system-ui, sans-serif;
       min-height: 100vh;
@@ -35,140 +35,270 @@
     main {
       margin-left: 230px;
       padding: 30px;
-      max-width: 1300px;
-    }
-    .eyebrow {
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-    }
-    .hero {
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      margin: 7px 0 5px;
-      font-size: 30px;
-      font-family: 'Manrope', sans-serif;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
+      max-width: 1100px;
     }
 
-    /* BARRA CLOUD FIREBASE */
-    .cloud-bar {
+    /* HEADER & STATUA HERO */
+    .statue-stage {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 14px;
-      padding: 14px 18px;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 20px 24px;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(12, 37, 48, 0.95);
+      border-radius: 24px;
+      background: radial-gradient(circle at center, rgba(16, 44, 68, 0.9), rgba(7, 18, 30, 0.95));
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.5);
       margin-bottom: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      position: relative;
+      overflow: hidden;
     }
-    .cloud-info {
+
+    /* BADGE LOGO UFFICIALE */
+    .logo-container {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .statue-logo {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(0,0,0,0.8);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: #020b14;
+    }
+    .statue-stage.powered-on .statue-logo {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 35px rgba(45, 212, 191, 0.65), 0 0 70px rgba(45, 212, 191, 0.25);
+      animation: logoPulse 4s infinite alternate ease-in-out;
+    }
+    @keyframes logoPulse {
+      0% { transform: scale(1); box-shadow: 0 0 25px rgba(45, 212, 191, 0.5); }
+      100% { transform: scale(1.03); box-shadow: 0 0 40px rgba(45, 212, 191, 0.8), 0 0 80px rgba(56, 189, 248, 0.35); }
+    }
+
+    /* SCRITTA NAVIGOTO LETTERA PER LETTERA */
+    .navigoto-title {
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin: 10px 0 16px;
+      user-select: none;
     }
-    .cloud-badge {
+    .nav-let {
+      font-family: 'Manrope', 'DM Sans', sans-serif;
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      display: inline-block;
+      transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.2s ease;
+      color: #334155;
+      text-shadow: none;
+    }
+    @media (max-width: 600px) {
+      .nav-let { font-size: 38px; gap: 4px; }
+      .statue-logo { width: 85px; height: 85px; }
+    }
+
+    .statue-stage.powered-off .nav-let {
+      color: #1e293b !important;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.05) !important;
+    }
+
+    /* STATUS PILL SOTTO LA SCRITTA */
+    .statue-status-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      padding: 6px 16px;
       border-radius: 999px;
-      font-size: 12px;
+      background: rgba(15, 34, 50, 0.8);
+      border: 1px solid var(--line);
+      font-size: 13px;
       font-weight: 800;
-      background: #091a22;
-      border: 1px solid #28515d;
+      color: var(--muted);
     }
-    .cloud-badge.online {
-      border-color: #166534;
-      background: rgba(34, 197, 94, 0.12);
-      color: #86efac;
-    }
-    .cloud-badge.syncing {
-      border-color: #0369a1;
-      background: rgba(14, 165, 233, 0.12);
-      color: #7dd3fc;
-    }
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 8px currentColor;
+    .statue-status-pill.on {
+      border-color: #059669;
+      color: #a7f3d0;
+      background: rgba(16, 185, 129, 0.12);
     }
 
-    /* DISPLAY MONETE ARCADE */
-    .grid {
+    /* CONTROLLO PRINCIPALE: ON/OFF & LUMINOSITÀ */
+    .main-controls-card {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 24px;
+      padding: 22px 26px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(13, 26, 41, 0.95);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.25);
       margin-bottom: 24px;
     }
-    .card {
-      padding: 22px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(12, 37, 48, 0.92);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    @media (max-width: 700px) {
+      .main-controls-card { grid-template-columns: 1fr; gap: 18px; }
+    }
+
+    .btn-power-main {
+      padding: 14px 34px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid transparent;
+      transition: all 0.25s;
+    }
+    .btn-power-main.on {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #022c22;
+      border-color: #34d399;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.45);
+    }
+    .btn-power-main.off {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      border-color: #f87171;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+    }
+    .btn-power-main:hover {
+      transform: translateY(-2px);
+    }
+
+    .brightness-slider-wrap {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 8px;
     }
-    .card h2 {
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    .slider-labels b {
+      color: var(--accent);
+      font-size: 15px;
+    }
+    .range-input {
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: #06121d;
+      outline: none;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* CARD EFFETTI LUMINOSI */
+    .effects-section {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(13, 26, 41, 0.95);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.25);
+      margin-bottom: 24px;
+    }
+    .effects-section h2 {
       margin: 0 0 6px;
-      font-size: 18px;
+      font-size: 20px;
       font-family: 'Manrope', sans-serif;
       font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
     }
-    .card p.desc {
+    .effects-section p.sub {
       margin: 0 0 18px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.4;
+    }
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .btn-effect {
+      background: #091522;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-effect span.ico {
+      font-size: 28px;
+    }
+    .btn-effect:hover {
+      border-color: var(--accent);
+      background: #11283d;
+      transform: translateY(-2px);
+    }
+    .btn-effect.active {
+      border-color: var(--accent);
+      background: rgba(45, 212, 191, 0.16);
+      color: #a7fff0;
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
     }
 
-    .coin-display-card {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(16, 47, 58, 0.95), rgba(7, 27, 36, 0.95));
+    .color-picker-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: #091522;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .color-picker-box input[type="color"] {
+      border: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    /* CARD CONTATORE MONETE ARCADE */
+    .coin-arcade-card {
+      padding: 26px 20px;
       border: 1px solid #366d7c;
+      border-radius: 20px;
+      background: radial-gradient(circle at center, rgba(16, 47, 58, 0.95), rgba(7, 27, 36, 0.95));
       text-align: center;
-      padding: 30px 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
     }
     .arcade-box {
       background: #030d12;
       border: 2px solid #28515d;
-      border-radius: 16px;
-      padding: 24px 20px;
-      max-width: 480px;
+      border-radius: 18px;
+      padding: 22px 20px;
+      max-width: 440px;
       margin: 0 auto 20px;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(245, 158, 11, 0.15);
-      position: relative;
-      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(245, 158, 11, 0.2);
       transition: all 0.3s;
     }
     .arcade-box.coin-pulse {
       animation: goldGlow 0.8s ease-out;
     }
     @keyframes goldGlow {
-      0% { box-shadow: inset 0 0 40px rgba(245,158,11,0.8), 0 0 45px rgba(245,158,11,0.6); border-color: #f59e0b; }
-      100% { box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(245,158,11,0.15); border-color: #28515d; }
+      0% { box-shadow: inset 0 0 40px rgba(245,158,11,0.8), 0 0 50px rgba(245,158,11,0.7); border-color: #f59e0b; }
+      100% { box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(245,158,11,0.2); border-color: #28515d; }
     }
     .arcade-title {
       font-size: 11px;
@@ -176,14 +306,13 @@
       color: #94a3b8;
       text-transform: uppercase;
       font-weight: 800;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .arcade-number {
       font-family: 'Press Start 2P', monospace;
-      font-size: 48px;
+      font-size: 46px;
       color: #fbbf24;
       text-shadow: 0 0 15px rgba(251, 191, 36, 0.6), 0 0 30px rgba(245, 158, 11, 0.4);
-      letter-spacing: 2px;
       margin: 8px 0;
     }
     .arcade-sub {
@@ -197,12 +326,12 @@
       justify-content: center;
       flex-wrap: wrap;
     }
-    .btn-coin-test {
+    .btn-coin-sim {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       border: 1px solid #fbbf24;
       color: #1e1302;
       font-weight: 900;
-      padding: 14px 28px;
+      padding: 13px 26px;
       border-radius: 12px;
       font-size: 14px;
       cursor: pointer;
@@ -210,153 +339,34 @@
       align-items: center;
       gap: 8px;
       box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
-      transition: all 0.15s;
+      transition: all 0.2s;
     }
-    .btn-coin-test:hover {
+    .btn-coin-sim:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.55);
     }
-    .btn-reset {
-      background: #1b262c;
-      border: 1px solid #395260;
+    .btn-reset-coins {
+      background: #15222d;
+      border: 1px solid #334e63;
       color: #94a3b8;
       font-weight: 800;
-      padding: 14px 20px;
+      padding: 13px 20px;
       border-radius: 12px;
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-reset:hover {
+    .btn-reset-coins:hover {
       background: #2a151b;
       border-color: #fb7185;
       color: #fca5a5;
     }
 
-    /* CONTROLLI */
-    .power-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px;
-      background: #071b24;
-      border: 1px solid #28515d;
-      border-radius: 14px;
-      margin-bottom: 18px;
-    }
-    .power-status-text {
-      font-size: 16px;
-      font-weight: 800;
-    }
-    .power-btn {
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-weight: 900;
-      font-size: 14px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s;
-    }
-    .power-btn.on {
-      background: #10b981;
-      color: #022c22;
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
-    }
-    .power-btn.off {
-      background: #ef4444;
-      color: #450a0a;
-      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
-    }
-
-    .slider-box {
-      margin-top: 10px;
-    }
-    .slider-head {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .range-input {
-      width: 100%;
-      height: 8px;
-      border-radius: 4px;
-      background: #071b24;
-      outline: none;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    .effects-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .effect-btn {
-      background: #071b24;
-      border: 1px solid #28515d;
-      border-radius: 12px;
-      padding: 14px 10px;
-      text-align: center;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .effect-btn span.icon {
-      font-size: 24px;
-    }
-    .effect-btn:hover {
-      border-color: var(--accent);
-      background: #0d2a36;
-    }
-    .effect-btn.active {
-      border-color: var(--accent);
-      background: rgba(45, 212, 191, 0.15);
-      color: #a7fff0;
-      box-shadow: 0 0 14px rgba(45, 212, 191, 0.25);
-    }
-
-    .color-picker-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 16px;
-      padding: 12px;
-      background: #071b24;
-      border: 1px solid #28515d;
-      border-radius: 12px;
-    }
-    .color-picker-row input[type="color"] {
-      border: 0;
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      cursor: pointer;
-      background: transparent;
-    }
-    .color-picker-label {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 800;
-    }
-
+    /* RESPONSIVE */
     @media (max-width: 820px) {
       main {
         margin-left: 0;
         padding: 20px 14px 100px;
-      }
-      .cloud-bar {
-        flex-direction: column;
-        align-items: stretch;
       }
     }
   </style>
@@ -365,110 +375,108 @@
   <aside class="app-sidebar" id="admin-sidebar"></aside>
 
   <main>
-    <header class="hero">
-      <div class="eyebrow">NaviSuite • Hardware IoT Cloud</div>
-      <h1>🪙 Navigoto Coin Box</h1>
-      <p>Gestione live da qualsiasi dispositivo: scivolo monete, animazioni e illuminazione LED.</p>
-    </header>
-
-    <!-- BARRA DI CONNESSIONE CLOUD FIREBASE -->
-    <div class="cloud-bar">
-      <div class="cloud-info">
-        <span class="cloud-badge online" id="cloudBadge">
-          <span class="dot"></span> <span id="cloudStatusText">☁️ Firebase Realtime Cloud Connesso</span>
-        </span>
-        <span style="font-size:12px;color:var(--muted)">Sincronizzazione globale per tutti gli utenti</span>
+    <!-- HERO STATUA CON LOGO E SCRITTA NAVIGOTO COLORATA -->
+    <section class="statue-stage powered-on" id="statueStage">
+      <div class="logo-container">
+        <img src="assets/images/navigoto-badge.jpg" alt="Logo Navigoto" class="statue-logo" id="statueLogo">
       </div>
+
+      <!-- Scritta NAVIGOTO dinamica con lettere a colori che replicano i LED -->
+      <div class="navigoto-title" id="navigotoWord" aria-label="NAVIGOTO">
+        <span class="nav-let" data-i="0">N</span>
+        <span class="nav-let" data-i="1">A</span>
+        <span class="nav-let" data-i="2">V</span>
+        <span class="nav-let" data-i="3">I</span>
+        <span class="nav-let" data-i="4">G</span>
+        <span class="nav-let" data-i="5">O</span>
+        <span class="nav-let" data-i="6">T</span>
+        <span class="nav-let" data-i="7">O</span>
+      </div>
+
+      <div class="statue-status-pill on" id="statueStatusPill">
+        <span>✨</span> <span id="currentEffectLabel">Effetto: Lettere a Colori</span>
+      </div>
+    </section>
+
+    <!-- ACCENSIONE & LUMINOSITÀ -->
+    <section class="main-controls-card">
       <div>
-        <span id="lastActiveLabel" style="font-size:12px;color:var(--accent);font-weight:700">In ascolto…</span>
+        <button type="button" class="btn-power-main on" id="btnPowerMain">
+          <span id="powerIco">⚡</span> <span id="powerText">ACCESO</span>
+        </button>
       </div>
-    </div>
+      <div class="brightness-slider-wrap">
+        <div class="slider-labels">
+          <span>Luminosità LED</span>
+          <b id="brightPercent">70%</b>
+        </div>
+        <input type="range" class="range-input" id="brightSlider" min="10" max="255" value="180">
+      </div>
+    </section>
 
-    <!-- CONTATORE MONETE LIVE ARCADE -->
-    <div class="card coin-display-card">
+    <!-- SELETTORE EFFETTI LUMINOSI -->
+    <section class="effects-section">
+      <h2>Effetti Luminosi</h2>
+      <p class="sub">Seleziona l'animazione o imposta un colore personalizzato per la statua.</p>
+
+      <div class="effects-grid">
+        <button type="button" class="btn-effect" data-effect="0">
+          <span class="ico">🌈</span>
+          <span>Arcobaleno</span>
+        </button>
+        <button type="button" class="btn-effect" data-effect="1">
+          <span class="ico">🪙</span>
+          <span>Coin Chaser</span>
+        </button>
+        <button type="button" class="btn-effect" data-effect="2">
+          <span class="ico">✨</span>
+          <span>Oro Pulsante</span>
+        </button>
+        <button type="button" class="btn-effect" data-effect="3">
+          <span class="ico">🌆</span>
+          <span>Cyberpunk</span>
+        </button>
+        <button type="button" class="btn-effect active" data-effect="5">
+          <span class="ico">🔤</span>
+          <span>Lettere NAVI</span>
+        </button>
+        <button type="button" class="btn-effect" data-effect="6">
+          <span class="ico">🎆</span>
+          <span>Fireworks</span>
+        </button>
+      </div>
+
+      <div class="color-picker-box">
+        <input type="color" id="customColorPicker" value="#c1170b">
+        <div>
+          <strong style="display:block;font-size:14px;color:#fff">Colore personalizzato a tinta fissa</strong>
+          <small style="color:var(--muted)">Clicca sul riquadro per scegliere una sfumatura</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTATORE MONETE ARCADE -->
+    <section class="coin-arcade-card">
       <div class="arcade-box" id="arcadeBox">
         <div class="arcade-title">Totale Monete Rilevate</div>
         <div class="arcade-number" id="coinCounter">---</div>
-        <div class="arcade-sub" id="coinStatusSub">Aggiornamento in tempo reale via Cloud</div>
+        <div class="arcade-sub">Sincronizzazione in tempo reale via Cloud</div>
       </div>
       <div class="coin-actions">
-        <button type="button" class="btn-coin-test" id="btnSimCoin">
+        <button type="button" class="btn-coin-sim" id="btnSimCoin">
           <span>✨</span> Simula Passaggio Moneta
         </button>
-        <button type="button" class="btn-reset" id="btnResetCoins">
+        <button type="button" class="btn-reset-coins" id="btnResetCoins">
           Azzera Contatore
         </button>
       </div>
-    </div>
-
-    <div class="grid">
-      <!-- ACCENSIONE & LUMINOSITÀ -->
-      <div class="card">
-        <div>
-          <h2>Alimentazione LED</h2>
-          <p class="desc">Accendi o spegni la statua del Navigoto e regola la luminosità globale.</p>
-          
-          <div class="power-row">
-            <span class="power-status-text" id="powerStatusLabel">Stato: ACCESO</span>
-            <button type="button" class="power-btn on" id="btnPower">ON</button>
-          </div>
-
-          <div class="slider-box">
-            <div class="slider-head">
-              <span>Luminosità</span>
-              <span id="brightVal">70%</span>
-            </div>
-            <input type="range" class="range-input" id="brightRange" min="10" max="255" value="180">
-          </div>
-        </div>
-      </div>
-
-      <!-- SELETTORE EFFETTI -->
-      <div class="card">
-        <div>
-          <h2>Effetto Luminoso</h2>
-          <p class="desc">Seleziona l'animazione desiderata per i LED o imposta una tinta fissa.</p>
-
-          <div class="effects-list">
-            <button type="button" class="effect-btn" data-effect="0">
-              <span class="icon">🌈</span>
-              <span>Arcobaleno</span>
-            </button>
-            <button type="button" class="effect-btn" data-effect="1">
-              <span class="icon">🪙</span>
-              <span>Coin Chaser</span>
-            </button>
-            <button type="button" class="effect-btn" data-effect="2">
-              <span class="icon">✨</span>
-              <span>Oro Pulsante</span>
-            </button>
-            <button type="button" class="effect-btn" data-effect="3">
-              <span class="icon">🌆</span>
-              <span>Cyberpunk</span>
-            </button>
-            <button type="button" class="effect-btn" data-effect="5">
-              <span class="icon">🔤</span>
-              <span>Lettere NAVI</span>
-            </button>
-            <button type="button" class="effect-btn" data-effect="6">
-              <span class="icon">🎆</span>
-              <span>Fireworks</span>
-            </button>
-          </div>
-
-          <div class="color-picker-row">
-            <input type="color" id="customColorPicker" value="#ffaa3c">
-            <span class="color-picker-label">Colore personalizzato a tinta fissa</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </main>
 
   <!-- SCRIPT DI SISTEMA NAVISUITE & FIREBASE -->
-  <script src="assets/js/shared-roles.js?v=3"></script>
-  <script src="assets/js/shared-menu.js?v=3"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=3"></script>
+  <script src="assets/js/shared-roles.js?v=4"></script>
+  <script src="assets/js/shared-menu.js?v=4"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=4"></script>
 
   <script>
     (function() {
@@ -478,22 +486,130 @@
       }
 
       // 2. Elementi UI
+      const statueStage = document.getElementById('statueStage');
+      const letterSpans = document.querySelectorAll('.nav-let');
+      const currentEffectLabel = document.getElementById('currentEffectLabel');
+      const statueStatusPill = document.getElementById('statueStatusPill');
+      const btnPowerMain = document.getElementById('btnPowerMain');
+      const powerText = document.getElementById('powerText');
+      const brightSlider = document.getElementById('brightSlider');
+      const brightPercent = document.getElementById('brightPercent');
+      const effectBtns = document.querySelectorAll('.btn-effect');
+      const colorPicker = document.getElementById('customColorPicker');
       const coinCounter = document.getElementById('coinCounter');
       const arcadeBox = document.getElementById('arcadeBox');
-      const powerStatusLabel = document.getElementById('powerStatusLabel');
-      const btnPower = document.getElementById('btnPower');
-      const brightRange = document.getElementById('brightRange');
-      const brightVal = document.getElementById('brightVal');
-      const effectBtns = document.querySelectorAll('.effect-btn');
-      const colorPicker = document.getElementById('customColorPicker');
-      const cloudStatusText = document.getElementById('cloudStatusText');
-      const cloudBadge = document.getElementById('cloudBadge');
-      const lastActiveLabel = document.getElementById('lastActiveLabel');
 
+      let currentPower = true;
+      let currentEffect = 5;
+      let currentBrightness = 180;
       let lastCoinCount = -1;
-      let isInteractingBright = false;
+      let animFrameId = null;
 
-      // 3. Configurazione Firebase RTDB
+      // Colori base per lettera (N, A, V, I, G, O, T, O)
+      const DEFAULT_LETTER_COLORS = [
+        '#00d2ff', // N: Ciano
+        '#ff003c', // A: Rosso
+        '#00e676', // V: Verde
+        '#9d00ff', // I: Viola
+        '#76ff03', // G: Lime
+        '#0066ff', // O: Blu
+        '#ff6d00', // T: Arancio
+        '#e040fb'  // O: Fucsia
+      ];
+      let activeLetterColors = [...DEFAULT_LETTER_COLORS];
+
+      // 3. MOTORE VISIVO: ANIMAZIONE DELLE LETTERE SULLO SCHERMO
+      // Replica fedelmente e in tempo reale ciò che fanno i LED della statua fisica!
+      let animTick = 0;
+      function animateLetters() {
+        animTick++;
+
+        if (!currentPower) {
+          letterSpans.forEach(el => {
+            el.style.color = '#1e293b';
+            el.style.textShadow = 'none';
+          });
+          animFrameId = requestAnimationFrame(animateLetters);
+          return;
+        }
+
+        // Effetto 0: Arcobaleno Fluido
+        if (currentEffect === 0) {
+          letterSpans.forEach((el, i) => {
+            const hue = (animTick * 2 + i * 45) % 360;
+            const col = `hsl(${hue}, 100%, 55%)`;
+            el.style.color = col;
+            el.style.textShadow = `0 0 14px ${col}, 0 0 28px ${col}`;
+          });
+        }
+        // Effetto 1: Coin Chaser (Luce moneta che scorre lungo la parola)
+        else if (currentEffect === 1) {
+          const activeIdx = Math.floor(animTick / 10) % 8;
+          letterSpans.forEach((el, i) => {
+            if (i === activeIdx) {
+              el.style.color = '#ffffff';
+              el.style.textShadow = '0 0 20px #ffffff, 0 0 35px #f59e0b';
+            } else if (i === (activeIdx - 1 + 8) % 8) {
+              el.style.color = '#f59e0b';
+              el.style.textShadow = '0 0 15px #f59e0b';
+            } else {
+              el.style.color = '#1e3a5f';
+              el.style.textShadow = 'none';
+            }
+          });
+        }
+        // Effetto 2: Oro Pulsante
+        else if (currentEffect === 2) {
+          const breath = (Math.sin(animTick * 0.05) + 1) / 2; // 0..1
+          const light = Math.round(45 + breath * 25);
+          const col = `hsl(42, 100%, ${light}%)`;
+          letterSpans.forEach(el => {
+            el.style.color = col;
+            el.style.textShadow = `0 0 ${12 + breath * 16}px #f59e0b, 0 0 ${25 + breath * 20}px #d97706`;
+          });
+        }
+        // Effetto 3: Cyberpunk (Alternanza Neon Fucsia & Ciano)
+        else if (currentEffect === 3) {
+          letterSpans.forEach((el, i) => {
+            const isPink = (i % 2 === 0);
+            const col = isPink ? '#ec4899' : '#06b6d4';
+            el.style.color = col;
+            el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
+          });
+        }
+        // Effetto 4: Colore Personalizzato (Tinta Unita)
+        else if (currentEffect === 4) {
+          const col = colorPicker.value || '#c1170b';
+          letterSpans.forEach(el => {
+            el.style.color = col;
+            el.style.textShadow = `0 0 16px ${col}, 0 0 32px ${col}`;
+          });
+        }
+        // Effetto 5: Lettere NAVIGOTO a Colori
+        else if (currentEffect === 5) {
+          letterSpans.forEach((el, i) => {
+            const col = activeLetterColors[i] || DEFAULT_LETTER_COLORS[i % 8];
+            el.style.color = col;
+            el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
+          });
+        }
+        // Effetto 6: Fireworks Party (Scintille casuali)
+        else if (currentEffect === 6) {
+          letterSpans.forEach(el => {
+            if (Math.random() < 0.3) {
+              const hue = Math.floor(Math.random() * 360);
+              const col = `hsl(${hue}, 100%, 65%)`;
+              el.style.color = col;
+              el.style.textShadow = `0 0 20px #fff, 0 0 40px ${col}`;
+            }
+          });
+        }
+
+        animFrameId = requestAnimationFrame(animateLetters);
+      }
+      animFrameId = requestAnimationFrame(animateLetters);
+
+      // 4. CONFIGURAZIONE & SINCRONIZZAZIONE CLOUD FIREBASE
       const API_KEY = "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE";
       const DATABASE_URL = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app";
       const PATH = "/private/adminUpdates/navigoto.json";
@@ -504,7 +620,6 @@
       async function getAuthToken() {
         if (idToken && Date.now() < tokenExpiresAt - 60000) return idToken;
         try {
-          // Se admin-firebase-rest ha già un token pronto, usiamolo
           if (window.NaviAdminFirebase?.ensureAuth) {
             const auth = await window.NaviAdminFirebase.ensureAuth();
             if (auth?.idToken) {
@@ -515,7 +630,6 @@
           }
         } catch (_) {}
 
-        // Altrimenti autenticazione rapida con API_KEY anonima
         const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(API_KEY)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -528,32 +642,62 @@
         return idToken;
       }
 
-      // 4. Invio Modifiche a Firebase (PATCH Cloud)
-      async function updateFirebase(patchObj) {
+      async function sendCloudUpdate(patchObj) {
         try {
-          cloudBadge.className = 'cloud-badge syncing';
-          cloudStatusText.textContent = '☁️ Sincronizzazione Cloud…';
           const token = await getAuthToken();
           patchObj.updated_at = Date.now();
-          
           await fetch(`${DATABASE_URL}${PATH}?auth=${encodeURIComponent(token)}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(patchObj)
           });
-          
-          cloudBadge.className = 'cloud-badge online';
-          cloudStatusText.textContent = '☁️ Firebase Cloud Connesso';
         } catch (e) {
           console.warn('Errore sync Firebase:', e);
-          cloudBadge.className = 'cloud-badge offline';
-          cloudStatusText.textContent = '☁️ Errore connessione Cloud';
         }
       }
 
-      // 5. Lettura e Ascolto Modifiche in Tempo Reale
-      function applyState(data) {
+      const EFFECT_NAMES = {
+        0: 'Arcobaleno Fluido',
+        1: 'Coin Chaser',
+        2: 'Oro & Ambra Pulsante',
+        3: 'Cyberpunk Neon',
+        4: 'Colore Personalizzato',
+        5: 'Lettere a Colori',
+        6: 'Fireworks Party'
+      };
+
+      function applyCloudState(data) {
         if (!data) return;
+
+        // Power
+        if (data.power !== undefined) {
+          currentPower = Boolean(data.power);
+          btnPowerMain.className = `btn-power-main ${currentPower ? 'on' : 'off'}`;
+          powerText.textContent = currentPower ? 'ACCESO' : 'SPENTO';
+          statueStage.className = `statue-stage ${currentPower ? 'powered-on' : 'powered-off'}`;
+          statueStatusPill.className = `statue-status-pill ${currentPower ? 'on' : 'off'}`;
+        }
+
+        // Effetto
+        if (data.effect !== undefined) {
+          currentEffect = Number(data.effect);
+          effectBtns.forEach(btn => {
+            btn.classList.toggle('active', Number(btn.dataset.effect) === currentEffect);
+          });
+          currentEffectLabel.textContent = `Effetto: ${EFFECT_NAMES[currentEffect] || 'Personalizzato'}`;
+        }
+
+        // Luminosità
+        if (data.brightness !== undefined && !isInteractingBright) {
+          currentBrightness = Number(data.brightness);
+          brightSlider.value = currentBrightness;
+          brightPercent.textContent = Math.round((currentBrightness / 255) * 100) + '%';
+        }
+
+        // Colore personalizzato
+        if (data.custom_hex) {
+          colorPicker.value = data.custom_hex;
+        }
 
         // Monete
         if (data.coins !== undefined) {
@@ -565,89 +709,71 @@
           }
           lastCoinCount = data.coins;
         }
-
-        // Power
-        if (data.power !== undefined) {
-          powerStatusLabel.textContent = data.power ? 'Stato: ACCESO' : 'Stato: SPENTO';
-          btnPower.className = `power-btn ${data.power ? 'on' : 'off'}`;
-          btnPower.textContent = data.power ? 'ON' : 'OFF';
-        }
-
-        // Luminosità
-        if (data.brightness !== undefined && !isInteractingBright) {
-          brightRange.value = data.brightness;
-          brightVal.textContent = Math.round((data.brightness / 255) * 100) + '%';
-        }
-
-        // Effetto
-        if (data.effect !== undefined) {
-          effectBtns.forEach(btn => {
-            btn.classList.toggle('active', Number(btn.dataset.effect) === data.effect);
-          });
-        }
-
-        // Colore personalizzato
-        if (data.custom_hex) {
-          colorPicker.value = data.custom_hex;
-        }
-
-        // Ultima attività
-        if (data.updated_at) {
-          const d = new Date(data.updated_at);
-          lastActiveLabel.textContent = `Aggiornato: ${d.toLocaleTimeString('it-IT')}`;
-        }
       }
 
-      async function pollFirebase() {
+      async function pollCloud() {
         try {
           const token = await getAuthToken();
           const res = await fetch(`${DATABASE_URL}${PATH}?auth=${encodeURIComponent(token)}`);
           if (res.ok) {
             const data = await res.json();
-            applyState(data);
-            cloudBadge.className = 'cloud-badge online';
-            cloudStatusText.textContent = '☁️ Firebase Cloud Connesso';
+            applyCloudState(data);
           }
         } catch (e) {
-          console.warn('Polling Firebase fallito:', e);
+          console.warn('Polling fallito:', e);
         }
       }
 
-      // 6. Controlli Utente
-      // Tasto Power
-      btnPower.addEventListener('click', () => {
-        const isCurrentlyOn = btnPower.classList.contains('on');
-        const nextState = !isCurrentlyOn;
-        btnPower.className = `power-btn ${nextState ? 'on' : 'off'}`;
-        btnPower.textContent = nextState ? 'ON' : 'OFF';
-        powerStatusLabel.textContent = nextState ? 'Stato: ACCESO' : 'Stato: SPENTO';
-        updateFirebase({ power: nextState });
+      // 5. INTERAZIONI CONTROLLO UTENTE
+      // Power ON / OFF
+      btnPowerMain.addEventListener('click', () => {
+        const nextPower = !currentPower;
+        currentPower = nextPower;
+        btnPowerMain.className = `btn-power-main ${nextPower ? 'on' : 'off'}`;
+        powerText.textContent = nextPower ? 'ACCESO' : 'SPENTO';
+        statueStage.className = `statue-stage ${nextPower ? 'powered-on' : 'powered-off'}`;
+        statueStatusPill.className = `statue-status-pill ${nextPower ? 'on' : 'off'}`;
+        sendCloudUpdate({ power: nextPower });
       });
 
       // Slider Luminosità
-      brightRange.addEventListener('input', () => {
+      let isInteractingBright = false;
+      brightSlider.addEventListener('input', () => {
         isInteractingBright = true;
-        brightVal.textContent = Math.round((brightRange.value / 255) * 100) + '%';
+        brightPercent.textContent = Math.round((brightSlider.value / 255) * 100) + '%';
       });
-      brightRange.addEventListener('change', () => {
+      brightSlider.addEventListener('change', () => {
         isInteractingBright = false;
-        updateFirebase({ brightness: Number(brightRange.value) });
+        currentBrightness = Number(brightSlider.value);
+        sendCloudUpdate({ brightness: currentBrightness });
       });
 
-      // Selezione Effetti
+      // Pulsanti Effetti
       effectBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const effId = Number(btn.dataset.effect);
           effectBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          updateFirebase({ effect: effId, power: true });
+          currentEffect = effId;
+          currentEffectLabel.textContent = `Effetto: ${EFFECT_NAMES[currentEffect] || 'Personalizzato'}`;
+          currentPower = true;
+          statueStage.className = 'statue-stage powered-on';
+          btnPowerMain.className = 'btn-power-main on';
+          powerText.textContent = 'ACCESO';
+          sendCloudUpdate({ effect: effId, power: true });
         });
       });
 
       // Color Picker
       colorPicker.addEventListener('change', () => {
         effectBtns.forEach(b => b.classList.remove('active'));
-        updateFirebase({ custom_hex: colorPicker.value, effect: 4, power: true });
+        currentEffect = 4;
+        currentEffectLabel.textContent = 'Effetto: Colore Personalizzato';
+        currentPower = true;
+        statueStage.className = 'statue-stage powered-on';
+        btnPowerMain.className = 'btn-power-main on';
+        powerText.textContent = 'ACCESO';
+        sendCloudUpdate({ custom_hex: colorPicker.value, effect: 4, power: true });
       });
 
       // Simula Moneta
@@ -656,7 +782,7 @@
         void arcadeBox.offsetWidth;
         arcadeBox.classList.add('coin-pulse');
         const current = Number(coinCounter.textContent) || 0;
-        updateFirebase({
+        sendCloudUpdate({
           trigger_coin: Date.now(),
           coins: current + 1
         });
@@ -664,15 +790,15 @@
 
       // Reset Monete
       document.getElementById('btnResetCoins').addEventListener('click', () => {
-        if (!confirm('Azzierare il contatore monete sul Cloud e sulla scheda?')) return;
+        if (!confirm('Vuoi azzerare il contatore monete sul Cloud e sulla scheda?')) return;
         coinCounter.textContent = '0';
         lastCoinCount = 0;
-        updateFirebase({ coins: 0 });
+        sendCloudUpdate({ coins: 0 });
       });
 
       // Avvio
-      pollFirebase();
-      setInterval(pollFirebase, 1500);
+      pollCloud();
+      setInterval(pollCloud, 2000);
     })();
   </script>
 </body>
