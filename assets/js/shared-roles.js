@@ -61,7 +61,7 @@
   // L'ultima scelta nota resta sul telefono, cosi' il controllo vale subito; poi si rilegge da Firebase.
   const PAGINE = [['oggi.html', 'Oggi'], ['naviturni.html', 'NaviTurni'], ['navidiaria.html', 'Distinta'], ['documenti.html', 'Documenti'],
     ['mio-turno.html', 'Il mio turno'], ['orario.html', 'Scali'], ['orari.html', 'Orari'], ['cambi_turno.html', 'Cambio turno'], ['quiz.html', 'Concorsi'],
-    ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta'], ['comitive.html', 'Comitive'], ['agenti.html', 'Agenti'], ['movimento.html', 'Movimento'], ['collegamenti.html', 'Collegamenti'], ['backup-dati.html', 'Backup e fonti'], ['controllo_cassa.html', 'Controllo cassa']];
+    ['impostazioni.html', 'Impostazioni'], ['verifica-busta.html', 'Verifica busta'], ['comitive.html', 'Comitive'], ['agenti.html', 'Agenti'], ['movimento.html', 'Movimento'], ['collegamenti.html', 'Collegamenti'], ['backup-dati.html', 'Backup e fonti'], ['controllo_cassa.html', 'Controllo cassa'], ['navigoto.html', 'Navigoto']];
   const RUOLI = [['agenti', 'Agenti'], ['uffici', 'Uffici'], ['scali', 'Scali'], ['bariste', 'Bariste']];
   const ruoloDi = agent => (isScaloAgent(agent) ? 'scali' : isBaristaAgent(agent) ? 'bariste'
     : String(agent?.residence || agent?.residenza || '').toLowerCase() === 'uffici' ? 'uffici' : 'agenti');
@@ -75,7 +75,7 @@
   // Sezioni del menu e della Home: di default come sempre, ma gli admin possono spostare le pagine (pagina Agenti > Accesso alle pagine)
   const SEZIONI = [['principali', 'PRINCIPALI'], ['altre', 'UTENTI'], ['amministrazione', 'AMMINISTRAZIONE']];
   const SEZIONE_PREDEFINITA = { 'mio-turno.html': 'principali', 'orario.html': 'principali', 'naviturni.html': 'principali', 'oggi.html': 'principali', 'navidiaria.html': 'principali',
-    'quiz.html': 'altre', 'comitive.html': 'amministrazione', 'verifica-busta.html': 'amministrazione', 'agenti.html': 'amministrazione', 'aggiornamenti.html': 'amministrazione',
+    'quiz.html': 'altre', 'navigoto.html': 'altre', 'comitive.html': 'amministrazione', 'verifica-busta.html': 'amministrazione', 'agenti.html': 'amministrazione', 'aggiornamenti.html': 'amministrazione',
     'movimento.html': 'amministrazione', 'collegamenti.html': 'amministrazione' };
   const sezionePredefinita = file => SEZIONE_PREDEFINITA[String(file || '').toLowerCase().split('?')[0]] || 'altre';
   // Disposizione del menu. Gli admin la decidono per tutti (sezioni + ordine, salvati insieme all'accesso); ogni agente puo' poi
