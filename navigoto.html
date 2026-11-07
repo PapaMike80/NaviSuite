@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&family=Manrope:wght@600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/navi-shared.css">
   <link rel="stylesheet" href="assets/css/navi-layout.css">
-  <link rel="stylesheet" href="assets/css/shared-menu.css?v=2">
+  <link rel="stylesheet" href="assets/css/shared-menu.css?v=3">
   <style>
     :root {
       --bg: #070e17;
@@ -31,53 +31,77 @@
       color: var(--ink);
       font-family: 'DM Sans', Manrope, system-ui, sans-serif;
       min-height: 100vh;
+      position: relative;
     }
+
+    /* PULSANTE HAMBURGER MENU NAVISUITE */
+    #navigoto-menu-btn {
+      position: fixed;
+      top: calc(14px + env(safe-area-inset-top, 0px));
+      right: 14px;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid #2dd4bf;
+      border-radius: 13px;
+      background: #103a3d;
+      color: #a7fff0;
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      transition: all 0.2s;
+    }
+    #navigoto-menu-btn:hover {
+      background: #175458;
+      transform: scale(1.05);
+    }
+
     main {
       margin-left: 230px;
       padding: 30px;
       max-width: 1100px;
     }
 
-    /* HEADER & STATUA HERO */
+    /* STAGE DELLA STATUA CON LOGO E SCRITTA */
     .statue-stage {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 32px 20px 24px;
+      padding: 28px 20px 22px;
       border: 1px solid var(--line);
       border-radius: 24px;
-      background: radial-gradient(circle at center, rgba(16, 44, 68, 0.9), rgba(7, 18, 30, 0.95));
+      background: radial-gradient(circle at center, rgba(16, 44, 68, 0.9), rgba(7, 18, 30, 0.96));
       box-shadow: 0 20px 50px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.5);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       position: relative;
-      overflow: hidden;
     }
 
     /* BADGE LOGO UFFICIALE */
     .logo-container {
-      position: relative;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
     .statue-logo {
-      width: 110px;
-      height: 110px;
+      width: 105px;
+      height: 105px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid #38bdf8;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 0 15px rgba(0,0,0,0.8);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 3px solid #2dd4bf;
+      box-shadow: 0 0 25px rgba(45, 212, 191, 0.5), inset 0 0 15px rgba(0,0,0,0.8);
       background: #020b14;
+      display: block;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .statue-stage.powered-on .statue-logo {
-      border-color: #2dd4bf;
-      box-shadow: 0 0 35px rgba(45, 212, 191, 0.65), 0 0 70px rgba(45, 212, 191, 0.25);
       animation: logoPulse 4s infinite alternate ease-in-out;
     }
     @keyframes logoPulse {
-      0% { transform: scale(1); box-shadow: 0 0 25px rgba(45, 212, 191, 0.5); }
-      100% { transform: scale(1.03); box-shadow: 0 0 40px rgba(45, 212, 191, 0.8), 0 0 80px rgba(56, 189, 248, 0.35); }
+      0% { transform: scale(1); box-shadow: 0 0 22px rgba(45, 212, 191, 0.5); }
+      100% { transform: scale(1.03); box-shadow: 0 0 35px rgba(45, 212, 191, 0.8), 0 0 70px rgba(56, 189, 248, 0.3); }
     }
 
     /* SCRITTA NAVIGOTO LETTERA PER LETTERA */
@@ -85,17 +109,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      margin: 10px 0 16px;
+      gap: 8px;
+      margin: 8px 0 14px;
       user-select: none;
     }
     .nav-let {
       font-family: 'Manrope', 'DM Sans', sans-serif;
-      font-size: 54px;
+      font-size: 56px;
       font-weight: 900;
       letter-spacing: 0.04em;
       display: inline-block;
-      transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.2s ease;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
       color: #334155;
       text-shadow: none;
     }
@@ -109,7 +133,6 @@
       text-shadow: 0 1px 2px rgba(255,255,255,0.05) !important;
     }
 
-    /* STATUS PILL SOTTO LA SCRITTA */
     .statue-status-pill {
       display: inline-flex;
       align-items: center;
@@ -128,21 +151,21 @@
       background: rgba(16, 185, 129, 0.12);
     }
 
-    /* CONTROLLO PRINCIPALE: ON/OFF & LUMINOSITÀ */
+    /* CONTROLLI PRINCIPALI: ON/OFF & LUMINOSITÀ */
     .main-controls-card {
       display: grid;
       grid-template-columns: auto 1fr;
       align-items: center;
       gap: 24px;
-      padding: 22px 26px;
+      padding: 20px 24px;
       border: 1px solid var(--line);
       border-radius: 20px;
       background: rgba(13, 26, 41, 0.95);
       box-shadow: 0 12px 36px rgba(0,0,0,0.25);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
     @media (max-width: 700px) {
-      .main-controls-card { grid-template-columns: 1fr; gap: 18px; }
+      .main-controls-card { grid-template-columns: 1fr; gap: 16px; }
     }
 
     .btn-power-main {
@@ -201,12 +224,12 @@
 
     /* CARD EFFETTI LUMINOSI */
     .effects-section {
-      padding: 24px;
+      padding: 22px 24px;
       border: 1px solid var(--line);
       border-radius: 20px;
       background: rgba(13, 26, 41, 0.95);
       box-shadow: 0 12px 36px rgba(0,0,0,0.25);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
     .effects-section h2 {
       margin: 0 0 6px;
@@ -215,7 +238,7 @@
       font-weight: 800;
     }
     .effects-section p.sub {
-      margin: 0 0 18px;
+      margin: 0 0 16px;
       color: var(--muted);
       font-size: 13px;
     }
@@ -223,13 +246,12 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 12px;
-      margin-bottom: 18px;
     }
     .btn-effect {
       background: #091522;
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 16px 12px;
+      padding: 16px 10px;
       text-align: center;
       color: #fff;
       font-size: 13px;
@@ -238,11 +260,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s ease;
+      position: relative;
+      user-select: none;
     }
     .btn-effect span.ico {
       font-size: 28px;
+      line-height: 1;
     }
     .btn-effect:hover {
       border-color: var(--accent);
@@ -255,23 +280,11 @@
       color: #a7fff0;
       box-shadow: 0 0 20px rgba(45, 212, 191, 0.3);
     }
-
-    .color-picker-box {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 18px;
-      background: #091522;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-    }
-    .color-picker-box input[type="color"] {
-      border: 0;
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      cursor: pointer;
-      background: transparent;
+    .btn-effect small.hint {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 2px;
     }
 
     /* CARD CONTATORE MONETE ARCADE */
@@ -287,9 +300,9 @@
       background: #030d12;
       border: 2px solid #28515d;
       border-radius: 18px;
-      padding: 22px 20px;
+      padding: 20px 20px;
       max-width: 440px;
-      margin: 0 auto 20px;
+      margin: 0 auto 18px;
       box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 25px rgba(245, 158, 11, 0.2);
       transition: all 0.3s;
     }
@@ -362,7 +375,6 @@
       color: #fca5a5;
     }
 
-    /* RESPONSIVE */
     @media (max-width: 820px) {
       main {
         margin-left: 0;
@@ -372,16 +384,21 @@
   </style>
 </head>
 <body class="navigoto-page">
+  <!-- BOTTONE HAMBURGER NAVISUITE IN ALTO A DESTRA -->
+  <button type="button" id="navigoto-menu-btn" aria-label="Apri menu NaviSuite" title="Apri menu">
+    <span>☰</span>
+  </button>
+
   <aside class="app-sidebar" id="admin-sidebar"></aside>
 
   <main>
     <!-- HERO STATUA CON LOGO E SCRITTA NAVIGOTO COLORATA -->
     <section class="statue-stage powered-on" id="statueStage">
       <div class="logo-container">
-        <img src="assets/images/navigoto-badge.jpg" alt="Logo Navigoto" class="statue-logo" id="statueLogo">
+        <img src="assets/images/navigoto-badge.png" alt="Logo Navigoto" class="statue-logo" id="statueLogo">
       </div>
 
-      <!-- Scritta NAVIGOTO dinamica con lettere a colori che replicano i LED -->
+      <!-- Scritta NAVIGOTO dinamica con lettere a colori che replicano i LED della statua -->
       <div class="navigoto-title" id="navigotoWord" aria-label="NAVIGOTO">
         <span class="nav-let" data-i="0">N</span>
         <span class="nav-let" data-i="1">A</span>
@@ -414,10 +431,10 @@
       </div>
     </section>
 
-    <!-- SELETTORE EFFETTI LUMINOSI -->
+    <!-- SELETTORE EFFETTI LUMINOSI (INCLUSO IL PULSANTE COLORE PERSONALIZZATO) -->
     <section class="effects-section">
       <h2>Effetti Luminosi</h2>
-      <p class="sub">Seleziona l'animazione o imposta un colore personalizzato per la statua.</p>
+      <p class="sub">Tocca un effetto per attivarlo sulla statua. Sul colore puoi tenere premuto per cambiarlo.</p>
 
       <div class="effects-grid">
         <button type="button" class="btn-effect" data-effect="0">
@@ -444,15 +461,17 @@
           <span class="ico">🎆</span>
           <span>Fireworks</span>
         </button>
+        
+        <!-- PULSANTE COLORE PERSONALIZZATO (CLICK: ATTIVA | LONG PRESS: CAMBIA) -->
+        <button type="button" class="btn-effect" data-effect="4" id="btnCustomColor">
+          <span class="ico" id="customColorDot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#c1170b;box-shadow:0 0 10px #c1170b;border:2px solid rgba(255,255,255,0.4)"></span>
+          <span>Tinta Unita</span>
+          <small class="hint">Tieni premuto 🎨</small>
+        </button>
       </div>
 
-      <div class="color-picker-box">
-        <input type="color" id="customColorPicker" value="#c1170b">
-        <div>
-          <strong style="display:block;font-size:14px;color:#fff">Colore personalizzato a tinta fissa</strong>
-          <small style="color:var(--muted)">Clicca sul riquadro per scegliere una sfumatura</small>
-        </div>
-      </div>
+      <!-- Color picker nascosto azionato dal pulsante -->
+      <input type="color" id="hiddenColorPicker" style="position:absolute;opacity:0;pointer-events:none;left:-9999px" value="#c1170b">
     </section>
 
     <!-- CONTATORE MONETE ARCADE -->
@@ -474,13 +493,19 @@
   </main>
 
   <!-- SCRIPT DI SISTEMA NAVISUITE & FIREBASE -->
-  <script src="assets/js/shared-roles.js?v=4"></script>
-  <script src="assets/js/shared-menu.js?v=4"></script>
-  <script src="assets/js/admin-firebase-rest.js?v=4"></script>
+  <script src="assets/js/shared-roles.js?v=5"></script>
+  <script src="assets/js/shared-menu.js?v=5"></script>
+  <script src="assets/js/admin-firebase-rest.js?v=5"></script>
 
   <script>
     (function() {
-      // 1. Inizializzazione Sidebar NaviSuite
+      // 1. Apertura Menu Hamburger
+      const menuBtn = document.getElementById('navigoto-menu-btn');
+      menuBtn?.addEventListener('click', () => {
+        if (window.NaviSuiteMenu?.open) window.NaviSuiteMenu.open();
+        else if (window.SharedMenu?.open) window.SharedMenu.open();
+      });
+
       if (window.SharedMenu?.init) {
         window.SharedMenu.init('navigoto.html');
       }
@@ -495,17 +520,19 @@
       const brightSlider = document.getElementById('brightSlider');
       const brightPercent = document.getElementById('brightPercent');
       const effectBtns = document.querySelectorAll('.btn-effect');
-      const colorPicker = document.getElementById('customColorPicker');
+      const btnCustomColor = document.getElementById('btnCustomColor');
+      const customColorDot = document.getElementById('customColorDot');
+      const hiddenColorPicker = document.getElementById('hiddenColorPicker');
       const coinCounter = document.getElementById('coinCounter');
       const arcadeBox = document.getElementById('arcadeBox');
 
       let currentPower = true;
       let currentEffect = 5;
       let currentBrightness = 180;
+      let currentCustomColor = '#c1170b';
       let lastCoinCount = -1;
       let animFrameId = null;
 
-      // Colori base per lettera (N, A, V, I, G, O, T, O)
       const DEFAULT_LETTER_COLORS = [
         '#00d2ff', // N: Ciano
         '#ff003c', // A: Rosso
@@ -518,8 +545,7 @@
       ];
       let activeLetterColors = [...DEFAULT_LETTER_COLORS];
 
-      // 3. MOTORE VISIVO: ANIMAZIONE DELLE LETTERE SULLO SCHERMO
-      // Replica fedelmente e in tempo reale ciò che fanno i LED della statua fisica!
+      // 3. MOTORE VISIVO: ANIMAZIONE DELLE LETTERE NAVIGOTO
       let animTick = 0;
       function animateLetters() {
         animTick++;
@@ -533,7 +559,7 @@
           return;
         }
 
-        // Effetto 0: Arcobaleno Fluido
+        // 0: Arcobaleno Fluido
         if (currentEffect === 0) {
           letterSpans.forEach((el, i) => {
             const hue = (animTick * 2 + i * 45) % 360;
@@ -542,7 +568,7 @@
             el.style.textShadow = `0 0 14px ${col}, 0 0 28px ${col}`;
           });
         }
-        // Effetto 1: Coin Chaser (Luce moneta che scorre lungo la parola)
+        // 1: Coin Chaser
         else if (currentEffect === 1) {
           const activeIdx = Math.floor(animTick / 10) % 8;
           letterSpans.forEach((el, i) => {
@@ -558,9 +584,9 @@
             }
           });
         }
-        // Effetto 2: Oro Pulsante
+        // 2: Oro Pulsante
         else if (currentEffect === 2) {
-          const breath = (Math.sin(animTick * 0.05) + 1) / 2; // 0..1
+          const breath = (Math.sin(animTick * 0.05) + 1) / 2;
           const light = Math.round(45 + breath * 25);
           const col = `hsl(42, 100%, ${light}%)`;
           letterSpans.forEach(el => {
@@ -568,7 +594,7 @@
             el.style.textShadow = `0 0 ${12 + breath * 16}px #f59e0b, 0 0 ${25 + breath * 20}px #d97706`;
           });
         }
-        // Effetto 3: Cyberpunk (Alternanza Neon Fucsia & Ciano)
+        // 3: Cyberpunk Neon
         else if (currentEffect === 3) {
           letterSpans.forEach((el, i) => {
             const isPink = (i % 2 === 0);
@@ -577,15 +603,15 @@
             el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
           });
         }
-        // Effetto 4: Colore Personalizzato (Tinta Unita)
+        // 4: Colore Personalizzato
         else if (currentEffect === 4) {
-          const col = colorPicker.value || '#c1170b';
+          const col = currentCustomColor;
           letterSpans.forEach(el => {
             el.style.color = col;
             el.style.textShadow = `0 0 16px ${col}, 0 0 32px ${col}`;
           });
         }
-        // Effetto 5: Lettere NAVIGOTO a Colori
+        // 5: Lettere NAVI a Colori
         else if (currentEffect === 5) {
           letterSpans.forEach((el, i) => {
             const col = activeLetterColors[i] || DEFAULT_LETTER_COLORS[i % 8];
@@ -593,7 +619,7 @@
             el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
           });
         }
-        // Effetto 6: Fireworks Party (Scintille casuali)
+        // 6: Fireworks Party
         else if (currentEffect === 6) {
           letterSpans.forEach(el => {
             if (Math.random() < 0.3) {
@@ -609,7 +635,7 @@
       }
       animFrameId = requestAnimationFrame(animateLetters);
 
-      // 4. CONFIGURAZIONE & SINCRONIZZAZIONE CLOUD FIREBASE
+      // 4. CONFIGURAZIONE CLOUD FIREBASE
       const API_KEY = "AIzaSyBfJZWHjr3AIANDBj2p8uQ0_hbcHdmnSiE";
       const DATABASE_URL = "https://navisuite-f116f-default-rtdb.europe-west1.firebasedatabase.app";
       const PATH = "/private/adminUpdates/navigoto.json";
@@ -666,6 +692,15 @@
         6: 'Fireworks Party'
       };
 
+      function updateCustomColorDisplay(hex) {
+        currentCustomColor = hex;
+        hiddenColorPicker.value = hex;
+        if (customColorDot) {
+          customColorDot.style.background = hex;
+          customColorDot.style.boxShadow = `0 0 12px ${hex}`;
+        }
+      }
+
       function applyCloudState(data) {
         if (!data) return;
 
@@ -696,7 +731,7 @@
 
         // Colore personalizzato
         if (data.custom_hex) {
-          colorPicker.value = data.custom_hex;
+          updateCustomColorDisplay(data.custom_hex);
         }
 
         // Monete
@@ -748,8 +783,10 @@
         sendCloudUpdate({ brightness: currentBrightness });
       });
 
-      // Pulsanti Effetti
+      // Pulsanti Effetti Standard
       effectBtns.forEach(btn => {
+        if (btn.id === 'btnCustomColor') return; // Gestito a parte con click e long-press!
+
         btn.addEventListener('click', () => {
           const effId = Number(btn.dataset.effect);
           effectBtns.forEach(b => b.classList.remove('active'));
@@ -764,16 +801,68 @@
         });
       });
 
-      // Color Picker
-      colorPicker.addEventListener('change', () => {
+      // GESTIONE PULSANTE COLORE PERSONALIZZATO:
+      // Click rapido = attiva effetto 4
+      // Pressione prolungata (> 500ms) = apre il selettore colore per cambiarlo
+      let longPressTimer = null;
+      let isLongPressTriggered = false;
+
+      function triggerColorPicker() {
+        isLongPressTriggered = true;
+        navigator.vibrate?.(50);
+        hiddenColorPicker.click();
+      }
+
+      btnCustomColor.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return; // solo tasto sinistro / tocco
+        isLongPressTriggered = false;
+        longPressTimer = setTimeout(triggerColorPicker, 500);
+      });
+
+      const cancelPress = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      btnCustomColor.addEventListener('pointerup', cancelPress);
+      btnCustomColor.addEventListener('pointerleave', cancelPress);
+      btnCustomColor.addEventListener('pointercancel', cancelPress);
+
+      btnCustomColor.addEventListener('click', () => {
+        if (isLongPressTriggered) {
+          isLongPressTriggered = false;
+          return;
+        }
+        // Click normale: attiva subito l'effetto Tinta Unita
         effectBtns.forEach(b => b.classList.remove('active'));
+        btnCustomColor.classList.add('active');
         currentEffect = 4;
         currentEffectLabel.textContent = 'Effetto: Colore Personalizzato';
         currentPower = true;
         statueStage.className = 'statue-stage powered-on';
         btnPowerMain.className = 'btn-power-main on';
         powerText.textContent = 'ACCESO';
-        sendCloudUpdate({ custom_hex: colorPicker.value, effect: 4, power: true });
+        sendCloudUpdate({ effect: 4, power: true });
+      });
+
+      // Doppio click su desktop apre anche la palette comodamente
+      btnCustomColor.addEventListener('dblclick', triggerColorPicker);
+
+      // Quando l'utente sceglie un nuovo colore dalla palette
+      hiddenColorPicker.addEventListener('change', () => {
+        const newColor = hiddenColorPicker.value;
+        updateCustomColorDisplay(newColor);
+        effectBtns.forEach(b => b.classList.remove('active'));
+        btnCustomColor.classList.add('active');
+        currentEffect = 4;
+        currentEffectLabel.textContent = 'Effetto: Colore Personalizzato';
+        currentPower = true;
+        statueStage.className = 'statue-stage powered-on';
+        btnPowerMain.className = 'btn-power-main on';
+        powerText.textContent = 'ACCESO';
+        sendCloudUpdate({ custom_hex: newColor, effect: 4, power: true });
       });
 
       // Simula Moneta

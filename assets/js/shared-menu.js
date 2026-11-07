@@ -80,7 +80,7 @@
     const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
     const onTurni=file==='naviturni.html';
     // Alle bariste (tranne Hiba) Oggi rimanda a Turni: la voce non viene mostrata.
-    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'orari.html':['🕒','Orari'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['🏆','Concorsi'],'navigoto.html':['<img src="assets/images/navigoto-badge.jpg" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;display:inline-block;box-shadow:0 0 6px rgba(45,212,191,0.5)">','Navigoto'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
+    const MENU_SCALO={'oggi.html':['☀','Oggi'],'naviturni.html':['▦','Turni'],'navidiaria.html':['≈','Distinta'],'documenti.html':['▤','Documenti'],'mio-turno.html':['⚑','Il mio turno'],'orario.html':['⚓','Scali'],'orari.html':['🕒','Orari'],'cambi_turno.html':['⇄','Cambio'],'quiz.html':['🏆','Concorsi'],'navigoto.html':['<img src="assets/images/navigoto-badge.png" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;display:inline-block;box-shadow:0 0 6px rgba(45,212,191,0.5)">','Navigoto'],'impostazioni.html':['⚙','Impostazioni'],'verifica-busta.html':['✓','Verifica busta'],'controllo_cassa.html':['¤','Cassa']};
     const entries=roles.isScaloAgent?.(agent)?(roles.pagineAperte?.(agent)||['orario.html']).map(f=>[f,...(MENU_SCALO[f]||['•',f])]):[
       // pagine principali: Il mio turno e Scali
       ...(isBarista&&!isHiba?[]:[['mio-turno.html','⚑','Il mio turno'],['orario.html','⚓','Scali'],['orari.html','🕒','Orari'],['oggi.html','☀','Oggi']]),
@@ -91,7 +91,7 @@
       ['battaglia-garda.html','⛴','Battaglia sul Garda'],
       ['controllo_cassa.html','$','Cassa'],
       ['quiz.html','🏆','Concorsi'],
-      ['navigoto.html','<img src="assets/images/navigoto-badge.jpg" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;display:inline-block;box-shadow:0 0 6px rgba(45,212,191,0.5)">','Navigoto'],
+      ['navigoto.html','<img src="assets/images/navigoto-badge.png" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;display:inline-block;box-shadow:0 0 6px rgba(45,212,191,0.5)">','Navigoto'],
       ['backup-dati.html','⤓','Backup'],
       ['impostazioni.html','⚙','Impostazioni'],
       ...(roles.puoAprire?.('comitive.html',agent)?[['comitive.html','⛴','Comitive']]:[]),
