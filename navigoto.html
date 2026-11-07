@@ -86,22 +86,19 @@
       margin-bottom: 14px;
     }
     .statue-logo {
-      width: 105px;
-      height: 105px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #2dd4bf;
-      box-shadow: 0 0 25px rgba(45, 212, 191, 0.5), inset 0 0 15px rgba(0,0,0,0.8);
-      background: #020b14;
+      width: 104px;
+      height: 104px;
+      object-fit: contain;
       display: block;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.55)) drop-shadow(0 0 32px rgba(16, 185, 129, 0.3));
+      transition: transform 0.3s ease, filter 0.3s ease;
     }
     .statue-stage.powered-on .statue-logo {
       animation: logoPulse 4s infinite alternate ease-in-out;
     }
     @keyframes logoPulse {
-      0% { transform: scale(1); box-shadow: 0 0 22px rgba(45, 212, 191, 0.5); }
-      100% { transform: scale(1.03); box-shadow: 0 0 35px rgba(45, 212, 191, 0.8), 0 0 70px rgba(56, 189, 248, 0.3); }
+      0% { transform: scale(1); filter: drop-shadow(0 0 16px rgba(45, 212, 191, 0.55)); }
+      100% { transform: scale(1.04); filter: drop-shadow(0 0 28px rgba(45, 212, 191, 0.85)) drop-shadow(0 0 48px rgba(56, 189, 248, 0.35)); }
     }
 
     /* SCRITTA NAVIGOTO LETTERA PER LETTERA */
@@ -125,7 +122,7 @@
     }
     @media (max-width: 600px) {
       .nav-let { font-size: 38px; gap: 4px; }
-      .statue-logo { width: 85px; height: 85px; }
+      .statue-logo { width: 84px; height: 84px; }
     }
 
     .statue-stage.powered-off .nav-let {
@@ -285,6 +282,24 @@
       color: var(--muted);
       font-weight: 600;
       margin-top: 2px;
+      cursor: pointer;
+    }
+    #btnCustomColor {
+      position: relative;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #btnCustomColor.holding {
+      transform: scale(0.96);
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.6) !important;
+    }
+    #btnCustomColor.hold-ready {
+      transform: scale(1.05);
+      border-color: #2dd4bf !important;
+      box-shadow: 0 0 26px rgba(45, 212, 191, 0.9) !important;
+      background: rgba(45, 212, 191, 0.2) !important;
     }
 
     /* CARD CONTATORE MONETE ARCADE */
@@ -332,47 +347,6 @@
       font-size: 12px;
       color: var(--accent);
       font-weight: 700;
-    }
-    .coin-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn-coin-sim {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      border: 1px solid #fbbf24;
-      color: #1e1302;
-      font-weight: 900;
-      padding: 13px 26px;
-      border-radius: 12px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
-      transition: all 0.2s;
-    }
-    .btn-coin-sim:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.55);
-    }
-    .btn-reset-coins {
-      background: #15222d;
-      border: 1px solid #334e63;
-      color: #94a3b8;
-      font-weight: 800;
-      padding: 13px 20px;
-      border-radius: 12px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-reset-coins:hover {
-      background: #2a151b;
-      border-color: #fb7185;
-      color: #fca5a5;
     }
 
     @media (max-width: 820px) {
@@ -462,16 +436,16 @@
           <span>Fireworks</span>
         </button>
         
-        <!-- PULSANTE COLORE PERSONALIZZATO (CLICK: ATTIVA | LONG PRESS: CAMBIA) -->
+        <!-- PULSANTE COLORE PERSONALIZZATO (CLICK: ATTIVA | TIENI PREMUTO O TOCCA ICONA: CAMBIA COLORE) -->
         <button type="button" class="btn-effect" data-effect="4" id="btnCustomColor">
-          <span class="ico" id="customColorDot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#c1170b;box-shadow:0 0 10px #c1170b;border:2px solid rgba(255,255,255,0.4)"></span>
+          <span class="ico" id="customColorDot" title="Tocca per scegliere il colore" style="display:inline-block;width:30px;height:30px;border-radius:50%;background:#c1170b;box-shadow:0 0 12px #c1170b;border:2px solid rgba(255,255,255,0.7);cursor:pointer;"></span>
           <span>Tinta Unita</span>
-          <small class="hint">Tieni premuto 🎨</small>
+          <small class="hint" id="customColorHint">Tieni premuto 🎨</small>
         </button>
       </div>
 
-      <!-- Color picker nascosto azionato dal pulsante -->
-      <input type="color" id="hiddenColorPicker" style="position:absolute;opacity:0;pointer-events:none;left:-9999px" value="#c1170b">
+      <!-- Color picker nativo off-screen (attivo e accessibile per gesture utente) -->
+      <input type="color" id="hiddenColorPicker" style="position:fixed;top:-500px;left:-500px;width:10px;height:10px;opacity:0.01;visibility:visible;" value="#c1170b">
     </section>
 
     <!-- CONTATORE MONETE ARCADE -->
@@ -480,14 +454,6 @@
         <div class="arcade-title">Totale Monete Rilevate</div>
         <div class="arcade-number" id="coinCounter">---</div>
         <div class="arcade-sub">Sincronizzazione in tempo reale via Cloud</div>
-      </div>
-      <div class="coin-actions">
-        <button type="button" class="btn-coin-sim" id="btnSimCoin">
-          <span>✨</span> Simula Passaggio Moneta
-        </button>
-        <button type="button" class="btn-reset-coins" id="btnResetCoins">
-          Azzera Contatore
-        </button>
       </div>
     </section>
   </main>
@@ -801,38 +767,82 @@
         });
       });
 
-      // GESTIONE PULSANTE COLORE PERSONALIZZATO:
-      // Click rapido = attiva effetto 4
-      // Pressione prolungata (> 500ms) = apre il selettore colore per cambiarlo
-      let longPressTimer = null;
-      let isLongPressTriggered = false;
-
-      function triggerColorPicker() {
-        isLongPressTriggered = true;
-        navigator.vibrate?.(50);
-        hiddenColorPicker.click();
+      // APERTURA DEL COLOR PICKER (Compatibile con iOS Safari, Android Chrome e Desktop)
+      function openColorPicker() {
+        try {
+          if (typeof hiddenColorPicker.showPicker === 'function') {
+            hiddenColorPicker.showPicker();
+          } else {
+            hiddenColorPicker.click();
+          }
+        } catch (e) {
+          hiddenColorPicker.click();
+        }
       }
 
-      btnCustomColor.addEventListener('pointerdown', (e) => {
-        if (e.button !== 0) return; // solo tasto sinistro / tocco
-        isLongPressTriggered = false;
-        longPressTimer = setTimeout(triggerColorPicker, 500);
+      // 1. Tocco diretto sul pallino rotondo del colore o sul testo del suggerimento: apre SUBITO il selettore!
+      customColorDot?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openColorPicker();
+      });
+      const customColorHint = document.getElementById('customColorHint');
+      customColorHint?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openColorPicker();
       });
 
-      const cancelPress = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
+      // 2. GESTIONE LONG-PRESS SUL PULSANTE TINTA UNITA:
+      // - Pressione prolungata (> 400ms): al rilascio apre il selettore colore per sceglierne uno nuovo
+      // - Tap / Click rapido (< 400ms): attiva immediatamente l'effetto Tinta Unita
+      let pressStartTime = 0;
+      let holdTimer = null;
+      let isHoldTriggered = false;
+
+      btnCustomColor.addEventListener('pointerdown', (e) => {
+        if (e.button && e.button !== 0) return;
+        pressStartTime = Date.now();
+        isHoldTriggered = false;
+        btnCustomColor.classList.add('holding');
+
+        holdTimer = setTimeout(() => {
+          isHoldTriggered = true;
+          navigator.vibrate?.(60);
+          btnCustomColor.classList.add('hold-ready');
+          if (customColorHint) customColorHint.textContent = 'Rilascia per scegliere! 🎨';
+        }, 400);
+      });
+
+      const clearHoldState = () => {
+        if (holdTimer) {
+          clearTimeout(holdTimer);
+          holdTimer = null;
         }
+        btnCustomColor.classList.remove('holding', 'hold-ready');
+        if (customColorHint) customColorHint.textContent = 'Tieni premuto 🎨';
       };
 
-      btnCustomColor.addEventListener('pointerup', cancelPress);
-      btnCustomColor.addEventListener('pointerleave', cancelPress);
-      btnCustomColor.addEventListener('pointercancel', cancelPress);
+      btnCustomColor.addEventListener('pointerleave', clearHoldState);
+      btnCustomColor.addEventListener('pointercancel', clearHoldState);
 
-      btnCustomColor.addEventListener('click', () => {
-        if (isLongPressTriggered) {
-          isLongPressTriggered = false;
+      btnCustomColor.addEventListener('pointerup', (e) => {
+        const duration = Date.now() - pressStartTime;
+        const wasHold = isHoldTriggered || duration >= 400;
+        clearHoldState();
+
+        if (wasHold) {
+          e.preventDefault();
+          e.stopPropagation();
+          // Eseguito sincronicamente dentro pointerup (gesto utente attivo garantito dal browser)
+          openColorPicker();
+        }
+      });
+
+      // Click rapido: attiva subito l'effetto Tinta Unita
+      btnCustomColor.addEventListener('click', (e) => {
+        if (isHoldTriggered) {
+          isHoldTriggered = false;
           return;
         }
         // Click normale: attiva subito l'effetto Tinta Unita
@@ -848,9 +858,15 @@
       });
 
       // Doppio click su desktop apre anche la palette comodamente
-      btnCustomColor.addEventListener('dblclick', triggerColorPicker);
+      btnCustomColor.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        openColorPicker();
+      });
 
       // Quando l'utente sceglie un nuovo colore dalla palette
+      hiddenColorPicker.addEventListener('input', () => {
+        updateCustomColorDisplay(hiddenColorPicker.value);
+      });
       hiddenColorPicker.addEventListener('change', () => {
         const newColor = hiddenColorPicker.value;
         updateCustomColorDisplay(newColor);
@@ -863,26 +879,6 @@
         btnPowerMain.className = 'btn-power-main on';
         powerText.textContent = 'ACCESO';
         sendCloudUpdate({ custom_hex: newColor, effect: 4, power: true });
-      });
-
-      // Simula Moneta
-      document.getElementById('btnSimCoin').addEventListener('click', () => {
-        arcadeBox.classList.remove('coin-pulse');
-        void arcadeBox.offsetWidth;
-        arcadeBox.classList.add('coin-pulse');
-        const current = Number(coinCounter.textContent) || 0;
-        sendCloudUpdate({
-          trigger_coin: Date.now(),
-          coins: current + 1
-        });
-      });
-
-      // Reset Monete
-      document.getElementById('btnResetCoins').addEventListener('click', () => {
-        if (!confirm('Vuoi azzerare il contatore monete sul Cloud e sulla scheda?')) return;
-        coinCounter.textContent = '0';
-        lastCoinCount = 0;
-        sendCloudUpdate({ coins: 0 });
       });
 
       // Avvio
