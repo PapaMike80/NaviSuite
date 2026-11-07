@@ -496,6 +496,7 @@
       let currentEffect = 5;
       let currentBrightness = 180;
       let currentCustomColor = '#c1170b';
+      let currentLetterSec = 3;
       let lastCoinCount = -1;
       let animFrameId = null;
 
@@ -560,13 +561,14 @@
             el.style.textShadow = `0 0 ${12 + breath * 16}px #f59e0b, 0 0 ${25 + breath * 20}px #d97706`;
           });
         }
-        // 3: Cyberpunk Neon
+        // 3: Cyberpunk Neon (alternanza elettrica tra fucsia fluo e ciano a scorrimento, identica alla statua)
         else if (currentEffect === 3) {
+          const shift = Math.floor(animTick / 20) % 2;
           letterSpans.forEach((el, i) => {
-            const isPink = (i % 2 === 0);
-            const col = isPink ? '#ec4899' : '#06b6d4';
+            const isPink = ((i + shift) % 2 === 0);
+            const col = isPink ? '#ff0099' : '#00f0ff';
             el.style.color = col;
-            el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
+            el.style.textShadow = `0 0 16px ${col}, 0 0 32px ${col}`;
           });
         }
         // 4: Colore Personalizzato
@@ -577,12 +579,17 @@
             el.style.textShadow = `0 0 16px ${col}, 0 0 32px ${col}`;
           });
         }
-        // 5: Lettere NAVI a Colori
+        // 5: Lettere NAVI a Colori (rotazione automatica di tinte contrastanti ogni 3 secondi, identica alla statua)
         else if (currentEffect === 5) {
+          const cycleTicks = Math.max(60, (currentLetterSec || 3) * 60);
+          const paletteIndex = Math.floor(animTick / cycleTicks);
+          const offset = (paletteIndex * 52) % 360;
           letterSpans.forEach((el, i) => {
-            const col = activeLetterColors[i] || DEFAULT_LETTER_COLORS[i % 8];
+            const slot = (i * 3) % 8; // Passo 3 per forte contrasto tra lettere adiacenti (come nel firmware ESP)
+            const hue = (offset + slot * 45) % 360;
+            const col = `hsl(${hue}, 100%, 55%)`;
             el.style.color = col;
-            el.style.textShadow = `0 0 15px ${col}, 0 0 30px ${col}`;
+            el.style.textShadow = `0 0 16px ${col}, 0 0 32px ${col}`;
           });
         }
         // 6: Fireworks Party
@@ -698,6 +705,11 @@
         // Colore personalizzato
         if (data.custom_hex) {
           updateCustomColorDisplay(data.custom_hex);
+        }
+
+        // Intervallo rotazione lettere
+        if (data.letter_sec !== undefined) {
+          currentLetterSec = Number(data.letter_sec) || 3;
         }
 
         // Monete
